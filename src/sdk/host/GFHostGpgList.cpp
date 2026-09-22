@@ -39,7 +39,7 @@
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace {
 
@@ -104,12 +104,12 @@ template <typename T>
 using Reg = GFHandleRegistry<T>;
 
 void ReportStaleList(const void* handle, const char* what) {
-  LOG_W() << "GFSDKGpgList:" << what
-          << "called on a handle that is not live (already released, or never "
-             "issued by this SDK):"
-          << handle;
+  LOG_W().nospace()
+      << what
+      << ": stale handle (already released, or never issued by the host): "
+      << handle;
 #ifdef DEBUG
-  qFatal("GFSDKGpgList: %s on stale handle %p", what, handle);
+  qFatal("%s: stale handle %p", what, handle);
 #endif
 }
 
@@ -117,8 +117,9 @@ void ReportStaleList(const void* handle, const char* what) {
 template <typename T>
 auto ResolveLive(T* l, const char* what) -> T* {
   if (l == nullptr) return nullptr;
-  if (!Reg<T>::Instance().IsLive(l)) {
-    ReportStaleList(l, what);
+  const auto state = Reg<T>::Instance().Check(l, what);
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) ReportStaleList(l, what);
     return nullptr;
   }
   Q_ASSERT(l->magic == kGFListMagic);
@@ -147,8 +148,9 @@ void DestroyList(T* l) {
 template <typename T>
 void ReleaseList(T* l, const char* what) {
   if (l == nullptr) return;
-  if (!Reg<T>::Instance().Take(l)) {
-    ReportStaleList(l, what);
+  const auto state = Reg<T>::Instance().Take(l, what);
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) ReportStaleList(l, what);
     return;
   }
   DestroyList(l);
@@ -164,7 +166,7 @@ void SweepOneListType(const QString& module_id, QList<const char*>& origins) {
 }
 
 /// Bounds-checked row access. An out-of-range index is a caller bug, but it
-/// yields an empty string rather than undefined behaviour.
+/// yields an empty string rather than undefined behavior.
 template <typename L>
 auto RowAt(L* l, size_t i) -> decltype(&l->rows[0]) {
   if (l == nullptr) return nullptr;
@@ -267,32 +269,6 @@ auto GFGpgKeyBriefListCount(GFGpgKeyBriefListRef l) -> size_t {
   return impl == nullptr ? 0 : static_cast<size_t>(impl->rows.size());
 }
 
-#define GF_BRIEF_STR(fn, member)                              \
-  auto fn(GFGpgKeyBriefListRef l, size_t i) -> const char* {  \
-    const auto* row = RowAt(ResolveLive(l, #fn), i);          \
-    return row == nullptr ? kEmpty : row->member.constData(); \
-  }
-
-GF_BRIEF_STR(GFGpgKeyBriefFingerprint, fingerprint)
-GF_BRIEF_STR(GFGpgKeyBriefKeyId, key_id)
-GF_BRIEF_STR(GFGpgKeyBriefUid, uid)
-GF_BRIEF_STR(GFGpgKeyBriefMatchedEmail, matched_email)
-#undef GF_BRIEF_STR
-
-#define GF_BRIEF_NUM(fn, member, type)                \
-  auto fn(GFGpgKeyBriefListRef l, size_t i) -> type { \
-    const auto* row = RowAt(ResolveLive(l, #fn), i);  \
-    return row == nullptr ? 0 : row->member;          \
-  }
-
-GF_BRIEF_NUM(GFGpgKeyBriefExpiresAt, expires_at, int64_t)
-GF_BRIEF_NUM(GFGpgKeyBriefUsability, usability, int)
-GF_BRIEF_NUM(GFGpgKeyBriefCanEncrypt, can_encrypt, int)
-GF_BRIEF_NUM(GFGpgKeyBriefCanSign, can_sign, int)
-GF_BRIEF_NUM(GFGpgKeyBriefMatchedUidIsPrimary, matched_uid_is_primary, int)
-GF_BRIEF_NUM(GFGpgKeyBriefMatchedUidRevoked, matched_uid_revoked, int)
-#undef GF_BRIEF_NUM
-
 void GFGpgKeyBriefListRelease(GFGpgKeyBriefListRef l) {
   ReleaseList(l, "GFGpgKeyBriefListRelease");
 }
@@ -346,29 +322,6 @@ auto GFGpgRecipientListCount(GFGpgRecipientListRef l) -> size_t {
   auto* impl = ResolveLive(l, "GFGpgRecipientListCount");
   return impl == nullptr ? 0 : static_cast<size_t>(impl->rows.size());
 }
-
-#define GF_RCPT_STR(fn, member)                               \
-  auto fn(GFGpgRecipientListRef l, size_t i) -> const char* { \
-    const auto* row = RowAt(ResolveLive(l, #fn), i);          \
-    return row == nullptr ? kEmpty : row->member.constData(); \
-  }
-
-GF_RCPT_STR(GFGpgRecipientKeyId, key_id)
-GF_RCPT_STR(GFGpgRecipientPubAlgo, pub_algo)
-GF_RCPT_STR(GFGpgRecipientFingerprint, fingerprint)
-GF_RCPT_STR(GFGpgRecipientUid, uid)
-#undef GF_RCPT_STR
-
-#define GF_RCPT_NUM(fn, member)                       \
-  auto fn(GFGpgRecipientListRef l, size_t i) -> int { \
-    const auto* row = RowAt(ResolveLive(l, #fn), i);  \
-    return row == nullptr ? 0 : row->member;          \
-  }
-
-GF_RCPT_NUM(GFGpgRecipientKeyFound, key_found)
-GF_RCPT_NUM(GFGpgRecipientHasSecret, has_secret)
-GF_RCPT_NUM(GFGpgRecipientHidden, hidden)
-#undef GF_RCPT_NUM
 
 void GFGpgRecipientListRelease(GFGpgRecipientListRef l) {
   ReleaseList(l, "GFGpgRecipientListRelease");
@@ -451,10 +404,6 @@ auto GFGpgListOutstandingCount(const char* module_id) -> size_t {
 
 }  // namespace gf_host
 
-// The file-local helpers above are inside gf_host; these definitions are
-// not, because their declarations are at global scope.
-using namespace gf_host;  // NOLINT(build/namespaces)
-
 namespace gf_sdk_internal {
 
 auto NewStringList(const QList<QString>& values, GFStringListRef* out) -> int {
@@ -489,5 +438,3 @@ auto RecipientRowAt(GFGpgRecipientListRef l, size_t i)
 }
 
 }  // namespace gf_sdk_internal
-
-namespace gf_host {}  // namespace gf_host

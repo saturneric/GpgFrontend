@@ -45,7 +45,7 @@
 #include "private/GFHostContext.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 #include "ui/UIModuleManager.h"
 
 namespace {
@@ -85,20 +85,21 @@ namespace {
 using ResultRegistry = GFHandleRegistry<GFGpgResultImpl>;
 
 void ReportStaleResult(const void* handle, const char* what) {
-  LOG_W() << "GFSDKGpgResult:" << what
-          << "called on a handle that is not live (already released, or never "
-             "issued by this SDK):"
-          << handle;
+  LOG_W().nospace()
+      << what
+      << ": stale handle (already released, or never issued by the host): "
+      << handle;
 #ifdef DEBUG
-  qFatal("GFSDKGpgResult: %s on stale handle %p", what, handle);
+  qFatal("%s: stale handle %p", what, handle);
 #endif
 }
 
 /// Validate against the registry BEFORE dereferencing. Never the other way.
 auto ResolveLive(GFGpgResultRef r, const char* what) -> GFGpgResultImpl* {
   if (r == nullptr) return nullptr;
-  if (!ResultRegistry::Instance().IsLive(r)) {
-    ReportStaleResult(r, what);
+  const auto state = ResultRegistry::Instance().Check(r, what);
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) ReportStaleResult(r, what);
     return nullptr;
   }
   Q_ASSERT(r->magic == kGFGpgResultMagic);
@@ -197,13 +198,16 @@ auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
   if (out == nullptr) return -1;
   *out = nullptr;
 
+  // Declared outside the try so an exception cannot orphan a registered
+  // result: the catch releases it.
+  GFGpgResultImpl* impl = nullptr;
   try {
     auto signer_keys = KeysOf(channel, key_ids, key_ids_size);
     if (signer_keys.empty()) {
       return FailRequest(out, "no usable signing key was given", "GFGpgSign");
     }
 
-    auto* impl = NewResult("GFGpgSign");
+    impl = NewResult("GFGpgSign");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -228,6 +232,10 @@ auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
   } catch (...) {
     // No C++ exception may cross the C ABI.
     LOG_E() << "GFGpgSign: unexpected exception";
+    if (impl != nullptr) {
+      GFGpgResultRelease(impl);
+      *out = nullptr;
+    }
     return -1;
   }
 }
@@ -237,6 +245,9 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
   if (out == nullptr) return -1;
   *out = nullptr;
 
+  // Declared outside the try so an exception cannot orphan a registered
+  // result: the catch releases it.
+  GFGpgResultImpl* impl = nullptr;
   try {
     auto recipients = KeysOf(channel, key_ids, key_ids_size);
     if (recipients.empty()) {
@@ -244,7 +255,7 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
                          "GFGpgEncrypt");
     }
 
-    auto* impl = NewResult("GFGpgEncrypt");
+    impl = NewResult("GFGpgEncrypt");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -265,6 +276,10 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
     return GF_GPG_OK;
   } catch (...) {
     LOG_E() << "GFGpgEncrypt: unexpected exception";
+    if (impl != nullptr) {
+      GFGpgResultRelease(impl);
+      *out = nullptr;
+    }
     return -1;
   }
 }
@@ -273,8 +288,11 @@ auto GFGpgDecrypt(int channel, GFBufferView in, GFGpgResultRef* out) -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
 
+  // Declared outside the try so an exception cannot orphan a registered
+  // result: the catch releases it.
+  GFGpgResultImpl* impl = nullptr;
   try {
-    auto* impl = NewResult("GFGpgDecrypt");
+    impl = NewResult("GFGpgDecrypt");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -295,6 +313,10 @@ auto GFGpgDecrypt(int channel, GFBufferView in, GFGpgResultRef* out) -> int {
     return GF_GPG_OK;
   } catch (...) {
     LOG_E() << "GFGpgDecrypt: unexpected exception";
+    if (impl != nullptr) {
+      GFGpgResultRelease(impl);
+      *out = nullptr;
+    }
     return -1;
   }
 }
@@ -304,8 +326,11 @@ auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
   if (out == nullptr) return -1;
   *out = nullptr;
 
+  // Declared outside the try so an exception cannot orphan a registered
+  // result: the catch releases it.
+  GFGpgResultImpl* impl = nullptr;
   try {
-    auto* impl = NewResult("GFGpgVerify");
+    impl = NewResult("GFGpgVerify");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -325,6 +350,10 @@ auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
     return GF_GPG_OK;
   } catch (...) {
     LOG_E() << "GFGpgVerify: unexpected exception";
+    if (impl != nullptr) {
+      GFGpgResultRelease(impl);
+      *out = nullptr;
+    }
     return -1;
   }
 }
@@ -374,8 +403,11 @@ void GFGpgResultRelease(GFGpgResultRef r) {
   if (r == nullptr) return;
 
   // Registry first: never dereference a pointer we may not own.
-  if (!ResultRegistry::Instance().Take(r)) {
-    ReportStaleResult(r, "GFGpgResultRelease");
+  const auto state = ResultRegistry::Instance().Take(r, "gpg.result_release");
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) {
+      ReportStaleResult(r, "gpg.result_release");
+    }
     return;
   }
 

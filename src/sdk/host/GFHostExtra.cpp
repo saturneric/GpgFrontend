@@ -30,16 +30,11 @@
 #include <core/utils/CommonUtils.h>
 
 #include "GFHostImpl.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace gf_host {
 
-auto GFCompareSoftwareVersion(const char *current_version,
-                              const char *latest_version) -> int {
-  return GpgFrontend::GFCompareSoftwareVersion(GFStrView(current_version),
-                                               GFStrView(latest_version));
-}
-auto GFHttpRequestUserAgent() -> const char * {
+auto GFHttpRequestUserAgent() -> const char* {
   // Borrowed, with process lifetime -- which is what the header has always
   // claimed. It used to hand back a fresh GFStrDup allocation instead, so the
   // five call sites that took the documentation at its word and did not free

@@ -34,7 +34,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace {
 
@@ -71,20 +71,22 @@ void DestroyBuffer(GFBufferImpl* impl) {
 }
 
 void ReportStaleHandle(const void* handle, const char* what) {
-  LOG_W() << "GFSDKBuffer:" << what
-          << "called on a handle that is not live (already released, or never "
-             "issued by this SDK):"
-          << handle;
+  LOG_W().nospace()
+      << what
+      << ": stale handle (already released, or never issued by the host): "
+      << handle;
 #ifdef DEBUG
-  qFatal("GFSDKBuffer: %s on stale handle %p", what, handle);
+  qFatal("%s: stale handle %p", what, handle);
 #endif
 }
 
 /// Validate then dereference, never the other way around.
 auto ResolveLive(GFBufferView buf, const char* what) -> const GFBufferImpl* {
   if (buf == nullptr) return nullptr;
-  if (!GFHandleRegistry<GFBufferImpl>::Instance().IsLive(buf)) {
-    ReportStaleHandle(buf, what);
+  const auto state =
+      GFHandleRegistry<GFBufferImpl>::Instance().Check(buf, what);
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) ReportStaleHandle(buf, what);
     return nullptr;
   }
   Q_ASSERT(buf->magic == kGFBufferMagic);
@@ -138,8 +140,12 @@ void GFBufferRelease(GFBufferRef buf) {
 
   // Registry first: a pointer we never issued, or already reclaimed, must not
   // be dereferenced at all.
-  if (!GFHandleRegistry<GFBufferImpl>::Instance().Take(buf)) {
-    ReportStaleHandle(buf, "GFBufferRelease");
+  const auto state =
+      GFHandleRegistry<GFBufferImpl>::Instance().Take(buf, "buffer.release");
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) {
+      ReportStaleHandle(buf, "buffer.release");
+    }
     return;
   }
 

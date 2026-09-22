@@ -34,7 +34,7 @@
 
 #include "GFHostImpl.h"
 #include "private/GFHostContext.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 #include "ui/UIModuleManager.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/UIStyle.h"
@@ -44,16 +44,16 @@ namespace gf_host {
 
 auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> int {
   if (dialog_raw_ptr == nullptr) {
-    LOG_E() << "dialog raw ptr is nullptr";
-    return 0;
+    LOG_E() << "ui.show_dialog: dialog is null";
+    return -1;
   }
 
   auto* q_obj = static_cast<QObject*>(dialog_raw_ptr);
   QPointer<QDialog> dialog = qobject_cast<QDialog*>(q_obj);
 
   if (dialog == nullptr) {
-    LOG_E() << "convert dialog raw ptr to qdialog failed";
-    return 0;
+    LOG_E() << "ui.show_dialog: object is not a QDialog";
+    return -1;
   }
 
   QPointer<QWidget> parent = nullptr;
@@ -62,34 +62,33 @@ auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> int {
     parent = qobject_cast<QWidget*>(qp_obj);
 
     if (parent == nullptr) {
-      LOG_E() << "convert parent raw ptr to qwidget failed";
-      return 0;
+      LOG_E() << "ui.show_dialog: parent is not a QWidget";
+      return -1;
     }
   }
 
   auto* main_thread = QApplication::instance()->thread();
 
-  LOG_D() << "before entering into main thread, current thread id:"
-          << QThread::currentThreadId()
-          << ", dialog thread: " << dialog->thread()
-          << "main thread: " << main_thread;
+  LOG_D() << "ui.show_dialog: scheduling on the main thread; caller thread:"
+          << QThread::currentThreadId() << "dialog thread:" << dialog->thread()
+          << "main thread:" << main_thread;
 
   if (dialog->thread() != main_thread) {
-    LOG_E() << "dialog must be created on main thread";
-    return 0;
+    LOG_E() << "ui.show_dialog: the dialog must be created on the main thread";
+    return -1;
   }
 
   QMetaObject::invokeMethod(
       parent == nullptr ? QPointer<QObject>(QApplication::instance()) : parent,
       [dialog, parent]() -> int {
-        LOG_D() << "show qdialog, current thread id:"
+        LOG_D() << "ui.show_dialog: showing on thread"
                 << QThread::currentThreadId();
         dialog->setParent(parent);
         dialog->show();
         return 0;
       });
 
-  return 1;
+  return 0;
 }
 
 auto GFUICreateGUIObject(QObjectFactory factory, void* data) -> void* {
@@ -101,7 +100,7 @@ auto GFUICreateGUIObject(QObjectFactory factory, void* data) -> void* {
     QMetaObject::invokeMethod(
         QApplication::instance(),
         [&]() {
-          LOG_D() << "create gui object, current thread id:"
+          LOG_D() << "ui.create_object: creating on thread"
                   << QThread::currentThreadId();
           object = factory(data);
         },
@@ -113,7 +112,7 @@ auto GFUICreateGUIObject(QObjectFactory factory, void* data) -> void* {
 
 auto GFUIGetGUIObject(const char* id) -> void* {
   if (id == nullptr) {
-    LOG_W() << "gui object id is nullptr";
+    LOG_W() << "ui.get_object: id is null";
     return nullptr;
   }
 
@@ -132,21 +131,21 @@ auto GFUIGlobalSettings() -> void* {
 auto GFUIRegisterFileExtensionHandleEvent(const char* extension,
                                           const char* event_prefix) -> int {
   if (extension == nullptr || event_prefix == nullptr) {
-    LOG_W() << "extension or event prefix is nullptr";
+    LOG_W() << "ui.register_file_extension: extension and event prefix are "
+               "required";
     return -1;
   }
 
-  GpgFrontend::UI::UIModuleManager::GetInstance()
-      .RegisterFileExtensionHandleEvent(GFStrView(extension),
-                                        GFStrView(event_prefix));
-  return 0;
+  return GpgFrontend::UI::UIModuleManager::GetInstance()
+                 .RegisterFileExtensionHandleEvent(GFStrView(extension),
+                                                   GFStrView(event_prefix))
+             ? 0
+             : -1;
 }
 
 auto GFUIRegisterSettingsPage(const char* page_id, const char* section_id,
                               const char* title, const char* keywords,
                               QObjectFactory factory, void* data) -> int {
-  // Every string is consumed first: GFUnStrDup frees what it is given, so
-  // returning early on one null argument would leak the others.
   GpgFrontend::UI::SettingsPageRegistration reg;
   reg.id = page_id == nullptr ? QString() : GFStrView(page_id);
   reg.section_id = section_id == nullptr ? QString() : GFStrView(section_id);
@@ -165,7 +164,7 @@ auto GFUIRegisterSettingsPage(const char* page_id, const char* section_id,
 
 auto GFUIUnregisterSettingsPage(const char* page_id) -> int {
   if (page_id == nullptr) {
-    LOG_W() << "settings page id is nullptr";
+    LOG_W() << "ui.unregister_settings_page: page id is null";
     return -1;
   }
 
@@ -174,10 +173,9 @@ auto GFUIUnregisterSettingsPage(const char* page_id) -> int {
              ? 0
              : -1;
 }
+
 auto GFUIRegisterTabPageView(const char* tab_type, QObjectFactory factory,
                              void* data) -> int {
-  // Consumed first: GFUnStrDup frees what it is given, so returning early on a
-  // null factory would leak the type string.
   GpgFrontend::UI::TabPageViewRegistration reg;
   reg.tab_type = tab_type == nullptr ? QString() : GFStrView(tab_type);
   reg.factory = factory;
@@ -191,7 +189,7 @@ auto GFUIRegisterTabPageView(const char* tab_type, QObjectFactory factory,
 
 auto GFUIUnregisterTabPageView(const char* tab_type) -> int {
   if (tab_type == nullptr) {
-    LOG_W() << "tab page view type is nullptr";
+    LOG_W() << "ui.unregister_tab_view: tab type is null";
     return -1;
   }
 
@@ -207,14 +205,14 @@ auto GFUIDefaultUserFilePath() -> char* {
 
 namespace {
 
-// Every colour getter is the same shape: resolve the widget, hand its palette
+// Every color getter is the same shape: resolve the widget, hand its palette
 // to the shared UI style, and return the result in a form that survives the C
 // boundary. 0 is "not a widget", which callers treat as "use the default".
 auto ColorOf(void* widget_raw_ptr,
              const std::function<QColor(const QPalette&)>& pick) -> uint32_t {
   auto* widget = qobject_cast<QWidget*>(static_cast<QObject*>(widget_raw_ptr));
   if (widget == nullptr) {
-    LOG_W() << "colour requested for something that is not a QWidget";
+    LOG_W() << "color requested for something that is not a QWidget";
     return 0;
   }
   return pick(widget->palette()).rgba();
@@ -252,14 +250,11 @@ auto GFUIAccentColor(void* widget, int positive) -> uint32_t {
   });
 }
 
-auto GFUIHumanSize(int64_t bytes) -> char* {
-  return GFStrDup(GpgFrontend::UI::HumanSize(static_cast<qint64>(bytes)));
-}
-
 auto GFUITakeCurrentEditorContent() -> GFBufferRef {
   const auto bytes = GpgFrontend::UI::CurrentEditorContent();
-  return GFBufferNewFromBytes(bytes.constData(),
-                              static_cast<size_t>(bytes.size()));
+  if (!bytes.has_value()) return nullptr;
+  return GFBufferNewFromBytes(bytes->constData(),
+                              static_cast<size_t>(bytes->size()));
 }
 
 }  // namespace gf_host

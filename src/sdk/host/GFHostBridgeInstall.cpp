@@ -78,6 +78,10 @@ auto InstallBridge() -> bool {
   bridge.release_host_api = [](const char* module_id) {
     gf_sdk_internal::ReleaseHostApi(module_id);
   };
+  bridge.wait_host_api_idle = [](const char* module_id,
+                                 int timeout_ms) -> bool {
+    return gf_sdk_internal::WaitHostApiIdle(module_id, timeout_ms);
+  };
   bridge.enter_module = &GFSdkEnterModule;
   bridge.current_module = &GFSdkCurrentModule;
   bridge.leave_module = &GFSdkLeaveModule;

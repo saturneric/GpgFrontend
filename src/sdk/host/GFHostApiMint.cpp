@@ -27,18 +27,20 @@
  */
 
 #include <QByteArray>
+#include <QDeadlineTimer>
 #include <QHash>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QString>
+#include <QWaitCondition>
 
 #include "GFSDKBuildInfo.h"
 #include "private/GFHostContext.h"
 #include "private/GFSDKHandleSweep.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 /**
- * @file GFSDKHostApiMint.cpp
+ * @file GFHostApiMint.cpp
  * @brief One grant per module, and the check every primitive makes on it.
  *
  * ## Why the record outlives the module
@@ -69,14 +71,19 @@ struct ContextRecord {
   QByteArray module_id;
   uint32_t granted = 0;
   bool live = false;
+  /// Gated calls currently running with this context. Guarded by the mutex.
+  int in_flight = 0;
   GFHostApi table{};
 };
 
 struct Registry {
   QMutex mutex;
-  /// By id, for minting and for the legacy-export check.
+  /// Signalled whenever a gated call ends, for WaitHostApiIdle().
+  QWaitCondition call_ended;
+  /// The current record for each module id.
   QHash<QString, ContextRecord*> by_id;
-  /// By pointer, so a context can be validated WITHOUT being dereferenced.
+  /// Every record ever minted, by pointer, so a context can be validated
+  /// WITHOUT being dereferenced. Records are never removed.
   QHash<const void*, ContextRecord*> by_context;
 };
 
@@ -85,16 +92,70 @@ auto Reg() -> Registry& {
   return registry;
 }
 
+/// How many gated calls THIS thread is inside, per record. A thread that
+/// waits for a module to go idle must not wait for its own calls.
+auto HeldByThisThread() -> QHash<const void*, int>& {
+  thread_local QHash<const void*, int> held;
+  return held;
+}
+
 auto AsContext(ContextRecord* record) -> GFHostContextRef {
   return reinterpret_cast<GFHostContextRef>(record);
 }
 
-/// The live record for @p ctx, or nullptr. Caller holds the mutex.
-auto LiveRecordLocked(GFHostContextRef ctx) -> ContextRecord* {
-  if (ctx == nullptr) return nullptr;
+/// The status of @p ctx and, when it is known, its record. Caller holds the
+/// mutex. Nothing is dereferenced to decide this: the pointer is looked up,
+/// not followed, so an invented value is simply absent from the table.
+auto StatusLocked(GFHostContextRef ctx, uint32_t capability,
+                  ContextRecord** out) -> HostContextStatus {
+  *out = nullptr;
+  if (ctx == nullptr) return HostContextStatus::kUNKNOWN;
+
   auto* record = Reg().by_context.value(static_cast<const void*>(ctx), nullptr);
-  if (record == nullptr || !record->live) return nullptr;
-  return record;
+  if (record == nullptr) return HostContextStatus::kUNKNOWN;
+  *out = record;
+  if (!record->live) return HostContextStatus::kREVOKED;
+
+  // capability 0 asks only "is this context live", which is the whole
+  // question for the always-granted groups.
+  if (capability == 0 || (record->granted & capability) != 0) {
+    return HostContextStatus::kOK;
+  }
+  return HostContextStatus::kDENIED;
+}
+
+void LogRefusal(HostContextStatus status, GFHostContextRef ctx,
+                const char* entry_point) {
+  switch (status) {
+    case HostContextStatus::kREVOKED:
+      LOG_W() << "refusing" << entry_point << "for module"
+              << ContextModuleId(ctx)
+              << ": the module has been unloaded, but a thread it started is "
+                 "still calling the host";
+      break;
+    case HostContextStatus::kDENIED:
+      LOG_W() << "refusing" << entry_point << "for module"
+              << ContextModuleId(ctx)
+              << ": its signed manifest does not declare the capability this "
+                 "call needs";
+      break;
+    default:
+      LOG_W() << "refusing" << entry_point
+              << ": the caller presented an unknown or forged host context";
+      break;
+  }
+}
+
+auto FillTable(ContextRecord* record) -> const GFHostApi* {
+  auto& table = record->table;
+  table = GFHostApi{};
+  table.struct_size = sizeof(GFHostApi);
+  table.abi_version = GF_SDK_ABI_VERSION;
+  table.granted = record->granted;
+  table.module_id = record->module_id.constData();
+  table.context = AsContext(record);
+  FillHostApiGroups(table, record->granted);
+  return &table;
 }
 
 }  // namespace
@@ -108,32 +169,27 @@ auto MintHostApi(const char* module_id, uint32_t granted) -> const GFHostApi* {
   const auto id = QString::fromUtf8(module_id);
   QMutexLocker locker(&Reg().mutex);
 
-  auto* record = Reg().by_id.value(id, nullptr);
-  if (record == nullptr) {
-    record = new ContextRecord();
-    record->module_id = QByteArray(module_id);
-    Reg().by_id.insert(id, record);
-    Reg().by_context.insert(static_cast<const void*>(AsContext(record)),
-                            record);
+  // Minting a module that is still live with the same grant returns the table
+  // it already holds: handing it a second one would leave the first live and
+  // unreachable.
+  auto* current = Reg().by_id.value(id, nullptr);
+  if (current != nullptr && current->live && current->granted == granted) {
+    return &current->table;
   }
 
-  // Re-minting an existing module updates the grant in place rather than
-  // handing out a second table. A module that is activated twice is holding
-  // the first pointer; giving it a different one would leave the first live
-  // and unreachable.
+  // Anything else gets a NEW record. A table is never rewritten once handed
+  // out, because other threads read it without this lock; and a thread left
+  // over from a previous load keeps presenting the old context, which stays
+  // revoked instead of being revived by the reload.
+  if (current != nullptr) current->live = false;
+
+  auto* record = new ContextRecord();
+  record->module_id = QByteArray(module_id);
   record->granted = granted;
   record->live = true;
-
-  auto& table = record->table;
-  table = GFHostApi{};
-  table.struct_size = sizeof(GFHostApi);
-  table.abi_version = GF_SDK_ABI_VERSION;
-  table.granted = granted;
-  table.module_id = record->module_id.constData();
-  table.context = AsContext(record);
-  FillHostApiGroups(table, granted);
-
-  return &table;
+  Reg().by_id.insert(id, record);
+  Reg().by_context.insert(static_cast<const void*>(AsContext(record)), record);
+  return FillTable(record);
 }
 
 void ReleaseHostApi(const char* module_id) {
@@ -143,74 +199,74 @@ void ReleaseHostApi(const char* module_id) {
   auto* record = Reg().by_id.value(QString::fromUtf8(module_id), nullptr);
   if (record == nullptr) return;
 
-  // Dead, not gone. See the note at the top of this file.
+  // Dead, not gone. See the note at the top of this file. The table is left
+  // exactly as it was, so a stale thread still finds every group it was
+  // given and is refused at the gate instead of reading a NULL.
   record->live = false;
-  record->granted = 0;
+}
+
+auto WaitHostApiIdle(const char* module_id, int timeout_ms) -> bool {
+  if (module_id == nullptr || *module_id == '\0') return true;
+  const QByteArray id(module_id);
+  QDeadlineTimer deadline(timeout_ms);
+
+  QMutexLocker locker(&Reg().mutex);
+  const auto& held = HeldByThisThread();
+  for (;;) {
+    int running = 0;
+    for (auto* record : std::as_const(Reg().by_context)) {
+      if (record->module_id != id) continue;
+      running += record->in_flight - held.value(record, 0);
+    }
+    if (running <= 0) return true;
+    if (!Reg().call_ended.wait(&Reg().mutex, deadline)) return false;
+  }
 }
 
 auto ContextStatusOf(GFHostContextRef ctx, uint32_t capability)
     -> HostContextStatus {
   QMutexLocker locker(&Reg().mutex);
-  if (ctx == nullptr) return HostContextStatus::kUNKNOWN;
-
-  auto* record = Reg().by_context.value(static_cast<const void*>(ctx), nullptr);
-  // Nothing was dereferenced to decide this: the pointer was looked up, not
-  // followed. An invented value is simply absent from the table.
-  if (record == nullptr) return HostContextStatus::kUNKNOWN;
-  if (!record->live) return HostContextStatus::kREVOKED;
-
-  // capability 0 asks only "is this context live", which is the whole
-  // question for the always-granted groups.
-  if (capability == 0 || (record->granted & capability) != 0) {
-    return HostContextStatus::kOK;
-  }
-  return HostContextStatus::kDENIED;
+  ContextRecord* record = nullptr;
+  return StatusLocked(ctx, capability, &record);
 }
 
-auto ContextHolds(GFHostContextRef ctx, uint32_t capability,
-                  const char* entry_point) -> bool {
-  const auto status = ContextStatusOf(ctx, capability);
-  if (status == HostContextStatus::kOK) return true;
-
-  switch (status) {
-    case HostContextStatus::kREVOKED:
-      LOG_W() << "refusing" << entry_point << "for module"
-              << ContextModuleId(ctx)
-              << ": it has been torn down and its grant released. Something "
-                 "it left running is still calling.";
-      break;
-    case HostContextStatus::kDENIED:
-      LOG_W() << "refusing" << entry_point << "for module"
-              << ContextModuleId(ctx)
-              << ": its signed manifest does not declare the capability this "
-                 "call needs";
-      break;
-    default:
-      LOG_W() << "refusing" << entry_point
-              << ": the caller presented a host context this process does not "
-                 "recognise";
-      break;
+auto BeginCall(GFHostContextRef ctx, uint32_t capability,
+               const char* entry_point) -> CallTicket {
+  HostContextStatus status;
+  {
+    QMutexLocker locker(&Reg().mutex);
+    ContextRecord* record = nullptr;
+    status = StatusLocked(ctx, capability, &record);
+    if (status == HostContextStatus::kOK) {
+      // Counted and attributed under the same lock that authorized it, so a
+      // release cannot land between the check and the call being recorded.
+      record->in_flight++;
+      HeldByThisThread()[record]++;
+      return CallTicket{record, record->module_id.constData()};
+    }
   }
-  return false;
+  LogRefusal(status, ctx, entry_point);
+  return {};
+}
+
+void EndCall(const CallTicket& ticket) {
+  if (ticket.record == nullptr) return;
+  QMutexLocker locker(&Reg().mutex);
+  auto* record = static_cast<ContextRecord*>(const_cast<void*>(ticket.record));
+  record->in_flight--;
+  auto& held = HeldByThisThread();
+  if (--held[record] <= 0) held.remove(record);
+  Reg().call_ended.wakeAll();
 }
 
 auto ContextModuleId(GFHostContextRef ctx) -> QString {
   QMutexLocker locker(&Reg().mutex);
-  if (ctx == nullptr) return {};
-  // Deliberately NOT LiveRecordLocked: this names a module in a log line, and
-  // the message that needs the name most is the one about a torn-down module
-  // still calling. Reading a dead record is safe here for the same reason the
-  // record is never freed at all.
-  auto* record = Reg().by_context.value(static_cast<const void*>(ctx), nullptr);
+  // Any record, live or dead: this names a module in a log line, and the
+  // message that needs the name most is the one about an unloaded module
+  // still calling. Reading a dead record is safe because none is ever freed.
+  ContextRecord* record = nullptr;
+  StatusLocked(ctx, 0, &record);
   return record == nullptr ? QString() : QString::fromUtf8(record->module_id);
-}
-
-auto ContextAttributionId(GFHostContextRef ctx) -> const char* {
-  QMutexLocker locker(&Reg().mutex);
-  auto* record = LiveRecordLocked(ctx);
-  // Safe to hand out beyond the lock: a record is never freed, and its
-  // module_id is never reassigned after minting.
-  return record == nullptr ? nullptr : record->module_id.constData();
 }
 
 }  // namespace gf_sdk_internal

@@ -35,7 +35,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "private/GFHostContext.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 #include "ui/UIModuleManager.h"
 
 namespace gf_host {
@@ -60,29 +60,30 @@ auto GFProjectVersion() -> const char* {
 
 auto GFQtEnvVersion() -> const char* { return QT_VERSION_STR; }
 
-void GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
-                          GFCommandExecuteCallback cb, void* data) {
-  QStringList args = CharArrayToQStringList(argv, argc);
-  GpgFrontend::GpgCommandExecutor::ExecuteContext const context{
-      cmd, args, [=](int exit_code, const QString& out, const QString& err) {
-        cb(data, exit_code, out.toUtf8(), err.toUtf8());
-      }};
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(context);
-}
-
 void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
                                int32_t contexts_size) {
+  // Everything here is borrowed: the module built the array, the contexts and
+  // their strings, and it releases them after this returns. Copy what is
+  // needed and free nothing -- gf::sdk::RunCommand passes stack memory.
   GpgFrontend::QContainer<GpgFrontend::GpgCommandExecutor::ExecuteContext>
       core_contexts;
+  if (contexts == nullptr || contexts_size <= 0) return;
 
-  GpgFrontend::QContainer<GFCommandExecuteContext> sdk_contexts =
-      ArrayToQList(contexts, contexts_size);
-  for (const auto sdk_context : sdk_contexts) {
-    QStringList args =
-        CharArrayToQStringList(sdk_context.argv, sdk_context.argc);
+  for (int32_t i = 0; i < contexts_size; ++i) {
+    const auto* sdk_context = contexts[i];
+    if (sdk_context == nullptr || sdk_context->cb == nullptr) continue;
+
+    QStringList args;
+    for (int32_t j = 0; sdk_context->argv != nullptr && j < sdk_context->argc;
+         ++j) {
+      if (sdk_context->argv[j] != nullptr) {
+        args.append(GFStrView(sdk_context->argv[j]));
+      }
+    }
+
     core_contexts.append(
-        {GFUnStrDup(sdk_context.cmd), args,
-         [data = sdk_context.data, cb = sdk_context.cb](
+        {GFStrView(sdk_context->cmd), args,
+         [data = sdk_context->data, cb = sdk_context->cb](
              int exit_code, const QString& out, const QString& err) {
            cb(data, exit_code, out.toUtf8(), err.toUtf8());
          }});
@@ -97,26 +98,32 @@ auto StrlenSafe(const char* str, size_t max_len) -> size_t {
   return end - str;
 }
 
-auto GFModuleStrDup(const char* src) -> char* {
-  auto len = StrlenSafe(src, kGfStrlenMax);
-  if (len > kGfStrlenMax) return nullptr;
+namespace {
 
-  char* dst = static_cast<char*>(GFAllocateMemory((len + 1) * sizeof(char)));
+/// One scan limit past the maximum, so a string that is exactly too long is
+/// refused instead of silently truncated to the limit.
+auto StrDupWith(const char* src, void* (*alloc)(uint32_t)) -> char* {
+  if (src == nullptr) return nullptr;
+
+  const auto limit = static_cast<size_t>(kGfStrlenMax);
+  const auto len = StrlenSafe(src, limit + 1);
+  if (len > limit) return nullptr;
+
+  auto* dst = static_cast<char*>(alloc(static_cast<uint32_t>(len + 1)));
+  if (dst == nullptr) return nullptr;
   memcpy(dst, src, len);
   dst[len] = '\0';
-
   return dst;
 }
 
+}  // namespace
+
+auto GFModuleStrDup(const char* src) -> char* {
+  return StrDupWith(src, &GFAllocateMemory);
+}
+
 auto GFModuleSecStrDup(const char* src) -> char* {
-  auto len = StrlenSafe(src, kGfStrlenMax);
-  if (len > kGfStrlenMax) return nullptr;
-
-  char* dst = static_cast<char*>(GFSecAllocateMemory((len + 1) * sizeof(char)));
-  memcpy(dst, src, len);
-  dst[len] = '\0';
-
-  return dst;
+  return StrDupWith(src, &GFSecAllocateMemory);
 }
 
 auto GFAppActiveLocale() -> char* { return GFStrDup(QLocale().name()); }
@@ -127,24 +134,6 @@ auto GFAppRegisterTranslatorReader(const char* id,
                  .RegisterTranslatorDataReader(GFStrView(id), reader)
              ? 0
              : -1;
-}
-
-auto GFCacheSave(const char* key, const char* value) -> int {
-  GpgFrontend::CacheManager::GetInstance().SaveCache(GFStrView(key),
-                                                     GFStrView(value));
-  return 0;
-}
-
-auto GFCacheGet(const char* key) -> const char* {
-  auto value =
-      GpgFrontend::CacheManager::GetInstance().LoadCache(GFStrView(key));
-  return GFStrDup(value);
-}
-
-auto GFCacheSaveWithTTL(const char* key, const char* value, int ttl) -> int {
-  GpgFrontend::CacheManager::GetInstance().SaveCache(GFStrView(key),
-                                                     GFStrView(value), ttl);
-  return 0;
 }
 
 auto GFProjectGitCommitHash() -> const char* {
@@ -165,60 +154,103 @@ auto GFSecReallocateMemory(void* ptr, uint32_t size) -> void* {
 
 void GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
 
-auto GFDurableCacheGet(const char* key) -> const char* {
-  auto value = GpgFrontend::CacheManager::GetInstance().LoadDurableCache(
-      "__module_" + GFStrView(key));
-  return GFStrDup(value.toJson());
+namespace {
+
+/// Where a module's value lives. The module id comes from the caller's
+/// context, never from the caller, so one module cannot name another's keys;
+/// the store is part of the key, so the durable and secure stores cannot
+/// read each other's entries.
+auto ModuleCacheKey(const QString& module_id, int store, const QString& key)
+    -> QString {
+  return QStringLiteral("__module_%1_%2_%3").arg(module_id).arg(store).arg(key);
 }
 
-auto GFDurableCacheSave(const char* key, const char* value) -> int {
-  GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
-      "__module_" + GFStrView(key),
-      QJsonDocument::fromJson(GFStrView(value).toUtf8()));
-  return 0;
+/// The key every module shared before keys were scoped by module and store.
+auto LegacyModuleCacheKey(const QString& key) -> QString {
+  return QStringLiteral("__module_") + key;
 }
 
-auto GFSecDurableCacheGet(const char* key) -> char* {
-  auto buffer = GpgFrontend::CacheManager::GetInstance().LoadSecDurableCache(
-      "__module_" + GFStrView(key));
-  if (buffer.Empty()) return nullptr;
-
-  // GFModuleSecStrDup copies into zeroizing memory; the GFBuffer wipes itself
-  // when it leaves scope, so the secret never sits in an ordinary allocation.
-  return GFModuleSecStrDup(
-      QString::fromUtf8(buffer.Data(), static_cast<int>(buffer.Size()))
-          .toUtf8()
-          .constData());
+auto IsDurable(int store) -> bool {
+  return store == GF_STORE_DURABLE || store == GF_STORE_SECURE_DURABLE;
 }
 
-auto GFSecDurableCacheSave(const char* key, const char* value) -> int {
-  if (key == nullptr || value == nullptr) return -1;
+}  // namespace
 
-  // Both arguments are owned, as everywhere else in this SDK -- but they come
-  // from different allocators and must go back to the matching one. The key is
-  // ordinary module memory; the secret came from GFModuleSecStrDup and has to
-  // be released through the secure allocator, which also wipes it. Freeing it
-  // the ordinary way aborts the process.
-  const auto key_string = GFStrView(key);
+auto GFModuleCacheGet(const QString& module_id, int store, const QString& key,
+                      GpgFrontend::GFBuffer* out) -> bool {
+  if (module_id.isEmpty() || key.isEmpty() || out == nullptr) return false;
+  auto& cache = GpgFrontend::CacheManager::GetInstance();
+  const auto scoped = ModuleCacheKey(module_id, store, key);
 
-  auto utf8 = QByteArray(value);
-  GpgFrontend::GFBuffer buffer(utf8);
+  if (store == GF_STORE_SESSION) {
+    *out = cache.LoadSecCache(scoped);
+    return !out->Empty();
+  }
+  if (!IsDurable(store)) return false;
 
-  // flush=true: a credential the user just typed has to survive a crash that
-  // happens before the periodic flush would have run.
-  GpgFrontend::CacheManager::GetInstance().SaveSecDurableCache(
-      "__module_" + key_string, buffer, true);
+  *out = cache.LoadSecDurableCache(scoped);
+  if (!out->Empty()) return true;
 
-  utf8.fill('\0');
-  GFSecFreeMemory(static_cast<void*>(const_cast<char*>(value)));
-  return 0;
+  // Migrate a value written before keys were scoped: move it to the scoped
+  // key the first time its owner asks for it. Both durable stores used the
+  // same legacy key, so whichever store asks first takes it.
+  const auto legacy = LegacyModuleCacheKey(key);
+  auto value = cache.LoadSecDurableCache(legacy);
+  if (value.Empty()) return false;
+
+  cache.SaveSecDurableCache(scoped, value, true);
+  cache.ResetDurableCache(legacy);
+  *out = value;
+  return true;
 }
 
-auto GFSecDurableCacheRemove(const char* key) -> int {
-  if (key == nullptr) return -1;
-  GpgFrontend::CacheManager::GetInstance().ResetDurableCache("__module_" +
-                                                             GFStrView(key));
-  return 0;
+auto GFModuleCacheSet(const QString& module_id, int store, const QString& key,
+                      const GpgFrontend::GFBuffer& value, int64_t ttl_seconds)
+    -> bool {
+  if (module_id.isEmpty() || key.isEmpty()) return false;
+
+  // An empty value is not stored: the durable cache never writes one to disk,
+  // so storing it would be undone on the next start. Treat it as a removal.
+  if (value.Empty()) return GFModuleCacheRemove(module_id, store, key);
+
+  auto& cache = GpgFrontend::CacheManager::GetInstance();
+  const auto scoped = ModuleCacheKey(module_id, store, key);
+  switch (store) {
+    case GF_STORE_SESSION:
+      cache.SaveSecCache(scoped, value, ttl_seconds > 0 ? ttl_seconds : -1);
+      return true;
+    case GF_STORE_DURABLE:
+      cache.SaveSecDurableCache(scoped, value, false);
+      return true;
+    case GF_STORE_SECURE_DURABLE:
+      // flush=true: a credential the user just typed has to survive a crash
+      // that happens before the periodic flush would have run.
+      cache.SaveSecDurableCache(scoped, value, true);
+      return true;
+    default:
+      return false;
+  }
+}
+
+auto GFModuleCacheRemove(const QString& module_id, int store,
+                         const QString& key) -> bool {
+  if (module_id.isEmpty() || key.isEmpty()) return false;
+  auto& cache = GpgFrontend::CacheManager::GetInstance();
+  const auto scoped = ModuleCacheKey(module_id, store, key);
+
+  if (store == GF_STORE_SESSION) {
+    cache.ResetCache(scoped);
+    return true;
+  }
+  if (!IsDurable(store)) return false;
+
+  cache.ResetDurableCache(scoped);
+  // A value that was never migrated must not come back on the next read.
+  const auto legacy = LegacyModuleCacheKey(key);
+  if (!cache.LoadSecDurableCache(legacy).Empty()) {
+    cache.ResetDurableCache(legacy);
+  }
+  return true;
 }
 
 auto GFAppKeyProtectionLevel() -> int {

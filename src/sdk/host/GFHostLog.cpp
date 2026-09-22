@@ -135,24 +135,4 @@ auto GFModuleLogEnabled(const char* module_id, int severity) -> int {
   return IsEnabled(CategoryFor(id, severity), severity) ? 1 : 0;
 }
 
-void GFModuleLogTrace(const char* l) {
-  GFModuleLogAt(nullptr, GF_LOG_TRACE, nullptr, 0, nullptr, l);
-}
-
-void GFModuleLogDebug(const char* l) {
-  GFModuleLogAt(nullptr, GF_LOG_DEBUG, nullptr, 0, nullptr, l);
-}
-
-void GFModuleLogInfo(const char* l) {
-  GFModuleLogAt(nullptr, GF_LOG_INFO, nullptr, 0, nullptr, l);
-}
-
-void GFModuleLogWarn(const char* l) {
-  GFModuleLogAt(nullptr, GF_LOG_WARN, nullptr, 0, nullptr, l);
-}
-
-void GFModuleLogError(const char* l) {
-  GFModuleLogAt(nullptr, GF_LOG_ERROR, nullptr, 0, nullptr, l);
-}
-
 }  // namespace gf_host

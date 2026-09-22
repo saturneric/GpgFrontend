@@ -30,13 +30,13 @@
 
 #include "GFHostImpl.h"
 #include "private/GFHostContext.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace gf_host {
 
 auto GFPgpInspectData(GFBufferView in, char** out_json) -> int {
   if (out_json == nullptr) {
-    LOG_W() << "out json pointer is nullptr";
+    LOG_W() << "pgp.inspect: out_json must not be null";
     return -1;
   }
 

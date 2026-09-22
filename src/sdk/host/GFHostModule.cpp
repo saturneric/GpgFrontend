@@ -29,51 +29,13 @@
 #include <core/module/ModuleManager.h>
 
 #include "GFHostImpl.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace gf_host {
 
 void GFModuleListenEvent(const char *module_id, const char *event_id) {
   return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
       GFStrView(module_id).toLower(), GFStrView(event_id).toUpper());
-}
-
-auto GFModuleRetrieveRTValueOrDefault(const char *namespace_, const char *key,
-                                      const char *default_value) -> const
-    char * {
-  return GFStrDup(GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
-      GFStrView(namespace_), GFStrView(key), GFStrView(default_value)));
-}
-
-void GFModuleUpsertRTValue(const char *namespace_, const char *key,
-                           const char *vaule) {
-  GpgFrontend::Module::UpsertRTValue(GFStrView(namespace_).toLower(),
-                                     GFStrView(key).toLower(),
-                                     GFStrView(vaule));
-}
-
-void GFModuleUpsertRTValueBool(const char *namespace_, const char *key,
-                               int value) {
-  GpgFrontend::Module::UpsertRTValue(GFStrView(namespace_).toLower(),
-                                     GFStrView(key).toLower(), value != 0);
-}
-
-auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
-                             char ***child_keys) -> int32_t {
-  *child_keys = nullptr;
-  auto keys = GpgFrontend::Module::ListRTChildKeys(
-      GFStrView(namespace_).toLower(), GFStrView(key).toLower());
-
-  if (keys.empty()) return 0;
-
-  *child_keys =
-      static_cast<char **>(GFAllocateMemory(sizeof(char **) * keys.size()));
-
-  for (decltype(keys.size()) i = 0; i < keys.size(); i++) {
-    (*child_keys)[i] = GFStrDup(keys[i]);
-  }
-
-  return static_cast<int32_t>(keys.size());
 }
 
 void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
@@ -99,15 +61,6 @@ void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
   if (!event) return;
 
   event.value()->ExecuteCallback(caller_id, argv);
-}
-
-auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
-                                          const char *key, int default_value)
-    -> int {
-  return static_cast<const int>(
-      GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
-          GFStrView(namespace_), GFStrView(key),
-          static_cast<bool>(default_value)));
 }
 
 }  // namespace gf_host

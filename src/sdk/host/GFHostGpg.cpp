@@ -64,7 +64,7 @@
 //
 #include "GFHostImpl.h"
 #include "private/GFHostContext.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace {
 
@@ -83,7 +83,7 @@ void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
 
 namespace gf_host {
 
-auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> char* {
+auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFStrView(key_id));
   if (key == nullptr) return nullptr;
@@ -94,7 +94,9 @@ auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> char* {
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
 
-  return GFStrDup(buffer.ConvertToQByteArray());
+  // Octets, not text: a binary export is not UTF-8, and a round trip through
+  // QString would replace every invalid sequence.
+  return GFBufferNewFromBytes(buffer.Data(), buffer.Size());
 }
 
 auto GFGpgKeyPrimaryUidParts(int channel, const char* key_id, char** name,
@@ -142,8 +144,11 @@ auto GFGpgCurrentGpgContextChannel() -> int {
   return -1;
 }
 
-auto GFGpgExportKey(int channel, const char* key_id, int ascii, char** data,
-                    int* size) -> int {
+auto GFGpgExportKey(int channel, const char* key_id, int ascii,
+                    GFBufferRef* out) -> int {
+  if (out == nullptr) return -1;
+  *out = nullptr;
+
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFStrView(key_id));
   if (key == nullptr) return -1;
@@ -152,74 +157,10 @@ auto GFGpgExportKey(int channel, const char* key_id, int ascii, char** data,
       GpgFrontend::KeyImportExportOperation::GetInstance(channel).ExportKey(
           key, false, ascii != 0, false);
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
-  auto byte_array = buffer.ConvertToQByteArray();
-  *data = GFStrDup(byte_array);
-  *size = static_cast<int>(byte_array.size());
-  return 0;
-}
 
-namespace {
-
-// Engine-neutral analysis. The raw gpgme_*_result handles only exist for the
-// native (GnuPG) engine; the rPGP engine stores its result in the Gpg*Result
-// model object instead, which the SDK stashed in a UI capsule. Recover that
-// model from the capsule and run the same analyser used by the native path, so
-// both engines produce identical reports and status codes. Returns -1 when the
-// capsule is missing or holds an unexpected type.
-template <typename ResultT, typename AnalyseT>
-auto AnalyseResultByCapsule(int channel, gpgme_error_t err,
-                            const char* capsule_id, const char** analyse,
-                            const char** cards) -> int {
-  if (analyse == nullptr) return -1;
-
-  auto capsule = GpgFrontend::UI::UIModuleManager::GetInstance().GetCapsule(
-      GFStrView(capsule_id));
-
-  auto* result = std::any_cast<ResultT>(&capsule);
-  if (result == nullptr) return -1;
-
-  AnalyseT ra(channel, err, *result);
-  ra.Analyse();
-  *analyse = GFStrDup(ra.GetResultReport());
-  EmitResultCards(ra.GetOpInfo(), cards);
-  return ra.GetStatus();
-}
-
-}  // namespace
-
-auto GFAnalyseEncryptResultByCapsule(int channel, gpgme_error_t err,
-                                     const char* capsule_id,
-                                     const char** analyse, const char** cards)
-    -> int {
-  return AnalyseResultByCapsule<GpgFrontend::GpgEncryptResult,
-                                GpgFrontend::GpgEncryptResultAnalyse>(
-      channel, err, capsule_id, analyse, cards);
-}
-
-auto GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
-                                  const char* capsule_id, const char** analyse,
-                                  const char** cards) -> int {
-  return AnalyseResultByCapsule<GpgFrontend::GpgSignResult,
-                                GpgFrontend::GpgSignResultAnalyse>(
-      channel, err, capsule_id, analyse, cards);
-}
-
-auto GFAnalyseDecryptResultByCapsule(int channel, gpgme_error_t err,
-                                     const char* capsule_id,
-                                     const char** analyse, const char** cards)
-    -> int {
-  return AnalyseResultByCapsule<GpgFrontend::GpgDecryptResult,
-                                GpgFrontend::GpgDecryptResultAnalyse>(
-      channel, err, capsule_id, analyse, cards);
-}
-
-auto GFAnalyseVerifyResultByCapsule(int channel, gpgme_error_t err,
-                                    const char* capsule_id,
-                                    const char** analyse, const char** cards)
-    -> int {
-  return AnalyseResultByCapsule<GpgFrontend::GpgVerifyResult,
-                                GpgFrontend::GpgVerifyResultAnalyse>(
-      channel, err, capsule_id, analyse, cards);
+  // Octets, not text; see GFGpgPublicKey.
+  *out = GFBufferNewFromBytes(buffer.Data(), buffer.Size());
+  return *out == nullptr ? -1 : 0;
 }
 
 namespace {
@@ -310,9 +251,14 @@ void EmitResultInfo(const GpgFrontend::GpgOpResultInfo& info,
   *info_json = GFStrDup(QString::fromUtf8(OpInfoToJson(info)));
 }
 
-// Same recovery path as AnalyseResultByCapsule, with the structured form
-// emitted alongside. They are one function rather than two because the capsule
-// is consumed on first use: a caller cannot ask for cards now and JSON later.
+// Engine-neutral analysis. The raw gpgme_*_result handles only exist for the
+// native (GnuPG) engine; the rPGP engine stores its result in the Gpg*Result
+// model object instead, which the SDK stashed in a UI capsule. Recover that
+// model from the capsule and run the same analyser used by the native path, so
+// both engines produce identical reports and status codes. The report, the
+// cards and the structured form come from one call because the capsule is
+// consumed on first use. Returns -1 when the capsule is missing or holds an
+// unexpected type.
 template <typename ResultT, typename AnalyseT>
 auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
                                 const char* capsule_id, const char** analyse,

@@ -35,7 +35,7 @@
 #include "core/utils/CommonUtils.h"
 #include "private/GFHostContext.h"
 #include "private/GFSDKHandleSweep.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 namespace {
 
@@ -44,9 +44,9 @@ namespace {
  *
  * Stored as a QByteArray rather than a QString because GFSdkEnterModule()
  * hands the previous value back to the caller as a `const char*` to restore.
- * Keeping every value this thread has seen alive for the life of the thread
- * is what makes that pointer safe to hold across the nested call: the list is
- * bounded by nesting depth, which is bounded by the host's own call depth.
+ * Every enclosing value stays alive until its own bracket closes, which is
+ * what makes that pointer safe to hold across the nested call: the list is
+ * as deep as the current nesting, and GFSdkLeaveModule() pops it.
  */
 struct ThreadAttribution {
   QList<QByteArray> stack;
@@ -85,12 +85,18 @@ auto GFSdkEnterModule(const char* module_id) -> const char* {
 
 void GFSdkLeaveModule(const char* previous) {
   auto& state = Attribution();
-  state.current = previous;
 
-  // Nothing is popped here. `previous` is a pointer INTO this thread's stack,
-  // so shrinking it would be what invalidates the value being restored. The
-  // stack is bounded by the host's call depth into modules, which is shallow,
-  // and it dies with the thread.
+  // Pop the entry the matching GFSdkEnterModule() pushed, if it pushed one
+  // (an empty id pushes nothing and leaves `current` null). Brackets nest,
+  // so that entry is always the last one, and `previous` points into an
+  // earlier entry or elsewhere, never into the one being removed. A QByteArray
+  // keeps its heap storage when the list moves it, so earlier pointers stay
+  // valid. Without the pop the stack grew by one entry per dispatched event.
+  if (!state.stack.isEmpty() &&
+      state.current == state.stack.last().constData()) {
+    state.stack.removeLast();
+  }
+  state.current = previous;
 }
 
 auto GFSdkCurrentModule() -> const char* { return Attribution().current; }
@@ -100,12 +106,10 @@ namespace gf_sdk_internal {
 /**
  * @brief The attribution bracket the host api thunks use, on every call.
  *
- * Distinct from GFSdkEnterModule() in exactly one way, and it is the way that
- * matters here: nothing is appended to the thread's stack. GFSdkEnterModule()
- * copies the id so the pointer it hands back stays valid, and never pops --
- * which is fine when the nesting is bounded by the host's own call depth into
- * modules, and is a leak proportional to WORK DONE once every SDK call from a
- * module's own thread goes through it.
+ * Distinct from GFSdkEnterModule() in exactly one way: nothing is appended
+ * to the thread's stack. GFSdkEnterModule() copies the id so the pointer it
+ * hands back stays valid, which costs an allocation per bracket; this runs on
+ * every SDK call, so it avoids the copy.
  *
  * The id a context record owns outlives every call made with it, so there is
  * nothing to copy and nothing to keep alive.
@@ -153,8 +157,9 @@ auto GFSdkSweepModuleHandles(const char* module_id) -> size_t {
   }
 
   if (total != 0) {
-    LOG_W() << "module" << id << "leaked" << total
-            << "sdk handle(s), reclaimed at unload:" << detail.join(", ");
+    LOG_W().noquote() << "module" << id << "leaked" << total
+                      << "SDK handle(s); reclaimed at unload:"
+                      << detail.join(", ");
   }
 
   return total;

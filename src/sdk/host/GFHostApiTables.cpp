@@ -37,15 +37,16 @@
 #include "core/module/ModuleManager.h"
 #include "private/GFHostContext.h"
 #include "private/GFSDKGpgInternal.h"
-#include "private/GFSDKPrivat.h"
+#include "private/GFSDKPrivate.h"
 
 /**
- * @file GFSDKModuleApi.cpp
+ * @file GFHostApiTables.cpp
  * @brief The host's side of the module ABI: the capability groups.
  *
  * Every function here is a thunk. It does three things and no more:
  *
  *   1. checks the caller's context against the capability the group needs,
+ *      and counts the call as running until it returns,
  *   2. attributes this thread to that module, so handles it creates are
  *      recorded against it wherever it created them,
  *   3. forwards to the real implementation.
@@ -57,7 +58,7 @@
  *
  * What is NOT here is as important. There are no convenience entry points, no
  * "or a default" variants, no formatting and no per-field accessors: those are
- * implemented module-side, in gf_module_runtime, over these primitives. That
+ * implemented module-side, in gf_sdk (src/sdk/api), over these primitives. That
  * is what lets the public SDK grow without this file changing.
  */
 
@@ -68,8 +69,9 @@ using namespace gf_host;  // NOLINT(build/namespaces)
 
 namespace {
 
-using gf_sdk_internal::ContextAttributionId;
-using gf_sdk_internal::ContextHolds;
+using gf_sdk_internal::BeginCall;
+using gf_sdk_internal::CallTicket;
+using gf_sdk_internal::EndCall;
 using gf_sdk_internal::ScopedContextAttribution;
 
 /// The GF_HOST_CAP_* values and ModuleCapability must agree; they are written
@@ -82,11 +84,13 @@ static_assert(GF_HOST_CAP_STORAGE == 1U << 4, "capability bits moved");
 static_assert(GF_HOST_CAP_PROCESS == 1U << 5, "capability bits moved");
 
 /**
- * @brief The gate every thunk opens with: authorize, then attribute.
+ * @brief The gate every thunk opens with: authorize, count, attribute.
  *
- * One object rather than two statements so the two cannot be separated -- a
+ * One object rather than separate statements so they cannot be separated: a
  * thunk that checked the capability and forgot the attribution would work
- * perfectly and quietly stop recording who owns the handles it creates.
+ * perfectly and quietly stop recording who owns the handles it creates. The
+ * call stays counted until the thunk returns, which is what lets shutdown
+ * wait for it before freeing the module's handles.
  *
  * `capability` 0 means "a live context is enough", which is the whole question
  * for the always-granted groups.
@@ -94,13 +98,18 @@ static_assert(GF_HOST_CAP_PROCESS == 1U << 5, "capability bits moved");
 class Gate {
  public:
   Gate(GFHostContextRef ctx, uint32_t capability, const char* entry_point)
-      : allowed_(ContextHolds(ctx, capability, entry_point)),
-        attribution_(allowed_ ? ContextAttributionId(ctx) : nullptr) {}
+      : ticket_(BeginCall(ctx, capability, entry_point)),
+        attribution_(ticket_.attribution) {}
 
-  explicit operator bool() const { return allowed_; }
+  ~Gate() { EndCall(ticket_); }
+
+  Gate(const Gate&) = delete;
+  auto operator=(const Gate&) -> Gate& = delete;
+
+  explicit operator bool() const { return ticket_.record != nullptr; }
 
  private:
-  bool allowed_;
+  CallTicket ticket_;
   ScopedContextAttribution attribution_;
 };
 
@@ -297,7 +306,17 @@ const GFHostEventApi kEventApi = {sizeof(GFHostEventApi), &EventSubscribe,
 auto BootRegisterTranslatorReader(GFHostContextRef ctx, const char* id,
                                   GFTranslatorDataReader reader) -> int {
   GATE(ctx, 0, "bootstrap.register_translator_reader", -1);
-  return GFAppRegisterTranslatorReader(id, reader);
+  // The module id comes from the context, as in EventSubscribe: a module must
+  // not be able to replace another module's translations. @p id stays in the
+  // signature for the ABI and is only checked.
+  const auto module_id = ModuleIdOf(ctx);
+  if (module_id.isEmpty() || reader == nullptr) return -1;
+  if (id != nullptr && module_id != QByteArray(id)) {
+    LOG_W() << "bootstrap.register_translator_reader: module" << module_id
+            << "tried to register translations for" << id;
+    return -1;
+  }
+  return GFAppRegisterTranslatorReader(module_id.constData(), reader);
 }
 
 const GFHostBootstrapApi kBootstrapApi = {sizeof(GFHostBootstrapApi),
@@ -353,7 +372,8 @@ auto GpgResultData(GFHostContextRef ctx, GFGpgResultRef r) -> GFBufferView {
 
 auto GpgResultText(GFHostContextRef ctx, GFGpgResultRef r, int field) -> const
     char* {
-  GATE(ctx, GF_HOST_CAP_GPG, "gpg.result_text", nullptr);
+  // "" rather than NULL on every failure path: the header promises a string.
+  GATE(ctx, GF_HOST_CAP_GPG, "gpg.result_text", "");
   switch (field) {
     case GF_GPG_RESULT_TEXT_CAPSULE_ID:
       return GFGpgResultCapsuleId(r);
@@ -363,7 +383,7 @@ auto GpgResultText(GFHostContextRef ctx, GFGpgResultRef r, int field) -> const
       return GFGpgResultHashAlgo(r);
     default:
       LOG_W() << "gpg.result_text: unknown field" << field;
-      return nullptr;
+      return "";
   }
 }
 
@@ -444,13 +464,9 @@ auto GpgAnalyseResult(GFHostContextRef ctx, int channel, int operation,
 auto GpgPublicKey(GFHostContextRef ctx, int channel, const char* key_id,
                   int ascii) -> GFBufferRef {
   GATE(ctx, GF_HOST_CAP_GPG, "gpg.public_key", nullptr);
-  auto* text = GFGpgPublicKey(channel, key_id, ascii);
-  if (text == nullptr) return nullptr;
   // Handed over as a buffer, like every other owned payload in this ABI: one
   // release, counted in the ledger, wiped when it dies.
-  auto* buf = GFBufferNewFromBytes(text, strlen(text));
-  GFFreeMemory(text);
-  return buf;
+  return GFGpgPublicKey(channel, key_id, ascii);
 }
 
 auto GpgKeyPrimaryUid(GFHostContextRef ctx, int channel, const char* key_id,
@@ -481,17 +497,7 @@ auto GpgKeyPrimaryUid(GFHostContextRef ctx, int channel, const char* key_id,
 auto GpgExportKey(GFHostContextRef ctx, int channel, const char* key_id,
                   int ascii, GFBufferRef* out) -> int {
   GATE(ctx, GF_HOST_CAP_GPG, "gpg.export_key", -1);
-  if (out == nullptr) return -1;
-  *out = nullptr;
-
-  char* data = nullptr;
-  int size = 0;
-  const auto rc = GFGpgExportKey(channel, key_id, ascii, &data, &size);
-  if (rc != 0 || data == nullptr) return rc == 0 ? -1 : rc;
-
-  *out = GFBufferNewFromBytes(data, static_cast<size_t>(size));
-  GFFreeMemory(data);
-  return *out == nullptr ? -1 : 0;
+  return GFGpgExportKey(channel, key_id, ascii, out);
 }
 
 auto GpgImportKeys(GFHostContextRef ctx, int channel, void* parent,
@@ -739,35 +745,16 @@ auto StorageCacheGet(GFHostContextRef ctx, int store, const char* key,
   if (out == nullptr || key == nullptr) return -1;
   *out = nullptr;
 
-  // Routed through the existing entry points so there is one implementation of
-  // each store's namespacing and encoding, not two. The `char*` they return is
-  // converted to a buffer handle here: a buffer wipes itself on release, which
-  // is what the secure tier needs and what the plain `char*` never gave it.
-  char* value = nullptr;
-  int arena = GF_ARENA_NORMAL;
-  switch (store) {
-    case GF_STORE_SESSION:
-      value = const_cast<char*>(GFCacheGet(key));
-      break;
-    case GF_STORE_DURABLE:
-      value = const_cast<char*>(GFDurableCacheGet(key));
-      break;
-    case GF_STORE_SECURE_DURABLE:
-      value = GFSecDurableCacheGet(key);
-      arena = GF_ARENA_SECURE;
-      break;
-    default:
-      LOG_W() << "storage.cache_get: unknown store" << store;
-      return -1;
+  // Octets in, octets out: the value never passes through a C string or a
+  // QString, so an embedded NUL or invalid UTF-8 survives, and a secret goes
+  // from one wiping buffer to another without an ordinary copy in between.
+  GpgFrontend::GFBuffer value;
+  if (!GFModuleCacheGet(gf_sdk_internal::ContextModuleId(ctx), store,
+                        QString::fromUtf8(key), &value)) {
+    return -1;
   }
 
-  if (value == nullptr) return -1;
-  *out = GFBufferNewFromBytes(value, strlen(value));
-  if (arena == GF_ARENA_SECURE) {
-    GFSecFreeMemory(value);
-  } else {
-    GFFreeMemory(value);
-  }
+  *out = GFBufferNewFromBytes(value.Data(), value.Size());
   return *out == nullptr ? -1 : 0;
 }
 
@@ -776,48 +763,30 @@ auto StorageCacheSet(GFHostContextRef ctx, int store, const char* key,
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.cache_set", -1);
   if (key == nullptr) return -1;
 
-  // Borrowed, as every SDK argument is. The old secure entry point took
-  // ownership of both of its arguments and freed them, which is a rule nobody
-  // could infer from the signature; the module-side wrapper keeps that
-  // promise to its callers without it crossing the boundary.
   const auto* data = static_cast<const char*>(GFBufferData(value));
   const auto size = GFBufferSize(value);
-  const QByteArray bytes(data == nullptr ? "" : data,
-                         static_cast<qsizetype>(size));
+  GpgFrontend::GFBuffer bytes(size);
+  if (size > 0 && data != nullptr) memcpy(bytes.Data(), data, size);
 
-  switch (store) {
-    case GF_STORE_SESSION:
-      return ttl_seconds > 0 ? GFCacheSaveWithTTL(key, bytes.constData(),
-                                                  static_cast<int>(ttl_seconds))
-                             : GFCacheSave(key, bytes.constData());
-    case GF_STORE_DURABLE:
-      return GFDurableCacheSave(key, bytes.constData());
-    case GF_STORE_SECURE_DURABLE:
-      // GFSecDurableCacheSave consumes both arguments, so it gets copies from
-      // the allocators it will free them through.
-      return GFSecDurableCacheSave(GFModuleStrDup(key),
-                                   GFModuleSecStrDup(bytes.constData()));
-    default:
-      LOG_W() << "storage.cache_set: unknown store" << store;
-      return -1;
+  if (store != GF_STORE_SESSION && store != GF_STORE_DURABLE &&
+      store != GF_STORE_SECURE_DURABLE) {
+    LOG_W() << "storage.cache_set: unknown store" << store;
+    return -1;
   }
+  return GFModuleCacheSet(gf_sdk_internal::ContextModuleId(ctx), store,
+                          QString::fromUtf8(key), bytes, ttl_seconds)
+             ? 0
+             : -1;
 }
 
 auto StorageCacheRemove(GFHostContextRef ctx, int store, const char* key)
     -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.cache_remove", -1);
-  switch (store) {
-    case GF_STORE_SESSION:
-      // An in-memory entry is removed by storing an empty value with no ttl;
-      // the session cache has never had a delete of its own.
-      return GFCacheSave(key, "");
-    case GF_STORE_DURABLE:
-    case GF_STORE_SECURE_DURABLE:
-      return GFSecDurableCacheRemove(key);
-    default:
-      LOG_W() << "storage.cache_remove: unknown store" << store;
-      return -1;
-  }
+  if (key == nullptr) return -1;
+  return GFModuleCacheRemove(gf_sdk_internal::ContextModuleId(ctx), store,
+                             QString::fromUtf8(key))
+             ? 0
+             : -1;
 }
 
 auto StorageStateGetText(GFHostContextRef ctx, const char* ns, const char* key,

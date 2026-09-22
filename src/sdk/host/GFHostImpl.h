@@ -31,7 +31,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <QString>
+
 #include "GFSDKTypes.h"
+
+namespace GpgFrontend {
+class GFBuffer;
+}  // namespace GpgFrontend
 
 /**
  * @file GFHostImpl.h
@@ -150,9 +156,9 @@ auto GFAnalyseVerifyResultInfoByCapsule(int channel, uint32_t err,
 
 /* --- keys ---------------------------------------------------------------- */
 
-auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> char*;
-auto GFGpgExportKey(int channel, const char* key_id, int ascii, char** data,
-                    int* size) -> int;
+auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef;
+auto GFGpgExportKey(int channel, const char* key_id, int ascii,
+                    GFBufferRef* out) -> int;
 auto GFGpgImportKeys(int channel, void* parent, const char* data, int size)
     -> int;
 
@@ -209,14 +215,15 @@ auto GFUITakeCurrentEditorContent() -> GFBufferRef;
 
 /* --- storage ------------------------------------------------------------- */
 
-auto GFCacheGet(const char* key) -> const char*;
-auto GFCacheSave(const char* key, const char* value) -> int;
-auto GFCacheSaveWithTTL(const char* key, const char* value, int ttl) -> int;
-auto GFDurableCacheGet(const char* key) -> const char*;
-auto GFDurableCacheSave(const char* key, const char* value) -> int;
-auto GFSecDurableCacheGet(const char* key) -> char*;
-auto GFSecDurableCacheSave(const char* key, const char* value) -> int;
-auto GFSecDurableCacheRemove(const char* key) -> int;
+/// The three module cache stores, scoped by module and store. @p module_id
+/// must come from the caller's context. An empty value reads as absent.
+auto GFModuleCacheGet(const QString& module_id, int store, const QString& key,
+                      GpgFrontend::GFBuffer* out) -> bool;
+auto GFModuleCacheSet(const QString& module_id, int store, const QString& key,
+                      const GpgFrontend::GFBuffer& value, int64_t ttl_seconds)
+    -> bool;
+auto GFModuleCacheRemove(const QString& module_id, int store,
+                         const QString& key) -> bool;
 
 /* --- external programs --------------------------------------------------- */
 
