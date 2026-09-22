@@ -613,17 +613,13 @@ jobs:
           # the build default is the weaker one. Without it a configure line
           # that lost -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED
           # would verify green and release an unbound AppImage.
-          "$PACKAGER" verify-module-set \
-            --namespace-root "$MODULE_ROOT" \
-            --expect-count "$EXPECTED" \
-            --require-binding \
-            --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
-
           ${{github.workspace}}/scripts/audit_module_natives.sh \
             --namespace-root "$MODULE_ROOT" \
             --packager "$PACKAGER" \
             --qt-relative ../../../.. \
-            --expect-count "$EXPECTED"
+            --expect-count "$EXPECTED" \
+            --require-binding \
+            --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
         if: runner.os == 'Linux'
 
       - name: Build AppImage (Linux)
@@ -822,9 +818,8 @@ jobs:
       # into bin/, so the descriptors still describe what is there -- and this
       # proves that rather than assuming it.
       #
-      # The audit comes last within the step: it asks the packager which native
-      # each module's signed descriptor binds, so it needs descriptors that
-      # verify.
+      # One call: the audit first verifies the descriptors strictly, then asks
+      # the packager which native each signed descriptor binds and audits it.
       - name: Verify Module Descriptors (Windows)
         shell: msys2 {0}
         run: |
@@ -835,16 +830,12 @@ jobs:
           EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
           # --require-binding: see the AppImage leg. Windows must ship bound
           # artifacts, and an unbound tree verifies fine without this flag.
-          "$PACKAGER" verify-module-set \
-            --namespace-root "$MODULE_ROOT" \
-            --expect-count "$EXPECTED" \
-            --require-binding \
-            --assert-no-native-outside build/artifacts
-
           ./scripts/audit_module_natives.sh \
             --namespace-root "$MODULE_ROOT" \
             --packager "$PACKAGER" \
-            --expect-count "$EXPECTED"
+            --expect-count "$EXPECTED" \
+            --require-binding \
+            --assert-no-native-outside build/artifacts
         if: runner.os == 'Windows'
 
       # The claim §14.2 rests on, checked against the binaries this build
@@ -2328,7 +2319,7 @@ jobs:
       - name: Write Build Records
         run: |
           set -euo pipefail
-          ./scripts/write_build_records.sh \
+          python3 ./scripts/write_build_records.py \
             --artifacts artifacts/ \
             --build-info buildinfo/ \
             --out records/
