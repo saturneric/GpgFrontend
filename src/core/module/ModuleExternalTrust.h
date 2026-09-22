@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GFCoreExport.h"
+#include "core/module/ModulePublisherKey.h"
 
 namespace GpgFrontend::Module {
 
@@ -41,81 +42,79 @@ namespace GpgFrontend::Module {
  * a person has to say yes. Discovery finds them; it never runs them.
  *
  * ```
- * Discovered -> Descriptor Verified -> Build Key Shown -> Build Key Trusted
- *            -> Module Enabled -> Strict Native Binding -> Loaded
+ * Discovered -> Descriptor Verified -> Publisher Key Shown
+ *            -> Publisher Key Trusted -> Module Enabled
+ *            -> Strict Native Binding -> Loaded
  * ```
  *
  * Two decisions, kept apart on purpose:
  *
- *   trust a build key   "signatures by this key are worth considering"
- *   enable a module     "run this one"
+ *   trust a publisher key   "signatures by this key are worth considering"
+ *   enable a module         "run this one"
  *
  * Neither implies the other. Trusting a key does not enable every module
  * signed by it, and enabling a module does not bypass key trust -- so a
  * single careless click cannot admit a set of modules the user never looked
  * at. The Host owns both; a module can influence neither.
  *
- * ## Build keys, not publishers
+ * ## Publisher keys
  *
- * These keys are ephemeral and per build tree. Trust is therefore specific to
- * one build key: a module re-signed under a different one matches nothing
- * here and returns to Pending. There is deliberately no publisher identity,
- * no rotation, no succession and no catalog.
+ * An external module is signed by its publisher's persistent Ed25519 key
+ * (see ModulePublisherKey.h), never by a build key. The descriptor carries
+ * that key so the Host can NAME the signer; carrying it grants nothing. This
+ * store is the only place external trust comes from.
+ *
+ * Trust is specific to one exact key. A module re-signed under a different
+ * key matches nothing here and returns to Pending. There is deliberately no
+ * rotation, no succession and no catalog, and a publisher name or URL in a
+ * manifest is never consulted.
  */
 
 /// How this module stands with the user right now.
 enum class ModuleAuthorizationState {
   kTRUSTED_AND_ENABLED,  ///< both decisions made; loading may proceed
-  kKEY_UNTRUSTED,        ///< the build key has not been accepted
+  kPUBLISHER_UNTRUSTED,  ///< the publisher key has not been accepted
   kNOT_ENABLED,          ///< key accepted, but this module was not enabled
 };
 
-/// A build key the user has accepted, for listing and revocation.
-struct GF_CORE_EXPORT ModuleTrustedBuildKey {
-  QByteArray build_key;  ///< the 32 raw bytes; canonical
+/// A publisher key the user has accepted, for listing and revocation.
+struct GF_CORE_EXPORT ModuleTrustedPublisherKey {
+  QByteArray publisher_key;  ///< the 32 raw bytes; canonical
   QString label;
   QString first_trusted;
 };
 
-/**
- * @brief The fingerprint of a build key, for showing a person.
- *
- * Derived, never stored: see ModuleTrustSO.h. Grouped the way every other
- * fingerprint in this application is, so it reads the same way.
- */
-auto GF_CORE_EXPORT ModuleBuildKeyFingerprint(const QByteArray& build_key)
-    -> QString;
+/// Every publisher key the user has trusted.
+auto GF_CORE_EXPORT ListTrustedModulePublisherKeys()
+    -> QList<ModuleTrustedPublisherKey>;
 
-/// Every build key the user has trusted.
-auto GF_CORE_EXPORT ListTrustedModuleBuildKeys()
-    -> QList<ModuleTrustedBuildKey>;
-
-/// Whether @p build_key is one of them.
-auto GF_CORE_EXPORT IsModuleBuildKeyTrusted(const QByteArray& build_key)
+/// Whether @p publisher_key is one of them.
+auto GF_CORE_EXPORT IsModulePublisherKeyTrusted(const QByteArray& publisher_key)
     -> bool;
 
-/// Record a decision to trust @p build_key. Enables nothing.
-auto GF_CORE_EXPORT TrustModuleBuildKey(const QByteArray& build_key,
-                                        const QString& label) -> bool;
+/// Record a decision to trust @p publisher_key. Enables nothing.
+auto GF_CORE_EXPORT TrustModulePublisherKey(const QByteArray& publisher_key,
+                                            const QString& label) -> bool;
 
 /**
- * @brief Withdraw trust from @p build_key.
+ * @brief Withdraw trust from @p publisher_key.
  *
  * Every module authorized under it returns to Pending, because an approval
  * granted on the strength of a key cannot outlive the decision it rested on.
  * The authorizations are left in place rather than deleted, so re-trusting
  * the key does not silently re-enable them: they are still gated on the key.
  */
-auto GF_CORE_EXPORT RevokeModuleBuildKey(const QByteArray& build_key) -> bool;
+auto GF_CORE_EXPORT RevokeModulePublisherKey(const QByteArray& publisher_key)
+    -> bool;
 
-/// Whether the user enabled @p module_id under exactly @p build_key.
+/// Whether the user enabled @p module_id under exactly @p publisher_key.
 auto GF_CORE_EXPORT IsExternalModuleEnabled(const QString& module_id,
-                                            const QByteArray& build_key)
+                                            const QByteArray& publisher_key)
     -> bool;
 
 /// Record the second decision. Does not trust the key.
 auto GF_CORE_EXPORT SetExternalModuleEnabled(const QString& module_id,
-                                             const QByteArray& build_key,
+                                             const QByteArray& publisher_key,
                                              bool enabled) -> bool;
 
 /**
@@ -126,11 +125,11 @@ auto GF_CORE_EXPORT SetExternalModuleEnabled(const QString& module_id,
  * -- which would send the user to the wrong control.
  */
 auto GF_CORE_EXPORT ExternalModuleAuthorization(const QString& module_id,
-                                                const QByteArray& build_key)
+                                                const QByteArray& publisher_key)
     -> ModuleAuthorizationState;
 
 /// For logs and reports.
-auto GF_CORE_EXPORT ModuleAuthorizationStateToString(
-    ModuleAuthorizationState state) -> const char*;
+auto GF_CORE_EXPORT
+ModuleAuthorizationStateToString(ModuleAuthorizationState state) -> const char*;
 
 }  // namespace GpgFrontend::Module

@@ -38,9 +38,11 @@ namespace GpgFrontend::Module {
 
 namespace {
 
-/// The canonical spelling a decision is stored and matched under.
-auto KeyText(const QByteArray& build_key) -> QString {
-  return QString::fromLatin1(build_key.toHex());
+/// The canonical spelling a decision is stored and matched under -- the same
+/// one the externalize tool prints, so what a publisher publishes and what a
+/// user's store records are the same string.
+auto KeyText(const QByteArray& publisher_key) -> QString {
+  return ModulePublisherKeyText(publisher_key);
 }
 
 /// Load a list object, refusing to proceed if it exists and could not be read.
@@ -79,76 +81,71 @@ auto NowUtc() -> QString {
 
 }  // namespace
 
-auto ModuleBuildKeyFingerprint(const QByteArray& build_key) -> QString {
-  if (build_key.isEmpty()) return {};
-  return BeautifyFingerprint(QString::fromLatin1(build_key.toHex().toUpper()));
-}
+auto ListTrustedModulePublisherKeys() -> QList<ModuleTrustedPublisherKey> {
+  ModuleTrustedPublisherKeyListSO stored;
+  if (!LoadList(kModuleTrustedPublisherKeysObject, stored)) return {};
 
-auto ListTrustedModuleBuildKeys() -> QList<ModuleTrustedBuildKey> {
-  ModuleTrustedBuildKeyListSO stored;
-  if (!LoadList(kModuleTrustedBuildKeysObject, stored)) return {};
-
-  QList<ModuleTrustedBuildKey> keys;
+  QList<ModuleTrustedPublisherKey> keys;
   keys.reserve(stored.keys.size());
   for (const auto& k : stored.keys) {
-    keys.append({QByteArray::fromHex(k.build_key.toLatin1()), k.label,
+    keys.append({QByteArray::fromHex(k.publisher_key.toLatin1()), k.label,
                  k.first_trusted});
   }
   return keys;
 }
 
-auto IsModuleBuildKeyTrusted(const QByteArray& build_key) -> bool {
+auto IsModulePublisherKeyTrusted(const QByteArray& publisher_key) -> bool {
   // An empty key is never trusted, and never "matches the empty record".
   // Without this an unreadable or absent key would compare equal to a stored
   // blank and admit whatever carried it.
-  if (build_key.size() != 32) return false;
+  if (publisher_key.size() != 32) return false;
 
-  ModuleTrustedBuildKeyListSO stored;
-  if (!LoadList(kModuleTrustedBuildKeysObject, stored)) return false;
+  ModuleTrustedPublisherKeyListSO stored;
+  if (!LoadList(kModuleTrustedPublisherKeysObject, stored)) return false;
 
-  const auto text = KeyText(build_key);
+  const auto text = KeyText(publisher_key);
   for (const auto& k : stored.keys) {
-    if (!k.build_key.isEmpty() && k.build_key == text) return true;
+    if (!k.publisher_key.isEmpty() && k.publisher_key == text) return true;
   }
   return false;
 }
 
-auto TrustModuleBuildKey(const QByteArray& build_key, const QString& label)
-    -> bool {
-  if (build_key.size() != 32) return false;
+auto TrustModulePublisherKey(const QByteArray& publisher_key,
+                             const QString& label) -> bool {
+  if (publisher_key.size() != 32) return false;
 
-  ModuleTrustedBuildKeyListSO stored;
-  if (!LoadList(kModuleTrustedBuildKeysObject, stored)) return false;
+  ModuleTrustedPublisherKeyListSO stored;
+  if (!LoadList(kModuleTrustedPublisherKeysObject, stored)) return false;
 
-  const auto text = KeyText(build_key);
+  const auto text = KeyText(publisher_key);
   for (auto& k : stored.keys) {
-    if (k.build_key == text) {
+    if (k.publisher_key == text) {
       // Already trusted. The label may be updated; first_trusted may not,
       // because it records when the decision was made and re-confirming is
       // not making it again.
       k.label = label;
-      return StoreList(kModuleTrustedBuildKeysObject, stored);
+      return StoreList(kModuleTrustedPublisherKeysObject, stored);
     }
   }
 
-  ModuleTrustedBuildKeySO fresh;
-  fresh.build_key = text;
+  ModuleTrustedPublisherKeySO fresh;
+  fresh.publisher_key = text;
   fresh.label = label;
   fresh.first_trusted = NowUtc();
   stored.keys.append(fresh);
-  return StoreList(kModuleTrustedBuildKeysObject, stored);
+  return StoreList(kModuleTrustedPublisherKeysObject, stored);
 }
 
-auto RevokeModuleBuildKey(const QByteArray& build_key) -> bool {
-  if (build_key.size() != 32) return false;
+auto RevokeModulePublisherKey(const QByteArray& publisher_key) -> bool {
+  if (publisher_key.size() != 32) return false;
 
-  ModuleTrustedBuildKeyListSO stored;
-  if (!LoadList(kModuleTrustedBuildKeysObject, stored)) return false;
+  ModuleTrustedPublisherKeyListSO stored;
+  if (!LoadList(kModuleTrustedPublisherKeysObject, stored)) return false;
 
-  const auto text = KeyText(build_key);
-  QContainer<ModuleTrustedBuildKeySO> kept;
+  const auto text = KeyText(publisher_key);
+  QContainer<ModuleTrustedPublisherKeySO> kept;
   for (const auto& k : stored.keys) {
-    if (k.build_key != text) kept.append(k);
+    if (k.publisher_key != text) kept.append(k);
   }
   stored.keys = kept;
 
@@ -156,36 +153,36 @@ auto RevokeModuleBuildKey(const QByteArray& build_key) -> bool {
   // are gated on the key, so they are already inert; deleting them would mean
   // re-trusting the key later silently re-enabled a set of modules the user
   // would not be shown again.
-  return StoreList(kModuleTrustedBuildKeysObject, stored);
+  return StoreList(kModuleTrustedPublisherKeysObject, stored);
 }
 
 auto IsExternalModuleEnabled(const QString& module_id,
-                             const QByteArray& build_key) -> bool {
-  if (module_id.isEmpty() || build_key.size() != 32) return false;
+                             const QByteArray& publisher_key) -> bool {
+  if (module_id.isEmpty() || publisher_key.size() != 32) return false;
 
   ModuleAuthorizationListSO stored;
   if (!LoadList(kModuleAuthorizationsObject, stored)) return false;
 
-  const auto text = KeyText(build_key);
+  const auto text = KeyText(publisher_key);
   for (const auto& a : stored.authorizations) {
     // Both, and the key half is what stops an approval being inherited by a
-    // module re-signed under a different build key.
-    if (a.module_id == module_id && a.build_key == text) return a.enabled;
+    // module re-signed under a different publisher key.
+    if (a.module_id == module_id && a.publisher_key == text) return a.enabled;
   }
   return false;
 }
 
 auto SetExternalModuleEnabled(const QString& module_id,
-                              const QByteArray& build_key, bool enabled)
+                              const QByteArray& publisher_key, bool enabled)
     -> bool {
-  if (module_id.isEmpty() || build_key.size() != 32) return false;
+  if (module_id.isEmpty() || publisher_key.size() != 32) return false;
 
   ModuleAuthorizationListSO stored;
   if (!LoadList(kModuleAuthorizationsObject, stored)) return false;
 
-  const auto text = KeyText(build_key);
+  const auto text = KeyText(publisher_key);
   for (auto& a : stored.authorizations) {
-    if (a.module_id == module_id && a.build_key == text) {
+    if (a.module_id == module_id && a.publisher_key == text) {
       a.enabled = enabled;
       a.approved_at = enabled ? NowUtc() : QString();
       return StoreList(kModuleAuthorizationsObject, stored);
@@ -194,7 +191,7 @@ auto SetExternalModuleEnabled(const QString& module_id,
 
   ModuleAuthorizationSO fresh;
   fresh.module_id = module_id;
-  fresh.build_key = text;
+  fresh.publisher_key = text;
   fresh.enabled = enabled;
   fresh.approved_at = enabled ? NowUtc() : QString();
   stored.authorizations.append(fresh);
@@ -202,24 +199,24 @@ auto SetExternalModuleEnabled(const QString& module_id,
 }
 
 auto ExternalModuleAuthorization(const QString& module_id,
-                                 const QByteArray& build_key)
+                                 const QByteArray& publisher_key)
     -> ModuleAuthorizationState {
-  if (!IsModuleBuildKeyTrusted(build_key)) {
-    return ModuleAuthorizationState::kKEY_UNTRUSTED;
+  if (!IsModulePublisherKeyTrusted(publisher_key)) {
+    return ModuleAuthorizationState::kPUBLISHER_UNTRUSTED;
   }
-  if (!IsExternalModuleEnabled(module_id, build_key)) {
+  if (!IsExternalModuleEnabled(module_id, publisher_key)) {
     return ModuleAuthorizationState::kNOT_ENABLED;
   }
   return ModuleAuthorizationState::kTRUSTED_AND_ENABLED;
 }
 
-auto ModuleAuthorizationStateToString(ModuleAuthorizationState state)
-    -> const char* {
+auto ModuleAuthorizationStateToString(ModuleAuthorizationState state) -> const
+    char* {
   switch (state) {
     case ModuleAuthorizationState::kTRUSTED_AND_ENABLED:
       return "trusted and enabled";
-    case ModuleAuthorizationState::kKEY_UNTRUSTED:
-      return "its build key has not been trusted";
+    case ModuleAuthorizationState::kPUBLISHER_UNTRUSTED:
+      return "its publisher key has not been trusted";
     case ModuleAuthorizationState::kNOT_ENABLED:
       return "it has not been enabled";
   }
