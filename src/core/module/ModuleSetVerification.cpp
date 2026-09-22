@@ -40,9 +40,74 @@
 
 namespace GpgFrontend::Module {
 
-auto VerifyModuleSet(const ModuleEntryTrustPolicy& policy,
-                     const QString& root, int expected_count)
-    -> ModuleSetVerification {
+auto VerifyModuleNamespace(const ModuleEntryTrustPolicy& policy,
+                           const QString& namespace_dir)
+    -> ModuleNamespaceVerification {
+  ModuleNamespaceVerification result;
+
+  if (policy.origin != ModuleOrigin::kINTEGRATED) {
+    result.reason =
+        "only an integrated namespace can be verified here; external modules "
+        "are judged by the Host, against the user's trust decisions";
+    return result;
+  }
+
+  // Cleaned, so `dir/` names the same namespace as `dir`: fileName() of a
+  // path with a trailing separator is empty, and the key check below would
+  // refuse a correctly placed module for how its path was typed.
+  const QFileInfo ns(
+      QDir::cleanPath(QFileInfo(namespace_dir).absoluteFilePath()));
+  const auto descriptor =
+      ns.absoluteFilePath() + "/" + kModuleDescriptorFileName;
+  if (!QFileInfo(descriptor).isFile()) {
+    result.reason = "it holds no module.gfmodule";
+    return result;
+  }
+
+  result.descriptor = VerifyModuleDescriptor(descriptor);
+  if (!result.descriptor.ok) {
+    result.reason = QString("its descriptor was refused: %1 (%2)")
+                        .arg(result.descriptor.reason,
+                             QString::fromUtf8(ModuleDescriptorStatusToString(
+                                 result.descriptor.status)));
+    return result;
+  }
+
+  const auto& manifest = result.descriptor.manifest;
+
+  const auto expected_key = ModuleDirectoryKey(manifest.id);
+  if (ns.fileName() != expected_key) {
+    result.reason = QString("it declares \"%1\", whose namespace is \"%2\"")
+                        .arg(manifest.id, expected_key);
+    return result;
+  }
+
+  // Where the natives live is ModuleNamespace's to answer. On macOS a
+  // namespace is split across Resources and Frameworks, and a hardcoded
+  // "<ns>/native" finds nothing there -- which is how a bundle full of
+  // correctly placed modules reports every one of them as missing.
+  const ModuleNativeRoot native{ModuleNativeRootFor(descriptor)};
+  result.entry = ResolveAndVerifyNativeEntry(manifest, native, policy);
+  if (!result.entry.ok) {
+    result.reason = QString("its entry native was refused: %1 (%2)")
+                        .arg(result.entry.reason,
+                             QString::fromUtf8(ModuleEntryStatusToString(
+                                 result.entry.status)));
+    return result;
+  }
+
+  const QDir native_dir(native.path);
+  for (const auto& file : native_dir.entryInfoList(QDir::Files)) {
+    if (file.absoluteFilePath() == result.entry.path) continue;
+    result.helpers.append(file.absoluteFilePath());
+  }
+
+  result.ok = true;
+  return result;
+}
+
+auto VerifyModuleSet(const ModuleEntryTrustPolicy& policy, const QString& root,
+                     int expected_count) -> ModuleSetVerification {
   ModuleSetVerification result;
 
   const QDir dir(root);
@@ -74,57 +139,27 @@ auto VerifyModuleSet(const ModuleEntryTrustPolicy& policy,
       continue;
     }
 
-    const auto verdict = VerifyModuleDescriptor(descriptor);
-    if (!verdict.ok) {
-      result.problems.append(
-          {ns.fileName(),
-           QString("its descriptor was refused: %1 (%2)")
-               .arg(verdict.reason,
-                    QString::fromUtf8(
-                        ModuleDescriptorStatusToString(verdict.status)))});
+    const auto checked = VerifyModuleNamespace(policy, ns.absoluteFilePath());
+    if (!checked.ok) {
+      result.problems.append({ns.fileName(), checked.reason});
       continue;
     }
 
-    const auto& id = verdict.manifest.id;
-
-    const auto expected_key = ModuleDirectoryKey(id);
-    if (ns.fileName() != expected_key) {
-      result.problems.append(
-          {ns.fileName(), QString("it declares \"%1\", whose namespace is "
-                                  "\"%2\"")
-                              .arg(id, expected_key)});
-      continue;
-    }
-
-    // Where the natives live is ModuleNamespace's to answer. On macOS a
-    // namespace is split across Resources and Frameworks, and a hardcoded
-    // "<ns>/native" finds nothing there -- which is how a bundle full of
-    // correctly placed modules reports every one of them as missing.
-    const ModuleNativeRoot native{ModuleNativeRootFor(descriptor)};
-    const auto entry = ResolveAndVerifyNativeEntry(verdict.manifest, native, policy);
-    if (!entry.ok) {
-      result.problems.append(
-          {ns.fileName(),
-           QString("its entry native was refused: %1 (%2)")
-               .arg(entry.reason, QString::fromUtf8(ModuleEntryStatusToString(
-                                      entry.status)))});
-      continue;
-    }
+    const auto& id = checked.descriptor.manifest.id;
 
     // Anything else in native/ is a private helper: legitimate, unlisted by
     // design, and the platform loader's business rather than the descriptor's.
     // A stale one left by a rename is worth saying out loud, and nothing more:
     // making it fatal would invent a requirement the format does not have.
-    const QDir native_dir(native.path);
-    for (const auto& file : native_dir.entryInfoList(QDir::Files)) {
-      if (file.absoluteFilePath() == entry.path) continue;
+    for (const auto& helper : checked.helpers) {
+      const QFileInfo file(helper);
       result.warnings.append(
-          {ns.fileName() + "/" + QFileInfo(native.path).fileName() + "/" +
-               file.fileName(),
+          {ns.fileName() + "/" + file.dir().dirName() + "/" + file.fileName(),
            "a private helper the descriptor does not bind; the platform "
            "loader resolves it, and nothing here vouches for it"});
     }
 
+    const auto& entry = checked.entry;
     result.verified.insert(id, descriptor);
     result.entries.insert(ns.fileName(), entry.path);
   }

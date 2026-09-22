@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/module/ModuleDescriptor.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleHostPolicy.h"
 
 namespace GpgFrontend::Module {
@@ -85,6 +87,44 @@ struct GF_CORE_EXPORT ModuleSetVerification {
   /// requirement nothing actually has.
   QVector<ModuleSetFinding> warnings;
 };
+
+/// What checking ONE integrated module namespace concluded.
+struct GF_CORE_EXPORT ModuleNamespaceVerification {
+  bool ok = false;
+  QString reason;  ///< why not, for a person; empty when @c ok
+
+  /// The descriptor's verdict. Its manifest is authoritative when @c ok.
+  ModuleDescriptorVerification descriptor;
+
+  /// The verified entry native. Its path is safe to use when @c ok.
+  VerifiedNativeEntry entry;
+
+  /// Every other file in the namespace's native directory, absolute. Private
+  /// helpers the descriptor does not bind: legitimate in an integrated tree,
+  /// reported so a caller with a stricter rule can refuse them.
+  QStringList helpers;
+};
+
+/**
+ * @brief Verify one namespace as an INTEGRATED module.
+ *
+ * The per-namespace half of VerifyModuleSet(), shared so that a caller which
+ * needs one module -- gf_module_externalize, verifying its input -- applies
+ * exactly the rules the release gate does:
+ *
+ * - the descriptor verifies under this Host's embedded build key and build id;
+ * - the namespace directory name is the one the signed identity derives;
+ * - the entry native resolves inside the namespace and satisfies @p policy.
+ *
+ * Integrated only, and not by convention: a policy whose origin is anything
+ * else is refused. There is no way to ask this for an external verdict, so
+ * nothing built on it can grant integrated trust to an external module.
+ *
+ * @param namespace_dir the namespace directory, holding `module.gfmodule`
+ */
+auto GF_CORE_EXPORT VerifyModuleNamespace(const ModuleEntryTrustPolicy& policy,
+                                          const QString& namespace_dir)
+    -> ModuleNamespaceVerification;
 
 /**
  * @brief Verify every module namespace under @p root.
