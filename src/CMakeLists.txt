@@ -357,6 +357,10 @@ endif()
 
 # link options for GpgFrontend
 target_link_libraries(${APP_NAME} gf_core gf_ui gf_test gf_res)
+# The host half of the SDK: the GFHostApi primitives. An OBJECT library,
+# so it lands inside this binary and its bridge installer needs no
+# dynamic visibility. Exactly one binary may link it.
+target_link_libraries(${APP_NAME} gf_host_api)
 
 # link OpenSSL for secure mechanism
 target_link_libraries(${APP_NAME} sodium)
