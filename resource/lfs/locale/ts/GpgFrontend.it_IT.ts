@@ -3284,7 +3284,7 @@ La destinazione potrebbe trovarsi su un altro volume oppure potresti non disporr
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="75"/>
-        <source>File Panel opens at</source>
+        <source>File Panel Opens At:</source>
         <translation>Il Pannello File si apre in</translation>
     </message>
     <message>
@@ -3414,7 +3414,7 @@ La destinazione potrebbe trovarsi su un altro volume oppure potresti non disporr
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="136"/>
         <source>Are you sure you want to clear all data objects?
-This will result in loss of all cached form positions, statuses, key servers, etc.</source>
+This will result in the loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>Sei sicuro di voler cancellare tutti gli oggetti dati? Ciò comporterà la perdita di tutte le posizioni dei moduli memorizzati nella cache, gli stati, i server delle chiavi, ecc.</translation>
     </message>
 </context>
@@ -8493,7 +8493,7 @@ Dopo l&apos;installazione, riavvia GpgFrontend. Il file di configurazione verrà
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="255"/>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="258"/>
-        <source>Critical error occur while loading GpgFrontend.</source>
+        <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>Si è verificato un errore critico durante il caricamento di GpgFrontend.</translation>
     </message>
     <message>
@@ -9944,7 +9944,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
-        <source>Show Mods Directory</source>
+        <source>Show Modules Folder</source>
         <translation>Mstra Cartella Mods</translation>
     </message>
     <message>
@@ -10117,12 +10117,12 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
-        <source>Module loading is disabled. Enable it in Settings &gt; General to use modules.</source>
+        <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Il caricamento dei moduli è disabilitato. Abilitarlo in Impostazioni &gt; Generale per usare i moduli.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
-        <source>Only integrated modules are loaded. To load external modules from the mods directory, change the module loading policy in Settings &gt; General.</source>
+        <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Vengono caricati solo moduli integrati. Per caricare moduli esterni dalla directory mods, modificare la politica di caricamento moduli in Impostazioni &gt; Generale.</translation>
     </message>
     <message>
@@ -11531,7 +11531,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
-        <source>Changes needing this were made on: %1.
+        <source>Pages with changes that need this: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
         <translation>Modifiche che lo richiedono sono state effettuate il: %1.
@@ -11555,7 +11555,7 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="223"/>
-        <source>Preference</source>
+        <source>Preferences</source>
         <translation>Preferenze</translation>
     </message>
 </context>
@@ -12754,17 +12754,17 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="158"/>
-        <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
+        <source>Saving is not supported for tabs of type &apos;%1&apos;.</source>
         <translation>L&apos;operazione di salvataggio del file per il tipo di scheda &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="249"/>
-        <source>Save file</source>
+        <source>Save File</source>
         <translation>Salva</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="317"/>
-        <source>Unsaved document</source>
+        <source>Unsaved Document</source>
         <translation>Documento non salvato</translation>
     </message>
     <message>
@@ -12779,12 +12779,12 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
-        <source>If you don&apos;t save these files, all changes are lost.</source>
+        <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>Se non salvi questi file, tutte le modifiche andranno perse.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
-        <source>No document to print</source>
+        <source>No document to print.</source>
         <translation>Nessun documento da stampare</translation>
     </message>
 </context>

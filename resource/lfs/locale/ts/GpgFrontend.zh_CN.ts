@@ -3279,7 +3279,7 @@ The target may be on another volume, or you may not have sufficient permissions.
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="75"/>
-        <source>File Panel opens at</source>
+        <source>File Panel Opens At:</source>
         <translation>文件面板打开位置</translation>
     </message>
     <message>
@@ -3409,7 +3409,7 @@ The target may be on another volume, or you may not have sufficient permissions.
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="136"/>
         <source>Are you sure you want to clear all data objects?
-This will result in loss of all cached form positions, statuses, key servers, etc.</source>
+This will result in the loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>您确定要清除所有数据对象吗？这将导致所有缓存的窗体位置、状态、密钥服务器等丢失。</translation>
     </message>
 </context>
@@ -8480,7 +8480,7 @@ After installing it, please restart GpgFrontend. The configuration file will be 
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="255"/>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="258"/>
-        <source>Critical error occur while loading GpgFrontend.</source>
+        <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>加载 GpgFrontend 时发生严重错误。</translation>
     </message>
     <message>
@@ -9930,7 +9930,7 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
-        <source>Show Mods Directory</source>
+        <source>Show Modules Folder</source>
         <translation>显示模组文件夹</translation>
     </message>
     <message>
@@ -10103,12 +10103,12 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
-        <source>Module loading is disabled. Enable it in Settings &gt; General to use modules.</source>
+        <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>模块加载已禁用。请在“设置 &gt; 通用”中启用它以使用模块。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
-        <source>Only integrated modules are loaded. To load external modules from the mods directory, change the module loading policy in Settings &gt; General.</source>
+        <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>仅加载内置模块。要从 mods 目录加载外部模块，请在“设置 &gt; 通用”中更改模块加载策略。</translation>
     </message>
     <message>
@@ -11517,7 +11517,7 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
-        <source>Changes needing this were made on: %1.
+        <source>Pages with changes that need this: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
         <translation>需要此操作的更改于 %1 进行。
@@ -11541,7 +11541,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="223"/>
-        <source>Preference</source>
+        <source>Preferences</source>
         <translation>偏好</translation>
     </message>
 </context>
@@ -12740,17 +12740,17 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="158"/>
-        <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
+        <source>Saving is not supported for tabs of type &apos;%1&apos;.</source>
         <translation>不支持对标签类型 &apos;%1&apos; 的保存文件操作。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="249"/>
-        <source>Save file</source>
+        <source>Save File</source>
         <translation>保存文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="317"/>
-        <source>Unsaved document</source>
+        <source>Unsaved Document</source>
         <translation>未保存的文档</translation>
     </message>
     <message>
@@ -12765,12 +12765,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
-        <source>If you don&apos;t save these files, all changes are lost.</source>
+        <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>如果您不保存这些文件，所有更改都将丢失。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
-        <source>No document to print</source>
+        <source>No document to print.</source>
         <translation>没有要打印的文件</translation>
     </message>
 </context>

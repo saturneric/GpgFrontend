@@ -3288,7 +3288,7 @@ The target may be on another volume, or you may not have sufficient permissions.
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="75"/>
-        <source>File Panel opens at</source>
+        <source>File Panel Opens At:</source>
         <translation>Панель файлов открывается в</translation>
     </message>
     <message>
@@ -3418,7 +3418,7 @@ The target may be on another volume, or you may not have sufficient permissions.
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="136"/>
         <source>Are you sure you want to clear all data objects?
-This will result in loss of all cached form positions, statuses, key servers, etc.</source>
+This will result in the loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>Вы уверены, что хотите очистить все объекты данных?
 Это приведёт к потере всех сохранённых позиций форм, статусов, серверов ключей и т.д.</translation>
     </message>
@@ -8498,7 +8498,7 @@ After installing it, please restart GpgFrontend. The configuration file will be 
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="255"/>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="258"/>
-        <source>Critical error occur while loading GpgFrontend.</source>
+        <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>Критическая ошибка при загрузке GpgFrontend.</translation>
     </message>
     <message>
@@ -9948,7 +9948,7 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
-        <source>Show Mods Directory</source>
+        <source>Show Modules Folder</source>
         <translation>Показать каталог модулей</translation>
     </message>
     <message>
@@ -10121,12 +10121,12 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
-        <source>Module loading is disabled. Enable it in Settings &gt; General to use modules.</source>
+        <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Загрузка модулей отключена. Включите её в настройках &gt; Общие, чтобы использовать модули.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
-        <source>Only integrated modules are loaded. To load external modules from the mods directory, change the module loading policy in Settings &gt; General.</source>
+        <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Загружены только встроенные модули. Чтобы загрузить внешние модули из каталога mods, измените политику загрузки модулей в настройках &gt; Общие.</translation>
     </message>
     <message>
@@ -11535,7 +11535,7 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
-        <source>Changes needing this were made on: %1.
+        <source>Pages with changes that need this: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
         <translation>Изменения, требующие этого, были сделаны: %1.
@@ -11559,7 +11559,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="223"/>
-        <source>Preference</source>
+        <source>Preferences</source>
         <translation>Настройки</translation>
     </message>
 </context>
@@ -12758,17 +12758,17 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="158"/>
-        <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
+        <source>Saving is not supported for tabs of type &apos;%1&apos;.</source>
         <translation>Операция сохранения файла для типа вкладки «%1» не поддерживается.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="249"/>
-        <source>Save file</source>
+        <source>Save File</source>
         <translation>Сохранить файл</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="317"/>
-        <source>Unsaved document</source>
+        <source>Unsaved Document</source>
         <translation>Несохранённый документ</translation>
     </message>
     <message>
@@ -12783,12 +12783,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
-        <source>If you don&apos;t save these files, all changes are lost.</source>
+        <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>Если вы не сохраните эти файлы, все изменения будут потеряны.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
-        <source>No document to print</source>
+        <source>No document to print.</source>
         <translation>Нет документа для печати</translation>
     </message>
 </context>

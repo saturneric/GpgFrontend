@@ -3282,7 +3282,7 @@ La cible est peut-être sur un autre volume, ou vous n&apos;avez pas les autoris
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="75"/>
-        <source>File Panel opens at</source>
+        <source>File Panel Opens At:</source>
         <translation>Le panneau de fichiers s&apos;ouvre à</translation>
     </message>
     <message>
@@ -3412,7 +3412,7 @@ La cible est peut-être sur un autre volume, ou vous n&apos;avez pas les autoris
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="136"/>
         <source>Are you sure you want to clear all data objects?
-This will result in loss of all cached form positions, statuses, key servers, etc.</source>
+This will result in the loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>Êtes-vous sûr de vouloir effacer tous les objets de données ?
 Cela entraînera la perte de toutes les positions de formulaires mises en cache, des statuts, des serveurs de clés, etc.</translation>
     </message>
@@ -8488,7 +8488,7 @@ Après l&apos;installation, veuillez redémarrer GpgFrontend. Le fichier de conf
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="255"/>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="258"/>
-        <source>Critical error occur while loading GpgFrontend.</source>
+        <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>Une erreur critique est survenue lors du chargement de GpgFrontend.</translation>
     </message>
     <message>
@@ -9938,7 +9938,7 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
-        <source>Show Mods Directory</source>
+        <source>Show Modules Folder</source>
         <translation>Afficher le répertoire des modules</translation>
     </message>
     <message>
@@ -10111,12 +10111,12 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
-        <source>Module loading is disabled. Enable it in Settings &gt; General to use modules.</source>
+        <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Le chargement des modules est désactivé. Activez-le dans Paramètres &gt; Général pour utiliser les modules.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
-        <source>Only integrated modules are loaded. To load external modules from the mods directory, change the module loading policy in Settings &gt; General.</source>
+        <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Seuls les modules intégrés sont chargés. Pour charger des modules externes depuis le répertoire mods, modifiez la politique de chargement des modules dans Paramètres &gt; Général.</translation>
     </message>
     <message>
@@ -11525,7 +11525,7 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
-        <source>Changes needing this were made on: %1.
+        <source>Pages with changes that need this: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
         <translation>Modifications nécessitant cela effectuées le : %1.
@@ -11549,7 +11549,7 @@ Choisissez Annuler pour ignorer toutes les modifications apportées dans cette b
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="223"/>
-        <source>Preference</source>
+        <source>Preferences</source>
         <translation>Préférences</translation>
     </message>
 </context>
@@ -12748,17 +12748,17 @@ Choisissez Annuler pour ignorer toutes les modifications apportées dans cette b
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="158"/>
-        <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
+        <source>Saving is not supported for tabs of type &apos;%1&apos;.</source>
         <translation>L&apos;opération d&apos;enregistrement de fichier pour le type d&apos;onglet &apos;%1&apos; n&apos;est pas prise en charge.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="249"/>
-        <source>Save file</source>
+        <source>Save File</source>
         <translation>Enregistrer le fichier</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="317"/>
-        <source>Unsaved document</source>
+        <source>Unsaved Document</source>
         <translation>Document non enregistré</translation>
     </message>
     <message>
@@ -12773,12 +12773,12 @@ Choisissez Annuler pour ignorer toutes les modifications apportées dans cette b
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
-        <source>If you don&apos;t save these files, all changes are lost.</source>
+        <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>Si vous n&apos;enregistrez pas ces fichiers, toutes les modifications seront perdues.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
-        <source>No document to print</source>
+        <source>No document to print.</source>
         <translation>Aucun document à imprimer</translation>
     </message>
 </context>

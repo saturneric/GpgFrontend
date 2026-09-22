@@ -3303,7 +3303,7 @@ Es posible que el destino esté en otro volumen o que no tenga los permisos sufi
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="75"/>
-        <source>File Panel opens at</source>
+        <source>File Panel Opens At:</source>
         <translation>Panel Archivo se abre en</translation>
     </message>
     <message>
@@ -3433,7 +3433,7 @@ Es posible que el destino esté en otro volumen o que no tenga los permisos sufi
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="136"/>
         <source>Are you sure you want to clear all data objects?
-This will result in loss of all cached form positions, statuses, key servers, etc.</source>
+This will result in the loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>¿Seguro que desea borrar todos los objetos de datos?
 Esto resultará en la pérdida de todas las posiciones de los formularios, estados, servidores de claves, etc, almacenados en caché.</translation>
     </message>
@@ -8510,7 +8510,7 @@ Después de instalarla, reinicie GpgFrontend. El archivo de configuración se ac
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="255"/>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="258"/>
-        <source>Critical error occur while loading GpgFrontend.</source>
+        <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>Se produjo un error crítico al cargar GpgFrontend.</translation>
     </message>
     <message>
@@ -9960,7 +9960,7 @@ Faltan las siguientes huellas:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
-        <source>Show Mods Directory</source>
+        <source>Show Modules Folder</source>
         <translation>Mostrar Directorio de Mods</translation>
     </message>
     <message>
@@ -10133,12 +10133,12 @@ Faltan las siguientes huellas:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
-        <source>Module loading is disabled. Enable it in Settings &gt; General to use modules.</source>
+        <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>La carga de módulos está deshabilitada. Actívela en Configuración &gt; General para usar módulos.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
-        <source>Only integrated modules are loaded. To load external modules from the mods directory, change the module loading policy in Settings &gt; General.</source>
+        <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Solo se cargan los módulos integrados. Para cargar módulos externos desde el directorio mods, cambie la política de carga de módulos en Configuración &gt; General.</translation>
     </message>
     <message>
@@ -11547,7 +11547,7 @@ Faltan las siguientes huellas:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
-        <source>Changes needing this were made on: %1.
+        <source>Pages with changes that need this: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
         <translation>Cambios que lo requieren se realizaron en: %1.
@@ -11571,7 +11571,7 @@ Elija Cancelar para descartar todo lo que cambió en este diálogo y mantener lo
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="223"/>
-        <source>Preference</source>
+        <source>Preferences</source>
         <translation>Preferencias</translation>
     </message>
 </context>
@@ -12770,17 +12770,17 @@ Elija Cancelar para descartar todo lo que cambió en este diálogo y mantener lo
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="158"/>
-        <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
+        <source>Saving is not supported for tabs of type &apos;%1&apos;.</source>
         <translation>La operación de guardar archivo para el tipo de pestaña &apos;%1&apos; no está admitida.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="249"/>
-        <source>Save file</source>
+        <source>Save File</source>
         <translation>Guardar Archivo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="317"/>
-        <source>Unsaved document</source>
+        <source>Unsaved Document</source>
         <translation>Documento sin guardar</translation>
     </message>
     <message>
@@ -12795,12 +12795,12 @@ Elija Cancelar para descartar todo lo que cambió en este diálogo y mantener lo
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
-        <source>If you don&apos;t save these files, all changes are lost.</source>
+        <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>Si no guarda estos archivos, se perderán todos los cambios.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
-        <source>No document to print</source>
+        <source>No document to print.</source>
         <translation>No hay documentos para imprimir</translation>
     </message>
 </context>
