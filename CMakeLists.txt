@@ -455,8 +455,8 @@ message(STATUS "Portable Build: ${GPGFRONTEND_BUILD_PORTABLE}")
 # here rather than only in GFSDKBuildInfo.h.in because the packaging function
 # has to stamp it into every manifest, and a number written down twice is a
 # number that will eventually disagree with itself.
-set(GF_SDK_ABI_VERSION 3)
-set(GF_SDK_ABI_MIN_SUPPORTED 3)
+set(GF_SDK_ABI_VERSION 4)
+set(GF_SDK_ABI_MIN_SUPPORTED 4)
 
 # ---------------------------------------------------------------------------
 # Product build identity
@@ -714,6 +714,12 @@ if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)
   add_subdirectory(modules)
 endif()
+
+# register_library() accumulates into this cache variable and nothing ever
+# clears it, so a library that is removed or renamed lingers in an existing
+# build directory and reappears in install(TARGETS ...) as a target that no
+# longer exists. Reset it here, once, before anything registers itself.
+set(GPGFRONTEND_LIBRARY_TARGETS "" CACHE INTERNAL "All libraries" FORCE)
 
 add_subdirectory(src)
 # ---------------------------------------------------------------------------

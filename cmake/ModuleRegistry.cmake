@@ -358,9 +358,14 @@ endfunction()
 #
 # Reaching one of these means reaching host functionality outside the granted
 # capability table, which is the single thing this whole arrangement exists to
-# prevent. gf_module_runtime is deliberately absent from the list: it is a
-# static archive of module-side code, not a host library.
-set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_sdk gf_test)
+# prevent.
+#
+# gf_sdk and gf_module_runtime are deliberately absent: both are static
+# archives of MODULE-side code. gf_sdk is the public SDK, implemented over
+# the capability table and stateless; gf_module_runtime owns the per-module
+# runtime state. Neither can reach the host except through GFHostApi, and the
+# same check below is applied to them so that stays true.
+set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_host_api gf_test)
 
 # The capability vocabulary, in the two kinds it really has. Must agree with
 # src/core/module/ModuleCapability.cpp, which is the Host's copy; a test
@@ -390,13 +395,13 @@ function(_gf_module_forbid_host_libraries target)
 
     if(current IN_LIST GF_MODULE_FORBIDDEN_HOST_LIBRARIES)
       message(FATAL_ERROR
-        "module target ${target} reaches the host library \"${current}\".\n"
-        "Modules link gf_module_runtime only: everything a module may do it "
-        "does through the GFHostApi capability table it is handed at "
-        "activation, and a direct link edge bypasses that gate. If the module "
-        "needs something the table does not offer, add a primitive to "
-        "src/sdk/GFSDKHostApi.h and a wrapper in src/module_runtime/sdk -- do "
-        "not link the host.")
+        "target ${target} reaches the host library \"${current}\".\n"
+        "Module-side code links gf_module_runtime and gf_sdk: everything a "
+        "module may do it does through the GFHostApi capability table it is "
+        "handed at activation, and a direct link edge bypasses that gate. If "
+        "something the table does not offer is needed, add a primitive to "
+        "src/sdk/GFSDKHostApi.h, implement it in src/sdk/host, and wrap it in "
+        "src/sdk/api -- do not link the host.")
     endif()
 
     if(NOT TARGET ${current})
