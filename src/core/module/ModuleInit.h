@@ -44,8 +44,8 @@ struct ModuleInitArgs {};
 /// A DISCOVERY switch, not a loading one.
 ///
 /// kALL used to mean "load external modules too", and it no longer can:
-/// external modules never load without the user trusting their build key and
-/// enabling them individually (ModuleExternalTrust.h). What this setting
+/// external modules never load without the user trusting their publisher key
+/// and enabling them individually (ModuleExternalTrust.h). What this setting
 /// decides is whether the external directory is looked at -- and therefore
 /// whether anything can be offered for that decision at all.
 ///

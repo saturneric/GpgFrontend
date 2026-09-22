@@ -113,7 +113,7 @@ auto WriteModuleStatusReport(const QString& path, QString& reason) -> bool {
   QJsonArray modules;
   for (const auto& id : report.loaded_modules) modules.append(id);
 
-  // The build key is rendered as a fingerprint rather than raw bytes: this
+  // The publisher key is rendered as a fingerprint rather than raw bytes: this
   // file is a testing aid people read, and the fingerprint is the thing a
   // person would compare. It is derived here, exactly as the Controller
   // derives it, because the key itself is the only stored form.
@@ -126,9 +126,9 @@ auto WriteModuleStatusReport(const QString& path, QString& reason) -> bool {
         {"pending_user_action", r.pending_user_action},
     };
     if (!r.module_id.isEmpty()) entry.insert("id", r.module_id);
-    if (!r.build_key.isEmpty()) {
-      entry.insert("build_key_fingerprint",
-                   ModuleBuildKeyFingerprint(r.build_key));
+    if (!r.publisher_key.isEmpty()) {
+      entry.insert("publisher_key_fingerprint",
+                   ModulePublisherKeyFingerprint(r.publisher_key));
     }
     refused.append(entry);
   }

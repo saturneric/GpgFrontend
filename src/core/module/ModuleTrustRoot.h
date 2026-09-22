@@ -53,6 +53,11 @@ namespace GpgFrontend::Module {
  * altered manifest and ship the matching key. That established internal
  * consistency and nothing else. A trust root that travels with the thing it
  * vouches for vouches for nothing.
+ *
+ * An EXTERNAL descriptor does carry a key again -- `META-INF/publisher.pub`
+ * -- but as the name of its signer, never as a trust root: external trust
+ * comes only from the user's decisions (ModuleExternalTrust.h), and this
+ * build key is refused wherever a publisher key is expected.
  */
 
 /// The 32 raw bytes this build verifies descriptor signatures with.
