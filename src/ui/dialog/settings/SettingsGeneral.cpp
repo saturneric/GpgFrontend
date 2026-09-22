@@ -83,7 +83,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   workspace_button_group->addButton(ui_->filePanelRadioButton);
   workspace_button_group->addButton(ui_->textEditorRadioButton);
 
-  ui_->filePanelDefaultPathLabel->setText(tr("File Panel opens at"));
+  ui_->filePanelDefaultPathLabel->setText(tr("File Panel Opens At:"));
 
   ui_->restoreTextEditorPageCheckBox->setText(
       tr("Cache text editor contents."));
@@ -116,8 +116,8 @@ GeneralTab::GeneralTab(QWidget* parent)
       tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
 
-  // Hide some options if running in sandbox, since they are not useful in
-  // sandbox and may cause confusion to users.
+  // Hide some options in a sandbox, since they are not useful there and may
+  // confuse users.
   if (IsRunningInSandBox()) {
     ui_->dataBox->setHidden(true);
     ui_->modulePolicyComboBox->setHidden(true);
@@ -145,7 +145,8 @@ GeneralTab::GeneralTab(QWidget* parent)
     reply = QMessageBox::question(
         this, tr("Confirm"),
         tr("Are you sure you want to clear all data objects?\nThis will result "
-           "in loss of all cached form positions, statuses, key servers, etc."),
+           "in the loss of all cached form positions, statuses, key servers, "
+           "etc."),
         QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
       GlobalSettingStation::GetInstance().ClearAllDataObjects();

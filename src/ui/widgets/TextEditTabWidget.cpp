@@ -542,8 +542,8 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
       mode, workspace, QDir::homePath(), QDir::currentPath());
 
   // A workspace lives inside the application container, so the sandbox already
-  // grants access to it and the yearly "pick a folder" prompt at every single
-  // startup can simply go away.
+  // grants access to it and the "pick a folder" prompt at every startup can
+  // simply go away.
   if (IsRunningInSandBox() && workspace.isEmpty()) {
     default_path = QFileDialog::getExistingDirectory(
         this, tr("Select Default Path"), default_path);
@@ -863,7 +863,8 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     }
 
     // Only recovery_type decides which recovery handler to use.
-    // page_type is semantic type, e.g. "text", "email", module-defined type.
+    // page_type is the semantic type, e.g. "text", "email", module-defined
+    // type.
     if (recovery_type_key != "text_editor") {
       LOG_D() << "skipping recovery entry handled elsewhere, recovery_type:"
               << recovery_type;
@@ -997,7 +998,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
               << ", restored count:" << restored_count
               << ", tab count:" << count();
     } else {
-      LOG_W() << "restored text editor page is no longer in tab widget"
+      LOG_W() << "restored text editor page is no longer in the tab widget"
               << ", restored count:" << restored_count
               << ", tab count:" << count();
     }

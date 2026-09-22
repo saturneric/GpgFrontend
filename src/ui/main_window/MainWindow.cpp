@@ -81,7 +81,7 @@ void MainWindow::Init() noexcept {
     /* List of binary Attachments */
     attachment_dock_created_ = false;
 
-    /* Variable containing if restart is needed */
+    /* Whether a restart is needed */
     this->SlotSetRestartNeeded(0);
 
     // init menu bar
@@ -159,7 +159,7 @@ void MainWindow::Init() noexcept {
 
 #ifndef Q_OS_WINDOWS
     // check if GnuPG is configured to use a GUI pinentry, and if not, show a
-    // warning message to user
+    // warning message to the user
     if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
       connect(this, &MainWindow::SignalLoaded, this, [=]() {
         QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() -> void {
@@ -237,7 +237,7 @@ void MainWindow::Init() noexcept {
 
     slot_switch_menu_control_mode(0);
 
-    // check if there are invalid key databases and notify user
+    // check for invalid key databases and notify the user
     check_and_notify_invalid_key_dbs();
 
     // update the OpenPGP engine status in the status bar
@@ -252,10 +252,10 @@ void MainWindow::Init() noexcept {
                              {"main_window", GFBuffer(RegisterQObject(this))},
                          });
   } catch (...) {
-    LOG_W() << tr("Critical error occur while loading GpgFrontend.");
+    LOG_W() << tr("A critical error occurred while loading GpgFrontend.");
     QMessageBox::critical(
         nullptr, tr("Loading Failed"),
-        tr("Critical error occur while loading GpgFrontend."));
+        tr("A critical error occurred while loading GpgFrontend."));
     QCoreApplication::quit();
     exit(0);
   }
@@ -494,8 +494,8 @@ auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
   msg_box->setDetailedText(details);
   msg_box->addButton(QMessageBox::Ignore);
 
-  // 4. Execute and Handle Interaction
-  LOG_W() << "Invalid key databases detected count: " << invalid_count;
+  // 3. Execute and Handle Interaction
+  LOG_W() << "invalid key databases detected, count:" << invalid_count;
   msg_box->show();
 }
 

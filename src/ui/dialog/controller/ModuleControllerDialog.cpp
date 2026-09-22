@@ -63,7 +63,7 @@ auto CurrentLoadingPolicy() -> Module::ModuleLoadingPolicy {
 
 namespace {
 
-/// delay before the second refresh, module (de)activation is posted to the
+/// delay before the second refresh; module (de)activation is posted to the
 /// module task runner and does not take effect synchronously
 constexpr int kActivationSettleMs = 300;
 
@@ -113,7 +113,7 @@ void ModuleControllerDialog::init_texts() {
                                static_cast<int>(ModuleCategory::kIntegrated));
   ui_->filterComboBox->addItem(tr("External"),
                                static_cast<int>(ModuleCategory::kExternal));
-  ui_->filterComboBox->addItem(tr("Needs Approval Or Refused"),
+  ui_->filterComboBox->addItem(tr("Not Loaded"),
                                static_cast<int>(ModuleCategory::kPending));
 
   ui_->detailPlaceholderLabel->setText(
@@ -125,7 +125,7 @@ void ModuleControllerDialog::init_texts() {
   ui_->autoActivateCheckBox->setToolTip(
       tr("Activate this module automatically when GpgFrontend starts."));
   ui_->refreshButton->setText(tr("Refresh"));
-  ui_->showModsDirButton->setText(tr("Show Mods Directory"));
+  ui_->showModsDirButton->setText(tr("Show Modules Folder"));
 
   ui_->grtSearchLineEdit->setPlaceholderText(tr("Search keys and values..."));
   ui_->grtExpandAllButton->setText(tr("Expand All"));
@@ -142,8 +142,9 @@ void ModuleControllerDialog::init_connections() {
 
   connect(ui_->moduleListView, &ModuleListView::SignalCountsChanged, this,
           [=](int total, int active) {
-            ui_->countLabel->setText(
-                tr("%1 modules · %2 active").arg(total).arg(active));
+            ui_->countLabel->setText(tr("%n module(s)", nullptr, total) +
+                                     QStringLiteral(" · ") +
+                                     tr("%n active", nullptr, active));
           });
 
   connect(
@@ -235,14 +236,13 @@ void ModuleControllerDialog::update_policy_notice() {
   switch (CurrentLoadingPolicy()) {
     case Module::ModuleLoadingPolicy::kDISABLE:
       ui_->policyNoticeLabel->setText(
-          tr("Module loading is disabled. Enable it in Settings > General to "
-             "use modules."));
+          tr("Modules are disabled. Change Module Discovery in Settings > "
+             "General to use them."));
       break;
     case Module::ModuleLoadingPolicy::kONLY_INTEGRATED:
       ui_->policyNoticeLabel->setText(
-          tr("Only integrated modules are loaded. To load external modules "
-             "from the mods directory, change the module loading policy in "
-             "Settings > General."));
+          tr("Only integrated modules are loaded. To also load modules you "
+             "have added, change Module Discovery in Settings > General."));
       break;
     case Module::ModuleLoadingPolicy::kALL:
       ui_->policyNoticeLabel->hide();
@@ -388,11 +388,10 @@ auto ModuleControllerDialog::show_refused_module() -> bool {
     rows.append(
         {.caption = tr("Build key"),
          .value = fingerprint,
-         .detail = trusted
-                       ? tr("You have trusted this build key.")
-                       : tr("You have not trusted this build key. Compare it "
-                            "with the one the module's author published "
-                            "before you do."),
+         .detail = trusted ? tr("You have trusted this build key.")
+                           : tr("You have not trusted this build key. Before "
+                                "trusting it, compare its fingerprint with the "
+                                "one the module's author published."),
          .degraded = !trusted});
   }
 

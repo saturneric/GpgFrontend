@@ -74,11 +74,11 @@ void TextEdit::SlotNewDefaultWorkspaceTab() {
           .toString();
 
   if (IsRunningInSandBox()) {
-    // In sandbox environment, the file panel may not work properly due to
-    // sandbox restrictions. So we use text editor as the default workspace to
-    // avoid potential issues.
-    LOG_W() << "Running in sandbox environment, switching default workspace "
-               "to text editor.";
+    // In a sandbox the file panel may not work properly because of the
+    // sandbox's restrictions, so the text editor is used as the default
+    // workspace instead.
+    LOG_W() << "running in a sandbox; switching the default workspace to the "
+               "text editor";
     tab_widget_->SlotNewPlainTextTab();
 
   } else if (default_workspace_as == "file_panel") {
@@ -115,7 +115,7 @@ void TextEdit::SlotOpenFile(const QString& path) {
 
 void TextEdit::SlotOpen() {
   QStringList file_names =
-      QFileDialog::getOpenFileNames(this, tr("Open file"), QDir::currentPath());
+      QFileDialog::getOpenFileNames(this, tr("Open File"), QDir::currentPath());
   for (const auto& file_name : file_names) {
     if (!file_name.isEmpty()) {
       SlotOpenFile(file_name);
@@ -155,8 +155,7 @@ void TextEdit::SlotSave() {
   if (!Module::IsEventListening(event_id)) {
     QMessageBox::warning(
         this, tr("Unsupported Operation"),
-        tr("The save file operation for the tab type '%1' is not supported.")
-            .arg(type));
+        tr("Saving is not supported for tabs of type '%1'.").arg(type));
     return;
   }
 
@@ -250,13 +249,13 @@ auto TextEdit::SlotSaveAs() -> bool {
   }
 
   return saveFile(QFileDialog::getSaveFileName(
-      this, tr("Save file"), path, page->PrimaryViewFileTypeFilter()));
+      this, tr("Save File"), path, page->PrimaryViewFileTypeFilter()));
 }
 
 void TextEdit::SlotCloseTab() { slot_remove_tab(tab_widget_->currentIndex()); }
 
 void TextEdit::slot_remove_tab(int index) {
-  // Do nothing, if no tab is opened
+  // Do nothing if no tab is open
   if (tab_widget_->count() == 0) {
     return;
   }
@@ -302,8 +301,8 @@ void TextEdit::slot_remove_tab(int index) {
 }
 
 /**
- * Check if current may need to be saved.
- * Call this function before closing the currently active tab-
+ * Check whether the current tab needs saving.
+ * Call this before closing the active tab.
  *
  * If it returns false, the close event should be aborted.
  */
@@ -327,14 +326,12 @@ auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
     const QString& file_path = page->GetFilePath();
     if (ask_to_save) {
       result = QMessageBox::warning(
-          this, tr("Unsaved document"),
+          this, tr("Unsaved Document"),
           tr("The document \"%1\" has been modified. Do you want to "
              "save your changes?")
                   .arg(doc_name) +
-              "<br/><b>" + tr("Note:") + "</b>" +
-              tr("If you don't save these files, all changes are "
-                 "lost.") +
-              "<br/>",
+              "<br/><b>" + tr("Note:") + "</b> " +
+              tr("If you don't save, your changes will be lost.") + "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
 
@@ -359,7 +356,7 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
   bool restore_text_editor_page =
       GetSettings().value("basic/restore_text_editor_page", true).toBool();
   if (restore_text_editor_page) {
-    FLOG_D("restore_text_editor_page is true, caching messages and exit...");
+    FLOG_D("restore_text_editor_page is true, caching messages and exiting");
     tab_widget_->SlotCacheTextEditors();
     return true;
   }
@@ -375,7 +372,7 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
     return maybe_save;
   }
 
-  // more than one unsaved documents
+  // more than one unsaved document
 
   bool can_close = false;
   auto* dialog = new QuitDialog(
@@ -589,8 +586,8 @@ void TextEdit::SlotQuote() const {
 
   QTextCursor cursor(CurTextPage()->GetTextPage()->document());
 
-  // beginEditBlock and endEditBlock() let operation look like single
-  // undo/redo operation
+  // beginEditBlock() and endEditBlock() make the operation a single undo/redo
+  // step
   cursor.beginEditBlock();
   cursor.setPosition(0);
   cursor.insertText("> ");
@@ -672,7 +669,7 @@ void TextEdit::SlotPrint() {
   if (document != nullptr) {
     document->print(&printer);
   } else {
-    QMessageBox::warning(this, tr("Warning"), tr("No document to print"));
+    QMessageBox::warning(this, tr("Warning"), tr("No document to print."));
   }
 
   // statusBar()->showMessage(tr("Ready"), 2000);
@@ -695,7 +692,7 @@ void TextEdit::SlotSwitchTabDown() const {
 }
 
 /*
- *   return a hash of tabindexes and title of unsaved tabs
+ *   return a hash of the tab indexes and titles of unsaved tabs
  */
 auto TextEdit::UnsavedDocuments() const -> QHash<int, QString> {
   QHash<int, QString> unsaved_docs;

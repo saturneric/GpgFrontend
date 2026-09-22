@@ -195,7 +195,7 @@ class GF_UI_EXPORT UIModuleManager
   /**
    * @brief Drop a module-owned settings page registration.
    *
-   * Modules must do this before unloading — a factory pointing into an
+   * Modules must do this before unloading -- a factory pointing into an
    * unloaded shared object would crash the next dialog build.
    *
    * @param id the identifier used to register
@@ -218,7 +218,7 @@ class GF_UI_EXPORT UIModuleManager
   /**
    * @brief Drop a module-owned tab page view registration.
    *
-   * Modules must do this before unloading — a factory pointing into an
+   * Modules must do this before unloading -- a factory pointing into an
    * unloaded shared object would crash the next time a tab of this type opens.
    *
    * @param tab_type the type used to register; matched case-insensitively
@@ -329,7 +329,9 @@ auto GF_UI_EXPORT FileExtensionEventId(const QString& extension,
  * modules at run time with no build error anywhere.
  *
  * Safe to call from any thread; the read is marshalled to the GUI thread.
+ *
+ * @return the bytes, or std::nullopt when no text tab is open
  */
-auto GF_UI_EXPORT CurrentEditorContent() -> QByteArray;
+auto GF_UI_EXPORT CurrentEditorContent() -> std::optional<QByteArray>;
 
 }  // namespace GpgFrontend::UI

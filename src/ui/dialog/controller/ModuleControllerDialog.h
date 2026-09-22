@@ -70,7 +70,8 @@ class ModuleControllerDialog : public GeneralDialog {
   void init_connections();
 
   /**
-   * @brief Show a notice when the module loading policy limits what is loaded.
+   * @brief Show a notice when the Module Discovery setting limits what is
+   * loaded.
    */
   void update_policy_notice();
 

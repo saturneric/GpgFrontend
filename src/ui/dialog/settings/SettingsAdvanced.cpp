@@ -100,13 +100,13 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
 
   // Levels mirror what the core actually does: 1 wipes freed memory, 2 adds
   // locked pages, 3 additionally rotates the data-object keys every week. This
-  // is memory and key hygiene only — how the key file is protected at rest is
+  // is memory and key hygiene only -- how the key file is protected at rest is
   // the separate control below.
   secure_level_combo_ = new QComboBox(security_box);
   // Tier names are shared with the status readout via SecureLevelDisplayName;
   // pair each with a brief note on what it adds, since the tier word alone does
-  // not say what the level actually does. The notes are cumulative — each level
-  // keeps everything the ones below it do.
+  // not say what the level actually does. The notes are cumulative -- each
+  // level keeps everything the ones below it do.
   const auto level_hint = [](int level) -> QString {
     switch (level) {
       case 1:
@@ -179,8 +179,8 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   log_level_combo_->addItem(tr("Fatal"), static_cast<int>(GFLogLevel::kFATAL));
   log_level_combo_->setToolTip(WrappingToolTip(
       tr("The least severe message that still gets written to the log. Trace "
-         "is the most detailed and writes the most to disk; it adds per-item "
-         "output from modules that debug does not include.")));
+         "is the most detailed and writes the most to disk; it adds detailed "
+         "per-item output from modules that Debug leaves out.")));
   diagnostics_form->addRow(tr("Log Level:"), log_level_combo_);
 
   ring_capacity_spin_ = new QSpinBox(diagnostics_box);
@@ -236,7 +236,7 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   // Probe the store the moment the user picks the keychain, rather than letting
   // them restart only to find out it never worked. This is the first point at
   // which a probe, and any unlock prompt it triggers, is something they asked
-  // for — opening the dialog must never do it on its own.
+  // for -- opening the dialog must never do it on its own.
   connect(protection_combo_, qOverload<int>(&QComboBox::activated), this,
           [this](int index) {
             const auto chosen = AppKeyProtectionFromString(
@@ -271,7 +271,7 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
 
   // Confirm before leaving the rotation tier: below it the weekly rotated keys
   // are never loaded, so everything saved while rotation was on orphans and is
-  // eventually garbage-collected. This mirrors the keychain probe above — it
+  // eventually garbage-collected. This mirrors the keychain probe above -- it
   // reacts to an explicit user pick (activated), never to SetSettings()
   // populating the combo, and reverts on decline.
   connect(secure_level_combo_, qOverload<int>(&QComboBox::activated), this,
@@ -288,7 +288,7 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
                    "level was on can no longer be read and is deleted after "
                    "a short grace period.")
                         .arg(SecureLevelDisplayName(kRotationSecureLevel)) +
-                    +"\n\n" + tr("Lower the level anyway?"),
+                    "\n\n" + tr("Lower the level anyway?"),
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
             if (answer == QMessageBox::Yes) return;

@@ -98,7 +98,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   // Every page is described first and only then handed to add_page. Module
   // pages register while their module activates, so they can only be collected
-  // after the built-in ones — and add_page emits a section header the first
+  // after the built-in ones -- and add_page emits a section header the first
   // time it sees a section, so an unsorted late arrival would show up under
   // whichever header came last. Ordering the whole set keeps each section
   // contiguous, which is the assumption add_page rests on.
@@ -116,8 +116,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         tr("text editor"), tr("status panel"), tr("arabic")}},
   };
 
-  // network settings is not available in sandbox environment, so only add the
-  // page when not running in sandbox
+  // Network settings are not available in a sandbox, so only add the page when
+  // not sandboxed.
   if (!IsRunningInSandBox()) {
     descriptors.append({network_tab_,
                         tr("Network"),
@@ -169,7 +169,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   }
 
   // Sized once every row exists, so the sidebar is exactly as wide as its
-  // widest title — up to a cap, past which titles elide rather than widen the
+  // widest title -- up to a cap, past which titles elide rather than widen the
   // dialog.
   nav_list_->setFixedWidth(
       std::min(nav_list_->sizeHintForColumn(0) + (2 * nav_list_->frameWidth()) +
@@ -221,7 +221,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
-  setWindowTitle(tr("Preference"));
+  setWindowTitle(tr("Preferences"));
 #else
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -237,7 +237,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   setLayout(main_layout);
 
   // Each tab announces a needed restart as the user edits, not when settings
-  // are applied — so by the time OK is pressed we already know whether to ask
+  // are applied -- so by the time OK is pressed we already know whether to ask
   // for confirmation, and which pages to name when we do.
   const auto declare = [this](int mode, const QString& page) {
     return [this, mode, page]() { declare_restart(mode, page); };
@@ -262,7 +262,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           declare(kDeepRestartCode, gnupg_title));
 
   // the advanced knobs are only read while the process starts, so applying
-  // them means relaunching — a deep restart, which does exactly that
+  // them means relaunching -- a deep restart, which does exactly that
   connect(advanced_tab_, &AdvancedTab::SignalDeepRestartNeeded, this,
           declare(kDeepRestartCode, advanced_title));
 
@@ -404,7 +404,7 @@ void SettingsDialog::filter_pages(const QString& text) {
   const auto needle = text.trimmed();
 
   // Walking backwards lets a header be hidden as soon as we know none of the
-  // rows below it survived — the rows of a section always follow its header.
+  // rows below it survived -- the rows of a section always follow its header.
   auto section_has_match = false;
   for (auto row = nav_list_->count() - 1; row >= 0; --row) {
     auto* item = nav_list_->item(row);
@@ -427,7 +427,7 @@ void SettingsDialog::filter_pages(const QString& text) {
     if (matches) section_has_match = true;
   }
 
-  // Only the list is filtered — every page stays alive in the stack, so edits
+  // Only the list is filtered -- every page stays alive in the stack, so edits
   // made on a page that is now hidden are still applied on OK. But the stack
   // must not keep showing a page the user can no longer see a row for.
   auto* current = nav_list_->currentItem();
@@ -447,7 +447,7 @@ void SettingsDialog::showEvent(QShowEvent* event) {
   GeneralDialog::showEvent(event);
 
   // If the window state has not been restored, move the dialog to the center of
-  // the parent window (if has parent) or the screen.
+  // the parent window (if it has one) or the screen.
   if (!isRectRestored()) {
     movePosition2CenterOfParent();
   }
@@ -476,7 +476,7 @@ auto SettingsDialog::confirm_restart() -> bool {
                    : tr("Some of your changes only take effect after the "
                         "interface reloads."));
   box.setInformativeText(
-      tr("Changes needing this were made on: %1.\n\nChoose Cancel to discard "
+      tr("Pages with changes that need this: %1.\n\nChoose Cancel to discard "
          "everything you changed in this dialog and keep the current settings.")
           .arg(restart_pages_.join(QStringLiteral(", "))));
 
@@ -516,14 +516,14 @@ void SettingsDialog::revert_all_tabs() {
 
 void SettingsDialog::SlotAccept() {
   // Ask before anything is written. Tabs declare their restart while the user
-  // edits, so the answer is already known here — which is what makes a clean
+  // edits, so the answer is already known here -- which is what makes a clean
   // "cancel discards everything" possible.
   if (restart_mode_ != kNonRestartCode && !confirm_restart()) {
     revert_all_tabs();
 #ifndef Q_OS_MACOS
     // Stay open on the reverted values so the user can adjust. On macOS this
     // runs from QDialog::finished, where the dialog is already going away and
-    // there is nothing left to hold open — falling through simply rewrites the
+    // there is nothing left to hold open -- falling through simply rewrites the
     // unchanged originals and skips the restart.
     return;
 #endif

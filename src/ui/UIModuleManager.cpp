@@ -279,10 +279,10 @@ auto FileExtensionEventId(const QString& extension, const QString& operation)
                                                                 operation);
 }
 
-auto CurrentEditorContent() -> QByteArray {
+auto CurrentEditorContent() -> std::optional<QByteArray> {
   auto* edit = qobject_cast<TextEdit*>(
       UIModuleManager::GetInstance().GetQObject("main_window_edit"));
-  if (edit == nullptr) return {};
+  if (edit == nullptr) return std::nullopt;
 
   // The document belongs to the GUI thread, and a module's handler does not
   // necessarily run there. Blocking is right when it does not -- the caller
@@ -290,14 +290,15 @@ auto CurrentEditorContent() -> QByteArray {
   // is a deadlock, which Qt refuses with "Dead lock detected" and an empty
   // result. A module dialog's button handler is on the GUI thread, so that is
   // the common case, not the exotic one.
-  if (QThread::currentThread() == edit->thread()) {
+  const auto read = [edit]() -> std::optional<QByteArray> {
+    if (edit->CurTextPage() == nullptr) return std::nullopt;
     return edit->CurDocumentBytesForOperation();
-  }
+  };
+  if (QThread::currentThread() == edit->thread()) return read();
 
-  QByteArray bytes;
+  std::optional<QByteArray> bytes;
   QMetaObject::invokeMethod(
-      edit, [&] { bytes = edit->CurDocumentBytesForOperation(); },
-      Qt::BlockingQueuedConnection);
+      edit, [&] { bytes = read(); }, Qt::BlockingQueuedConnection);
   return bytes;
 }
 
