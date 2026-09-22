@@ -28,6 +28,13 @@
 #                            that its RUNPATH must be able to reach (Linux)
 #     --expect-count N       fail unless exactly N namespaces were audited
 #     --warnings-are-errors  treat orphan helpers as failures too
+#     --require-binding      first run the packager's full verify-module-set
+#                            with --require-binding (needs --packager)
+#     --assert-no-native-outside DIR
+#                            pass this to that same verify-module-set run
+#
+# With either of the last two, this is the one gate a release leg needs: the
+# descriptors verify strictly, then the natives they bind are audited.
 #
 # An orphan private helper -- a library in native/ that nothing in the
 # namespace imports -- is a WARNING by default. Making it fatal would invent a
@@ -41,6 +48,8 @@ QT_RELATIVE=""
 EXPECT_COUNT=-1
 STRICT=0
 PACKAGER=""
+REQUIRE_BINDING=0
+NO_NATIVE_OUTSIDE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -62,13 +71,20 @@ integer, got \"${2:-}\"" >&2
       EXPECT_COUNT="$2"; shift 2 ;;
     --packager) PACKAGER="${2:-}"; shift 2 ;;
     --warnings-are-errors) STRICT=1; shift ;;
-    -h|--help) sed -n '3,35p' "$0"; exit 0 ;;
+    --require-binding) REQUIRE_BINDING=1; shift ;;
+    --assert-no-native-outside) NO_NATIVE_OUTSIDE="${2:-}"; shift 2 ;;
+    -h|--help) sed -n '3,42p' "$0"; exit 0 ;;
     *) echo "audit_module_natives: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
 
 if [[ -z "$NAMESPACE_ROOT" ]]; then
   echo "audit_module_natives: --namespace-root is required" >&2
+  exit 2
+fi
+if [[ -z "$PACKAGER" && ( "$REQUIRE_BINDING" -eq 1 || -n "$NO_NATIVE_OUTSIDE" ) ]]; then
+  echo "audit_module_natives: --require-binding and --assert-no-native-outside" \
+    "need --packager" >&2
   exit 2
 fi
 if [[ ! -d "$NAMESPACE_ROOT" ]]; then
@@ -82,8 +98,8 @@ fi
 # misread as an entry is held to rules the format never placed on it.
 #
 # A plain string rather than an associative array because macOS ships bash
-# 3.2, which has no `declare -A`. There are four modules; a grep over four
-# lines is not the cost worth a second dialect of this script.
+# 3.2, which has no `declare -A`. There are only a few modules; a grep over a
+# few lines is not worth a second dialect of this script.
 IS_ENTRY=""
 ENTRIES_KNOWN=0
 
@@ -91,6 +107,20 @@ if [ -n "$PACKAGER" ]; then
   if [ ! -x "$PACKAGER" ]; then
     echo "audit_module_natives: $PACKAGER: not an executable" >&2
     exit 2
+  fi
+
+  # The strict verification a release leg needs, when asked for. Run first and
+  # on its own: its report is the one to read if the descriptors are wrong.
+  if [ "$REQUIRE_BINDING" -eq 1 ] || [ -n "$NO_NATIVE_OUTSIDE" ]; then
+    verify_args=(verify-module-set --namespace-root "$NAMESPACE_ROOT")
+    [ "$EXPECT_COUNT" -ge 0 ] && verify_args+=(--expect-count "$EXPECT_COUNT")
+    [ "$REQUIRE_BINDING" -eq 1 ] && verify_args+=(--require-binding)
+    [ -n "$NO_NATIVE_OUTSIDE" ] && \
+      verify_args+=(--assert-no-native-outside "$NO_NATIVE_OUTSIDE")
+    "$PACKAGER" "${verify_args[@]}" || {
+      echo "audit_module_natives: the module set failed strict verification" >&2
+      exit 1
+    }
   fi
 
   # Captured rather than piped, and its stderr deliberately NOT discarded.
@@ -112,7 +142,7 @@ if [ -n "$PACKAGER" ]; then
     echo "  The packager's own report below names the module and the reason;" >&2
     echo "  read that first. Two causes recur:" >&2
     echo "    - this ran before the descriptors were regenerated, so the" >&2
-    echo "      natives deployment rewrote no longer match them; or" >&2
+    echo "      natives that deployment rewrote no longer match them; or" >&2
     echo "    - the natives are not really there -- a symlink into a build" >&2
     echo "      tree, for instance, which is what xcodebuild archive leaves" >&2
     echo "      behind and what the materialize step exists to resolve." >&2
