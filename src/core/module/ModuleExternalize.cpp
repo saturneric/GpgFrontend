@@ -465,6 +465,7 @@ auto ExternalizeModule(const ModuleExternalizeSpec& spec)
   build.security_epoch = input.security_epoch;
   build.capabilities = input.capabilities;
   build.events = input.events;
+  build.commands = input.commands;
   build.translation_context = input.translation_context;
   build.metadata = input.metadata;
   build.build_id = input.build_id;  // provenance only

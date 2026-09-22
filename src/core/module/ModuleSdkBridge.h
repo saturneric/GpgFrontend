@@ -89,6 +89,10 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
   const char* (*current_module)() = nullptr;
   void (*leave_module)(const char* previous) = nullptr;
   size_t (*sweep_module_handles)(const char* module_id) = nullptr;
+  /// Withdraw everything the Host holds on a module's behalf -- its
+  /// commands, its UI registrations, calls it made or was serving -- so that
+  /// nothing can enter its code again. Idempotent.
+  void (*module_deactivated)(const char* module_id) = nullptr;
 };
 
 /**
@@ -165,6 +169,9 @@ auto GF_CORE_EXPORT ModuleSdkCurrentModule() -> QString;
  * no module was ever activated, so none obtained a handle.
  */
 auto GF_CORE_EXPORT ModuleSdkSweepHandles(const char* module_id) -> size_t;
+
+/// See ModuleSdkBridge::module_deactivated. A no-op without a bridge.
+void GF_CORE_EXPORT ModuleSdkNotifyDeactivated(const char* module_id);
 
 /**
  * @brief Bracket a call into module code so its handles are attributed to it.

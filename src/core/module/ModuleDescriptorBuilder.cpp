@@ -278,6 +278,9 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
   // module that subscribes to nothing -- and is written as such; what is
   // refused is a manifest that says nothing at all.
   manifest.insert("events", QJsonArray::fromStringList(spec.events));
+  if (!spec.commands.isEmpty()) {
+    manifest.insert("commands", QJsonArray::fromStringList(spec.commands));
+  }
   manifest.insert("translation_context", spec.translation_context);
 
   // The entry native, computed from the file as it stands right now.

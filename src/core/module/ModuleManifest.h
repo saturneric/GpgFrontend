@@ -192,6 +192,12 @@ struct GF_CORE_EXPORT ModuleManifest {
   /// drifting apart unnoticed.
   QStringList events;
 
+  /// Command ids this module provides, "<id>.<name>". An allowlist, like
+  /// @ref events: the Host registry refuses to register a command the signed
+  /// manifest does not name. Optional -- a module that provides no commands
+  /// omits it -- so packages built before the field existed still parse.
+  QStringList commands;
+
   /// Names this module's compiled .qm files. Verified, so the runtime can
   /// load translations without trusting a constant compiled into the module.
   QString translation_context;

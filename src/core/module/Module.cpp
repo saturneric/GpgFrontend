@@ -188,8 +188,10 @@ class Module::Impl {
     QByteArray context_utf8;
     QList<QByteArray> capability_utf8;
     QList<QByteArray> event_utf8;
+    QList<QByteArray> command_utf8;
     QVector<const char*> capabilities;
     QVector<const char*> events;
+    QVector<const char*> commands;
 
     GFModuleBootstrapInfo info{};
     info.struct_size = sizeof(GFModuleBootstrapInfo);
@@ -226,6 +228,13 @@ class Module::Impl {
       for (const auto& e : event_utf8) events.append(e.constData());
       info.events = events.constData();
       info.events_size = static_cast<size_t>(events.size());
+
+      command_utf8.reserve(m.commands.size());
+      for (const auto& c : m.commands) command_utf8.append(c.toUtf8());
+      commands.reserve(command_utf8.size());
+      for (const auto& c : command_utf8) commands.append(c.constData());
+      info.commands = commands.constData();
+      info.commands_size = static_cast<size_t>(commands.size());
     }
 
     // What this module is allowed to reach, computed from the SIGNED
@@ -281,6 +290,8 @@ class Module::Impl {
     // the grant. It lives on after a normal deactivation, because the
     // module's on_unload hook still calls the SDK.
     if (rc != 0) {
+      // A half-activated module may already have registered commands.
+      ModuleSdkNotifyDeactivated(identifier_utf8_.constData());
       ModuleSdkReleaseHostApi(identifier_utf8_.constData());
       minted_ = false;
     }
@@ -300,9 +311,15 @@ class Module::Impl {
   auto Deactivate() -> int {
     if (!good_) return -1;
     if (api_ != nullptr) {
-      if (api_->deactivate == nullptr) return 0;
-      const auto attributed = attribution();
-      return api_->deactivate();
+      int rc = 0;
+      if (api_->deactivate != nullptr) {
+        const auto attributed = attribution();
+        rc = api_->deactivate();
+      }
+      // After the module's own hook, never before: that hook may still be
+      // withdrawing things itself. Whatever it left behind goes now.
+      ModuleSdkNotifyDeactivated(identifier_utf8_.constData());
+      return rc;
     }
     return -1;
   }

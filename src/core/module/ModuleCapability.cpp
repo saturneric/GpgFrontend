@@ -61,6 +61,12 @@ auto Vocabulary() -> const QList<CapabilityEntry>& {
        static_cast<uint32_t>(ModuleCapability::kSTORAGE)},
       {"process", ModuleCapabilityKind::kENFORCEABLE,
        static_cast<uint32_t>(ModuleCapability::kPROCESS)},
+      // A module's own QWidgets, mounted by the Host into a container the
+      // Host owns. A separate name from "ui" because it is a separate thing
+      // to trust: "ui" only declares where a Host action appears, this runs
+      // module code inside the Host's window.
+      {"ui.custom", ModuleCapabilityKind::kENFORCEABLE,
+       static_cast<uint32_t>(ModuleCapability::kUI_CUSTOM)},
 
       // Advisory. A module reaches the network through Qt, not through the
       // Host, so there is nothing here for the Host to withhold. Recorded and

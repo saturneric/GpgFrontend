@@ -82,6 +82,9 @@ enum class ModuleCapability : uint32_t {
   kEDITOR = 1U << 3,
   kSTORAGE = 1U << 4,
   kPROCESS = 1U << 5,
+  /// Module-owned native widgets mounted into Host containers. Declared
+  /// explicitly and only together with `ui`; see ModuleManifest.
+  kUI_CUSTOM = 1U << 6,
 };
 
 /// How a declared name was classified.

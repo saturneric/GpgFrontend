@@ -83,6 +83,12 @@ auto ModuleSdkSweepHandles(const char* module_id) -> size_t {
   return bridge.sweep_module_handles(module_id);
 }
 
+void ModuleSdkNotifyDeactivated(const char* module_id) {
+  const auto& bridge = Bridge();
+  if (bridge.module_deactivated == nullptr) return;
+  bridge.module_deactivated(module_id);
+}
+
 ModuleAttributionScope::ModuleAttributionScope(const char* module_id) {
   const auto& bridge = Bridge();
   if (bridge.enter_module == nullptr || bridge.leave_module == nullptr) return;

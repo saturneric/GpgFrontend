@@ -61,6 +61,9 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
   /// Event ids the module subscribes to. Sorted by the caller so the canonical
   /// manifest is byte-identical across rebuilds.
   QStringList events;
+  /// Optional; written only when non-empty, so a module providing no
+  /// commands produces exactly the manifest it always did.
+  QStringList commands;
 
   /// Names the module's .qm files.
   QString translation_context;

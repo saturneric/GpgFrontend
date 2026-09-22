@@ -258,6 +258,14 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
       }
       m.capabilities.append(name);
     }
+    // "ui.custom" extends "ui"; it is never implied. Refusing the lone form
+    // keeps the signed statement explicit: a manifest that grants native
+    // widgets in Host containers also says, in so many words, that the
+    // module integrates with the Host UI at all.
+    if (m.capabilities.contains("ui.custom") &&
+        !m.capabilities.contains("ui")) {
+      return Malformed("\"capabilities\" names \"ui.custom\" without \"ui\"");
+    }
   }
 
   // events: required. Every element an upper-case identifier, because that is
@@ -284,6 +292,38 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
               QString("event id \"%1\" is declared twice").arg(id));
         }
         m.events.append(id);
+      }
+    }
+  }
+
+  // commands: optional. The ids this module provides, each in the module's
+  // own namespace: a manifest cannot claim a command id belonging to the Host
+  // or to another module, whatever its signature says.
+  {
+    const auto v = root.value("commands");
+    if (!v.isUndefined()) {
+      if (!v.isArray()) return Malformed("\"commands\" is not an array");
+      static const QRegularExpression kShape(
+          QStringLiteral("^[a-z0-9_]+(\\.[a-z0-9_]+)*$"));
+      for (const auto& c : v.toArray()) {
+        if (!c.isString()) {
+          return Malformed("a value in \"commands\" is not a string");
+        }
+        const auto id = c.toString();
+        if (!kShape.match(id).hasMatch()) {
+          return Malformed(
+              QString("command id \"%1\" is not lower-case dotted").arg(id));
+        }
+        if (!m.id.isEmpty() && !id.startsWith(m.id + ".")) {
+          return Malformed(
+              QString("command id \"%1\" is outside the module's namespace")
+                  .arg(id));
+        }
+        if (m.commands.contains(id)) {
+          return Malformed(
+              QString("command id \"%1\" is declared twice").arg(id));
+        }
+        m.commands.append(id);
       }
     }
   }
