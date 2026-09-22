@@ -384,7 +384,7 @@ void ModuleListView::load_module_information() {
     item->setData(true, kModuleRefusedRole);
     item->setData(refusal.pending_user_action, kModulePendingUserActionRole);
     item->setData(refusal.reason, kModuleReasonRole);
-    item->setData(refusal.build_key, kModuleBuildKeyRole);
+    item->setData(refusal.publisher_key, kModulePublisherKeyRole);
     item->setData(refusal.origin == Module::ModuleOrigin::kINTEGRATED,
                   kModuleIntegratedRole);
     item->setData(false, kModuleActiveRole);
@@ -465,7 +465,7 @@ auto ModuleListView::GetCurrentRefusal() -> SelectedRefusal {
   refusal.module_id = item->data(kModuleIdRole).toString();
   refusal.descriptor_path = item->data(kModuleRefusedDescriptorRole).toString();
   refusal.reason = item->data(kModuleReasonRole).toString();
-  refusal.build_key = item->data(kModuleBuildKeyRole).toByteArray();
+  refusal.publisher_key = item->data(kModulePublisherKeyRole).toByteArray();
   return refusal;
 }
 };  // namespace GpgFrontend::UI

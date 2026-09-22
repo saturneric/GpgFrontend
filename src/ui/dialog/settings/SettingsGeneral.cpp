@@ -64,7 +64,7 @@ GeneralTab::GeneralTab(QWidget* parent)
                                      "all");
   ui_->modulePolicyComboBox->addItem(tr("Disable"), "disable");
   // Worded as discovery, because that is all it decides. Finding a module the
-  // user added does not run it: its build key has to be trusted and the
+  // user added does not run it: its publisher key has to be trusted and the
   // module enabled, one at a time, in the module controller. A label reading
   // "All Modules" promised something the approval gate then quietly refused.
   //

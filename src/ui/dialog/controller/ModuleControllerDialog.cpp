@@ -261,11 +261,11 @@ void ModuleControllerDialog::init_authorization_actions() {
   // designer invite somebody to wire them to something else.
   //
   // TWO buttons, deliberately, for two decisions that must not collapse into
-  // one. Trusting a build key says "signatures by this key are worth
+  // one. Trusting a publisher key says "signatures by this key are worth
   // considering"; enabling says "run this one". A single "Allow" would make
   // one click do both, and the first of them applies to every module that key
   // ever signs.
-  trust_key_button_ = new QPushButton(tr("Trust This Build Key..."), this);
+  trust_key_button_ = new QPushButton(tr("Trust This Publisher Key..."), this);
   enable_module_button_ = new QPushButton(tr("Enable This Module"), this);
   trust_key_button_->hide();
   enable_module_button_->hide();
@@ -275,24 +275,24 @@ void ModuleControllerDialog::init_authorization_actions() {
 
   connect(trust_key_button_, &QPushButton::clicked, this, [=]() {
     const auto refusal = ui_->moduleListView->GetCurrentRefusal();
-    if (!refusal.valid || refusal.build_key.isEmpty()) return;
+    if (!refusal.valid || refusal.publisher_key.isEmpty()) return;
 
     const auto fingerprint =
-        Module::ModuleBuildKeyFingerprint(refusal.build_key);
+        Module::ModulePublisherKeyFingerprint(refusal.publisher_key);
 
     // The fingerprint is the decision. It is shown in full, and the question
     // is phrased around the KEY rather than the module, because that is what
     // is actually being accepted -- and because this key will admit anything
     // else it signs that the user later enables.
     const auto answer = QMessageBox::question(
-        this, tr("Trust This Build Key?"),
-        tr("<p>Modules signed by this build key will be offered for you to "
-           "enable, one at a time. Trusting it does not enable anything by "
+        this, tr("Trust This Publisher Key?"),
+        tr("<p>Modules signed by this publisher key will be offered for you "
+           "to enable, one at a time. Trusting it does not enable anything by "
            "itself.</p>"
-           "<p><b>Build key fingerprint</b><br/>"
+           "<p><b>Publisher key fingerprint</b><br/>"
            "<code>%1</code></p>"
-           "<p>This is a <b>build</b> key, not a lasting identity for whoever "
-           "made the module: it belongs to one build. A module rebuilt with a "
+           "<p>The key is the publisher's identity. Any name or website a "
+           "module shows is only its own claim. A module signed with a "
            "different key will ask you again.</p>"
            "<p>Only continue if you obtained this fingerprint from the "
            "module's "
@@ -301,7 +301,7 @@ void ModuleControllerDialog::init_authorization_actions() {
         QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
     if (answer != QMessageBox::Yes) return;
 
-    if (!Module::TrustModuleBuildKey(refusal.build_key, {})) {
+    if (!Module::TrustModulePublisherKey(refusal.publisher_key, {})) {
       QMessageBox::warning(
           this, tr("Not Saved"),
           tr("That decision could not be saved, so nothing has changed."));
@@ -313,12 +313,12 @@ void ModuleControllerDialog::init_authorization_actions() {
   connect(enable_module_button_, &QPushButton::clicked, this, [=]() {
     const auto refusal = ui_->moduleListView->GetCurrentRefusal();
     if (!refusal.valid || refusal.module_id.isEmpty() ||
-        refusal.build_key.isEmpty()) {
+        refusal.publisher_key.isEmpty()) {
       return;
     }
 
-    if (!Module::SetExternalModuleEnabled(refusal.module_id, refusal.build_key,
-                                          true)) {
+    if (!Module::SetExternalModuleEnabled(refusal.module_id,
+                                          refusal.publisher_key, true)) {
       QMessageBox::warning(
           this, tr("Not Saved"),
           tr("That decision could not be saved, so nothing has changed."));
@@ -381,17 +381,18 @@ auto ModuleControllerDialog::show_refused_module() -> bool {
   }
   rows.append({.caption = tr("Descriptor"), .value = refusal.descriptor_path});
 
-  if (!refusal.build_key.isEmpty()) {
+  if (!refusal.publisher_key.isEmpty()) {
     const auto fingerprint =
-        Module::ModuleBuildKeyFingerprint(refusal.build_key);
-    const auto trusted = Module::IsModuleBuildKeyTrusted(refusal.build_key);
+        Module::ModulePublisherKeyFingerprint(refusal.publisher_key);
+    const auto trusted =
+        Module::IsModulePublisherKeyTrusted(refusal.publisher_key);
     rows.append(
-        {.caption = tr("Build key"),
+        {.caption = tr("Publisher key"),
          .value = fingerprint,
-         .detail = trusted ? tr("You have trusted this build key.")
-                           : tr("You have not trusted this build key. Before "
-                                "trusting it, compare its fingerprint with the "
-                                "one the module's author published."),
+         .detail = trusted ? tr("You have trusted this publisher key.")
+                           : tr("You have not trusted this publisher key. "
+                                "Before trusting it, compare its fingerprint "
+                                "with the one the publisher published."),
          .degraded = !trusted});
   }
 
@@ -402,14 +403,14 @@ auto ModuleControllerDialog::show_refused_module() -> bool {
   // Only an external module has anything to decide. An integrated one that
   // was refused is broken, not pending, and offering an approval control for
   // it would suggest a remedy that does not exist.
-  const auto decidable = !refusal.build_key.isEmpty();
+  const auto decidable = !refusal.publisher_key.isEmpty();
   const auto trusted =
-      decidable && Module::IsModuleBuildKeyTrusted(refusal.build_key);
+      decidable && Module::IsModulePublisherKeyTrusted(refusal.publisher_key);
 
   trust_key_button_->setVisible(decidable);
   trust_key_button_->setEnabled(decidable && !trusted);
-  trust_key_button_->setText(trusted ? tr("Build Key Trusted")
-                                     : tr("Trust This Build Key..."));
+  trust_key_button_->setText(trusted ? tr("Publisher Key Trusted")
+                                     : tr("Trust This Publisher Key..."));
 
   enable_module_button_->setVisible(decidable);
   // Enabling stays unavailable until the key is trusted. The order is the

@@ -62,9 +62,9 @@ enum ModuleItemRole {
   /// Why it was refused. Already a sentence.
   kModuleReasonRole,
 
-  /// The build key an external descriptor carried, raw bytes, when there was
-  /// one. The fingerprint is derived for display and never stored.
-  kModuleBuildKeyRole,
+  /// The publisher key an external descriptor carried, raw bytes, when there
+  /// was one. The fingerprint is derived for display and never stored.
+  kModulePublisherKeyRole,
 
   /// The descriptor a refused item came from. Its identity may be empty --
   /// a descriptor that did not parse has none -- so this is what identifies
@@ -147,7 +147,7 @@ class ModuleListView : public QListView {
     QString module_id;
     QString descriptor_path;
     QString reason;
-    QByteArray build_key;
+    QByteArray publisher_key;
   };
 
   auto GetCurrentRefusal() -> SelectedRefusal;
