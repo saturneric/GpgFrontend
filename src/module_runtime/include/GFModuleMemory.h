@@ -28,7 +28,8 @@
 
 #pragma once
 
-#include <GFSDKBasic.h>
+#include <GFSDKBuffer.h>
+#include <GFSDKContext.h>
 
 #include <QByteArray>
 #include <QSharedPointer>
@@ -58,11 +59,20 @@
  * family below is for.
  */
 
+/// This module's SDK context, from the runtime. Declared here because this
+/// header is included before GFModule.h declares it.
+auto GFModuleSdkContext() -> GFSDKContext*;
+
 /// Allocate a copy of @p v that a transferring struct will own.
-#define DUP(v) GFModuleStrDup(v)
+///
+/// The context comes from the runtime rather than being spelled at every call
+/// site: it is one pointer per module, fixed after activation, and threading
+/// it through 154 DUP() calls would be noise. The SDK itself still holds no
+/// state -- this is the runtime's context, passed explicitly, one level down.
+#define DUP(v) GFMemStrDup(GFModuleSdkContext(), GF_ARENA_NORMAL, (v))
 
 /// The same, from the wiping allocator, for a value that is a secret.
-#define SECDUP(v) GFModuleSecStrDup(v)
+#define SECDUP(v) GFMemStrDup(GFModuleSdkContext(), GF_ARENA_SECURE, (v))
 
 /// Take ownership of an SDK string and return it as a QString.
 #define UDUP(v) UnStrDup(v)
@@ -83,19 +93,24 @@
 inline auto UnBytesDup(const char* s, size_t size) -> QByteArray {
   if (s == nullptr) return {};
   QByteArray bytes(s, static_cast<qsizetype>(size));
-  GFFreeMemory(static_cast<void*>(const_cast<char*>(s)));
+  GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL,
+            static_cast<void*>(const_cast<char*>(s)));
   return bytes;
 }
 
 inline auto UnStrDup(const char* s) -> QString {
   auto q_s = QString::fromUtf8(s == nullptr ? "" : s);
-  if (s != nullptr) GFFreeMemory(static_cast<void*>(const_cast<char*>(s)));
+  if (s != nullptr)
+    GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL,
+              static_cast<void*>(const_cast<char*>(s)));
   return q_s;
 }
 
 inline auto UnSecStrDup(const char* s) -> QString {
   auto q_s = QString::fromUtf8(s == nullptr ? "" : s);
-  if (s != nullptr) GFSecFreeMemory(static_cast<void*>(const_cast<char*>(s)));
+  if (s != nullptr)
+    GFMemFree(GFModuleSdkContext(), GF_ARENA_SECURE,
+              static_cast<void*>(const_cast<char*>(s)));
   return q_s;
 }
 
@@ -111,7 +126,8 @@ inline auto QSecStrDup(const QString& str) -> char* {
 /// host, and a caller that treats it as a C string would otherwise read past
 /// the allocation. @p b .size() stays authoritative for the byte count.
 inline auto AllocBufferAndCopy(const QByteArray& b) -> char* {
-  auto* p = static_cast<char*>(GFAllocateMemory(sizeof(char) * (b.size() + 1)));
+  auto* p = static_cast<char*>(GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL,
+                                          sizeof(char) * (b.size() + 1)));
   if (p == nullptr) return nullptr;
   memcpy(p, b.constData(), b.size());
   p[b.size()] = '\0';
@@ -141,34 +157,34 @@ class PointerConverter {
  */
 template <typename T, typename... Args>
 auto SdkCreateSharedObject(Args&&... args) -> std::shared_ptr<T> {
-  void* mem = GFAllocateMemory(sizeof(T));
+  void* mem = GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, sizeof(T));
   if (!mem) throw std::bad_alloc();
 
   try {
     T* obj = new (mem) T(std::forward<Args>(args)...);
     return std::shared_ptr<T>(obj, [](T* ptr) {
       ptr->~T();
-      GFFreeMemory(ptr);
+      GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, ptr);
     });
   } catch (...) {
-    GFFreeMemory(mem);
+    GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, mem);
     throw;
   }
 }
 
 template <typename T, typename... Args>
 auto SdkCreateQSharedObject(Args&&... args) -> QSharedPointer<T> {
-  void* mem = GFAllocateMemory(sizeof(T));
+  void* mem = GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, sizeof(T));
   if (!mem) throw std::bad_alloc();
 
   try {
     T* obj = new (mem) T(std::forward<Args>(args)...);
     return QSharedPointer<T>(obj, [](T* ptr) {
       ptr->~T();
-      GFFreeMemory(ptr);
+      GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, ptr);
     });
   } catch (...) {
-    GFFreeMemory(mem);
+    GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, mem);
     throw;
   }
 }
@@ -176,11 +192,15 @@ auto SdkCreateQSharedObject(Args&&... args) -> QSharedPointer<T> {
 /// Allocate @p size bytes from the ordinary SDK arena, typed.
 template <typename T>
 auto SdkMallocAsType(std::size_t size) -> T* {
-  return PointerConverter<T>(GFAllocateMemory(size)).AsType();
+  return PointerConverter<T>(
+             GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, size))
+      .AsType();
 }
 
 /// Resize an SDK allocation, typed.
 template <typename T>
 auto SdkReallocAsType(T* ptr, std::size_t size) -> T* {
-  return PointerConverter<T>(GFReallocateMemory(ptr, size)).AsType();
+  return PointerConverter<T>(
+             GFMemRealloc(GFModuleSdkContext(), GF_ARENA_NORMAL, ptr, size))
+      .AsType();
 }

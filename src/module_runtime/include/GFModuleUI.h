@@ -28,12 +28,16 @@
 
 #pragma once
 
+#include <GFSDKContext.h>
 #include <GFSDKUI.h>
 
 #include <QObject>
 #include <QString>
 
 #include "GFModuleConvert.h"
+
+/// This module's SDK context, from the runtime.
+auto GFModuleSdkContext() -> GFSDKContext*;
 
 /**
  * @file GFModuleUI.h
@@ -52,8 +56,8 @@
 /// Resolve a GUI handle to an object of the type it must be, or nullptr.
 template <typename T>
 auto GFUIObject(const QString& handle) -> T* {
-  auto* obj =
-      static_cast<QObject*>(GFUIGetGUIObject(handle.toUtf8().constData()));
+  auto* obj = static_cast<QObject*>(
+      GFUIGetGUIObject(GFModuleSdkContext(), handle.toUtf8().constData()));
   if (obj == nullptr) return nullptr;
   return qobject_cast<T*>(obj);
 }
@@ -67,5 +71,6 @@ auto GFUIObject(const QString& handle) -> T* {
     return func(data);                                  \
   }
 
-#define GUI_OBJECT(factory, data) \
-  GFUICreateGUIObject(factory, ConvertQVariantToVoidPtr(data))
+#define GUI_OBJECT(factory, data)                      \
+  GFUICreateGUIObject(GFModuleSdkContext(), (factory), \
+                      ConvertQVariantToVoidPtr(data))

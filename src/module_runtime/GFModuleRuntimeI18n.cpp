@@ -28,7 +28,7 @@
 
 #include "GFModuleRuntimeI18n.h"
 
-#include <GFSDKBasic.h>
+#include <GFSDKBuffer.h>
 
 #include <QFile>
 #include <QString>
@@ -83,8 +83,17 @@ auto RegisterTranslations() -> bool {
   const auto& facts = Facts();
   if (facts.id.isEmpty()) return false;
 
-  return GFAppRegisterTranslatorReader(facts.id.toUtf8().constData(),
-                                       &ReadTranslation) == 0;
+  // Straight to the bootstrap primitive: installing a module's translations
+  // is runtime plumbing, not an application capability, so it is not part of
+  // the public SDK a module author sees.
+  auto* ctx = gf::runtime::SdkContext();
+  if (ctx == nullptr || ctx->host == nullptr ||
+      ctx->host->bootstrap == nullptr) {
+    return false;
+  }
+  return ctx->host->bootstrap->register_translator_reader(
+             ctx->host->context, facts.id.toUtf8().constData(),
+             &ReadTranslation) == 0;
 }
 
 }  // namespace gf::runtime

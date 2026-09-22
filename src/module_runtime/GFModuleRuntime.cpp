@@ -26,8 +26,6 @@
  *
  */
 
-#include <GFSDKModule.h>
-
 #include <QSet>
 #include <cstddef>
 
@@ -51,9 +49,6 @@ namespace {
 /// The hooks the module handed over. Borrowed; the module owns them and they
 /// have static storage, which GFModuleRuntimeGetApi checks by contract.
 const GFModuleHooks* g_hooks = nullptr;
-
-/// The host table, from activate() onward.
-const GFHostApi* g_host = nullptr;
 
 /// Whether a field is within the hook table as the module compiled it.
 template <typename M>
@@ -137,11 +132,14 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
     LOG_ERROR("the host api table is missing or too small; refusing to load");
     return -1;
   }
-  g_host = host;
 
   gf::runtime::Facts() = gf::runtime::AdoptBootstrapInfo(
       static_cast<const GFModuleBootstrapInfo*>(reserved), g_hooks->module_id,
       g_hooks->module_version, g_hooks->translation_context);
+
+  // Before anything else can log, translate or subscribe: every one of those
+  // goes through the context, and the SDK holds none of its own.
+  gf::runtime::AdoptHostApi(host, gf::runtime::Facts().id.toUtf8().constData());
 
   const auto hooked = IndexHooks(g_hooks);
   if (!ReconcileSubscriptions(hooked)) return -1;
@@ -155,8 +153,10 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
   const auto& facts = gf::runtime::Facts();
   const auto& subscribe = facts.verified ? facts.events : hooked.values();
   for (const auto& event_id : subscribe) {
-    GFModuleListenEvent(facts.id.toUtf8().constData(),
-                        event_id.toUtf8().constData());
+    // Straight to the primitive: subscribing is the runtime's own business,
+    // not something a module calls, so it is not part of the public SDK. The
+    // host reads which module is subscribing from the context.
+    host->event->subscribe(host->context, event_id.toUtf8().constData());
   }
 
   if (HooksCover(g_hooks, &GFModuleHooks::on_activate) &&
@@ -266,8 +266,9 @@ auto GFModuleVersion() -> const QString& {
   return gf::runtime::Facts().version;
 }
 auto GFModuleIsVerified() -> bool { return gf::runtime::Facts().verified; }
-auto GFHost() -> const GFHostApi* { return g_host; }
 
 auto GFModuleHasCapability(const QString& name) -> bool {
   return gf::runtime::Facts().capabilities.contains(name);
 }
+
+auto GFModuleSdkContext() -> GFSDKContext* { return gf::runtime::SdkContext(); }

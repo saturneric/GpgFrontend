@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <GFSDKContext.h>
 #include <GFSDKLog.h>
 
 #include <QDebug>
@@ -93,25 +94,26 @@
  * first and discard it afterwards.
  */
 
-/// This module's verified identity as a stable C string.
+/// This module's SDK context.
 ///
 /// Declared here rather than taken from GFModule.h, which includes this file
-/// before declaring it. Reading it is a plain load, not a thread-local one,
-/// which is what lets a module's own worker thread attribute its own output.
-auto GFGetModuleID() -> const char*;
+/// before declaring it. Reading it is a plain load of a pointer that never
+/// changes after activation, which is what lets a module's own worker thread
+/// log without any thread-local state being involved.
+auto GFModuleSdkContext() -> GFSDKContext*;
 
 /// One message, with the level checked before anything is formatted.
 ///
 /// A do/while so the macro is a single statement and stays safe next to a bare
 /// `if`. The QByteArray is named rather than temporary so its lifetime plainly
 /// covers the call that reads its buffer.
-#define GF_MODULE_LOG_AT(severity, text)                             \
-  do {                                                               \
-    if (GFModuleLogEnabled(GFGetModuleID(), (severity)) != 0) {      \
-      const auto gf_log_line_ = (text).toUtf8();                     \
-      GFModuleLogAt(GFGetModuleID(), (severity), __FILE__, __LINE__, \
-                    Q_FUNC_INFO, gf_log_line_.constData());          \
-    }                                                                \
+#define GF_MODULE_LOG_AT(severity, text)                            \
+  do {                                                              \
+    if (GFLogEnabled(GFModuleSdkContext(), (severity)) != 0) {      \
+      const auto gf_log_line_ = (text).toUtf8();                    \
+      GFLogAt(GFModuleSdkContext(), (severity), __FILE__, __LINE__, \
+              Q_FUNC_INFO, gf_log_line_.constData());               \
+    }                                                               \
   } while (false)
 
 /// One log line, accumulated with QDebug and emitted when the object dies.
@@ -131,7 +133,7 @@ class GFModuleLogStream {
         file_(file),
         line_(line),
         function_(function),
-        enabled_(GFModuleLogEnabled(GFGetModuleID(), severity) != 0) {
+        enabled_(GFLogEnabled(GFModuleSdkContext(), severity) != 0) {
     if (enabled_) debug_.emplace(&buffer_);
   }
 
@@ -149,8 +151,8 @@ class GFModuleLogStream {
     while (buffer_.endsWith(u' ')) buffer_.chop(1);
 
     const auto utf8 = buffer_.toUtf8();
-    GFModuleLogAt(GFGetModuleID(), severity_, file_, line_, function_,
-                  utf8.constData());
+    GFLogAt(GFModuleSdkContext(), severity_, file_, line_, function_,
+            utf8.constData());
   }
 
   GFModuleLogStream(const GFModuleLogStream&) = delete;

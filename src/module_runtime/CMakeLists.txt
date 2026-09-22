@@ -25,31 +25,21 @@
 
 # The module-side framework, linked statically into every module.
 #
-# Deliberately NOT built with register_library(): that helper hardwires SHARED,
-# a VERSION, generate_export_header() and a PUBLIC precompiled header, none of
-# which a static archive consumed through plain headers wants. It is also
-# deliberately not linked against gf_sdk -- it DECLARES the SDK symbols it
-# calls and leaves them undefined, so the module resolves them, exactly as
-# module code does today. That is what keeps the runtime linkable into a test
-# binary with hand-written SDK stubs.
+# It owns the per-module runtime STATE: the SDK context, module identity and
+# bootstrap facts, the hook table, event dispatch. It is not the SDK. The
+# public GFSDK* functions live in gf_sdk, which is stateless and which this
+# links like any other consumer.
+#
+# Deliberately NOT built with register_library(): that helper hardwires
+# SHARED, a VERSION, generate_export_header() and a PUBLIC precompiled
+# header, none of which a static archive consumed through plain headers
+# wants, and it appends to the list of deployable libraries.
 
 add_library(gf_module_runtime STATIC
   GFModuleRuntime.cpp
   GFModuleRuntimeBoot.cpp
   GFModuleRuntimeDispatch.cpp
-  GFModuleRuntimeI18n.cpp
-  # The module-side SDK. These DEFINE the public GFSDK* functions, over the
-  # capability groups the host granted; a module links this archive instead of
-  # gf_sdk, which is what makes the boundary enforceable at link time.
-  sdk/GFSdkApp.cpp
-  sdk/GFSdkBuffer.cpp
-  sdk/GFSdkCommon.cpp
-  sdk/GFSdkEvent.cpp
-  sdk/GFSdkGpg.cpp
-  sdk/GFSdkLog.cpp
-  sdk/GFSdkProcess.cpp
-  sdk/GFSdkStorage.cpp
-  sdk/GFSdkUi.cpp)
+  GFModuleRuntimeI18n.cpp)
 
 set_target_properties(gf_module_runtime PROPERTIES
   POSITION_INDEPENDENT_CODE ON   # it is linked into shared objects
@@ -58,10 +48,16 @@ set_target_properties(gf_module_runtime PROPERTIES
   AUTOMOC OFF)                   # no QObject lives here; keep it that way
 
 target_compile_features(gf_module_runtime PUBLIC cxx_std_17)
-F
 
+# Qt is a usage requirement, not a host dependency. The runtime's own sources
+# use QString, QSet and QByteArray; they were compiling only because the
+# global include_directories() in the top-level CMakeLists happens to put Qt
+# on the path, which is an accident rather than a statement.
+target_link_libraries(gf_module_runtime PUBLIC Qt::Core gf_sdk)
+
+# The SDK headers arrive through gf_sdk's own interface, not by naming a
+# path here: a module sees the public C ABI and Qt, and nothing else from
+# this tree.
 target_include_directories(gf_module_runtime PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/sdk>
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/src/sdk>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)

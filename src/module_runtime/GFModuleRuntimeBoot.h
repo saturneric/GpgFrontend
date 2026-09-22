@@ -31,6 +31,7 @@
 #include <QString>
 #include <QStringList>
 
+#include "GFSDKContext.h"
 #include "GFSDKModuleApi.h"
 
 namespace gf::runtime {
@@ -56,6 +57,34 @@ struct RuntimeFacts {
 
 /// The process-wide facts for this module. Empty before activation.
 auto Facts() -> RuntimeFacts&;
+
+/**
+ * @brief Build this module's SDK context from the table activate() received.
+ *
+ * Called once, before any hook runs. The runtime owns the context because the
+ * runtime is what has a lifecycle: gf_sdk is stateless and reads whatever it
+ * is handed.
+ *
+ * @param host the table the host minted for this module; borrowed and valid
+ *        for the module's lifetime
+ * @param module_id borrowed; copied, because the payload it comes from dies
+ *        when activate() returns
+ */
+void AdoptHostApi(const GFHostApi* host, const char* module_id);
+
+/**
+ * @brief This module's SDK context, or nullptr before activation.
+ *
+ * The storage is a function-local static and is never destroyed. That is
+ * deliberate: a module may still be running code on a thread it failed to
+ * stop, and freeing this would turn a refusable call into a read of freed
+ * memory. Nothing is reclaimed at teardown; the host revokes the grant
+ * instead, and every primitive then refuses.
+ *
+ * Safe to call from any thread: after activation it is a plain load of a
+ * pointer that never changes again.
+ */
+auto SdkContext() -> GFSDKContext*;
 
 /**
  * @brief Copy a host bootstrap payload into owned storage.

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <GFSDKContext.h>
+
 #include <QByteArray>
 #include <QMap>
 #include <QObject>
@@ -185,6 +187,16 @@ class GFEvent {
 
   /// A handle that answers this event later, at most once.
   [[nodiscard]] auto Answer() const -> GFEventAnswer;
+
+  /**
+   * @brief The SDK context for the module this event was delivered to.
+   *
+   * Every public SDK function that needs the host takes one of these. Getting
+   * it from the event rather than looking it up is the point: a handler that
+   * hands this to a worker thread has said, in the code, which module the
+   * work belongs to.
+   */
+  [[nodiscard]] auto Context() const -> GFSDKContext*;
 
  private:
   friend class GFEventFactory;

@@ -28,8 +28,7 @@
 
 #include "GFModuleRuntimeDispatch.h"
 
-#include <GFSDKBasic.h>
-#include <GFSDKModule.h>
+#include <GFSDKBuffer.h>
 #include <GFSDKUI.h>
 
 #include <atomic>
@@ -55,13 +54,13 @@ auto ConsumeParams(GFModuleEventParam* params) -> QMap<QString, QByteArray> {
             ? QByteArray()
             : QByteArray(current->value,
                          static_cast<qsizetype>(qstrlen(current->value)));
-    GFSecFreeMemory(const_cast<char*>(current->value));
+    GFMemFree(SdkContext(), GF_ARENA_SECURE, const_cast<char*>(current->value));
 
     if (!name.isEmpty()) out.insert(name, value);
 
     auto* done = current;
     current = current->next;
-    GFFreeMemory(done);
+    GFMemFree(SdkContext(), GF_ARENA_NORMAL, done);
   }
 
   return out;
@@ -79,7 +78,7 @@ auto GFEventFactory::Consume(GFModuleEvent* event) -> GFEvent {
     data->id = UDUP(event->id);
     data->trigger_id = UDUP(event->trigger_id);
     data->params = gf::runtime::ConsumeParams(event->params);
-    GFFreeMemory(event);
+    GFMemFree(gf::runtime::SdkContext(), GF_ARENA_NORMAL, event);
   }
 
   wrapped.d_ = data;
@@ -105,17 +104,16 @@ auto ResultToParams(const GFEventResult& result) -> QMap<QString, QString> {
 
 void SendAnswer(const QString& event_id, const QString& trigger_id,
                 const QMap<QString, QString>& params) {
-  auto* reply =
-      static_cast<GFModuleEvent*>(GFAllocateMemory(sizeof(GFModuleEvent)));
-  reply->id = DUP(event_id.toUtf8());
-  reply->trigger_id = DUP(trigger_id.toUtf8());
-  reply->params = nullptr;
-
+  // The whole GFModuleEvent this used to allocate for a reply is gone: the
+  // host reads two strings and a parameter list, and the answer struct says
+  // exactly that. Building an envelope for the host to discard was three
+  // allocations per answer that nothing ever freed once the host stopped
+  // receiving it.
   GFModuleEventParam* head = nullptr;
   GFModuleEventParam* prev = nullptr;
   for (auto it = params.keyValueBegin(); it != params.keyValueEnd(); ++it) {
     auto* node = static_cast<GFModuleEventParam*>(
-        GFAllocateMemory(sizeof(GFModuleEventParam)));
+        GFMemAlloc(SdkContext(), GF_ARENA_NORMAL, sizeof(GFModuleEventParam)));
     node->name = DUP(it->first.toUtf8());
     node->value = SECDUP(it->second.toUtf8());
     node->next = nullptr;
@@ -128,9 +126,26 @@ void SendAnswer(const QString& event_id, const QString& trigger_id,
     prev = node;
   }
 
-  // The host frees all of it, on both the found and not-found paths.
-  GFModuleTriggerModuleEventCallback(reply, Facts().id.toUtf8().constData(),
-                                     head);
+  // Answering is the runtime's own business, so it goes straight to the
+  // primitive rather than through a public SDK spelling. The host reads which
+  // module is answering from the context; the parameter list is transferred,
+  // and the host frees it on both the delivered and not-found paths.
+  auto* ctx = SdkContext();
+  if (ctx == nullptr || ctx->host == nullptr || ctx->host->event == nullptr) {
+    return;
+  }
+
+  // Named, not temporaries: constData() on a temporary QByteArray dangles at
+  // the end of the full expression, and the host reads these during the call.
+  const auto event_id_utf8 = event_id.toUtf8();
+  const auto trigger_id_utf8 = trigger_id.toUtf8();
+
+  GFModuleEventAnswer answer{};
+  answer.struct_size = sizeof(GFModuleEventAnswer);
+  answer.event_id = event_id_utf8.constData();
+  answer.trigger_id = trigger_id_utf8.constData();
+  answer.params = head;
+  ctx->host->event->answer(ctx->host->context, &answer);
 }
 
 auto HookTable() -> QHash<QString, GFEventHook>& {
@@ -191,12 +206,20 @@ auto GFEvent::Require(const QString& key, QString& out) const -> GFEventResult {
   return GFEventResult::Ok();
 }
 
+auto GFEvent::Context() const -> GFSDKContext* {
+  // One context per module instance, so this is the module's own. It is not
+  // carried in the event: there is exactly one, and copying it into every
+  // delivered event would be storing the same pointer a second time.
+  return gf::runtime::SdkContext();
+}
+
 auto GFEvent::require_gui_object(const QString& key, QObject*& out) const
     -> GFEventResult {
   QString handle;
   if (auto r = Require(key, handle); !r.ok) return r;
 
-  out = static_cast<QObject*>(GFUIGetGUIObject(handle.toUtf8().constData()));
+  out = static_cast<QObject*>(
+      GFUIGetGUIObject(gf::runtime::SdkContext(), handle.toUtf8().constData()));
   if (out == nullptr) {
     return GFEventResult::Unavailable(
         QString("%1 handle is not a live object").arg(key));

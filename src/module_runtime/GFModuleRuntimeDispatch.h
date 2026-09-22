@@ -33,7 +33,7 @@
 #include <QMap>
 #include <QString>
 
-#include "GFSDKModuleModel.h"
+#include "GFSDKTypes.h"
 #include "include/GFModuleEvent.h"
 
 /// One delivered event, owned. Values are octets, never decoded as text here.

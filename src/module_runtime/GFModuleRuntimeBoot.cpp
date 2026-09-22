@@ -28,7 +28,10 @@
 
 #include "GFModuleRuntimeBoot.h"
 
+#include <QByteArray>
 #include <cstddef>
+
+#include "GFSDKBuildInfo.h"
 
 namespace gf::runtime {
 
@@ -70,15 +73,58 @@ auto Facts() -> RuntimeFacts& {
   return facts;
 }
 
+namespace {
+
+/// The one context for this module instance.
+///
+/// A function-local static, never destroyed. See SdkContext() for why. It is
+/// per module because this archive is linked statically into each module with
+/// hidden visibility, so two modules cannot see each other's.
+auto ContextStorage() -> GFSDKContext& {
+  static GFSDKContext context{};
+  return context;
+}
+
+QByteArray g_module_id;
+
+}  // namespace
+
+void AdoptHostApi(const GFHostApi* host, const char* module_id) {
+  g_module_id = QByteArray(module_id == nullptr ? "" : module_id);
+
+  auto& context = ContextStorage();
+  context.struct_size = sizeof(GFSDKContext);
+  context.abi_version = GF_SDK_ABI_VERSION;
+  context.reserved = 0;
+  context.host = host;
+  // Diagnostic only. Nothing on either side of the boundary decides anything
+  // from it: the host identifies the caller from the token it validates.
+  context.module_id = g_module_id.constData();
+}
+
+auto SdkContext() -> GFSDKContext* {
+  auto& context = ContextStorage();
+  return context.host == nullptr ? nullptr : &context;
+}
+
 auto HostApiIsUsable(const GFHostApi* host) -> bool {
   if (host == nullptr) return false;
 
-  // The runtime itself only needs the log group, which is last. Checking to
-  // the end of it is therefore checking that everything the runtime may call
-  // is really there. A module reaching further asks GFHost() and checks for
-  // itself.
-  return host->struct_size >=
-         offsetof(GFHostApi, log_error) + sizeof(void (*)(const char*));
+  // The always-granted groups are what the runtime itself needs, and `list`
+  // is the last of them. Checking to the end of it therefore checks that
+  // every group the runtime may reach is present in the table as the host
+  // compiled it; a module reaching a grantable group asks GFHost() and checks
+  // that pointer for itself, because NULL there means "withheld" rather than
+  // "too old".
+  if (host->struct_size < offsetof(GFHostApi, list) + sizeof(void*)) {
+    return false;
+  }
+
+  // A table with no context cannot authorize anything, so every call through
+  // it would be refused. Better to decline activation than to load a module
+  // that can do nothing and cannot say why.
+  return host->context != nullptr && host->buffer != nullptr &&
+         host->log != nullptr;
 }
 
 auto AdoptBootstrapInfo(const GFModuleBootstrapInfo* info,

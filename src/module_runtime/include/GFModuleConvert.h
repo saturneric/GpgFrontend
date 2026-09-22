@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include <GFSDKBasic.h>
-#include <GFSDKModule.h>
+#include <GFSDKBuffer.h>
+#include <GFSDKContext.h>
 
 #include <QMap>
 #include <QString>
@@ -103,18 +103,20 @@ inline auto CharArrayToQStringList(char** pl_components, int size)
   for (int i = 0; i < size; ++i) {
     list.append(UDUP(pl_components[i]));
   }
-  GFFreeMemory(static_cast<void*>(pl_components));
+  GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL,
+            static_cast<void*>(pl_components));
   return list;
 }
 
 inline auto QStringListToCharArray(const QStringList& list) -> char** {
-  char** char_array =
-      static_cast<char**>(GFAllocateMemory(list.size() * sizeof(char*)));
+  char** char_array = static_cast<char**>(GFMemAlloc(
+      GFModuleSdkContext(), GF_ARENA_NORMAL, list.size() * sizeof(char*)));
 
   int index = 0;
   for (const QString& item : list) {
     QByteArray value = item.toUtf8();
-    char_array[index] = static_cast<char*>(GFAllocateMemory(value.size() + 1));
+    char_array[index] = static_cast<char*>(
+        GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, value.size() + 1));
     std::strcpy(char_array[index], value.constData());
     index++;
   }
@@ -131,18 +133,20 @@ inline auto ArrayToQList(T** pl_components, int size) -> QList<T> {
   QList<T> list;
   for (int i = 0; i < size; ++i) {
     list.append(*pl_components[i]);
-    GFFreeMemory(pl_components[i]);
+    GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, pl_components[i]);
   }
-  GFFreeMemory(pl_components);
+  GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, pl_components);
   return list;
 }
 
 template <typename T>
 inline auto QListToArray(const QList<T>& list) -> T** {
-  T** array = static_cast<T**>(GFAllocateMemory(list.size() * sizeof(T*)));
+  T** array = static_cast<T**>(GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL,
+                                          list.size() * sizeof(T*)));
   int index = 0;
   for (const T& item : list) {
-    auto mem = static_cast<T*>(GFAllocateMemory(sizeof(T)));
+    auto mem = static_cast<T*>(
+        GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, sizeof(T)));
     array[index] = new (mem) T(item);
     index++;
   }
@@ -153,7 +157,8 @@ inline auto QListToArray(const QList<T>& list) -> T** {
 // ------------------------------------------------------------------- QVariant
 
 inline auto ConvertQVariantToVoidPtr(const QVariant& variant) -> void* {
-  void* mem = GFAllocateMemory(sizeof(QVariant));
+  void* mem =
+      GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, sizeof(QVariant));
   auto* variant_ptr = new (mem) QVariant(variant);
   return static_cast<void*>(variant_ptr);
 }
@@ -164,6 +169,6 @@ inline auto ConvertVoidPtrToQVariant(void* ptr) -> QVariant {
   auto* variant_ptr = static_cast<QVariant*>(ptr);
   QVariant variant = *variant_ptr;
 
-  GFFreeMemory(variant_ptr);
+  GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, variant_ptr);
   return variant;
 }

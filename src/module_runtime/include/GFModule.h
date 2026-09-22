@@ -40,7 +40,26 @@
 #include "GFModuleMemory.h"
 #include "GFModuleUI.h"
 #include "GFSDKBuildInfo.h"
+// The whole public SDK, so a module author includes one header. Each of
+// these declares functions that take a GFSDKContext*; the context comes from
+// the event (`e.Context()`) or, outside a handler, from GFModuleSdkContext().
+#include "GFSDKApp.h"
+#include "GFSDKBuffer.h"
+#include "GFSDKContext.h"
+#include "GFSDKEditor.h"
+#include "GFSDKGpg.h"
+#include "GFSDKGpgList.h"
+#include "GFSDKGpgResult.h"
+#include "GFSDKLog.h"
 #include "GFSDKModuleApi.h"
+#include "GFSDKPgp.h"
+#include "GFSDKProcess.h"
+#include "GFSDKStorage.h"
+#include "GFSDKUI.h"
+
+// The C++ conveniences over the same ABI: QString in and out, fallbacks, and
+// RAII for the handles. Still stateless, and still context-explicit.
+#include "GFSDK.hpp"
 
 /**
  * @file GFModule.h
@@ -189,5 +208,16 @@ auto GFModuleHasCapability(const QString& name) -> bool;
 /// module's own word for itself (a loose development build).
 auto GFModuleIsVerified() -> bool;
 
-/// The host table this module was activated with. Null before activation.
-auto GFHost() -> const GFHostApi*;
+/**
+ * @brief This module's SDK context. Null before activation.
+ *
+ * Every public SDK function that needs the host takes one of these. Inside an
+ * event handler prefer `event.Sdk()`, which carries the same context and
+ * needs no lookup at all.
+ *
+ * Work started on a worker thread should CAPTURE the context (or the facade)
+ * rather than calling this from the worker. The lookup is safe from any
+ * thread, but capturing is what makes a piece of asynchronous code say which
+ * module it belongs to, which is the property this whole design is for.
+ */
+auto GFModuleSdkContext() -> GFSDKContext*;
