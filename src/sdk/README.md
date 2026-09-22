@@ -54,20 +54,20 @@ a context cannot hold one module's token beside another's table.
 the module did not declare is NULL in its table, and its primitives refuse the
 context even if reached another way.
 
-| group | granted by | contents |
-|---|---|---|
-| `buffer` | always | buffers, and both memory arenas behind one `arena` argument |
-| `log` | always | `write(severity, …)`, `enabled` |
-| `app` | always | version, commit, Qt version, user agent, locale, flatpak, key protection |
-| `event` | always | `subscribe`, `answer` |
-| `bootstrap` | always | translator registration: runtime plumbing, not a permission |
-| `list` | always | the generic string list, which `gpg` and `storage` both produce |
-| `gpg` | `"gpg"` | operations, results, keys, key and recipient lists, analysis |
-| `pgp` | `"pgp"` | packet-structure inspection; no keyring, no engine |
-| `ui` | `"ui"` | widgets, dialogs, theme colors by role, extension registration |
-| `editor` | `"editor"` | the current document's exact octets |
-| `storage` | `"storage"` | settings, the three caches (scoped per module), the runtime register table |
-| `process` | `"process"` | running an external program |
+| group       | granted by  | contents                                                                   |
+| ----------- | ----------- | -------------------------------------------------------------------------- |
+| `buffer`    | always      | buffers, and both memory arenas behind one `arena` argument                |
+| `log`       | always      | `write(severity, …)`, `enabled`                                            |
+| `app`       | always      | version, commit, Qt version, user agent, locale, flatpak, key protection   |
+| `event`     | always      | `subscribe`, `answer`                                                      |
+| `bootstrap` | always      | translator registration: runtime plumbing, not a permission                |
+| `list`      | always      | the generic string list, which `gpg` and `storage` both produce            |
+| `gpg`       | `"gpg"`     | operations, results, keys, key and recipient lists, analysis               |
+| `pgp`       | `"pgp"`     | packet-structure inspection; no keyring, no engine                         |
+| `ui`        | `"ui"`      | widgets, dialogs, theme colors by role, extension registration             |
+| `editor`    | `"editor"`  | the current document's exact octets                                        |
+| `storage`   | `"storage"` | settings, the three caches (scoped per module), the runtime register table |
+| `process`   | `"process"` | running an external program                                                |
 
 `event` is always present because it answers a different question from the
 rest: the groups say what a module may actively DO, while a subscription says
@@ -171,8 +171,11 @@ nothing else, and the host component exports nothing at all.
 ## Packaging and trust
 
 The SDK is only the runtime ABI. What ships is a signed `.gfmodule` package
-(a manifest, its Ed25519 signature, and for an external module the build key
-that signature was made with), verified against the compiled-in trust root
-before any module code runs. None of that is an SDK header; it lives in
+(a manifest, its Ed25519 signature, and for an external module the publisher
+key that signature was made with). An integrated package is verified against
+the compiled-in trust root; an external one against the key it carries, and it
+loads only once the user has trusted that publisher key and enabled the module.
+Both checks happen before any module code runs. External packages are made by
+`gf_module_externalize` from an already verified integrated package. None of that is an SDK header; it lives in
 [`src/core/module/`](../core/module) and is described from the module author's
 side in [`modules/README.md`](../../modules/README.md#packaging-signing--distribution).
