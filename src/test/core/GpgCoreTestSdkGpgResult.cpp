@@ -31,10 +31,14 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
+#include "core/GpgCoreEngineTest.h"
 #include "core/SdkTestContext.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/utils/GpgUtils.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
+#include "sdk/GFSDKGpg.h"
 #include "sdk/GFSDKGpgResult.h"
 #include "sdk/GFSDKGpgResult.hpp"
 
@@ -192,6 +196,30 @@ TEST(SdkGpgResultTest, AVerifyResultCarriesNoPayload) {
   ASSERT_GE(ret, 0);
   ASSERT_TRUE(static_cast<bool>(r));
   EXPECT_TRUE(r.DataCopy().isEmpty());
+}
+
+// A binary export is not UTF-8. It used to be copied through a QString,
+// which replaced every invalid sequence and then reported the original size.
+// Run on the engine fixture's own channels, which always have an engine and
+// can generate a key, so this never skips.
+TEST_P(GpgCoreEngineTest, SdkBinaryKeyExportIsByteForByte) {
+  auto key = GenerateFullKey("sdk_binary_export");
+  ASSERT_TRUE(key != nullptr);
+
+  auto [err, expected] =
+      KeyImportExportOperation::GetInstance(Channel()).ExportKey(key, false,
+                                                                 false, false);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(expected.Empty());
+
+  GFBuf out(Ctx());
+  ASSERT_EQ(GFGpgExportKey(Ctx(), Channel(), key->ID().toUtf8().constData(), 0,
+                           out.Out()),
+            0);
+  EXPECT_EQ(QByteArray(out.Data(), static_cast<qsizetype>(out.Size())),
+            expected.ConvertToQByteArray());
+
+  DeleteKey(key);
 }
 
 }  // namespace GpgFrontend::Test

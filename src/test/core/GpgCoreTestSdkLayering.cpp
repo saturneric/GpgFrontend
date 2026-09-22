@@ -51,14 +51,14 @@
  *
  * Both halves of it are already enforced by the build -- `src/sdk/api/` clears
  * the inherited include path, so `#include "core/..."` there fails to compile,
- * and hidden visibility keeps the public SDK out of every host artefact's
+ * and hidden visibility keeps the public SDK out of every host artifact's
  * dynamic symbol table. Neither of those is self-announcing, though: one is a
  * `set_property(DIRECTORY ...)` line and the other a default that a single
  * stray `__attribute__((visibility("default")))` would undo. Somebody restoring
  * `include_directories()` "to fix an include error" would silently reopen the
  * door, and nothing would say so.
  *
- * So the rules are asserted on the artefacts: the sources for the first, and
+ * So the rules are asserted on the artifacts: the sources for the first, and
  * the built binaries for the second. A link line is a claim; a binary is
  * evidence.
  */
@@ -131,7 +131,7 @@ TEST(SdkLayeringTest, ThePublicSdkIncludesNothingFromTheHost) {
 // ------------------------------------------------------- one host path
 
 /**
- * @brief No host artefact exports a public SDK entry point.
+ * @brief No host artifact exports a public SDK entry point.
  *
  * This is the mirror of `NoBuiltModuleReachesTheHostDirectly`, which checks
  * the same boundary from the module's side. Together they say the whole thing:

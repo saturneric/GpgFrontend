@@ -25,13 +25,11 @@
 
 # Everything about this module -- id, version, name, description, author,
 
-# gf_module_runtime, tested against a host that only records what it was asked
-# to do. This is possible precisely because the runtime links no SDK library:
-# it leaves those symbols undefined for a module to resolve, so a test can
-# resolve them instead -- the same pattern m_email's net tests already use.
-#
-# It doubles as a dependency fence: anything the runtime starts calling that
-# the stubs do not define fails to link here.
+# gf_module_runtime and gf_sdk, tested against a host that only records what
+# it was asked to do. This is possible because both reach the host only
+# through the GFHostApi table handed to activate(): the stubs supply a fake
+# table (ModuleRuntimeStubs.cpp), so every GFSDK* call runs the real wrapper
+# code and lands in the recorder.
 
 add_executable(gf_module_runtime_test
   ModuleRuntimeTest.cpp

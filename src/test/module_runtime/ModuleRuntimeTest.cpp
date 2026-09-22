@@ -40,11 +40,11 @@
  * @file ModuleRuntimeTest.cpp
  * @brief The module-side framework, tested without a host.
  *
- * gf_module_runtime links no SDK library -- it leaves those symbols undefined
- * for the module to resolve -- so it can be linked here against a recording
- * stand-in and exercised directly. That is the whole reason the four modules
- * no longer each carry their own copy of this logic: there was previously
- * nowhere to test it.
+ * gf_module_runtime and gf_sdk reach the host only through the GFHostApi
+ * table handed to activate(), so they can be linked here against a recording
+ * stand-in for that table and exercised directly. That is the whole reason
+ * the modules no longer each carry their own copy of this logic: there was
+ * previously nowhere to test it.
  */
 
 namespace {

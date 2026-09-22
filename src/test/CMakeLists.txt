@@ -23,7 +23,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Set configure for test
+# Configure the tests
 include(CTest)
 enable_testing()
 find_package(GTest REQUIRED)
@@ -85,11 +85,9 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_core)
 # already links gf_core, so this is purely additive
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 
-# the sdk tests cover the exported C ABI's string-ownership rules, which modules
-# depend on and cannot check for themselves; gf_sdk already links gf_core and
-# gf_ui, so this is purely additive
-# The module-side SDK, so the C-ABI tests exercise the real wrappers over
-# a real minted context rather than only the host half.
+# The module-side SDK, so the C-ABI tests exercise the real wrappers over a
+# real minted context rather than only the host half. The ownership rules they
+# check are ones modules depend on and cannot check for themselves.
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
@@ -99,7 +97,7 @@ add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
 # It backs the one assertion about module packages that cannot be made any
 # other way: that a refused package never has its code executed. Asserting only
 # that loading returned an error would pass even if the image had already been
-# mapped and its initialisers run, so the test needs something whose loading is
+# mapped and its initializers run, so the test needs something whose loading is
 # observable from outside the process that loaded it.
 #
 # Deliberately not a module: it exports no entry point, and the host refuses it

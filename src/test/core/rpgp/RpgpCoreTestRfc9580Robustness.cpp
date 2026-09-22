@@ -32,7 +32,7 @@
 // (decrypt, verify, decrypt-verify, import). The engine must fail cleanly with
 // a typed error -- never crash, never release a wrong plaintext, never report a
 // forged signature as Valid. These are also the primary target set for the
-// AddressSanitizer harness (scripts/run_tests_asan.sh).
+// AddressSanitizer harness (scripts/run_tests.sh --asan).
 
 #include "RpgpCoreTestRfc9580.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"

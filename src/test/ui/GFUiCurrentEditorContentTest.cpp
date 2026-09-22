@@ -89,7 +89,8 @@ TEST(GFUiCurrentEditorContentTest, ReadingFromTheGuiThreadDoesNotDeadlock) {
   bool deadlocked = false;
   {
     const CapturedMessages captured;
-    OnGuiThread([&] { bytes = UI::CurrentEditorContent(); });
+    OnGuiThread(
+        [&] { bytes = UI::CurrentEditorContent().value_or(QByteArray()); });
     deadlocked = std::any_of(
         CapturedMessages::lines.cbegin(), CapturedMessages::lines.cend(),
         [](const QString& line) { return line.contains("Dead lock"); });
@@ -111,7 +112,7 @@ TEST(GFUiCurrentEditorContentTest, ReturnsWhatTheCurrentTabHolds) {
     // dereferences CurTextPage() unconditionally.
     edit->SlotNewTab();
     edit->SlotFillTextEditWithText(QString("-----BEGIN PGP MESSAGE-----"));
-    bytes = UI::CurrentEditorContent();
+    bytes = UI::CurrentEditorContent().value_or(QByteArray());
   });
 
   EXPECT_TRUE(bytes.contains("BEGIN PGP MESSAGE"))
@@ -120,11 +121,26 @@ TEST(GFUiCurrentEditorContentTest, ReturnsWhatTheCurrentTabHolds) {
   OnGuiThread([&] { delete edit; });
 }
 
-TEST(GFUiCurrentEditorContentTest, NoEditorIsAnEmptyAnswerNotACrash) {
-  // The SDK promises empty rather than a failure when nothing is open, and a
-  // module dialog opened before any tab exists is an ordinary case.
+TEST(GFUiCurrentEditorContentTest, NoEditorIsReportedAsAbsentNotACrash) {
+  // A module dialog opened before any editor exists is an ordinary case, and
+  // "nothing open" must be distinguishable from an empty document.
   UI::RegisterNamedQObject("main_window_edit", nullptr);
-  EXPECT_TRUE(UI::CurrentEditorContent().isEmpty());
+  EXPECT_FALSE(UI::CurrentEditorContent().has_value());
+}
+
+TEST(GFUiCurrentEditorContentTest, NoTextTabIsReportedAsAbsent) {
+  UI::TextEdit* edit = nullptr;
+  std::optional<QByteArray> bytes = QByteArray("unset");
+  OnGuiThread([&] {
+    edit = new UI::TextEdit(nullptr);
+    UI::RegisterNamedQObject("main_window_edit", edit);
+    // Only the default workspace tab, which is not a plain-text page.
+    bytes = UI::CurrentEditorContent();
+  });
+
+  EXPECT_FALSE(bytes.has_value());
+
+  OnGuiThread([&] { delete edit; });
 }
 
 }  // namespace GpgFrontend::Test

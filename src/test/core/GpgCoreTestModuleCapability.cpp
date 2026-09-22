@@ -154,8 +154,8 @@ TEST(ModuleCapabilityTest, AMaskReadsBackAsTheNamesItCameFrom) {
 
 // The C++ vocabulary and the CMake one are two copies of the same list, and
 // a module.json is checked against the CMake copy at configure time and the
-// C++ copy at load time. They disagreeing is a package that builds and will
-// not load.
+// C++ copy at load time. If they disagree, a package builds but will not
+// load.
 TEST(ModuleCapabilityTest, TheCmakeVocabularyMatchesTheHostsOwn) {
   const auto registry =
       QString(GF_TEST_SOURCE_DIR) + "/cmake/ModuleRegistry.cmake";

@@ -63,9 +63,8 @@ auto ChannelIsUsable(int channel) -> bool {
 
 }  // namespace
 
-// The SDK has two kinds of string parameter and they look almost identical at
-// a call site. A `char*` is handed over: the callee consumes it via GFUnStrDup,
-// which frees it. A `const char*` is borrowed and stays the caller's to free.
+// No SDK argument is ever consumed: every string a module passes in is
+// borrowed and stays the caller's to free (see GFModuleMemory.h).
 //
 // GFGpgFindKeysByEmail borrows, and once did not: it ran its argument through
 // GFUnStrDup, which released memory the caller still owned and had not

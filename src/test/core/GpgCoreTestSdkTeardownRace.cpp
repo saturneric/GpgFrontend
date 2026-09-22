@@ -64,7 +64,7 @@
  *   2. Authorization is revoked before any host state could become unsafe.
  *      Expressed as: no call that BEGAN after `ReleaseHostApi` returned was
  *      ever served. The test reads the release flag before each call, so a
- *      served-after outcome is unambiguous rather than a scheduling artefact.
+ *      served-after outcome is unambiguous rather than a scheduling artifact.
  *   3. An in-flight primitive either completes safely or a later call is
  *      refused, with no third outcome. There are exactly two outcomes by
  *      construction -- the primitive returns a handle or it returns null --
@@ -72,13 +72,26 @@
  *      are what the run itself checks.
  *   4. No use-after-free. This is the property a normal run CANNOT see: every
  *      read above would succeed just as happily against freed memory that
- *      nothing had reused yet. Run under `scripts/run_tests_asan.sh`, whose
- *      default `*Stress*` filter picks these tests up, which is why they are
+ *      nothing had reused yet. Run under `scripts/run_tests.sh --asan`, whose
+ *      default `*Stress*` phase picks these tests up, which is why they are
  *      named for it.
  *
- * The sweep runs in the middle of the race on purpose. Unload does release,
- * then sweep, and the sweep walks the very ledger the workers are still
- * adding to, so it is the sharpest point in the whole sequence.
+ * The sweep runs in the middle of the race on purpose. Shutdown revokes the
+ * grant, waits for calls already past the gate, then sweeps, while the
+ * workers keep calling; that is the sharpest point in the whole sequence.
+ *
+ * ## Why a stale HANDLE is not tested here
+ *
+ * Buffer handles, unlike the context, really are freed at unload: the sweep
+ * is what reclaims a module's leaks. A worker holding one afterwards holds a
+ * pointer to freed memory, and it stays safe only because validity is decided
+ * by looking the pointer up in a registry rather than by dereferencing it
+ * (`ResolveLive` in GFHostBuffer.cpp). A debug build calls qFatal on a stale
+ * handle, because using one is a module bug that should be found rather than
+ * absorbed, so asserting it would need a death test, and those cannot be
+ * trusted on a worker thread inside a live Qt application. The property is
+ * covered where it is observable: GpgCoreTestSdkLedger.cpp checks that the
+ * sweep reclaims exactly the unloading module's handles and nothing else.
  */
 
 namespace GpgFrontend::Test {
@@ -90,7 +103,7 @@ constexpr auto* kRacingModule = "com.example.teardown.race";
 auto Iterations() -> int {
   const auto iter = qEnvironmentVariableIntValue("GF_STRESS_ITER");
   // Deliberately modest by default. Every post-revocation call logs its own
-  // refusal, which is the correct behaviour and poor reading in bulk; the
+  // refusal, which is the correct behavior and poor reading in bulk; the
   // race is reproduced by the overlap, not by the volume.
   return iter > 0 ? qMin(iter, 200) : 40;
 }
@@ -171,10 +184,13 @@ TEST(SdkTeardownRaceStress,
   const auto iterations = Iterations();
   QThread::msleep(static_cast<unsigned long>(iterations));
 
-  // Unload, in the order the loader does it: the grant goes first, and only
-  // then is the ledger swept. The workers are mid-loop throughout.
+  // Shut down in the order ShutdownGpgFrontendModules() does: revoke the
+  // grant, wait for calls already past the gate, then sweep. The workers are
+  // mid-loop throughout.
   Module::ModuleSdkReleaseHostApi(kRacingModule);
   released.store(true, std::memory_order_release);
+  ASSERT_TRUE(Module::ModuleSdkWaitHostApiIdle(kRacingModule, 5000))
+      << "a call that passed the gate before the release never finished";
   const auto swept = Module::ModuleSdkSweepHandles(kRacingModule);
 
   QThread::msleep(static_cast<unsigned long>(iterations));
@@ -211,14 +227,14 @@ TEST(SdkTeardownRaceStress,
       << " call(s) began after ReleaseHostApi() returned and were still "
          "served; authorization must be revoked before anything else happens";
 
-  // The sweep ran against a ledger that was still being written to. It may
-  // legitimately have found nothing, since these workers release what they
-  // take, so its count is not the assertion; that it neither crashed nor
-  // double-freed is, and that is ASan's judgement. What IS assertable is that
-  // the ledger is consistent afterwards: a second pass finds nothing left.
+  // The sweep ran while the workers were still calling. It may legitimately
+  // have found nothing, since these workers release what they take, so its
+  // count is not the assertion; that it neither crashed nor double-freed is,
+  // and that is ASan's judgement. What IS assertable is that the ledger is
+  // consistent afterwards: a second pass finds nothing left.
   EXPECT_EQ(Module::ModuleSdkSweepHandles(kRacingModule), 0U)
-      << "a sweep that raced the workers left " << swept
-      << " reclaimed and something still outstanding";
+      << "the racing sweep reclaimed " << swept
+      << " handle(s) but left some outstanding";
 
   // (1) The never-free rule, read back. Under ASan this is the load that
   // would report a use-after-free if the record had been deleted at release.
@@ -231,23 +247,37 @@ TEST(SdkTeardownRaceStress,
          "crash on";
 }
 
-/**
- * @brief Why the stale HANDLE case is not tested here.
- *
- * Buffer handles, unlike the context, really are freed at unload -- the sweep
- * is what reclaims a module's leaks. A worker holding one afterwards is
- * holding a pointer to freed memory, and it stays safe only because validity
- * is decided by looking the pointer UP in a registry rather than by
- * dereferencing it to read a magic word (`ResolveLive` in GFHostBuffer.cpp).
- *
- * That is deliberately NOT a silent refusal, though: a debug build calls
- * qFatal on a stale handle, because using one is a module bug that should be
- * found rather than absorbed. Asserting it would therefore mean a death test,
- * and these run on a worker thread with a live Qt application around them,
- * which is the one place a fork-based death test cannot be trusted. The
- * property is covered instead where it is observable without dying:
- * GpgCoreTestSdkLedger.cpp checks that the sweep reclaims exactly the
- * unloading module's handles and nothing else.
- */
+TEST(SdkTeardownRaceStress, AnIdleModuleIsReportedIdleAtOnce) {
+  const auto* host = static_cast<const GFHostApi*>(
+      Module::ModuleSdkMintHostApi("com.example.teardown.idle", 0));
+  ASSERT_NE(host, nullptr);
+  Module::ModuleSdkReleaseHostApi("com.example.teardown.idle");
+  EXPECT_TRUE(Module::ModuleSdkWaitHostApiIdle("com.example.teardown.idle", 0));
+}
+
+// A handle belongs to the module that asked for it. Another module holding
+// the pointer can neither read it nor release it.
+TEST(SdkTeardownRaceStress, AHandleIsRefusedToAnotherModule) {
+  const auto* a = static_cast<const GFHostApi*>(
+      Module::ModuleSdkMintHostApi("com.example.teardown.owner", 0));
+  const auto* b = static_cast<const GFHostApi*>(
+      Module::ModuleSdkMintHostApi("com.example.teardown.thief", 0));
+  ASSERT_NE(a, nullptr);
+  ASSERT_NE(b, nullptr);
+
+  auto* buf = a->buffer->new_from_bytes(a->context, "mine", 4);
+  ASSERT_NE(buf, nullptr);
+
+  EXPECT_EQ(b->buffer->size(b->context, buf), 0U);
+  EXPECT_EQ(b->buffer->data(b->context, buf), nullptr);
+  b->buffer->release(b->context, buf);
+
+  // Still the owner's, untouched by the refused release.
+  EXPECT_EQ(a->buffer->size(a->context, buf), 4U);
+  a->buffer->release(a->context, buf);
+
+  Module::ModuleSdkReleaseHostApi("com.example.teardown.owner");
+  Module::ModuleSdkReleaseHostApi("com.example.teardown.thief");
+}
 
 }  // namespace GpgFrontend::Test

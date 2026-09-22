@@ -662,7 +662,7 @@ TEST_P(GpgCoreEngineTest, KeyModelTraversalStress) {
 // it drives EncryptSignSync/DecryptVerifySync, and varies the payload size so
 // the output buffers cross the kSecBufferSize (4KB) boundary in Read2GFBuffer's
 // realloc/append loop -- the most likely spot for a heap-buffer-overflow.
-// Run under ASan for signal: scripts/run_tests_asan.sh -f
+// Run under ASan for signal: scripts/run_tests.sh --asan -f
 // '*EncryptSignDecryptVerifyStress*'
 // ---------------------------------------------------------------------------
 
@@ -759,7 +759,7 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
 // tests, but repeatedly and without any key material in play. Varying the
 // payload size also crosses the kSecBufferSize (4KB) boundary in
 // Read2GFBuffer's realloc/append loop. Run under ASan for signal:
-// scripts/run_tests_asan.sh -f '*EncryptSymmetricDecryptStress*'
+// scripts/run_tests.sh --asan -f '*EncryptSymmetricDecryptStress*'
 //
 // Capped, like the sibling stress tests, because an iteration here is not
 // cheap: a passphrase round trip costs ~0.44s on GnuPG (gpg-agent) and a real

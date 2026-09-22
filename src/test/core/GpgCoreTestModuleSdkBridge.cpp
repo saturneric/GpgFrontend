@@ -30,6 +30,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/module/ModuleSdkBridge.h"
+#include "sdk/GFSDKHostApi.h"
 
 /**
  * @file GpgCoreTestModuleSdkBridge.cpp
@@ -45,10 +46,10 @@
 
 namespace GpgFrontend::Test {
 
-TEST(ModuleSdkBridgeTest, TheSdkInstallsItselfWhenItIsLoaded) {
-  // libgf_sdk is in this process -- the test binary loads modules -- so its
-  // load-time initializer has run and the table is populated. If this fails,
-  // module activation is about to start refusing every module.
+TEST(ModuleSdkBridgeTest, TheBridgeIsInstalledAtStartup) {
+  // main() calls GFHostApiInstallBridge() before anything else, and the test
+  // binary runs through the same main(). If this fails, module activation is
+  // about to start refusing every module.
   EXPECT_TRUE(Module::IsModuleSdkBridgeInstalled());
 }
 
@@ -71,6 +72,50 @@ TEST(ModuleSdkBridgeTest, AHostApiTableIsMintedThroughTheBridge) {
 
   Module::ModuleSdkReleaseHostApi("com.example.bridge_probe");
   Module::ModuleSdkReleaseHostApi("com.example.bridge_probe_other");
+}
+
+// A table is never rewritten once handed out: other threads read it without
+// a lock. A different grant gets a new table, and the old context is revoked
+// so a thread left over from before cannot use it.
+TEST(ModuleSdkBridgeTest, ADifferentGrantMintsANewTableAndRevokesTheOld) {
+  const auto* first = static_cast<const GFHostApi*>(
+      Module::ModuleSdkMintHostApi("com.example.bridge_regrant", 0));
+  ASSERT_NE(first, nullptr);
+  ASSERT_EQ(first->storage, nullptr);
+
+  const auto* second =
+      static_cast<const GFHostApi*>(Module::ModuleSdkMintHostApi(
+          "com.example.bridge_regrant", GF_HOST_CAP_STORAGE));
+  ASSERT_NE(second, nullptr);
+  EXPECT_NE(second, first);
+  EXPECT_NE(second->storage, nullptr);
+
+  // The old table is intact but its context is refused.
+  EXPECT_EQ(first->storage, nullptr);
+  EXPECT_EQ(first->buffer->new_from_bytes(first->context, "x", 1), nullptr);
+
+  auto* buf = second->buffer->new_from_bytes(second->context, "x", 1);
+  EXPECT_NE(buf, nullptr);
+  second->buffer->release(second->context, buf);
+
+  Module::ModuleSdkReleaseHostApi("com.example.bridge_regrant");
+}
+
+// A released module minted again is a reload: a new context, and the old one
+// stays revoked.
+TEST(ModuleSdkBridgeTest, AReloadDoesNotReviveTheOldContext) {
+  const auto* first = static_cast<const GFHostApi*>(
+      Module::ModuleSdkMintHostApi("com.example.bridge_reload", 0));
+  ASSERT_NE(first, nullptr);
+  Module::ModuleSdkReleaseHostApi("com.example.bridge_reload");
+
+  const auto* second = static_cast<const GFHostApi*>(
+      Module::ModuleSdkMintHostApi("com.example.bridge_reload", 0));
+  ASSERT_NE(second, nullptr);
+  EXPECT_NE(second->context, first->context);
+  EXPECT_EQ(first->buffer->new_from_bytes(first->context, "x", 1), nullptr);
+
+  Module::ModuleSdkReleaseHostApi("com.example.bridge_reload");
 }
 
 TEST(ModuleSdkBridgeTest, AnAttributionScopeNestsAndUnwinds) {
