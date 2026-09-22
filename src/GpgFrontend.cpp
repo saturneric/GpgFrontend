@@ -77,13 +77,13 @@ auto main(int argc, char* argv[]) -> int {
       // A testing aid: start, let the module system settle, write what it did
       // as JSON, and exit. The smoke tests used to grep a log line for this,
       // which coupled them to a sentence, to a hardcoded module count, and to
-      // knowing where a given flavour puts its log.
+      // knowing where a given flavor puts its log.
       {{{}, "module-status"},
        "load modules, write a JSON status report to FILE, and exit",
        "file"},
       {{"l", "log-level"},
-       "set log level (trace, debug, info, warn, error)",
-       "none"},
+       "set the log level (trace, debug, info, warn, error)",
+       "level"},
       // Declaration only: this was already resolved during InitApplication(),
       // long before this parser existed, because where the settings live is
       // exactly what it decides. Registering it here just stops
@@ -108,14 +108,14 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   // Applied straight away so that everything logged between here and PreInit()
-  // honours the flag, and carried on the context so that the layered resolution
+  // honors the flag, and carried on the context so that the layered resolution
   // in LoadEnvProperties() puts it on top rather than overwriting it.
   if (parser.isSet("l")) {
     if (const auto level = GpgFrontend::ParseLogLevelName(parser.value("l"))) {
       ctx->cli_log_level = *level;
       GpgFrontend::ApplyLogLevel(*level);
     } else {
-      qWarning() << "ignoring unrecognised log level:" << parser.value("l");
+      qWarning() << "ignoring unrecognized log level:" << parser.value("l");
     }
   }
 
@@ -130,8 +130,8 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   // Everything below this line is keyed by the profile: its settings, its log
-  // directory, its key material. So the profile is mounted first — the lock
-  // taken, a package extracted — and only then is anything read.
+  // directory, its key material. So the profile is mounted first (the lock
+  // taken, a package extracted), and only then is anything read.
   GpgFrontend::UI::GuiProfileLoaderDelegate delegate;
   GpgFrontend::ProfileLoader loader(
       GpgFrontend::MakeProfile(ctx->profile_selection), &delegate);
@@ -160,7 +160,7 @@ auto main(int argc, char* argv[]) -> int {
 
   // After Open(), because the key-database list it prints is a sealed data
   // object. It used to abort here instead: the key set was a singleton nothing
-  // on this path had ever initialised, and reading it was undefined rather than
+  // on this path had ever initialized, and reading it was undefined rather than
   // refused.
   if (parser.isSet("e")) {
     return GpgFrontend::PrintEnvInfo();

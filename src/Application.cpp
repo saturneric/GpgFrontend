@@ -128,8 +128,8 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   }
 
   /**
-   * internationalization. loop to restart main window
-   * with changed translation when settings change.
+   * Loop that restarts the main window with the new translation when the
+   * language setting changes.
    */
   int return_from_event_loop_code;
   int restart_count = 0;
@@ -138,10 +138,10 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     // refresh locale settings
     InitLocale();
 
-    // after that load ui totally
+    // then fully load the UI
     GpgFrontend::UI::InitGpgFrontendUI(app);
 
-    // check and waiting for condition
+    // wait until initialization has finished
     GpgFrontend::UI::WaitingAllInitializationFinished();
 
     // load module's translations

@@ -66,7 +66,7 @@ auto PrintVersion() -> int {
   stream << Tr("Build Date & Time: ")
          << QLocale().toString(GetProjectBuildTimestamp()) << '\n'
          << Tr("Build Version: ") << GetProjectBuildVersion() << '\n'
-         << Tr("Source Code Infomation: ") << GetProjectBuildGitVersion()
+         << Tr("Source Code Information: ") << GetProjectBuildGitVersion()
          << '\n';
 
   stream << Qt::endl;
@@ -76,7 +76,7 @@ auto PrintVersion() -> int {
 auto PrintEnvInfo() -> int {
   QTextStream stream(stdout);
   stream << GetProjectName() << " " << GetProjectVersion() << " "
-         << "Environemnt Information:" << '\n';
+         << Tr("Environment Information:") << '\n';
 
   stream << '\n';
 
@@ -140,11 +140,11 @@ auto PrintEnvInfo() -> int {
       Module::RetrieveRTValueTypedOrDefault<>("core", "gpgme.engine.cms", 0);
 
   stream << Tr("Engine 'GPGCONF' Status: ")
-         << (gpgconf == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
+         << (gpgconf == 1 ? Tr("Found") : Tr("Not Found")) << '\n';
   stream << Tr("Engine 'OPENPGP' Status: ")
-         << (openpgp == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
+         << (openpgp == 1 ? Tr("Found") : Tr("Not Found")) << '\n';
   stream << Tr("Engine 'CMS' Status: ")
-         << (cms == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
+         << (cms == 1 ? Tr("Found") : Tr("Not Found")) << '\n';
 
   stream << '\n';
 
@@ -175,7 +175,7 @@ auto PrintEnvInfo() -> int {
 
   stream << '\n';
 
-  stream << "Key Database(s): " << '\n';
+  stream << Tr("Key Database(s): ") << '\n';
   stream << '\n';
 
   // The list is a data object, so it is sealed with the profile's key. Reading
