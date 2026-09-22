@@ -327,9 +327,15 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     return;
   }
 
-  // Only now that the close is certain: the write-back above can defer it and
-  // call back into close(), and blanking the pages before that would throw the
-  // content away under a close that had not been decided yet.
+  // Only now that the close is certain. Both of the paths above can refuse
+  // or defer the close, so telling modules earlier would be telling them
+  // something that may not happen -- and this event is deliberately not a
+  // veto, so it must only ever fire when the answer is already yes.
+  Module::TriggerEvent("MAIN_WINDOW_CLOSING");
+
+  // The write-back above can defer the close and call back into close(), and
+  // blanking the pages before that would throw the content away under a close
+  // that had not been decided yet.
   edit_->WipeAllTabs();
   info_board_->SlotReset();
 

@@ -30,6 +30,7 @@
 
 #include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/settings/SettingsAdvanced.h"
@@ -272,6 +273,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   this->show();
   this->raise();
   this->activateWindow();
+
+  // After the pages exist, including the module-contributed ones, so a module
+  // told "the dialog is open" can find its own page in it.
+  Module::TriggerEvent("SETTINGS_DIALOG_OPENED");
 }
 
 auto SettingsDialog::eventFilter(QObject* watched, QEvent* event) -> bool {
@@ -553,6 +558,13 @@ void SettingsDialog::SlotAccept() {
 
   emit SignalAppearanceChanged();
 
+  // Every page has written by now, so this is the first moment at which
+  // "the settings changed" is true of all of them rather than of some.
+  Module::TriggerEvent(
+      "SETTINGS_CHANGED",
+      {{"restart_required",
+        GFBuffer{QString::number(restart_mode_ != kNonRestartCode ? 1 : 0)}}});
+
   LOG_D() << "flushing qt event loop to ensure all pending events are "
              "processed before applying the settings";
   QCoreApplication::sendPostedEvents(nullptr, 0);
@@ -563,6 +575,8 @@ void SettingsDialog::SlotAccept() {
   }
 
   close();
+
+  Module::TriggerEvent("SETTINGS_DIALOG_CLOSED");
 }
 
 auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {

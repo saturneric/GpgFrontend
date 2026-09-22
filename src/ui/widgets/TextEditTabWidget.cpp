@@ -136,12 +136,24 @@ TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
     flush_recovery_cache(true);
   });
 
-  connect(this, &QTabWidget::currentChanged, this, [this](int) -> void {
+  connect(this, &QTabWidget::currentChanged, this, [this](int index) -> void {
     if (ContainsPagePointer(recovery_dirty_pages_, last_current_text_page_)) {
       flush_recovery_cache(false);
     }
 
     last_current_text_page_ = CurTextPage();
+
+    // A semantic event, not a re-broadcast of the Qt signal. A module is told
+    // WHICH tab and what kind it is; it is not handed a QTabWidget and left
+    // to work out the rest, which would make the module depend on a host
+    // widget class it cannot include.
+    auto* page = widget(index);
+    if (page == nullptr) return;
+    Module::TriggerEvent(
+        "TAB_ACTIVATED",
+        {{"tab_index", GFBuffer{QString::number(index)}},
+         {"tab_type", GFBuffer{page->property("type").toString()}},
+         {"tab_title", GFBuffer{tabText(index)}}});
   });
 
   tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -582,6 +594,11 @@ void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
   const int index = addTab(page, QIcon(":/icons/workspace.png"), title);
   setTabToolTip(index, abs_path);
   setCurrentIndex(index);
+
+  Module::TriggerEvent("TAB_CREATED",
+                       {{"tab_index", GFBuffer{QString::number(index)}},
+                        {"tab_type", GFBuffer{QString("file")}},
+                        {"tab_title", GFBuffer{title}}});
 
   connect(page, &FilePage::SignalPathChanged, this,
           [this, page](const QString& path) {
@@ -1040,9 +1057,36 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
   setCurrentIndex(index);
   setTabToolTip(index, file_path.isEmpty() ? clean_title : file_path);
 
+  Module::TriggerEvent("TAB_CREATED",
+                       {{"tab_index", GFBuffer{QString::number(index)}},
+                        {"tab_type", GFBuffer{QString("text")}},
+                        {"tab_title", GFBuffer{clean_title}},
+                        {"file_path", GFBuffer{file_path}}});
+
+  // A document that came from a file is a different fact from a tab that was
+  // created, and the two coincide only here.
+  if (!file_path.isEmpty()) {
+    Module::TriggerEvent("DOCUMENT_OPENED",
+                         {{"file_path", GFBuffer{file_path}},
+                          {"tab_index", GFBuffer{QString::number(index)}}});
+  }
+
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, [this, page](bool modified) {
             update_tab_modified_mark(page, modified);
+
+            // On the clean-to-dirty TRANSITION, deliberately, rather than on
+            // contentsChanged. A module is being told "this document now has
+            // unsaved work", which is a state change and happens once;
+            // contentsChanged fires per keystroke, and an event posted to the
+            // module task runner per keystroke is a different feature with a
+            // different cost.
+            if (modified) {
+              Module::TriggerEvent(
+                  "DOCUMENT_CHANGED",
+                  {{"file_path", GFBuffer{page->GetFilePath()}},
+                   {"tab_index", GFBuffer{QString::number(indexOf(page))}}});
+            }
 
             // A mounted view keeps its edits to itself until something asks
             // for them, so the document's own contentsChanged never fires and

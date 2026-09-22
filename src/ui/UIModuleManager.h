@@ -33,8 +33,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Module.h"
-#include "sdk/GFSDKBasicModel.h"
-#include "sdk/GFSDKUIModel.h"
+#include "sdk/GFSDKTypes.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {

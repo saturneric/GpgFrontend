@@ -196,6 +196,10 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     page->SetFilePath(file_name);
     page->NotifyFileSaved();
 
+    Module::TriggerEvent("DOCUMENT_SAVED",
+                         {{"file_path", GFBuffer{file_name}},
+                          {"tab_index", GFBuffer{QString::number(cur_index)}}});
+
     // The document has been saved. Rewrite recovery cache immediately so stale
     // unsaved content will not be restored on next startup.
     tab_widget_->SlotRefreshRecoveryCache();
@@ -262,7 +266,16 @@ void TextEdit::slot_remove_tab(int index) {
 
   if (maybe_save_current_tab(true)) {
     auto* tab = tab_widget_->widget(index);
+    const auto closed_type =
+        tab == nullptr ? QString() : tab->property("type").toString();
     tab_widget_->removeTab(index);
+
+    // After the removal, because the fact being reported is that the tab is
+    // gone. A module told beforehand would still see it in the widget and
+    // could act on something about to be destroyed.
+    Module::TriggerEvent("TAB_CLOSED",
+                         {{"tab_index", GFBuffer{QString::number(index)}},
+                          {"tab_type", GFBuffer{closed_type}}});
 
     if (tab_widget_->count() > 0) {
       const int new_index = std::min(index, tab_widget_->count() - 1);
