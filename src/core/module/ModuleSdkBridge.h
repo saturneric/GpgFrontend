@@ -36,41 +36,36 @@ namespace GpgFrontend::Module {
 
 /**
  * @file ModuleSdkBridge.h
- * @brief The four SDK services gf_core needs, supplied by gf_sdk rather than
- * linked against it.
+ * @brief The SDK services gf_core needs, supplied by the host half of the SDK
+ * rather than linked against it.
  *
  * ## Why this exists
  *
- * `gf_sdk` links `gf_core`: the SDK is implemented on top of the core. But the
- * core's module loader needs four things that only the SDK can provide -- the
- * host API table it hands a module at activation, the attribution brackets
- * that record which module asked for a handle, and the sweep that reclaims
- * what a module leaked. Calling them directly makes the two libraries mutually
- * dependent.
+ * The host half of the SDK (`gf_host_api`, `src/sdk/host`) is built on top of
+ * `gf_core` and `gf_ui`. But the core's module loader needs a few things only
+ * that half can provide: the host API table it hands a module at activation,
+ * the attribution brackets that record which module asked for a handle, and
+ * the release, idle wait and sweep that retire a module's grant and reclaim
+ * what it leaked. Calling them directly would make `gf_core` depend on code
+ * that depends on `gf_core`, and neither a MinGW DLL nor a Mach-O dylib can
+ * be linked with a cycle.
  *
- * On Linux that appeared to work, because an ELF shared library may carry
- * unresolved symbols and the dynamic linker fixes them up later -- in this
- * case only once a module's own `DT_NEEDED` had dragged `libgf_sdk.so` in. A
- * MinGW DLL and a Mach-O dylib both require every symbol to resolve at link
- * time, so on those two platforms `gf_core` simply stopped linking. It is also
- * a fragile arrangement on Linux: it depends on lazy binding and on the SDK
- * landing in the global symbol scope, neither of which is guaranteed.
- *
- * So the dependency is inverted. `gf_core` declares what it needs, `gf_sdk`
- * installs it, and the link graph stays a DAG:
+ * So the dependency is inverted. `gf_core` declares what it needs, the host
+ * half fills in this table, and the link graph stays a DAG:
  *
  * ```
- *   gf_sdk  ---- links ---->  gf_core
- *      |                         ^
- *      '---- installs bridge ----'      (at load, no link dependency)
+ *   gf_host_api  ---- links ---->  gf_core
+ *        |                            ^
+ *        '------ installs bridge -----'   (GFHostApiInstallBridge(), called
+ *                                          from main(); no link dependency)
  * ```
  *
  * ## It is not a plugin seam
  *
- * Exactly one implementation exists and exactly one ever will: `gf_sdk`'s.
- * This is not an extension point, and nothing should grow policy behind it.
- * It is the narrowest possible way to say "these four functions live on the
- * other side of a link edge that only points one way".
+ * Exactly one implementation exists and exactly one ever will. This is not an
+ * extension point, and nothing should grow policy behind it. It is the
+ * narrowest possible way to say "these functions live on the other side of a
+ * link edge that only points one way".
  */
 
 /// The entry points, as a table. A null member is a service this build does
@@ -97,7 +92,8 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
 };
 
 /**
- * @brief Install the SDK's implementation. Called once, by gf_sdk.
+ * @brief Install the SDK's implementation. Called once, from
+ * GFHostApiInstallBridge() at startup.
  *
  * Idempotent, and deliberately not reversible: there is no uninstall, because
  * a module that has already been handed the host api table holds it for the
@@ -105,7 +101,7 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
  */
 void GF_CORE_EXPORT InstallModuleSdkBridge(const ModuleSdkBridge& bridge);
 
-/// Whether gf_sdk has installed itself yet.
+/// Whether the bridge has been installed yet.
 auto GF_CORE_EXPORT IsModuleSdkBridgeInstalled() -> bool;
 
 /**
@@ -165,16 +161,17 @@ auto GF_CORE_EXPORT ModuleSdkCurrentModule() -> QString;
 /**
  * @brief Reclaim every SDK handle still held by @p module_id.
  *
- * Zero when the bridge was never installed, which is the honest answer: if
- * gf_sdk never loaded then no module ever obtained a handle from it.
+ * Zero when the bridge was never installed, which is the honest answer: then
+ * no module was ever activated, so none obtained a handle.
  */
 auto GF_CORE_EXPORT ModuleSdkSweepHandles(const char* module_id) -> size_t;
 
 /**
  * @brief Bracket a call into module code so its handles are attributed to it.
  *
- * The SDK cannot work this out for itself: its host table is one static table
- * shared by every module, so a call arriving through it carries no identity.
+ * Calls a module makes through its own context are attributed from that
+ * context. This covers the rest: handles created while the host is running
+ * a module's hook, for which no module context is on hand.
  *
  * A no-op when the bridge is not installed. That is correct rather than
  * merely tolerable -- with no SDK loaded there are no handles to attribute.

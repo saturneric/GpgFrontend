@@ -57,7 +57,7 @@ class GlobalModuleContext::Impl {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      LOG_W() << "cannot find module id " << module_id << " at register table";
+      LOG_W() << "module" << module_id << "not found in the register table";
       return nullptr;
     }
 
@@ -69,8 +69,8 @@ class GlobalModuleContext::Impl {
     auto module_info_opt =
         search_module_register_table(module->GetModuleIdentifier());
     if (!module_info_opt.has_value()) {
-      LOG_W() << "cannot find module id " << module->GetModuleIdentifier()
-              << " at register table, fallback to "
+      LOG_W() << "module" << module->GetModuleIdentifier()
+              << "not found in the register table; falling back to the "
                  "default channel";
 
       return GetDefaultChannel(module);
@@ -110,8 +110,7 @@ class GlobalModuleContext::Impl {
       return false;
     }
 
-    LOG_D() << "(+) module: " << module->GetModuleIdentifier()
-            << "registering...";
+    LOG_D() << "registering module" << module->GetModuleIdentifier();
 
     auto register_info =
         GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>();
@@ -119,7 +118,7 @@ class GlobalModuleContext::Impl {
     register_info->channel = acquire_new_unique_channel();
     register_info->integrated = integrated_module;
 
-    // move module to its task runner' thread
+    // move the module to its task runner's thread
     register_info->module->setParent(nullptr);
     register_info->module->moveToThread(
         Thread::TaskRunnerGetter::GetInstance()
@@ -130,8 +129,7 @@ class GlobalModuleContext::Impl {
     module_register_table_[module->GetModuleIdentifier()] = register_info;
 
     if (module->Register() != 0) {
-      LOG_W() << "module: " << module->GetModuleIdentifier()
-              << " register failed.";
+      LOG_W() << "failed to register module" << module->GetModuleIdentifier();
       register_info->registered = false;
       registered_modules_++;
       return false;
@@ -140,34 +138,34 @@ class GlobalModuleContext::Impl {
     register_info->registered = true;
     registered_modules_++;
 
-    LOG_D() << "(+) module: " << module->GetModuleIdentifier() << "registered.";
+    LOG_D() << "registered module" << module->GetModuleIdentifier();
 
     return true;
   }
 
   auto ActiveModule(const ModuleIdentifier& module_id) -> bool {
-    LOG_D() << "(*) module: " << module_id << "activating...";
+    LOG_D() << "activating module" << module_id;
 
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      LOG_W() << "cannot find module id " << module_id << " at register table";
+      LOG_W() << "module" << module_id << "not found in the register table";
       return false;
     }
 
     const auto& module_info = module_info_opt.value();
 
     if (!module_info->registered) {
-      LOG_W() << "module id:" << module_id
-              << " is not properly register, activation abort...";
+      LOG_W() << "module" << module_id
+              << "is not properly registered; aborting activation";
       return false;
     }
 
     // try to get module from module info
     auto module = module_info->module;
     if (module == nullptr) {
-      LOG_W() << "module id:" << module_id
-              << " at register table is related to a null module";
+      LOG_W() << "register table entry for module" << module_id
+              << "has no module";
       return false;
     }
 
@@ -176,7 +174,7 @@ class GlobalModuleContext::Impl {
       module->Active();
       module_info->activate = true;
 
-      LOG_D() << "(*) module: " << module_id << "activated.";
+      LOG_D() << "activated module" << module_id;
     }
 
     return module_info->activate;
@@ -187,7 +185,7 @@ class GlobalModuleContext::Impl {
     // module -> event
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      LOG_W() << "cannot find module id" << module_id << "at register table";
+      LOG_W() << "module" << module_id << "not found in the register table";
       return false;
     }
 
@@ -256,12 +254,12 @@ class GlobalModuleContext::Impl {
     // search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      LOG_W() << "cannot find module id " << module_id << " at register table";
+      LOG_W() << "module" << module_id << "not found in the register table";
       return false;
     }
 
     const auto& module_info = module_info_opt.value();
-    // activate the module if it is not already Deactivate.
+    // deactivate the module if it is active.
     if (module_info->activate && (module_info->module->Deactivate() == 0)) {
       for (const auto& event_ids : module_info->listening_event_ids) {
         auto& modules = module_events_table_[event_ids];
@@ -284,8 +282,8 @@ class GlobalModuleContext::Impl {
     auto met_it = module_events_table_.find(event_id);
     if (met_it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
-      LOG_I() << "event: " << event_id
-              << " has no listeners and is not registered either.";
+      LOG_I() << "event" << event_id
+              << "has no listeners and is not registered";
       return false;
     }
 
@@ -295,7 +293,7 @@ class GlobalModuleContext::Impl {
     // Check if the set of listeners is empty
     if (listeners_set.empty()) {
       // Log a warning if nobody is listening to this event
-      LOG_I() << "event: " << event_id << " has no listeners";
+      LOG_I() << "event" << event_id << "has no listeners";
       return false;
     }
 
@@ -309,8 +307,8 @@ class GlobalModuleContext::Impl {
 
       // Log an error if the module is not found in the registration table
       if (!module_info_opt.has_value()) {
-        LOG_W() << "cannot find module id: " << listener_module_id
-                << " at register table";
+        LOG_W() << "module" << listener_module_id
+                << "not found in the register table";
         continue;
       }
 
@@ -337,9 +335,9 @@ class GlobalModuleContext::Impl {
           [listener_module_id, event_id](int code, const DataObjectPtr&) {
             if (code < 0) {
               // Log an error if the module execution fails
-              LOG_W() << "module " << listener_module_id
-                      << "execution failed of event " << event_id
-                      << ": exec return code: " << code;
+              LOG_W() << "module" << listener_module_id
+                      << "failed to handle event" << event_id
+                      << "- return code:" << code;
             }
           };
 
@@ -491,13 +489,13 @@ auto GlobalModuleContext::SearchModule(const ModuleIdentifier& module_id)
   return p_->SearchModule(module_id);
 }
 
-// Function to get the task runner associated with a module.
+// The task runner associated with a module, looked up by pointer.
 auto GlobalModuleContext::GetTaskRunner(ModuleRawPtr module)
     -> std::optional<TaskRunnerPtr> {
   return p_->GetTaskRunner(module);
 }
 
-// Function to get the task runner associated with a module.
+// The task runner associated with a module, looked up by id.
 auto GlobalModuleContext::GetTaskRunner(const ModuleIdentifier& module_id)
     -> std::optional<TaskRunnerPtr> {
   return p_->GetTaskRunner(module_id);

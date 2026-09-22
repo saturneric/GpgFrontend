@@ -79,7 +79,7 @@ enum class ModuleDescriptorStatus {
   kUNDECLARED_RESOURCE,
   /// The manifest names a resource the descriptor lacks.
   kMISSING_DECLARED_RESOURCE,
-  kWRONG_PLATFORM,    ///< built for another os or architecture
+  kWRONG_PLATFORM,    ///< built for another OS or architecture
   kINCOMPATIBLE_ABI,  ///< outside [GF_SDK_ABI_MIN_SUPPORTED, ...]
   kIO_FAILED,         ///< the file could not be read
 };

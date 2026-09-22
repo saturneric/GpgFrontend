@@ -67,7 +67,7 @@ auto SearchModuleFromPath(const QString& mods_path, ModuleOrigin origin)
   // the SDK prefix -- and now they do not need to: the descriptor's filename
   // is fixed, and its directory is derived from the identity it signs.
   //
-  // This is also why there is no "packaged only" policy to honour here: there
+  // This is also why there is no "packaged only" policy to honor here: there
   // is no other kind.
 
   const auto namespaces =
@@ -218,7 +218,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
     return;
   }
 
-  // must init at default thread before core
+  // Must be initialized on the default thread before the core.
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
       ->PostTask(new Thread::Task(
@@ -230,10 +230,10 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
 
             QMap<QString, ModuleOrigin> modules = LoadIntegratedMods();
 
-            // if user want to load all modules, then check external modules
+            // If the user allows modules they added, scan for those too.
             if (policy == ModuleLoadingPolicy::kALL) {
-              LOG_I() << "loading external modules as well since user settings "
-                         "is set to load all modules";
+              LOG_I() << "also loading external modules, because the settings "
+                         "allow modules the user has added";
               modules.insert(LoadExternalMods());
             }
 
@@ -251,18 +251,18 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             // longer a candidate, it is a referent.
             auto to_load = prepared;
 
-            // Counted after superseding, so the number the manager waits for
-            // is the number that will actually be attempted.
+            // The number the manager waits for is the number that will
+            // actually be attempted.
             manager.SetNeedRegisterModulesNum(static_cast<int>(to_load.size()));
 
             // PHASE TWO, sequential: map each library and register it.
-            // QLibrary::load() runs the module's own static initialisers, and
+            // QLibrary::load() runs the module's own static initializers, and
             // the host cannot establish that one module's are safe against
             // another's -- so this half stays one at a time, on purpose.
             // Phase one is the hashing and so most of the cost, which is why
             // it is worth the larger share of this track. The rest is spent
             // naming modules as they register -- the part of a start a user
-            // can actually recognise.
+            // can actually recognize.
             const auto to_load_count = static_cast<double>(to_load.size());
             auto loaded = 0;
             for (const auto& candidate : to_load) {
@@ -285,14 +285,14 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
                                    CoreInitStep::kLOADING_MODULE);
 
             // Stated rather than left to be inferred from the gap between
-            // two log lines, which is how this was got wrong twice.
+            // two log lines, which is how it went wrong twice.
             LOG_I() << "module loading finished:"
                     << ModuleLoadStats::GetInstance().Summary();
             return 0;
           },
           "modules_system_init_task"));
 
-  LOG_D() << "are all modules registered? answer: "
+  LOG_D() << "all modules registered:"
           << ModuleManager::GetInstance().IsAllModulesRegistered();
 }
 

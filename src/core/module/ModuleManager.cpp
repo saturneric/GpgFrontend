@@ -39,9 +39,9 @@
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDescriptor.h"
-#include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/struct/settings_object/ModuleSO.h"
@@ -251,23 +251,24 @@ class ModuleManager::Impl {
       // Fail closed and say so. When macOS external modules become possible
       // they will need a native-binding design of their own, reviewed on its
       // own evidence; apple-binding-id is not it and is not coming back.
-      const QString why =
-          QObject::tr("External modules are not supported on macOS: the "
-                      "system only loads code signed with this "
-                      "application's own Team ID.");
+      const QString why = QObject::tr(
+          "External modules are not supported on macOS: the "
+          "system only loads code signed with this "
+          "application's own Team ID.");
       LOG_W() << "module manager refuses external module: " << package_path
               << ", reason: " << why;
       RecordRefusal({package_path, origin, read.manifest.id, why,
                      read.build_public_key, false});
       return false;
 #else
-      const auto authorization = ExternalModuleAuthorization(
-          read.manifest.id, read.build_public_key);
+      const auto authorization =
+          ExternalModuleAuthorization(read.manifest.id, read.build_public_key);
       if (authorization != ModuleAuthorizationState::kTRUSTED_AND_ENABLED) {
         const QString why =
             authorization == ModuleAuthorizationState::kKEY_UNTRUSTED
-                ? QObject::tr("Waiting for you to trust the build key that "
-                              "signed it.")
+                ? QObject::tr(
+                      "Waiting for you to trust the build key that "
+                      "signed it.")
                 : QObject::tr("Waiting for you to enable it.");
         LOG_I() << "module manager holds external module: " << package_path
                 << ", reason: "
@@ -295,8 +296,9 @@ class ModuleManager::Impl {
     const auto expected_key = ModuleDirectoryKey(read.manifest.id);
     if (namespace_dir.dirName() != expected_key) {
       const auto why =
-          QObject::tr("It declares %1, but sits in a directory named %2 "
-                      "rather than %3.")
+          QObject::tr(
+              "The module declares the ID %1 but is in a directory "
+              "named %2 instead of %3.")
               .arg(read.manifest.id, namespace_dir.dirName(), expected_key);
       LOG_W() << "module manager refuses module descriptor: " << package_path
               << ", reason: " << why;
@@ -316,8 +318,7 @@ class ModuleManager::Impl {
     const ModuleEntryTrustPolicy policy{origin,
                                         HostIntegratedBindingRequirement()};
 
-    const auto entry =
-        ResolveAndVerifyNativeEntry(read.manifest, root, policy);
+    const auto entry = ResolveAndVerifyNativeEntry(read.manifest, root, policy);
     if (!entry.ok) {
       LOG_W() << "module manager refuses module entry: " << package_path
               << ", reason: " << entry.reason << " ("
@@ -354,8 +355,8 @@ class ModuleManager::Impl {
    * This is where the seconds are: verifying and unpacking a package is
    * expensive, and it used to sit on the module runner where
    * TaskRunner::Stop()'s three-second wait could time out -- and destroying a
-   * QThread that is still running is fatal. Off that thread, the cost stops
-   * being a shutdown hazard as well as stopping being serial.
+   * QThread that is still running is fatal. Off that thread, the cost is no
+   * longer a shutdown hazard, and no longer serial.
    */
   auto PrepareModule(const QString& path, ModuleOrigin origin)
       -> ModuleLoadCandidate {
@@ -376,8 +377,8 @@ class ModuleManager::Impl {
       ModuleManifest verified;
       QString module_hash;
       QString library_name;
-      if (!VerifyAndResolveEntry(origin, path, library_path, verified, module_hash,
-                                 library_name)) {
+      if (!VerifyAndResolveEntry(origin, path, library_path, verified,
+                                 module_hash, library_name)) {
         return candidate;
       }
       candidate.library_path = library_path;
@@ -392,9 +393,9 @@ class ModuleManager::Impl {
 
   auto LoadPreparedModule(const ModuleLoadCandidate& candidate) -> bool {
     // Every refusal below owes the same three things: say why, stop waiting
-    // for this module, and count it. Written out seven times, one of them
-    // eventually forgets one -- and a forgotten decrement is a startup that
-    // never finishes waiting for registration.
+    // for this module, and count it. Written out seven times, one copy would
+    // eventually forget one of them -- and a forgotten decrement is a startup
+    // that never finishes waiting for registration.
     //
     // Deliberately not an RAII guard: the SUCCESS path must not decrement, so
     // a scope-exit version would have to be disarmed, which is the same
@@ -409,7 +410,7 @@ class ModuleManager::Impl {
     if (!candidate.ok) return refuse(candidate.source_path);
 
     // Phase two is serial because QLibrary::load() below runs third-party
-    // static initialisers. This records that it stayed serial, so a later
+    // static initializers. This records that it stayed serial, so a later
     // refactor that parallelises the loop fails a test instead of passing
     // quietly -- see ModuleLoadStats::NativeLoadScope.
     ModuleLoadStats::NativeLoadScope native_load;
@@ -568,7 +569,7 @@ class ModuleManager::Impl {
               module_so.module_hash != module_hash) {
             module_so.module_id = module_id;
             module_so.module_hash = module_hash;
-            // auto active integrated module by default
+            // Activate integrated modules automatically by default.
             module_so.auto_activate =
                 candidate.origin == ModuleOrigin::kINTEGRATED;
             module_so.set_by_user = false;
@@ -576,7 +577,7 @@ class ModuleManager::Impl {
             so.Store(module_so.ToJson());
           }
 
-          // if this module need auto active
+          // If this module should be activated automatically.
           if (module_so.auto_activate) {
             if (!gmc_->ActiveModule(module_id)) {
               return -1;

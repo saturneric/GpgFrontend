@@ -80,18 +80,17 @@ class Module::Impl {
     // symbol is rejected here, by name, rather than half-loaded.
     if (try_bootstrap_api(*module_library_)) return;
 
-    LOG_W() << "illegal module: " << module_library_->fileName()
-            << ", reason cannot load symbol: GFModuleGetApi"
-            << " (module was built against an older sdk; rebuild it)"
-            << ", abort...";
+    LOG_W() << "rejected module" << module_library_->fileName()
+            << "- missing symbol GFModuleGetApi (built against an older SDK; "
+               "rebuild it)";
   }
 
   /**
    * @brief Resolve and validate the table-based entry point.
    *
-   * @return true when this module has been fully decided through the table --
-   *         accepted OR rejected. false means "no such symbol, try the older
-   *         ten-symbol path", and only that.
+   * @return true when this module has been fully decided through the table,
+   *         accepted OR rejected; false means only that the module does not
+   *         export GFModuleGetApi.
    */
   auto try_bootstrap_api(QLibrary& module_library) -> bool {
     auto* get_api = reinterpret_cast<GFModuleGetApiFn>(
@@ -102,9 +101,9 @@ class Module::Impl {
     // rather than being loaded and failing later.
     const auto* api = get_api(GF_SDK_ABI_VERSION);
     if (api == nullptr) {
-      LOG_W() << "module declined this host: " << module_library.fileName()
-              << ", host sdk abi version: " << GF_SDK_ABI_VERSION
-              << ", abort...";
+      LOG_W() << "module" << module_library.fileName()
+              << "declined this host (host SDK ABI version"
+              << GF_SDK_ABI_VERSION << ")";
       return true;
     }
 
@@ -115,9 +114,9 @@ class Module::Impl {
     static constexpr size_t kMinUsableSize =
         offsetof(GFModuleApi, unregister) + sizeof(void*);
     if (api->struct_size < kMinUsableSize) {
-      LOG_W() << "illegal module: " << module_library.fileName()
-              << ", reason module api struct is too small: " << api->struct_size
-              << "<" << kMinUsableSize << ", abort...";
+      LOG_W() << "rejected module" << module_library.fileName()
+              << "- its module API table is too small:" << api->struct_size
+              << "<" << kMinUsableSize;
       return true;
     }
 
@@ -126,9 +125,8 @@ class Module::Impl {
     // two places was how they could come to disagree.
     if (const auto why = SdkAbiRejection(static_cast<int>(api->abi_version));
         why) {
-      LOG_W() << "incompatible module: " << module_library.fileName()
-              << ", reason: " << *why
-              << "; rebuild the module against this sdk, abort...";
+      LOG_W() << "rejected module" << module_library.fileName() << "-" << *why
+              << "; rebuild it against this SDK";
       return true;
     }
 
@@ -141,14 +139,14 @@ class Module::Impl {
     sdk_abi_ver_ = static_cast<int>(api->abi_version);
 
     if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
-      LOG_W() << "illegal module: " << module_library.fileName()
-              << ", reason invalid module id: " << identifier_ << ", abort...";
+      LOG_W() << "rejected module" << module_library.fileName()
+              << "- invalid module id:" << identifier_;
       return true;
     }
 
     if (!module_version_regex_exp_.match(version_).hasMatch()) {
-      LOG_W() << "illegal module: " << identifier_
-              << ", reason invalid version: " << version_ << ", abort...";
+      LOG_W() << "rejected module" << identifier_
+              << "- invalid version:" << version_;
       return true;
     }
 
@@ -160,9 +158,8 @@ class Module::Impl {
   [[nodiscard]] auto IsGood() const -> bool { return good_; }
 
   /// Every call that hands control to module code is bracketed so that the
-  /// handles it asks for are recorded against it. The SDK cannot work this
-  /// out for itself: its host table is one static table shared by every
-  /// module, so a call arriving through it carries no identity.
+  /// handles created while it runs are recorded against it, including ones
+  /// the host creates for it without a module context on hand.
   [[nodiscard]] auto attribution() const -> ModuleAttributionScope {
     return ModuleAttributionScope(identifier_utf8_.constData());
   }
@@ -237,7 +234,7 @@ class Module::Impl {
     // An unpackaged module -- a loose development build -- has no manifest and
     // therefore no declaration, so it is granted nothing beyond the
     // always-present groups. That is a real tightening over the previous
-    // behaviour, where every module reached everything, and it is said out
+    // behavior, where every module reached everything, and it is said out
     // loud rather than discovered as a puzzling failure.
     uint32_t granted = 0;
     if (manifest_.has_value()) {
@@ -253,20 +250,21 @@ class Module::Impl {
     } else {
       LOG_W() << "module" << identifier_
               << "has no signed manifest, so it declares no capabilities and "
-                 "is granted none beyond buffers, logging and events";
+                 "is granted only the always-available groups (buffer, log, "
+                 "app, event, bootstrap, list)";
     }
 
     // Refused rather than activated with nothing: a module handed a null host
     // api could call nothing and could not say why. This cannot happen in a
-    // normal process -- gf_sdk installs the bridge when it loads, and a module
-    // cannot exist without it -- but "cannot happen" is the wrong thing to
-    // encode as an unchecked dereference.
+    // normal process -- main() installs the bridge before any module loads --
+    // but "cannot happen" is the wrong thing to encode as an unchecked
+    // dereference.
     const auto* host_api =
         ModuleSdkMintHostApi(identifier_utf8_.constData(), granted);
     if (host_api == nullptr) {
       LOG_W() << "refusing to activate module" << identifier_utf8_
-              << ": the sdk bridge was never installed, so there is no host "
-                 "api to mint for it";
+              << ": the SDK bridge is not installed, so no host API can be "
+                 "created for it";
       return -1;
     }
 
@@ -334,7 +332,7 @@ class Module::Impl {
 
     // The grant dies with the module. A call that somehow arrives afterwards
     // -- from a thread the module failed to stop -- presents a context the
-    // host no longer recognises and is refused, on whatever thread it is on,
+    // host no longer recognizes and is refused, on whatever thread it is on,
     // rather than followed into an unmapped image.
     if (minted_) {
       ModuleSdkReleaseHostApi(identifier_utf8_.constData());
@@ -449,7 +447,8 @@ class Module::Impl {
 
   auto get_gpc() -> GlobalModuleContext* {
     if (gpc_ == nullptr) {
-      throw std::runtime_error("module is not registered by module manager");
+      throw std::runtime_error(
+          "module is not registered by the module manager");
     }
     return gpc_;
   }

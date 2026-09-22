@@ -94,8 +94,8 @@ auto GF_CORE_EXPORT ModuleLogCategory(const QString& module_id)
  * `module.<leaf>.trace`, a child of @ref ModuleLogCategory so that Qt's own
  * rule matching can silence it independently. Trace is the level a module uses
  * for per-item chatter, and a reader who asked for `debug` has not asked to be
- * buried in it -- so `BuildQtLoggingFilterRules` disables `module.*.trace` at
- * every level except `trace` itself.
+ * buried in it -- so `BuildQtLoggingFilterRules` disables every `*.trace`
+ * category at every level except `trace` itself.
  *
  * @param module_id the module's full, canonical identity
  * @return a reference valid for the remaining life of the process

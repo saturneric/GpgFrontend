@@ -34,8 +34,8 @@ namespace GpgFrontend {
 auto ParseLogLevelName(const QString& log_level) -> std::optional<int> {
   const auto level = log_level.trimmed().toLower();
 
-  // "none" is what the option declares as its default placeholder rather than
-  // a level anybody asks for, so it means "say nothing" — not "be quiet".
+  // "none" means "no level given", so the settings decide; it does not mean
+  // "log nothing".
   if (level.isEmpty() || level == "none") return {};
 
   if (level == "trace") return static_cast<int>(GFLogLevel::kTRACE);

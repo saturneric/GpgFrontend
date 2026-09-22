@@ -33,8 +33,9 @@ namespace GpgFrontend::Module {
 namespace {
 
 /// The one table. A plain function-local static rather than a namespace-scope
-/// object: gf_sdk installs from a load-time initializer, and a function-local
-/// static is constructed on first use rather than in an order nothing pins.
+/// object: it is filled in by GFHostApiInstallBridge() early in main(), and a
+/// function-local static is constructed on first use rather than in an order
+/// nothing pins.
 auto Bridge() -> ModuleSdkBridge& {
   static ModuleSdkBridge bridge;
   return bridge;

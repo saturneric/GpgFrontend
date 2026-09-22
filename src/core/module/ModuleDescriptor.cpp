@@ -304,10 +304,10 @@ namespace {
 /// Verify a descriptor, from one immutable snapshot of its bytes.
 ///
 /// Nothing executable is retained, because nothing executable is in here: the
-/// entry native is an external file, and binding it is ResolveAndVerify\
-/// NativeEntry()'s job, one layer up. This function knows about archives,
-/// manifests, signatures and resources, and deliberately knows nothing about
-/// how a library is found or loaded.
+/// entry native is an external file, and binding it is
+/// ResolveAndVerifyNativeEntry()'s job, one layer up. This function knows about
+/// archives, manifests, signatures and resources, and deliberately knows
+/// nothing about how a library is found or loaded.
 auto ReadPackage(ModuleOrigin origin, const QString& package_path)
     -> ModuleDescriptorVerification {
   if (!EnsureSodiumInit()) {

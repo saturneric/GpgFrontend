@@ -92,7 +92,7 @@ auto HasNativeImageHeader(const QByteArray& header) -> bool {
       (static_cast<quint8>(header[1]) << 16) |
       (static_cast<quint8>(header[2]) << 8) | static_cast<quint8>(header[3]));
 
-  // thin mach-o in both endiannesses, plus a fat/universal archive
+  // thin Mach-O in both endiannesses, plus a fat/universal archive
   return magic == 0xFEEDFACE || magic == 0xFEEDFACF || magic == 0xCEFAEDFE ||
          magic == 0xCFFAEDFE || magic == 0xCAFEBABE || magic == 0xBEBAFECA;
 #else

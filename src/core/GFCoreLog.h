@@ -64,7 +64,7 @@ enum class GFLogLevel : int8_t {
  * as every other knob instead of being applied once and then overwritten by
  * whatever the settings happened to say.
  *
- * @param level name: debug, info, warn, error, or none
+ * @param level name: trace, debug, info, warn, error, or none
  * @return the GFLogLevel as an int, or nothing when the name is unusable
  */
 auto GF_CORE_EXPORT ParseLogLevelName(const QString& level)
