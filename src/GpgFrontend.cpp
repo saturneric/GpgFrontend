@@ -44,9 +44,18 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "platform/PlatformSecretStore.h"
 #include "res/GpgFrontendResource.h"
+#include "sdk/host/GFHostImpl.h"
 #include "ui/function/GuiProfileLoaderDelegate.h"
 
 auto main(int argc, char* argv[]) -> int {
+  // The host half of the module SDK, before anything else can load a module.
+  //
+  // It is an OBJECT library inside this binary, so nothing drags it in and
+  // nothing runs a load-time initializer for it; this call is what puts the
+  // GFHostApi primitives within reach of gf_core's module loader. A module
+  // activated before this ran would be handed no table and refused.
+  GFHostApiInstallBridge();
+
   // initialize qt resources (embedded in the gf_res shared library)
   GpgFrontend::InitResources();
 
