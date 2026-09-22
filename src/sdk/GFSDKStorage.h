@@ -70,6 +70,10 @@ void* GFStorageSettingsRoot(GFSDKContext* ctx);
  * whether it is wiped, which is a property of the store and not of the call.
  * @p store is one of @ref GFStorageStore.
  *
+ * Keys are private to the calling module and to the store: two modules, or
+ * two stores, never see each other's values under the same key. Values are
+ * octets and may contain NUL. An empty value is the same as no value.
+ *
  * The secure tier used to CONSUME both of its arguments and free them through
  * two different allocators, a rule nothing in the signature hinted at. These
  * borrow, like every other argument in this SDK.

@@ -183,8 +183,8 @@ typedef const GFModuleApi* (*GFModuleGetApiFn)(uint32_t host_abi);
  * table could call the global one and get gpg back.
  *
  * Tables are now minted per module, from the signed manifest, and reachable
- * only through the private mint in src/sdk/private/GFSDKHostApiMint.h -- which
- * a module cannot include and gf_core reaches only through the sdk bridge. The
+ * only through the private mint in src/sdk/host/private/GFHostContext.h, which
+ * a module cannot include and gf_core reaches only through the SDK bridge. The
  * only table a module ever sees is the one activate() gives it.
  */
 

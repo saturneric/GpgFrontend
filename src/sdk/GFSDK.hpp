@@ -32,6 +32,7 @@
 #include <QList>
 #include <QString>
 #include <QStringList>
+#include <vector>
 
 #include "GFSDKBuffer.h"
 #include "GFSDKContext.h"
@@ -222,7 +223,7 @@ struct Analysis {
   QString info_json;
 };
 
-inline auto AnalyseResult(GFSDKContext* ctx, int operation, int channel,
+inline auto AnalyseResult(GFSDKContext* ctx, int channel, int operation,
                           uint32_t err, const QString& capsule_id,
                           uint32_t want = GF_GPG_ANALYSE_WANT_REPORT |
                                           GF_GPG_ANALYSE_WANT_CARDS |
@@ -286,38 +287,63 @@ inline auto UserFilePath(GFSDKContext* ctx) -> QString {
 
 /* --- external programs ---------------------------------------------------- */
 
+/** One command for @ref RunCommands. */
+struct Command {
+  QString program;
+  QStringList arguments;
+  GFCommandExecuteCallback callback = nullptr;
+  void* data = nullptr; /**< passed to @ref callback; the caller frees it */
+};
+
+/**
+ * @brief Run several commands concurrently and wait for all of them.
+ *
+ * The contexts, argument arrays and strings are built here and live until the
+ * call returns, which is all the host needs: process.execute borrows
+ * everything it is given, so nothing is allocated through the SDK arenas.
+ */
+inline auto RunCommands(GFSDKContext* ctx, const QList<Command>& commands)
+    -> int {
+  if (commands.isEmpty()) return -1;
+
+  // Every byte array is created before any pointer into one is taken, so no
+  // later append can move storage that an argv entry already points at.
+  std::vector<std::vector<QByteArray>> keep(commands.size());
+  for (qsizetype i = 0; i < commands.size(); ++i) {
+    keep[i].reserve(commands[i].arguments.size() + 1);
+    keep[i].push_back(commands[i].program.toUtf8());
+    for (const auto& argument : commands[i].arguments) {
+      keep[i].push_back(argument.toUtf8());
+    }
+  }
+
+  std::vector<std::vector<char*>> argv(commands.size());
+  std::vector<GFCommandExecuteContext> contexts(commands.size());
+  std::vector<GFCommandExecuteContext*> batch(commands.size());
+  for (qsizetype i = 0; i < commands.size(); ++i) {
+    for (size_t j = 1; j < keep[i].size(); ++j) {
+      argv[i].push_back(keep[i][j].data());
+    }
+    contexts[i].cmd = keep[i].front().data();
+    contexts[i].argc = static_cast<int32_t>(argv[i].size());
+    contexts[i].argv = argv[i].data();
+    contexts[i].cb = commands[i].callback;
+    contexts[i].data = commands[i].data;
+    batch[i] = &contexts[i];
+  }
+
+  return GFProcessExecute(ctx, batch.data(), batch.size());
+}
+
 /**
  * @brief Run one command and wait for it.
  *
- * The C API takes a batch, because a batch of one is what a single command
- * always was. This builds the context on the stack, which is safe: the call
- * is synchronous and the host is finished with it before this returns.
- *
- * Argument strings are kept alive by @p keep, which must outlive the call.
+ * A batch of one: see @ref RunCommands.
  */
 inline auto RunCommand(GFSDKContext* ctx, const QString& command,
                        const QStringList& arguments,
                        GFCommandExecuteCallback callback, void* data) -> int {
-  QList<QByteArray> keep;
-  keep.reserve(arguments.size() + 1);
-  keep.append(command.toUtf8());
-
-  QList<char*> argv;
-  argv.reserve(arguments.size());
-  for (const auto& argument : arguments) {
-    keep.append(argument.toUtf8());
-    argv.append(const_cast<char*>(keep.last().constData()));
-  }
-
-  GFCommandExecuteContext one{};
-  one.cmd = const_cast<char*>(keep.first().constData());
-  one.argc = static_cast<int32_t>(argv.size());
-  one.argv = argv.data();
-  one.cb = callback;
-  one.data = data;
-
-  GFCommandExecuteContext* batch[1] = {&one};
-  return GFProcessExecute(ctx, batch, 1);
+  return RunCommands(ctx, {Command{command, arguments, callback, data}});
 }
 
 }  // namespace gf::sdk

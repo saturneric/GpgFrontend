@@ -40,11 +40,11 @@
  * ## The one rule
  *
  * A module reaches host functionality through this table and through nothing
- * else. It does not link `gf_core`, `gf_ui` or `gf_sdk`; the build refuses to
- * produce a module that does. The high-level `GFSDK*.h` spellings a module
- * writes are implemented ON TOP of these primitives, module-side, in
- * `gf_module_runtime` -- so adding a convenience helper is a change to the
- * runtime and not a change to this ABI.
+ * else. It does not link `gf_core` or `gf_ui`; the build refuses to produce a
+ * module that does. The high-level `GFSDK*.h` spellings a module writes are
+ * implemented ON TOP of these primitives, module-side, in `gf_sdk`
+ * (`src/sdk/api`), which the module links statically -- so adding a
+ * convenience helper is a change to `gf_sdk` and not a change to this ABI.
  *
  * ## Why a context, and not thread-local state
  *
@@ -55,23 +55,28 @@
  *
  * It exists because the obvious alternative does not work. The host already
  * brackets its own calls into module code with a thread-local record of whose
- * code is running (`GFSDKModuleAttribution.h`), and that record is exactly
- * absent where it would matter most: a module's own worker thread, or a queued
- * callback, has no host frame anywhere on its stack. Authorization decided
- * from the call stack would therefore be right for a call made inside an event
- * handler and wrong for the same call made from the thread that handler
- * started -- which is the normal shape of a module that does real work.
+ * code is running (`host/private/GFHostAttribution.h`), and that record is
+ * exactly absent where it would matter most: a module's own worker thread, or a
+ * queued callback, has no host frame anywhere on its stack. Authorization
+ * decided from the call stack would therefore be right for a call made inside
+ * an event handler and wrong for the same call made from the thread that
+ * handler started -- which is the normal shape of a module that does real work.
  *
  * Carrying the grant in an argument makes the answer the same on every thread.
  * The thread-local record keeps its own job (attributing handles, naming the
- * module in a log line) and acts as a second check on the legacy exports; it
- * is not the authority.
+ * module in a log line); it is not the authority.
  *
- * A module cannot forge a context: the host validates the pointer against its
- * own live registry before reading anything through it, so an unknown, stale
- * or invented value is refused rather than trusted. A module cannot widen one
- * either -- the granted set is inside the host's record, not inside anything
- * the module holds.
+ * The host validates a context pointer against its own registry before
+ * reading anything through it, so an unknown, stale or invented value is
+ * refused rather than followed. A module cannot widen its own grant either:
+ * the granted set is in the host's record, not in anything the module holds.
+ *
+ * This is not protection against a hostile module. Native code in the same
+ * process can read another module's live context pointer and call with it,
+ * and the host will treat the call as that module's. What the context does
+ * guarantee is that an honest module's calls are attributed and limited
+ * correctly on every thread, and that handles issued to one module are
+ * refused to every other.
  *
  * ## Growth
  *
@@ -121,10 +126,8 @@ typedef struct GFHostContextImpl* GFHostContextRef;
  * module, it would stop it existing.
  *
  * Passing the context to the allocators is what finally attributes a handle
- * created on a module's OWN thread. Until now such a handle was recorded with
- * no owner and swept only at process exit, because nothing on that thread had
- * ever passed through the host -- a limit `GFSDKModuleAttribution.h` documents
- * and cannot fix from where it stands.
+ * created on a module's OWN thread, where no host frame exists to say whose
+ * code is running.
  */
 typedef struct GFHostBufferApi {
   size_t struct_size;
@@ -190,8 +193,11 @@ typedef struct GFHostAppApi {
  */
 typedef struct GFHostEventApi {
   size_t struct_size;
-  /** Subscribe to @p event_id. Refused unless the signed manifest declared it
-   *  and the host's registry knows it. Returns 0 on success. */
+  /** Ask to subscribe to @p event_id. The request is queued and checked
+   *  later on the host's module thread: an event the signed manifest did not
+   *  declare, or the host does not know, is dropped there and logged. So 0
+   *  means "accepted for checking", not "subscribed"; negative means the
+   *  request itself was refused. */
   int (*subscribe)(GFHostContextRef ctx, const char* event_id);
   /** Answer a trigger. @p answer->params is transferred to the host. */
   int (*answer)(GFHostContextRef ctx, const GFModuleEventAnswer* answer);
@@ -344,7 +350,9 @@ typedef struct GFHostUiApi {
   void* (*get_object)(GFHostContextRef ctx, const char* id);
   int (*show_dialog)(GFHostContextRef ctx, void* dialog, void* parent);
 
-  /** 0xAARRGGBB, derived from @p widget's palette; 0 if not a QWidget. */
+  /** 0xAARRGGBB, derived from @p widget's palette; 0 if @p widget is NULL
+   *  or a QObject that is not a QWidget. Any other non-QObject pointer is
+   *  undefined behavior. */
   uint32_t (*theme_color)(GFHostContextRef ctx, int role, void* widget);
   /** Owned; release with buffer->release. */
   GFBufferRef (*user_file_path)(GFHostContextRef ctx);

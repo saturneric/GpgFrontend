@@ -217,7 +217,7 @@ typedef struct GFGpgRecipientRow {
 typedef void* (*QObjectFactory)(void* data);
 
 /**
- * @brief A colour's MEANING, resolved against a widget's palette by the host.
+ * @brief A color's MEANING, resolved against a widget's palette by the host.
  *
  * Asking for a role rather than a value is what keeps a module's panel
  * looking like part of the application under both themes. Two conventions are
@@ -279,8 +279,8 @@ typedef struct GFUITabViewSpec {
  */
 typedef enum GFStorageStore {
   GF_STORE_SESSION = 0,        /**< in memory, this run only */
-  GF_STORE_DURABLE = 1,        /**< on disk, plain */
-  GF_STORE_SECURE_DURABLE = 2, /**< on disk, protected; wiping allocator */
+  GF_STORE_DURABLE = 1,        /**< on disk, encrypted with the profile */
+  GF_STORE_SECURE_DURABLE = 2, /**< on disk, flushed at once; for secrets */
 } GFStorageStore;
 
 /* --- events -------------------------------------------------------------- */
@@ -306,7 +306,9 @@ typedef struct GFModuleEvent {
  * the host discarded. This carries only what the host reads.
  *
  * @ref params is TRANSFERRED: the host frees the list and every string in it,
- * on the delivered and the no-such-trigger paths alike.
+ * on the delivered and the no-such-trigger paths alike. Nodes and names must
+ * come from the normal arena and values from the secure arena, because a
+ * value may be a secret.
  */
 typedef struct GFModuleEventAnswer {
   size_t struct_size;

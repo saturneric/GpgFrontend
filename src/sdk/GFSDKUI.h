@@ -76,14 +76,18 @@ void* GFUIGetGUIObject(GFSDKContext* ctx, const char* id);
  *
  * The dialog must have been created on the main thread. Ownership transfers
  * to @p parent. Returns immediately after scheduling the show.
+ *
+ * @param dialog a QDialog; @param parent a QWidget or NULL. Any other
+ *        non-QObject pointer is undefined behavior.
+ * @return 0 when the show was scheduled; negative otherwise
  */
 int GFUIShowDialog(GFSDKContext* ctx, void* dialog, void* parent);
 
 /**
- * @brief A colour of the application's own visual language.
+ * @brief A color of the application's own visual language.
  *
  * Five functions became one taking a @ref GFUIColorRole, because they
- * differed by which role they named and nothing else. Every colour is derived
+ * differed by which role they named and nothing else. Every color is derived
  * from @p widget's palette rather than fixed, so it stays legible under both
  * themes.
  *
