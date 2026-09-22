@@ -63,6 +63,12 @@ void ModuleSdkReleaseHostApi(const char* module_id) {
   bridge.release_host_api(module_id);
 }
 
+auto ModuleSdkWaitHostApiIdle(const char* module_id, int timeout_ms) -> bool {
+  const auto& bridge = Bridge();
+  if (bridge.wait_host_api_idle == nullptr) return true;
+  return bridge.wait_host_api_idle(module_id, timeout_ms);
+}
+
 auto ModuleSdkCurrentModule() -> QString {
   const auto& bridge = Bridge();
   if (bridge.current_module == nullptr) return {};

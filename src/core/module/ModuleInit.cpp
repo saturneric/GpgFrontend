@@ -364,15 +364,29 @@ void ShutdownGpgFrontendModules() {
     module->UnRegister();
   }
 
-  // 5. SWEEP OUTSTANDING SDK HANDLES. Only now is the ledger authoritative:
-  //    no module code can run, so anything a module still holds is
-  //    definitively leaked rather than merely in use. Each one is logged
-  //    against the module and the entry point that issued it, then wiped and
-  //    freed -- which for a secret means it stops living in the heap for the
-  //    rest of the process rather than merely being unreachable.
+  // 5. REVOKE, THEN SWEEP OUTSTANDING SDK HANDLES. The dispatch gate only
+  //    sees calls the host made INTO a module; a thread the module started
+  //    itself can still be calling the host. Revoking the grant refuses its
+  //    next call, and waiting for the SDK to go idle lets the one already
+  //    past the gate finish. Only then is the ledger authoritative: anything
+  //    a module still holds is leaked rather than in use. Each handle is
+  //    logged against the module and the entry point that issued it, then
+  //    wiped and freed -- for a secret, that means it stops living in the
+  //    heap rather than merely being unreachable.
+  //
+  //    A module whose calls do not finish in time keeps its handles: leaking
+  //    them at exit is better than freeing memory a call is still reading.
+  constexpr int kSdkIdleTimeoutMs = 2000;
   size_t swept = 0;
   for (const auto& module_id : module_ids) {
-    swept += ModuleSdkSweepHandles(module_id.toUtf8().constData());
+    const auto id = module_id.toUtf8();
+    ModuleSdkReleaseHostApi(id.constData());
+    if (!ModuleSdkWaitHostApiIdle(id.constData(), kSdkIdleTimeoutMs)) {
+      LOG_W() << "module" << module_id << "is still inside an SDK call after"
+              << kSdkIdleTimeoutMs << "ms; its handles are not reclaimed";
+      continue;
+    }
+    swept += ModuleSdkSweepHandles(id.constData());
   }
 
   // 6. UNLOAD THE LIBRARIES -- last, so that no module code is unmapped while

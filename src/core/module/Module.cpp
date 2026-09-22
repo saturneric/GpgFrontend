@@ -270,10 +270,23 @@ class Module::Impl {
       return -1;
     }
 
+    minted_ = true;
+
     const auto attributed = attribution();
-    // The host table is static and outlives every module, so the module may
-    // hold on to it for its whole life. The bootstrap payload may NOT be.
-    return api_->activate(static_cast<const GFHostApi*>(host_api), &info);
+    // The minted table is never freed, so the module may hold on to it for
+    // its whole life. The bootstrap payload may not: it is only valid for
+    // this call.
+    const auto rc =
+        api_->activate(static_cast<const GFHostApi*>(host_api), &info);
+
+    // A module that refused to activate is not running, so it has no use for
+    // the grant. It lives on after a normal deactivation, because the
+    // module's on_unload hook still calls the SDK.
+    if (rc != 0) {
+      ModuleSdkReleaseHostApi(identifier_utf8_.constData());
+      minted_ = false;
+    }
+    return rc;
   }
 
   auto Exec(const EventReference& event) -> int {
@@ -323,7 +336,10 @@ class Module::Impl {
     // -- from a thread the module failed to stop -- presents a context the
     // host no longer recognises and is refused, on whatever thread it is on,
     // rather than followed into an unmapped image.
-    ModuleSdkReleaseHostApi(identifier_utf8_.constData());
+    if (minted_) {
+      ModuleSdkReleaseHostApi(identifier_utf8_.constData());
+      minted_ = false;
+    }
 
     const auto unloaded = module_library_->unload();
     module_library_.reset();
@@ -419,6 +435,11 @@ class Module::Impl {
       QRegularExpression(R"(^(\d+\.)?(\d+\.)?(\*|\d+)$)");
 
   bool good_;
+
+  /// Whether THIS instance minted a grant. A package rejected before
+  /// activation shares its claimed id with whatever module really owns it,
+  /// and unloading it must not revoke that module's grant.
+  bool minted_ = false;
 
   int sdk_abi_ver_ = 0;
 

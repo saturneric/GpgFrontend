@@ -86,6 +86,8 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
   /// Invalidate that module's table and context. A call arriving afterwards
   /// is refused rather than served, on any thread.
   void (*release_host_api)(const char* module_id) = nullptr;
+  /// Wait for calls already past the gate to finish. False on timeout.
+  bool (*wait_host_api_idle)(const char* module_id, int timeout_ms) = nullptr;
   const char* (*enter_module)(const char* module_id) = nullptr;
   /// Whose code this thread is currently running, for diagnostics and for
   /// the handle ledger. NEVER an authorization input: that is the context.
@@ -136,6 +138,20 @@ auto GF_CORE_EXPORT ModuleSdkMintHostApi(const char* module_id,
  * memory that is no longer there.
  */
 void GF_CORE_EXPORT ModuleSdkReleaseHostApi(const char* module_id);
+
+/**
+ * @brief Wait until no SDK call made with @p module_id's context is running.
+ *
+ * Releasing the grant refuses new calls; a call that passed the gate just
+ * before keeps running. Wait for those too before freeing anything they may
+ * be using. Calls made on the waiting thread itself are not waited for.
+ *
+ * True when the bridge is not installed: then no call can be running.
+ *
+ * @return false on timeout
+ */
+auto GF_CORE_EXPORT ModuleSdkWaitHostApiIdle(const char* module_id,
+                                             int timeout_ms) -> bool;
 
 /**
  * @brief The module this thread is currently attributed to, or empty.
