@@ -153,7 +153,7 @@ def parse_steps(lines):
 
 
 def job_environment(lines):
-    """Names every step in a job writes to `$GITHUB_ENV`, keyed by job.
+    """The names that steps in a job write to `$GITHUB_ENV`, keyed by job.
 
     Those genuinely do cross steps -- but only within one job, which is why
     this is collected per job rather than per file.

@@ -474,7 +474,7 @@ def main(argv: list[str] | None = None) -> int:
         f"{counts[Status.IGNORED]} ignored by git"
     )
     if report.fixed:
-        print(f"Wrote {report.fixed} files.")
+        print(f"Wrote {report.fixed} file(s).")
 
     if report.failures:
         print(f"FAILED: {report.failures} files need attention.")

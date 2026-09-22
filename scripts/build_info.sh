@@ -14,7 +14,7 @@
 #   scripts/build_info.sh <build-dir> <key>
 #
 # Keys: project_version, build_id, host_os, host_tool_dir, module_packager,
-#       module_namespace_root, module_count.
+#       module_namespace_root, module_count, deployable_libraries, modules.
 set -euo pipefail
 
 BUILD_DIR="${1:-}"

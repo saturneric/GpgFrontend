@@ -16,12 +16,12 @@
 #   * The GpgFrontend application itself, whose .ts live in
 #     resource/lfs/locale/ts/GpgFrontend.<locale>.ts and whose translatable
 #     strings come from src/core and src/ui (plus the top-level src/*.cpp).
-#     The test/ and sdk/ trees are skipped — their tr() strings are not part of
+#     The test/ and sdk/ trees are skipped: their tr() strings are not part of
 #     the shipped UI and are intentionally absent from the committed .ts.
 #
 #   * Each module under modules/src/<name>/, which keeps its translations in a
 #     ts/ subdirectory (e.g. modules/src/m_email/ts/ModuleEMail.de_DE.ts). Only
-#     the module's top-level sources (*.cpp, *.h, *.ui) are scanned — vendored
+#     the module's top-level sources (*.cpp, *.h, *.ui) are scanned; vendored
 #     subtrees such as m_email/vmime/ are intentionally skipped, matching what
 #     the CMake build feeds to qt_add_translations().
 #

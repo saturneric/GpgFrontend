@@ -294,16 +294,17 @@ PY
 # ===========================================================================
 # Interoperability / consume-side regression vectors
 #
-# These reproduce the consume-side interop bugs found auditing rPGP against
-# sq/gpg (see project_rpgp_rfc9580_verify_gaps, findings B1-B7). Each is a
-# known-answer input the engine must now handle correctly.
+# These reproduce the consume-side interop bugs found while auditing rPGP
+# against sq/gpg (findings B1-B7). Each is a known-answer input the engine must
+# now handle correctly.
 # ===========================================================================
 
 echo ">> generating interop regression vectors"
 
 # (B1 -- the issuer-Key-ID-only fallback -- has no sq/gpg vector: both tools
 # always place the Issuer Fingerprint subpacket in the *hashed* area of a v4/v6
-# signature, so a verifying key-id-only signature cannot be produced offline. B1
+# signature, so a signature that carries only an issuer Key ID and still
+# verifies cannot be produced offline. B1
 # is covered by Rust unit tests on the sniff/issuer-matching helpers instead.)
 
 # B2: two detached signatures from the SAME key over the same data -- one strong
@@ -318,7 +319,7 @@ cat "$WORK/s_strong.sig" "$WORK/s_weak.sig" > "$VEC_DIR/sig_strong_weak_same_key
 
 # B4: two-signer CLEARTEXT message (aux_good + aux_v6). Each signature must be
 # attributed to the exact signer that made it (per-index attribution); a single
-# genuine verify must not stamp the other signer Valid.
+# genuine verification must not stamp the other signer Valid.
 SQ sign --cleartext \
   --signer-file="$WORK/aux_good.key" \
   --signer-file="$AUX_DIR/aux_v6.asc" --password-file="$PW" \

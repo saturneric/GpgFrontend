@@ -26,10 +26,10 @@
 #
 # The mirror rule, on the other side of the boundary (--host):
 #
-#   4. No host artefact -- neither a host library nor the application itself --
+#   4. No host artifact -- neither a host library nor the application itself --
 #      exports a public SDK entry point (GFSDK*, GFGpg*, GFUI*, GFPgp*, and the
 #      rest of the domain prefixes). The public SDK is module-side and static
-#      now; a host artefact exporting one of these names would mean the old
+#      now; a host artifact exporting one of these names would mean the old
 #      bypass had come back, and a module could reach it by name again.
 #   5. GFHostApiInstallBridge is not dynamically visible. Caller and
 #      implementation share a link unit, so it has no business being an export,
@@ -38,13 +38,14 @@
 # Usage: scripts/check_module_boundary.sh [options] [FILE...]
 #     --namespace-root DIR   scan DIR/<key>/native/* instead of naming files
 #                            (default: build/artifacts/modules)
-#     --host                 check HOST artefacts against rules 4-5 instead
+#     --host                 check HOST artifacts against rules 4-5 instead
 #                            (default: build/artifacts/{gpgfrontend,libgf_*.so})
 #     --artifact-dir DIR     where --host looks (default: build/artifacts)
 #     --expect-count N       fail unless exactly N natives were checked
 #     --quiet                only report failures
 #
-# Exits non-zero on the first rule broken, naming the file and the symbols.
+# Checks every file, then exits non-zero if any rule is broken, naming each
+# file and symbol.
 #
 # Tool-guarded like scripts/audit_module_natives.sh: where the platform's
 # inspector is missing the check SKIPS with a message rather than passing
@@ -171,7 +172,7 @@ check_pe() {
             | grep -oE '\bGF[A-Z][A-Za-z0-9_]*' | sort -u || true)
 
   if [[ -n "$imports" ]]; then
-    fail "$f imports from a host implementation dll" $imports
+    fail "$f imports from a host implementation DLL" $imports
   fi
   local extra
   extra=$(echo "$exported" | grep -v "^${ALLOWED_EXPORT}$" || true)
@@ -183,7 +184,7 @@ check_pe() {
 # ---------------------------------------------------------------- host side
 
 # The public SDK's domain prefixes, as §4 of the API redesign named them. A
-# host artefact defining any of these is the bypass the whole design removed.
+# host artifact defining any of these is the bypass the whole design removed.
 readonly PUBLIC_SDK_PREFIXES='GF(SDK|Gpg|Pgp|UI|Editor|Storage|Process|App|Log|Mem|Buffer|Module|Event|Compare)'
 readonly HIDDEN_HOST_SYMBOLS='GFHostApiInstallBridge'
 
@@ -283,7 +284,7 @@ if [[ ${#FILES[@]} -eq 0 && "$HOST_MODE" -eq 1 ]]; then
   fi
   # The application and every host library beside it. The glob deliberately
   # follows the unversioned symlinks only, so a stale libgf_*.so.X.Y.Z left
-  # behind by an earlier build is not mistaken for a current artefact.
+  # behind by an earlier build is not mistaken for a current artifact.
   while IFS= read -r -d '' f; do
     FILES+=("$f")
   done < <(find "$ARTIFACT_DIR" -maxdepth 1 \
@@ -291,7 +292,7 @@ if [[ ${#FILES[@]} -eq 0 && "$HOST_MODE" -eq 1 ]]; then
                 -o -name 'libgf_*.so' -o -name 'libgf_*.dylib' \
                 -o -name 'gf_*.dll' \) -print0 | sort -z)
   if [[ ${#FILES[@]} -eq 0 ]]; then
-    echo "check_module_boundary: no host artefacts under $ARTIFACT_DIR" >&2
+    echo "check_module_boundary: no host artifacts under $ARTIFACT_DIR" >&2
     exit 2
   fi
 fi
@@ -309,20 +310,20 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
 fi
 
 if [[ "$HOST_MODE" -eq 1 ]]; then
-  say "check_module_boundary: ${#FILES[@]} host artefact(s)"
+  say "check_module_boundary: ${#FILES[@]} host artifact(s)"
 else
   say "check_module_boundary: ${#FILES[@]} native(s)"
 fi
 for f in "${FILES[@]}"; do check_one "$f"; done
 
 if [[ -n "$EXPECT_COUNT" && "$checked" -ne "$EXPECT_COUNT" ]]; then
-  echo "check_module_boundary: expected $EXPECT_COUNT native(s), checked \
+  echo "check_module_boundary: expected $EXPECT_COUNT file(s), checked \
 $checked" >&2
   exit 1
 fi
 
 if [[ "$failures" -ne 0 ]]; then
-  echo "check_module_boundary: $failures artefact(s) broke the boundary" >&2
+  echo "check_module_boundary: $failures artifact(s) broke the boundary" >&2
   exit 1
 fi
 

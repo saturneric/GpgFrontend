@@ -33,7 +33,7 @@
 # Check 1 exists because a signed, notarized dmg shipped with three of its four
 # modules unable to load: they referenced Qt frameworks the app does not link,
 # so macdeployqt had never deployed them, and every other check passed. A
-# bundle whose modules cannot load is a well-formed bundle.
+# bundle whose modules cannot load can still be a well-formed bundle.
 #
 # One script rather than a copy per workflow. The Developer ID and App Store
 # legs assemble the same bundle from the same tree, and the last thing this
@@ -65,8 +65,8 @@ if [ -z "$APP" ] || [ -z "$NAMESPACE_ROOT" ] || [ -z "$PACKAGER" ] \
 fi
 
 # A count this script cannot read is a broken invocation, not an expectation of
-# zero. `test -eq` would accept an empty string as an error, but the message
-# would be about integer syntax rather than about the caller.
+# zero. `test -eq` would also reject an empty string, but its message would be
+# about integer syntax rather than the caller's mistake.
 case "$EXPECTED" in
   ''|*[!0-9]*)
     echo "--expect-count needs a non-negative integer, got \"$EXPECTED\"" >&2
@@ -109,7 +109,7 @@ while IFS= read -r dylib; do
         target="$APP/Contents/MacOS/${dep#@executable_path/}" ;;
       @rpath/*) target="$FRAMEWORKS/${dep#@rpath/}" ;;
       *)
-        echo "  FAIL  $(basename "$dylib") loads \"$dep\", an absolute path off this machine" >&2
+        echo "  FAIL  $(basename "$dylib") loads \"$dep\", an absolute path that will not exist on a user's machine" >&2
         missing=$((missing + 1))
         continue
         ;;
@@ -167,7 +167,7 @@ echo "--- every bound entry is actually in the bundle ---"
 # What this no longer does is look for a __GPGFRONTEND,__gf_binding section.
 # That mechanism is gone: the descriptor authenticates module metadata and
 # build identity, and Apple authenticates the executable code. Checking
-# placement is the part that was ever ours.
+# placement is the only part that was ever ours.
 found=0
 while read -r _ key dylib; do
   [ -n "$dylib" ] || continue
@@ -189,4 +189,4 @@ test "$found" -eq "$EXPECTED" || {
   exit 1
 }
 
-echo "the bundle's $EXPECTED module(s) verify, resolve and are placed"
+echo "the bundle's $EXPECTED module(s) verify, resolve, and are in place"
