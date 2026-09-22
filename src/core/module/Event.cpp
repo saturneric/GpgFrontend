@@ -31,7 +31,7 @@
 #include <optional>
 
 #include "core/utils/CommonUtils.h"
-#include "sdk/GFSDKModuleModel.h"
+#include "sdk/GFSDKTypes.h"
 
 namespace GpgFrontend::Module {
 

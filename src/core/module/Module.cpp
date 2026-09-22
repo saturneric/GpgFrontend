@@ -42,7 +42,7 @@
 // neither a MinGW DLL nor a Mach-O dylib can link. The four functions this
 // file used to call now arrive through ModuleSdkBridge.
 #include "sdk/GFSDKModuleApi.h"
-#include "sdk/GFSDKModuleModel.h"
+#include "sdk/GFSDKTypes.h"
 
 namespace GpgFrontend::Module {
 

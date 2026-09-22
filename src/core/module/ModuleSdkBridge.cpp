@@ -63,6 +63,13 @@ void ModuleSdkReleaseHostApi(const char* module_id) {
   bridge.release_host_api(module_id);
 }
 
+auto ModuleSdkCurrentModule() -> QString {
+  const auto& bridge = Bridge();
+  if (bridge.current_module == nullptr) return {};
+  const auto* id = bridge.current_module();
+  return id == nullptr ? QString() : QString::fromUtf8(id);
+}
+
 auto ModuleSdkSweepHandles(const char* module_id) -> size_t {
   const auto& bridge = Bridge();
   if (bridge.sweep_module_handles == nullptr) return 0;

@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <QString>
 #include <cstddef>
 #include <cstdint>
 
@@ -86,6 +87,9 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
   /// is refused rather than served, on any thread.
   void (*release_host_api)(const char* module_id) = nullptr;
   const char* (*enter_module)(const char* module_id) = nullptr;
+  /// Whose code this thread is currently running, for diagnostics and for
+  /// the handle ledger. NEVER an authorization input: that is the context.
+  const char* (*current_module)() = nullptr;
   void (*leave_module)(const char* previous) = nullptr;
   size_t (*sweep_module_handles)(const char* module_id) = nullptr;
 };
@@ -132,6 +136,15 @@ auto GF_CORE_EXPORT ModuleSdkMintHostApi(const char* module_id,
  * memory that is no longer there.
  */
 void GF_CORE_EXPORT ModuleSdkReleaseHostApi(const char* module_id);
+
+/**
+ * @brief The module this thread is currently attributed to, or empty.
+ *
+ * Diagnostics and handle bookkeeping only. Authorization lives in the context
+ * a call carries, because a module's own worker threads never pass through
+ * here at all.
+ */
+auto GF_CORE_EXPORT ModuleSdkCurrentModule() -> QString;
 
 /**
  * @brief Reclaim every SDK handle still held by @p module_id.
