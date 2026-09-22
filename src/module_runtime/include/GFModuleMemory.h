@@ -74,13 +74,13 @@ auto GFModuleSdkContext() -> GFSDKContext*;
 /// The same, from the wiping allocator, for a value that is a secret.
 #define SECDUP(v) GFMemStrDup(GFModuleSdkContext(), GF_ARENA_SECURE, (v))
 
-/// Take ownership of an SDK string and return it as a QString.
+/// Takes ownership of an SDK string and returns it as a QString.
 #define UDUP(v) UnStrDup(v)
 
 /// The same, releasing it back to the wiping allocator.
 #define USECDUP(v) UnSecStrDup(v)
 
-/// Take ownership of a sized SDK buffer and return its exact octets.
+/// Takes ownership of a sized SDK buffer and returns its exact octets.
 #define UDUPN(v, n) UnBytesDup(v, n)
 
 /// Takes ownership of a sized SDK buffer and returns its octets verbatim.

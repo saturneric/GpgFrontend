@@ -212,7 +212,7 @@ auto GFModuleIsVerified() -> bool;
  * @brief This module's SDK context. Null before activation.
  *
  * Every public SDK function that needs the host takes one of these. Inside an
- * event handler prefer `event.Sdk()`, which carries the same context and
+ * event handler prefer `event.Context()`, which carries the same context and
  * needs no lookup at all.
  *
  * Work started on a worker thread should CAPTURE the context (or the facade)

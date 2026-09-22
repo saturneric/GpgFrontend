@@ -98,11 +98,12 @@ auto ReconcileSubscriptions(const QSet<QString>& hooked) -> bool {
   // from one that genuinely subscribes to nothing, which is why the builder
   // omits the field rather than writing an empty array.
   if (!facts.verified || facts.events.isEmpty()) {
-    LOG_WARN(QString("%1 module %2: subscribing to %3 event(s) from its own "
-                     "hook table; a module whose manifest declares its events "
-                     "subscribes only to those")
-                 .arg(facts.verified ? "undeclared" : "unverified", facts.id)
-                 .arg(hooked.size()));
+    LOG_WARN(
+        QString("module %1 (%2): subscribing to %3 event(s) from its own "
+                "hook table; a module whose manifest declares its events "
+                "subscribes only to those")
+            .arg(facts.id, facts.verified ? "no events declared" : "unverified")
+            .arg(hooked.size()));
     return true;
   }
 
