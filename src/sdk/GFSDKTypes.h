@@ -1,0 +1,353 @@
+/**
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+ *
+ * This file is part of GpgFrontend.
+ *
+ * GpgFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GpgFrontend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
+ *
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ */
+
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+
+/**
+ * @file GFSDKTypes.h
+ * @brief Every type that crosses the module boundary, in one place.
+ *
+ * Types only: no function declarations and no `GFHostApi`. That is what makes
+ * the layering above it acyclic.
+ *
+ *   GFSDKTypes.h      types
+ *     GFSDKHostApi.h    the primitive tables, built out of those types
+ *       GFSDKContext.h    what a module passes back on every call
+ *         GFSDKGpg.h etc.   the public SDK, which takes a context
+ *
+ * It replaces GFSDKBasicModel.h, GFSDKUIModel.h and GFSDKModuleModel.h, which
+ * were three files split by which header happened to need them first rather
+ * than by anything about the types.
+ *
+ * GROWTH. Every struct here that a module and the host both compile begins
+ * with `struct_size`, written by whichever side compiled it, and grows by
+ * APPENDING only. Reordering or repurposing a field makes an already-built
+ * module read the wrong slot with no diagnostic anywhere.
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* --- octets -------------------------------------------------------------- */
+
+/** Opaque owning handle. Exactly one GFBufferRelease per handle. */
+typedef struct GFBufferImpl* GFBufferRef;
+
+/** Opaque borrowed view. Cannot be released; valid only while its owner is. */
+typedef const struct GFBufferImpl* GFBufferView;
+
+/** Maximum length for SDK string operations (32 MiB). */
+#define kGfStrlenMax ((int32_t)(1024 * 1024 * 32))
+
+/** Which allocator a call should use. */
+typedef enum GFMemoryArena {
+  GF_ARENA_NORMAL = 0,
+  GF_ARENA_SECURE = 1, /**< wiped on free */
+} GFMemoryArena;
+
+/**
+ * @brief How loud a message is.
+ *
+ * Passed across the ABI as a plain `int`: a C enum's underlying type is
+ * implementation-defined, and this SDK passes every enumerated argument as
+ * `int`. The enum names the values; it is not itself an ABI type.
+ */
+typedef enum GFLogSeverity {
+  GF_LOG_TRACE = 0,
+  GF_LOG_DEBUG = 1,
+  GF_LOG_INFO = 2,
+  GF_LOG_WARN = 3,
+  GF_LOG_ERROR = 4,
+} GFLogSeverity;
+
+/* --- crypto results ------------------------------------------------------ */
+
+/** One crypto operation's outcome. Release with GFGpgResultRelease. */
+typedef struct GFGpgResultImpl* GFGpgResultRef;
+
+/**
+ * @brief Status of the operation a result describes.
+ *
+ * The middle case is the one the old struct-based API got wrong by accident:
+ * the result was allocated BEFORE the operation could fail, so a non-zero
+ * return did not mean there was nothing to reclaim.
+ */
+typedef enum {
+  GF_GPG_OK = 0,          /**< succeeded; data, where applicable, is present */
+  GF_GPG_OP_FAILED = 1,   /**< the operation failed; the result explains why */
+  GF_GPG_BAD_REQUEST = 2, /**< arguments were unusable; nothing was attempted */
+} GFGpgResultStatus;
+
+/**
+ * @brief Success, in the gpg error space.
+ *
+ * Spelled here rather than taken from <gpg-error.h> so a module needs no
+ * GnuPG headers to talk to the SDK. The value is fixed by the gpg error
+ * encoding, and the rPGP engine reports through the same space.
+ */
+#define GF_GPG_ERR_NO_ERROR 0U
+
+/** Which of a result's text fields to read. */
+typedef enum GFGpgResultTextField {
+  GF_GPG_RESULT_TEXT_CAPSULE_ID = 0,
+  GF_GPG_RESULT_TEXT_ERROR_STRING = 1,
+  GF_GPG_RESULT_TEXT_HASH_ALGO = 2,
+} GFGpgResultTextField;
+
+/** Which operation an analysis is describing. */
+typedef enum GFGpgAnalyseOperation {
+  GF_GPG_ANALYSE_ENCRYPT = 0,
+  GF_GPG_ANALYSE_SIGN = 1,
+  GF_GPG_ANALYSE_DECRYPT = 2,
+  GF_GPG_ANALYSE_VERIFY = 3,
+} GFGpgAnalyseOperation;
+
+/** Which parts of an analysis a caller wants produced. */
+#define GF_GPG_ANALYSE_WANT_REPORT (1u << 0)
+#define GF_GPG_ANALYSE_WANT_CARDS (1u << 1)
+#define GF_GPG_ANALYSE_WANT_INFO_JSON (1u << 2)
+
+/**
+ * @brief Everything the host can say about one finished crypto operation.
+ *
+ * Replaces nine entry points whose signatures were identical and which
+ * differed only in the operation they named and in whether they also produced
+ * the JSON. Every member is OWNED and may be NULL; free each with
+ * GFMemFree(ctx, GF_ARENA_NORMAL, p).
+ */
+typedef struct GFGpgAnalysis {
+  size_t struct_size;
+  char* report;    /**< prose, for a person */
+  char* cards;     /**< structured InfoBoard cards, JSON */
+  char* info_json; /**< the full structured result, JSON */
+} GFGpgAnalysis;
+
+/* --- collections ---------------------------------------------------------
+ *
+ * Three distinct handle types on purpose. Funnelling unrelated collections
+ * through one `void*` would make it compile to hand a key-brief list to a
+ * recipient accessor, and would buy nothing: one teardown per OWNING object
+ * is the goal, not one teardown for every object in the SDK.
+ */
+
+typedef struct GFGpgKeyBriefListImpl* GFGpgKeyBriefListRef;
+typedef struct GFGpgRecipientListImpl* GFGpgRecipientListRef;
+typedef struct GFStringListImpl* GFStringListRef;
+
+/**
+ * @brief One key from a key-brief list, borrowed.
+ *
+ * Replaces eleven accessors that differed only in which field they named. A
+ * row says the same thing once, keeps C type checking, and grows by
+ * appending, whereas a twelfth field used to mean a twelfth entry point.
+ *
+ * Every pointer is BORROWED and dies with the owning list. Never free one.
+ */
+typedef struct GFGpgKeyBriefRow {
+  size_t struct_size;
+  const char* fingerprint;
+  const char* key_id;
+  const char* uid;           /**< primary UID, "Name (Comment) <email>" */
+  const char* matched_email; /**< the UID email that matched the query */
+  int64_t expires_at;        /**< seconds since the epoch; 0 means never */
+  /** Mirrors GpgFrontend::GpgKeyStatus:
+   *  0 ok, 1 expiring soon, 2 expired, 3 revoked, 4 disabled. */
+  int usability;
+  int can_encrypt;
+  int can_sign;
+  /** Identity-binding facts, not usability ones. */
+  int matched_uid_is_primary;
+  int matched_uid_revoked;
+} GFGpgKeyBriefRow;
+
+/**
+ * @brief One recipient of an encrypted message, borrowed.
+ *
+ * @ref key_id is what the message itself names, which is the only thing that
+ * decides whether it can be opened.
+ */
+typedef struct GFGpgRecipientRow {
+  size_t struct_size;
+  const char* key_id; /**< 8-byte key id (v3 PKESK) or fingerprint (v6) */
+  const char* pub_algo;
+  const char* fingerprint; /**< of the key this resolved to; "" if none */
+  const char* uid;         /**< primary UID of that key; "" if none */
+  int key_found;
+  int has_secret; /**< the only field answering "can this be opened here" */
+  int hidden;     /**< sender used --hidden-recipient */
+} GFGpgRecipientRow;
+
+/* --- user interface ------------------------------------------------------ */
+
+/**
+ * @brief Factory for a QObject-derived GUI object.
+ *
+ * @param data user data forwarded from the call that registered the factory
+ * @return the new QObject, or NULL on failure
+ */
+typedef void* (*QObjectFactory)(void* data);
+
+/**
+ * @brief A colour's MEANING, resolved against a widget's palette by the host.
+ *
+ * Asking for a role rather than a value is what keeps a module's panel
+ * looking like part of the application under both themes. Two conventions are
+ * worth knowing: a negative state is de-emphasised rather than painted red,
+ * and danger red is reserved for what cannot be undone, or for secrets about
+ * to travel in the clear.
+ */
+typedef enum GFUIColorRole {
+  GF_UI_COLOR_MUTED_TEXT = 0,
+  GF_UI_COLOR_BORDER = 1,
+  GF_UI_COLOR_WARNING = 2,
+  GF_UI_COLOR_DANGER = 3,
+  GF_UI_COLOR_ACCENT_POSITIVE = 4,
+  GF_UI_COLOR_ACCENT_NEGATIVE = 5,
+} GFUIColorRole;
+
+/**
+ * @brief A settings page a module contributes to the Settings dialog.
+ *
+ * A spec struct rather than six positional arguments, so a later field costs
+ * an append here instead of a new entry point.
+ *
+ * @ref title and @ref keywords must be UNTRANSLATED source strings; the host
+ * translates them in the "GTrC" context each time the dialog is built, so a
+ * language change is picked up without re-registering.
+ */
+typedef struct GFUISettingsPageSpec {
+  size_t struct_size;
+  const char* page_id;    /**< unique, module-namespaced */
+  const char* section_id; /**< "application" | "keys_engines" | "features"
+                           *   | "system"; anything else makes its own */
+  const char* title;
+  const char* keywords;   /**< '\n'-separated, may be NULL */
+  QObjectFactory factory; /**< invoked per dialog, on the GUI thread */
+  void* data;             /**< handed to @ref factory every time; must outlive
+                           *   the module's registration */
+} GFUISettingsPageSpec;
+
+/**
+ * @brief A module-owned primary view for one tab type.
+ *
+ * The host still owns the page and its document; this supplies the widget
+ * shown on top of it, with the plain editor reachable as "Raw Source".
+ */
+typedef struct GFUITabViewSpec {
+  size_t struct_size;
+  const char* tab_type;   /**< as in `EDIT_TAB_TYPE_<TYPE>_OP_*`, case-folded */
+  QObjectFactory factory; /**< invoked per tab, on the GUI thread */
+  void* data;
+} GFUITabViewSpec;
+
+/* --- storage ------------------------------------------------------------- */
+
+/**
+ * @brief Which store a key/value call addresses.
+ *
+ * They differ in how long a value lives and whether it is wiped, which is a
+ * property of the store and not of the call.
+ */
+typedef enum GFStorageStore {
+  GF_STORE_SESSION = 0,        /**< in memory, this run only */
+  GF_STORE_DURABLE = 1,        /**< on disk, plain */
+  GF_STORE_SECURE_DURABLE = 2, /**< on disk, protected; wiping allocator */
+} GFStorageStore;
+
+/* --- events -------------------------------------------------------------- */
+
+/** One named parameter of an event. */
+typedef struct GFModuleEventParam {
+  const char* name;
+  const char* value;
+  struct GFModuleEventParam* next; /**< NULL at end of list */
+} GFModuleEventParam;
+
+/** One event dispatched to a module. */
+typedef struct GFModuleEvent {
+  const char* id;         /**< unique event identifier, UPPER-CASE */
+  const char* trigger_id; /**< identifies which trigger to answer */
+  GFModuleEventParam* params;
+} GFModuleEvent;
+
+/**
+ * @brief One module's reply to one event.
+ *
+ * The module used to build a whole GFModuleEvent for a reply, most of which
+ * the host discarded. This carries only what the host reads.
+ *
+ * @ref params is TRANSFERRED: the host frees the list and every string in it,
+ * on the delivered and the no-such-trigger paths alike.
+ */
+typedef struct GFModuleEventAnswer {
+  size_t struct_size;
+  const char* event_id;       /**< borrowed */
+  const char* trigger_id;     /**< borrowed */
+  GFModuleEventParam* params; /**< transferred */
+} GFModuleEventAnswer;
+
+/* --- external programs --------------------------------------------------- */
+
+/**
+ * @brief Called after a command finishes.
+ *
+ * @param data the context's user pointer
+ * @param errcode the process exit code
+ * @param out standard output, NUL-terminated
+ * @param err standard error, NUL-terminated
+ */
+typedef void (*GFCommandExecuteCallback)(void* data, int errcode,
+                                         const char* out, const char* err);
+
+/** One command in a batch. Borrowed for the duration of the call. */
+typedef struct {
+  char* cmd; /**< command path or name */
+  int32_t argc;
+  char** argv; /**< argument array of length @ref argc */
+  GFCommandExecuteCallback cb;
+  void* data; /**< user context; the caller frees it */
+} GFCommandExecuteContext;
+
+/* --- translations -------------------------------------------------------- */
+
+/**
+ * @brief Supplies translation data for a locale.
+ *
+ * @param locale BCP-47 locale string, e.g. "en_US"
+ * @param data set to a caller-owned buffer holding the raw data
+ * @return 0 on success
+ */
+typedef int (*GFTranslatorDataReader)(const char* locale, char** data);
+
+#ifdef __cplusplus
+}
+#endif

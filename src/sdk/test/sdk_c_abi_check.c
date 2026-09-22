@@ -35,35 +35,41 @@
  * trailing return type, `bool`, `constexpr`, `using X = ...`, an unguarded
  * `extern "C"` -- fails the BUILD rather than being noticed in review.
  *
- * GF_SDK_EXPORT is stubbed empty by the target, following the precedent in
+ * There is no export macro to stub any more, following the precedent in
  * modules/src/m_email/test/CMakeLists.txt, so new headers stay stub-able.
  */
 
-#include "GFSDK.h"
-#include "GFSDKBasic.h"
-#include "GFSDKBasicModel.h"
+/* Every public header, so that one of them failing to stand on its own in C
+   is a build failure here rather than a surprise for an out-of-tree module
+   that does not happen to include them in the order this tree does. */
+#include "GFSDKApp.h"
 #include "GFSDKBuffer.h"
-#include "GFSDKExtra.h"
+#include "GFSDKContext.h"
+#include "GFSDKEditor.h"
 #include "GFSDKGpg.h"
 #include "GFSDKGpgList.h"
-#include "GFSDKModuleApi.h"
-#include "GFSDKModuleAttribution.h"
 #include "GFSDKGpgResult.h"
+#include "GFSDKHostApi.h"
 #include "GFSDKLog.h"
-#include "GFSDKModule.h"
-#include "GFSDKModuleModel.h"
+#include "GFSDKModuleApi.h"
+#include "GFSDKPgp.h"
+#include "GFSDKProcess.h"
+#include "GFSDKStorage.h"
+#include "GFSDKTypes.h"
 #include "GFSDKUI.h"
-#include "GFSDKUIModel.h"
 
 /* Force the compiler to actually instantiate a few declarations rather than
    skipping over them: taking a function's address needs its full type. */
 int gf_sdk_c_abi_check(void);
 
 int gf_sdk_c_abi_check(void) {
-  void* fns[4];
-  fns[0] = (void*)&GFAllocateMemory;
+  void* fns[5];
+  fns[0] = (void*)&GFMemAlloc;
   fns[1] = (void*)&GFBufferNewFromBytes;
   fns[2] = (void*)&GFBufferRelease;
-  fns[3] = (void*)&GFModuleLogInfo;
+  fns[3] = (void*)&GFLogAt;
+  /* A pure helper too: it must be callable with no context at all, which is
+     the property that makes "pure" mean something here. */
+  fns[4] = (void*)&GFCompareSoftwareVersion;
   return fns[0] != NULL ? 0 : 1;
 }

@@ -30,15 +30,22 @@
 
 #include <stddef.h>
 
-#include "GFSDKVisibility.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @file GFSDKModuleAttribution.h
- * @brief Which module the SDK is currently working on behalf of.
+ * @file GFHostAttribution.h
+ * @brief Which module the host is currently working on behalf of.
+ *
+ * HOST-INTERNAL, and no longer part of the public SDK: a module never asks
+ * this and never sets it. It survives for two jobs that are genuinely the
+ * host's -- recording which module a handle was issued to, so teardown can
+ * reclaim what was leaked, and naming a module in a log line.
+ *
+ * It is NOT an authorization input. Authorization is the context a call
+ * carries, because a module's own worker threads never pass through here at
+ * all -- which was the whole reason the context exists.
  *
  * Every handle the SDK issues is recorded against a module so that teardown
  * can say who leaked what, and reclaim it. The SDK has no other way to know:
@@ -71,21 +78,21 @@ extern "C" {
  * @param module_id borrowed, and copied; may be NULL to attribute nothing
  * @return the previously current module, to restore later
  */
-GF_SDK_EXPORT const char* GFSdkEnterModule(const char* module_id);
+const char* GFSdkEnterModule(const char* module_id);
 
 /**
  * @brief Stop attributing handles on this thread, restoring @p previous.
  *
  * @param previous exactly what GFSdkEnterModule() returned
  */
-GF_SDK_EXPORT void GFSdkLeaveModule(const char* previous);
+void GFSdkLeaveModule(const char* previous);
 
 /**
  * @brief The module this thread is currently working for, or NULL.
  *
  * @return borrowed, valid until the next Enter/Leave on this thread
  */
-GF_SDK_EXPORT const char* GFSdkCurrentModule(void);
+const char* GFSdkCurrentModule(void);
 
 /**
  * @brief Reclaim every handle still outstanding for @p module_id.
@@ -103,7 +110,7 @@ GF_SDK_EXPORT const char* GFSdkCurrentModule(void);
  * @param module_id the module being torn down; NULL sweeps nothing
  * @return how many handles were reclaimed
  */
-GF_SDK_EXPORT size_t GFSdkSweepModuleHandles(const char* module_id);
+size_t GFSdkSweepModuleHandles(const char* module_id);
 
 #ifdef __cplusplus
 }

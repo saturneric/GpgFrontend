@@ -28,260 +28,124 @@
 
 #pragma once
 
-#include "GFSDKBuffer.h"
-#include "GFSDKUIModel.h"
-#include "GFSDKVisibility.h"
+#include <stddef.h>
+#include <stdint.h>
+
+#include "GFSDKContext.h"
+
+/**
+ * @file GFSDKUI.h
+ * @brief Putting things on the screen.
+ *
+ * Reading the application's settings is NOT here, although it used to be
+ * spelled `GFUIGlobalSettings`. A module reading configuration is doing
+ * storage, and making it ask for the ability to open dialogs in order to read
+ * a preference would be a grant that says more than it means. See
+ * GFSDKStorage.h.
+ *
+ * Widgets may only be created and shown on the main thread; the two calls
+ * that need it marshal there for you.
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Creates a QObject-derived GUI object on the main (UI) thread.
+ * @brief Construct a QObject-derived GUI object on the main thread.
  *
- * If called from a non-UI thread, the factory is dispatched to the main thread
+ * If called from another thread the factory is dispatched to the main thread
  * via a blocking queued connection before returning.
  *
- * @param factory Callback that constructs the GUI object.
- * @param data    User data forwarded to @p factory.
- * @return Opaque pointer to the created QObject, or nullptr on failure.
+ * @return opaque QObject pointer, or NULL on failure
  */
-GF_SDK_EXPORT void* GFUICreateGUIObject(QObjectFactory factory, void* data);
+void* GFUICreateGUIObject(GFSDKContext* ctx, QObjectFactory factory,
+                          void* data);
 
 /**
- * @brief Retrieves a registered GUI object by its string identifier.
+ * @brief Resolve a GUI handle the host passed in an event parameter.
  *
- * @param id Null-terminated identifier of the GUI object.
- * @return Opaque QObject pointer, or nullptr if not found or @p id is nullptr.
+ * Returns NULL once the object has been destroyed, so a stale handle fails
+ * closed. Most handlers should use GFEvent::RequireGui<T>() instead, which
+ * does this resolution and produces the failure to return in one line.
  */
-GF_SDK_EXPORT void* GFUIGetGUIObject(const char* id);
+void* GFUIGetGUIObject(GFSDKContext* ctx, const char* id);
 
 /**
- * @brief Shows a QDialog on the main thread.
+ * @brief Show a QDialog on the main thread.
  *
- * The dialog must have been created on the main thread. The call returns
- * immediately after scheduling the show; it does not wait for the dialog to
- * close.
- *
- * @param dialog Opaque pointer to a QDialog instance.
- * @param parent Opaque pointer to a QWidget parent, or nullptr for no parent.
- * @return true if the dialog was shown successfully, false on error.
+ * The dialog must have been created on the main thread. Ownership transfers
+ * to @p parent. Returns immediately after scheduling the show.
  */
-GF_SDK_EXPORT int GFUIShowDialog(void* dialog, void* parent);
+int GFUIShowDialog(GFSDKContext* ctx, void* dialog, void* parent);
 
 /**
- * @brief Returns a pointer to the application-wide QSettings object.
+ * @brief A colour of the application's own visual language.
  *
- * The returned pointer is valid for the lifetime of the application and must
- * not be deleted by the caller.
+ * Five functions became one taking a @ref GFUIColorRole, because they
+ * differed by which role they named and nothing else. Every colour is derived
+ * from @p widget's palette rather than fixed, so it stays legible under both
+ * themes.
  *
- * @return Opaque pointer to the global QSettings instance.
+ * @return 0xAARRGGBB, or 0 if @p widget is not a QWidget
  */
-GF_SDK_EXPORT void* GFUIGlobalSettings();
+uint32_t GFUIThemeColor(GFSDKContext* ctx, int role, void* widget);
 
 /**
- * @brief Associates a file extension with an event prefix for open-file
- *        handling.
+ * @brief The directory a file dialog for USER files should open in.
  *
- * When the user opens a file with the given extension, the UI emits an event
- * named @p event_prefix + "." + extension.
- *
- * @param extension    File extension string without the leading dot (e.g.
- *                     "gpg").
- * @param event_prefix Prefix used to construct the event identifier.
- * @return 0 on success, -1 if either argument is nullptr.
- */
-GF_SDK_EXPORT int GFUIRegisterFileExtensionHandleEvent(
-    const char* extension, const char* event_prefix);
-
-/**
- * @brief Registers a settings page owned by a module.
- *
- * The page appears in the application's Settings dialog, grouped under
- * @p section_id. The dialog is built and destroyed every time the user opens
- * it, so @p factory is invoked once per dialog instance, on the main (UI)
- * thread, and must return a *fresh*, unparented QWidget each time. Ownership
- * of the returned widget passes to the dialog. Registering while a dialog is
- * already open is harmless: that dialog snapshots the registry at
- * construction, so the page shows up the next time it is opened.
- *
- * The widget should expose `void SetSettings()` and `void ApplySettings()` as
- * slots (or Q_INVOKABLE); the dialog calls them by name to load, revert and
- * apply. A widget may also declare a `void SignalRestartNeeded(int)` signal to
- * take part in the dialog's restart confirmation.
- *
- * @p title and @p keywords must be untranslated source strings, marked with
- * GC_TR(). The host translates them in the "GTrC" context while the dialog is
- * built, so a language change is picked up without re-registering.
- *
- * @param page_id    Unique, module-namespaced identifier.
- * @param section_id Canonical section key: "application", "keys_engines",
- *                   "features" or "system". An unknown key creates its own
- *                   section, placed after the built-in ones.
- * @param title      Sidebar row and page heading.
- * @param keywords   Extra search terms, '\n'-separated. May be nullptr.
- * @param factory    Widget factory, invoked on the main thread.
- * @param data       Opaque pointer handed unchanged to @p factory on *every*
- *                   invocation. Unlike GFUICreateGUIObject this is not a
- *                   one-shot capsule: it must stay valid while the module is
- *                   loaded.
- * @return 0 on success, -1 on a missing argument or a duplicate @p page_id.
- */
-GF_SDK_EXPORT int GFUIRegisterSettingsPage(const char* page_id,
-                                           const char* section_id,
-                                           const char* title,
-                                           const char* keywords,
-                                           QObjectFactory factory, void* data);
-
-/**
- * @brief Removes a settings page registration.
- *
- * Call this from GFDeactivateModule(): a factory pointing into an unloaded
- * shared object would crash the next time the Settings dialog is opened.
- * Dialogs already on screen keep the widget they built.
- *
- * @param page_id Identifier passed to GFUIRegisterSettingsPage.
- * @return 0 on success, -1 if @p page_id is nullptr or was never registered.
- */
-GF_SDK_EXPORT int GFUIUnregisterSettingsPage(const char* page_id);
-
-/**
- * @brief Registers a module-owned primary view for a tab type.
- *
- * The host still creates and owns the editor page for the tab, and that page's
- * text document stays the canonical content -- so saving, crash recovery and
- * the unsaved-changes prompt keep working exactly as they do for a plain text
- * tab. This factory only supplies the widget shown *on top of* that document,
- * with the plain editor remaining reachable as the tab's "Raw Source" view.
- *
- * @p factory is invoked once per tab, on the main (UI) thread, and must return
- * a *fresh*, unparented QWidget each time. Ownership passes to the page.
- *
- * The widget may expose any of the following as slots or Q_INVOKABLE members;
- * the host probes for each by name and simply skips the ones that are absent,
- * so the contract is additive:
- *   - `void LoadFromSource(const QByteArray&)` -- the document changed from
- *     the outside (file opened, operation result applied). The widget must not
- *     write the document back from inside this call.
- *   - `QByteArray SaveToSource()` -- return the view reserialized. The host
- *     writes the result into the document; the view never touches it. Called
- *     only when IsDirty() says so, and always before a save, before every
- *     crypto operation, on a view switch and before the tab closes.
- *   - `bool IsDirty()` -- the view holds edits not yet written back.
- *   - `void WipeContent()` -- zero any decrypted plaintext the view holds,
- *     including attachment buffers. Called when the tab closes and at exit.
- *   - `QString SuggestedFileName()` -- a name to offer when this tab is saved
- *     and has no file yet, WITH its extension and already safe to use as a
- *     single path component. Only the view knows what the content is called:
- *     a message has a subject, a tab title does not. Return an empty string to
- *     leave the host's own guess in place. The host never writes to this name
- *     without asking; it only prefills the dialog.
- *   - `QString FileTypeFilter()` -- a QFileDialog filter for this tab's type,
- *     such as `E-Mail Message (*.eml);;All Files (*)`. Empty means the host's
- *     default.
- *
- * A view may also declare a `void SignalContentModified()` signal. Emitting it
- * marks the tab modified straight away, without reserializing anything -- so a
- * tab closed immediately after an edit still prompts to save. Serialization
- * stays lazy; only the flag is eager.
- *
- * A tab type with no registered view behaves exactly as before: the host opens
- * an ordinary plain text tab.
- *
- * @param tab_type Tab type as used in `EDIT_TAB_TYPE_<TYPE>_OP_*`, matched
- *                 case-insensitively (e.g. "email").
- * @param factory  Widget factory, invoked on the main thread.
- * @param data     Opaque pointer handed unchanged to @p factory on *every*
- *                 invocation; it must stay valid while the module is loaded.
- * @return 0 on success, -1 on a missing argument or a duplicate @p tab_type.
- */
-GF_SDK_EXPORT int GFUIRegisterTabPageView(const char* tab_type,
-                                          QObjectFactory factory, void* data);
-
-/**
- * @brief Removes a tab page view registration.
- *
- * Call this from GFDeactivateModule(): a factory pointing into an unloaded
- * shared object would crash the next time a tab of this type is opened. Tabs
- * already on screen keep the widget they built.
- *
- * @param tab_type Type passed to GFUIRegisterTabPageView.
- * @return 0 on success, -1 if @p tab_type is nullptr or was never registered.
- */
-GF_SDK_EXPORT int GFUIUnregisterTabPageView(const char* tab_type);
-
-/**
- * @brief The directory a file dialog for *user files* should open in.
- *
- * The same answer the application's own file dialogs use, so a module's dialog
+ * The same answer the application's own dialogs use, so a module's dialog
  * lands where the user expects rather than in the process working directory.
+ * Only for user files: a dialog picking a GnuPG installation or a key
+ * database is asking a different question.
  *
- * Only for user files. A dialog picking a system location -- a GnuPG
- * installation, a key database -- is asking a different question.
- *
- * @return Newly allocated absolute path; free it with GFFreeMemory.
+ * @return owned; release with GFBufferRelease
  */
-GF_SDK_EXPORT char* GFUIDefaultUserFilePath();
+GFBufferRef GFUIDefaultUserFilePath(GFSDKContext* ctx);
+
+/* --- extension points ----------------------------------------------------
+ *
+ * Each takes an append-only spec struct rather than positional arguments, so
+ * a later field costs an append rather than a new entry point.
+ *
+ * Every registration MUST be undone from the module's on_deactivate hook: a
+ * factory pointing into an unloaded shared object crashes the next time the
+ * host needs it. Widgets already on screen keep working.
+ */
+
+int GFUIRegisterSettingsPage(GFSDKContext* ctx,
+                             const GFUISettingsPageSpec* spec);
+int GFUIUnregisterSettingsPage(GFSDKContext* ctx, const char* page_id);
+
+int GFUIRegisterTabPageView(GFSDKContext* ctx, const GFUITabViewSpec* spec);
+int GFUIUnregisterTabPageView(GFSDKContext* ctx, const char* tab_type);
 
 /**
- * @brief Colours of the application's own visual language, for module widgets.
+ * @brief Take over opening files with @p extension.
  *
- * A module cannot link the UI library, so without these it has to invent its
- * own palette -- and a panel that picks its own greys and greens stops looking
- * like part of the application, and stops following the user's theme.
+ * When the user opens such a file the host fires
+ * `FILE_EXT_<PREFIX>_OP_OPEN_FILE` and does nothing else, so the module owns
+ * the operation from there.
  *
- * Every colour is derived from the widget's palette rather than fixed, so it
- * stays legible under both light and dark themes. Two conventions are worth
- * knowing before using them: a negative state is *not* painted red, it is
- * de-emphasised (GFUIAccentColor with @p positive false); and danger red is
- * reserved for what cannot be undone, or for secrets about to travel in the
- * clear.
- *
- * @param widget Opaque pointer to the QWidget whose palette to derive from.
- * @return Colour as 0xAARRGGBB, or 0 if @p widget is not a QWidget.
+ * @param extension without the leading dot, e.g. "eml"
  */
-GF_SDK_EXPORT uint32_t GFUIMutedTextColor(void* widget);
-GF_SDK_EXPORT uint32_t GFUIBorderColor(void* widget);
-GF_SDK_EXPORT uint32_t GFUIWarningColor(void* widget);
-GF_SDK_EXPORT uint32_t GFUIDangerColor(void* widget);
+int GFUIRegisterFileExtension(GFSDKContext* ctx, const char* extension,
+                              const char* event_prefix);
 
 /**
- * @brief Accent colour for a status chip.
+ * @brief A file size as the rest of the application writes it. PURE.
  *
- * @param widget Opaque pointer to the QWidget whose palette to derive from.
- * @param positive Non-zero when the chip reports a good state.
- * @return Colour as 0xAARRGGBB, or 0 if @p widget is not a QWidget.
+ * Takes no context: formatting a byte count needs a locale, which the module
+ * already has, and nothing else. It was an exported host symbol purely so
+ * every panel would spell "50.2 kB" the same way, which this achieves equally
+ * well without costing an ABI entry point.
+ *
+ * Writes at most @p cap bytes including the terminator.
+ *
+ * @return the length written, or negative if @p out is NULL or too small
  */
-GF_SDK_EXPORT uint32_t GFUIAccentColor(void* widget, int positive);
+int GFUIHumanSize(int64_t bytes, char* out, size_t cap);
 
-/**
- * @brief A file size as the rest of the application writes it.
- *
- * Traditional units, one decimal. Worth going through rather than reaching for
- * QLocale directly: a panel printing "50.2 kB" beside one printing "50.2 KiB"
- * makes the reader wonder which of the two numbers is the real one.
- *
- * @param bytes The size.
- * @return Newly allocated string; free it with GFFreeMemory.
- */
-GF_SDK_EXPORT char* GFUIHumanSize(int64_t bytes);
-
-/**
- * @brief The current editor tab's exact octets.
- *
- * Exactly what the application itself operates on: the bytes as the document
- * holds them, line endings included, with any module view flushed back first.
- * A module that wants to act on "what the user is looking at" has to go
- * through this -- reading the QPlainTextEdit's text would give it a
- * re-encoded approximation, and an approximation does not verify.
- *
- * Empty when no tab is open, or when the current tab is not a text tab.
- *
- * Safe to call from any thread: the read is marshalled to the GUI thread.
- *
- * @return Owned handle, or NULL on failure. Release with GFBufferRelease.
- */
-GF_SDK_EXPORT GF_SDK_MUST_USE GFBufferRef GFUITakeCurrentEditorContent(void);
 #ifdef __cplusplus
 }
 #endif

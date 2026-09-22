@@ -26,12 +26,13 @@
  *
  */
 
-#include "GFSDKExtra.h"
-
 #include <core/utils/BuildInfoUtils.h>
 #include <core/utils/CommonUtils.h>
 
+#include "GFHostImpl.h"
 #include "private/GFSDKPrivat.h"
+
+namespace gf_host {
 
 auto GFCompareSoftwareVersion(const char *current_version,
                               const char *latest_version) -> int {
@@ -50,3 +51,4 @@ auto GFHttpRequestUserAgent() -> const char * {
       GpgFrontend::GetHttpRequestUserAgent().toUtf8();
   return kUserAgent.constData();
 }
+}  // namespace gf_host

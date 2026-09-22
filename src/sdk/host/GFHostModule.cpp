@@ -26,12 +26,12 @@
  *
  */
 
-#include "GFSDKModule.h"
-
 #include <core/module/ModuleManager.h>
 
-#include "GFSDKBasic.h"
+#include "GFHostImpl.h"
 #include "private/GFSDKPrivat.h"
+
+namespace gf_host {
 
 void GFModuleListenEvent(const char *module_id, const char *event_id) {
   return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
@@ -109,3 +109,5 @@ auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
           GFStrView(namespace_), GFStrView(key),
           static_cast<bool>(default_value)));
 }
+
+}  // namespace gf_host

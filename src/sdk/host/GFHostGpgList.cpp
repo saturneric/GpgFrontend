@@ -26,18 +26,16 @@
  *
  */
 
-#include "GFSDKGpgList.h"
-
 #include <QByteArray>
 #include <QList>
 #include <QString>
 #include <cstdint>
 #include <new>
 
-#include "GFSDKBasic.h"
-#include "GFSDKGpg.h"
+#include "GFHostImpl.h"
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
+#include "private/GFHostContext.h"
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
@@ -80,17 +78,25 @@ struct RecipientRow {
 struct GFGpgKeyBriefListImpl {
   uint32_t magic = kGFListMagic;
   QList<KeyBriefRow> rows;
+  /// The same rows as borrowed C structs, built once after @ref rows is
+  /// complete. The host api hands a module one of these instead of eleven
+  /// accessors; it points into @ref rows and dies with the list, which is the
+  /// ownership rule the accessors already had.
+  QList<GFGpgKeyBriefRow> views;
 };
 
 struct GFGpgRecipientListImpl {
   uint32_t magic = kGFListMagic;
   QList<RecipientRow> rows;
+  QList<GFGpgRecipientRow> views;
 };
 
 struct GFStringListImpl {
   uint32_t magic = kGFListMagic;
   QList<QByteArray> rows;
 };
+
+namespace gf_host {
 
 namespace {
 
@@ -172,6 +178,48 @@ const char* const kEmpty = "";
 
 /* --- key briefs ---------------------------------------------------------- */
 
+namespace {
+
+/// Build the borrowed row views. Called once, AFTER rows is final: a later
+/// append would reallocate the QList and leave every view pointing at a moved
+/// element.
+void BuildViews(GFGpgKeyBriefListImpl* impl) {
+  impl->views.reserve(impl->rows.size());
+  for (const auto& r : impl->rows) {
+    GFGpgKeyBriefRow view{};
+    view.struct_size = sizeof(GFGpgKeyBriefRow);
+    view.fingerprint = r.fingerprint.constData();
+    view.key_id = r.key_id.constData();
+    view.uid = r.uid.constData();
+    view.matched_email = r.matched_email.constData();
+    view.expires_at = r.expires_at;
+    view.usability = r.usability;
+    view.can_encrypt = r.can_encrypt;
+    view.can_sign = r.can_sign;
+    view.matched_uid_is_primary = r.matched_uid_is_primary;
+    view.matched_uid_revoked = r.matched_uid_revoked;
+    impl->views.append(view);
+  }
+}
+
+void BuildViews(GFGpgRecipientListImpl* impl) {
+  impl->views.reserve(impl->rows.size());
+  for (const auto& r : impl->rows) {
+    GFGpgRecipientRow view{};
+    view.struct_size = sizeof(GFGpgRecipientRow);
+    view.key_id = r.key_id.constData();
+    view.pub_algo = r.pub_algo.constData();
+    view.fingerprint = r.fingerprint.constData();
+    view.uid = r.uid.constData();
+    view.key_found = r.key_found;
+    view.has_secret = r.has_secret;
+    view.hidden = r.hidden;
+    impl->views.append(view);
+  }
+}
+
+}  // namespace
+
 auto GFGpgFindKeys(int channel, const char* email, GFGpgKeyBriefListRef* out)
     -> int {
   if (out == nullptr) return -1;
@@ -205,6 +253,7 @@ auto GFGpgFindKeys(int channel, const char* email, GFGpgKeyBriefListRef* out)
     }
 
     GFGpgFreeKeyBriefs(briefs, count);
+    BuildViews(impl);
     *out = impl;
     return 0;
   } catch (...) {
@@ -284,6 +333,7 @@ auto GFGpgSniffRecipients(int channel, GFBufferView in,
     }
 
     GFGpgFreeEncRecipients(raw, count);
+    BuildViews(impl);
     *out = impl;
     return 0;
   } catch (...) {
@@ -371,6 +421,12 @@ void GFStringListRelease(GFStringListRef l) {
   ReleaseList(l, "GFStringListRelease");
 }
 
+}  // namespace gf_host
+
+// The file-local helpers above are inside gf_host; these definitions are
+// not, because their declarations are at global scope.
+using namespace gf_host;  // NOLINT(build/namespaces)
+
 namespace gf_sdk_internal {
 
 auto SweepListHandles(const QString& module_id) -> QList<const char*> {
@@ -383,6 +439,8 @@ auto SweepListHandles(const QString& module_id) -> QList<const char*> {
 
 }  // namespace gf_sdk_internal
 
+namespace gf_host {
+
 auto GFGpgListOutstandingCount(const char* module_id) -> size_t {
   const auto id =
       module_id == nullptr ? QString() : QString::fromUtf8(module_id);
@@ -390,3 +448,46 @@ auto GFGpgListOutstandingCount(const char* module_id) -> size_t {
          Reg<GFGpgRecipientListImpl>::Instance().Count(id) +
          Reg<GFStringListImpl>::Instance().Count(id);
 }
+
+}  // namespace gf_host
+
+// The file-local helpers above are inside gf_host; these definitions are
+// not, because their declarations are at global scope.
+using namespace gf_host;  // NOLINT(build/namespaces)
+
+namespace gf_sdk_internal {
+
+auto NewStringList(const QList<QString>& values, GFStringListRef* out) -> int {
+  if (out == nullptr) return -1;
+  try {
+    auto* impl = NewList<GFStringListImpl>("NewStringList");
+    if (impl == nullptr) return -1;
+    impl->rows.reserve(values.size());
+    for (const auto& v : values) impl->rows.append(v.toUtf8());
+    *out = impl;
+    return 0;
+  } catch (...) {
+    LOG_E() << "NewStringList: unexpected exception";
+    return -1;
+  }
+}
+
+auto KeyBriefRowAt(GFGpgKeyBriefListRef l, size_t i)
+    -> const GFGpgKeyBriefRow* {
+  auto* impl = ResolveLive(l, "KeyBriefRowAt");
+  if (impl == nullptr) return nullptr;
+  if (i >= static_cast<size_t>(impl->views.size())) return nullptr;
+  return &impl->views[static_cast<qsizetype>(i)];
+}
+
+auto RecipientRowAt(GFGpgRecipientListRef l, size_t i)
+    -> const GFGpgRecipientRow* {
+  auto* impl = ResolveLive(l, "RecipientRowAt");
+  if (impl == nullptr) return nullptr;
+  if (i >= static_cast<size_t>(impl->views.size())) return nullptr;
+  return &impl->views[static_cast<qsizetype>(i)];
+}
+
+}  // namespace gf_sdk_internal
+
+namespace gf_host {}  // namespace gf_host

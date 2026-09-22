@@ -28,16 +28,15 @@
 
 #pragma once
 
-#include "GFSDKBuffer.h"
-#include "GFSDKVisibility.h"
+#include "GFSDKContext.h"
 
 /**
  * @file GFSDKPgp.h
- * @brief Reading OpenPGP data as a structure, without a key database.
+ * @brief Reading OpenPGP structure with no keyring and no engine.
  *
- * Deliberately separate from GFSDKGpg.h: everything there addresses a keyring
- * through a channel, and nothing here does. Inspection answers "what is this
- * blob made of", which needs no keys, no engine and no channel.
+ * Its own capability, separate from "gpg": inspecting packet structure
+ * touches no key material and runs no engine, so a module that only needs to
+ * describe a message should not have to ask for the ability to decrypt one.
  */
 
 #ifdef __cplusplus
@@ -45,18 +44,9 @@ extern "C" {
 #endif
 
 /**
- * @brief Describe the packet structure of an OpenPGP blob as JSON.
+ * @brief Describe @p in as a packet structure.
  *
- * Accepts anything: armored or binary, message, detached signature,
- * certificate or cleartext-signed text. Encrypted payloads are NEVER
- * decrypted -- an encrypted container is reported by its envelope alone.
- * Compressed containers are recursed into, under a size and depth cap.
- *
- * Input that is not OpenPGP at all still succeeds: the document that comes
- * back says so in its `errors` array. A non-zero return means the inspector
- * itself could not run, which is a different thing from unparsable input.
- *
- * The document is UTF-8 JSON:
+ * JSON shape:
  *
  *   { "format": "binary"|"armored"|"cleartext", "size": N, "errors": [...],
  *     "blocks": [ { "kind": ..., "offset": N, "armor": {...}|absent,
@@ -71,16 +61,15 @@ extern "C" {
  *                                  "error": null|"..." } ] } ] }
  *
  * A packet's `offset` is relative to the start of the packet stream it lives
- * in -- the dearmored octets, for an armored block -- and the framing figures
+ * in, the dearmored octets for an armored block, and the framing figures
  * describe the bytes as they appear there, so consecutive packets always
  * satisfy `offset + headerLength + bodyLength == next offset`.
  *
- * @param in the data to inspect. BORROWED; the caller keeps it.
- * @param[out] out_json receives a caller-owned UTF-8 JSON string on success.
- *             Free it with GFFreeMemory. Untouched on failure.
- * @return 0 on success, negative on failure.
+ * @param in borrowed
+ * @param out owned on success; release with GFBufferRelease
+ * @return 0 on success, negative on failure
  */
-GF_SDK_EXPORT int GFPgpInspectData(GFBufferView in, char** out_json);
+int GFPgpInspectData(GFSDKContext* ctx, GFBufferView in, GFBufferRef* out);
 
 #ifdef __cplusplus
 }

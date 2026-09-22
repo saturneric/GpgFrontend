@@ -26,30 +26,37 @@
  *
  */
 
-#include "GFSDKPgp.h"
+#pragma once
 
-#include <core/utils/RustUtils.h>
+#include <stddef.h>
 
-#include "private/GFSDKPrivat.h"
+#include "GFSDKContext.h"
 
-auto GF_SDK_EXPORT GFPgpInspectData(GFBufferView in, char** out_json) -> int {
-  if (out_json == nullptr) {
-    LOG_W() << "out json pointer is nullptr";
-    return -1;
-  }
+/**
+ * @file GFSDKProcess.h
+ * @brief Running an external program.
+ *
+ * Its own capability, and the most consequential thing in this SDK. One call,
+ * because the single-command entry point was always the batch of one; running
+ * one program is a convenience the C++ facade provides over this.
+ */
 
-  // An empty input is not an error here either: it inspects to an empty
-  // document, which is what the dialog shows before anything is loaded.
-  const auto* data = static_cast<const char*>(GFBufferData(in));
-  const auto size = GFBufferSize(in);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  auto json = GpgFrontend::InspectOpenPGPData(GpgFrontend::GFBuffer(
-      QByteArray(data == nullptr ? "" : data, static_cast<qsizetype>(size))));
-  if (json.isEmpty()) {
-    LOG_E() << "openpgp inspection produced no document";
-    return -1;
-  }
+/**
+ * @brief Run every command in @p contexts and wait for all of them.
+ *
+ * Each context's callback fires as its command completes. The array and the
+ * contexts are borrowed for the duration of the call, which is synchronous;
+ * the `data` pointer inside each remains the caller's to free.
+ *
+ * @return 0 when the batch ran, negative on a bad request
+ */
+int GFProcessExecute(GFSDKContext* ctx, GFCommandExecuteContext** contexts,
+                     size_t count);
 
-  *out_json = GFBytesDup(json, nullptr);
-  return 0;
+#ifdef __cplusplus
 }
+#endif

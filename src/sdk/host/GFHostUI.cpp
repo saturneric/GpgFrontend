@@ -26,19 +26,21 @@
  *
  */
 
-#include "GFSDKUI.h"
-
 #include <core/utils/CommonUtils.h>
 
 #include <QMap>
 #include <QObject>
 #include <QString>
 
+#include "GFHostImpl.h"
+#include "private/GFHostContext.h"
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/UIStyle.h"
 #include "ui/widgets/TextEdit.h"
+
+namespace gf_host {
 
 auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> int {
   if (dialog_raw_ptr == nullptr) {
@@ -109,7 +111,7 @@ auto GFUICreateGUIObject(QObjectFactory factory, void* data) -> void* {
   return object;
 }
 
-auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void* {
+auto GFUIGetGUIObject(const char* id) -> void* {
   if (id == nullptr) {
     LOG_W() << "gui object id is nullptr";
     return nullptr;
@@ -254,8 +256,10 @@ auto GFUIHumanSize(int64_t bytes) -> char* {
   return GFStrDup(GpgFrontend::UI::HumanSize(static_cast<qint64>(bytes)));
 }
 
-auto GF_SDK_EXPORT GFUITakeCurrentEditorContent() -> GFBufferRef {
+auto GFUITakeCurrentEditorContent() -> GFBufferRef {
   const auto bytes = GpgFrontend::UI::CurrentEditorContent();
   return GFBufferNewFromBytes(bytes.constData(),
                               static_cast<size_t>(bytes.size()));
 }
+
+}  // namespace gf_host

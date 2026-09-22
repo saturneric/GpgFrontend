@@ -33,6 +33,7 @@
 #include <utility>
 
 #include "GFSDKBuffer.hpp"
+#include "GFSDKContext.h"
 #include "GFSDKGpgResult.h"
 
 /**
@@ -54,19 +55,25 @@
  */
 class GFGpgResult {
  public:
-  GFGpgResult() = default;
-  explicit GFGpgResult(GFGpgResultRef ref) : ref_(ref) {}
+  /// An empty holder, ready to receive an out-parameter.
+  ///
+  /// The context is a member for the same reason GFBuf carries one: this
+  /// object outlives the call that produced it and may be released
+  /// elsewhere, so it must carry what releasing it needs.
+  explicit GFGpgResult(GFSDKContext* ctx) : ctx_(ctx) {}
+  GFGpgResult(GFSDKContext* ctx, GFGpgResultRef ref) : ctx_(ctx), ref_(ref) {}
   ~GFGpgResult() { Reset(); }
 
   GFGpgResult(const GFGpgResult&) = delete;
   auto operator=(const GFGpgResult&) -> GFGpgResult& = delete;
 
   GFGpgResult(GFGpgResult&& o) noexcept
-      : ref_(std::exchange(o.ref_, nullptr)) {}
+      : ctx_(o.ctx_), ref_(std::exchange(o.ref_, nullptr)) {}
 
   auto operator=(GFGpgResult&& o) noexcept -> GFGpgResult& {
     if (this != &o) {
       Reset();
+      ctx_ = o.ctx_;
       ref_ = std::exchange(o.ref_, nullptr);
     }
     return *this;
@@ -79,50 +86,57 @@ class GFGpgResult {
   }
 
   [[nodiscard]] auto Status() const -> GFGpgResultStatus {
-    return static_cast<GFGpgResultStatus>(GFGpgResultStatusOf(ref_));
+    return static_cast<GFGpgResultStatus>(GFGpgResultStatusOf(ctx_, ref_));
   }
   [[nodiscard]] auto Ok() const -> bool { return Status() == GF_GPG_OK; }
   [[nodiscard]] explicit operator bool() const { return ref_ != nullptr; }
 
   [[nodiscard]] auto Error() const -> uint32_t {
-    return GFGpgResultError(ref_);
+    return GFGpgResultError(ctx_, ref_);
   }
 
   /// Borrowed; dies with this object. Use TakeData() to outlive it.
   [[nodiscard]] auto Data() const -> GFBufferView {
-    return GFGpgResultData(ref_);
+    return GFGpgResultData(ctx_, ref_);
   }
 
   /// The output bytes as a Qt container. See GFBuf::UnwipeableCopy on cost.
   [[nodiscard]] auto DataCopy() const -> QByteArray {
     auto view = Data();
-    const auto* bytes = static_cast<const char*>(GFBufferData(view));
+    const auto* bytes = static_cast<const char*>(GFBufferData(ctx_, view));
     if (bytes == nullptr) return {};
-    return {bytes, static_cast<qsizetype>(GFBufferSize(view))};
+    return {bytes, static_cast<qsizetype>(GFBufferSize(ctx_, view))};
   }
 
   /// Transfers the payload out, so it can outlive the result.
   [[nodiscard]] auto TakeData() -> GFBuf {
-    return GFBuf(GFGpgResultTakeData(ref_));
+    return {ctx_, GFGpgResultTakeData(ctx_, ref_)};
   }
 
+  /// The three text fields, by name. One primitive, three readings.
   [[nodiscard]] auto CapsuleId() const -> QString {
-    return QString::fromUtf8(GFGpgResultCapsuleId(ref_));
+    return Text(GF_GPG_RESULT_TEXT_CAPSULE_ID);
   }
   [[nodiscard]] auto ErrorString() const -> QString {
-    return QString::fromUtf8(GFGpgResultErrorString(ref_));
+    return Text(GF_GPG_RESULT_TEXT_ERROR_STRING);
   }
   [[nodiscard]] auto HashAlgo() const -> QString {
-    return QString::fromUtf8(GFGpgResultHashAlgo(ref_));
+    return Text(GF_GPG_RESULT_TEXT_HASH_ALGO);
+  }
+
+  /// One text field of the result, by @ref GFGpgResultTextField.
+  [[nodiscard]] auto Text(int field) const -> QString {
+    return QString::fromUtf8(GFGpgResultText(ctx_, ref_, field));
   }
 
   void Reset() {
     if (ref_ != nullptr) {
-      GFGpgResultRelease(ref_);
+      GFGpgResultRelease(ctx_, ref_);
       ref_ = nullptr;
     }
   }
 
  private:
+  GFSDKContext* ctx_ = nullptr;
   GFGpgResultRef ref_ = nullptr;
 };

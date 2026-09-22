@@ -29,74 +29,46 @@
 #pragma once
 
 #include <stddef.h>
-#include <stdint.h>
 
-#include "GFSDKBuffer.h"
-#include "GFSDKVisibility.h"
+#include "GFSDKContext.h"
 
 /**
  * @file GFSDKGpgList.h
- * @brief Opaque, distinctly-typed collections returned by the gpg calls.
+ * @brief Collections the host returns, and the one row accessor each has.
  *
- * WHAT THIS REPLACES. GFGpgFreeKeyBriefs, GFGpgFreeEncRecipients and
- * GFGpgFreeStringArray each exist for one reason: to walk a struct's char*
- * members and free them. Every new returned aggregate needed another one, and
- * the caller had to know which walker went with which array AND pass back the
- * right count. Here each list is one opaque handle with one release, and the
- * elements are reached through borrowed accessors -- so there is no nested
- * allocation layout for a caller to get wrong, and no count to carry around.
+ * WHAT THIS REPLACED, TWICE. First, a family of `Free*` array walkers, one
+ * per aggregate, each existing only to walk a struct's `char*` members; the
+ * caller had to know which walker went with which array AND carry the count.
+ * Now each list is one opaque handle with one release.
  *
- * WHY STILL THREE TYPES rather than one generic list. Funnelling unrelated
- * collections through a single GFGpgListRelease(void*) would buy nothing and
- * would throw away the C type checking that makes the rest of this safe: it
- * would become possible to hand a key-brief list to a recipient accessor and
- * have it compile. One teardown per OWNING OBJECT is the goal; one teardown
- * for every object in the SDK is not.
+ * Then, nineteen per-field accessors across two list types, which differed
+ * only in which member they named. Now each list hands back a borrowed row
+ * struct, so a new field costs an append rather than a new entry point.
  *
- * Every accessor below returns a BORROWED pointer valid until the owning list
- * is released. Never free one.
+ * Every row and every string in it is BORROWED and dies with its list.
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct GFGpgKeyBriefListImpl* GFGpgKeyBriefListRef;
-typedef struct GFGpgRecipientListImpl* GFGpgRecipientListRef;
-typedef struct GFStringListImpl* GFStringListRef;
-
 /* --- key briefs ---------------------------------------------------------- */
 
 /**
  * @brief Keys whose UID e-mail matches @p email.
  *
- * @p email is BORROWED, like every SDK argument: the caller keeps it.
- * @param[out] out owned list, released with GFGpgKeyBriefListRelease.
- * @return 0 on success; negative on a bad request. An empty list is success.
+ * @return 0 on success with @p out owned. An empty list is success.
  */
-GF_SDK_EXPORT int GFGpgFindKeys(int channel, const char* email,
-                                GFGpgKeyBriefListRef* out);
+int GFGpgFindKeys(GFSDKContext* ctx, int channel, const char* email,
+                  GFGpgKeyBriefListRef* out);
 
-GF_SDK_EXPORT size_t GFGpgKeyBriefListCount(GFGpgKeyBriefListRef l);
+size_t GFGpgKeyBriefCount(GFSDKContext* ctx, GFGpgKeyBriefListRef l);
 
-/* All borrowed, valid until the list is released. Index out of range yields
-   "" or 0 rather than undefined behaviour. */
-GF_SDK_EXPORT const char* GFGpgKeyBriefFingerprint(GFGpgKeyBriefListRef l,
-                                                   size_t i);
-GF_SDK_EXPORT const char* GFGpgKeyBriefKeyId(GFGpgKeyBriefListRef l, size_t i);
-GF_SDK_EXPORT const char* GFGpgKeyBriefUid(GFGpgKeyBriefListRef l, size_t i);
-GF_SDK_EXPORT const char* GFGpgKeyBriefMatchedEmail(GFGpgKeyBriefListRef l,
-                                                    size_t i);
-GF_SDK_EXPORT int64_t GFGpgKeyBriefExpiresAt(GFGpgKeyBriefListRef l, size_t i);
-GF_SDK_EXPORT int GFGpgKeyBriefUsability(GFGpgKeyBriefListRef l, size_t i);
-GF_SDK_EXPORT int GFGpgKeyBriefCanEncrypt(GFGpgKeyBriefListRef l, size_t i);
-GF_SDK_EXPORT int GFGpgKeyBriefCanSign(GFGpgKeyBriefListRef l, size_t i);
-GF_SDK_EXPORT int GFGpgKeyBriefMatchedUidIsPrimary(GFGpgKeyBriefListRef l,
-                                                   size_t i);
-GF_SDK_EXPORT int GFGpgKeyBriefMatchedUidRevoked(GFGpgKeyBriefListRef l,
-                                                 size_t i);
+/** @return borrowed, valid until release; NULL when @p i is out of range */
+const GFGpgKeyBriefRow* GFGpgKeyBriefAt(GFSDKContext* ctx,
+                                        GFGpgKeyBriefListRef l, size_t i);
 
-GF_SDK_EXPORT void GFGpgKeyBriefListRelease(GFGpgKeyBriefListRef l);
+void GFGpgKeyBriefRelease(GFSDKContext* ctx, GFGpgKeyBriefListRef l);
 
 /* --- encrypted-message recipients ---------------------------------------- */
 
@@ -105,42 +77,39 @@ GF_SDK_EXPORT void GFGpgKeyBriefListRelease(GFGpgKeyBriefListRef l);
  *
  * Reads only the PKESK packets, so nothing is decrypted and no passphrase is
  * requested: safe to call to decide what to TELL the user before they ask for
- * a decryption. A message with no PKESK at all yields an empty list rather
- * than an error -- "encrypted to nobody we can name" is an answer.
+ * a decryption. A message with no PKESK yields an empty list rather than an
+ * error, because "encrypted to nobody we can name" is an answer.
  */
-GF_SDK_EXPORT int GFGpgSniffRecipients(int channel, GFBufferView in,
-                                       GFGpgRecipientListRef* out);
+int GFGpgSniffRecipients(GFSDKContext* ctx, int channel, GFBufferView in,
+                         GFGpgRecipientListRef* out);
 
-GF_SDK_EXPORT size_t GFGpgRecipientListCount(GFGpgRecipientListRef l);
+size_t GFGpgRecipientCount(GFSDKContext* ctx, GFGpgRecipientListRef l);
 
-GF_SDK_EXPORT const char* GFGpgRecipientKeyId(GFGpgRecipientListRef l,
-                                              size_t i);
-GF_SDK_EXPORT const char* GFGpgRecipientPubAlgo(GFGpgRecipientListRef l,
-                                                size_t i);
-GF_SDK_EXPORT const char* GFGpgRecipientFingerprint(GFGpgRecipientListRef l,
-                                                    size_t i);
-GF_SDK_EXPORT const char* GFGpgRecipientUid(GFGpgRecipientListRef l, size_t i);
-GF_SDK_EXPORT int GFGpgRecipientKeyFound(GFGpgRecipientListRef l, size_t i);
-GF_SDK_EXPORT int GFGpgRecipientHasSecret(GFGpgRecipientListRef l, size_t i);
+const GFGpgRecipientRow* GFGpgRecipientAt(GFSDKContext* ctx,
+                                          GFGpgRecipientListRef l, size_t i);
 
-/** @brief The sender withheld this recipient (--hidden-recipient). */
-GF_SDK_EXPORT int GFGpgRecipientHidden(GFGpgRecipientListRef l, size_t i);
+void GFGpgRecipientRelease(GFSDKContext* ctx, GFGpgRecipientListRef l);
 
-GF_SDK_EXPORT void GFGpgRecipientListRelease(GFGpgRecipientListRef l);
+/* --- plain string lists ---------------------------------------------------
+ *
+ * The generic container. Two different capabilities produce one: "gpg"
+ * returns keyring addresses, "storage" returns the register table's child
+ * keys. The accessors are therefore always available, because a module able
+ * to obtain a list but not to release it would leak because of a permission
+ * boundary.
+ */
 
-/* --- plain string lists --------------------------------------------------- */
+/** @brief Every e-mail address in the keyring; @p secret_only limits it to
+ *         keys whose secret half is held. */
+int GFGpgListAddresses(GFSDKContext* ctx, int channel, int secret_only,
+                       GFStringListRef* out);
 
-/** @brief Every e-mail address in the keyring; @p secret_only limits to keys
- *         whose secret half is held. */
-GF_SDK_EXPORT int GFGpgListAddresses(int channel, int secret_only,
-                                     GFStringListRef* out);
+size_t GFStringListCount(GFSDKContext* ctx, GFStringListRef l);
+const char* GFStringListAt(GFSDKContext* ctx, GFStringListRef l, size_t i);
+void GFStringListRelease(GFSDKContext* ctx, GFStringListRef l);
 
-GF_SDK_EXPORT size_t GFStringListCount(GFStringListRef l);
-GF_SDK_EXPORT const char* GFStringListAt(GFStringListRef l, size_t i);
-GF_SDK_EXPORT void GFStringListRelease(GFStringListRef l);
-
-/** @brief Outstanding list handles of every kind; NULL means process-wide. */
-GF_SDK_EXPORT size_t GFGpgListOutstandingCount(const char* module_id);
+/** @brief Outstanding list handles of every kind held by this module. */
+size_t GFListOutstandingCount(GFSDKContext* ctx);
 
 #ifdef __cplusplus
 }

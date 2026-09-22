@@ -26,13 +26,14 @@
  *
  */
 
-#include "GFSDKModuleAttribution.h"
+#include "private/GFHostAttribution.h"
 
 #include <QByteArray>
 #include <QMap>
 #include <QString>
 
 #include "core/utils/CommonUtils.h"
+#include "private/GFHostContext.h"
 #include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivat.h"
 
@@ -93,6 +94,33 @@ void GFSdkLeaveModule(const char* previous) {
 }
 
 auto GFSdkCurrentModule() -> const char* { return Attribution().current; }
+
+namespace gf_sdk_internal {
+
+/**
+ * @brief The attribution bracket the host api thunks use, on every call.
+ *
+ * Distinct from GFSdkEnterModule() in exactly one way, and it is the way that
+ * matters here: nothing is appended to the thread's stack. GFSdkEnterModule()
+ * copies the id so the pointer it hands back stays valid, and never pops --
+ * which is fine when the nesting is bounded by the host's own call depth into
+ * modules, and is a leak proportional to WORK DONE once every SDK call from a
+ * module's own thread goes through it.
+ *
+ * The id a context record owns outlives every call made with it, so there is
+ * nothing to copy and nothing to keep alive.
+ */
+ScopedContextAttribution::ScopedContextAttribution(const char* stable_id) {
+  auto& state = Attribution();
+  previous_ = state.current;
+  state.current = stable_id;
+}
+
+ScopedContextAttribution::~ScopedContextAttribution() {
+  Attribution().current = previous_;
+}
+
+}  // namespace gf_sdk_internal
 
 auto GFSdkSweepModuleHandles(const char* module_id) -> size_t {
   if (module_id == nullptr || *module_id == '\0') return 0;

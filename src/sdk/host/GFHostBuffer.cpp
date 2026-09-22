@@ -26,11 +26,10 @@
  *
  */
 
-#include "GFSDKBuffer.h"
-
 #include <cstdint>
 #include <new>
 
+#include "GFHostImpl.h"
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
 #include "private/GFSDKHandleRegistry.h"
@@ -58,6 +57,8 @@ struct GFBufferImpl {
   explicit GFBufferImpl(GpgFrontend::GFBuffer b)
       : magic(kGFBufferMagic), buf(std::move(b)) {}
 };
+
+namespace gf_host {
 
 namespace {
 
@@ -145,6 +146,12 @@ void GFBufferRelease(GFBufferRef buf) {
   DestroyBuffer(buf);
 }
 
+}  // namespace gf_host
+
+// The file-local helpers above are inside gf_host; these definitions are
+// not, because their declarations are at global scope.
+using namespace gf_host;  // NOLINT(build/namespaces)
+
 namespace gf_sdk_internal {
 
 auto SweepBufferHandles(const QString& module_id) -> QList<const char*> {
@@ -159,7 +166,11 @@ auto SweepBufferHandles(const QString& module_id) -> QList<const char*> {
 
 }  // namespace gf_sdk_internal
 
+namespace gf_host {
+
 auto GFBufferOutstandingCount(const char* module_id) -> size_t {
   return GFHandleRegistry<GFBufferImpl>::Instance().Count(
       module_id == nullptr ? QString() : QString::fromUtf8(module_id));
 }
+
+}  // namespace gf_host

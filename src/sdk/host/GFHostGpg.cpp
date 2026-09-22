@@ -26,11 +26,9 @@
  *
  */
 
-#include "GFSDKGpg.h"
+#include <QSet>
 
 #include "private/GFSDKGpgInternal.h"
-
-#include <QSet>
 
 // std::memset
 #include <cstring>
@@ -41,7 +39,6 @@
 #include <QJsonObject>
 #include <any>
 
-#include "GFSDKBasic.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -65,6 +62,8 @@
 #include "ui/function/InfoBoardCardConverter.h"
 
 //
+#include "GFHostImpl.h"
+#include "private/GFHostContext.h"
 #include "private/GFSDKPrivat.h"
 
 namespace {
@@ -82,8 +81,9 @@ void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
 
 }  // namespace
 
-auto GF_SDK_EXPORT GFGpgPublicKey(int channel, const char* key_id, int ascii)
-    -> char* {
+namespace gf_host {
+
+auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> char* {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFStrView(key_id));
   if (key == nullptr) return nullptr;
@@ -97,22 +97,23 @@ auto GF_SDK_EXPORT GFGpgPublicKey(int channel, const char* key_id, int ascii)
   return GFStrDup(buffer.ConvertToQByteArray());
 }
 
-auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, const char* key_id,
-                                      GFGpgKeyUID** ps) -> int {
+auto GFGpgKeyPrimaryUidParts(int channel, const char* key_id, char** name,
+                             char** email, char** comment) -> int {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKey(
       GFStrView(key_id));
 
   if (!key.IsGood()) return -1;
 
   auto uids = key.UIDs();
-  auto& primary_uid = uids.front();
+  if (uids.empty()) return -1;
+  const auto& primary_uid = uids.front();
 
-  *ps = static_cast<GFGpgKeyUID*>(GFAllocateMemory(sizeof(GFGpgKeyUID)));
-
-  auto* s = *ps;
-  s->name = GFStrDup(primary_uid.GetName());
-  s->email = GFStrDup(primary_uid.GetEmail());
-  s->comment = GFStrDup(primary_uid.GetComment());
+  // Three independent out-parameters rather than one struct whose three
+  // char* members the caller had to free one by one. A caller that wants
+  // only the address asks for only the address.
+  if (name != nullptr) *name = GFStrDup(primary_uid.GetName());
+  if (email != nullptr) *email = GFStrDup(primary_uid.GetEmail());
+  if (comment != nullptr) *comment = GFStrDup(primary_uid.GetComment());
   return 0;
 }
 
@@ -166,8 +167,9 @@ namespace {
 // both engines produce identical reports and status codes. Returns -1 when the
 // capsule is missing or holds an unexpected type.
 template <typename ResultT, typename AnalyseT>
-auto AnalyseResultByCapsule(int channel, gpgme_error_t err, const char* capsule_id,
-                            const char** analyse, const char** cards) -> int {
+auto AnalyseResultByCapsule(int channel, gpgme_error_t err,
+                            const char* capsule_id, const char** analyse,
+                            const char** cards) -> int {
   if (analyse == nullptr) return -1;
 
   auto capsule = GpgFrontend::UI::UIModuleManager::GetInstance().GetCapsule(
@@ -185,40 +187,36 @@ auto AnalyseResultByCapsule(int channel, gpgme_error_t err, const char* capsule_
 
 }  // namespace
 
-auto GF_SDK_EXPORT GFAnalyseEncryptResultByCapsule(int channel,
-                                                   gpgme_error_t err,
-                                                   const char* capsule_id,
-                                                   const char** analyse,
-                                                   const char** cards) -> int {
+auto GFAnalyseEncryptResultByCapsule(int channel, gpgme_error_t err,
+                                     const char* capsule_id,
+                                     const char** analyse, const char** cards)
+    -> int {
   return AnalyseResultByCapsule<GpgFrontend::GpgEncryptResult,
                                 GpgFrontend::GpgEncryptResultAnalyse>(
       channel, err, capsule_id, analyse, cards);
 }
 
-auto GF_SDK_EXPORT GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
-                                                const char* capsule_id,
-                                                const char** analyse,
-                                                const char** cards) -> int {
+auto GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
+                                  const char* capsule_id, const char** analyse,
+                                  const char** cards) -> int {
   return AnalyseResultByCapsule<GpgFrontend::GpgSignResult,
                                 GpgFrontend::GpgSignResultAnalyse>(
       channel, err, capsule_id, analyse, cards);
 }
 
-auto GF_SDK_EXPORT GFAnalyseDecryptResultByCapsule(int channel,
-                                                   gpgme_error_t err,
-                                                   const char* capsule_id,
-                                                   const char** analyse,
-                                                   const char** cards) -> int {
+auto GFAnalyseDecryptResultByCapsule(int channel, gpgme_error_t err,
+                                     const char* capsule_id,
+                                     const char** analyse, const char** cards)
+    -> int {
   return AnalyseResultByCapsule<GpgFrontend::GpgDecryptResult,
                                 GpgFrontend::GpgDecryptResultAnalyse>(
       channel, err, capsule_id, analyse, cards);
 }
 
-auto GF_SDK_EXPORT GFAnalyseVerifyResultByCapsule(int channel,
-                                                  gpgme_error_t err,
-                                                  const char* capsule_id,
-                                                  const char** analyse,
-                                                  const char** cards) -> int {
+auto GFAnalyseVerifyResultByCapsule(int channel, gpgme_error_t err,
+                                    const char* capsule_id,
+                                    const char** analyse, const char** cards)
+    -> int {
   return AnalyseResultByCapsule<GpgFrontend::GpgVerifyResult,
                                 GpgFrontend::GpgVerifyResultAnalyse>(
       channel, err, capsule_id, analyse, cards);
@@ -338,41 +336,47 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
 
 }  // namespace
 
-auto GF_SDK_EXPORT GFAnalyseVerifyResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int {
+auto GFAnalyseVerifyResultInfoByCapsule(int channel, gpgme_error_t err,
+                                        const char* capsule_id,
+                                        const char** analyse,
+                                        const char** cards,
+                                        const char** info_json) -> int {
   return AnalyseResultInfoByCapsule<GpgFrontend::GpgVerifyResult,
                                     GpgFrontend::GpgVerifyResultAnalyse>(
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GF_SDK_EXPORT GFAnalyseSignResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int {
+auto GFAnalyseSignResultInfoByCapsule(int channel, gpgme_error_t err,
+                                      const char* capsule_id,
+                                      const char** analyse, const char** cards,
+                                      const char** info_json) -> int {
   return AnalyseResultInfoByCapsule<GpgFrontend::GpgSignResult,
                                     GpgFrontend::GpgSignResultAnalyse>(
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GF_SDK_EXPORT GFAnalyseEncryptResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int {
+auto GFAnalyseEncryptResultInfoByCapsule(int channel, gpgme_error_t err,
+                                         const char* capsule_id,
+                                         const char** analyse,
+                                         const char** cards,
+                                         const char** info_json) -> int {
   return AnalyseResultInfoByCapsule<GpgFrontend::GpgEncryptResult,
                                     GpgFrontend::GpgEncryptResultAnalyse>(
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GF_SDK_EXPORT GFAnalyseDecryptResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int {
+auto GFAnalyseDecryptResultInfoByCapsule(int channel, gpgme_error_t err,
+                                         const char* capsule_id,
+                                         const char** analyse,
+                                         const char** cards,
+                                         const char** info_json) -> int {
   return AnalyseResultInfoByCapsule<GpgFrontend::GpgDecryptResult,
                                     GpgFrontend::GpgDecryptResultAnalyse>(
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GFGpgFindKeysByEmail(int channel, const char* email,
-                                        GFGpgKeyBrief** keys, int* count)
-    -> int {
+auto GFGpgFindKeysByEmail(int channel, const char* email, GFGpgKeyBrief** keys,
+                          int* count) -> int {
   if (keys == nullptr || count == nullptr) return -1;
   *keys = nullptr;
   *count = 0;
@@ -453,8 +457,8 @@ auto GFGpgFindKeysByEmail(int channel, const char* email,
   return 0;
 }
 
-auto GFGpgListKeyAddresses(int channel, int secret_only,
-                                         char*** addresses, int* count) -> int {
+auto GFGpgListKeyAddresses(int channel, int secret_only, char*** addresses,
+                           int* count) -> int {
   if (addresses == nullptr || count == nullptr) return -1;
   *addresses = nullptr;
   *count = 0;
@@ -534,10 +538,8 @@ auto GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {
   GFFreeMemory(keys);
 }
 
-auto GFGpgSniffEncryptedRecipients(int channel, const char* data,
-                                                 int size,
-                                                 GFGpgEncRecipient** out,
-                                                 int* count) -> int {
+auto GFGpgSniffEncryptedRecipients(int channel, const char* data, int size,
+                                   GFGpgEncRecipient** out, int* count) -> int {
   if (out == nullptr || count == nullptr) return -1;
   *out = nullptr;
   *count = 0;
@@ -599,8 +601,7 @@ auto GFGpgSniffEncryptedRecipients(int channel, const char* data,
   return 0;
 }
 
-auto GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
-    -> void {
+auto GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count) -> void {
   if (out == nullptr) return;
   for (int i = 0; i < count; ++i) {
     GFFreeMemory(out[i].key_id);
@@ -610,3 +611,5 @@ auto GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
   }
   GFFreeMemory(out);
 }
+
+}  // namespace gf_host

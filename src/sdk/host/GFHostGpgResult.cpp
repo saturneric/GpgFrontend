@@ -26,14 +26,12 @@
  *
  */
 
-#include "GFSDKGpgResult.h"
-
 #include <QByteArray>
 #include <QStringList>
 #include <cstdint>
 #include <new>
 
-#include "GFSDKBasic.h"
+#include "GFHostImpl.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/DataObject.h"
@@ -44,6 +42,7 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "private/GFHostContext.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivat.h"
@@ -78,6 +77,8 @@ struct GFGpgResultImpl {
   QByteArray error_string;
   QByteArray hash_algo;
 };
+
+namespace gf_host {
 
 namespace {
 
@@ -384,6 +385,12 @@ void GFGpgResultRelease(GFGpgResultRef r) {
   DestroyResult(r);
 }
 
+}  // namespace gf_host
+
+// The file-local helpers above are inside gf_host; these definitions are
+// not, because their declarations are at global scope.
+using namespace gf_host;  // NOLINT(build/namespaces)
+
 namespace gf_sdk_internal {
 
 auto SweepResultHandles(const QString& module_id) -> QList<const char*> {
@@ -397,7 +404,11 @@ auto SweepResultHandles(const QString& module_id) -> QList<const char*> {
 
 }  // namespace gf_sdk_internal
 
+namespace gf_host {
+
 auto GFGpgResultOutstandingCount(const char* module_id) -> size_t {
   return ResultRegistry::Instance().Count(
       module_id == nullptr ? QString() : QString::fromUtf8(module_id));
 }
+
+}  // namespace gf_host

@@ -32,7 +32,7 @@
 
 #include <cstring>
 
-#include "GFSDKModule.h"
+#include "GFSDKTypes.h"
 
 Q_LOGGING_CATEGORY(sdk, "sdk")
 

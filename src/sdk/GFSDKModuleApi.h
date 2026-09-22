@@ -31,36 +31,38 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "GFSDKBuffer.h"
-#include "GFSDKGpgList.h"
-#include "GFSDKGpgResult.h"
-#include "GFSDKModuleModel.h"
-#include "GFSDKVisibility.h"
+#include "GFSDKHostApi.h"
+#include "GFSDKTypes.h"
 
 /**
  * @file GFSDKModuleApi.h
- * @brief The module runtime ABI: one bootstrap symbol and two tables.
+ * @brief The module bootstrap: one exported symbol and two tables.
  *
- * WHAT THIS REPLACES. A module currently has to export TEN separate extern "C"
- * symbols, each resolved by name at load time, and link against ~130 global
- * SDK symbols besides. That arrangement makes three things hard that this one
- * makes easy:
+ * A module exports exactly one symbol, @ref GFModuleGetApi. It is HANDED the
+ * host's ABI generation and returns a table, or NULL to decline a host it
+ * cannot work with -- negotiation, rather than a crash on the first mismatched
+ * call. The host answers with a @ref GFHostApi (see GFSDKHostApi.h) minted for
+ * that module alone.
+ *
+ * WHAT THIS REPLACED. A module used to export TEN separately-resolved symbols
+ * and link ~125 global SDK symbols besides. Three things were impossible in
+ * that arrangement and are routine in this one:
  *
  *   - ABI NEGOTIATION. Ten independently-resolved symbols cannot express "I
- *     support host ABI 3 but not 4". A single entry point that is HANDED the
- *     host's ABI and returns NULL if it cannot work with it can.
+ *     support host ABI 3 but not 4". One entry point that receives the host's
+ *     ABI can.
  *   - CAPABILITY ENFORCEMENT. When every module links every symbol there is
- *     no place to stand to deny one. When the host hands over a table, it can
- *     hand over a table with the gpg group absent.
- *   - TESTING. A test can fill in a GFHostApi struct. Today it has to define
- *     ~20 real symbols in a stub translation unit and compile the module with
- *     GF_SDK_EXPORT stubbed out, and those stubs drift from the real SDK.
+ *     nowhere to stand to deny one. When the host mints a table, it mints one
+ *     with the gpg group absent -- and the grant travels in the context that
+ *     every call carries, so it holds on the module's own threads too.
+ *   - TESTING. A test fills in a GFHostApi. It used to have to define ~20 real
+ *     symbols in a stub translation unit, and those stubs drifted from the
+ *     real SDK.
  *
- * GROWTH. Both tables begin with struct_size, written by whichever side
- * COMPILED the struct. The reader uses only the prefix both sides agree on,
- * so adding a field at the end is backwards compatible: an older module hands
- * over a smaller struct and still works, and an older host reads only what it
- * knows. Never reorder or repurpose an existing field -- only append.
+ * GROWTH. Every table here begins with struct_size, written by whichever side
+ * COMPILED it. The reader uses only the prefix both sides agree on, so adding
+ * a field at the end is backwards compatible. Never reorder or repurpose an
+ * existing field -- only append.
  */
 
 #ifdef __cplusplus
@@ -69,64 +71,11 @@ extern "C" {
 
 /* --- what the host provides to the module -------------------------------- */
 
-/**
- * @brief The SDK, as a table rather than as global symbols.
- *
- * Grouped by area so that a capability decision has something to switch on:
- * a module without the "gpg" capability can be handed a table whose gpg
- * pointers are NULL, which is an enforcement point that does not exist when
- * every module links every symbol directly.
- *
- * A NULL function pointer means "not available to you"; a module must check
- * before calling rather than assuming, exactly as it would for any optional
- * interface.
- */
-typedef struct GFHostApi {
-  size_t struct_size;   /**< sizeof as the HOST compiled it */
-  uint32_t abi_version; /**< the host's ABI generation */
-
-  /* buffers -- always present, since everything else traffics in them */
-  GFBufferRef (*buffer_new_from_bytes)(const void* data, size_t size);
-  const void* (*buffer_data)(GFBufferView buf);
-  size_t (*buffer_size)(GFBufferView buf);
-  void (*buffer_zeroize)(GFBufferRef buf);
-  void (*buffer_release)(GFBufferRef buf);
-
-  /* gpg operations -- NULL when the module lacks the "gpg" capability */
-  int (*gpg_sign)(int channel, const char* const* key_ids, size_t key_ids_size,
-                  GFBufferView in, int sign_mode, int ascii,
-                  GFGpgResultRef* out);
-  int (*gpg_encrypt)(int channel, const char* const* key_ids,
-                     size_t key_ids_size, GFBufferView in, int ascii,
-                     GFGpgResultRef* out);
-  int (*gpg_decrypt)(int channel, GFBufferView in, GFGpgResultRef* out);
-  int (*gpg_verify)(int channel, GFBufferView in, GFBufferView signature,
-                    GFGpgResultRef* out);
-
-  /* result accessors */
-  int (*result_status)(GFGpgResultRef r);
-  uint32_t (*result_error)(GFGpgResultRef r);
-  GFBufferView (*result_data)(GFGpgResultRef r);
-  const char* (*result_capsule_id)(GFGpgResultRef r);
-  const char* (*result_error_string)(GFGpgResultRef r);
-  const char* (*result_hash_algo)(GFGpgResultRef r);
-  GFBufferRef (*result_take_data)(GFGpgResultRef r);
-  void (*result_release)(GFGpgResultRef r);
-
-  /* logging -- always present; a module that cannot report is undebuggable */
-  void (*log_debug)(const char* msg);
-  void (*log_info)(const char* msg);
-  void (*log_warn)(const char* msg);
-  void (*log_error)(const char* msg);
-
-  /* logging, attributed -- carries the module's identity and source location,
-     which the four above structurally cannot. Appended after log_error, which
-     HostApiIsUsable() uses as the minimum-viable-table offset, so an older
-     module handed this larger table is unaffected. */
-  void (*log_at)(const char* module_id, int severity, const char* file,
-                 int line, const char* function, const char* msg);
-  int (*log_enabled)(const char* module_id, int severity);
-} GFHostApi;
+/* GFHostApi and its capability groups live in GFSDKHostApi.h, included above.
+ * They moved out of this file when the flat table became grouped: this header
+ * is about the two-way bootstrap -- what the host hands over and what the
+ * module hands back -- and the contents of the host's half is a subject of its
+ * own, long enough to be read separately. */
 
 /**
  * @brief What the HOST verified about this module, handed to it at activate().
@@ -221,17 +170,23 @@ typedef struct GFModuleApi {
  * @return a table with static storage duration, or NULL to decline. The host
  *         does not free it.
  */
-GF_SDK_EXPORT const GFModuleApi* GFModuleGetApi(uint32_t host_abi);
+const GFModuleApi* GFModuleGetApi(uint32_t host_abi);
 
 /** Matching function-pointer type, for the host's symbol resolution. */
 typedef const GFModuleApi* (*GFModuleGetApiFn)(uint32_t host_abi);
 
-/**
- * @brief The host's own table, filled in with the real SDK entry points.
+/* There is deliberately no GFGetHostApi() here, and there must not be one.
  *
- * Borrowed and valid for the life of the process.
+ * It used to exist and to return ONE table shared by every module, filled in
+ * with everything. That is an unrestricted host api obtainable by name, which
+ * makes the per-module table a suggestion: a module that was handed a gpg-less
+ * table could call the global one and get gpg back.
+ *
+ * Tables are now minted per module, from the signed manifest, and reachable
+ * only through the private mint in src/sdk/private/GFSDKHostApiMint.h -- which
+ * a module cannot include and gf_core reaches only through the sdk bridge. The
+ * only table a module ever sees is the one activate() gives it.
  */
-GF_SDK_EXPORT const GFHostApi* GFGetHostApi(void);
 
 #ifdef __cplusplus
 }

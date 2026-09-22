@@ -26,17 +26,19 @@
  *
  */
 
-#include "GFSDKBasic.h"
-
+#include "GFHostImpl.h"
 #include "core/function/CacheManager.h"
-#include "core/model/GFBuffer.h"
-#include "core/profile/ProfileSecureKeyManager.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/model/GFBuffer.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "private/GFHostContext.h"
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
+
+namespace gf_host {
 
 auto GFAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SMAMalloc(size);
@@ -52,8 +54,7 @@ auto GFProjectVersion() -> const char* {
   // Borrowed statics, see the note in GFHttpRequestUserAgent: a caller-owned
   // const char* is implicitly convertible to QString, so every call site that
   // assigned one straight into a QString leaked silently.
-  static const QByteArray kVersion =
-      GpgFrontend::GetProjectVersion().toUtf8();
+  static const QByteArray kVersion = GpgFrontend::GetProjectVersion().toUtf8();
   return kVersion.constData();
 }
 
@@ -128,60 +129,56 @@ auto GFAppRegisterTranslatorReader(const char* id,
              : -1;
 }
 
-auto GF_SDK_EXPORT GFCacheSave(const char* key, const char* value) -> int {
+auto GFCacheSave(const char* key, const char* value) -> int {
   GpgFrontend::CacheManager::GetInstance().SaveCache(GFStrView(key),
                                                      GFStrView(value));
   return 0;
 }
 
-auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char* {
+auto GFCacheGet(const char* key) -> const char* {
   auto value =
       GpgFrontend::CacheManager::GetInstance().LoadCache(GFStrView(key));
   return GFStrDup(value);
 }
 
-auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
-                                      int ttl) -> int {
+auto GFCacheSaveWithTTL(const char* key, const char* value, int ttl) -> int {
   GpgFrontend::CacheManager::GetInstance().SaveCache(GFStrView(key),
                                                      GFStrView(value), ttl);
   return 0;
 }
 
-auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
+auto GFProjectGitCommitHash() -> const char* {
   static const QByteArray kHash =
       GpgFrontend::GetProjectBuildGitCommitHash().toUtf8();
   return kHash.constData();
 }
 
-auto GF_SDK_EXPORT GFIsFlatpakENV() -> int {
-  return GpgFrontend::IsFlatpakENV() ? 1 : 0;
-}
+auto GFIsFlatpakENV() -> int { return GpgFrontend::IsFlatpakENV() ? 1 : 0; }
 
-auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void* {
+auto GFSecAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SMASecMalloc(size);
 }
 
-auto GF_SDK_EXPORT GFSecReallocateMemory(void* ptr, uint32_t size) -> void* {
+auto GFSecReallocateMemory(void* ptr, uint32_t size) -> void* {
   return GpgFrontend::SMASecRealloc(ptr, size);
 }
 
-void GF_SDK_EXPORT GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
+void GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
 
-auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char* {
+auto GFDurableCacheGet(const char* key) -> const char* {
   auto value = GpgFrontend::CacheManager::GetInstance().LoadDurableCache(
       "__module_" + GFStrView(key));
   return GFStrDup(value.toJson());
 }
 
-auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
-    -> int {
+auto GFDurableCacheSave(const char* key, const char* value) -> int {
   GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
       "__module_" + GFStrView(key),
       QJsonDocument::fromJson(GFStrView(value).toUtf8()));
   return 0;
 }
 
-auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char* {
+auto GFSecDurableCacheGet(const char* key) -> char* {
   auto buffer = GpgFrontend::CacheManager::GetInstance().LoadSecDurableCache(
       "__module_" + GFStrView(key));
   if (buffer.Empty()) return nullptr;
@@ -194,8 +191,7 @@ auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char* {
           .constData());
 }
 
-auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
-    -> int {
+auto GFSecDurableCacheSave(const char* key, const char* value) -> int {
   if (key == nullptr || value == nullptr) return -1;
 
   // Both arguments are owned, as everywhere else in this SDK -- but they come
@@ -218,14 +214,14 @@ auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
   return 0;
 }
 
-auto GF_SDK_EXPORT GFSecDurableCacheRemove(const char* key) -> int {
+auto GFSecDurableCacheRemove(const char* key) -> int {
   if (key == nullptr) return -1;
-  GpgFrontend::CacheManager::GetInstance().ResetDurableCache(
-      "__module_" + GFStrView(key));
+  GpgFrontend::CacheManager::GetInstance().ResetDurableCache("__module_" +
+                                                             GFStrView(key));
   return 0;
 }
 
-auto GF_SDK_EXPORT GFAppKeyProtectionLevel() -> int {
+auto GFAppKeyProtectionLevel() -> int {
   // The live value is published on the application object rather than read back
   // from the key manager: the manager answers about a key it is holding, and
   // this has to be answerable at any time, including before one is loaded.
@@ -244,3 +240,5 @@ auto GF_SDK_EXPORT GFAppKeyProtectionLevel() -> int {
   }
   return -1;
 }
+
+}  // namespace gf_host

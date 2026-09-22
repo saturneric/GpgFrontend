@@ -1,146 +1,136 @@
 # GpgFrontend Module SDK — API Reference
 
-Public C headers that define the module ABI. A module does not normally
-include these directly or call their functions by name — it includes
-`GFModule.h` from `src/module_runtime/include/`, which wraps this layer in
-C++ types and RAII helpers. This file documents what actually crosses the
-boundary; for the module-author workflow (writing, packaging, and
-distributing a module) see [`modules/README.md`](../../modules/README.md).
+## The three layers
 
-## `GFSDKModuleApi.h` — the module ABI
+```text
+module code
+    -> public SDK          src/sdk/*.h, implemented in src/sdk/api  (gf_sdk)
+      -> GFHostApi         src/sdk/GFSDKHostApi.h, the primitive boundary
+        -> host internals  src/sdk/host  (gf_host_api) -> gf_core, gf_ui
+```
 
-The whole ABI is one bootstrap symbol (`GFModuleGetApi`, written by every
-module — see `modules/README.md`) plus two tables, each starting with a
-`struct_size` field written by whichever side compiled it: `GFHostApi` (what
-the host gives the module — buffers, logging, GPG, UI, in groups a
-capability check can gate) and `GFModuleApi` (what the module gives back —
-its verified identity plus lifecycle/event hooks). Growth is append-only on
-both tables: an older module handed a newer, larger `GFHostApi` still works,
-because it only reads the prefix it was compiled against.
+and never `public SDK -> core/ or ui/`, and never a global that the SDK reads
+to find out who is calling.
 
-## `GFSDKBasic.h` — Core utilities
+Stated as one sentence: **the runtime owns state, the SDK is stateless, and
+`GFHostApi` is the only path to the host.**
 
-**Types** (`GFSDKBasicModel.h`): `GFCommandExecuteCallback`,
-`GFCommandExecuteContext`, `GFTranslatorDataReader`, `kGfStrlenMax`. Also
-declares the session/durable cache functions (`GFCacheSave`,
-`GFCacheSaveWithTTL`, `GFCacheGet`, `GFDurableCacheSave`,
-`GFDurableCacheGet`) and their secure (wiping-allocator) counterparts.
+## `GFSDKContext.h` — what every call carries
 
-**Ownership rule:** an SDK function argument is borrowed — pass a pointer
-straight through and keep owning it. An SDK return value is owned by the
-caller — reclaim a `char*` with `GFFreeMemory`, or with `GFModule.h`'s `UDUP`
-if you are inside a module. The one exception is a `char*` field inside a
-struct a module hands over *whole* (`GFModuleEvent`, `GFModuleEventParam`,
-`GFCommandExecuteContext`), which the module must allocate with
-`GFModuleStrDup` — ownership of the whole struct is what transfers.
+Every public function that needs the host takes a `GFSDKContext*` as its
+**first** argument. Every public function that does not need the host takes
+none. There is no third case.
 
-## `GFSDKLog.h` — Logging
+```c
+typedef struct GFSDKContext {
+  size_t struct_size;
+  uint32_t abi_version;
+  uint32_t reserved;
+  const GFHostApi* host;   /* the only member anything is decided from */
+  const char* module_id;   /* diagnostics only, never an authorization input */
+} GFSDKContext;
+```
 
-Emits into the Qt logging pipeline under the `module` category. Modules call
-this through `GFModule.h`'s `LOG_INFO`/`FLOG_INFO`/etc. rather than directly.
+`gf_sdk` holds **no** state: no bound table, no current module, no
+thread-local, not even a flag recording that a capability denial has already
+been reported. That last one is the visible cost of the rule, and it is worth
+it: a module does most of its work on threads it started itself, and an SDK
+that had to look up "who is calling" would be right inside an event handler
+and wrong in the worker that handler spawned.
 
-## `GFSDKModule.h` — Events and runtime values
+`gf_module_runtime` builds one context per module instance, in `activate()`,
+before any hook runs, and owns it. The storage is never freed; it is abandoned
+at teardown, because a module may still be running code on a thread it failed
+to stop and freeing it would turn a refusable call into a read of freed
+memory.
 
-Runtime key-value store (`GFModuleUpsertRTValue`,
-`GFModuleRetrieveRTValueOrDefault`, and the `*Bool` and
-`GFModuleListRTChildKeys` variants) and the low-level event dispatch entry
-point (`GFModuleTriggerModuleEventCallback`). **Types** (`GFSDKModuleModel.h`):
-`GFModuleEventParam`, `GFModuleEvent`. A module's own event subscription is
-declared statically (see `GFEventBinding` in `modules/README.md`), not
-through a call into this header.
+The authorization token is read from `host->context` at the point of call, so
+a context cannot hold one module's token beside another's table.
 
-## `GFSDKGpg.h` / `GFSDKGpgResult.h` — GPG operations
+## `GFSDKHostApi.h` — the primitive boundary
 
-All functions take a `channel` integer; use `GFGpgCurrentGpgContextChannel()`
-to obtain it from the main window.
+`GFHostApi` is minted per module from its signed manifest. A capability group
+the module did not declare is NULL in its table, and its primitives refuse the
+context even if reached another way.
 
-`GFGpgSign`, `GFGpgEncrypt`, `GFGpgDecrypt`, and `GFGpgVerify`
-(`GFSDKGpgResult.h`) write into an opaque `GFGpgResultRef`, released with
-`GFGpgResultRelease`; `GFModule.h`'s `GFGpgResult` C++ wrapper does this for
-you via RAII. Accessors (`GFGpgResultStatusOf`, `GFGpgResultError`,
-`GFGpgResultData`/`GFGpgResultTakeData`, `GFGpgResultCapsuleId`,
-`GFGpgResultErrorString`) are all borrowed and valid only until release.
-Payloads are `GFBufferView`/`GFBufferRef` (`GFSDKBuffer.h`), not raw
-`char*`, since a signature or ciphertext is exact octets rather than text.
+| group | granted by | contents |
+|---|---|---|
+| `buffer` | always | buffers, and both memory arenas behind one `arena` argument |
+| `log` | always | `write(severity, …)`, `enabled` |
+| `app` | always | version, commit, Qt version, user agent, locale, flatpak, key protection |
+| `event` | always | `subscribe`, `answer` |
+| `bootstrap` | always | translator registration: runtime plumbing, not a permission |
+| `list` | always | the generic string list, which `gpg` and `storage` both produce |
+| `gpg` | `"gpg"` | operations, results, keys, key and recipient lists, analysis |
+| `pgp` | `"pgp"` | packet-structure inspection; no keyring, no engine |
+| `ui` | `"ui"` | widgets, dialogs, theme colours by role, extension registration |
+| `editor` | `"editor"` | the current document's exact octets |
+| `storage` | `"storage"` | settings, the three caches, the runtime register table |
+| `process` | `"process"` | running an external program |
 
-`GFAnalyse{Encrypt,Sign,Decrypt,Verify}ResultByCapsule` and their `*InfoByCapsule`
-counterparts recover the same structured result the host's own crypto dialogs
-show (recipients, signatures, validity) from a `capsule_id`, engine-neutrally
-— they work whether the active engine is GnuPG or rPGP, which a raw gpgme
-handle would not.
+`event` is always present because it answers a different question from the
+rest: the groups say what a module may actively DO, while a subscription says
+what it may OBSERVE, and that is governed by the signed manifest's event
+allowlist, enforced host-side in `GlobalModuleContext::ListenEvent`.
 
-Key lookup and metadata: `GFGpgPublicKey`, `GFGpgKeyPrimaryUID`,
-`GFGpgImportKeys`, `GFGpgExportKey`. Searching keys or inspecting an
-encrypted message's recipients returns a list handle from `GFSDKGpgList.h`
-(`GFGpgFindKeys` → `GFGpgKeyBriefListRef`, `GFGpgSniffRecipients` →
-`GFGpgRecipientListRef`) — see that section below.
+**`network` is not in this table.** A module opens a socket through Qt, so
+there is nothing for the host to mediate. It remains a legal, signed,
+user-visible manifest declaration and is reported separately from the grant
+mask, so the mask never claims a permission it cannot enforce.
 
-## `GFSDKPgp.h` — Structure inspection
+### What the token is, and is not
 
-Reads OpenPGP data as a packet structure without a keyring, an engine, or a
-channel — deliberately separate from `GFSDKGpg.h`, which addresses a keyring
-through a channel and nothing here does. Backs the `m_pgp_inspect` module.
+`GFHostContextRef` is not an unforgeable capability. Native module code can
+fabricate any pointer value. The security property is that the host accepts a
+token only if it finds that exact pointer in its registry of live minted
+contexts, and then authorizes according to the record it found. An invented,
+stale or copied-from-elsewhere value is refused without ever being
+dereferenced; a value copied from another live module authorizes as *that*
+module, which is the safe direction.
 
-## `GFSDKGpgList.h` — Opaque result collections
+## What is NOT on the boundary
 
-Opaque, distinctly-typed handles for collections the GPG calls return, each
-with one release function and per-index accessors, replacing a family of
-per-type `Free*` array walkers that all did the same thing:
+The boundary carries primitives; the convenient spellings are built on top,
+module-side, and cost no ABI:
 
-- `GFGpgFindKeys(channel, email, &list)` → `GFGpgKeyBriefListRef`, sized with
-  `GFGpgKeyBriefListCount` and read per-index with
-  `GFGpgKeyBriefFingerprint`/`KeyId`/`Uid`/`Usability`/`CanSign`/`CanEncrypt`/
-  etc., released with `GFGpgKeyBriefListRelease`.
-- `GFGpgSniffRecipients(channel, in, &list)` → `GFGpgRecipientListRef`, sized
-  with `GFGpgRecipientListCount` and read per-index with
-  `GFGpgRecipientKeyId`/`Fingerprint`/`Uid`/`HasSecret`/`Hidden`/etc.,
-  released with `GFGpgRecipientListRelease`. `HasSecret` is the field that
-  answers "can this message be opened here" — a public key alone cannot
-  decrypt. Reads only the PKESK packets, so nothing is decrypted and no
-  passphrase is requested.
-- `GFGpgListAddresses(channel, secret_only, &list)` → `GFStringListRef`,
-  sized with `GFStringListCount` and read per-index with `GFStringListAt`,
-  released with `GFStringListRelease`.
+- nineteen per-field list accessors became two borrowed row structs;
+- nine `GFAnalyse*` entry points became one taking an operation;
+- five theme-colour functions became one taking a role;
+- five log severities became one `write`;
+- three cache tiers became a `store` argument;
+- `GFUIHumanSize` and `GFCompareSoftwareVersion` are computed in the module,
+  because neither needs anything from the host. Both take no context, which is
+  what "pure" means here.
 
-## `GFSDKModuleAttribution.h` — Handle bookkeeping
+Adding a public SDK helper is a change to `src/sdk/api/` and `GFSDK.hpp`, not
+to this ABI.
 
-Internal to the SDK: records which module a given handle was issued to, so
-that unloading a module can reclaim anything it leaked rather than leaving a
-dangling allocation. Not something a module calls directly.
+## `GFSDK.hpp` — the C++ conveniences
 
-## `GFSDKExtra.h` — Small standalone helpers
+Header-only, stateless, and still context-explicit. The C ABI reports absence,
+takes octets and returns owned handles because those are the honest shapes for
+a boundary; these take and return `QString`, apply a fallback where a caller
+wants one, and release what they borrowed.
 
-`GFCompareSoftwareVersion(current, latest)` — semantic-version comparison,
-used by the update-check flow.
+```cpp
+auto version = gf::sdk::StateText(ctx, "core", "gpgme.version", "0.0.0");
+auto keys    = gf::sdk::ExportKey(ctx, channel, key_id, /*ascii=*/true);
+gf::sdk::SetCacheText(ctx, GF_STORE_DURABLE, "last-check", when);
+```
 
-## `GFSDKUI.h` — Host UI
+Secrets deliberately do **not** go through the QString forms: a QString cannot
+be erased. `m_email`'s credential store uses the raw buffer API for that
+reason, and says so at the call site.
 
-**Types** (`GFSDKUIModel.h`): `QObjectFactory`.
+## Growth
 
-Widgets may only be created and shown on the main thread; `GFUICreateGUIObject`
-and `GFUIShowDialog` dispatch there for you. `GFUIGetGUIObject` resolves the
-opaque handles the host passes in event parameters; `GFModule.h`'s
-`GFEvent::RequireGui<T>()` does that resolution and produces the right
-`GFEventResult` failure in one call.
+Every struct here begins with `struct_size`, written by whichever side
+compiled it, and grows by APPENDING only. Reordering or repurposing a field
+makes an already-built module read the wrong slot with no diagnostic anywhere.
 
-`GFUIRegisterSettingsPage(page_id, section_id, title, keywords, factory, data)`
-adds a module-owned page to the Settings dialog; `GFUIUnregisterSettingsPage`
-removes it, and must be called from the module's `on_deactivate` hook so the
-registry never holds a factory belonging to an unloaded module. The dialog is
-rebuilt on every open, so `factory` is called once per dialog and must return
-a fresh, unparented widget. `title` and `keywords` are untranslated `GC_TR(...)`
-source strings, which the host translates in the `GTrC` context while it
-builds the dialog, so a language change is picked up without re-registering.
-`section_id` is one of `application`, `keys_engines`, `features`, `system`;
-anything else becomes its own section after those.
-
-`GFUIGlobalSettings()` exposes the shared `QSettings` instance for reading
-and writing persistent, module-namespaced settings.
-
-## `GFSDKBuildInfo.h` — Build constants
-
-`GF_SDK_VERSION_STR` — full version string (e.g. `"2.1.0"`), injected by CMake
-at configure time.
+There is no `GF_SDK_EXPORT`. The public SDK is not in a shared library any
+more, so there is nothing to export: a module exports `GFModuleGetApi` and
+nothing else, and the host component exports nothing at all.
 
 ## Packaging and trust
 
@@ -148,5 +138,5 @@ The SDK is only the runtime ABI. What ships is a signed `.gfmodule` package —
 a manifest, its Ed25519 signature, and (for an external module) the build key
 that signature was made with — verified against the compiled-in trust root
 before any module code runs. None of that is an SDK header; it lives in
-[`src/core/module/`](../core/module) and is described from the module
-author's side in [`modules/README.md`](../../modules/README.md#packaging-signing--distribution).
+[`src/core/module/`](../core/module) and is described from the module author's
+side in [`modules/README.md`](../../modules/README.md#packaging-signing--distribution).

@@ -26,30 +26,34 @@
  *
  */
 
-#pragma once
+#include <core/utils/RustUtils.h>
 
-#include "GFSDKVisibility.h"
+#include "GFHostImpl.h"
+#include "private/GFHostContext.h"
+#include "private/GFSDKPrivat.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace gf_host {
 
-/**
- * @brief Compares two software version strings using semantic versioning rules.
- * @param current_version Version string of the running software (e.g. "2.1.0").
- * @param latest_version  Version string to compare against.
- * @return Negative if current < latest, 0 if equal, positive if current >
- * latest.
- */
-GF_SDK_EXPORT int GFCompareSoftwareVersion(const char *current_version,
-                                           const char *latest_version);
+auto GFPgpInspectData(GFBufferView in, char** out_json) -> int {
+  if (out_json == nullptr) {
+    LOG_W() << "out json pointer is nullptr";
+    return -1;
+  }
 
-/**
- * @brief Returns the HTTP User-Agent string used for outbound requests.
- * @return Null-terminated User-Agent string. Do not free; valid for the
- *         lifetime of the application.
- */
-GF_SDK_EXPORT const char *GFHttpRequestUserAgent();
-#ifdef __cplusplus
+  // An empty input is not an error here either: it inspects to an empty
+  // document, which is what the dialog shows before anything is loaded.
+  const auto* data = static_cast<const char*>(GFBufferData(in));
+  const auto size = GFBufferSize(in);
+
+  auto json = GpgFrontend::InspectOpenPGPData(GpgFrontend::GFBuffer(
+      QByteArray(data == nullptr ? "" : data, static_cast<qsizetype>(size))));
+  if (json.isEmpty()) {
+    LOG_E() << "openpgp inspection produced no document";
+    return -1;
+  }
+
+  *out_json = GFBytesDup(json, nullptr);
+  return 0;
 }
-#endif
+
+}  // namespace gf_host

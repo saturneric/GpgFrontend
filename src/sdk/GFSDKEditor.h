@@ -28,4 +28,36 @@
 
 #pragma once
 
-extern "C" {}
+#include "GFSDKContext.h"
+
+/**
+ * @file GFSDKEditor.h
+ * @brief What the user currently has open.
+ *
+ * Its own capability, separate from "ui", because it is a different
+ * permission in substance: one is "draw something", the other is "read the
+ * document in front of the user", which may be plaintext they just decrypted.
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief The current editor tab's exact octets.
+ *
+ * Exactly what the application itself operates on: the bytes as the document
+ * holds them, line endings included, with any module view flushed back first.
+ * A module that wants to act on "what the user is looking at" has to come
+ * through here; reading the widget's text would give a re-encoded
+ * approximation, and an approximation does not verify.
+ *
+ * Safe to call from any thread; the read is marshalled to the GUI thread.
+ *
+ * @return owned handle, or NULL when no text tab is open
+ */
+GFBufferRef GFEditorTakeCurrentContent(GFSDKContext* ctx);
+
+#ifdef __cplusplus
+}
+#endif

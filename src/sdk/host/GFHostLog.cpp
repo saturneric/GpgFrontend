@@ -26,14 +26,13 @@
  *
  */
 
-#include "GFSDKLog.h"
-
 #include <QLoggingCategory>
 #include <QMessageLogger>
 #include <QString>
 
-#include "GFSDKModuleAttribution.h"
+#include "GFHostImpl.h"
 #include "core/module/ModuleLogCategory.h"
+#include "private/GFHostAttribution.h"
 
 /// Where a message the host could not attribute to any module goes.
 ///
@@ -95,6 +94,8 @@ auto IsEnabled(const QLoggingCategory& category, int severity) -> bool {
 
 }  // namespace
 
+namespace gf_host {
+
 void GFModuleLogAt(const char* module_id, int severity, const char* file,
                    int line, const char* function, const char* msg) {
   const auto id = ResolveModuleId(module_id);
@@ -153,3 +154,5 @@ void GFModuleLogWarn(const char* l) {
 void GFModuleLogError(const char* l) {
   GFModuleLogAt(nullptr, GF_LOG_ERROR, nullptr, 0, nullptr, l);
 }
+
+}  // namespace gf_host

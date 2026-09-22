@@ -46,6 +46,7 @@
 #include <utility>
 
 #include "GFSDKBuffer.h"
+#include "GFSDKContext.h"
 
 /**
  * @brief Move-only owner of a GFBufferRef.
@@ -56,15 +57,22 @@
  */
 class GFBuf {
  public:
-  GFBuf() = default;
+  /// An empty holder, ready to receive an out-parameter.
+  ///
+  /// The context is a member rather than something looked up: this object
+  /// outlives the call that made it and may be released on another thread, so
+  /// it has to carry what releasing it needs. That is the same reason the C
+  /// functions take one.
+  explicit GFBuf(GFSDKContext* ctx) : ctx_(ctx) {}
 
   /// Adopt a handle that was transferred to us (a *New* or *Take* result).
-  explicit GFBuf(GFBufferRef ref) : ref_(ref) {}
+  GFBuf(GFSDKContext* ctx, GFBufferRef ref) : ctx_(ctx), ref_(ref) {}
 
   /// Copy bytes out of a Qt container into wipeable storage.
-  [[nodiscard]] static auto Copy(const QByteArray& bytes) -> GFBuf {
-    return GFBuf(GFBufferNewFromBytes(bytes.constData(),
-                                      static_cast<size_t>(bytes.size())));
+  [[nodiscard]] static auto Copy(GFSDKContext* ctx, const QByteArray& bytes)
+      -> GFBuf {
+    return {ctx, GFBufferNewFromBytes(ctx, bytes.constData(),
+                                      static_cast<size_t>(bytes.size()))};
   }
 
   ~GFBuf() { Reset(); }
@@ -72,11 +80,13 @@ class GFBuf {
   GFBuf(const GFBuf&) = delete;
   auto operator=(const GFBuf&) -> GFBuf& = delete;
 
-  GFBuf(GFBuf&& other) noexcept : ref_(std::exchange(other.ref_, nullptr)) {}
+  GFBuf(GFBuf&& other) noexcept
+      : ctx_(other.ctx_), ref_(std::exchange(other.ref_, nullptr)) {}
 
   auto operator=(GFBuf&& other) noexcept -> GFBuf& {
     if (this != &other) {
       Reset();
+      ctx_ = other.ctx_;
       ref_ = std::exchange(other.ref_, nullptr);
     }
     return *this;
@@ -103,15 +113,15 @@ class GFBuf {
   }
 
   [[nodiscard]] auto Data() const -> const char* {
-    return static_cast<const char*>(GFBufferData(ref_));
+    return static_cast<const char*>(GFBufferData(ctx_, ref_));
   }
 
-  [[nodiscard]] auto Size() const -> size_t { return GFBufferSize(ref_); }
+  [[nodiscard]] auto Size() const -> size_t { return GFBufferSize(ctx_, ref_); }
   [[nodiscard]] auto Empty() const -> bool { return Size() == 0; }
   [[nodiscard]] explicit operator bool() const { return ref_ != nullptr; }
 
   /// Erase the contents now, before this object goes out of scope.
-  void Zeroize() { GFBufferZeroize(ref_); }
+  void Zeroize() { GFBufferZeroize(ctx_, ref_); }
 
   /**
    * @brief A QByteArray copy of the payload.
@@ -130,11 +140,12 @@ class GFBuf {
 
   void Reset() {
     if (ref_ != nullptr) {
-      GFBufferRelease(ref_);
+      GFBufferRelease(ctx_, ref_);
       ref_ = nullptr;
     }
   }
 
  private:
+  GFSDKContext* ctx_ = nullptr;
   GFBufferRef ref_ = nullptr;
 };

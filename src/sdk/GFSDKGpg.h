@@ -28,329 +28,87 @@
 
 #pragma once
 
-#include "GFSDKVisibility.h"
-
-#include <stddef.h>
 #include <stdint.h>
+
+#include "GFSDKContext.h"
+
+/**
+ * @file GFSDKGpg.h
+ * @brief Keys, and what the host can say about a finished operation.
+ *
+ * Every call takes a `channel`; ask @ref GFGpgCurrentChannel for the one the
+ * main window is using. The operations themselves live in GFSDKGpgResult.h
+ * and the collections in GFSDKGpgList.h, split by the ownership rules they
+ * carry rather than by subject.
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief Success, in the gpg error space.
- *
- * Spelled here rather than taken from <gpg-error.h> so that a module needs no
- * GnuPG headers at all to talk to the SDK. The value is fixed by the gpg
- * error encoding, and the rPGP engine reports through the same space.
- */
-#define GF_GPG_ERR_NO_ERROR 0U
-
-
-
-
+/** @brief The channel the main window is on, or -1 when there is none. */
+int GFGpgCurrentChannel(GFSDKContext* ctx);
 
 /**
- * @brief A User ID (UID) associated with a GPG key.
+ * @brief The public key block for @p key_id.
  *
- * Allocated by GFGpgKeyPrimaryUID and must be freed with GFFreeMemory.
+ * @return owned; release with GFBufferRelease. NULL when the key is unknown.
  */
-typedef struct GFGpgKeyUID {
-  char* name;     ///< Display name from the UID packet.
-  char* email;    ///< Email address from the UID packet.
-  char* comment;  ///< Optional comment from the UID packet.
-} GFGpgKeyUID;
-
-
-
-
-
-/* --- binary-safe entry points ---------------------------------------------
- *
- * The four calls above take NUL-terminated strings, so they cannot express a
- * message octet that happens to be 0x00 -- the data stops there -- and they
- * route bytes through a UTF-8 decode that replaces any ill-formed sequence.
- * Neither is acceptable for OpenPGP: a MIME entity may legitimately be 8bit or
- * binary, and a signature covers exact octets. Verifying a NUL-truncated
- * prefix of what the user is shown reports a good signature over bytes that
- * are not the bytes on screen.
- *
- * These variants carry an explicit length and copy the octets verbatim.
- *
- * OWNERSHIP DIFFERS, deliberately: @p data and @p signature are BORROWED --
- * the caller keeps ownership and must free them itself. The string forms free
- * the buffers they are given; these do not, so a caller can pass a pointer
- * straight into its own QByteArray without an allocator round trip.
- *
- * Output is carried by the @c *_size field alongside each @c char* in the
- * result structs. The buffer is still NUL-terminated for the benefit of
- * callers that treat it as text, but the size is authoritative.
- */
-
-
-
-
+GFBufferRef GFGpgPublicKey(GFSDKContext* ctx, int channel, const char* key_id,
+                           int ascii);
 
 /**
- * @brief Exports the public key block for a given key ID.
- *
- * @param channel GPG context channel index.
- * @param key_id  Fingerprint or key ID to export.
- * @param ascii   Non-zero to produce ASCII-armored output.
- * @return Caller-owned string containing the exported key; free with
- *         GFFreeMemory. Returns nullptr if the key is not found.
+ * @brief Export @p key_id as octets.
+ * @return 0 on success with @p out owned; negative on failure
  */
-GF_SDK_EXPORT char* GFGpgPublicKey(int channel, const char* key_id, int ascii);
+int GFGpgExportKey(GFSDKContext* ctx, int channel, const char* key_id,
+                   int ascii, GFBufferRef* out);
 
 /**
- * @brief Retrieves the primary User ID of a key.
+ * @brief Import key material, showing the standard import dialog.
  *
- * @param channel    GPG context channel index.
- * @param key_id     Fingerprint or key ID to look up.
- * @param[out] uid   Set to a newly allocated GFGpgKeyUID on success.
- * @return 0 on success, -1 if the key is not found or has no UIDs.
+ * @param parent opaque QWidget to parent the dialog to; may be NULL
+ * @return 0 on success
  */
-GF_SDK_EXPORT int GFGpgKeyPrimaryUID(int channel, const char* key_id,
-                                     GFGpgKeyUID** uid);
+int GFGpgImportKeys(GFSDKContext* ctx, int channel, void* parent,
+                    GFBufferView data);
 
 /**
- * @brief Imports keys from a binary or ASCII-armored data buffer.
+ * @brief The primary UID of @p key_id, split into its parts.
  *
- * Presents the standard key import dialog to the user.
+ * Each out-parameter is OWNED and released with GFBufferRelease; pass NULL
+ * for a part you do not want. This replaced a struct whose three `char*`
+ * members had to be freed one by one, which is exactly the ownership shape
+ * the rest of this SDK was rewritten to remove.
  *
- * @param channel GPG context channel index.
- * @param parent  Optional QWidget pointer used as the dialog parent; may be
- *                nullptr.
- * @param data    Buffer containing the key material to import.
- * @param size    Length of @p data in bytes.
- * @return 0 on success, -1 on failure.
+ * @return 0 on success, negative when the key is unknown or has no UID
  */
-GF_SDK_EXPORT int GFGpgImportKeys(int channel, void* parent, const char* data,
-                                  int size);
+int GFGpgKeyPrimaryUid(GFSDKContext* ctx, int channel, const char* key_id,
+                       GFBufferRef* name, GFBufferRef* email,
+                       GFBufferRef* comment);
 
 /**
- * @brief Exports a key to a caller-owned buffer.
+ * @brief Everything the host can say about one finished operation.
  *
- * @param channel    GPG context channel index.
- * @param key_id     Fingerprint or key ID to export.
- * @param ascii      Non-zero to produce ASCII-armored output.
- * @param[out] data  Set to a newly allocated buffer containing the key data;
- *                   free with GFFreeMemory.
- * @param[out] size  Set to the number of bytes written to @p data.
- * @return 0 on success, -1 if the key is not found or export fails.
+ * Engine-neutral: it recovers the full result model from the capsule the
+ * operation produced, so it works whether the active engine is GnuPG or
+ * rPGP. A raw gpgme handle would not, because an rPGP result has none.
+ *
+ * Replaces nine entry points, `GFAnalyse{Encrypt,Sign,Decrypt,Verify}Result
+ * ByCapsule` and their `*Info*` counterparts, whose signatures were identical
+ * and differed only in the operation they named.
+ *
+ * The capsule is CONSUMED, so ask for everything needed in one call.
+ *
+ * @param operation one of @ref GFGpgAnalyseOperation
+ * @param want a mask of GF_GPG_ANALYSE_WANT_*; a part not asked for comes
+ *        back NULL
+ * @return positive or zero on success, negative on a bad request
  */
-GF_SDK_EXPORT int GFGpgExportKey(int channel, const char* key_id, int ascii,
-                                 char** data, int* size);
-
-/**
- * @brief Returns the GPG context channel index currently active in the main
- *        window.
- * @return Channel index, or -1 if the main window is not available.
- */
-GF_SDK_EXPORT int GFGpgCurrentGpgContextChannel();
-
-
-/**
- * @brief Whether a key can be used, and how well its identity matches.
- *
- * Two independent axes, deliberately kept apart. @ref usability says whether
- * the key is usable at all; it says nothing about whether the key belongs to
- * the person claimed. A perfectly usable key held by the wrong party is the
- * case that matters most, and collapsing the two into one verdict hides it.
- *
- * Allocated by GFGpgFindKeysByEmail and released, as a whole array, by
- * GFGpgFreeKeyBriefs. Never free an individual brief or any of its strings.
- */
-typedef struct GFGpgKeyBrief {
-  char* fingerprint;
-  char* key_id;
-  char* uid;            ///< primary UID, "Name (Comment) <email>"
-  char* matched_email;  ///< the UID email that matched the query
-
-  int64_t expires_at;  ///< seconds since the epoch; 0 means never
-
-  /// Mirrors GpgFrontend::GpgKeyStatus:
-  /// 0 ok, 1 expiring soon, 2 expired, 3 revoked, 4 disabled.
-  int usability;
-
-  int can_encrypt;
-  int can_sign;
-
-  /// Whether the matched UID is the key's primary one, and whether that UID
-  /// has itself been revoked. Identity-binding facts, not usability ones.
-  int matched_uid_is_primary;
-  int matched_uid_revoked;
-} GFGpgKeyBrief;
-
-
-
-/**
- * @brief One recipient an encrypted message was encrypted to.
- *
- * @ref key_id is what the message itself names, which is the only thing that
- * decides whether it can be opened. An e-mail address cannot answer that
- * question: a message is encrypted to a KEY, and the key that matters is
- * usually an encryption subkey whose UID address need not appear anywhere in
- * the headers.
- *
- * Allocated by GFGpgSniffEncryptedRecipients and released, as a whole array,
- * by GFGpgFreeEncRecipients. Never free an individual entry or any of its
- * strings.
- */
-typedef struct GFGpgEncRecipient {
-  /// As the message names it: an 8-byte key id (v3 PKESK) or a full
-  /// fingerprint (v6 PKESK), upper-cased.
-  char* key_id;
-  char* pub_algo;
-
-  /// Of the key this resolved to; empty when nothing resolved.
-  char* fingerprint;
-  /// Primary UID of the key this resolved to; empty when nothing resolved.
-  char* uid;
-
-  /// Whether @ref key_id names a key this channel's key database holds at all.
-  int key_found;
-
-  /// Whether the secret half is held -- the only field that answers "can this
-  /// message be opened on this computer". A public key alone cannot decrypt.
-  int has_secret;
-
-  /// The sender withheld the recipient key id (`--hidden-recipient`), so this
-  /// recipient is deliberately unidentifiable rather than missing. It may
-  /// still be the user themselves.
-  int hidden;
-} GFGpgEncRecipient;
-
-
-
-
-
-/**
- * @brief Analyses an encryption result referenced by capsule ID.
- *
- * Engine-neutral counterpart of GFAnalyseEncryptResult: works for both the
- * native (GnuPG) and rPGP engines, because it recovers the full result model
- * from the capsule produced by GFGpgEncryptData rather than relying on a raw
- * gpgme handle (which the rPGP engine never produces).
- *
- * @param channel       GPG context channel index.
- * @param err           GPGME error code from the encrypt operation.
- * @param capsule_id    Capsule ID from GFGpgEncryptionResult::capsule_id. The
- *                      capsule is consumed (invalidated) by this call.
- * @param[out] analyse  Set to a caller-owned analysis report; free with
- *                      GFFreeMemory.
- * @param[out] cards    Optional; see GFAnalyseEncryptResult. Pass nullptr to
- *                      skip.
- * @return Status code: positive on success, negative on detected errors, -1 if
- *         the capsule is missing or of an unexpected type.
- */
-GF_SDK_EXPORT int GFAnalyseEncryptResultByCapsule(int channel,
-                                                  uint32_t err,
-                                                  const char* capsule_id,
-                                                  const char** analyse,
-                                                  const char** cards);
-
-/**
- * @brief Analyses a signing result referenced by capsule ID.
- *
- * Engine-neutral counterpart of GFAnalyseSignResult. See
- * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
- * capsule comes from GFGpgSignResult::capsule_id.
- */
-GF_SDK_EXPORT int GFAnalyseSignResultByCapsule(int channel, uint32_t err,
-                                               const char* capsule_id,
-                                               const char** analyse,
-                                               const char** cards);
-
-/**
- * @brief Analyses a decryption result referenced by capsule ID.
- *
- * Engine-neutral counterpart of GFAnalyseDecryptResult. See
- * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
- * capsule comes from GFGpgDecryptResult::capsule_id.
- */
-GF_SDK_EXPORT int GFAnalyseDecryptResultByCapsule(int channel,
-                                                  uint32_t err,
-                                                  const char* capsule_id,
-                                                  const char** analyse,
-                                                  const char** cards);
-
-/**
- * @brief Analyses a verification result referenced by capsule ID.
- *
- * Engine-neutral counterpart of GFAnalyseVerifyResult. See
- * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
- * capsule comes from GFGpgVerifyResult::capsule_id.
- */
-GF_SDK_EXPORT int GFAnalyseVerifyResultByCapsule(int channel, uint32_t err,
-                                                 const char* capsule_id,
-                                                 const char** analyse,
-                                                 const char** cards);
-
-/**
- * @brief As GFAnalyseVerifyResultByCapsule, plus the structured result as JSON.
- *
- * The card and report forms are shaped for display; this one is shaped for
- * decisions. A module that has to reason about individual signatures or
- * recipients -- their fingerprints, algorithms, timestamps, validity, and
- * whether the key was found at all -- cannot get there by re-reading prose.
- *
- * All three out-params are caller-owned; free each with GFFreeMemory. @p cards
- * and @p info_json may be nullptr to skip producing them.
- *
- * The capsule is CONSUMED by this call, exactly as by the non-Info variants,
- * so a result can be analysed once: ask for everything you need here rather
- * than calling both forms.
- *
- * JSON shape (fields absent when the operation does not produce them):
- * @code
- * {
- *   "status": 1, "operation": "Verify", "engine": "GPG v2.4.1",
- *   "description": "...", "details": ["..."], "inputHash": "...",
- *   "signatures": [ { "fingerprint": "...", "keyId": "...", "uid": "...",
- *                     "pubkeyAlgo": "...", "hashAlgo": "...",
- *                     "signTime": "ISO-8601", "validity": 0,
- *                     "warnings": ["..."] } ],
- *   "newSignatures": [ { ..., "sigMode": "Detach" } ],
- *   "invalidSigners": [ { "fingerprint": "...", "error": "..." } ],
- *   "recipients": [ { "fingerprint": "...", "keyId": "...", "uid": "...",
- *                     "pubkeyAlgo": "...", "keyFound": true,
- *                     "algoIsPrimaryKey": false } ],
- *   "filename": "...", "mimeEncoded": false,
- *   "messageIntegrityProtected": true, "symmetricAlgo": "AES256"
- * }
- * @endcode
- *
- * "validity" mirrors GpgFrontend::GpgSigValidity.
- */
-GF_SDK_EXPORT int GFAnalyseVerifyResultInfoByCapsule(
-    int channel, uint32_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json);
-
-/**
- * @brief Structured counterpart of GFAnalyseSignResultByCapsule.
- * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
- */
-GF_SDK_EXPORT int GFAnalyseSignResultInfoByCapsule(
-    int channel, uint32_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json);
-
-/**
- * @brief Structured counterpart of GFAnalyseEncryptResultByCapsule.
- * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
- */
-GF_SDK_EXPORT int GFAnalyseEncryptResultInfoByCapsule(
-    int channel, uint32_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json);
-
-/**
- * @brief Structured counterpart of GFAnalyseDecryptResultByCapsule.
- * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
- */
-GF_SDK_EXPORT int GFAnalyseDecryptResultInfoByCapsule(
-    int channel, uint32_t err, const char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json);
+int GFGpgAnalyseResult(GFSDKContext* ctx, int channel, int operation,
+                       uint32_t err, const char* capsule_id, uint32_t want,
+                       GFGpgAnalysis* out);
 
 #ifdef __cplusplus
 }
-#endif  // extern "C"
+#endif
