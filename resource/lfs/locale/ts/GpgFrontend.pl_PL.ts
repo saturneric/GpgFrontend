@@ -1460,160 +1460,169 @@ Czy chcesz kontynuować?</translation>
         <translation>Diagnostyka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="169"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="172"/>
+        <source>Trace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="173"/>
         <source>Debug</source>
         <translation>Debugowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="170"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="174"/>
         <source>Info</source>
         <translation>Informacje</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="171"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="175"/>
         <source>Warning</source>
         <translation>Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="177"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="175"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="179"/>
         <source>Fatal</source>
         <translation>Krytyczny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="177"/>
         <source>The least severe message that still gets written to the log. Debug is the most detailed and writes the most to disk.</source>
-        <translation>Najmniej poważny komunikat, który jest jeszcze zapisywany do dziennika. Debugowanie jest najbardziej szczegółowe i zapisuje na dysku najwięcej.</translation>
+        <translation type="vanished">Najmniej poważny komunikat, który jest jeszcze zapisywany do dziennika. Debugowanie jest najbardziej szczegółowe i zapisuje na dysku najwięcej.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="179"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="181"/>
+        <source>The least severe message that still gets written to the log. Trace is the most detailed and writes the most to disk; it adds detailed per-item output from modules that Debug leaves out.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="184"/>
         <source>Log Level:</source>
         <translation>Poziom dziennika:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="183"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="188"/>
         <source> entries</source>
         <translation> wpisów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="185"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="190"/>
         <source>How many recent log messages are kept in memory for crash reports and the log viewer. Larger values use more memory.</source>
         <translation>Ile ostatnich komunikatów dziennika jest przechowywanych w pamięci na potrzeby raportów awarii i przeglądarki dziennika. Większe wartości zużywają więcej pamięci.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="187"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="192"/>
         <source>Log Ring Buffer:</source>
         <translation>Bufor pierścieniowy dziennika:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="190"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="195"/>
         <source>These settings are read once while the application starts, so a change only takes effect after a restart.</source>
         <translation>Te ustawienia są odczytywane raz podczas uruchamiania aplikacji, więc zmiana zadziała dopiero po ponownym uruchomieniu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="196"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="201"/>
         <source>Some settings on this page are fixed by the ENV.ini file next to the application and cannot be changed here. Edit that file to change them.</source>
         <translation>Niektóre ustawienia na tej stronie są ustalone przez plik ENV.ini obok aplikacji i nie można ich tutaj zmienić. Aby je zmienić, edytuj ten plik.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="245"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="498"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="503"/>
         <source>System Keychain Unavailable</source>
         <translation>Systemowy brelok kluczy niedostępny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="251"/>
         <source>The system credential store could not be used, so the application key cannot be protected with it.</source>
         <translation>Nie udało się użyć systemowego magazynu poświadczeń, więc klucz aplikacji nie może być nim chroniony.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="249"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="254"/>
         <source>On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and it must be unlocked.</source>
         <translation>W systemie Linux wymaga to działającej usługi sekretów, takiej jak GNOME Keyring lub KWallet, która musi być odblokowana.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="284"/>
         <source>Turn Off Weekly Key Rotation?</source>
         <translation>Wyłączyć cotygodniową rotację kluczy?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="280"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="285"/>
         <source>At the %1 level the application saves your data with a key that changes every week. Choosing a lower level stops loading those keys, so anything saved while this level was on can no longer be read and is deleted after a short grace period.</source>
         <translation>Na poziomie %1 aplikacja zapisuje Twoje dane kluczem, który zmienia się co tydzień. Wybór niższego poziomu przestaje wczytywać te klucze, więc wszystko zapisane, gdy ten poziom był włączony, przestanie być czytelne i zostanie usunięte po krótkim okresie karencji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="291"/>
         <source>Lower the level anyway?</source>
         <translation>Czy mimo to obniżyć poziom?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="313"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="318"/>
         <source>Fixed by ENV.ini and cannot be changed here.</source>
         <translation>Ustalone przez ENV.ini — nie można tego tutaj zmienić.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="390"/>
         <source>This profile was opened from a file, and the passphrase that opens that file also protects its key. To change it, export the profile again with a new passphrase.</source>
         <translation>Ten profil został otwarty z pliku, a hasło otwierające ten plik chroni również jego klucz. Aby je zmienić, wyeksportuj profil ponownie z nowym hasłem.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="405"/>
         <source>Not available for a profile file: the file is meant to be opened on another computer, possibly running another operating system, where a secret stored in this computer&apos;s credential store cannot be read. Use a PIN, or no protection.</source>
         <translation>Niedostępne dla pliku profilu: plik jest przeznaczony do otwierania na innym komputerze, prawdopodobnie z innym systemem operacyjnym, gdzie nie można odczytać sekretu przechowywanego w magazynie poświadczeń tego komputera. Użyj PIN-u albo braku ochrony.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="405"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="410"/>
         <source>Not available in portable mode: a portable installation must not depend on secrets stored on one particular computer.</source>
         <translation>Niedostępne w trybie przenośnym: instalacja przenośna nie może zależeć od sekretów przechowywanych na jednym konkretnym komputerze.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="413"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="418"/>
         <source>No system credential store is available on this computer. On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and the libsecret client library (libsecret-1-0 on Debian and Ubuntu, libsecret on Fedora).</source>
         <translation>Na tym komputerze nie jest dostępny żaden systemowy magazyn poświadczeń. W systemie Linux wymaga to działającej usługi sekretów, takiej jak GNOME Keyring lub KWallet, oraz biblioteki klienckiej libsecret (libsecret-1-0 w Debianie i Ubuntu, libsecret w Fedorze).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="499"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="504"/>
         <source>The application key could not be protected with the system keychain, so it has been left exactly as it was.</source>
         <translation>Nie udało się chronić klucza aplikacji systemowym brelokiem kluczy, więc pozostawiono go dokładnie tak, jak był.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="503"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="553"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="508"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="558"/>
         <source>Application Key Error</source>
         <translation>Błąd klucza aplikacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="504"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="509"/>
         <source>The application key could not be re-protected: %1.</source>
         <translation>Nie udało się ponownie chronić klucza aplikacji: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="507"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="512"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="560"/>
         <source>It has been left exactly as it was, so nothing has been lost.</source>
         <translation>Został pozostawiony dokładnie tak, jak był, więc nic nie zostało utracone.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="536"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="541"/>
         <source>The current PIN is not correct.</source>
         <translation>Bieżący PIN jest nieprawidłowy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="552"/>
         <source>PIN Changed</source>
         <translation>PIN zmieniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="548"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="553"/>
         <source>The application PIN has been changed.</source>
         <translation>PIN aplikacji został zmieniony.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="554"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="559"/>
         <source>The PIN could not be changed: %1.</source>
         <translation>Nie udało się zmienić PIN-u: %1.</translation>
     </message>
@@ -3096,150 +3105,158 @@ Cel może znajdować się na innym wolumenie lub możesz nie mieć wystarczając
 <context>
     <name>GpgFrontend::UI::GeneralTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="52"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="53"/>
         <source>Base</source>
         <translation>Podstawy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="59"/>
         <source>Module Loading Policy:</source>
-        <translation>Zasady ładowania modułów:</translation>
+        <translation type="vanished">Zasady ładowania modułów:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="60"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="61"/>
         <source>Only Integrated Modules</source>
         <translation>Tylko moduły wbudowane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="62"/>
         <source>All Modules</source>
-        <translation>Wszystkie moduły</translation>
+        <translation type="vanished">Wszystkie moduły</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="63"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="65"/>
         <source>Disable</source>
         <translation>Wyłącz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="67"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="78"/>
         <source>Default Workspace As:</source>
         <translation>Domyślna przestrzeń robocza:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="68"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="79"/>
         <source>File Panel</source>
         <translation>Panel plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="69"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="80"/>
         <source>Text Editor</source>
         <translation>Edytor tekstu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="89"/>
         <source>Cache text editor contents.</source>
         <translation>Przechowuj zawartość edytora tekstu w pamięci podręcznej.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="99"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="110"/>
         <source>System Default follows your operating system. Choose a language here to override it. GpgFrontend restarts automatically when you change it.</source>
         <translation>Domyślny systemowy to język zgodny z ustawionym w systemie operacyjnym. Wybierz tutaj język, aby to zmienić. GpgFrontend uruchomi się ponownie automatycznie po zmianie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="65"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="76"/>
         <source>Operation</source>
         <translation>Zachowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="54"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="55"/>
         <source>Default Engine:</source>
         <translation>Domyślny silnik:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="75"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="60"/>
+        <source>Module Discovery:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="63"/>
+        <source>Also Look For Modules I&apos;ve Added</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="86"/>
         <source>File Panel Opens At:</source>
         <translation>Panel plików otwiera się w</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="81"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="92"/>
         <source>Import files dropped on the Key List without confirmation.</source>
         <translation>Importuj pliki upuszczone na listę kluczy bez potwierdzania.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="84"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="95"/>
         <source>Remember which keys are checked in the key list between restarts.</source>
         <translation>Zapamiętuj zaznaczone klucze na liście kluczy między uruchomieniami.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="86"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="97"/>
         <source>Use Binary Mode for File Operations</source>
         <translation>Używaj trybu binarnego dla operacji na plikach</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="99"/>
         <source>Warn about keys expiring within:</source>
         <translation>Ostrzegaj o kluczach wygasających w ciągu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="100"/>
         <source> days</source>
         <translation> dni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="102"/>
         <source>Language</source>
         <translation>Język</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="98"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="109"/>
         <source>NOTE</source>
         <translation>UWAGA</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="98"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="109"/>
         <source>: </source>
         <translation>: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="103"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="114"/>
         <source>Data</source>
         <translation>Dane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="105"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="154"/>
         <source>Clear All Data Objects (Total Size: %1)</source>
         <translation>Wyczyść wszystkie obiekty danych (całkowity rozmiar: %1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="132"/>
         <source>Reveal in File Explorer</source>
         <translation>Pokaż w eksploratorze plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="135"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="146"/>
         <source>Confirm</source>
         <translation>Potwierdź</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="136"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="147"/>
         <source>Are you sure you want to clear all data objects?
 This will result in the loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>Czy na pewno chcesz wyczyścić wszystkie obiekty danych?
 Spowoduje to utratę wszystkich zapamiętanych pozycji okien, statusów, serwerów kluczy itd.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="177"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="189"/>
         <source>Profile Workspace</source>
         <translation>Obszar roboczy profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="183"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="195"/>
         <source>Home Folder</source>
         <translation>Folder domowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="186"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="198"/>
         <source>Working Directory</source>
         <translation>Katalog roboczy</translation>
     </message>
@@ -8020,47 +8037,47 @@ Po instalacji uruchom GpgFrontend ponownie. Plik konfiguracyjny zostanie zaktual
         <translation>Ładowanie nie powiodło się</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="395"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="401"/>
         <source>Remove From This Category</source>
         <translation>Usuń z tej kategorii</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="425"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="431"/>
         <source>New Category...</source>
         <translation>Nowa kategoria...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="429"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="435"/>
         <source>New Category</source>
         <translation>Nowa kategoria</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="429"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="435"/>
         <source>Category name:</source>
         <translation>Nazwa kategorii:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="461"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="467"/>
         <source>Name: %1</source>
         <translation>Nazwa: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="462"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="468"/>
         <source>Path: %1</source>
         <translation>Ścieżka: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="475"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="481"/>
         <source>Invalid Key Databases</source>
         <translation>Nieprawidłowe bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="480"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="486"/>
         <source>Detected %1 invalid key database(s).</source>
         <translation>Wykryto nieprawidłowych baz kluczy: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="483"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="489"/>
         <source>The application cannot load these databases. Please review the details below and fix the issues in the GnuPG Controller.</source>
         <translation>Aplikacja nie może wczytać tych baz. Przejrzyj szczegóły poniżej i napraw problemy w kontrolerze GnuPG.</translation>
     </message>
@@ -9328,224 +9345,334 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
 <context>
     <name>GpgFrontend::UI::ModuleControllerDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="128"/>
         <source>Show Modules Folder</source>
         <translation>Pokaż katalog modułów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="87"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="101"/>
         <source>Registered Modules</source>
         <translation>Zarejestrowane moduły</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
         <source>Global Register Table</source>
         <translation>Globalna tablica rejestru</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="103"/>
         <source>Debugger</source>
         <translation>Debugger</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="85"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="99"/>
         <source>Module Controller</source>
         <translation>Kontroler modułów</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="106"/>
         <source>ID</source>
-        <translation>Identyfikator</translation>
+        <translation type="vanished">Identyfikator</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="105"/>
         <source>Search modules...</source>
         <translation>Szukaj modułów...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="92"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="106"/>
         <source>All</source>
         <translation>Wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="110"/>
         <source>Inactive</source>
         <translation>Nieaktywne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="294"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="112"/>
         <source>Integrated</source>
         <translation>Wbudowane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="294"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="114"/>
         <source>External</source>
         <translation>Zewnętrzne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="116"/>
+        <source>Not Loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="120"/>
         <source>Select a module to see its details.</source>
         <translation>Wybierz moduł, aby zobaczyć jego szczegóły.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="107"/>
         <source>SDK Version</source>
-        <translation>Wersja SDK</translation>
+        <translation type="vanished">Wersja SDK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="108"/>
         <source>Qt ENV Version</source>
-        <translation>Wersja środowiska Qt</translation>
+        <translation type="vanished">Wersja środowiska Qt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="109"/>
         <source>Hash</source>
-        <translation>Skrót</translation>
+        <translation type="vanished">Skrót</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="110"/>
         <source>Path</source>
-        <translation>Ścieżka</translation>
+        <translation type="vanished">Ścieżka</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="112"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="122"/>
         <source>Listening Events</source>
         <translation>Nasłuchiwane zdarzenia</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="124"/>
         <source>Activate on Start</source>
         <translation>Aktywuj przy starcie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="126"/>
         <source>Activate this module automatically when GpgFrontend starts.</source>
         <translation>Aktywuj ten moduł automatycznie po uruchomieniu GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="117"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="127"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="133"/>
         <source>Refresh</source>
         <translation>Odśwież</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="130"/>
         <source>Search keys and values...</source>
         <translation>Szukaj kluczy i wartości...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="131"/>
         <source>Expand All</source>
         <translation>Rozwiń wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="122"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
         <source>Collapse All</source>
         <translation>Zwiń wszystkie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="125"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="202"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="135"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="209"/>
         <source>Trigger Event</source>
         <translation>Wywołaj zdarzenie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="126"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="211"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="215"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="219"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="136"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="218"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="222"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="226"/>
         <source>Upsert GRT Value</source>
         <translation>Wstaw/aktualizuj wartość GRT</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="136"/>
         <source>%1 modules · %2 active</source>
-        <translation>Moduły: %1 · aktywne: %2</translation>
+        <translation type="vanished">Moduły: %1 · aktywne: %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="203"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="210"/>
         <source>Please provide an Event ID</source>
         <translation>Podaj identyfikator zdarzenia</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="211"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="218"/>
         <source>Namespace</source>
         <translation>Przestrzeń nazw</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="215"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="222"/>
         <source>Key</source>
         <translation>Klucz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="220"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="227"/>
         <source>Value</source>
         <translation>Wartość</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="239"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Ładowanie modułów jest wyłączone. Włącz je w Ustawieniach &gt; Ogólne, aby korzystać z modułów.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="244"/>
         <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Ładowane są tylko moduły wbudowane. Aby ładować moduły zewnętrzne z katalogu mods, zmień zasady ładowania modułów w Ustawieniach &gt; Ogólne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="413"/>
+        <source>Trust This Publisher Key...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="269"/>
+        <source>Enable This Module</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="288"/>
+        <source>Trust This Publisher Key?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="289"/>
+        <source>&lt;p&gt;Modules signed by this publisher key will be offered for you to enable, one at a time. Trusting it does not enable anything by itself.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Publisher key fingerprint&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;The key is the publisher&apos;s identity. Any name or website a module shows is only its own claim. A module signed with a different key will ask you again.&lt;/p&gt;&lt;p&gt;Only continue if you obtained this fingerprint from the module&apos;s author through a channel you trust.&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="323"/>
+        <source>Not Saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="324"/>
+        <source>That decision could not be saved, so nothing has changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="332"/>
+        <source>Enabled</source>
+        <translation type="unfinished">Włączone</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="333"/>
+        <source>This module will be loaded the next time GpgFrontend starts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="367"/>
+        <source>Needs Approval</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="367"/>
+        <source>Refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="375"/>
+        <source>Status</source>
+        <translation type="unfinished">Status</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="376"/>
+        <source>Waiting for you</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="377"/>
+        <source>Not loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="380"/>
+        <source>Identifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="382"/>
+        <source>Descriptor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="390"/>
+        <source>Publisher key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="392"/>
+        <source>You have trusted this publisher key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="393"/>
+        <source>You have not trusted this publisher key. Before trusting it, compare its fingerprint with the one the publisher published.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="412"/>
+        <source>Publisher Key Trusted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="471"/>
         <source>● Active</source>
         <translation>● Aktywny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="471"/>
         <source>○ Inactive</source>
         <translation>○ Nieaktywny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="298"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="475"/>
         <source>Auto Start</source>
         <translation>Autostart</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="303"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="480"/>
         <source>by %1</source>
         <translation>autor: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="316"/>
         <source>N/A</source>
-        <translation>n/d</translation>
+        <translation type="vanished">n/d</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="327"/>
         <source>N/A (integrated)</source>
-        <translation>n/d (wbudowany)</translation>
+        <translation type="vanished">n/d (wbudowany)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="331"/>
         <source>Click to open the containing folder</source>
-        <translation>Kliknij, aby otworzyć folder zawierający</translation>
+        <translation type="vanished">Kliknij, aby otworzyć folder zawierający</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="498"/>
         <source>Listening Events (%1)</source>
         <translation>Nasłuchiwane zdarzenia (%1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="94"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="108"/>
         <source>Active</source>
         <translation>Aktywne</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="145"/>
+        <source>%n module(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="147"/>
+        <source>%n active</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="500"/>
         <source>Deactivate</source>
         <translation>Dezaktywuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="501"/>
         <source>Activate</source>
         <translation>Aktywuj</translation>
     </message>
@@ -9553,17 +9680,37 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
 <context>
     <name>GpgFrontend::UI::ModuleItemDelegate</name>
     <message>
-        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="196"/>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="168"/>
+        <source>Needs Approval</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="168"/>
+        <source>Refused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="181"/>
         <source>Integrated</source>
         <translation>Wbudowany</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="196"/>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="181"/>
         <source>External</source>
         <translation>Zewnętrzny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="202"/>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="196"/>
+        <source>Signed</source>
+        <translation type="unfinished">Podpisano</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="196"/>
+        <source>Unsigned</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="203"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
@@ -10464,132 +10611,132 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
 <context>
     <name>GpgFrontend::UI::SettingsDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="92"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="93"/>
         <source>General</source>
         <translation>Ogólne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="93"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="94"/>
         <source>Appearance</source>
         <translation>Wygląd</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="122"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="123"/>
         <source>Network</source>
         <translation>Sieć</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="94"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="95"/>
         <source>Key Databases</source>
         <translation>Bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="85"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="86"/>
         <source>Application</source>
         <translation>Aplikacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="86"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="87"/>
         <source>Keys &amp; Engines</source>
         <translation>Klucze i silniki</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="87"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="88"/>
         <source>Features</source>
         <translation>Funkcje</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="89"/>
         <source>System</source>
         <translation>System</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="96"/>
         <source>GnuPG</source>
         <translation>GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="97"/>
         <source>Advanced</source>
         <translation>Zaawansowane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>startup</source>
         <translation>uruchamianie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>confirm import</source>
         <translation>potwierdzenie importu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>language</source>
         <translation>język</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>locale</source>
         <translation>lokalizacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="110"/>
         <source>translation</source>
         <translation>tłumaczenie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="110"/>
         <source>data</source>
         <translation>dane</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="110"/>
         <source>cache</source>
         <translation>pamięć podręczna</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>theme</source>
         <translation>motyw</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>icon</source>
         <translation>ikona</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>font size</source>
         <translation>rozmiar czcionki</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>font family</source>
         <translation>krój czcionki</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
         <source>toolbar</source>
         <translation>pasek narzędzi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
         <source>actions</source>
         <translation>akcje</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
         <source>instant messaging</source>
         <translation>komunikatory</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="116"/>
         <source>text editor</source>
         <translation>edytor tekstu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="116"/>
         <source>status panel</source>
         <translation>panel statusu</translation>
     </message>
@@ -10606,7 +10753,7 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
         <translation type="vanished">rtl</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="116"/>
         <source>arabic</source>
         <translation>arabski</translation>
     </message>
@@ -10619,187 +10766,187 @@ Czy chcesz pobrać te klucze z serwera kluczy?</translation>
         <translation type="vanished">perski</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="125"/>
         <source>proxy</source>
         <translation>proxy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="125"/>
         <source>socks</source>
         <translation>socks</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="125"/>
         <source>http</source>
         <translation>http</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="125"/>
         <source>timeout</source>
         <translation>limit czasu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="126"/>
         <source>connection</source>
         <translation>połączenie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="131"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="132"/>
         <source>keyring</source>
         <translation>baza kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="131"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="132"/>
         <source>gpg home</source>
         <translation>katalog gpg</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="131"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="132"/>
         <source>database path</source>
         <translation>ścieżka bazy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
         <source>gpgme</source>
         <translation>gpgme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
         <source>gpgconf</source>
         <translation>gpgconf</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
         <source>binary path</source>
         <translation>ścieżka pliku binarnego</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
         <source>custom install</source>
         <translation>własna instalacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="140"/>
         <source>password cache</source>
         <translation>pamięć podręczna haseł</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="140"/>
         <source>reload</source>
         <translation>przeładowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="140"/>
         <source>restart</source>
         <translation>ponowne uruchomienie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="140"/>
         <source>gpg-agent</source>
         <translation>gpg-agent</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="140"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="141"/>
         <source>maintenance</source>
         <translation>konserwacja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="145"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="146"/>
         <source>rPGP</source>
         <translation>rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="145"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="146"/>
         <source>rust</source>
         <translation>rust</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="145"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="146"/>
         <source>engine</source>
         <translation>silnik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="150"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="151"/>
         <source>Instant Messaging</source>
         <translation>Komunikatory</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="152"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="153"/>
         <source>message book</source>
         <translation>książka wiadomości</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="152"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="153"/>
         <source>phrase</source>
         <translation>fraza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="152"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="153"/>
         <source>fingerprint</source>
         <translation>odcisk</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="152"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="153"/>
         <source>token</source>
         <translation>token</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="157"/>
         <source>security level</source>
         <translation>poziom bezpieczeństwa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="157"/>
         <source>PIN</source>
         <translation>PIN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="157"/>
         <source>keychain</source>
         <translation>brelok kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="158"/>
         <source>log level</source>
         <translation>poziom dziennika</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="158"/>
         <source>ring buffer</source>
         <translation>bufor pierścieniowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="158"/>
         <source>ENV.ini</source>
         <translation>ENV.ini</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="180"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="181"/>
         <source>Search settings…</source>
         <translation>Szukaj w ustawieniach…</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="234"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="473"/>
         <source>Restart Required</source>
         <translation>Wymagane ponowne uruchomienie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="469"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
         <source>Some of your changes only take effect after GpgFrontend restarts.</source>
         <translation>Niektóre zmiany zadziałają dopiero po ponownym uruchomieniu GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="471"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="476"/>
         <source>Some of your changes only take effect after the interface reloads.</source>
         <translation>Niektóre zmiany zadziałają dopiero po przeładowaniu interfejsu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="474"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="479"/>
         <source>Pages with changes that need this: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
@@ -10808,22 +10955,22 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
 Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące ustawienia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="484"/>
         <source>Save and Restart</source>
         <translation>Zapisz i uruchom ponownie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="484"/>
         <source>Save and Reload</source>
         <translation>Zapisz i przeładuj</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="570"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="584"/>
         <source>System Default</source>
         <translation>Domyślny systemowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="224"/>
         <source>Preferences</source>
         <translation>Preferencje</translation>
     </message>
@@ -11761,36 +11908,36 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
 <context>
     <name>GpgFrontend::UI::TextEdit</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="208"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="211"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="672"/>
         <source>Warning</source>
         <translation>Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="209"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="212"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>Nie można odczytać pliku %1:
 %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="118"/>
         <source>Open file</source>
-        <translation>Otwórz plik</translation>
+        <translation type="vanished">Otwórz plik</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="95"/>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="103"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="118"/>
         <source>Open File</source>
         <translation>Otwórz plik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="613"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="623"/>
         <source>File Open Error</source>
         <translation>Błąd otwierania pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="614"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="624"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>Nie udało się otworzyć pliku „%1”.</translation>
     </message>
@@ -11815,32 +11962,32 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
         <translation>Operacja zapisu pliku dla typu karty „%1” nie jest obsługiwana.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="249"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="252"/>
         <source>Save File</source>
         <translation>Zapisz plik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="317"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="329"/>
         <source>Unsaved Document</source>
         <translation>Niezapisany dokument</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="318"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="330"/>
         <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?</source>
         <translation>Dokument „%1” został zmodyfikowany. Czy chcesz zapisać zmiany?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="321"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="333"/>
         <source>Note:</source>
         <translation>Uwaga:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="334"/>
         <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>Jeśli nie zapiszesz tych plików, wszystkie zmiany przepadną.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="672"/>
         <source>No document to print.</source>
         <translation>Brak dokumentu do wydrukowania</translation>
     </message>
@@ -11848,74 +11995,74 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
 <context>
     <name>GpgFrontend::UI::TextEditTabWidget</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="336"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="359"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="348"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="371"/>
         <source>File Open Error</source>
         <translation>Błąd otwierania pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="282"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="294"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>Nie udało się otworzyć pliku „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="155"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="167"/>
         <source>Close</source>
         <translation>Zamknij</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="156"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="168"/>
         <source>Copy Path</source>
         <translation>Skopiuj ścieżkę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="157"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="169"/>
         <source>Reveal in File Browser</source>
         <translation>Pokaż w menedżerze plików</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="262"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="274"/>
         <source>The file does not exist.</source>
         <translation>Plik nie istnieje.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="271"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="283"/>
         <source>The file &quot;%1&quot; is larger than 4 MB and will not be opened in the text editor.</source>
         <translation>Plik „%1” jest większy niż 4 MB i nie zostanie otwarty w edytorze tekstu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="290"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="302"/>
         <source>The file &quot;%1&quot; appears to be a binary file and will not be opened.</source>
         <translation>Plik „%1” wygląda na plik binarny i nie zostanie otwarty.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="337"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="349"/>
         <source>The file &quot;%1&quot; does not exist.</source>
         <translation>Plik „%1” nie istnieje.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="537"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="549"/>
         <source>Select Default Path</source>
         <translation>Wybierz domyślną ścieżkę</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="602"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1120"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="619"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1165"/>
         <source>Workspace</source>
         <translation>Obszar roboczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1092"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1137"/>
         <source>Directory Permission Denied</source>
         <translation>Brak uprawnień do katalogu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1093"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1138"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>Nie masz uprawnień do dostępu do katalogu „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1115"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1160"/>
         <source>Root</source>
         <translation>Katalog główny</translation>
     </message>
@@ -12028,50 +12175,50 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
 <context>
     <name>QCoreApplication</name>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="153"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="154"/>
         <source>File Hash Information</source>
         <translation>Informacje o skrócie pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="127"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="170"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="128"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="171"/>
         <source>Filename</source>
         <translation>Nazwa pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="155"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="170"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="156"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="171"/>
         <source>: </source>
         <translation>: </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="128"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="130"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="129"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="131"/>
         <source>File Size</source>
         <translation>Rozmiar pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="168"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="169"/>
         <source>Error: cannot read target file</source>
         <translation>Błąd: nie można odczytać pliku docelowego</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="202"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="203"/>
         <source>target path doesn&apos;t exists</source>
         <translation>ścieżka docelowa nie istnieje</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="208"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="209"/>
         <source>do NOT have permission to write path</source>
         <translation>brak uprawnień do zapisu w ścieżce</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="214"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="215"/>
         <source>do NOT have permission to read/write file</source>
         <translation>brak uprawnień do odczytu/zapisu pliku</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="217"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="218"/>
         <source>Success</source>
         <translation>Sukces</translation>
     </message>
@@ -12086,53 +12233,125 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
         <translation>Nie zaznaczono żadnych kluczy publicznych do synchronizacji. Czy zsynchronizować wszystkie lokalne klucze publiczne z serwera kluczy?</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="540"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="548"/>
         <source>Basic Path Initiation Failed</source>
         <translation>Inicjowanie podstawowych ścieżek nie powiodło się</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="568"/>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="638"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="580"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="651"/>
         <source>No Supported OpenPGP Engine Detected</source>
         <translation>Nie wykryto obsługiwanego silnika OpenPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="610"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="623"/>
         <source>No valid Key Database</source>
         <translation>Brak prawidłowej bazy kluczy</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="670"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="686"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>Inicjowanie domyślnego kontekstu GpgME nie powiodło się</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="683"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="708"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Inicjowanie domyślnej bazy kluczy Gpg nie powiodło się</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="102"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="72"/>
+        <source>Starting up...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="74"/>
+        <source>Checking the GnuPG environment...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="76"/>
+        <source>Checking the rPGP engine...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="78"/>
+        <source>Resolving GnuPG paths...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="80"/>
+        <source>Preparing the OpenPGP backend engine...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="82"/>
+        <source>Building the default engine context...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="85"/>
+        <source>Loading key databases...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
+        <source>Loading key database &quot;%1&quot;...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="89"/>
+        <source>Scanning modules...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="91"/>
+        <source>Verifying modules...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="94"/>
+        <source>Loading modules...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
+        <source>Loading module &quot;%1&quot;...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="98"/>
+        <source>Ready.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="123"/>
         <source>Starting GpgFrontend</source>
         <translation>Uruchamianie GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="108"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="163"/>
+        <source>Preparing OpenPGP Environment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="164"/>
+        <source>Loading...</source>
+        <translation type="unfinished">Wczytywanie...</translation>
+    </message>
+    <message>
         <source>Loading essential information</source>
-        <translation>Wczytywanie istotnych informacji</translation>
+        <translation type="vanished">Wczytywanie istotnych informacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="114"/>
         <source>GpgFrontend is checking your OpenPGP environment and preparing the default engine. This may take a few seconds.</source>
-        <translation>GpgFrontend sprawdza Twoje środowisko OpenPGP i przygotowuje domyślny silnik. Może to potrwać kilka sekund.</translation>
+        <translation type="vanished">GpgFrontend sprawdza Twoje środowisko OpenPGP i przygotowuje domyślny silnik. Może to potrwać kilka sekund.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="119"/>
         <source>Please keep this window open while the initialization is running.</source>
-        <translation>Nie zamykaj tego okna, dopóki trwa inicjalizacja.</translation>
+        <translation type="vanished">Nie zamykaj tego okna, dopóki trwa inicjalizacja.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="132"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="151"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
@@ -12140,9 +12359,9 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="107"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="249"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="273"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="127"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="251"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="275"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="230"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="619"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="765"/>
@@ -12150,351 +12369,365 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
         <translation>Nie można otworzyć profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="366"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="368"/>
         <source>Save Key Failed</source>
         <translation>Zapis klucza nie powiódł się</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="401"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="403"/>
         <source>Secure Key Generation Failed</source>
         <translation>Generowanie klucza bezpieczeństwa nie powiodło się</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="367"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="369"/>
         <source>The application secure key could not be saved: %1</source>
         <translation>Nie udało się zapisać klucza bezpieczeństwa aplikacji: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="63"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="64"/>
         <source>Resetting lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
         <translation>Resetowanie pozwala aplikacji wystartować, ale wszystko, co wcześniej zaszyfrowała, stanie się trwale nieczytelne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="70"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="71"/>
         <source>You can unlock the keychain and start the application again instead. That costs nothing and leaves the key intact.</source>
         <translation>Zamiast tego możesz odblokować brelok kluczy i uruchomić aplikację ponownie. To nic nie kosztuje i pozostawia klucz nienaruszonym.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="162"/>
         <source>It is open in process %1 on %2.</source>
-        <translation>Jest otwarty w procesie %1 na %2.</translation>
+        <translation type="vanished">Jest otwarty w procesie %1 na %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="164"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="165"/>
         <source>this computer</source>
         <translation>tym komputerze</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="166"/>
         <source>Another process has it open.</source>
-        <translation>Inny proces ma go otwartego.</translation>
+        <translation type="vanished">Inny proces ma go otwartego.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="169"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="255"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="170"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="257"/>
         <source>Profile Is Already Open</source>
         <translation>Profil jest już otwarty</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="170"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="256"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="258"/>
         <source>This profile is already open in another window.</source>
         <translation>Ten profil jest już otwarty w innym oknie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="172"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="171"/>
         <source>Opening it twice would corrupt its stored data.</source>
         <translation>Otwarcie go dwukrotnie uszkodziłoby jego zapisane dane.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="173"/>
         <source>Profile: %1</source>
-        <translation>Profil: %1</translation>
+        <translation type="vanished">Profil: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="194"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="196"/>
         <source>Force Unlock</source>
         <translation>Wymuś odblokowanie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="178"/>
         <source>Only do this if you are certain no other GpgFrontend window has this profile open.</source>
-        <translation>Zrób to tylko wtedy, gdy masz pewność, że żadne inne okno GpgFrontend nie ma otwartego tego profilu.</translation>
+        <translation type="vanished">Zrób to tylko wtedy, gdy masz pewność, że żadne inne okno GpgFrontend nie ma otwartego tego profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="181"/>
         <source>If one does, both copies will corrupt the profile&apos;s stored data.</source>
-        <translation>Jeśli jakieś ma, obie kopie uszkodzą zapisane dane profilu.</translation>
+        <translation type="vanished">Jeśli jakieś ma, obie kopie uszkodzą zapisane dane profilu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="263"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="265"/>
         <source>Cannot Lock Profile</source>
         <translation>Nie można zablokować profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="264"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="266"/>
         <source>The lock file at %1 could not be created.</source>
         <translation>Nie udało się utworzyć pliku blokady w %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="281"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="283"/>
         <source>This profile is set to open only in storage that is not left readable on this disk, and none is available here.</source>
         <translation>Ten profil jest ustawiony tak, aby otwierał się wyłącznie w pamięci, która nie pozostaje odczytywalna na tym dysku, a taka nie jest tu dostępna.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="286"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="288"/>
         <source>Change &apos;Profile package storage&apos; in Settings to allow an ordinary temporary folder.</source>
         <translation>Zmień „Miejsce przechowywania pakietu profilu” w Ustawieniach, aby zezwolić na zwykły folder tymczasowy.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="290"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="292"/>
         <source>Cannot Open Profile Safely</source>
         <translation>Nie można bezpiecznie otworzyć profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="297"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="299"/>
         <source>Not Enough Room</source>
         <translation>Za mało miejsca</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="298"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="300"/>
         <source>There was not enough room to unpack this profile.</source>
         <translation>Nie było wystarczająco miejsca, aby rozpakować ten profil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="301"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="303"/>
         <source>Storage: %1</source>
         <translation>Pamięć: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="303"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="305"/>
         <source>The file itself is fine — free some space and try again.</source>
         <translation>Sam plik jest w porządku — zwolnij trochę miejsca i spróbuj ponownie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="310"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="312"/>
         <source>This Profile File Is Too Large</source>
         <translation>Ten plik profilu jest za duży</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="311"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="313"/>
         <source>Opening a profile file needs to hold all of it in memory at once, and this one is bigger than this version can manage.</source>
         <translation>Otwarcie pliku profilu wymaga trzymania go w całości w pamięci naraz, a ten jest większy, niż ta wersja jest w stanie obsłużyć.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="317"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="319"/>
         <source>Size / limit: %1</source>
         <translation>Rozmiar / limit: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="319"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="321"/>
         <source>Nothing has been unpacked. This version cannot create a file this large either, so it was made somewhere else or has been damaged.</source>
         <translation>Nic nie zostało rozpakowane. Ta wersja nie potrafi też utworzyć tak dużego pliku, więc powstał gdzie indziej albo został uszkodzony.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="326"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="328"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="129"/>
         <source>This File Has Been Altered</source>
         <translation>Ten plik został zmieniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="338"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="340"/>
         <source>Profile Cannot Be Opened</source>
         <translation>Nie można otworzyć profilu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="343"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="345"/>
         <source>Continuing would damage it. Please use %1 or later, or start this version with a different profile.</source>
         <translation>Kontynuacja uszkodziłaby go. Użyj %1 lub nowszej albo uruchom tę wersję z innym profilem.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="353"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="355"/>
         <source>Profile Upgrade Failed</source>
         <translation>Aktualizacja profilu nie powiodła się</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="354"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="356"/>
         <source>Upgrading this profile stopped at step &apos;%1&apos;.</source>
         <translation>Aktualizacja tego profilu zatrzymała się na kroku „%1”.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="357"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="359"/>
         <source>The profile is intact. Please report this.</source>
         <translation>Profil jest nienaruszony. Zgłoś to, proszę.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="370"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="372"/>
         <source>Anything saved now would be unreadable after a restart, so the application will not continue. Please check your storage and permissions.</source>
         <translation>Wszystko zapisane teraz byłoby nieczytelne po ponownym uruchomieniu, więc aplikacja nie będzie kontynuować. Sprawdź pamięć i uprawnienia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="380"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="389"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="409"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="382"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="391"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="411"/>
         <source>App Secure Key Error</source>
         <translation>Błąd klucza bezpieczeństwa aplikacji</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="381"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="383"/>
         <source>Failed to decrypt the application secure key. The key file may be corrupted.</source>
         <translation>Nie udało się odszyfrować klucza bezpieczeństwa aplikacji. Plik klucza może być uszkodzony.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="383"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="385"/>
         <source>Please clear the secure key and try again.</source>
         <translation>Wyczyść klucz bezpieczeństwa i spróbuj ponownie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="390"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="392"/>
         <source>Failed to read the application secure key from disk at: %1</source>
         <translation>Nie udało się odczytać klucza bezpieczeństwa aplikacji z dysku pod adresem: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="394"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="396"/>
         <source>Please ensure the key file exists and is accessible, or try re-initializing the secure key.</source>
         <translation>Upewnij się, że plik klucza istnieje i jest dostępny, albo spróbuj ponownie zainicjować klucz bezpieczeństwa.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="402"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="404"/>
         <source>Failed to generate an application secure key.</source>
         <translation>Nie udało się wygenerować klucza bezpieczeństwa aplikacji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="403"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="405"/>
         <source>Please check your system&apos;s cryptography support.</source>
         <translation>Sprawdź obsługę kryptografii w swoim systemie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="229"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="231"/>
         <source>Reset Secure Key</source>
         <translation>Resetuj klucz bezpieczeństwa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="429"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="431"/>
         <source>System Keychain Unavailable</source>
         <translation>Systemowy brelok kluczy niedostępny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="430"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="432"/>
         <source>The application key could not be protected using the system keychain, so it remains stored unprotected.</source>
         <translation>Nie udało się chronić klucza aplikacji przy użyciu systemowego breloka kluczy, więc pozostaje przechowywany bez ochrony.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="433"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="435"/>
         <source>This setting has been turned off. You can turn it on again once a keychain is available.</source>
         <translation>To ustawienie zostało wyłączone. Możesz je ponownie włączyć, gdy brelok kluczy będzie dostępny.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="410"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="412"/>
         <source>The application secure key at %1 could not be read or rewritten.</source>
         <translation>Nie udało się odczytać ani przepisać klucza bezpieczeństwa aplikacji w %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="266"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="413"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="268"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="415"/>
         <source>Please check your storage and permissions.</source>
         <translation>Sprawdź pamięć i uprawnienia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="205"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="207"/>
         <source>Secure Key Unavailable</source>
         <translation>Klucz bezpieczeństwa niedostępny</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="206"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="208"/>
         <source>The application key is protected by a secret kept in the system keychain, and that secret could not be read.</source>
         <translation>Klucz aplikacji jest chroniony sekretem przechowywanym w systemowym breloku kluczy, a tego sekretu nie udało się odczytać.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="210"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="212"/>
         <source>This usually means the keychain is locked, was reset, or this profile was copied from another computer or user account.</source>
         <translation>Zwykle oznacza to, że brelok kluczy jest zablokowany, został zresetowany albo ten profil został skopiowany z innego komputera lub konta użytkownika.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="214"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="216"/>
         <source>You can unlock the keychain and start the application again. Resetting the key instead lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
         <translation>Możesz odblokować brelok kluczy i uruchomić aplikację ponownie. Resetowanie klucza pozwala aplikacji wystartować, ale wszystko, co wcześniej zaszyfrowała, stanie się trwale nieczytelne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="192"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="228"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="195"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="230"/>
         <source>Quit</source>
         <translation>Zakończ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="85"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="86"/>
         <source>Reset the secure key?</source>
         <translation>Zresetować klucz bezpieczeństwa?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="58"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="74"/>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="82"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="59"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="75"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="83"/>
         <source>Reset to Default</source>
         <translation>Przywróć domyślne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="60"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="61"/>
         <source>Resetting removes the PIN and lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
         <translation>Resetowanie usuwa PIN i pozwala aplikacji wystartować, ale wszystko, co wcześniej zaszyfrowała, stanie się trwale nieczytelne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="68"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="69"/>
         <source>Only do this if you cannot recall the PIN. There is no other way to recover the key.</source>
         <translation>Zrób to tylko wtedy, gdy nie pamiętasz PIN-u. Nie ma innego sposobu na odzyskanie klucza.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="73"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="74"/>
         <source>Go Back</source>
         <translation>Wróć</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="83"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="84"/>
         <source>Everything the application has encrypted with the current key will be permanently unreadable.</source>
         <translation>Wszystko, co aplikacja zaszyfrowała bieżącym kluczem, stanie się trwale nieczytelne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="333"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="163"/>
+        <source>Process %1 on %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="167"/>
+        <source>Another process</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="174"/>
+        <source>Held by</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="180"/>
+        <source>Only do this if you are certain no other GpgFrontend window has this profile open. If one does, both copies will corrupt the profile&apos;s stored data.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="335"/>
         <source>a newer version</source>
         <translation>nowszej wersji GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="337"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="339"/>
         <source>Profile Is Too New</source>
         <translation>Profil jest zbyt nowy</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="339"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="341"/>
         <source>This application data was last used by %1, which stores it in a format this version does not understand.</source>
         <translation>Z tych danych aplikacji ostatnio korzystała wersja %1, która zapisuje je w formacie nieznajomym tej wersji.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="346"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="348"/>
         <source>Data folder: %1</source>
         <translation>Folder danych: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="450"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="452"/>
         <source>Application Key Not Protected</source>
         <translation>Klucz aplikacji nie jest chroniony</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="451"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="453"/>
         <source>A PIN is configured, but the application key on disk is not encrypted.</source>
         <translation>PIN jest skonfigurowany, ale klucz aplikacji na dysku nie jest zaszyfrowany.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="454"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="456"/>
         <source>This can happen if a previous change was interrupted. The PIN setting has been turned off and the key is left as it is.</source>
         <translation>Może się to zdarzyć, jeśli wcześniejsza zmiana została przerwana. Ustawienie PIN zostało wyłączone, a klucz pozostawiono tak, jak jest.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="128"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="129"/>
         <source>That PIN did not unlock the application key. Please try again.</source>
         <translation>Ten PIN nie odblokował klucza aplikacji. Spróbuj ponownie.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="131"/>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="132"/>
         <source>If you have forgotten your PIN, the application key and everything encrypted with it cannot be recovered.</source>
         <translation>Jeśli nie pamiętasz PIN-u, klucza aplikacji i wszystkiego, co nim zaszyfrowano, nie będzie można odzyskać.</translation>
     </message>
@@ -12529,9 +12762,117 @@ Wybierz Anuluj, aby odrzucić wszystkie zmiany z tego okna i zachować bieżące
         <translation>Kanał</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="44"/>
+        <source>N/A</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="53"/>
+        <source>The signature shows this package was not altered after it was built. It does not show who built it: the key travels inside the package.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="69"/>
+        <source>Verified by GpgFrontend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="71"/>
+        <source>Identifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="75"/>
+        <source>Version</source>
+        <translation type="unfinished">Wersja</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="83"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="92"/>
+        <source>Origin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="79"/>
+        <source>Built into this application</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="80"/>
+        <source>Ships with GpgFrontend and is not loaded from disk.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="84"/>
+        <source>Signed package</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="86"/>
+        <source>Package</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="93"/>
+        <source>Unsigned library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="94"/>
+        <source>Loaded from a loose library, which nothing vouches for. Released builds ship signed packages only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="111"/>
+        <source>SDK ABI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="119"/>
+        <source>Built for</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="126"/>
+        <source>Built against Qt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="130"/>
+        <source>Capabilities</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="136"/>
+        <source>Digest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="164"/>
+        <source>Described by its package</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="165"/>
+        <source>Claimed by the module</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="168"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="115"/>
         <source>Name</source>
         <translation>Nazwa</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="173"/>
+        <source>Author</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="178"/>
+        <source>Description</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="116"/>
@@ -12765,6 +13106,7 @@ Link został skopiowany do schowka:
         <translation>Zapisz</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="54"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="120"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="207"/>
@@ -13019,6 +13361,7 @@ Link został skopiowany do schowka:
         <translation>Ten profil został utworzony w nowszej wersji GpgFrontend (%1).</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="173"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="189"/>
         <source>Profile</source>
         <translation>Profil</translation>
@@ -13357,6 +13700,26 @@ Link został skopiowany do schowka:
         <location filename="../../../../src/ui/widgets/MetaListPanel.cpp" line="81"/>
         <source>These come from the file&apos;s unencrypted header, which anyone holding the file can change.</source>
         <translation>Te dane pochodzą z niezaszyfrowanego nagłówka pliku, który może zmienić każdy, kto ma ten plik.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="254"/>
+        <source>External modules are not supported on macOS: the system only loads code signed with this application&apos;s own Team ID.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="269"/>
+        <source>Waiting for you to trust the publisher key that signed it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="272"/>
+        <source>Waiting for you to enable it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="299"/>
+        <source>The module declares the ID %1 but is in a directory named %2 instead of %3.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
