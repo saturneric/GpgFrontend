@@ -28,7 +28,8 @@
 
 #pragma once
 
-#include <GFSDKBasicModel.h>
+#include <GFSDKHostApi.h>
+#include <GFSDKTypes.h>
 
 #include <QList>
 #include <QMap>
@@ -49,9 +50,27 @@ struct Recorder {
   int allocations = 0;
   int frees = 0;
 
+  /// Calls that arrived on a thread other than the one that built the table.
+  /// The point of the context is that they are served all the same.
+  int calls_off_thread = 0;
+
   void Reset();
 };
 
 Recorder& Rec();
+
+/**
+ * @brief A host table the runtime can be activated with.
+ *
+ * @param granted GF_HOST_CAP_* bits. A group whose bit is clear is left NULL,
+ *        exactly as the real mint leaves it, so a test can watch an SDK
+ *        wrapper refuse rather than call through.
+ *
+ * The returned table points at statics and stays valid for the process.
+ */
+auto MakeHostApi(uint32_t granted) -> GFHostApi;
+
+/// The module id the fake host attributes every call to.
+auto FakeModuleId() -> const char*;
 
 }  // namespace stubs

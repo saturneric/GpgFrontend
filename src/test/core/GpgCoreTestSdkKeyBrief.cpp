@@ -31,11 +31,25 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
+#include "core/SdkTestContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "sdk/GFSDKGpg.h"
 #include "sdk/GFSDKGpgList.h"
 
 namespace GpgFrontend::Test {
+
+namespace {
+
+/// One granted context for this file, minted the way the module loader
+/// mints one. Process-lifetime on purpose: a grant is retired, never
+/// freed, so that a stale caller is refused rather than following a
+/// dangling pointer.
+auto Ctx() -> GFSDKContext* {
+  static SdkTestContext context("com.example.sdk.keybrief");
+  return context.get();
+}
+
+}  // namespace
 
 namespace {
 
@@ -72,11 +86,11 @@ TEST(SdkKeyBriefTest, ARejectedAddressIsStillNotTakenOwnershipOf) {
   const QByteArray original = address;
 
   GFGpgKeyBriefListRef briefs = nullptr;
-  EXPECT_EQ(GFGpgFindKeys(0, address.constData(), &briefs), -1);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &briefs), -1);
   EXPECT_EQ(address, original);
 
   // Still the caller's to hand over again.
-  EXPECT_EQ(GFGpgFindKeys(0, address.constData(), &briefs), -1);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &briefs), -1);
   EXPECT_EQ(address, original);
 }
 
@@ -90,8 +104,8 @@ TEST(SdkKeyBriefTest, LookupDoesNotTakeOwnershipOfTheAddress) {
   const QByteArray original = address;
 
   GFGpgKeyBriefListRef briefs = nullptr;
-  ASSERT_EQ(GFGpgFindKeys(0, address.constData(), &briefs), 0);
-  const auto count = GFGpgKeyBriefListCount(briefs);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &briefs), 0);
+  const auto count = GFGpgKeyBriefCount(Ctx(), briefs);
 
   // The caller's buffer must come back untouched and still be its own to use.
   EXPECT_EQ(address, original);
@@ -99,34 +113,34 @@ TEST(SdkKeyBriefTest, LookupDoesNotTakeOwnershipOfTheAddress) {
   // And it must survive a second lookup: under the ownership bug the first call
   // had already released it.
   GFGpgKeyBriefListRef again = nullptr;
-  ASSERT_EQ(GFGpgFindKeys(0, address.constData(), &again), 0);
-  EXPECT_EQ(GFGpgKeyBriefListCount(again), count);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &again), 0);
+  EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), again), count);
   EXPECT_EQ(address, original);
 
   // One release per list, no count to pass back.
-  GFGpgKeyBriefListRelease(briefs);
-  GFGpgKeyBriefListRelease(again);
+  GFGpgKeyBriefRelease(Ctx(), briefs);
+  GFGpgKeyBriefRelease(Ctx(), again);
 }
 
 TEST(SdkKeyBriefTest, AnAddressThatMatchesNothingIsNotAnError) {
   if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
 
   GFGpgKeyBriefListRef briefs = nullptr;
-  EXPECT_EQ(GFGpgFindKeys(0, "nobody@example.invalid", &briefs), 0);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, "nobody@example.invalid", &briefs), 0);
   ASSERT_NE(briefs, nullptr) << "an empty result is still an owned list";
-  EXPECT_EQ(GFGpgKeyBriefListCount(briefs), 0U);
+  EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), briefs), 0U);
 
   // Releasing the empty list is legal, and so is releasing nothing at all.
-  GFGpgKeyBriefListRelease(briefs);
-  GFGpgKeyBriefListRelease(nullptr);
+  GFGpgKeyBriefRelease(Ctx(), briefs);
+  GFGpgKeyBriefRelease(Ctx(), nullptr);
 }
 
 TEST(SdkKeyBriefTest, MissingArgumentsAreRejectedRatherThanDereferenced) {
   GFGpgKeyBriefListRef briefs = nullptr;
 
-  EXPECT_EQ(GFGpgFindKeys(0, "someone@example.invalid", nullptr), -1);
-  EXPECT_EQ(GFGpgFindKeys(0, nullptr, &briefs), -1);
-  EXPECT_EQ(GFGpgFindKeys(0, "   ", &briefs), -1);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, "someone@example.invalid", nullptr), -1);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, nullptr, &briefs), -1);
+  EXPECT_EQ(GFGpgFindKeys(Ctx(), 0, "   ", &briefs), -1);
 
   // A rejected call must leave the out-parameter in the safe state it
   // promises, so the caller's cleanup path is always valid.

@@ -52,13 +52,25 @@ TEST(ModuleSdkBridgeTest, TheSdkInstallsItselfWhenItIsLoaded) {
   EXPECT_TRUE(Module::IsModuleSdkBridgeInstalled());
 }
 
-TEST(ModuleSdkBridgeTest, TheHostApiTableIsReachableThroughTheBridge) {
-  const auto* first = Module::ModuleSdkHostApi();
+TEST(ModuleSdkBridgeTest, AHostApiTableIsMintedThroughTheBridge) {
+  const auto* first =
+      Module::ModuleSdkMintHostApi("com.example.bridge_probe", 0);
   ASSERT_NE(first, nullptr);
 
-  // Static for the life of the process, which is the promise Module::Active()
-  // relies on when it lets a module keep the pointer forever.
-  EXPECT_EQ(Module::ModuleSdkHostApi(), first);
+  // Minting the same module twice returns the SAME table. It has to: the
+  // module is holding the first pointer, and handing it a second one would
+  // leave the first live, unreachable, and still carrying the grant.
+  EXPECT_EQ(Module::ModuleSdkMintHostApi("com.example.bridge_probe", 0), first);
+
+  // A different module gets a different table, which is the entire reason
+  // this is a mint and not a getter.
+  const auto* other =
+      Module::ModuleSdkMintHostApi("com.example.bridge_probe_other", 0);
+  ASSERT_NE(other, nullptr);
+  EXPECT_NE(other, first);
+
+  Module::ModuleSdkReleaseHostApi("com.example.bridge_probe");
+  Module::ModuleSdkReleaseHostApi("com.example.bridge_probe_other");
 }
 
 TEST(ModuleSdkBridgeTest, AnAttributionScopeNestsAndUnwinds) {

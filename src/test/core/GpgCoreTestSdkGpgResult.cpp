@@ -31,6 +31,7 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
+#include "core/SdkTestContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
@@ -51,6 +52,19 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+/// One granted context for this file, minted the way the module loader
+/// mints one. Process-lifetime on purpose: a grant is retired, never
+/// freed, so that a stale caller is refused rather than following a
+/// dangling pointer.
+auto Ctx() -> GFSDKContext* {
+  static SdkTestContext context("com.example.sdk.gpgresult");
+  return context.get();
+}
+
+}  // namespace
+
+namespace {
+
 /// Shards run against a throwaway profile with no agent, so an engine is not
 /// guaranteed. Tests that need one skip rather than fail.
 auto ChannelIsUsable(int channel) -> bool {
@@ -60,90 +74,94 @@ auto ChannelIsUsable(int channel) -> bool {
 }  // namespace
 
 TEST(SdkGpgResultTest, ANullOutParameterIsRejectedRatherThanDereferenced) {
-  auto in = GFBuf::Copy(QByteArray("data"));
+  auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
 
-  EXPECT_LT(GFGpgDecrypt(0, in.View(), nullptr), 0);
-  EXPECT_LT(GFGpgVerify(0, in.View(), nullptr, nullptr), 0);
-  EXPECT_LT(GFGpgSign(0, nullptr, 0, in.View(), 0, 1, nullptr), 0);
-  EXPECT_LT(GFGpgEncrypt(0, nullptr, 0, in.View(), 1, nullptr), 0);
+  EXPECT_LT(GFGpgDecrypt(Ctx(), 0, in.View(), nullptr), 0);
+  EXPECT_LT(GFGpgVerify(Ctx(), 0, in.View(), nullptr, nullptr), 0);
+  EXPECT_LT(GFGpgSign(Ctx(), 0, nullptr, 0, in.View(), 0, 1, nullptr), 0);
+  EXPECT_LT(GFGpgEncrypt(Ctx(), 0, nullptr, 0, in.View(), 1, nullptr), 0);
 }
 
 // The contract that the old API broke by accident: a non-negative return
 // ALWAYS means there is an owned result to release, failures included.
 TEST(SdkGpgResultTest, ARejectedRequestStillHandsBackAnOwnedResult) {
-  auto in = GFBuf::Copy(QByteArray("data"));
+  auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
 
   GFGpgResultRef raw = nullptr;
-  const auto ret = GFGpgEncrypt(0, nullptr, 0, in.View(), 1, &raw);
+  const auto ret = GFGpgEncrypt(Ctx(), 0, nullptr, 0, in.View(), 1, &raw);
 
   ASSERT_GE(ret, 0) << "no usable recipient is a request error, not a crash";
   ASSERT_NE(raw, nullptr) << "a non-negative return must yield a result";
-  EXPECT_EQ(GFGpgResultStatusOf(raw), GF_GPG_BAD_REQUEST);
+  EXPECT_EQ(GFGpgResultStatusOf(Ctx(), raw), GF_GPG_BAD_REQUEST);
 
   // And it says why, rather than failing mutely.
-  EXPECT_STRNE(GFGpgResultErrorString(raw), "");
+  EXPECT_STRNE(GFGpgResultText(Ctx(), raw, GF_GPG_RESULT_TEXT_ERROR_STRING),
+               "");
 
-  GFGpgResultRelease(raw);
+  GFGpgResultRelease(Ctx(), raw);
 }
 
 TEST(SdkGpgResultTest, TheLedgerBalancesAcrossAFailedRequest) {
-  const auto before = GFGpgResultOutstandingCount(nullptr);
+  const auto before = GFGpgResultOutstandingCount(Ctx());
   {
-    auto in = GFBuf::Copy(QByteArray("data"));
-    GFGpgResult r;
-    GFGpgEncrypt(0, nullptr, 0, in.View(), 1, r.Out());
-    EXPECT_EQ(GFGpgResultOutstandingCount(nullptr), before + 1);
+    auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
+    GFGpgResult r(Ctx());
+    GFGpgEncrypt(Ctx(), 0, nullptr, 0, in.View(), 1, r.Out());
+    EXPECT_EQ(GFGpgResultOutstandingCount(Ctx()), before + 1);
   }
   // The RAII wrapper reclaimed it on scope exit, error path and all.
-  EXPECT_EQ(GFGpgResultOutstandingCount(nullptr), before);
+  EXPECT_EQ(GFGpgResultOutstandingCount(Ctx()), before);
 }
 
 TEST(SdkGpgResultTest, EveryAccessorToleratesANullHandle) {
-  EXPECT_EQ(GFGpgResultStatusOf(nullptr), GF_GPG_BAD_REQUEST);
-  EXPECT_EQ(GFGpgResultError(nullptr), 0U);
-  EXPECT_EQ(GFGpgResultData(nullptr), nullptr);
-  EXPECT_STREQ(GFGpgResultCapsuleId(nullptr), "");
-  EXPECT_STREQ(GFGpgResultErrorString(nullptr), "");
-  EXPECT_STREQ(GFGpgResultHashAlgo(nullptr), "");
-  EXPECT_EQ(GFGpgResultTakeData(nullptr), nullptr);
-  GFGpgResultRelease(nullptr);  // must not crash
+  EXPECT_EQ(GFGpgResultStatusOf(Ctx(), nullptr), GF_GPG_BAD_REQUEST);
+  EXPECT_EQ(GFGpgResultError(Ctx(), nullptr), 0U);
+  EXPECT_EQ(GFGpgResultData(Ctx(), nullptr), nullptr);
+  EXPECT_STREQ(GFGpgResultText(Ctx(), nullptr, GF_GPG_RESULT_TEXT_CAPSULE_ID),
+               "");
+  EXPECT_STREQ(GFGpgResultText(Ctx(), nullptr, GF_GPG_RESULT_TEXT_ERROR_STRING),
+               "");
+  EXPECT_STREQ(GFGpgResultText(Ctx(), nullptr, GF_GPG_RESULT_TEXT_HASH_ALGO),
+               "");
+  EXPECT_EQ(GFGpgResultTakeData(Ctx(), nullptr), nullptr);
+  GFGpgResultRelease(Ctx(), nullptr);  // must not crash
 }
 
 TEST(SdkGpgResultTest, ADoubleReleaseIsDetectedRatherThanCorruptingTheHeap) {
-  auto in = GFBuf::Copy(QByteArray("data"));
+  auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
   GFGpgResultRef raw = nullptr;
-  ASSERT_GE(GFGpgEncrypt(0, nullptr, 0, in.View(), 1, &raw), 0);
+  ASSERT_GE(GFGpgEncrypt(Ctx(), 0, nullptr, 0, in.View(), 1, &raw), 0);
   ASSERT_NE(raw, nullptr);
 
-  const auto before = GFGpgResultOutstandingCount(nullptr);
-  GFGpgResultRelease(raw);
-  ASSERT_EQ(GFGpgResultOutstandingCount(nullptr), before - 1);
+  const auto before = GFGpgResultOutstandingCount(Ctx());
+  GFGpgResultRelease(Ctx(), raw);
+  ASSERT_EQ(GFGpgResultOutstandingCount(Ctx()), before - 1);
 
   // Same policy as the buffer handle and as SecureMemoryAllocator: warn in
   // release, fail fast in debug. Decided from the registry, so the freed
   // block is never read to reach the verdict.
 #ifdef DEBUG
-  EXPECT_DEATH({ GFGpgResultRelease(raw); }, "");
+  EXPECT_DEATH({ GFGpgResultRelease(Ctx(), raw); }, "");
 #else
-  GFGpgResultRelease(raw);
-  EXPECT_EQ(GFGpgResultOutstandingCount(nullptr), before - 1);
+  GFGpgResultRelease(Ctx(), raw);
+  EXPECT_EQ(GFGpgResultOutstandingCount(Ctx()), before - 1);
 #endif
 }
 
 TEST(SdkGpgResultTest, MovingTheWrapperTransfersOwnershipExactlyOnce) {
-  const auto before = GFGpgResultOutstandingCount(nullptr);
+  const auto before = GFGpgResultOutstandingCount(Ctx());
   {
-    auto in = GFBuf::Copy(QByteArray("data"));
-    GFGpgResult a;
-    GFGpgEncrypt(0, nullptr, 0, in.View(), 1, a.Out());
-    ASSERT_EQ(GFGpgResultOutstandingCount(nullptr), before + 1);
+    auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
+    GFGpgResult a(Ctx());
+    GFGpgEncrypt(Ctx(), 0, nullptr, 0, in.View(), 1, a.Out());
+    ASSERT_EQ(GFGpgResultOutstandingCount(Ctx()), before + 1);
 
     GFGpgResult b = std::move(a);
     EXPECT_FALSE(static_cast<bool>(a));
     EXPECT_TRUE(static_cast<bool>(b));
-    EXPECT_EQ(GFGpgResultOutstandingCount(nullptr), before + 1);
+    EXPECT_EQ(GFGpgResultOutstandingCount(Ctx()), before + 1);
   }
-  EXPECT_EQ(GFGpgResultOutstandingCount(nullptr), before);
+  EXPECT_EQ(GFGpgResultOutstandingCount(Ctx()), before);
 }
 
 /* --- round trips that need a real engine -------------------------------- */
@@ -153,9 +171,9 @@ TEST(SdkGpgResultTest, ASignRoundTripCarriesItsPayloadAndCapsule) {
 
   // Without a secret key this is a request or operation failure, not a crash;
   // either way the result must be owned, self-describing, and releasable.
-  auto in = GFBuf::Copy(QByteArray("sign me"));
-  GFGpgResult r;
-  const auto ret = GFGpgSign(0, nullptr, 0, in.View(), 0, 1, r.Out());
+  auto in = GFBuf::Copy(Ctx(), QByteArray("sign me"));
+  GFGpgResult r(Ctx());
+  const auto ret = GFGpgSign(Ctx(), 0, nullptr, 0, in.View(), 0, 1, r.Out());
 
   ASSERT_GE(ret, 0);
   ASSERT_TRUE(static_cast<bool>(r));
@@ -167,9 +185,9 @@ TEST(SdkGpgResultTest, ASignRoundTripCarriesItsPayloadAndCapsule) {
 // must be empty rather than undefined.
 TEST(SdkGpgResultTest, AVerifyResultCarriesNoPayload) {
   if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
-  auto in = GFBuf::Copy(QByteArray("not a signed message"));
-  GFGpgResult r;
-  const auto ret = GFGpgVerify(0, in.View(), nullptr, r.Out());
+  auto in = GFBuf::Copy(Ctx(), QByteArray("not a signed message"));
+  GFGpgResult r(Ctx());
+  const auto ret = GFGpgVerify(Ctx(), 0, in.View(), nullptr, r.Out());
 
   ASSERT_GE(ret, 0);
   ASSERT_TRUE(static_cast<bool>(r));

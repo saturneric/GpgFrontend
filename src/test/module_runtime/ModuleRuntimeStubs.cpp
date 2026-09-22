@@ -28,35 +28,281 @@
 
 #include "ModuleRuntimeStubs.h"
 
-#include <GFSDKBasic.h>
-#include <GFSDKBasicModel.h>
+#include <GFSDKBuildInfo.h>
+#include <GFSDKHostApi.h>
 #include <GFSDKLog.h>
-#include <GFSDKModule.h>
-#include <GFSDKModuleModel.h>
-#include <GFSDKUI.h>
+#include <GFSDKTypes.h>
 
 #include <QByteArray>
 #include <QMap>
 #include <QString>
+#include <QThread>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 
 /**
  * @file ModuleRuntimeStubs.cpp
- * @brief The host, reduced to what gf_module_runtime actually calls.
+ * @brief The host, reduced to a GFHostApi that records what it was asked.
  *
- * The runtime deliberately links no SDK library: it declares the SDK symbols
- * it uses and leaves them undefined, so a module resolves them. That is what
- * makes this file possible -- the runtime can be linked into a test binary
- * against a host that only records what it was asked to do.
+ * ## What changed here, and why it is a better test
  *
- * It also means these stubs double as a check: anything the runtime calls that
- * is not defined here fails to link, so the runtime's dependency on the host
- * cannot grow silently.
+ * This file used to define the SDK's exported C symbols by hand -- seventeen
+ * of them -- because the runtime declared them and left them undefined for a
+ * module to resolve. That made the stubs a dependency fence, and it also
+ * meant the thing under test was the runtime's PLUMBING and never the SDK
+ * surface a module actually calls.
+ *
+ * The runtime now DEFINES the whole SDK on top of a capability table, so the
+ * host to fake is that table. Every GFSDK* call a test makes runs the real
+ * wrapper code and lands here, which is what lets a test assert the property
+ * that matters: that the high-level helpers are implemented purely in terms
+ * of the primitives, and that a wrapper whose group was withheld refuses
+ * instead of calling through a null pointer.
+ *
+ * ## The context
+ *
+ * A single static record, whose address is the context. The real host
+ * validates that pointer against its registry; nothing here needs to, because
+ * a test binary has exactly one module. What the tests DO use it for is
+ * thread independence: the same context is passed from a worker thread and
+ * the call is served, which is the whole reason authorization stopped living
+ * in thread-local state.
  */
 
 namespace stubs {
+
+namespace {
+
+/// The thread the table was built on, for the off-thread tally.
+QThread* g_home_thread = nullptr;
+
+struct FakeContext {
+  const char* module_id = "com.bktus.gpgfrontend.module.test";
+};
+
+auto TheContext() -> FakeContext& {
+  static FakeContext ctx;
+  return ctx;
+}
+
+auto AsRef() -> GFHostContextRef {
+  return reinterpret_cast<GFHostContextRef>(&TheContext());
+}
+
+void Note() {
+  if (g_home_thread != nullptr && QThread::currentThread() != g_home_thread) {
+    Rec().calls_off_thread++;
+  }
+}
+
+/* --- buffer -------------------------------------------------------------- */
+
+/// A buffer handle is a heap block holding its own length. Enough to be a
+/// real handle with real octets, which is what the wrappers move around.
+struct FakeBuffer {
+  size_t size;
+  char* data;
+};
+
+auto BufNew(GFHostContextRef, const void* data, size_t size) -> GFBufferRef {
+  Note();
+  auto* b = new FakeBuffer{size, static_cast<char*>(std::malloc(size + 1))};
+  if (size != 0 && data != nullptr) std::memcpy(b->data, data, size);
+  b->data[size] = '\0';
+  Rec().allocations++;
+  return reinterpret_cast<GFBufferRef>(b);
+}
+
+auto BufData(GFHostContextRef, GFBufferView buf) -> const void* {
+  if (buf == nullptr) return nullptr;
+  return reinterpret_cast<const FakeBuffer*>(buf)->data;
+}
+
+auto BufSize(GFHostContextRef, GFBufferView buf) -> size_t {
+  if (buf == nullptr) return 0;
+  return reinterpret_cast<const FakeBuffer*>(buf)->size;
+}
+
+void BufZeroize(GFHostContextRef, GFBufferRef buf) {
+  if (buf == nullptr) return;
+  auto* b = reinterpret_cast<FakeBuffer*>(buf);
+  std::memset(b->data, 0, b->size);
+}
+
+void BufRelease(GFHostContextRef, GFBufferRef buf) {
+  if (buf == nullptr) return;
+  auto* b = reinterpret_cast<FakeBuffer*>(buf);
+  std::free(b->data);
+  delete b;
+  Rec().frees++;
+}
+
+auto BufOutstanding(GFHostContextRef) -> size_t {
+  return static_cast<size_t>(Rec().allocations - Rec().frees);
+}
+
+auto MemAlloc(GFHostContextRef, int /*arena*/, uint32_t size) -> void* {
+  Note();
+  Rec().allocations++;
+  return std::malloc(size);
+}
+
+auto MemRealloc(GFHostContextRef, int /*arena*/, void* p, uint32_t size)
+    -> void* {
+  return std::realloc(p, size);
+}
+
+void MemFree(GFHostContextRef, int /*arena*/, void* p) {
+  if (p == nullptr) return;
+  Rec().frees++;
+  std::free(p);
+}
+
+auto MemStrDup(GFHostContextRef, int /*arena*/, const char* s) -> char* {
+  Note();
+  if (s == nullptr) return nullptr;
+  const auto n = std::strlen(s);
+  auto* copy = static_cast<char*>(std::malloc(n + 1));
+  std::memcpy(copy, s, n + 1);
+  Rec().allocations++;
+  return copy;
+}
+
+const GFHostBufferApi kBuffer = {
+    sizeof(GFHostBufferApi),
+    &BufNew,
+    &BufData,
+    &BufSize,
+    &BufZeroize,
+    &BufRelease,
+    &BufOutstanding,
+    &MemAlloc,
+    &MemRealloc,
+    &MemFree,
+    &MemStrDup,
+};
+
+/* --- log ----------------------------------------------------------------- */
+
+void LogWrite(GFHostContextRef, int severity, const char* /*file*/,
+              int /*line*/, const char* /*function*/, const char* msg) {
+  Note();
+  const auto text = QString::fromUtf8(msg == nullptr ? "" : msg);
+  if (severity == GF_LOG_WARN) Rec().warnings.append(text);
+  if (severity == GF_LOG_ERROR) Rec().errors.append(text);
+}
+
+auto LogEnabled(GFHostContextRef, int /*severity*/) -> int { return 1; }
+
+const GFHostLogApi kLog = {sizeof(GFHostLogApi), &LogWrite, &LogEnabled};
+
+/* --- app ----------------------------------------------------------------- */
+
+auto AppText(GFHostContextRef) -> const char* { return "test"; }
+auto AppLocale(GFHostContextRef ctx) -> char* {
+  return MemStrDup(ctx, GF_ARENA_NORMAL, "en_US");
+}
+auto AppZero(GFHostContextRef) -> int { return 0; }
+
+const GFHostAppApi kApp = {
+    sizeof(GFHostAppApi), &AppText, &AppText, &AppText, &AppText,
+    &AppLocale,           &AppZero, &AppZero,
+};
+
+/* --- event --------------------------------------------------------------- */
+
+auto EventSubscribe(GFHostContextRef ctx, const char* event_id) -> int {
+  Note();
+  Rec().listened.append(QString::fromUtf8(event_id));
+  Rec().listened_as =
+      QString::fromUtf8(reinterpret_cast<const FakeContext*>(ctx)->module_id);
+  return 0;
+}
+
+auto EventAnswer(GFHostContextRef, const GFModuleEventAnswer* answer) -> int {
+  Note();
+  QMap<QString, QString> params;
+  auto* node = answer == nullptr ? nullptr : answer->params;
+  while (node != nullptr) {
+    params.insert(QString::fromUtf8(node->name),
+                  QString::fromUtf8(node->value));
+    auto* next = node->next;
+    // The host owns what it is handed, on every path. Freeing it here is what
+    // makes the allocation/free tally in the tests mean something.
+    MemFree(nullptr, GF_ARENA_NORMAL, const_cast<char*>(node->name));
+    MemFree(nullptr, GF_ARENA_NORMAL, const_cast<char*>(node->value));
+    MemFree(nullptr, GF_ARENA_NORMAL, node);
+    node = next;
+  }
+  Rec().answers.append(params);
+  return 0;
+}
+
+const GFHostEventApi kEvent = {sizeof(GFHostEventApi), &EventSubscribe,
+                               &EventAnswer};
+
+/* --- bootstrap ----------------------------------------------------------- */
+
+auto RegisterTranslatorReader(GFHostContextRef, const char* id,
+                              GFTranslatorDataReader reader) -> int {
+  Rec().translator_registered_for = QString::fromUtf8(id);
+  Rec().translator_reader = reader;
+  return 0;
+}
+
+const GFHostBootstrapApi kBootstrap = {sizeof(GFHostBootstrapApi),
+                                       &RegisterTranslatorReader};
+
+/* --- list ---------------------------------------------------------------- */
+
+auto ListCount(GFHostContextRef, GFStringListRef) -> size_t { return 0; }
+auto ListAt(GFHostContextRef, GFStringListRef, size_t) -> const char* {
+  return nullptr;
+}
+void ListRelease(GFHostContextRef, GFStringListRef) {}
+auto ListOutstanding(GFHostContextRef) -> size_t { return 0; }
+
+const GFHostListApi kList = {sizeof(GFHostListApi), &ListCount, &ListAt,
+                             &ListRelease, &ListOutstanding};
+
+/* --- ui ------------------------------------------------------------------ */
+
+auto UiGetObject(GFHostContextRef, const char* /*id*/) -> void* {
+  // No QObject registry in a runtime test: a handle never resolves, which is
+  // the case GFEvent::RequireGui has to report rather than crash on.
+  return nullptr;
+}
+
+auto UiCreateObject(GFHostContextRef, QObjectFactory, void*) -> void* {
+  return nullptr;
+}
+auto UiShowDialog(GFHostContextRef, void*, void*) -> int { return 0; }
+auto UiThemeColor(GFHostContextRef, int role, void*) -> uint32_t {
+  // Distinct per role, so a test can tell which role a wrapper asked for --
+  // the property that matters now that five colour functions share one call.
+  return 0xFF000000U | static_cast<uint32_t>(role);
+}
+auto UiUserFilePath(GFHostContextRef ctx) -> GFBufferRef {
+  return BufNew(ctx, "/tmp", 4);
+}
+auto UiRegSettings(GFHostContextRef, const GFUISettingsPageSpec*) -> int {
+  return 0;
+}
+auto UiUnregSettings(GFHostContextRef, const char*) -> int { return 0; }
+auto UiRegTab(GFHostContextRef, const GFUITabViewSpec*) -> int { return 0; }
+auto UiUnregTab(GFHostContextRef, const char*) -> int { return 0; }
+auto UiRegFileExt(GFHostContextRef, const char*, const char*) -> int {
+  return 0;
+}
+
+const GFHostUiApi kUi = {
+    sizeof(GFHostUiApi), &UiCreateObject, &UiGetObject,   &UiShowDialog,
+    &UiThemeColor,       &UiUserFilePath, &UiRegSettings, &UiUnregSettings,
+    &UiRegTab,           &UiUnregTab,     &UiRegFileExt,
+};
+
+}  // namespace
 
 Recorder& Rec() {
   static Recorder r;
@@ -65,117 +311,31 @@ Recorder& Rec() {
 
 void Recorder::Reset() { *this = Recorder{}; }
 
+auto FakeModuleId() -> const char* { return TheContext().module_id; }
+
+auto MakeHostApi(uint32_t granted) -> GFHostApi {
+  g_home_thread = QThread::currentThread();
+
+  GFHostApi host{};
+  host.struct_size = sizeof(GFHostApi);
+  host.abi_version = GF_SDK_ABI_VERSION;
+  host.granted = granted;
+  host.module_id = TheContext().module_id;
+  host.context = AsRef();
+
+  host.buffer = &kBuffer;
+  host.log = &kLog;
+  host.app = &kApp;
+  host.event = &kEvent;
+  host.bootstrap = &kBootstrap;
+  host.list = &kList;
+
+  // Withheld unless asked for, exactly as the real mint withholds them. The
+  // UI group is the only grantable one this fake implements, because it is
+  // the only one the runtime itself reaches (GFEvent::RequireGui); the rest
+  // exist in these tests precisely to be absent.
+  host.ui = (granted & GF_HOST_CAP_UI) != 0 ? &kUi : nullptr;
+  return host;
+}
+
 }  // namespace stubs
-
-using stubs::Rec;
-
-// ------------------------------------------------------------- allocation
-
-extern "C" {
-
-void* GFAllocateMemory(uint32_t size) {
-  Rec().allocations++;
-  return std::malloc(size);
-}
-
-void* GFSecAllocateMemory(uint32_t size) {
-  Rec().allocations++;
-  return std::malloc(size);
-}
-
-void* GFReallocateMemory(void* ptr, uint32_t size) {
-  return std::realloc(ptr, size);
-}
-
-void GFFreeMemory(void* ptr) {
-  if (ptr != nullptr) Rec().frees++;
-  std::free(ptr);
-}
-
-void GFSecFreeMemory(void* ptr) {
-  if (ptr != nullptr) Rec().frees++;
-  std::free(ptr);
-}
-
-char* GFModuleStrDup(const char* str) {
-  if (str == nullptr) return nullptr;
-  Rec().allocations++;
-  const auto n = std::strlen(str);
-  auto* out = static_cast<char*>(std::malloc(n + 1));
-  std::memcpy(out, str, n + 1);
-  return out;
-}
-
-char* GFModuleSecStrDup(const char* str) { return GFModuleStrDup(str); }
-
-// ------------------------------------------------------------ the host
-
-void GFModuleListenEvent(const char* module_id, const char* event_id) {
-  Rec().listened.append(QString::fromUtf8(event_id));
-  Rec().listened_as = QString::fromUtf8(module_id);
-}
-
-void GFModuleTriggerModuleEventCallback(GFModuleEvent* event,
-                                        const char* /*module_id*/,
-                                        GFModuleEventParam* params) {
-  QMap<QString, QString> answered;
-  for (auto* p = params; p != nullptr;) {
-    answered.insert(QString::fromUtf8(p->name), QString::fromUtf8(p->value));
-    auto* done = p;
-    p = p->next;
-    // The host owns what it is handed, on every path.
-    GFFreeMemory(const_cast<char*>(done->name));
-    GFFreeMemory(const_cast<char*>(done->value));
-    GFFreeMemory(done);
-  }
-  if (event != nullptr) {
-    GFFreeMemory(const_cast<char*>(event->id));
-    GFFreeMemory(const_cast<char*>(event->trigger_id));
-    GFFreeMemory(event);
-  }
-  Rec().answers.append(answered);
-}
-
-int GFAppRegisterTranslatorReader(const char* id,
-                                  GFTranslatorDataReader reader) {
-  Rec().translator_registered_for = QString::fromUtf8(id);
-  Rec().translator_reader = reader;
-  return 0;
-}
-
-void* GFUIGetGUIObject(const char* /*handle*/) { return nullptr; }
-
-void GFModuleLogDebug(const char* /*msg*/) {}
-void GFModuleLogInfo(const char* /*msg*/) {}
-void GFModuleLogWarn(const char* msg) {
-  Rec().warnings.append(QString::fromUtf8(msg));
-}
-void GFModuleLogError(const char* msg) {
-  Rec().errors.append(QString::fromUtf8(msg));
-}
-
-// The module log macros route through GFModuleLogAt now, so the recording has
-// to live here or the runtime's warnings and errors would stop being observed
-// while every test still passed.
-void GFModuleLogAt(const char* /*module_id*/, int severity,
-                   const char* /*file*/, int /*line*/, const char* /*function*/,
-                   const char* msg) {
-  switch (severity) {
-    case GF_LOG_WARN:
-      GFModuleLogWarn(msg);
-      break;
-    case GF_LOG_ERROR:
-      GFModuleLogError(msg);
-      break;
-    default:
-      break;
-  }
-}
-
-// Nothing is filtered in the harness: a test that asserts on a message must
-// not depend on a level having been configured.
-int GFModuleLogEnabled(const char* /*module_id*/, int /*severity*/) {
-  return 1;
-}
-
-}  // extern "C"

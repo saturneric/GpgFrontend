@@ -60,7 +60,15 @@ list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_REGISTERED_MODULE_COUNT)
 target_compile_definitions(${LIBRARY_TARGET} PRIVATE
   GF_BUILD_INFO_FILE="${CMAKE_BINARY_DIR}/artifacts/build-info.json"
   GF_REGISTERED_MODULE_COUNT=${GF_REGISTERED_MODULE_COUNT}
-  GF_TEST_SENTINEL_FILE="$<TARGET_FILE:gf_mod_test_sentinel>")
+  GF_TEST_SENTINEL_FILE="$<TARGET_FILE:gf_mod_test_sentinel>"
+  # Two agreement checks need to read files the build owns rather than guess
+  # where they are: the capability vocabulary, which exists in both CMake and
+  # C++, and the module boundary script, which a test runs over the built
+  # natives. Same reasoning as the module key list above -- a path CMake
+  # knows is passed in, and an absent file fails instead of skipping.
+  GF_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+  GF_TEST_MODULE_BOUNDARY_SCRIPT="${CMAKE_SOURCE_DIR}/scripts/check_module_boundary.sh"
+  GF_TEST_MODULE_NAMESPACE_ROOT="${GPGFRONTEND_MODULE_NAMESPACE_ROOT}")
 
 # set up pch
 target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
@@ -76,6 +84,8 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 # the sdk tests cover the exported C ABI's string-ownership rules, which modules
 # depend on and cannot check for themselves; gf_sdk already links gf_core and
 # gf_ui, so this is purely additive
+# The module-side SDK, so the C-ABI tests exercise the real wrappers over
+# a real minted context rather than only the host half.
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})

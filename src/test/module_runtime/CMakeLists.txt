@@ -40,10 +40,10 @@ add_executable(gf_module_runtime_test
 target_link_libraries(gf_module_runtime_test PRIVATE
   GTest::gtest GTest::gtest_main Qt::Core gf_module_runtime)
 
-# The stubs stand in for the SDK, so its export macro must expand to nothing
-# rather than to a visibility attribute on a symbol defined here.
+# Only the module export macro needs neutering: the SDK has no export macro
+# any more, because the public SDK is not in a shared library.
 target_compile_definitions(gf_module_runtime_test PRIVATE
-  "GF_SDK_EXPORT=" "GF_MODULE_EXPORT=")
+  "GF_MODULE_EXPORT=")
 
 set_target_properties(gf_module_runtime_test PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test-bin"

@@ -30,11 +30,31 @@
 #include <QThread>
 
 #include "core/GFCoreLog.h"
+#include "core/SdkTestContext.h"
 #include "core/module/ModuleLogCategory.h"
+#include "core/module/ModuleSdkBridge.h"
 #include "sdk/GFSDKLog.h"
-#include "sdk/GFSDKModuleAttribution.h"
 
 namespace GpgFrontend::Test {
+
+namespace {
+
+/// One granted context for this file, minted the way the module loader
+/// mints one. Process-lifetime on purpose: a grant is retired, never
+/// freed, so that a stale caller is refused rather than following a
+/// dangling pointer.
+auto Ctx() -> GFSDKContext* {
+  static SdkTestContext context("com.bktus.gpgfrontend.module.email");
+  return context.get();
+}
+
+/// A second module, because "two modules are distinguishable" needs two.
+auto OtherCtx() -> GFSDKContext* {
+  static SdkTestContext context("com.bktus.gpgfrontend.module.key_server_sync");
+  return context.get();
+}
+
+}  // namespace
 
 namespace {
 
@@ -102,15 +122,15 @@ class LogCaptureFixture : public ::testing::Test {
 
 TEST_F(LogCaptureFixture,
        AModuleIdBecomesItsOwnCategoryRatherThanTheSharedOne) {
-  GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr, "something");
+  GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "something");
 
   EXPECT_EQ(Only().category, "module.email");
   EXPECT_NE(Only().category, "module");
 }
 
 TEST_F(LogCaptureFixture, TwoModulesAreDistinguishableRatherThanAnonymous) {
-  GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr, "a");
-  GFModuleLogAt(kOtherId, GF_LOG_WARN, nullptr, 0, nullptr, "b");
+  GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "a");
+  GFLogAt(OtherCtx(), GF_LOG_WARN, nullptr, 0, nullptr, "b");
 
   ASSERT_EQ(captured_.size(), 2);
   EXPECT_NE(captured_[0].category, captured_[1].category);
@@ -120,8 +140,8 @@ TEST_F(LogCaptureFixture,
        ASourceLocationSurvivesTheAbiRatherThanNamingTheShim) {
   // The defect this replaces: every module line reported GFSDKLog.cpp, because
   // the qC* macros capture the context of wherever they are written.
-  GFModuleLogAt(kEmailId, GF_LOG_ERROR, "EMailImapController.cpp", 412,
-                "connect()", "imap connect failed");
+  GFLogAt(Ctx(), GF_LOG_ERROR, "EMailImapController.cpp", 412, "connect()",
+          "imap connect failed");
 
   const auto only = Only();
   EXPECT_EQ(only.file, "EMailImapController.cpp");
@@ -131,37 +151,53 @@ TEST_F(LogCaptureFixture,
 }
 
 TEST_F(LogCaptureFixture, ANullLocationIsOmittedRatherThanCrashing) {
-  GFModuleLogAt(kEmailId, GF_LOG_INFO, nullptr, 0, nullptr, nullptr);
+  GFLogAt(Ctx(), GF_LOG_INFO, nullptr, 0, nullptr, nullptr);
 
   EXPECT_EQ(captured_.size(), 1);
   EXPECT_TRUE(Only().file.isEmpty());
 }
 
-TEST_F(LogCaptureFixture, AnUnattributableMessageIsUnknownRatherThanDropped) {
-  GFModuleLogAt(nullptr, GF_LOG_WARN, nullptr, 0, nullptr, "from nowhere");
+TEST_F(LogCaptureFixture, LoggingBeforeActivationIsSilentRatherThanACrash) {
+  // The pre-activation window: a module that logs from a static initializer
+  // has no context yet. It must not crash, and it must not invent a category.
+  //
+  // This replaces a test that asserted an unattributable message came out
+  // under `module.unknown`. That case is gone, and not because the behaviour
+  // changed: a module id is no longer something a caller supplies, so there
+  // is nothing left to be unattributable. A caller either has a context, in
+  // which case it names a module, or has none. Forging one is a question
+  // about the HOST token rather than about this layer, and
+  // ModuleApiTest.AForgedContextIsRefusedRatherThanFollowed covers it.
+  GFSDKContext unbound{};
+  unbound.struct_size = sizeof(GFSDKContext);
+  unbound.host = nullptr;
 
-  EXPECT_EQ(Only().category, "module.unknown");
+  GFLogAt(&unbound, GF_LOG_WARN, nullptr, 0, nullptr, "too early");
+  GFLogAt(nullptr, GF_LOG_WARN, nullptr, 0, nullptr, "even earlier");
+
+  EXPECT_TRUE(captured_.isEmpty());
+  EXPECT_EQ(GFLogEnabled(&unbound, GF_LOG_WARN), 0);
+  EXPECT_EQ(GFLogEnabled(nullptr, GF_LOG_WARN), 0);
 }
 
-TEST_F(LogCaptureFixture,
-       TheThreadLocalWinsOverTheSuppliedIdRatherThanTheOtherWayRound) {
-  // The half a module does not control is preferred wherever it exists. A
-  // module naming itself only decides the answer where the host never entered.
-  const auto* previous = GFSdkEnterModule(kOtherId);
-  GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr, "who am i");
-  GFSdkLeaveModule(previous);
+TEST_F(LogCaptureFixture, TheContextDecidesTheCategoryNotTheCallStack) {
+  // There is no module id argument any more, and no preference rule between
+  // one and a thread-local: the context says who is logging, and it says the
+  // same thing wherever the call is made from. Here the host is "inside"
+  // another module entirely, and the line is still attributed to the context
+  // that produced it.
+  const Module::ModuleAttributionScope attributed(kOtherId);
+  GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "who am i");
 
-  EXPECT_EQ(Only().category, "module.key-server-sync");
+  EXPECT_EQ(Only().category, "module.email");
 }
 
-TEST_F(LogCaptureFixture,
-       TheSuppliedIdIsUsedOffAHostCalledThreadRatherThanLost) {
-  // A module's own worker thread: the host never entered it, so the
-  // thread-local is empty and the argument is the only attribution there is.
-  // This is the case the whole module_id parameter exists for.
-  QString category;
+TEST_F(LogCaptureFixture, TheContextIsUsedOffAHostCalledThreadRatherThanLost) {
+  // A module's own worker thread: the host never entered it, so a
+  // thread-local answer would be empty. The context carries the identity, so
+  // there is nothing to lose. This is the case the argument exists for.
   auto* thread = QThread::create([&]() {
-    GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr, "from a worker");
+    GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "from a worker");
   });
   thread->start();
   ASSERT_TRUE(thread->wait(5000));
@@ -171,8 +207,8 @@ TEST_F(LogCaptureFixture,
 }
 
 TEST_F(LogCaptureFixture, TraceIsADistinctCategoryRatherThanAnAliasOfDebug) {
-  GFModuleLogAt(kEmailId, GF_LOG_TRACE, nullptr, 0, nullptr, "chatter");
-  GFModuleLogAt(kEmailId, GF_LOG_DEBUG, nullptr, 0, nullptr, "detail");
+  GFLogAt(Ctx(), GF_LOG_TRACE, nullptr, 0, nullptr, "chatter");
+  GFLogAt(Ctx(), GF_LOG_DEBUG, nullptr, 0, nullptr, "detail");
 
   ASSERT_EQ(captured_.size(), 2);
   EXPECT_EQ(captured_[0].category, "module.email.trace");
@@ -180,10 +216,10 @@ TEST_F(LogCaptureFixture, TraceIsADistinctCategoryRatherThanAnAliasOfDebug) {
 }
 
 TEST_F(LogCaptureFixture, EverySeverityKeepsItsOwnQtTypeRatherThanCollapsing) {
-  GFModuleLogAt(kEmailId, GF_LOG_DEBUG, nullptr, 0, nullptr, "d");
-  GFModuleLogAt(kEmailId, GF_LOG_INFO, nullptr, 0, nullptr, "i");
-  GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr, "w");
-  GFModuleLogAt(kEmailId, GF_LOG_ERROR, nullptr, 0, nullptr, "e");
+  GFLogAt(Ctx(), GF_LOG_DEBUG, nullptr, 0, nullptr, "d");
+  GFLogAt(Ctx(), GF_LOG_INFO, nullptr, 0, nullptr, "i");
+  GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "w");
+  GFLogAt(Ctx(), GF_LOG_ERROR, nullptr, 0, nullptr, "e");
 
   ASSERT_EQ(captured_.size(), 4);
   EXPECT_EQ(captured_[0].type, QtDebugMsg);
@@ -193,11 +229,11 @@ TEST_F(LogCaptureFixture, EverySeverityKeepsItsOwnQtTypeRatherThanCollapsing) {
 }
 
 TEST_F(LogCaptureFixture, TheLegacyEntryPointsStillEmitRatherThanBreaking) {
-  GFModuleLogTrace("t");
-  GFModuleLogDebug("d");
-  GFModuleLogInfo("i");
-  GFModuleLogWarn("w");
-  GFModuleLogError("e");
+  GFLogAt(Ctx(), GF_LOG_TRACE, nullptr, 0, nullptr, "t");
+  GFLogAt(Ctx(), GF_LOG_DEBUG, nullptr, 0, nullptr, "d");
+  GFLogAt(Ctx(), GF_LOG_INFO, nullptr, 0, nullptr, "i");
+  GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "w");
+  GFLogAt(Ctx(), GF_LOG_ERROR, nullptr, 0, nullptr, "e");
 
   EXPECT_EQ(captured_.size(), 5);
 }
@@ -205,15 +241,15 @@ TEST_F(LogCaptureFixture, TheLegacyEntryPointsStillEmitRatherThanBreaking) {
 TEST_F(LogCaptureFixture, ASuppressedMessageIsNotEmittedRatherThanFiltered) {
   QLoggingCategory::setFilterRules("module.email.debug=false\n");
 
-  GFModuleLogAt(kEmailId, GF_LOG_DEBUG, nullptr, 0, nullptr, "quiet");
-  EXPECT_EQ(GFModuleLogEnabled(kEmailId, GF_LOG_DEBUG), 0);
+  GFLogAt(Ctx(), GF_LOG_DEBUG, nullptr, 0, nullptr, "quiet");
+  EXPECT_EQ(GFLogEnabled(Ctx(), GF_LOG_DEBUG), 0);
   EXPECT_TRUE(captured_.isEmpty());
 
   // ...and the check agrees with what actually happens, which is the whole
   // value of it: a module skipping formatting must not skip a message that
   // would have been emitted.
-  EXPECT_NE(GFModuleLogEnabled(kEmailId, GF_LOG_ERROR), 0);
-  GFModuleLogAt(kEmailId, GF_LOG_ERROR, nullptr, 0, nullptr, "loud");
+  EXPECT_NE(GFLogEnabled(Ctx(), GF_LOG_ERROR), 0);
+  GFLogAt(Ctx(), GF_LOG_ERROR, nullptr, 0, nullptr, "loud");
   EXPECT_EQ(captured_.size(), 1);
 }
 
@@ -222,10 +258,10 @@ TEST_F(LogCaptureFixture, TraceIsOffAtDebugLevelRatherThanFloodingIt) {
   QLoggingCategory::setFilterRules(
       BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kDEBUG)));
 
-  EXPECT_EQ(GFModuleLogEnabled(kEmailId, GF_LOG_TRACE), 0);
-  EXPECT_NE(GFModuleLogEnabled(kEmailId, GF_LOG_DEBUG), 0);
+  EXPECT_EQ(GFLogEnabled(Ctx(), GF_LOG_TRACE), 0);
+  EXPECT_NE(GFLogEnabled(Ctx(), GF_LOG_DEBUG), 0);
 
-  GFModuleLogAt(kEmailId, GF_LOG_TRACE, nullptr, 0, nullptr, "chatter");
+  GFLogAt(Ctx(), GF_LOG_TRACE, nullptr, 0, nullptr, "chatter");
   EXPECT_TRUE(captured_.isEmpty());
 }
 
@@ -233,9 +269,9 @@ TEST_F(LogCaptureFixture, TraceIsOnAtTraceLevelRatherThanUnreachable) {
   QLoggingCategory::setFilterRules(
       BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kTRACE)));
 
-  EXPECT_NE(GFModuleLogEnabled(kEmailId, GF_LOG_TRACE), 0);
+  EXPECT_NE(GFLogEnabled(Ctx(), GF_LOG_TRACE), 0);
 
-  GFModuleLogAt(kEmailId, GF_LOG_TRACE, nullptr, 0, nullptr, "chatter");
+  GFLogAt(Ctx(), GF_LOG_TRACE, nullptr, 0, nullptr, "chatter");
   EXPECT_EQ(captured_.size(), 1);
 }
 
@@ -243,8 +279,7 @@ TEST_F(LogCaptureFixture, AMessageIsNotDoubleQuotedRatherThanEscaped) {
   // What arrives at GFModuleLogAt is a finished message. Emitting it through
   // QDebug's default quoting wrapped every module line in quotes it never
   // asked for, and escaped any quote the message legitimately contained.
-  GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr,
-                "he said \"hello\"");
+  GFLogAt(Ctx(), GF_LOG_WARN, nullptr, 0, nullptr, "he said \"hello\"");
 
   EXPECT_EQ(Only().message, "he said \"hello\"");
   EXPECT_FALSE(Only().message.startsWith('"'));

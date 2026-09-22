@@ -31,6 +31,7 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
+#include "core/SdkTestContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
@@ -51,6 +52,19 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+/// One granted context for this file, minted the way the module loader
+/// mints one. Process-lifetime on purpose: a grant is retired, never
+/// freed, so that a stale caller is refused rather than following a
+/// dangling pointer.
+auto Ctx() -> GFSDKContext* {
+  static SdkTestContext context("com.example.sdk.gpglist");
+  return context.get();
+}
+
+}  // namespace
+
+namespace {
+
 auto ChannelIsUsable(int channel) -> bool {
   return OpenPGPContext::GetInstance(channel).Good();
 }
@@ -58,10 +72,10 @@ auto ChannelIsUsable(int channel) -> bool {
 }  // namespace
 
 TEST(SdkGpgListTest, ANullOutParameterIsRejectedRatherThanDereferenced) {
-  auto in = GFBuf::Copy(QByteArray("data"));
-  EXPECT_LT(GFGpgFindKeys(0, "someone@example.org", nullptr), 0);
-  EXPECT_LT(GFGpgSniffRecipients(0, in.View(), nullptr), 0);
-  EXPECT_LT(GFGpgListAddresses(0, 1, nullptr), 0);
+  auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
+  EXPECT_LT(GFGpgFindKeys(Ctx(), 0, "someone@example.org", nullptr), 0);
+  EXPECT_LT(GFGpgSniffRecipients(Ctx(), 0, in.View(), nullptr), 0);
+  EXPECT_LT(GFGpgListAddresses(Ctx(), 0, 1, nullptr), 0);
 }
 
 TEST(SdkGpgListTest, ABorrowedInputIsNotTakenOwnershipOf) {
@@ -72,62 +86,62 @@ TEST(SdkGpgListTest, ABorrowedInputIsNotTakenOwnershipOf) {
   QByteArray address = "nobody@example.invalid";
   GFGpgKeyBriefListRef list = nullptr;
 
-  ASSERT_EQ(GFGpgFindKeys(0, address.constData(), &list), 0);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, address.constData(), &list), 0);
   EXPECT_EQ(address, QByteArray("nobody@example.invalid"));
 
-  GFGpgKeyBriefListRelease(list);
+  GFGpgKeyBriefRelease(Ctx(), list);
 }
 
 TEST(SdkGpgListTest, AnEmptyResultIsSuccessNotAnError) {
   if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
   GFGpgKeyBriefListRef list = nullptr;
   // "matches nothing" is an answer, not a failure.
-  ASSERT_EQ(GFGpgFindKeys(0, "definitely-nobody@example.invalid", &list), 0);
+  ASSERT_EQ(GFGpgFindKeys(Ctx(), 0, "definitely-nobody@example.invalid", &list),
+            0);
   ASSERT_NE(list, nullptr);
-  EXPECT_EQ(GFGpgKeyBriefListCount(list), 0U);
+  EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), list), 0U);
 
-  GFGpgKeyBriefListRelease(list);
+  GFGpgKeyBriefRelease(Ctx(), list);
 }
 
 TEST(SdkGpgListTest, AnOutOfRangeIndexIsBoundedRatherThanUndefined) {
   // Engine-free: bytes that are not an OpenPGP message yield an empty list
   // without a key lookup, which is all this needs to index past the end.
-  auto in = GFBuf::Copy(QByteArray("plainly not an openpgp message"));
+  auto in = GFBuf::Copy(Ctx(), QByteArray("plainly not an openpgp message"));
 
   GFGpgRecipientListRef list = nullptr;
-  ASSERT_EQ(GFGpgSniffRecipients(0, in.View(), &list), 0);
+  ASSERT_EQ(GFGpgSniffRecipients(Ctx(), 0, in.View(), &list), 0);
   ASSERT_NE(list, nullptr);
-  ASSERT_EQ(GFGpgRecipientListCount(list), 0U);
+  ASSERT_EQ(GFGpgRecipientCount(Ctx(), list), 0U);
 
-  // Past the end yields "" and 0, never a read of nothing.
-  EXPECT_STREQ(GFGpgRecipientKeyId(list, 0), "");
-  EXPECT_STREQ(GFGpgRecipientFingerprint(list, 99), "");
-  EXPECT_EQ(GFGpgRecipientKeyFound(list, 99), 0);
-  EXPECT_EQ(GFGpgRecipientHidden(list, 99), 0);
+  // Past the end yields NULL, never a read of nothing. That is the row
+  // accessor's contract, and it is stricter than the per-field accessors it
+  // replaced: those returned "" and 0, which a caller could not tell from a
+  // real empty value. A caller must check, and this is where that is said.
+  EXPECT_EQ(GFGpgRecipientAt(Ctx(), list, 0), nullptr);
+  EXPECT_EQ(GFGpgRecipientAt(Ctx(), list, 99), nullptr);
 
-  GFGpgRecipientListRelease(list);
+  GFGpgRecipientRelease(Ctx(), list);
 }
 
 TEST(SdkGpgListTest, EveryAccessorToleratesANullHandle) {
-  EXPECT_EQ(GFGpgKeyBriefListCount(nullptr), 0U);
-  EXPECT_STREQ(GFGpgKeyBriefFingerprint(nullptr, 0), "");
-  EXPECT_EQ(GFGpgKeyBriefUsability(nullptr, 0), 0);
-  GFGpgKeyBriefListRelease(nullptr);
+  EXPECT_EQ(GFGpgKeyBriefCount(Ctx(), nullptr), 0U);
+  EXPECT_EQ(GFGpgKeyBriefAt(Ctx(), nullptr, 0), nullptr);
+  GFGpgKeyBriefRelease(Ctx(), nullptr);
 
-  EXPECT_EQ(GFGpgRecipientListCount(nullptr), 0U);
-  EXPECT_STREQ(GFGpgRecipientKeyId(nullptr, 0), "");
-  EXPECT_EQ(GFGpgRecipientHidden(nullptr, 0), 0);
-  GFGpgRecipientListRelease(nullptr);
+  EXPECT_EQ(GFGpgRecipientCount(Ctx(), nullptr), 0U);
+  EXPECT_EQ(GFGpgRecipientAt(Ctx(), nullptr, 0), nullptr);
+  GFGpgRecipientRelease(Ctx(), nullptr);
 
-  EXPECT_EQ(GFStringListCount(nullptr), 0U);
-  EXPECT_STREQ(GFStringListAt(nullptr, 0), "");
-  GFStringListRelease(nullptr);
+  EXPECT_EQ(GFStringListCount(Ctx(), nullptr), 0U);
+  EXPECT_STREQ(GFStringListAt(Ctx(), nullptr, 0), "");
+  GFStringListRelease(Ctx(), nullptr);
 }
 
 TEST(SdkGpgListTest, SniffingRejectsAnEmptyInputRatherThanGuessing) {
-  GFBuf empty;
+  GFBuf empty(Ctx());
   GFGpgRecipientListRef list = nullptr;
-  EXPECT_LT(GFGpgSniffRecipients(0, empty.View(), &list), 0);
+  EXPECT_LT(GFGpgSniffRecipients(Ctx(), 0, empty.View(), &list), 0);
   EXPECT_EQ(list, nullptr);
 }
 
@@ -137,36 +151,36 @@ TEST(SdkGpgListTest, SniffingRejectsAnEmptyInputRatherThanGuessing) {
 // bytes that are not an OpenPGP message carry no PKESK packet, so sniffing
 // them returns an empty list without ever looking a key up.
 TEST(SdkGpgListTest, TheLedgerBalancesWithoutNeedingAnEngine) {
-  auto in = GFBuf::Copy(QByteArray("plainly not an openpgp message"));
+  auto in = GFBuf::Copy(Ctx(), QByteArray("plainly not an openpgp message"));
 
-  const auto before = GFGpgListOutstandingCount(nullptr);
+  const auto before = GFListOutstandingCount(Ctx());
 
   GFGpgRecipientListRef list = nullptr;
-  ASSERT_EQ(GFGpgSniffRecipients(0, in.View(), &list), 0);
+  ASSERT_EQ(GFGpgSniffRecipients(Ctx(), 0, in.View(), &list), 0);
   ASSERT_NE(list, nullptr);
-  EXPECT_EQ(GFGpgRecipientListCount(list), 0U);
-  EXPECT_EQ(GFGpgListOutstandingCount(nullptr), before + 1);
+  EXPECT_EQ(GFGpgRecipientCount(Ctx(), list), 0U);
+  EXPECT_EQ(GFListOutstandingCount(Ctx()), before + 1);
 
-  GFGpgRecipientListRelease(list);
-  EXPECT_EQ(GFGpgListOutstandingCount(nullptr), before);
+  GFGpgRecipientRelease(Ctx(), list);
+  EXPECT_EQ(GFListOutstandingCount(Ctx()), before);
 }
 
 TEST(SdkGpgListTest, ADoubleReleaseIsDetectedWithoutNeedingAnEngine) {
-  auto in = GFBuf::Copy(QByteArray("plainly not an openpgp message"));
+  auto in = GFBuf::Copy(Ctx(), QByteArray("plainly not an openpgp message"));
 
   GFGpgRecipientListRef list = nullptr;
-  ASSERT_EQ(GFGpgSniffRecipients(0, in.View(), &list), 0);
+  ASSERT_EQ(GFGpgSniffRecipients(Ctx(), 0, in.View(), &list), 0);
   ASSERT_NE(list, nullptr);
 
-  const auto before = GFGpgListOutstandingCount(nullptr);
-  GFGpgRecipientListRelease(list);
-  ASSERT_EQ(GFGpgListOutstandingCount(nullptr), before - 1);
+  const auto before = GFListOutstandingCount(Ctx());
+  GFGpgRecipientRelease(Ctx(), list);
+  ASSERT_EQ(GFListOutstandingCount(Ctx()), before - 1);
 
 #ifdef DEBUG
-  EXPECT_DEATH({ GFGpgRecipientListRelease(list); }, "");
+  EXPECT_DEATH({ GFGpgRecipientRelease(Ctx(), list); }, "");
 #else
-  GFGpgRecipientListRelease(list);
-  EXPECT_EQ(GFGpgListOutstandingCount(nullptr), before - 1);
+  GFGpgRecipientRelease(Ctx(), list);
+  EXPECT_EQ(GFListOutstandingCount(Ctx()), before - 1);
 #endif
 }
 

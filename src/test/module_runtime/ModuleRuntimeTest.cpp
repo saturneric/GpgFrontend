@@ -32,6 +32,7 @@
 #include <cstring>
 
 #include "GFModule.h"
+#include "GFModuleRuntimeBoot.h"
 #include "GFSDKBuildInfo.h"
 #include "ModuleRuntimeStubs.h"
 
@@ -96,13 +97,6 @@ auto MakeHooks() -> GFModuleHooks {
 
 // ------------------------------------------------------- host-side fakes
 
-auto MakeHostApi() -> GFHostApi {
-  GFHostApi host{};
-  host.struct_size = sizeof(GFHostApi);
-  host.abi_version = GF_SDK_ABI_VERSION;
-  return host;
-}
-
 /// Build the payload the host hands over at activate.
 class Payload {
  public:
@@ -140,18 +134,23 @@ class Payload {
 /// A delivered event, allocated the way the host allocates one.
 auto MakeEvent(const QString& id, const QMap<QString, QByteArray>& params)
     -> GFModuleEvent* {
-  auto* e =
-      static_cast<GFModuleEvent*>(GFAllocateMemory(sizeof(GFModuleEvent)));
-  e->id = GFModuleStrDup(id.toUtf8().constData());
-  e->trigger_id = GFModuleStrDup("trigger-1");
+  auto* e = static_cast<GFModuleEvent*>(GFMemAlloc(
+      gf::runtime::SdkContext(), GF_ARENA_NORMAL, sizeof(GFModuleEvent)));
+  e->id = GFMemStrDup(gf::runtime::SdkContext(), GF_ARENA_NORMAL,
+                      id.toUtf8().constData());
+  e->trigger_id =
+      GFMemStrDup(gf::runtime::SdkContext(), GF_ARENA_NORMAL, "trigger-1");
   e->params = nullptr;
 
   GFModuleEventParam* prev = nullptr;
   for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
     auto* p = static_cast<GFModuleEventParam*>(
-        GFAllocateMemory(sizeof(GFModuleEventParam)));
-    p->name = GFModuleStrDup(it.key().toUtf8().constData());
-    p->value = GFModuleStrDup(it.value().constData());
+        GFMemAlloc(gf::runtime::SdkContext(), GF_ARENA_NORMAL,
+                   sizeof(GFModuleEventParam)));
+    p->name = GFMemStrDup(gf::runtime::SdkContext(), GF_ARENA_NORMAL,
+                          it.key().toUtf8().constData());
+    p->value = GFMemStrDup(gf::runtime::SdkContext(), GF_ARENA_NORMAL,
+                           it.value().constData());
     p->next = nullptr;
     if (prev == nullptr) {
       e->params = p;
@@ -170,7 +169,18 @@ class ModuleRuntimeTest : public ::testing::Test {
     g_last_result = GFEventResult::Ok();
     g_activate_calls = g_deactivate_calls = g_unload_calls = 0;
     hooks_ = MakeHooks();
-    host_ = MakeHostApi();
+    // The UI group is granted because the runtime itself reaches it, through
+    // GFEvent::RequireGui. Everything else is withheld, which is what the
+    // capability tests below are for.
+    host_ = stubs::MakeHostApi(GF_HOST_CAP_UI);
+  }
+
+  /// Activate with a default payload, for the tests whose subject is not
+  /// activation. A wrapper has no host to call before this, by design.
+  void Activate() {
+    Payload payload({"ALPHA", "BETA"}, true);
+    ASSERT_EQ(Api()->activate(&host_, payload.Get()), 0);
+    Rec().Reset();
   }
 
   auto Api() -> const GFModuleApi* {
@@ -188,6 +198,7 @@ namespace GpgFrontend::Test {
 // ------------------------------------------------------------ entry point
 
 TEST_F(ModuleRuntimeTest, TheStreamFormBuildsOneLineRatherThanSeveral) {
+  Activate();
   LOG_W() << "open" << QString("/tmp/x") << "failed:" << 42;
 
   ASSERT_EQ(Rec().warnings.size(), 1);
@@ -195,6 +206,7 @@ TEST_F(ModuleRuntimeTest, TheStreamFormBuildsOneLineRatherThanSeveral) {
 }
 
 TEST_F(ModuleRuntimeTest, TheStreamFormTakesWhatArgCannotRatherThanRefusing) {
+  Activate();
   // The reason this exists beside FLOG_*: QString::arg has no overload for a
   // bool, a QByteArray or a container, so a caller had to convert by hand at
   // every site. QDebug prints all of them.
@@ -207,6 +219,7 @@ TEST_F(ModuleRuntimeTest, TheStreamFormTakesWhatArgCannotRatherThanRefusing) {
 }
 
 TEST_F(ModuleRuntimeTest, TheStreamFormEmitsNothingExtraRatherThanAnEmptyLine) {
+  Activate();
   // A statement with nothing streamed is still one message, not zero and not
   // a crash -- somebody will write it.
   LOG_W();
@@ -273,12 +286,19 @@ TEST_F(ModuleRuntimeTest, AHostTableTooSmallIsRefused) {
   const auto* api = Api();
   ASSERT_NE(api, nullptr);
 
-  auto stunted = MakeHostApi();
+  auto stunted = stubs::MakeHostApi(0);
   stunted.struct_size = sizeof(size_t);
 
   Payload payload({"ALPHA", "BETA"}, true);
   EXPECT_NE(api->activate(&stunted, payload.Get()), 0);
   EXPECT_EQ(api->activate(nullptr, payload.Get()), -1);
+
+  // A table big enough but with no context authorizes nothing, so every call
+  // through it would be refused. Declining to activate says so once instead
+  // of letting the module fail at each call.
+  auto contextless = stubs::MakeHostApi(0);
+  contextless.context = nullptr;
+  EXPECT_NE(api->activate(&contextless, payload.Get()), 0);
 }
 
 // An older host passes nothing. The module still has to load, from the only
@@ -551,6 +571,118 @@ TEST_F(ModuleRuntimeTest, TheTranslatorReaderIsRegisteredAndSurvivesNoQmFile) {
   const auto size = Rec().translator_reader("en_US", &data);
   EXPECT_EQ(size, 0);
   EXPECT_EQ(data, nullptr);
+}
+
+// ------------------------------------------------- the module-side sdk
+//
+// These exercise the wrappers a module actually calls -- the GFSDK* names --
+// running against the capability table the fake host handed over. Before the
+// SDK moved module-side there was nothing here to test: the names resolved
+// to the host's shared library and a test binary could only stub them out.
+
+TEST_F(ModuleRuntimeTest, AWrapperWhoseGroupWasWithheldRefusesTheCall) {
+  Activate();  // the fake grants ui and nothing else
+
+  // gpg was never granted, so host->gpg is null. The wrapper must return the
+  // failure value for its own signature rather than call through a null
+  // pointer -- and it must say why, once.
+  GFGpgResultRef result = nullptr;
+  EXPECT_NE(GFGpgDecrypt(gf::runtime::SdkContext(), 0, nullptr, &result), 0);
+  EXPECT_EQ(result, nullptr);
+
+  ASSERT_FALSE(Rec().errors.isEmpty());
+  const auto joined = Rec().errors.join(" ");
+  EXPECT_TRUE(joined.contains("gpg"))
+      << "the denial must name the capability that was missing: "
+      << joined.toStdString();
+  EXPECT_TRUE(joined.contains("GFGpgDecrypt"))
+      << "and the entry point that wanted it: " << joined.toStdString();
+}
+
+TEST_F(ModuleRuntimeTest, ADenialIsReportedEveryTimeBecauseTheSdkIsStateless) {
+  Activate();
+
+  // Deliberately NOT "once". Remembering that a denial has already been
+  // reported would be state, and gf_sdk holds none: no bound table, no
+  // current module, not even a flag. That is the whole property, and this is
+  // the visible cost of it.
+  //
+  // A module is expected to ask once, at activation, whether it holds what it
+  // needs, rather than discover it in a loop.
+  GFGpgResultRef result = nullptr;
+  for (int i = 0; i < 5; ++i) {
+    GFGpgSign(gf::runtime::SdkContext(), 0, nullptr, 0, nullptr, 0, 0, &result);
+  }
+
+  EXPECT_EQ(Rec().errors.size(), 5);
+  EXPECT_TRUE(Rec().errors.first().contains("gpg"));
+}
+
+TEST_F(ModuleRuntimeTest, TheColourHelpersDifferOnlyByTheRoleTheyAskFor) {
+  Activate();
+
+  // Five names on this side, one primitive on the other. The fake returns
+  // the role it was given, so this asserts that each name asks for its own
+  // role -- the property that replaced five host entry points.
+  EXPECT_EQ(GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_MUTED_TEXT,
+                           nullptr),
+            0xFF000000U | GF_UI_COLOR_MUTED_TEXT);
+  EXPECT_EQ(
+      GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_BORDER, nullptr),
+      0xFF000000U | GF_UI_COLOR_BORDER);
+  EXPECT_EQ(
+      GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_WARNING, nullptr),
+      0xFF000000U | GF_UI_COLOR_WARNING);
+  EXPECT_EQ(
+      GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_DANGER, nullptr),
+      0xFF000000U | GF_UI_COLOR_DANGER);
+  EXPECT_EQ(GFUIThemeColor(gf::runtime::SdkContext(),
+                           GF_UI_COLOR_ACCENT_POSITIVE, nullptr),
+            0xFF000000U | GF_UI_COLOR_ACCENT_POSITIVE);
+  EXPECT_EQ(GFUIThemeColor(gf::runtime::SdkContext(),
+                           GF_UI_COLOR_ACCENT_NEGATIVE, nullptr),
+            0xFF000000U | GF_UI_COLOR_ACCENT_NEGATIVE);
+}
+
+TEST_F(ModuleRuntimeTest, AHelperThatNeedsNothingFromTheHostCallsNothing) {
+  Activate();
+  const auto before = Rec().allocations;
+
+  // Version comparison crosses no boundary at all -- two strings in, an
+  // ordering out -- so it is computed here and costs no ABI. The quirks are
+  // the host's own, faithfully: a leading "v" is dropped, and a version with
+  // more components sorts after one with fewer.
+  EXPECT_LT(GFCompareSoftwareVersion("2.1.0", "2.1.1"), 0);
+  EXPECT_GT(GFCompareSoftwareVersion("2.10.0", "2.9.0"), 0);
+  EXPECT_EQ(GFCompareSoftwareVersion("v2.1.0", "2.1.0"), 0);
+  EXPECT_GT(GFCompareSoftwareVersion("2.1.0", "2.1"), 0);
+
+  EXPECT_EQ(Rec().allocations, before)
+      << "GFCompareSoftwareVersion must not reach the host for anything";
+}
+
+TEST_F(ModuleRuntimeTest, AWrapperWorksFromAThreadTheModuleStarted) {
+  Activate();
+
+  // The case the context exists for. Nothing the host did is on this
+  // thread's stack, so an implementation that read the host's thread-local
+  // record of "whose code is running" would find nothing and refuse.
+  QString copied;
+  QThread* worker = QThread::create([&copied]() {
+    auto* s = GFMemStrDup(gf::runtime::SdkContext(), GF_ARENA_NORMAL,
+                          "from a worker");
+    if (s != nullptr) {
+      copied = QString::fromUtf8(s);
+      GFMemFree(gf::runtime::SdkContext(), GF_ARENA_NORMAL, s);
+    }
+  });
+  worker->start();
+  ASSERT_TRUE(worker->wait(30000));
+  worker->deleteLater();
+
+  EXPECT_EQ(copied.toStdString(), "from a worker");
+  EXPECT_GT(Rec().calls_off_thread, 0)
+      << "the call did not actually happen on another thread";
 }
 
 }  // namespace GpgFrontend::Test
