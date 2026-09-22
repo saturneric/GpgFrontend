@@ -141,12 +141,12 @@ struct GF_CORE_EXPORT ModuleRefusalRecord {
   /// What to show. Already a sentence.
   QString reason;
 
-  /// The build key an external descriptor carried, when it got far enough to
-  /// have one verified. Empty otherwise. Raw bytes; the fingerprint is
+  /// The publisher key an external descriptor carried, when it got far enough
+  /// to have one verified. Empty otherwise. Raw bytes; the fingerprint is
   /// derived for display, never stored.
-  QByteArray build_key;
+  QByteArray publisher_key;
 
-  /// Waiting on a person rather than broken: the build key is untrusted, or
+  /// Waiting on a person rather than broken: the publisher key is untrusted, or
   /// the module was never enabled. The Controller shows these differently,
   /// because one of them has an action attached and the other does not.
   bool pending_user_action = false;

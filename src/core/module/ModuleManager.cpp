@@ -258,16 +258,16 @@ class ModuleManager::Impl {
       LOG_W() << "module manager refuses external module: " << package_path
               << ", reason: " << why;
       RecordRefusal({package_path, origin, read.manifest.id, why,
-                     read.build_public_key, false});
+                     read.signer_public_key, false});
       return false;
 #else
       const auto authorization =
-          ExternalModuleAuthorization(read.manifest.id, read.build_public_key);
+          ExternalModuleAuthorization(read.manifest.id, read.signer_public_key);
       if (authorization != ModuleAuthorizationState::kTRUSTED_AND_ENABLED) {
         const QString why =
-            authorization == ModuleAuthorizationState::kKEY_UNTRUSTED
+            authorization == ModuleAuthorizationState::kPUBLISHER_UNTRUSTED
                 ? QObject::tr(
-                      "Waiting for you to trust the build key that "
+                      "Waiting for you to trust the publisher key that "
                       "signed it.")
                 : QObject::tr("Waiting for you to enable it.");
         LOG_I() << "module manager holds external module: " << package_path
@@ -277,7 +277,7 @@ class ModuleManager::Impl {
         // it apart from a broken module is the difference between a control
         // to press and a problem to report.
         RecordRefusal({package_path, origin, read.manifest.id, why,
-                       read.build_public_key, true});
+                       read.signer_public_key, true});
         return false;
       }
 #endif
@@ -303,7 +303,7 @@ class ModuleManager::Impl {
       LOG_W() << "module manager refuses module descriptor: " << package_path
               << ", reason: " << why;
       RecordRefusal({package_path, origin, read.manifest.id, why,
-                     read.build_public_key, false});
+                     read.signer_public_key, false});
       return false;
     }
 
@@ -324,7 +324,7 @@ class ModuleManager::Impl {
               << ", reason: " << entry.reason << " ("
               << ModuleEntryStatusToString(entry.status) << ")";
       RecordRefusal({package_path, origin, read.manifest.id, entry.reason,
-                     read.build_public_key, false});
+                     read.signer_public_key, false});
       return false;
     }
 
