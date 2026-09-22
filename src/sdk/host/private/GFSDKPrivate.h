@@ -44,11 +44,11 @@ Q_DECLARE_LOGGING_CATEGORY(sdk)
 struct GFModuleEventParam;
 
 /**
- * @brief
+ * @brief Copy @p str into a new UTF-8 C string from the normal arena.
  *
- * @return char*
+ * @return caller-owned; free with GFFreeMemory
  */
-auto GFStrDup(const QString &) -> char *;
+auto GFStrDup(const QString &str) -> char *;
 
 /**
  * @brief Copies raw octets into an SDK-allocated buffer, byte for byte.
@@ -65,12 +65,15 @@ auto GFStrDup(const QString &) -> char *;
 auto GFBytesDup(const QByteArray &bytes, size_t *size) -> char *;
 
 /**
- * @brief
+ * @brief Read a C string the host OWNS, and free it.
  *
- * @param str
- * @return QString
+ * Only for strings whose ownership really was transferred to the host, such
+ * as the fields of an event answer. Null-safe.
  */
 auto GFUnStrDup(char *str) -> QString;
+
+/// The same, for a transferred string typed as const.
+auto GFUnStrDup(const char *str) -> QString;
 
 /**
  * @brief Read a borrowed C string WITHOUT taking ownership of it.
@@ -90,90 +93,10 @@ auto GFUnStrDup(char *str) -> QString;
 auto GFStrView(const char *str) -> QString;
 
 /**
- * @brief
+ * @brief Read an event answer's parameter list, and free all of it.
  *
- * @return QString
- */
-auto GFUnStrDup(const char *) -> QString;
-
-/**
- * @brief
- *
- * @return QString
- */
-auto GFBufferUnStrDup(const char *str) -> GpgFrontend::GFBuffer;
-
-/**
- * @brief
- *
- * @param char_array
- * @param size
- * @return QMap<QString, QString>
- */
-auto CharArrayToQMap(char **char_array, int size) -> QMap<QString, QString>;
-
-/**
- * @brief
- *
- * @param map
- * @param size
- * @return char**
- */
-auto QMapToCharArray(const QMap<QString, QString> &map, int &size) -> char **;
-
-/**
- * @brief
- *
- * @param params
- * @return QMap<QString, QString>
+ * The list is transferred: nodes and names come from the normal arena and
+ * values from the secure arena (see GFModuleEventAnswer).
  */
 auto ConvertEventParamsToMap(GFModuleEventParam *params)
     -> QMap<QString, GpgFrontend::GFBuffer>;
-
-/**
- * @brief
- *
- * @param char_array
- * @param size
- * @return QStringList
- */
-auto CharArrayToQStringList(char **char_array, int size) -> QStringList;
-
-/**
- * @brief
- *
- * @param list
- * @param size
- * @return char**
- */
-auto QStringListToCharArray(const QStringList &list) -> char **;
-
-template <typename T>
-inline auto ArrayToQList(T **pl_components, int size)
-    -> GpgFrontend::QContainer<T> {
-  if (pl_components == nullptr || size <= 0) {
-    return GpgFrontend::QContainer<T>();
-  }
-
-  GpgFrontend::QContainer<T> list;
-  for (int i = 0; i < size; ++i) {
-    list.append(*pl_components[i]);
-    GpgFrontend::SMAFree(pl_components[i]);
-  }
-  GpgFrontend::SMAFree(pl_components);
-  return list;
-}
-
-template <typename T>
-inline auto QListToArray(const GpgFrontend::QContainer<T> &list) -> T ** {
-  T **array =
-      static_cast<T **>(GpgFrontend::SMAMalloc(list.size() * sizeof(T *)));
-  int index = 0;
-  for (const T &item : list) {
-    auto mem = static_cast<T *>(GpgFrontend::SMAMalloc(sizeof(T)));
-    array[index] = new (mem) T(item);
-    index++;
-  }
-
-  return array;
-}

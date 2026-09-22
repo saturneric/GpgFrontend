@@ -48,12 +48,11 @@ extern "C" {
  * all -- which was the whole reason the context exists.
  *
  * Every handle the SDK issues is recorded against a module so that teardown
- * can say who leaked what, and reclaim it. The SDK has no other way to know:
- * the host API table is one static table shared by every module, so a call
- * arriving through it carries no identity of its own.
- *
- * The answer is therefore kept per thread, set by the host at each point
- * where it hands control to module code, and cleared when control comes back.
+ * can say who leaked what, and reclaim it. A call made through a module's
+ * context is attributed from that context by the gate. A handle the host
+ * creates while running a module's hook has no context on hand, so the host
+ * also sets the answer per thread at each point where it hands control to
+ * module code, and clears it when control comes back.
  *
  * ## What this attributes, and what it does not
  *
@@ -97,10 +96,10 @@ const char* GFSdkCurrentModule(void);
 /**
  * @brief Reclaim every handle still outstanding for @p module_id.
  *
- * ONLY safe once no module code can run. Teardown establishes that in its
- * quiesce step, which is why this is called from step 5 of that sequence and
- * from nowhere else: a handle the module is still using would be wiped and
- * freed underneath it.
+ * ONLY safe once no SDK call for the module can be running: its grant must be
+ * released and WaitHostApiIdle() must have returned true, as step 5 of the
+ * shutdown sequence does. Otherwise a handle the module is still using would
+ * be wiped and freed underneath it.
  *
  * Each reclaimed handle is logged with the entry point that issued it, so a
  * leak becomes a named diagnostic rather than a silent loss. For a secret it
@@ -114,28 +113,4 @@ size_t GFSdkSweepModuleHandles(const char* module_id);
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef __cplusplus
-/**
- * @brief RAII form of GFSdkEnterModule()/GFSdkLeaveModule().
- *
- * Header-only and calling only the exported C entry points, so gf_core can
- * use it even though it cannot link the sdk: the symbols resolve when the
- * application links both, exactly as GFGetHostApi() already does.
- */
-class GFSdkModuleAttributionScope {
- public:
-  explicit GFSdkModuleAttributionScope(const char* module_id)
-      : previous_(GFSdkEnterModule(module_id)) {}
-
-  ~GFSdkModuleAttributionScope() { GFSdkLeaveModule(previous_); }
-
-  GFSdkModuleAttributionScope(const GFSdkModuleAttributionScope&) = delete;
-  auto operator=(const GFSdkModuleAttributionScope&)
-      -> GFSdkModuleAttributionScope& = delete;
-
- private:
-  const char* previous_;
-};
 #endif

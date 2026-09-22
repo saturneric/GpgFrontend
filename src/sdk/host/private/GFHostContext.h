@@ -34,7 +34,7 @@
 #include "GFSDKHostApi.h"
 
 /**
- * @file GFSDKHostApiMint.h
+ * @file GFHostContext.h
  * @brief Minting one module's host api table, and deciding what it may do.
  *
  * PRIVATE. Not installed, not includable by a module, and deliberately not
@@ -48,9 +48,10 @@ namespace gf_sdk_internal {
 /**
  * @brief Create the table @p module_id will be handed at activation.
  *
- * Idempotent per module: minting twice for the same id returns the same
- * table, so a re-activation does not strand the context the module is
- * already holding.
+ * Minting a module that is still live with the same grant returns the table
+ * it already holds. Otherwise the module gets a new table and context, and
+ * any previous context for the id is revoked; a table already handed out is
+ * never rewritten.
  *
  * @param module_id borrowed; copied into the record
  * @param granted GF_HOST_CAP_* bits. A group whose bit is clear is NULL in
@@ -60,9 +61,23 @@ namespace gf_sdk_internal {
  */
 auto MintHostApi(const char* module_id, uint32_t granted) -> const GFHostApi*;
 
-/// Invalidate @p module_id's table and context. Calls arriving afterwards are
-/// refused on every thread, because the context is no longer in the registry.
+/// Revoke @p module_id's context. Calls arriving afterwards are refused on
+/// every thread; calls already past the gate keep running, see
+/// WaitHostApiIdle().
 void ReleaseHostApi(const char* module_id);
+
+/**
+ * @brief Wait until no gated call is running with any of @p module_id's
+ *        contexts, other than calls on the waiting thread itself.
+ *
+ * Revoking a context stops new calls; this waits out the ones already inside.
+ * Only after both is it safe to free what those calls may be using, such as
+ * the module's outstanding handles.
+ *
+ * @return false on timeout, in which case the caller must not free anything
+ *         the running calls could still reach
+ */
+auto WaitHostApiIdle(const char* module_id, int timeout_ms) -> bool;
 
 /**
  * @brief Why a context was accepted or refused.
@@ -86,42 +101,52 @@ enum class HostContextStatus {
 auto ContextStatusOf(GFHostContextRef ctx, uint32_t capability)
     -> HostContextStatus;
 
-/**
- * @brief Whether @p ctx is a live context holding @p capability.
- *
- * The one authorization decision in the SDK. @p ctx is validated against the
- * live registry BEFORE anything is read through it, so an unknown, stale or
- * invented pointer is refused rather than dereferenced.
- *
- * Correct on any thread, which is the reason the capability travels in an
- * argument at all: a module calls the SDK from threads it started itself,
- * where the host's thread-local record of "whose code is running" does not
- * exist and never will.
- *
- * @param ctx the context from the module's own GFHostApi
- * @param capability one GF_HOST_CAP_* bit, or 0 to require only that @p ctx
- *        is live -- which is what the always-granted groups need, since
- *        "was this granted" is not a question that arises for them
- * @param entry_point the SDK name to blame in the log
- */
-auto ContextHolds(GFHostContextRef ctx, uint32_t capability,
-                  const char* entry_point) -> bool;
-
-/// The module @p ctx belongs to, or an empty string when it is not live.
+/// The module @p ctx belongs to, live or revoked, or an empty string when
+/// @p ctx is unknown. For log lines and key scoping, never for authorization.
 auto ContextModuleId(GFHostContextRef ctx) -> QString;
 
 /**
- * @brief @p ctx's module id as a pointer stable for the life of the process.
+ * @brief One authorized call, from BeginCall() to EndCall().
  *
- * For ScopedContextAttribution, which must not copy. NULL when @p ctx is not
- * live, in which case there is nothing to attribute anyway.
+ * Empty (null @ref record) when the call was refused.
  */
-auto ContextAttributionId(GFHostContextRef ctx) -> const char*;
+struct CallTicket {
+  const void* record = nullptr;
+  /// The module id, stable for the life of the process, so
+  /// ScopedContextAttribution can use it without copying.
+  const char* attribution = nullptr;
+};
+
+/**
+ * @brief Authorize a call and count it as running, under one lock.
+ *
+ * The one authorization decision in the SDK. @p ctx is validated against the
+ * registry BEFORE anything is read through it, so an unknown, stale or
+ * invented pointer is refused rather than dereferenced. A refusal is logged.
+ *
+ * Correct on any thread, which is the reason the context travels in an
+ * argument at all: a module calls the SDK from threads it started itself,
+ * where the host's thread-local record of "whose code is running" does not
+ * exist.
+ *
+ * Doing the check, the attribution lookup and the in-flight count together is
+ * what stops a release from landing between them.
+ *
+ * @param ctx the context from the module's own GFHostApi
+ * @param capability one GF_HOST_CAP_* bit, or 0 to require only that @p ctx
+ *        is live, which is all the always-granted groups need
+ * @param entry_point the SDK name to blame in the log
+ */
+auto BeginCall(GFHostContextRef ctx, uint32_t capability,
+               const char* entry_point) -> CallTicket;
+
+/// End a call BeginCall() authorized. A no-op for an empty ticket.
+void EndCall(const CallTicket& ticket);
 
 /**
  * @brief Point @p table's group pointers at the real thunk tables.
  *
- * Implemented in GFSDKModuleApi.cpp, beside the thunks themselves, so that
+ * Implemented in GFHostApiTables.cpp, beside the thunks themselves, so that
  * "which groups exist" and "what is in them" cannot drift apart. A group
  * whose bit is clear in @p granted is left NULL.
  */

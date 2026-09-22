@@ -45,7 +45,7 @@
  * and address-deduplication rules inside them are subtle -- every UID rather
  * than only the primary, revoked UIDs excluded, deduplication on the address
  * alone -- and are covered by existing tests. Moving that logic would have
- * risked those behaviours for no gain.
+ * risked those behaviors for no gain.
  *
  * What DID change is that they are no longer exported: modules reach this
  * functionality through the opaque list handles in GFSDKGpgList.h, which have
@@ -127,16 +127,10 @@ auto GFGpgListKeyAddresses(int channel, int secret_only, char*** addresses,
                            int* count) -> int;
 void GFGpgFreeStringArray(char** strings, int count);
 
-/**
- * @brief One list element as a borrowed row struct, for the host api groups.
- *
- * The ABI hands a module one pointer per element instead of eleven accessors
- * that differed only in which field they named. The row points INTO the list's
- * own storage and dies with it, exactly as the individual accessors did.
- *
- * Internal: the public SDK spellings (GFGpgKeyBriefFingerprint and friends)
- * are implemented module-side on top of these, in gf_module_runtime.
- */
+// A list element crosses the ABI as one borrowed row struct rather than one
+// accessor per field; see KeyBriefRowAt() and RecipientRowAt() in
+// GFHostGpgList.cpp. A row points into the list's own storage and dies with
+// it.
 
 }  // namespace gf_host
 

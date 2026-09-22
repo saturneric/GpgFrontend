@@ -33,6 +33,8 @@
 #include <QMutexLocker>
 #include <QString>
 
+#include "GFSDKHandleSweep.h"
+#include "GFSDKPrivate.h"
 #include "core/utils/CommonUtils.h"
 
 /**
@@ -42,7 +44,7 @@
  * WHY A REGISTRY AT ALL: an opaque handle is a pointer, and the one question
  * every entry point must answer first is "is this pointer still mine?". The
  * tempting answer -- stash a magic word in the struct and read it -- is
- * itself undefined behaviour on a released handle: it dereferences freed
+ * itself undefined behavior on a released handle: it dereferences freed
  * memory, is exactly what ASan traps, and can read anything once the
  * allocator reuses the block. So validity is decided by looking the POINTER
  * VALUE up in this table, without ever touching the pointed-to memory. A
@@ -80,6 +82,13 @@ struct GFHandleOrigin {
   const char* origin = nullptr;
 };
 
+/// What a handle lookup found.
+enum class GFHandleState {
+  kLive,     ///< issued, not reclaimed, and owned by the caller
+  kStale,    ///< never issued, or already released or swept
+  kForeign,  ///< live, but issued to a different module
+};
+
 /**
  * @brief The live-handle table for one handle type.
  *
@@ -100,19 +109,33 @@ class GFHandleRegistry {
     live_.insert(impl, GFHandleOrigin{module_id, origin});
   }
 
-  /// Is @p handle one we issued and have not reclaimed? Decided WITHOUT
-  /// dereferencing it.
-  [[nodiscard]] auto IsLive(const T* handle) -> bool {
-    if (handle == nullptr) return false;
+  /**
+   * @brief Is @p handle one we issued, have not reclaimed, and issued to the
+   *        calling module? Decided WITHOUT dereferencing it.
+   *
+   * The caller is the module the current gate attributed this thread to. A
+   * handle is private to the module that asked for it: one module holding
+   * another's pointer does not make it that module's to read or release.
+   * Host-internal calls (no attribution) and handles issued outside any
+   * module are not owner-checked. A foreign handle is logged here.
+   */
+  [[nodiscard]] auto Check(const T* handle, const char* what) -> GFHandleState {
+    if (handle == nullptr) return GFHandleState::kStale;
     QMutexLocker locker(&mutex_);
-    return live_.contains(const_cast<T*>(handle));
+    const auto it = live_.constFind(const_cast<T*>(handle));
+    if (it == live_.constEnd()) return GFHandleState::kStale;
+    return OwnerStateLocked(it.value(), handle, what);
   }
 
-  /// Remove @p handle, reporting whether it was ours to remove.
-  auto Take(T* handle) -> bool {
-    if (handle == nullptr) return false;
+  /// Remove @p handle if Check() would call it live, reporting what it found.
+  auto Take(T* handle, const char* what) -> GFHandleState {
+    if (handle == nullptr) return GFHandleState::kStale;
     QMutexLocker locker(&mutex_);
-    return live_.remove(handle) > 0;
+    const auto it = live_.find(handle);
+    if (it == live_.end()) return GFHandleState::kStale;
+    const auto state = OwnerStateLocked(it.value(), handle, what);
+    if (state == GFHandleState::kLive) live_.erase(it);
+    return state;
   }
 
   /// Outstanding handles, for @p module_id or process-wide when it is null.
@@ -154,6 +177,20 @@ class GFHandleRegistry {
   }
 
  private:
+  static auto OwnerStateLocked(const GFHandleOrigin& owner, const T* handle,
+                               const char* what) -> GFHandleState {
+    const auto caller = gf_sdk_internal::CurrentModuleId();
+    if (caller.isEmpty() || owner.module_id.isEmpty() ||
+        caller == owner.module_id) {
+      return GFHandleState::kLive;
+    }
+    LOG_W().nospace() << what << ": module " << caller
+                      << " presented a handle issued to module "
+                      << owner.module_id
+                      << "; refused: " << static_cast<const void*>(handle);
+    return GFHandleState::kForeign;
+  }
+
   QMutex mutex_;
   QHash<T*, GFHandleOrigin> live_;
 };
