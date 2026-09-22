@@ -194,6 +194,13 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
   if (spec.entry_native_file.isEmpty()) {
     return Fail("no entry native file was given to verify against");
   }
+  // External modules are always held to a binding by the Host; a descriptor
+  // without one would verify and then never load. Refused here so it is
+  // never produced at all.
+  if (spec.origin == ModuleOrigin::kEXTERNAL &&
+      spec.entry_binding != ModuleBindingRequirement::kREQUIRED) {
+    return Fail("an external descriptor must bind its entry native");
+  }
 
   // The archive writer trusts whatever paths it is handed -- it is the
   // extractor that validates, and it is not running yet. Validating here is
@@ -340,36 +347,51 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
                     .arg(self_check.reason));
   }
 
-  // The build's own key, derived from the seed the caller supplied. Expanded
-  // here and wiped on the way out by whichever path: the seed is the only
-  // stored form, and the expanded secret exists for the length of one
-  // signature.
+  // The signing key, derived from the seed the caller supplied. Expanded here
+  // and wiped on the way out by whichever path: the seed is the only stored
+  // form, and the expanded secret exists for the length of one signature.
   std::array<unsigned char, crypto_sign_PUBLICKEYBYTES> public_key{};
   std::array<unsigned char, crypto_sign_SECRETKEYBYTES> secret_key{};
   const auto forget_secret = qScopeGuard([&secret_key]() {
     sodium_memzero(secret_key.data(), secret_key.size());
   });
 
+  const auto external = spec.origin == ModuleOrigin::kEXTERNAL;
+
   if (spec.signing_seed.size() != crypto_sign_SEEDBYTES) {
-    return Fail("no module-build signing seed was given");
+    return Fail(external ? "no publisher signing seed was given"
+                         : "no module-build signing seed was given");
   }
   if (crypto_sign_seed_keypair(public_key.data(), secret_key.data(),
                                reinterpret_cast<const unsigned char*>(
                                    spec.signing_seed.constData())) != 0) {
-    return Fail("the module-build signing seed could not be used");
+    return Fail("the signing seed could not be used");
   }
 
-  // Structural, not advisory. gf_module_tool links gf_core, so it carries the
-  // very trust root the Host does -- and a descriptor signed with a seed that
-  // does not derive it would be one no Host could load. Refusing here means
-  // that cannot be produced at all, rather than produced and discovered later.
   const QByteArray derived(reinterpret_cast<const char*>(public_key.data()),
                            static_cast<qsizetype>(public_key.size()));
-  if (derived != ModuleBuildPublicKey()) {
+
+  // Structural, not advisory, and inverted between the two domains.
+  //
+  // INTEGRATED: gf_module_packager links gf_core, so it carries the very
+  // trust root the Host does -- and a descriptor signed with a seed that does
+  // not derive it would be one no Host could load. Refusing here means that
+  // cannot be produced at all, rather than produced and discovered later.
+  //
+  // EXTERNAL: the build key is ephemeral and belongs to this build tree; it is
+  // never a publisher identity. A publisher seed that derives it is refused,
+  // so the one key this Host trusts implicitly cannot be made to vouch for an
+  // artifact whose trust is supposed to be the user's decision.
+  if (!external && derived != ModuleBuildPublicKey()) {
     return Fail(
         "the signing seed does not derive this build's module-build key; a "
         "descriptor signed with it could not be loaded by the Host it was "
         "built alongside");
+  }
+  if (external && derived == ModuleBuildPublicKey()) {
+    return Fail(
+        "the publisher seed derives this build's module-build key; the build "
+        "key is never a publisher identity");
   }
 
   std::array<unsigned char, crypto_sign_BYTES> signature{};
@@ -388,9 +410,15 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
                   {},
                   QByteArray(reinterpret_cast<const char*>(signature.data()),
                              static_cast<qsizetype>(signature_length))});
-  // No build key member. The trust root belongs to the Host that loads this,
-  // not to the descriptor: one that travels inside what it vouches for
+  // INTEGRATED: no key member. The trust root belongs to the Host that loads
+  // this, not to the descriptor: one that travels inside what it vouches for
   // vouches for nothing.
+  //
+  // EXTERNAL: the publisher key, because a detached Ed25519 signature does
+  // not reveal its key and the Host has to be able to name the signer before
+  // anyone can decide about it. It identifies; it does not grant trust.
+  if (external)
+    members.append({kModuleDescriptorPublisherKeyPath, {}, derived});
   members.append(staged);
 
   QSaveFile out(spec.output_path);
@@ -450,9 +478,7 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
 
   ModuleDescriptorBuildResult result;
   result.ok = true;
-  result.build_public_key =
-      QByteArray(reinterpret_cast<const char*>(public_key.data()),
-                 static_cast<qsizetype>(public_key.size()));
+  result.signer_public_key = derived;
   result.manifest_bytes = manifest_bytes;
   return result;
 }

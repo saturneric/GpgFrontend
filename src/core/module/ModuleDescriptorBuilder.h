@@ -108,13 +108,32 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
   /// On macOS kREQUIRED is refused: there is no mode to honour.
   ModuleBindingRequirement entry_binding = ModuleBindingRequirement::kREQUIRED;
 
-  /// The 32-byte Ed25519 seed this build signs descriptors with.
+  /// Which trust domain this descriptor is built for.
   ///
-  /// Required. There is no per-package key any more: a descriptor signed by a
-  /// key nobody else holds establishes that it agrees with itself, which is
-  /// not a property worth the bytes. The seed must derive the public key the
-  /// Host was built with, and BuildModuleDescriptor() checks that rather than
-  /// trusting the caller to have passed the right file.
+  /// Named for what it selects, which is the whole contract and not just the
+  /// signer -- the same enum, and the same word, the verifier and the entry
+  /// policy take, so producer and verifier share one vocabulary:
+  ///
+  /// | | kINTEGRATED | kEXTERNAL |
+  /// |---|---|---|
+  /// | seed must derive | ModuleBuildPublicKey() | anything BUT it |
+  /// | key member | none | `META-INF/publisher.pub` |
+  /// | entry binding | as @c entry_binding says | kREQUIRED, or refused |
+  /// | accepted by | VerifyModuleDescriptor() |
+  /// VerifyExternalModuleDescriptor() | | trusted because | this Host was built
+  /// with the key | the user trusted the key |
+  ///
+  /// kINTEGRATED is the default and the only value the packager ever sets.
+  /// kEXTERNAL is gf_module_externalize's, and only after the input verified
+  /// as integrated.
+  ModuleOrigin origin = ModuleOrigin::kINTEGRATED;
+
+  /// The 32-byte Ed25519 seed to sign with.
+  ///
+  /// Required. For kINTEGRATED it must derive the public key the Host was
+  /// built with; for kEXTERNAL it is a publisher's seed and must NOT derive
+  /// that key. BuildModuleDescriptor() checks both rather than trusting the
+  /// caller to have passed the right file.
   QByteArray signing_seed;
 
   QString output_path;  ///< the `*.gfmodule` to write
@@ -126,9 +145,8 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
 struct GF_CORE_EXPORT ModuleDescriptorBuildResult {
   bool ok = false;
   QString reason;
-  QByteArray
-      build_public_key;       ///< the build key this descriptor was signed with
-  QByteArray manifest_bytes;  ///< exactly the bytes the signature covers
+  QByteArray signer_public_key;  ///< the key this descriptor was signed with
+  QByteArray manifest_bytes;     ///< exactly the bytes the signature covers
 };
 
 /**
@@ -163,12 +181,13 @@ auto GF_CORE_EXPORT CanonicalJson(const QJsonValue& value, QByteArray& out)
 /**
  * @brief Build and sign a `*.gfmodule` descriptor.
  *
- * The signing key is **not** generated here. @ref
- * ModuleDescriptorBuildSpec::signing_seed must derive the public key this Host
- * build was compiled with, and this function checks that before writing
+ * The signing key is **not** generated here. For an integrated descriptor
+ * @ref ModuleDescriptorBuildSpec::signing_seed must derive the public key this
+ * Host build was compiled with, and this function checks that before writing
  * anything -- so a descriptor that verifies at all was signed by the key the
  * Host carries, and `pack` structurally cannot produce one the Host would
- * refuse.
+ * refuse. For an external one the rule inverts: the build key is never a
+ * publisher identity, so a seed deriving it is refused.
  *
  * No executable code goes in. The entry native is read only to compute its
  * binding value under the mode its platform mandates; the file itself stays
