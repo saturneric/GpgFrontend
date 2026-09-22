@@ -990,7 +990,8 @@ jobs:
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           TOOL_DIR="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build host_tool_dir)"
-          rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe"
+          rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe" \
+                "$TOOL_DIR/gf_module_externalize.exe"
 
           # Test fixtures went during payload staging, before the module-set
           # assertion could trip over them. The check below is what proves it.
@@ -1000,6 +1001,7 @@ jobs:
           # thing found by a user rather than by us.
           STRAY="$(find build/artifacts \( -name 'gf_module_packager*' \
                      -o -name 'gf_module_keygen*' \
+                     -o -name 'gf_module_externalize*' \
                      -o -name '*test_sentinel*' \) -print)"
           if [ -n "$STRAY" ]; then
             echo "these are not deliverables and are still in the payload:" >&2

@@ -42,3 +42,14 @@ gf_pin_output_directory(gf_module_packager "${GPGFRONTEND_HOST_TOOL_DIR}")
 
 # Not installed: a packager is a thing a build runs, not a thing a user gets.
 
+
+# The release step that turns a verified integrated module into a
+# publisher-signed external one. Links gf_core for the same reason the
+# packager does -- the descriptor, binding and archive code, and the compiled
+# integrated trust root its input is verified against -- and touches no
+# runtime state. Never run by the build: a publisher key belongs to a person.
+add_executable(gf_module_externalize module_externalize/main.cpp)
+target_link_libraries(gf_module_externalize PRIVATE gf_core Qt::Core)
+gf_pin_output_directory(gf_module_externalize "${GPGFRONTEND_HOST_TOOL_DIR}")
+
+# Not installed, for the same reason.

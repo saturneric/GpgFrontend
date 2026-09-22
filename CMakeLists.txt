@@ -768,6 +768,7 @@ file(GENERATE
   \"host_os\": \"${_gf_build_os}\",
   \"host_tool_dir\": \"${GPGFRONTEND_HOST_TOOL_DIR}\",
   \"module_packager\": \"${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}\",
+  \"module_externalize\": \"${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_externalize${CMAKE_EXECUTABLE_SUFFIX}\",
   \"module_namespace_root\": \"${GPGFRONTEND_MODULE_NAMESPACE_ROOT}\",
   \"module_count\": ${GPGFRONTEND_MODULE_COUNT},
   \"modules\": {
