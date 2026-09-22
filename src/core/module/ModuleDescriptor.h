@@ -115,13 +115,25 @@ struct GF_CORE_EXPORT ModuleDescriptorVerification {
   ModuleDescriptorStatus status = ModuleDescriptorStatus::kOK;
   QString reason;  ///< human-readable, for the log and the UI
 
-  /// Parsed only after the signature over its raw bytes verified.
+  /// Structure, signature and resource integrity all held.
+  ///
+  /// Verification runs in two stages. AUTHENTICATION establishes who signed
+  /// the package and that it is intact; ADMISSION asks whether it is for
+  /// this Host -- build id (integrated only), platform, SDK ABI, minimum host
+  /// version. When authentication passes and admission does not, this is
+  /// true, @c ok is false, and @c manifest, @c manifest_bytes and
+  /// @c signer_public_key are still filled, so an incompatible module can be
+  /// named. @c ok implies this; this never implies @c ok.
+  bool authenticated = false;
+
+  /// Parsed only after the signature over its raw bytes verified. Filled
+  /// whenever @c authenticated.
   ModuleManifest manifest;
 
   /// Exactly the bytes the signature covered, for a caller that has to reason
   /// about the manifest as written rather than as parsed -- the parser keeps
   /// the fields it knows and drops the rest, so it cannot answer "what else
-  /// is in here". Empty unless @c ok.
+  /// is in here". Empty unless @c authenticated.
   QByteArray manifest_bytes;
 
   /// The key the signature verified against.

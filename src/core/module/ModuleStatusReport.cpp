@@ -38,6 +38,7 @@
 #include <QThread>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleExternalInspection.h"
 #include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
@@ -129,6 +130,13 @@ auto WriteModuleStatusReport(const QString& path, QString& reason) -> bool {
     if (!r.publisher_key.isEmpty()) {
       entry.insert("publisher_key_fingerprint",
                    ModulePublisherKeyFingerprint(r.publisher_key));
+    }
+    // An external refusal is answered question by question -- signature,
+    // publisher trust, enablement, compatibility, binding -- because "refused"
+    // alone does not say which of them a person has to act on.
+    if (r.origin == ModuleOrigin::kEXTERNAL) {
+      entry.insert("inspection", ExternalModuleReportToJson(
+                                     InspectExternalModule(r.descriptor_path)));
     }
     refused.append(entry);
   }

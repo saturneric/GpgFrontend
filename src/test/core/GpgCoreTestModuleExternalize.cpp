@@ -45,6 +45,7 @@
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleExternalInspection.h"
 #include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleExternalize.h"
 #include "core/module/ModuleManager.h"
@@ -541,6 +542,141 @@ TEST_F(ModuleExternalizeTest, TheHostAdmitsItOnlyAfterBothDecisions) {
   // And never as integrated, whatever the user decided.
   EXPECT_FALSE(
       manager.PrepareModule(descriptor, Module::ModuleOrigin::kINTEGRATED).ok);
+}
+
+// ------------------------------------------------------------- inspection
+
+TEST_F(ModuleExternalizeTest, InspectionSeparatesValidityFromTrust) {
+  const auto result = Externalize(output_root_);
+  ASSERT_TRUE(result.ok) << result.reason.toStdString();
+
+  // Sound in every way the package can answer for, and not loadable: a
+  // valid signature is not trust.
+  auto report = Module::InspectExternalModule(result.output_namespace);
+  EXPECT_TRUE(report.signature_valid) << report.descriptor_reason.toStdString();
+  EXPECT_EQ(report.publisher_key, publisher_key_);
+  EXPECT_EQ(report.fingerprint,
+            Module::ModulePublisherKeyFingerprint(publisher_key_));
+  EXPECT_TRUE(report.compatible);
+  EXPECT_TRUE(report.namespace_valid);
+  EXPECT_TRUE(report.native_binding_valid)
+      << report.native_reason.toStdString();
+  EXPECT_FALSE(report.publisher_trusted);
+  EXPECT_FALSE(report.module_enabled);
+  EXPECT_EQ(report.authorization,
+            Module::ModuleAuthorizationState::kPUBLISHER_UNTRUSTED);
+  EXPECT_FALSE(report.Loadable());
+
+  ASSERT_TRUE(Module::TrustModulePublisherKey(publisher_key_, {}));
+  report = Module::InspectExternalModule(result.output_namespace);
+  EXPECT_TRUE(report.publisher_trusted);
+  EXPECT_FALSE(report.module_enabled);
+  EXPECT_FALSE(report.Loadable());
+
+  ASSERT_TRUE(
+      Module::SetExternalModuleEnabled(spec_.module_id, publisher_key_, true));
+  report = Module::InspectExternalModule(result.output_namespace +
+                                         "/module.gfmodule");
+  EXPECT_TRUE(report.Loadable());
+
+  const auto json = Module::ExternalModuleReportToJson(report);
+  EXPECT_TRUE(json.value("loadable").toBool());
+  EXPECT_EQ(json.value("publisher_fingerprint").toString(), report.fingerprint);
+}
+
+TEST_F(ModuleExternalizeTest, AnIncompatibleModuleStillNamesItsPublisher) {
+  // Authenticated but not admitted: built for a Host far in the future. The
+  // report still says who signed it, which is what makes "incompatible" a
+  // statement about a known module rather than an anonymous refusal.
+  const auto key = Module::ModuleDirectoryKey(spec_.module_id);
+  const auto ns = output_root_ + "/" + key;
+  ASSERT_TRUE(QDir().mkpath(ns + "/native"));
+  const auto native =
+      ns + "/native/" + Module::ModuleNativeFileName(spec_.entry_native_name);
+  ASSERT_TRUE(QFile::copy(Native(), native));
+
+  auto spec = spec_;
+  spec.origin = Module::ModuleOrigin::kEXTERNAL;
+  spec.min_host_version = "999.0.0";
+  spec.signing_seed = publisher_seed_;
+  spec.entry_native_file = native;
+  spec.output_path = ns + "/module.gfmodule";
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+
+  const auto verdict = Module::VerifyExternalModuleDescriptor(spec.output_path);
+  EXPECT_FALSE(verdict.ok);
+  EXPECT_TRUE(verdict.authenticated);
+  EXPECT_EQ(verdict.status, Module::ModuleDescriptorStatus::kINCOMPATIBLE_ABI);
+  EXPECT_EQ(verdict.signer_public_key, publisher_key_);
+  EXPECT_EQ(verdict.manifest.id, spec_.module_id);
+
+  const auto report = Module::InspectExternalModule(ns);
+  EXPECT_TRUE(report.signature_valid);
+  EXPECT_FALSE(report.compatible);
+  EXPECT_EQ(report.publisher_key, publisher_key_);
+  EXPECT_TRUE(report.native_binding_valid);
+  EXPECT_FALSE(report.Loadable());
+}
+
+TEST_F(ModuleExternalizeTest, AForgedPackageNamesNobody) {
+  const auto result = Externalize(output_root_);
+  ASSERT_TRUE(result.ok) << result.reason.toStdString();
+  const auto descriptor = result.output_namespace + "/module.gfmodule";
+
+  QVector<QPair<QString, QByteArray>> members;
+  ASSERT_TRUE(ReadDescriptorMembers(descriptor, members));
+  for (auto& m : members) {
+    if (m.first == Module::kModuleDescriptorManifestPath) {
+      m.second.replace("1.2.3", "9.9.9");
+    }
+  }
+  ASSERT_TRUE(QFile::remove(descriptor));
+  ASSERT_TRUE(WriteDescriptorArchive(descriptor, members));
+
+  // A key that does not verify the signature identifies nobody, so nothing
+  // past the signature is reported -- not even the key it carries.
+  const auto verdict = Module::VerifyExternalModuleDescriptor(descriptor);
+  EXPECT_FALSE(verdict.authenticated);
+  EXPECT_TRUE(verdict.signer_public_key.isEmpty());
+
+  const auto report = Module::InspectExternalModule(result.output_namespace);
+  EXPECT_FALSE(report.signature_valid);
+  EXPECT_TRUE(report.publisher_key.isEmpty());
+  EXPECT_TRUE(report.fingerprint.isEmpty());
+  EXPECT_FALSE(report.Loadable());
+}
+
+TEST_F(ModuleExternalizeTest, ARewrittenNativeIsReportedAsSuch) {
+  // The rule externalization's output lives under: nothing it covers may be
+  // rewritten. Everything else about the module still holds, and the report
+  // says exactly which part does not.
+  const auto result = Externalize(output_root_);
+  ASSERT_TRUE(result.ok) << result.reason.toStdString();
+  QFile native(result.output_namespace + "/native/" +
+               Module::ModuleNativeFileName(spec_.entry_native_name));
+  ASSERT_TRUE(native.open(QIODevice::Append));
+  native.write("stripped, patched, or otherwise touched");
+  native.close();
+
+  const auto report = Module::InspectExternalModule(result.output_namespace);
+  EXPECT_TRUE(report.signature_valid);
+  EXPECT_TRUE(report.compatible);
+  EXPECT_FALSE(report.native_binding_valid);
+  EXPECT_EQ(report.native_status,
+            Module::ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH);
+}
+
+TEST_F(ModuleExternalizeTest, AMisplacedModuleIsReportedAsSuch) {
+  const auto result = Externalize(output_root_);
+  ASSERT_TRUE(result.ok) << result.reason.toStdString();
+  const auto moved =
+      output_root_ + "/" + Module::ModuleDirectoryKey("com.example.elsewhere");
+  ASSERT_TRUE(QDir().rename(result.output_namespace, moved));
+
+  const auto report = Module::InspectExternalModule(moved);
+  EXPECT_TRUE(report.signature_valid);
+  EXPECT_FALSE(report.namespace_valid);
+  EXPECT_FALSE(report.Loadable());
 }
 
 // ------------------------------------------------------------- stateless

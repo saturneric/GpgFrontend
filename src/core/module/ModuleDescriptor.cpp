@@ -197,52 +197,13 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
   }
   const auto& m = parsed.manifest;
 
-  // Right key, wrong build. Distinct from kUNTRUSTED_BUILD_KEY on purpose:
-  // one means "not ours", the other means "ours, but from a different build",
-  // and only the second is something a rebuild fixes.
-  //
-  // Integrated only. An external module's build id names the build tree that
-  // produced it, which is somebody else's; comparing it to ours would refuse
-  // every external module ever made and would be asserting nothing. What
-  // stands in for it there is compatibility -- sdk_abi and min_host_version,
-  // checked below for both -- plus the user's decision about the key.
-  //
-  // This is a contract, not an omission: in the external domain build_id is
-  // provenance only, and must never take part in a trust or compatibility
-  // decision. An external module naming THIS build's id gains nothing.
-  if (origin == ModuleOrigin::kINTEGRATED && m.build_id != ModuleBuildId()) {
-    return Refuse(ModuleDescriptorStatus::kWRONG_BUILD,
-                  QString("it was built for %1, and this is %2")
-                      .arg(m.build_id, ModuleBuildId()));
-  }
-
-  // Both sides normalised. The descriptor's arch is stamped by CMake, which
-  // says `aarch64` where Qt says `arm64`; comparing the raw strings refused
-  // every module on ARM Linux.
-  if (m.platform_os != ManifestHostOsName() ||
-      NormalizeManifestArch(m.platform_arch) != ManifestHostArchName()) {
-    return Refuse(ModuleDescriptorStatus::kWRONG_PLATFORM,
-                  QString("it was built for %1/%2, and this is %3/%4")
-                      .arg(m.platform_os, m.platform_arch, ManifestHostOsName(),
-                           ManifestHostArchName()));
-  }
-
-  // One decision point, shared with the loader's check of the module's own
-  // table -- see SdkAbiRejection().
-  if (const auto why = SdkAbiRejection(m.sdk_abi); why) {
-    return Refuse(ModuleDescriptorStatus::kINCOMPATIBLE_ABI, *why);
-  }
-
-  if (GFCompareSoftwareVersion(m.min_host_version, GetProjectVersion()) > 0) {
-    return Refuse(ModuleDescriptorStatus::kINCOMPATIBLE_ABI,
-                  QString("it needs GpgFrontend %1 or newer, and this is %2")
-                      .arg(m.min_host_version, GetProjectVersion()));
-  }
-
   // Both directions, over the package's non-executable members. A declared
   // resource that is absent is a broken descriptor; an undeclared member that
   // is present is an appended payload the signature says nothing about, which
   // is the more interesting of the two.
+  //
+  // Part of AUTHENTICATION, not admission: a resource that is not the one
+  // signed for means the package is damaged, whoever is asking.
   for (const auto& declared : m.resources) {
     const auto it = actual_digests.constFind(declared.path);
     if (it == actual_digests.constEnd()) {
@@ -272,12 +233,70 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
     }
   }
 
+  // AUTHENTICATED. Everything from here on is admission -- is this package
+  // for THIS Host -- and a refusal below still reports who signed it and
+  // what it says, so an incompatible module can be named rather than only
+  // rejected. Nothing below may add a trust fact.
   ModuleDescriptorVerification v;
-  v.ok = true;
-  v.status = ModuleDescriptorStatus::kOK;
+  v.authenticated = true;
   v.manifest = m;
   v.manifest_bytes = manifest_bytes;
   v.signer_public_key = expected_public_key;
+
+  const auto not_admitted = [&v](ModuleDescriptorStatus status,
+                                 const QString& reason) {
+    auto refused = v;
+    refused.ok = false;
+    refused.status = status;
+    refused.reason = reason;
+    return refused;
+  };
+
+  // Right key, wrong build. Distinct from kUNTRUSTED_BUILD_KEY on purpose:
+  // one means "not ours", the other means "ours, but from a different build",
+  // and only the second is something a rebuild fixes.
+  //
+  // Integrated only. An external module's build id names the build tree that
+  // produced it, which is somebody else's; comparing it to ours would refuse
+  // every external module ever made and would be asserting nothing. What
+  // stands in for it there is compatibility -- sdk_abi and min_host_version,
+  // checked below for both -- plus the user's decision about the key.
+  //
+  // This is a contract, not an omission: in the external domain build_id is
+  // provenance only, and must never take part in a trust or compatibility
+  // decision. An external module naming THIS build's id gains nothing.
+  if (origin == ModuleOrigin::kINTEGRATED && m.build_id != ModuleBuildId()) {
+    return not_admitted(ModuleDescriptorStatus::kWRONG_BUILD,
+                        QString("it was built for %1, and this is %2")
+                            .arg(m.build_id, ModuleBuildId()));
+  }
+
+  // Both sides normalised. The descriptor's arch is stamped by CMake, which
+  // says `aarch64` where Qt says `arm64`; comparing the raw strings refused
+  // every module on ARM Linux.
+  if (m.platform_os != ManifestHostOsName() ||
+      NormalizeManifestArch(m.platform_arch) != ManifestHostArchName()) {
+    return not_admitted(ModuleDescriptorStatus::kWRONG_PLATFORM,
+                        QString("it was built for %1/%2, and this is %3/%4")
+                            .arg(m.platform_os, m.platform_arch,
+                                 ManifestHostOsName(), ManifestHostArchName()));
+  }
+
+  // One decision point, shared with the loader's check of the module's own
+  // table -- see SdkAbiRejection().
+  if (const auto why = SdkAbiRejection(m.sdk_abi); why) {
+    return not_admitted(ModuleDescriptorStatus::kINCOMPATIBLE_ABI, *why);
+  }
+
+  if (GFCompareSoftwareVersion(m.min_host_version, GetProjectVersion()) > 0) {
+    return not_admitted(
+        ModuleDescriptorStatus::kINCOMPATIBLE_ABI,
+        QString("it needs GpgFrontend %1 or newer, and this is %2")
+            .arg(m.min_host_version, GetProjectVersion()));
+  }
+
+  v.ok = true;
+  v.status = ModuleDescriptorStatus::kOK;
   return v;
 }
 
