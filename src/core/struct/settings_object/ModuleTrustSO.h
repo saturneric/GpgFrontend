@@ -32,14 +32,19 @@
 
 namespace GpgFrontend {
 
-/// The data object the user's trusted module build keys are stored under.
-inline constexpr auto kModuleTrustedBuildKeysObject = "module_trusted_keys";
+/// The data object the user's trusted module publisher keys are stored under.
+///
+/// The persisted names -- this object's and the `build_key` field below --
+/// predate the publisher vocabulary and are kept as they are. Renaming them
+/// would need a migration to preserve decisions users have already made, and
+/// a spelling on disk buys nothing a comment cannot.
+inline constexpr auto kModuleTrustedPublisherKeysObject = "module_trusted_keys";
 
 /// The data object per-module authorizations are stored under.
 inline constexpr auto kModuleAuthorizationsObject = "module_authorizations";
 
 /**
- * @brief A module build key the user has decided to trust.
+ * @brief A module publisher key the user has decided to trust.
  *
  * ## One source of truth: the key
  *
@@ -48,18 +53,17 @@ inline constexpr auto kModuleAuthorizationsObject = "module_authorizations";
  * comparison would not necessarily be the one shown to the person -- which is
  * the only way a trust decision can be wrong without anything looking wrong.
  *
- * ## It is a BUILD key, not a publisher identity
+ * ## Exactly one key
  *
- * Module signing keys are ephemeral and per build tree, exactly as this
- * Host's own is. This is not a durable identity for whoever wrote the module,
- * and trusting one says nothing about the next build from the same hands: a
- * module signed under a different build key matches no record here and
- * returns to Pending, needing a fresh decision. That is deliberate, not a
- * rough edge -- there is no publisher PKI, no rotation and no succession.
+ * A record trusts one exact Ed25519 key. A module signed under any other key
+ * matches nothing here and returns to Pending, needing a fresh decision.
+ * There is no rotation and no succession, and no publisher name or URL is
+ * ever consulted: those are claims inside a manifest, and the key is the
+ * only identity.
  */
-struct ModuleTrustedBuildKeySO {
+struct ModuleTrustedPublisherKeySO {
   /// The 32 raw Ed25519 bytes, as 64 lower-case hex characters. Canonical.
-  QString build_key;
+  QString publisher_key;
 
   /// Whatever the user called it. Never used for matching.
   QString label;
@@ -67,10 +71,11 @@ struct ModuleTrustedBuildKeySO {
   /// ISO-8601 UTC, for the Controller to show. Never a policy input.
   QString first_trusted;
 
-  ModuleTrustedBuildKeySO() = default;
+  ModuleTrustedPublisherKeySO() = default;
 
-  explicit ModuleTrustedBuildKeySO(const QJsonObject& j) {
-    if (const auto v = j["build_key"]; v.isString()) build_key = v.toString();
+  explicit ModuleTrustedPublisherKeySO(const QJsonObject& j) {
+    if (const auto v = j["build_key"]; v.isString())
+      publisher_key = v.toString();
     if (const auto v = j["label"]; v.isString()) label = v.toString();
     if (const auto v = j["first_trusted"]; v.isString()) {
       first_trusted = v.toString();
@@ -79,7 +84,7 @@ struct ModuleTrustedBuildKeySO {
 
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
-    j["build_key"] = build_key;
+    j["build_key"] = publisher_key;
     j["label"] = label;
     j["first_trusted"] = first_trusted;
     return j;
@@ -90,8 +95,8 @@ struct ModuleTrustedBuildKeySO {
  * @brief The user's decision to enable one external module.
  *
  * Separate from trusting a key, and neither implies the other. Trusting a
- * build key does not enable every module signed by it; enabling a module does
- * not bypass key trust. Both are required, and both are revocable.
+ * publisher key does not enable every module signed by it; enabling a module
+ * does not bypass key trust. Both are required, and both are revocable.
  *
  * The key this was granted under is recorded, so an approval cannot be
  * inherited by a module re-signed under a different one.
@@ -99,9 +104,9 @@ struct ModuleTrustedBuildKeySO {
 struct ModuleAuthorizationSO {
   QString module_id;
 
-  /// The build key this authorization was granted under, same canonical
-  /// spelling as ModuleTrustedBuildKeySO::build_key.
-  QString build_key;
+  /// The publisher key this authorization was granted under, same canonical
+  /// spelling as ModuleTrustedPublisherKeySO::publisher_key.
+  QString publisher_key;
 
   bool enabled = false;
 
@@ -111,7 +116,8 @@ struct ModuleAuthorizationSO {
 
   explicit ModuleAuthorizationSO(const QJsonObject& j) {
     if (const auto v = j["module_id"]; v.isString()) module_id = v.toString();
-    if (const auto v = j["build_key"]; v.isString()) build_key = v.toString();
+    if (const auto v = j["build_key"]; v.isString())
+      publisher_key = v.toString();
     if (const auto v = j["enabled"]; v.isBool()) enabled = v.toBool();
     if (const auto v = j["approved_at"]; v.isString()) {
       approved_at = v.toString();
@@ -121,7 +127,7 @@ struct ModuleAuthorizationSO {
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
     j["module_id"] = module_id;
-    j["build_key"] = build_key;
+    j["build_key"] = publisher_key;
     j["enabled"] = enabled;
     j["approved_at"] = approved_at;
     return j;
@@ -133,15 +139,16 @@ struct ModuleAuthorizationSO {
 /// `module.<id>.so` cannot be enumerated without already knowing every id,
 /// which a trust store has to be able to do: listing what the user has
 /// decided, and revoking it, are the whole point.
-struct ModuleTrustedBuildKeyListSO {
-  QContainer<ModuleTrustedBuildKeySO> keys;
+struct ModuleTrustedPublisherKeyListSO {
+  QContainer<ModuleTrustedPublisherKeySO> keys;
 
-  ModuleTrustedBuildKeyListSO() = default;
+  ModuleTrustedPublisherKeyListSO() = default;
 
-  explicit ModuleTrustedBuildKeyListSO(const QJsonObject& j) {
+  explicit ModuleTrustedPublisherKeyListSO(const QJsonObject& j) {
     if (const auto v = j["keys"]; v.isArray()) {
       for (const auto& e : v.toArray()) {
-        if (e.isObject()) keys.append(ModuleTrustedBuildKeySO(e.toObject()));
+        if (e.isObject())
+          keys.append(ModuleTrustedPublisherKeySO(e.toObject()));
       }
     }
   }
