@@ -232,46 +232,22 @@ TEST(SdkTeardownRaceStress,
 }
 
 /**
- * @brief A handle the sweep reclaimed is refused, not followed.
+ * @brief Why the stale HANDLE case is not tested here.
  *
- * The other half of the same reasoning, one level down. Buffer handles ARE
- * freed at unload -- the sweep is what reclaims a module's leaks -- so a
- * stale worker holding one is holding a pointer to freed memory. It stays
- * safe only because validity is decided by looking the pointer UP in a
- * registry rather than by dereferencing it to read a magic word.
+ * Buffer handles, unlike the context, really are freed at unload -- the sweep
+ * is what reclaims a module's leaks. A worker holding one afterwards is
+ * holding a pointer to freed memory, and it stays safe only because validity
+ * is decided by looking the pointer UP in a registry rather than by
+ * dereferencing it to read a magic word (`ResolveLive` in GFHostBuffer.cpp).
  *
- * The context is minted again first, which is what a reload does, so that the
- * gate is open and the handle registry is the thing actually under test. With
- * a revoked context the call would be refused at the gate and this would
- * prove nothing.
+ * That is deliberately NOT a silent refusal, though: a debug build calls
+ * qFatal on a stale handle, because using one is a module bug that should be
+ * found rather than absorbed. Asserting it would therefore mean a death test,
+ * and these run on a worker thread with a live Qt application around them,
+ * which is the one place a fork-based death test cannot be trusted. The
+ * property is covered instead where it is observable without dying:
+ * GpgCoreTestSdkLedger.cpp checks that the sweep reclaims exactly the
+ * unloading module's handles and nothing else.
  */
-TEST(SdkTeardownRaceStress, ASweptHandleIsRefusedRatherThanDereferenced) {
-  const auto mask = Module::ModuleCapabilityMask({"storage"});
-  const auto* host = static_cast<const GFHostApi*>(
-      Module::ModuleSdkMintHostApi(kRacingModule, mask));
-  ASSERT_NE(host, nullptr);
-
-  // Leaked on purpose: this is what the sweep exists to reclaim.
-  auto* leaked = host->buffer->new_from_bytes(host->context, "stale", 5);
-  ASSERT_NE(leaked, nullptr);
-  ASSERT_EQ(host->buffer->size(host->context, leaked), 5U);
-
-  Module::ModuleSdkReleaseHostApi(kRacingModule);
-  EXPECT_EQ(Module::ModuleSdkSweepHandles(kRacingModule), 1U);
-
-  // Reloaded. Same id, same record, live grant again.
-  const auto* reloaded = static_cast<const GFHostApi*>(
-      Module::ModuleSdkMintHostApi(kRacingModule, mask));
-  ASSERT_NE(reloaded, nullptr);
-
-  // The stale handle, presented to a live context. ASan would report the
-  // use-after-free here if validity were decided by dereferencing.
-  EXPECT_EQ(reloaded->buffer->size(reloaded->context, leaked), 0U);
-  EXPECT_EQ(reloaded->buffer->data(reloaded->context, leaked), nullptr);
-  // Releasing it twice must also be harmless, for the same reason.
-  reloaded->buffer->release(reloaded->context, leaked);
-
-  Module::ModuleSdkReleaseHostApi(kRacingModule);
-}
 
 }  // namespace GpgFrontend::Test

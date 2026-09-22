@@ -196,7 +196,12 @@ auto ContextHolds(GFHostContextRef ctx, uint32_t capability,
 
 auto ContextModuleId(GFHostContextRef ctx) -> QString {
   QMutexLocker locker(&Reg().mutex);
-  auto* record = LiveRecordLocked(ctx);
+  if (ctx == nullptr) return {};
+  // Deliberately NOT LiveRecordLocked: this names a module in a log line, and
+  // the message that needs the name most is the one about a torn-down module
+  // still calling. Reading a dead record is safe here for the same reason the
+  // record is never freed at all.
+  auto* record = Reg().by_context.value(static_cast<const void*>(ctx), nullptr);
   return record == nullptr ? QString() : QString::fromUtf8(record->module_id);
 }
 
