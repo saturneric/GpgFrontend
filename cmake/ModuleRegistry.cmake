@@ -182,7 +182,7 @@ function(_gf_module_package_command)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# gf_add_module — one call per module, everything else from module.json
+# gf_add_module: one call per module, everything else from module.json
 # ---------------------------------------------------------------------------
 
 # Where GFModuleIdentity.h.in lives, captured while this file is being read so
@@ -540,12 +540,14 @@ function(gf_add_module)
     VISIBILITY_INLINES_HIDDEN ON)
   target_compile_features(${target_name} PRIVATE cxx_std_17)
 
-  # gf_module_runtime and NOTHING ELSE from the host.
+  # gf_module_runtime, and through it gf_sdk, and NOTHING ELSE from this
+  # tree.
   #
-  # The runtime is a static archive that DEFINES the GFSDK* functions on top
-  # of the capability groups the host granted this module at activation. A
-  # module therefore has no link edge to gf_sdk, gf_core or gf_ui at all --
-  # which is the whole boundary, expressed where it can be enforced.
+  # Both are static archives of module-side code: gf_sdk defines the GFSDK*
+  # functions on top of the capability groups the host granted this module
+  # at activation, and the runtime owns the module's state. A module has no
+  # link edge to gf_core, gf_ui or gf_host_api at all -- which is the whole
+  # boundary, expressed where it can be enforced.
   #
   # Nothing forces the archive open: the module's own GFModuleGetApi
   # references GFModuleRuntimeGetApi, and that reference is what makes the
@@ -602,7 +604,7 @@ function(gf_add_module)
   # native/ or the Host refuses to resolve it.
   gf_pin_output_directory(${target_name} "${target_native_dir}")
 
-  # The boundary, checked on the artefact rather than on the link line.
+  # The boundary, checked on the artifact rather than on the link line.
   #
   # POST_BUILD so it cannot be skipped and so it runs the moment the native
   # appears -- the failure then names the module that was just built, which is
