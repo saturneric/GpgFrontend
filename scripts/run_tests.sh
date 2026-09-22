@@ -4,7 +4,7 @@
 # Run the GpgFrontend unit tests and stress tests.
 #
 # The test suite is linked into the main binary and executed via
-# `gpgfrontend -t`. Two quirks this script works around:
+# `gpgfrontend -t`. Three quirks this script works around:
 #   1. The app's own CLI parser rejects unknown options, so GoogleTest flags
 #      (filter, output, color, ...) must be passed through environment
 #      variables (GTEST_FILTER, GTEST_OUTPUT, ...) instead of --gtest_* flags.
@@ -44,12 +44,20 @@
 #   -p, --parallel N       Shard the unit/custom phase across N processes
 #                          (integer >= 1, or "auto" = clamp(nproc/2, 1, 6)).
 #                          Default 1: one process, your real HOME -- identical
-#                          to the behaviour before this option existed.
+#                          to the behavior before this option existed.
 #       --fresh-homes      Wipe the per-shard HOME dirs before running instead
 #                          of reusing them
 #       --shard-timeout S  Hard per-shard timeout, seconds  (default: 900)
-#       --build-dir DIR    CMake build directory          (default: build)
+#       --build-dir DIR    CMake build directory          (default: build,
+#                          or build-asan with --asan/--asan-gui)
 #   -j, --jobs N           Parallel build jobs            (default: nproc)
+#       --asan             Run against a separate AddressSanitizer + UBSan
+#                          build (see "Sanitizer mode" below)
+#       --asan-gui [-- ARGS]
+#                          Build the sanitizer tree if needed and launch the
+#                          real GUI from it, with ARGS passed to the app
+#       --reconfigure      With --asan/--asan-gui: wipe the sanitizer build
+#                          directory and configure it from scratch
 #   -h, --help             Show this help
 #
 # Phases (the "all" default runs rust + unit + stress + coverage, each in its
@@ -69,6 +77,25 @@
 #   scripts/run_tests.sh --rust-only
 #   scripts/run_tests.sh --rust-slow-only
 #   scripts/run_tests.sh --unit-only -p auto
+#   scripts/run_tests.sh --asan                     # module tests + stress, 2000x
+#   scripts/run_tests.sh --asan -f '*RpgpCore*'     # focus rPGP FFI paths
+#   scripts/run_tests.sh --asan-gui                 # reproduce a crash by hand
+#
+# Sanitizer mode (--asan): builds GpgFrontend in build-asan/ with
+# -fsanitize=address,undefined injected directly (the in-tree
+# GPGFRONTEND_ENABLE_ASAN option requires clang; this works with gcc) and
+# leaves the normal build/ tree untouched. It composes with the modes above;
+# with none given it runs the module test binaries and the *Stress* tests
+# (default 2000 iterations). The Rust phases are skipped: cargo builds the
+# crate without instrumentation. LeakSanitizer is off (detect_leaks=0),
+# because the app keeps many intentional process-lifetime singletons; set
+# ASAN_OPTIONS yourself to turn it on. A sanitizer report anywhere in a
+# phase's log fails that phase.
+#
+# --asan-gui uses your REAL GpgFrontend config and keyring, so you can
+# reproduce your own workflow. Reports are also written to
+# <build-asan>/asan-gui-report.<pid>; the first "ERROR: AddressSanitizer"
+# block with GpgFrontend frames (src/...) is the bug.
 #
 # Sharding notes: only the "unit" and custom (-f) phases are sharded; "stress"
 # and "coverage" are each dominated by a single long test, so splitting them
@@ -85,10 +112,15 @@ LOG_LEVEL="warn"
 DO_BUILD="auto"   # auto | yes | no
 MODE="all"        # all | unit | stress | coverage | custom | rust
 RUN_RUST="auto"   # auto | no  (auto = include rust in all/unit modes)
-REQUIRE_MODULES="no"  # yes = missing module test binaries is a failure
+REQUIRE_MODULES="no"  # yes = missing module test binaries are a failure
 CUSTOM_FILTER=""
 JOBS="$(nproc 2>/dev/null || echo 4)"
 PARALLEL=1                                     # 1 = serial; N or "auto"
+ASAN="no"         # no | tests | gui
+RECONFIGURE="no"
+BUILD_DIR_SET="no"
+STRESS_ITER_SET="no"
+declare -a APP_ARGS=()
 FRESH_HOMES="no"
 SHARD_TIMEOUT="${GF_SHARD_TIMEOUT:-900}"
 SHUTDOWN_GRACE="${GF_SHUTDOWN_GRACE:-15}"   # seconds to wait after the summary
@@ -114,13 +146,17 @@ while [[ $# -gt 0 ]]; do
     --rust-slow-only) MODE="rust-slow" ;;
     --no-rust)        RUN_RUST="no" ;;
     --require-modules) REQUIRE_MODULES="yes" ;;
-    -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
+    -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; STRESS_ITER_SET="yes"; shift ;;
     -f|--filter)      MODE="custom"; CUSTOM_FILTER="${2:?missing value for $1}"; shift ;;
     -l|--log-level)   LOG_LEVEL="${2:?missing value for $1}"; shift ;;
     -p|--parallel)    PARALLEL="${2:?missing value for $1}"; shift ;;
     --fresh-homes)    FRESH_HOMES="yes" ;;
     --shard-timeout)  SHARD_TIMEOUT="${2:?missing value for $1}"; shift ;;
-    --build-dir)      BUILD_DIR="${2:?missing value for $1}"; shift ;;
+    --build-dir)      BUILD_DIR="${2:?missing value for $1}"; BUILD_DIR_SET="yes"; shift ;;
+    --asan)           ASAN="tests" ;;
+    --asan-gui)       ASAN="gui" ;;
+    --reconfigure)    RECONFIGURE="yes" ;;
+    --)               shift; APP_ARGS=("$@"); break ;;
     -j|--jobs)        JOBS="${2:?missing value for $1}"; shift ;;
     -h|--help)        usage; exit 0 ;;
     *) echo "error: unknown option '$1'" >&2; usage >&2; exit 2 ;;
@@ -146,7 +182,7 @@ resolve_parallel() {
       (( PARALLEL > 6 )) && PARALLEL=6
       ;;
     ''|*[!0-9]*|0)
-      echo "error: --parallel wants a positive integer or 'auto'" >&2
+      echo "error: --parallel expects a positive integer or 'auto'" >&2
       exit 2 ;;
   esac
 
@@ -168,6 +204,87 @@ resolve_parallel
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
+
+# The module test binaries a complete run must produce. Named rather than
+# globbed: a glob that finds *something* cannot tell a full run from one where
+# a target silently stopped being built.
+MODULE_TESTS=(
+  gf_mod_email_test
+  gf_mod_email_net_test
+  gf_mod_email_crypto_test
+  gf_mod_pgp_inspect_test
+  gf_module_runtime_test
+)
+
+# --- sanitizer build (--asan / --asan-gui) ---------------------------------
+if [[ "$ASAN" != "no" ]]; then
+  [[ "$BUILD_DIR_SET" == "yes" ]] || BUILD_DIR="build-asan"
+  [[ "$STRESS_ITER_SET" == "yes" ]] || STRESS_ITER="${GF_STRESS_ITER:-2000}"
+  RUN_RUST="no"
+  [[ "$MODE" == "all" ]] && MODE="asan"
+
+  SAN_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined -g"
+  if [[ "$RECONFIGURE" == "yes" ]]; then
+    case "$BUILD_DIR" in
+      ""|"/"|".") echo "error: refusing to wipe '$BUILD_DIR'" >&2; exit 2 ;;
+    esac
+    echo "==> Wiping $BUILD_DIR"
+    rm -rf -- "$BUILD_DIR"
+  fi
+  if [[ ! -f "$BUILD_DIR/CMakeCache.txt" ]]; then
+    echo "==> Configuring sanitizer build in $BUILD_DIR (ASan/UBSan)"
+    cmake -S . -B "$BUILD_DIR" -G Ninja \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DGPGFRONTEND_LINK_GPGME_INTO_CORE=On \
+      -DGPGFRONTEND_BUILD_MODULES=ON \
+      -DGPGFRONTEND_MODULES_BUILD_TESTS=ON \
+      -DCMAKE_C_FLAGS="$SAN_FLAGS" \
+      -DCMAKE_CXX_FLAGS="$SAN_FLAGS" \
+      -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
+      -DCMAKE_SHARED_LINKER_FLAGS="-fsanitize=address,undefined" \
+      -DCMAKE_MODULE_LINKER_FLAGS="-fsanitize=address,undefined" \
+      || { echo "error: configure failed" >&2; exit 1; }
+  fi
+
+  # A sanitized tree is rebuilt unless --no-build says otherwise: it is not the
+  # tree you iterate in, so it is easy to leave stale.
+  if [[ "$DO_BUILD" != "no" ]]; then
+    targets=(gpgfrontend)
+    [[ "$ASAN" == "tests" ]] && targets+=("${MODULE_TESTS[@]}")
+    echo "==> Building ${targets[*]} ($BUILD_DIR, -j$JOBS); a full sanitized rebuild is slow"
+    cmake --build "$BUILD_DIR" --target "${targets[@]}" -j"$JOBS" \
+      || { echo "error: build failed" >&2; exit 1; }
+    DO_BUILD="no"
+  fi
+
+  if [[ "$ASAN" == "gui" ]]; then
+    GUI_BIN="$BUILD_DIR/artifacts/gpgfrontend"
+    [[ -x "$GUI_BIN" ]] || { echo "error: not built: $GUI_BIN" >&2; exit 1; }
+    REPORT_BASE="$REPO_ROOT/$BUILD_DIR/asan-gui-report"
+    # detect_leaks=0         the app keeps intentional process-lifetime singletons
+    # halt_on_error=1        stop at the first real error so its stack is clear
+    # abort_on_error=1       SIGABRT after printing (a core, if ulimit allows)
+    # malloc_context_size    deeper allocation stacks, to find where a bad
+    #                        buffer was allocated
+    # detect_odr_violation=0 no false ODR reports across the shared libraries
+    # log_path               also write each report to a file, one per pid
+    export ASAN_OPTIONS="detect_leaks=0:halt_on_error=1:abort_on_error=1:print_stacktrace=1:malloc_context_size=30:detect_odr_violation=0:log_path=${REPORT_BASE}"
+    export UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1:log_path=${REPORT_BASE}"
+    echo "==> Launching the instrumented GUI: $GUI_BIN"
+    echo "    ASan reports -> ${REPORT_BASE}.<pid>"
+    exec "$GUI_BIN" ${APP_ARGS[@]+"${APP_ARGS[@]}"}
+  fi
+
+  # Offscreen, because the XCB platform plugin has a harmless third-party
+  # over-read in libxkbcommon-x11 at QApplication startup that ASan aborts on
+  # before any test runs.
+  export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}"
+  # halt_on_error=1: stop at the first corruption with a full report.
+  # detect_leaks=0: ignore intentional singletons.
+  export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:halt_on_error=1:abort_on_error=1:strict_string_checks=1:detect_stack_use_after_return=1:print_stats=0}"
+  export UBSAN_OPTIONS="${UBSAN_OPTIONS:-print_stacktrace=1:halt_on_error=1}"
+  REQUIRE_MODULES="yes"
+fi
 
 BIN="$BUILD_DIR/artifacts/gpgfrontend"
 RUST_DIR="$REPO_ROOT/rust"
@@ -201,6 +318,12 @@ if [[ -t 1 ]]; then export GTEST_COLOR="yes"; else export GTEST_COLOR="no"; fi
 # so this only matters on the serial interactive path.
 GT_ANSI='(\x1b\[[0-9;]*m)?'
 
+# A sanitizer report is a failure even when every assertion passed.
+sanitizer_reported() {
+  [[ "$ASAN" != "no" ]] &&
+    grep -qE 'ERROR: AddressSanitizer|runtime error:|SUMMARY: (Address|Undefined)Sanitizer' "$1"
+}
+
 # --- phase runner ----------------------------------------------------------
 # run_phase <name> <gtest-filter> <stress-iterations> [algo-coverage]
 # The optional 4th argument is the value for GF_RUN_ALGO_COVERAGE: pass "1" to
@@ -228,6 +351,10 @@ run_phase() {
     "$BIN" -t -l "$LOG_LEVEL" 2>&1 | tee "$log"
 
   # Exit code is unreliable; decide from the GoogleTest summary.
+  if sanitizer_reported "$log"; then
+    echo "error: sanitizer reported an error in phase '${name}'" >&2
+    return 1
+  fi
   if grep -qE "^${GT_ANSI}\[  FAILED  \]|[0-9]+ FAILED TEST" "$log"; then
     return 1
   fi
@@ -379,7 +506,8 @@ shard_verdict() {
   local log="$1" rc
   rc="$(cat "${log%.log}.rc" 2>/dev/null)"
   [[ "$rc" =~ ^[0-9]+$ ]] || rc=1
-  if grep -qE "^${GT_ANSI}\[  FAILED  \]|[0-9]+ FAILED TEST" "$log"; then
+  if sanitizer_reported "$log" ||
+     grep -qE "^${GT_ANSI}\[  FAILED  \]|[0-9]+ FAILED TEST" "$log"; then
     echo FAIL; return 1
   fi
   if grep -qE "^${GT_ANSI}\[  PASSED  \]" "$log"; then
@@ -559,7 +687,7 @@ phase_shards() {
     unit|custom) echo "$PARALLEL" ;;
     *)
       if (( PARALLEL > 1 )); then
-        echo "note: --parallel is ignored for the '${1}' phase (single long test dominates it)" >&2
+        echo "note: --parallel is ignored for the '${1}' phase (a single long test dominates it)" >&2
       fi
       echo 1 ;;
   esac
@@ -607,7 +735,7 @@ run_rust_phase() {
 # several multi-second keygens from contending for the same cores.
 #
 # `deferred_*` tests are skipped here on purpose: those are also `#[ignore]`d,
-# but they encode behaviour the engine does not implement yet (see the ignore
+# but they encode behavior the engine does not implement yet (see the ignore
 # reason on each), so they are expected to fail and must not gate CI. Run them
 # deliberately with `cd rust && cargo test -- --ignored deferred_`.
 run_rust_slow_phase() {
@@ -668,19 +796,10 @@ run_modules_phase() {
     return 0
   fi
 
-  # Named rather than merely counted. A glob that finds *something* cannot tell
-  # a full run from one where a target silently stopped being built -- which is
-  # exactly how a whole suite disappears without anyone noticing.
+  # Named rather than merely counted; see MODULE_TESTS.
   if [[ "$REQUIRE_MODULES" == "yes" ]]; then
-    local -a expected=(
-      gf_mod_email_test
-      gf_mod_email_net_test
-      gf_mod_email_crypto_test
-      gf_mod_pgp_inspect_test
-      gf_module_runtime_test
-    )
     local missing=0
-    for name in "${expected[@]}"; do
+    for name in "${MODULE_TESTS[@]}"; do
       if [[ ! -x "${dir}/${name}" ]]; then
         echo "error: expected module test binary not built: ${name}" \
           | tee -a "$log" >&2
@@ -707,6 +826,12 @@ declare -a phases=()
 
 case "$MODE" in
   custom)
+    # Under --asan the module tests run too: they parse untrusted input, which
+    # is where a sanitizer is most useful, and a filter is about the main suite.
+    if [[ "$ASAN" != "no" ]]; then
+      run_modules_phase || overall_rc=1
+      phases+=("modules")
+    fi
     # Enable the sweep so a custom -f filter can target the coverage tests; it
     # is harmless for any other filter (non-sweep tests ignore the variable).
     run_gtest_phase "custom" "$CUSTOM_FILTER" "$STRESS_ITER" "1" || overall_rc=1
@@ -725,6 +850,12 @@ case "$MODE" in
   modules)
     run_modules_phase || overall_rc=1
     phases+=("modules")
+    ;;
+  asan)
+    run_modules_phase || overall_rc=1
+    phases+=("modules")
+    run_gtest_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
+    phases+=("stress")
     ;;
   stress)
     run_gtest_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
