@@ -47,9 +47,14 @@ constexpr auto kModuleDescriptorFileName = "module.gfmodule";
 /// Where the signed metadata lives inside the descriptor.
 constexpr auto kModuleDescriptorManifestPath = "META-INF/manifest.json";
 constexpr auto kModuleDescriptorSignaturePath = "META-INF/manifest.sig";
-/// Where the build key USED to live. Retained only so a descriptor that still
-/// carries one can be refused by name rather than as an undeclared member.
-constexpr auto kModuleDescriptorBuildKeyPath = "META-INF/build-key.pub";
+/// Where an EXTERNAL descriptor carries its publisher's public key: 32 raw
+/// bytes. An integrated descriptor must not carry it. The key identifies the
+/// signer; it is never a trust root -- see VerifyExternalModuleDescriptor().
+constexpr auto kModuleDescriptorPublisherKeyPath = "META-INF/publisher.pub";
+
+/// Where the carried key lived before it was named for the publisher.
+/// Retained only so a descriptor that still carries one is refused by name.
+constexpr auto kModuleDescriptorLegacyBuildKeyPath = "META-INF/build-key.pub";
 
 /**
  * @brief Why a descriptor was refused.
@@ -113,49 +118,21 @@ struct GF_CORE_EXPORT ModuleDescriptorVerification {
   /// Parsed only after the signature over its raw bytes verified.
   ModuleManifest manifest;
 
-  /// The trust root this verdict was reached under -- the key the caller
-  /// passed, echoed back so a caller holding several need not track which one
-  /// answered. It is NOT read out of the descriptor: nothing inside a
-  /// descriptor is ever treated as a trust root, which is why
-  /// `META-INF/build-key.pub` was removed rather than merely ignored.
-  QByteArray build_public_key;
+  /// Exactly the bytes the signature covered, for a caller that has to reason
+  /// about the manifest as written rather than as parsed -- the parser keeps
+  /// the fields it knows and drops the rest, so it cannot answer "what else
+  /// is in here". Empty unless @c ok.
+  QByteArray manifest_bytes;
+
+  /// The key the signature verified against.
+  ///
+  /// Integrated: this Host's build key, echoed back. External: the publisher
+  /// key the descriptor carried -- proven to match the signature, which is
+  /// ALL it has been proven to be. Whether it is trusted is a separate
+  /// question answered by the user's store, never by this field.
+  QByteArray signer_public_key;
 };
 
-/**
- * @brief Authenticate a descriptor against this Host build's trust root.
- *
- * Reads the file once into an owned buffer and works entirely in memory: no
- * extraction, no store, no temporary directory, no second open. That is a
- * structural property rather than a discipline -- the archive is walked by
- * ReadArchiveMembersSync(), which takes bytes and has no destination
- * parameter to point anywhere.
- *
- * ## What this proves
- *
- * The descriptor was signed by the ephemeral Ed25519 key belonging to *this*
- * Host build, over exactly the manifest bytes stored in it, and it names this
- * build's id. A descriptor from another build, or one re-signed with a fresh
- * key, is refused -- @ref ModuleDescriptorStatus::kWRONG_BUILD and
- * @ref ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY respectively.
- *
- * The member *set* is checked exactly: every declared resource present, every
- * present member declared. Resource *bytes* are hashed lazily, on
- * ReadResource(), so a large unused resource costs nothing here.
- *
- * ## What this does not prove
- *
- * Nothing about the entry native. The descriptor names it logically and
- * carries its binding value; resolving and verifying it is
- * ResolveAndVerifyNativeEntry()'s job, under the mode the target platform
- * mandates. Nor does it authenticate the entry's dependency closure, which
- * stays the platform loader's business.
- *
- * @param package_path the `*.gfmodule` file to verify
- * @param expected_public_key the trust root to verify against. Defaults to
- * the key compiled into this Host; a test passes a different one to prove
- * that a foreign key is refused rather than accepted.
- * @return the verdict, with the manifest filled in only when it verified
- */
 /**
  * @brief Read back every non-META-INF member of a descriptor.
  *
@@ -191,13 +168,18 @@ auto GF_CORE_EXPORT ReadModuleDescriptorResources(
  * Whether that key is trusted, and whether the user has enabled this module,
  * are separate decisions made above this layer -- and both are required.
  *
- * `build_id` is not compared: it names the build tree that produced the
- * module, which is not this one. Compatibility is carried by `sdk_abi` and
- * `min_host_version`, which are checked exactly as they are for an integrated
- * descriptor.
+ * The carried key is refused if it is this Host's own build key: the build
+ * key is never a publisher identity, and accepting it here would let an
+ * integrated descriptor be re-presented as a publisher's by adding one file.
  *
- * @return the verdict; on success @c build_public_key is the carried key, and
- * its fingerprint is what a person is asked about.
+ * `build_id` is provenance only, and that is a contract rather than an
+ * omission: it names the build tree that produced the binaries, and it never
+ * takes part in an external trust or compatibility decision. Compatibility is
+ * carried by platform, `sdk_abi` and `min_host_version`, which are checked
+ * exactly as they are for an integrated descriptor.
+ *
+ * @return the verdict; on success @c signer_public_key is the carried
+ * publisher key, and its fingerprint is what a person is asked about.
  */
 auto GF_CORE_EXPORT VerifyExternalModuleDescriptor(const QString& package_path)
     -> ModuleDescriptorVerification;
@@ -228,6 +210,15 @@ auto GF_CORE_EXPORT VerifyExternalModuleDescriptor(const QString& package_path)
  *
  * Only then does the binding policy apply, and it governs one thing: whether
  * the descriptor must also bind the bytes of its entry.
+ *
+ * Reads the file once into an owned buffer and works entirely in memory: no
+ * extraction, no store, no temporary directory, no second open. The member
+ * *set* is checked exactly: every declared resource present, every present
+ * member declared, and no `META-INF/` member the format does not define.
+ *
+ * Nothing is proven about the entry native here. The descriptor names it
+ * logically and carries its binding value; resolving and verifying it is
+ * ResolveAndVerifyNativeEntry()'s job.
  */
 auto GF_CORE_EXPORT VerifyModuleDescriptor(const QString& package_path)
     -> ModuleDescriptorVerification;

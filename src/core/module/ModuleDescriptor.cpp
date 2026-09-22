@@ -136,18 +136,27 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
   if (origin == ModuleOrigin::kINTEGRATED) {
     if (counts[2] != 0) {
       return Refuse(ModuleDescriptorStatus::kMALFORMED,
-                    "it carries a build key inside itself; the trust root "
+                    "it carries a signing key inside itself; the trust root "
                     "belongs to the Host that loads it, not to the package");
     }
   } else {
     if (counts[2] != 1) {
       return Refuse(ModuleDescriptorStatus::kMALFORMED,
-                    "an external module must carry exactly one build key, so "
-                    "there is something to show you before you trust it");
+                    "an external module must carry exactly one publisher key, "
+                    "so there is something to show you before you trust it");
     }
     if (public_key_bytes.size() != crypto_sign_PUBLICKEYBYTES) {
       return Refuse(ModuleDescriptorStatus::kMALFORMED,
-                    "the build key it carries is the wrong size");
+                    "the publisher key it carries is the wrong size");
+    }
+    // The two domains stay disjoint in the other direction too. Without
+    // this, adding this Host's own build key to an integrated descriptor
+    // would make it verify here as a "publisher" artifact -- signed by the
+    // one key that is never a publisher identity.
+    if (public_key_bytes == ModuleBuildPublicKey()) {
+      return Refuse(ModuleDescriptorStatus::kMALFORMED,
+                    "the key it carries is this build's own module-build "
+                    "key, which is never a publisher identity");
     }
   }
   if (signature_bytes.size() != crypto_sign_BYTES) {
@@ -175,7 +184,7 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
     return Refuse(ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY,
                   origin == ModuleOrigin::kINTEGRATED
                       ? "it was not signed by this build of GpgFrontend"
-                      : "its signature does not match the build key it "
+                      : "its signature does not match the publisher key it "
                         "carries, so it is damaged or forged");
   }
 
@@ -197,6 +206,10 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
   // every external module ever made and would be asserting nothing. What
   // stands in for it there is compatibility -- sdk_abi and min_host_version,
   // checked below for both -- plus the user's decision about the key.
+  //
+  // This is a contract, not an omission: in the external domain build_id is
+  // provenance only, and must never take part in a trust or compatibility
+  // decision. An external module naming THIS build's id gains nothing.
   if (origin == ModuleOrigin::kINTEGRATED && m.build_id != ModuleBuildId()) {
     return Refuse(ModuleDescriptorStatus::kWRONG_BUILD,
                   QString("it was built for %1, and this is %2")
@@ -263,7 +276,8 @@ auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
   v.ok = true;
   v.status = ModuleDescriptorStatus::kOK;
   v.manifest = m;
-  v.build_public_key = expected_public_key;
+  v.manifest_bytes = manifest_bytes;
+  v.signer_public_key = expected_public_key;
   return v;
 }
 
@@ -350,6 +364,7 @@ auto ReadPackage(ModuleOrigin origin, const QString& package_path)
   int manifest_count = 0;
   int signature_count = 0;
   int public_key_count = 0;
+  QStringList unknown_meta;
 
   // Path -> digest of what the package actually holds. Filled as the walk
   // streams, so no entry is kept beyond the moment it is hashed -- except the
@@ -379,9 +394,17 @@ auto ReadPackage(ModuleOrigin origin, const QString& package_path)
           signature_bytes = bytes;
           return true;
         }
-        if (path == kModuleDescriptorBuildKeyPath) {
+        if (path == kModuleDescriptorPublisherKeyPath) {
           ++public_key_count;
           public_key_bytes = bytes;
+          return true;
+        }
+        // META-INF is the format's own namespace. A member there the format
+        // does not define is not a resource -- the builder refuses to put
+        // one there -- so it is refused by name rather than left to surface
+        // as an undeclared member. The pre-rename key member lands here.
+        if (path.startsWith("META-INF/")) {
+          unknown_meta.append(path);
           return true;
         }
 
@@ -407,6 +430,18 @@ auto ReadPackage(ModuleOrigin origin, const QString& package_path)
   if (hash_failed) {
     return Refuse(ModuleDescriptorStatus::kIO_FAILED,
                   "a file in it could not be read");
+  }
+  if (!unknown_meta.isEmpty()) {
+    return Refuse(
+        ModuleDescriptorStatus::kMALFORMED,
+        unknown_meta.contains(kModuleDescriptorLegacyBuildKeyPath)
+            ? QString("it carries \"%1\", the key member of an older format; "
+                      "an external descriptor now carries \"%2\"")
+                  .arg(kModuleDescriptorLegacyBuildKeyPath,
+                       kModuleDescriptorPublisherKeyPath)
+            : QString("it carries \"%1\", which is not part of the "
+                      "descriptor format")
+                  .arg(unknown_meta.first()));
   }
 
   // For an external descriptor the key it carries IS the key it is checked
@@ -448,9 +483,9 @@ auto ReadModuleDescriptorResources(const QString& descriptor_path,
   const auto error = ArchiveFileOperator::ReadArchiveMembersSync(
       bytes, PackagePolicy(),
       [&out](const QString& path, const QByteArray& member) {
-        // META-INF is the descriptor's own machinery -- manifest, signature,
-        // and the build key that used to live there. It is regenerated, never
-        // carried forward.
+        // META-INF is the descriptor's own machinery -- manifest, signature
+        // and, for an external one, the publisher key. It is regenerated,
+        // never carried forward.
         if (path.startsWith("META-INF/")) return true;
         out.insert(path, member);
         return true;
@@ -474,7 +509,7 @@ auto VerifyExternalModuleDescriptor(const QString& package_path)
   // No key argument, and there cannot be one: the key is inside the
   // descriptor, because a detached Ed25519 signature does not reveal it and
   // the Host has to be able to name the key before anyone can decide about
-  // it. What comes back in build_public_key is that key, and it has been
+  // it. What comes back in signer_public_key is that key, and it has been
   // proven to match the signature -- which is all it has been proven to be.
   //
   // This function deliberately does NOT consult the user's trusted store. It
