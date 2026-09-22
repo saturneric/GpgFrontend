@@ -186,7 +186,7 @@ class ModuleDescriptorTest : public ::testing::Test {
     const auto built = Module::BuildModuleDescriptor(spec_);
     ASSERT_TRUE(built.ok) << built.reason.toStdString();
     manifest_bytes_ = built.manifest_bytes;
-    public_key_ = built.build_public_key;
+    public_key_ = built.signer_public_key;
   }
 
   [[nodiscard]] auto Package() const -> QString { return spec_.output_path; }
@@ -215,7 +215,7 @@ TEST_F(ModuleDescriptorTest, AValidPackageVerifies) {
   EXPECT_EQ(v.manifest.capabilities, (QStringList{"gpg", "ui"}));
   EXPECT_EQ(v.manifest.metadata.value("Name"), "Test Module");
   EXPECT_EQ(v.manifest.resources.size(), 1);
-  EXPECT_EQ(v.build_public_key, public_key_);
+  EXPECT_EQ(v.signer_public_key, public_key_);
 
   // The entry native is named logically and bound by value. The name is not a
   // filename and the value is not a path: turning the first into the second is
@@ -279,16 +279,16 @@ TEST_F(ModuleDescriptorTest, AModifiedSignatureFails) {
   EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY);
 }
 
-TEST_F(ModuleDescriptorTest, ADescriptorCarryingABuildKeyIsRefused) {
-  // The key used to travel inside the package, which established that the
-  // package agreed with itself and nothing else: anyone able to replace it
-  // could also mint a keypair, re-sign an altered manifest and ship the
-  // matching key. A descriptor still carrying one is not a descriptor with an
-  // extra file -- it is one from before the trust root moved into the Host.
+TEST_F(ModuleDescriptorTest, AnIntegratedDescriptorCarryingAKeyIsRefused) {
+  // A key inside the package establishes that the package agrees with itself
+  // and nothing else: anyone able to replace it could also mint a keypair,
+  // re-sign an altered manifest and ship the matching key. Only an EXTERNAL
+  // descriptor carries one, to name its publisher; an integrated one that
+  // does is refused, whatever the key is.
   const auto out = Path("carrieskey.gfmodule");
   ASSERT_TRUE(RepackWith(
       Package(), out, {}, {},
-      {{Module::kModuleDescriptorBuildKeyPath, QByteArray(32, '\x01')}}));
+      {{Module::kModuleDescriptorPublisherKeyPath, QByteArray(32, '\x01')}}));
 
   const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
@@ -363,7 +363,7 @@ TEST_F(ModuleDescriptorTest, ADescriptorFromAnotherBuildIsRefusedByBuildId) {
 }
 
 TEST_F(ModuleDescriptorTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
-  // Structural, and the point of it: gf_module_tool links gf_core, so it
+  // Structural, and the point of it: gf_module_packager links gf_core, so it
   // carries the very trust root the Host does. A descriptor signed with some
   // other key would be one no Host could load, so it cannot be produced at
   // all rather than produced and discovered later.
@@ -377,6 +377,29 @@ TEST_F(ModuleDescriptorTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
       << result.reason.toStdString();
   EXPECT_FALSE(QFile::exists(spec.output_path))
       << "nothing should have been written";
+}
+
+TEST_F(ModuleDescriptorTest, TheBuilderIsDeterministic) {
+  // Same inputs, same bytes: Ed25519 is deterministic, the timestamp comes
+  // from the spec, and the archive writer stamps no wall-clock time. What
+  // makes a descriptor -- integrated or externalized -- reproducible.
+  auto spec = spec_;
+  spec.output_path = Path("again.gfmodule");
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+
+  QFile a(Package());
+  QFile b(spec.output_path);
+  ASSERT_TRUE(a.open(QIODevice::ReadOnly));
+  ASSERT_TRUE(b.open(QIODevice::ReadOnly));
+  EXPECT_EQ(a.readAll(), b.readAll());
+}
+
+TEST_F(ModuleDescriptorTest, AnIntegratedDescriptorCarriesNoKey) {
+  for (const auto& member : ListMembers(Package())) {
+    EXPECT_FALSE(member == Module::kModuleDescriptorPublisherKeyPath ||
+                 member == Module::kModuleDescriptorLegacyBuildKeyPath)
+        << member.toStdString();
+  }
 }
 
 TEST_F(ModuleDescriptorTest, TheBuilderRefusesAnEmptySeed) {

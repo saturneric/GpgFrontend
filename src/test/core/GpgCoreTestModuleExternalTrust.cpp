@@ -43,6 +43,7 @@
 #include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleNamespace.h"
+#include "core/module/ModulePublisherKey.h"
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
@@ -51,12 +52,10 @@
  * @file GpgCoreTestModuleExternalTrust.cpp
  * @brief The boundary a third-party module crosses, and who decides.
  *
- * None of this is reachable from CI, and saying so is the point of writing it
- * down here: the only signer in the pipeline is this build's own ephemeral
- * key, so no workflow can produce an external module and no gate exercises
- * these paths. They are covered here, by constructing the descriptors
- * directly with libsodium -- which is also why the packer's refusal to sign
- * with a foreign seed does not have to be loosened to test this.
+ * External descriptors are produced here the way gf_module_externalize
+ * produces them -- by the real builder with origin kEXTERNAL and a publisher
+ * seed -- so what is verified is what the tool actually emits. Only the
+ * deliberately malformed shapes are assembled by hand.
  */
 
 namespace GpgFrontend::Test {
@@ -65,22 +64,36 @@ namespace {
 
 constexpr auto kManifestPath = "META-INF/manifest.json";
 constexpr auto kSignaturePath = "META-INF/manifest.sig";
-constexpr auto kBuildKeyPath = "META-INF/build-key.pub";
+constexpr auto kPublisherKeyPath = "META-INF/publisher.pub";
+
+/// A build id that is emphatically not this build's.
+constexpr auto kForeignBuildId = "gfb1-ffffffffffffffffffffffffffffffff";
 
 struct ForeignKeypair {
+  QByteArray seed;
   QByteArray public_key;
   QByteArray secret_key;
 };
 
-/// A build key that is emphatically not this build's.
-auto MakeForeignKeypair() -> ForeignKeypair {
+auto KeypairFromSeed(const QByteArray& seed) -> ForeignKeypair {
   EnsureSodiumInit();
   ForeignKeypair kp;
+  kp.seed = seed;
   kp.public_key.resize(crypto_sign_PUBLICKEYBYTES);
   kp.secret_key.resize(crypto_sign_SECRETKEYBYTES);
-  crypto_sign_keypair(reinterpret_cast<unsigned char*>(kp.public_key.data()),
-                      reinterpret_cast<unsigned char*>(kp.secret_key.data()));
+  crypto_sign_seed_keypair(
+      reinterpret_cast<unsigned char*>(kp.public_key.data()),
+      reinterpret_cast<unsigned char*>(kp.secret_key.data()),
+      reinterpret_cast<const unsigned char*>(seed.constData()));
   return kp;
+}
+
+/// A publisher key that is emphatically not this build's.
+auto MakeForeignKeypair() -> ForeignKeypair {
+  EnsureSodiumInit();
+  QByteArray seed(crypto_sign_SEEDBYTES, '\0');
+  randombytes_buf(seed.data(), static_cast<size_t>(seed.size()));
+  return KeypairFromSeed(seed);
 }
 
 auto SignWith(const QByteArray& secret_key, const QByteArray& message)
@@ -97,11 +110,10 @@ auto SignWith(const QByteArray& secret_key, const QByteArray& message)
 }  // namespace
 
 /**
- * A descriptor of each shape, built from one honest manifest.
+ * A descriptor of each shape, both from the real builder.
  *
- * The manifest bytes are produced by the real builder, so the JSON under test
- * is the JSON this project actually emits rather than something hand-rolled
- * to suit the test.
+ * The external one names a build other than this one, as any real external
+ * module does; the build id is provenance there, and must not matter.
  */
 class ModuleExternalTrustTest : public ::testing::Test {
  protected:
@@ -146,31 +158,50 @@ class ModuleExternalTrustTest : public ::testing::Test {
     manifest_bytes_ = built.manifest_bytes;
     module_id_ = spec.module_id;
     integrated_path_ = spec.output_path;
+    spec_ = spec;
 
     foreign_ = MakeForeignKeypair();
     external_path_ = dir_.path() + "/external.gfmodule";
-    ASSERT_TRUE(WriteExternal(foreign_, external_path_));
+    ASSERT_TRUE(BuildExternal(foreign_, kForeignBuildId, external_path_));
   }
 
   void TearDown() override {
     // Trust is persisted, so a case that grants it would otherwise decide the
     // next one. Withdrawn explicitly rather than left to ordering.
-    Module::RevokeModuleBuildKey(foreign_.public_key);
+    Module::RevokeModulePublisherKey(foreign_.public_key);
     Module::SetExternalModuleEnabled(module_id_, foreign_.public_key, false);
   }
 
-  /// The same manifest, signed by @p kp, carrying @p kp's public half.
-  [[nodiscard]] auto WriteExternal(const ForeignKeypair& kp,
+  /// The fixture's module as an external descriptor, publisher-signed.
+  [[nodiscard]] auto BuildExternal(const ForeignKeypair& kp,
+                                   const QString& build_id,
                                    const QString& out) const -> bool {
+    auto spec = spec_;
+    spec.origin = Module::ModuleOrigin::kEXTERNAL;
+    spec.build_id = build_id;
+    spec.signing_seed = kp.seed;
+    spec.output_path = out;
+    const auto built = Module::BuildModuleDescriptor(spec);
+    EXPECT_TRUE(built.ok) << built.reason.toStdString();
+    return built.ok;
+  }
+
+  /// The integrated manifest, signed by @p kp, carrying @p key_member at
+  /// @p key_path -- the shapes the builder refuses to produce.
+  [[nodiscard]] auto WriteHandSigned(const ForeignKeypair& kp,
+                                     const QString& key_path,
+                                     const QByteArray& key_member,
+                                     const QString& out) const -> bool {
     const QVector<QPair<QString, QByteArray>> members{
         {kManifestPath, manifest_bytes_},
         {kSignaturePath, SignWith(kp.secret_key, manifest_bytes_)},
-        {kBuildKeyPath, kp.public_key},
+        {key_path, key_member},
     };
     return WriteDescriptorArchive(out, members);
   }
 
   QTemporaryDir dir_;
+  Module::ModuleDescriptorBuildSpec spec_;
   Module::ModuleNativeRoot native_root_;
   QString entry_path_;
   QByteArray manifest_bytes_;
@@ -203,7 +234,7 @@ TEST_F(ModuleExternalTrustTest, AnIntegratedDescriptorIsRefusedAsExternal) {
   const auto verdict = Module::VerifyExternalModuleDescriptor(integrated_path_);
   EXPECT_FALSE(verdict.ok);
   EXPECT_EQ(verdict.status, Module::ModuleDescriptorStatus::kMALFORMED);
-  EXPECT_TRUE(verdict.reason.contains("exactly one build key"))
+  EXPECT_TRUE(verdict.reason.contains("exactly one publisher key"))
       << verdict.reason.toStdString();
 }
 
@@ -217,14 +248,14 @@ TEST_F(ModuleExternalTrustTest, VerificationNamesTheKeyWithoutTrustingIt) {
 
   // The key is reported so a person can be asked about it -- which is the
   // whole reason an external descriptor carries one.
-  EXPECT_EQ(verdict.build_public_key, foreign_.public_key);
-  EXPECT_NE(verdict.build_public_key, Module::ModuleBuildPublicKey());
+  EXPECT_EQ(verdict.signer_public_key, foreign_.public_key);
+  EXPECT_NE(verdict.signer_public_key, Module::ModuleBuildPublicKey());
 
   // Verifying it changed nothing about whether it is trusted.
-  EXPECT_FALSE(Module::IsModuleBuildKeyTrusted(verdict.build_public_key));
+  EXPECT_FALSE(Module::IsModulePublisherKeyTrusted(verdict.signer_public_key));
   EXPECT_EQ(Module::ExternalModuleAuthorization(verdict.manifest.id,
-                                                verdict.build_public_key),
-            Module::ModuleAuthorizationState::kKEY_UNTRUSTED);
+                                                verdict.signer_public_key),
+            Module::ModuleAuthorizationState::kPUBLISHER_UNTRUSTED);
 }
 
 TEST_F(ModuleExternalTrustTest, ABuildIdFromAnotherBuildIsNotAnObstacle) {
@@ -233,7 +264,113 @@ TEST_F(ModuleExternalTrustTest, ABuildIdFromAnotherBuildIsNotAnObstacle) {
   // could ever be, while asserting nothing.
   const auto verdict = Module::VerifyExternalModuleDescriptor(external_path_);
   ASSERT_TRUE(verdict.ok) << verdict.reason.toStdString();
+  EXPECT_EQ(verdict.manifest.build_id, kForeignBuildId);
   EXPECT_NE(verdict.status, Module::ModuleDescriptorStatus::kWRONG_BUILD);
+}
+
+TEST_F(ModuleExternalTrustTest,
+       NamingThisBuildsIdGainsAnExternalModuleNothing) {
+  // Provenance only, in both directions: a publisher cannot borrow this
+  // Host's integrated trust by stamping its build id. The module still waits
+  // for both of the user's decisions, exactly as a foreign-id one does.
+  const auto ours = dir_.path() + "/ours.gfmodule";
+  ASSERT_TRUE(BuildExternal(foreign_, Module::ModuleBuildId(), ours));
+
+  const auto verdict = Module::VerifyExternalModuleDescriptor(ours);
+  ASSERT_TRUE(verdict.ok) << verdict.reason.toStdString();
+  EXPECT_EQ(verdict.manifest.build_id, Module::ModuleBuildId());
+  EXPECT_EQ(Module::ExternalModuleAuthorization(verdict.manifest.id,
+                                                verdict.signer_public_key),
+            Module::ModuleAuthorizationState::kPUBLISHER_UNTRUSTED);
+  EXPECT_FALSE(Module::VerifyModuleDescriptor(ours).ok)
+      << "an external descriptor verified as integrated";
+}
+
+TEST_F(ModuleExternalTrustTest, TheBuildKeyIsNeverAcceptedAsAPublisher) {
+  // An integrated manifest, signed by this build, with this build's key
+  // added as the "publisher". Structurally external, cryptographically
+  // sound -- and refused, because the build key is never a publisher
+  // identity and must not be presentable as one by adding a file.
+  const auto build = KeypairFromSeed(BuildSigningSeed());
+  ASSERT_EQ(build.public_key, Module::ModuleBuildPublicKey());
+
+  const auto out = dir_.path() + "/buildkey.gfmodule";
+  ASSERT_TRUE(WriteHandSigned(build, kPublisherKeyPath, build.public_key, out));
+
+  const auto verdict = Module::VerifyExternalModuleDescriptor(out);
+  EXPECT_FALSE(verdict.ok);
+  EXPECT_EQ(verdict.status, Module::ModuleDescriptorStatus::kMALFORMED);
+  EXPECT_TRUE(verdict.reason.contains("never a publisher identity"))
+      << verdict.reason.toStdString();
+}
+
+TEST_F(ModuleExternalTrustTest, TheBuilderRefusesTheBuildSeedAsAPublisher) {
+  auto spec = spec_;
+  spec.origin = Module::ModuleOrigin::kEXTERNAL;
+  spec.signing_seed = BuildSigningSeed();
+  spec.output_path = dir_.path() + "/buildseed.gfmodule";
+
+  const auto built = Module::BuildModuleDescriptor(spec);
+  EXPECT_FALSE(built.ok);
+  EXPECT_TRUE(built.reason.contains("never a publisher identity"))
+      << built.reason.toStdString();
+  EXPECT_FALSE(QFile::exists(spec.output_path));
+}
+
+TEST_F(ModuleExternalTrustTest, TheBuilderRefusesAnUnboundExternalEntry) {
+  // The Host always demands a binding of an external module, so one without
+  // it would verify and then never load. It is not produced at all.
+  auto spec = spec_;
+  spec.origin = Module::ModuleOrigin::kEXTERNAL;
+  spec.entry_binding = Module::ModuleBindingRequirement::kNOT_REQUIRED;
+  spec.signing_seed = foreign_.seed;
+  spec.output_path = dir_.path() + "/unbound.gfmodule";
+
+  const auto built = Module::BuildModuleDescriptor(spec);
+  EXPECT_FALSE(built.ok);
+  EXPECT_FALSE(QFile::exists(spec.output_path));
+}
+
+TEST_F(ModuleExternalTrustTest, TheExternalBuilderCarriesThePublisherKey) {
+  QVector<QPair<QString, QByteArray>> members;
+  ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
+
+  QByteArray carried;
+  for (const auto& m : members) {
+    if (m.first == kPublisherKeyPath) carried = m.second;
+    EXPECT_NE(m.first, QString("META-INF/build-key.pub"));
+  }
+  EXPECT_EQ(carried, foreign_.public_key);
+}
+
+TEST_F(ModuleExternalTrustTest, TheOldKeyMemberIsRefusedByName) {
+  // The pre-rename spelling. Refused as a format error, by name, rather than
+  // tolerated or surfacing as an anonymous undeclared member.
+  const auto out = dir_.path() + "/legacy.gfmodule";
+  ASSERT_TRUE(WriteHandSigned(foreign_, "META-INF/build-key.pub",
+                              foreign_.public_key, out));
+
+  for (const auto& verdict : {Module::VerifyExternalModuleDescriptor(out),
+                              Module::VerifyModuleDescriptor(out)}) {
+    EXPECT_FALSE(verdict.ok);
+    EXPECT_EQ(verdict.status, Module::ModuleDescriptorStatus::kMALFORMED);
+    EXPECT_TRUE(verdict.reason.contains("older format"))
+        << verdict.reason.toStdString();
+  }
+}
+
+TEST_F(ModuleExternalTrustTest, AnUnknownMetaInfMemberIsRefused) {
+  QVector<QPair<QString, QByteArray>> members;
+  ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
+  members.append({"META-INF/extra", QByteArray("x")});
+  const auto out = dir_.path() + "/extra.gfmodule";
+  ASSERT_TRUE(WriteDescriptorArchive(out, members));
+
+  const auto verdict = Module::VerifyExternalModuleDescriptor(out);
+  EXPECT_FALSE(verdict.ok);
+  EXPECT_EQ(verdict.status, Module::ModuleDescriptorStatus::kMALFORMED);
+  EXPECT_TRUE(verdict.reason.contains("META-INF/extra"))
+      << verdict.reason.toStdString();
 }
 
 TEST_F(ModuleExternalTrustTest, ATamperedExternalDescriptorIsRefused) {
@@ -260,7 +397,7 @@ TEST_F(ModuleExternalTrustTest, ASubstitutedKeyDoesNotRescueASignature) {
   QVector<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
   for (auto& m : members) {
-    if (m.first == kBuildKeyPath) m.second = other.public_key;
+    if (m.first == kPublisherKeyPath) m.second = other.public_key;
   }
   const auto swapped = dir_.path() + "/swapped.gfmodule";
   ASSERT_TRUE(WriteDescriptorArchive(swapped, members));
@@ -276,28 +413,28 @@ TEST_F(ModuleExternalTrustTest, ASubstitutedKeyDoesNotRescueASignature) {
 // ---------------------------------------------------------------------------
 
 TEST_F(ModuleExternalTrustTest, TrustingAKeyDoesNotEnableAnyModule) {
-  ASSERT_TRUE(Module::TrustModuleBuildKey(foreign_.public_key, "a label"));
-  EXPECT_TRUE(Module::IsModuleBuildKeyTrusted(foreign_.public_key));
+  ASSERT_TRUE(Module::TrustModulePublisherKey(foreign_.public_key, "a label"));
+  EXPECT_TRUE(Module::IsModulePublisherKeyTrusted(foreign_.public_key));
 
   EXPECT_EQ(
       Module::ExternalModuleAuthorization(module_id_, foreign_.public_key),
       Module::ModuleAuthorizationState::kNOT_ENABLED)
-      << "trusting a build key enabled a module by itself";
+      << "trusting a publisher key enabled a module by itself";
 }
 
 TEST_F(ModuleExternalTrustTest, EnablingAModuleDoesNotTrustItsKey) {
   ASSERT_TRUE(
       Module::SetExternalModuleEnabled(module_id_, foreign_.public_key, true));
 
-  EXPECT_FALSE(Module::IsModuleBuildKeyTrusted(foreign_.public_key));
+  EXPECT_FALSE(Module::IsModulePublisherKeyTrusted(foreign_.public_key));
   EXPECT_EQ(
       Module::ExternalModuleAuthorization(module_id_, foreign_.public_key),
-      Module::ModuleAuthorizationState::kKEY_UNTRUSTED)
+      Module::ModuleAuthorizationState::kPUBLISHER_UNTRUSTED)
       << "enabling a module bypassed the key decision";
 }
 
 TEST_F(ModuleExternalTrustTest, BothDecisionsTogetherAreWhatAdmitIt) {
-  ASSERT_TRUE(Module::TrustModuleBuildKey(foreign_.public_key, {}));
+  ASSERT_TRUE(Module::TrustModulePublisherKey(foreign_.public_key, {}));
   ASSERT_TRUE(
       Module::SetExternalModuleEnabled(module_id_, foreign_.public_key, true));
 
@@ -307,35 +444,35 @@ TEST_F(ModuleExternalTrustTest, BothDecisionsTogetherAreWhatAdmitIt) {
 }
 
 TEST_F(ModuleExternalTrustTest, RevokingAKeyReturnsItsModulesToPending) {
-  ASSERT_TRUE(Module::TrustModuleBuildKey(foreign_.public_key, {}));
+  ASSERT_TRUE(Module::TrustModulePublisherKey(foreign_.public_key, {}));
   ASSERT_TRUE(
       Module::SetExternalModuleEnabled(module_id_, foreign_.public_key, true));
   ASSERT_EQ(
       Module::ExternalModuleAuthorization(module_id_, foreign_.public_key),
       Module::ModuleAuthorizationState::kTRUSTED_AND_ENABLED);
 
-  ASSERT_TRUE(Module::RevokeModuleBuildKey(foreign_.public_key));
+  ASSERT_TRUE(Module::RevokeModulePublisherKey(foreign_.public_key));
 
   EXPECT_EQ(
       Module::ExternalModuleAuthorization(module_id_, foreign_.public_key),
-      Module::ModuleAuthorizationState::kKEY_UNTRUSTED)
+      Module::ModuleAuthorizationState::kPUBLISHER_UNTRUSTED)
       << "an approval outlived the key decision it rested on";
 }
 
 TEST_F(ModuleExternalTrustTest, AnApprovalIsNotInheritedByAReSignedModule) {
-  // The same module id, signed under a different build key. Trust here is
-  // build-key-specific on purpose: these keys are ephemeral and per build
-  // tree, not durable identities, so a new one is a new decision.
-  ASSERT_TRUE(Module::TrustModuleBuildKey(foreign_.public_key, {}));
+  // The same module id, signed under a different publisher key. Trust is
+  // specific to one exact key: there is no rotation or succession, so a new
+  // key is a new decision.
+  ASSERT_TRUE(Module::TrustModulePublisherKey(foreign_.public_key, {}));
   ASSERT_TRUE(
       Module::SetExternalModuleEnabled(module_id_, foreign_.public_key, true));
 
   const auto rebuilt = MakeForeignKeypair();
   EXPECT_EQ(Module::ExternalModuleAuthorization(module_id_, rebuilt.public_key),
-            Module::ModuleAuthorizationState::kKEY_UNTRUSTED)
-      << "an approval granted for one build key covered another";
+            Module::ModuleAuthorizationState::kPUBLISHER_UNTRUSTED)
+      << "an approval granted for one publisher key covered another";
 
-  Module::RevokeModuleBuildKey(rebuilt.public_key);
+  Module::RevokeModulePublisherKey(rebuilt.public_key);
 }
 
 // ---------------------------------------------------------------------------
@@ -344,16 +481,17 @@ TEST_F(ModuleExternalTrustTest, AnApprovalIsNotInheritedByAReSignedModule) {
 
 TEST_F(ModuleExternalTrustTest, TheFingerprintComesFromTheKeyItself) {
   const auto fingerprint =
-      Module::ModuleBuildKeyFingerprint(foreign_.public_key);
+      Module::ModulePublisherKeyFingerprint(foreign_.public_key);
   EXPECT_FALSE(fingerprint.isEmpty());
 
   // Same key, same answer, every time and from nowhere else -- which is what
   // makes it safe to show one thing and compare another.
   EXPECT_EQ(fingerprint,
-            Module::ModuleBuildKeyFingerprint(foreign_.public_key));
+            Module::ModulePublisherKeyFingerprint(foreign_.public_key));
 
   const auto other = MakeForeignKeypair();
-  EXPECT_NE(fingerprint, Module::ModuleBuildKeyFingerprint(other.public_key));
+  EXPECT_NE(fingerprint,
+            Module::ModulePublisherKeyFingerprint(other.public_key));
 
   // Every hex digit of the key is present, however it is grouped.
   auto ungrouped = fingerprint;
@@ -365,10 +503,10 @@ TEST_F(ModuleExternalTrustTest, TheFingerprintComesFromTheKeyItself) {
 TEST(ModuleExternalTrustRuleTest, AnEmptyKeyIsNeverTrusted) {
   // Without this, a descriptor whose key could not be read would compare
   // equal to a blank record and be admitted by whatever carried it.
-  EXPECT_FALSE(Module::IsModuleBuildKeyTrusted({}));
-  EXPECT_FALSE(Module::IsModuleBuildKeyTrusted(QByteArray(31, '\0')));
-  EXPECT_FALSE(Module::TrustModuleBuildKey({}, "nothing"));
-  EXPECT_TRUE(Module::ModuleBuildKeyFingerprint({}).isEmpty());
+  EXPECT_FALSE(Module::IsModulePublisherKeyTrusted({}));
+  EXPECT_FALSE(Module::IsModulePublisherKeyTrusted(QByteArray(31, '\0')));
+  EXPECT_FALSE(Module::TrustModulePublisherKey({}, "nothing"));
+  EXPECT_TRUE(Module::ModulePublisherKeyFingerprint({}).isEmpty());
 }
 
 }  // namespace GpgFrontend::Test

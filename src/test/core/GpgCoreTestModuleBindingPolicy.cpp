@@ -310,7 +310,7 @@ TEST_F(ModuleBindingPolicyTest, TheBindingPolicyCannotWeakenDescriptorTrust) {
   // could make it otherwise, which is the structural half of the invariant.
   const auto verdict = Module::VerifyModuleDescriptor(descriptor_path_);
   ASSERT_TRUE(verdict.ok) << verdict.reason.toStdString();
-  EXPECT_EQ(verdict.build_public_key, Module::ModuleBuildPublicKey());
+  EXPECT_EQ(verdict.signer_public_key, Module::ModuleBuildPublicKey());
 
   // Still bound to this build's identity.
   EXPECT_EQ(verdict.manifest.build_id, Module::ModuleBuildId());
