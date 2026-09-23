@@ -344,7 +344,9 @@ endfunction()
 #   [UI_DIR      <dir>]                added to CMAKE_AUTOUIC_SEARCH_PATHS
 #   [LINK        <target>...]          extra libraries to link privately
 #   [INCLUDE_DIRS <dir>...]            extra private include directories
-#   [RESOURCES   <archive path>=<source file>...])
+#   [RESOURCES   <archive path>=<source file>...]
+#   [LUA_SCRIPTS <file>...])           UI scripts, embedded; loaded after
+#                                      on_activate, in name order
 #
 # Everything about the module's identity -- id, version, name, description,
 # author, capabilities, minimum host version, translation context -- comes from
@@ -434,7 +436,7 @@ function(gf_add_module)
   cmake_parse_arguments(GAM
     ""
     "NAME;UI_DIR"
-    "QT;SOURCES;LINK;INCLUDE_DIRS;RESOURCES"
+    "QT;SOURCES;LINK;INCLUDE_DIRS;RESOURCES;LUA_SCRIPTS"
     ${ARGN})
 
   if(NOT GAM_NAME)
@@ -561,7 +563,33 @@ function(gf_add_module)
   endif()
 
   set(target_name "gf_mod_${GAM_NAME}")
+
+  # UI scripts ride inside the module binary, so the signature that covers
+  # the binary covers them; no packaging step is involved. Under a prefix
+  # named for the module, which is where the runtime looks.
+  if(GAM_LUA_SCRIPTS)
+    if(NOT "ui" IN_LIST module_capabilities)
+      message(FATAL_ERROR
+        "gf_add_module(${GAM_NAME}): LUA_SCRIPTS needs the \"ui\" capability")
+    endif()
+    set(lua_qrc "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_lua.qrc")
+    set(lua_qrc_body
+      "<RCC>\n  <qresource prefix=\"/gf_module/${module_id}/lua\">\n")
+    foreach(script IN LISTS GAM_LUA_SCRIPTS)
+      get_filename_component(script_abs "${script}" ABSOLUTE)
+      get_filename_component(script_name "${script}" NAME)
+      string(APPEND lua_qrc_body
+        "    <file alias=\"${script_name}\">${script_abs}</file>\n")
+    endforeach()
+    string(APPEND lua_qrc_body "  </qresource>\n</RCC>\n")
+    file(GENERATE OUTPUT "${lua_qrc}" CONTENT "${lua_qrc_body}")
+    list(APPEND module_sources "${lua_qrc}")
+  endif()
+
   add_library(${target_name} SHARED ${module_sources})
+  if(GAM_LUA_SCRIPTS)
+    set_target_properties(${target_name} PROPERTIES AUTORCC ON)
+  endif()
 
   set_target_properties(${target_name} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
