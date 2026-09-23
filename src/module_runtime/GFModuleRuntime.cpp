@@ -26,11 +26,14 @@
  *
  */
 
+#include <QDir>
+#include <QFile>
 #include <QSet>
 #include <cstddef>
 
 #include "GFModuleRuntimeBoot.h"
 #include "GFModuleRuntimeCommand.h"
+#include "GFModuleRuntimeNative.h"
 #include "GFModuleRuntimeDispatch.h"
 #include "GFModuleRuntimeI18n.h"
 #include "include/GFModule.h"
@@ -127,6 +130,34 @@ auto ReconcileSubscriptions(const QSet<QString>& hooked) -> bool {
   return false;
 }
 
+/**
+ * @brief Hand the Host every UI script `gf_add_module(LUA_SCRIPTS ...)`
+ *        embedded, in name order.
+ *
+ * Under a resource prefix named for the module, so two modules' scripts
+ * never meet in Qt's one process-wide resource tree.
+ */
+void LoadEmbeddedScripts() {
+  const auto root =
+      QStringLiteral(":/gf_module/%1/lua").arg(gf::runtime::Facts().id);
+  QDir dir(root);
+  if (!dir.exists()) return;
+  auto names = dir.entryList({QStringLiteral("*.lua")}, QDir::Files,
+                             QDir::Name);
+  for (const auto& name : names) {
+    QFile f(dir.filePath(name));
+    if (!f.open(QIODevice::ReadOnly)) continue;
+    const auto source = f.readAll();
+    auto* ctx = gf::runtime::SdkContext();
+    auto* buf = GFBufferNewFromBytes(ctx, source.constData(),
+                                     static_cast<size_t>(source.size()));
+    if (GFUILoadScript(ctx, name.toUtf8().constData(), buf) != 0) {
+      LOG_ERROR("could not hand UI script " + name + " to the host");
+    }
+    GFBufferRelease(ctx, buf);
+  }
+}
+
 // ------------------------------------------------------------ trampolines
 
 auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
@@ -192,6 +223,9 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
       return -1;
     }
   }
+
+  // Last: a script mounts the native widgets on_activate registered.
+  LoadEmbeddedScripts();
   return 0;
 }
 
@@ -222,6 +256,7 @@ auto RuntimeDeactivate() -> int {
   // The Host withdraws the module's commands itself once this returns;
   // anything still owed to the module is forgotten here, on its side.
   gf::runtime::DropContinuations();
+  gf::runtime::ForgetNativeWidgets();
   if (g_hooks != nullptr &&
       HooksCover(g_hooks, &GFModuleHooks::on_deactivate) &&
       g_hooks->on_deactivate != nullptr) {

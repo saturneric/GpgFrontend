@@ -39,6 +39,7 @@ add_library(gf_module_runtime STATIC
   GFModuleRuntime.cpp
   GFModuleRuntimeBoot.cpp
   GFModuleRuntimeCommand.cpp
+  GFModuleRuntimeNative.cpp
   GFModuleRuntimeDispatch.cpp
   GFModuleRuntimeI18n.cpp)
 
@@ -55,6 +56,7 @@ target_compile_features(gf_module_runtime PUBLIC cxx_std_17)
 # global include_directories() in the top-level CMakeLists happens to put Qt
 # on the path, which is an accident rather than a statement.
 target_link_libraries(gf_module_runtime PUBLIC Qt::Core gf_sdk)
+target_link_libraries(gf_module_runtime PRIVATE Qt::Widgets)
 
 # The SDK headers arrive through gf_sdk's own interface, not by naming a
 # path here: a module sees the public C ABI and Qt, and nothing else from

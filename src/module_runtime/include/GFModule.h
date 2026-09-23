@@ -36,6 +36,7 @@
 
 #include "GFModuleCommand.h"
 #include "GFModuleEvent.h"
+#include "GFModuleNativeWidget.h"
 #include "GFModuleExport.h"
 #include "GFModuleLog.h"
 #include "GFModuleMemory.h"
