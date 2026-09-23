@@ -122,6 +122,9 @@ class Caller : public QThread {
   /// Calls that BEGAN after ReleaseHostApi() had returned.
   std::atomic<int> served_after{0};
   std::atomic<int> refused_after{0};
+  /// Calls the release may have landed in the middle of: either outcome is
+  /// correct, so they prove nothing and are only counted.
+  std::atomic<int> straddled{0};
 
  protected:
   void run() override {
@@ -140,8 +143,15 @@ class Caller : public QThread {
         host_->buffer->release(host_->context, buf);
       }
 
-      auto& bucket = after ? (served ? served_after : refused_after)
-                           : (served ? served_before : refused_before);
+      // The flag is raised only once the release has RETURNED, so a call that
+      // read it low may still have met a revoked grant. Only a call that
+      // still sees it low afterwards was decided wholly while the grant was
+      // live.
+      const auto still_live = !released_.load(std::memory_order_acquire);
+
+      auto& bucket = after        ? (served ? served_after : refused_after)
+                     : still_live ? (served ? served_before : refused_before)
+                                  : straddled;
       bucket.fetch_add(1, std::memory_order_relaxed);
 
       QThread::msleep(1);
