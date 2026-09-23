@@ -35,6 +35,7 @@
 #include <QWaitCondition>
 
 #include "GFSDKBuildInfo.h"
+#include "core/module/ModuleCapability.h"
 #include "private/GFHostContext.h"
 #include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivate.h"
@@ -117,14 +118,17 @@ auto StatusLocked(GFHostContextRef ctx, uint32_t capability,
   if (!record->live) return HostContextStatus::kREVOKED;
 
   // capability 0 asks only "is this context live", which is the whole
-  // question for the always-granted groups.
-  if (capability == 0 || (record->granted & capability) != 0) {
+  // question for the always-granted groups. Otherwise EVERY requested bit
+  // must be granted: an entry point that needs two capabilities is refused
+  // to a module holding only one of them.
+  if (capability == 0 || (record->granted & capability) == capability) {
     return HostContextStatus::kOK;
   }
   return HostContextStatus::kDENIED;
 }
 
 void LogRefusal(HostContextStatus status, GFHostContextRef ctx,
+                uint32_t capability, uint32_t granted,
                 const char* entry_point) {
   switch (status) {
     case HostContextStatus::kREVOKED:
@@ -136,8 +140,9 @@ void LogRefusal(HostContextStatus status, GFHostContextRef ctx,
     case HostContextStatus::kDENIED:
       LOG_W() << "refusing" << entry_point << "for module"
               << ContextModuleId(ctx)
-              << ": its signed manifest does not declare the capability this "
-                 "call needs";
+              << ": its signed manifest does not declare"
+              << GpgFrontend::Module::ModuleCapabilityMaskToString(capability &
+                                                                   ~granted);
       break;
     default:
       LOG_W() << "refusing" << entry_point
@@ -233,10 +238,12 @@ auto ContextStatusOf(GFHostContextRef ctx, uint32_t capability)
 auto BeginCall(GFHostContextRef ctx, uint32_t capability,
                const char* entry_point) -> CallTicket {
   HostContextStatus status;
+  uint32_t granted = 0;
   {
     QMutexLocker locker(&Reg().mutex);
     ContextRecord* record = nullptr;
     status = StatusLocked(ctx, capability, &record);
+    if (record != nullptr) granted = record->granted;
     if (status == HostContextStatus::kOK) {
       // Counted and attributed under the same lock that authorized it, so a
       // release cannot land between the check and the call being recorded.
@@ -245,7 +252,7 @@ auto BeginCall(GFHostContextRef ctx, uint32_t capability,
       return CallTicket{record, record->module_id.constData()};
     }
   }
-  LogRefusal(status, ctx, entry_point);
+  LogRefusal(status, ctx, capability, granted, entry_point);
   return {};
 }
 
@@ -267,6 +274,13 @@ auto ContextModuleId(GFHostContextRef ctx) -> QString {
   ContextRecord* record = nullptr;
   StatusLocked(ctx, 0, &record);
   return record == nullptr ? QString() : QString::fromUtf8(record->module_id);
+}
+
+auto ContextGranted(GFHostContextRef ctx) -> uint32_t {
+  QMutexLocker locker(&Reg().mutex);
+  ContextRecord* record = nullptr;
+  if (StatusLocked(ctx, 0, &record) != HostContextStatus::kOK) return 0;
+  return record->granted;
 }
 
 }  // namespace gf_sdk_internal

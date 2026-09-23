@@ -32,6 +32,7 @@
 #include "GFHostImpl.h"
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
+#include "private/GFHostTransfer.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivate.h"
@@ -159,6 +160,41 @@ void GFBufferRelease(GFBufferRef buf) {
 using namespace gf_host;  // NOLINT(build/namespaces)
 
 namespace gf_sdk_internal {
+
+auto TakeBufferForTransfer(GFBufferRef buf, const char* what)
+    -> std::optional<GpgFrontend::GFBuffer> {
+  if (buf == nullptr) return std::nullopt;
+  const auto state = GFHandleRegistry<GFBufferImpl>::Instance().Take(buf, what);
+  if (state != GFHandleState::kLive) {
+    if (state == GFHandleState::kStale) ReportStaleHandle(buf, what);
+    return std::nullopt;
+  }
+  auto buffer = buf->buf;  // shares the storage; nothing is copied
+  DestroyBuffer(buf);      // drops this handle's share only
+  return buffer;
+}
+
+auto NewBufferFor(GpgFrontend::GFBuffer buffer, const QString& module_id,
+                  const char* origin) -> GFBufferRef {
+  try {
+    auto* mem = GpgFrontend::SMAMalloc(sizeof(GFBufferImpl));
+    if (mem == nullptr) return nullptr;
+    auto* impl = new (mem) GFBufferImpl(std::move(buffer));
+    GFHandleRegistry<GFBufferImpl>::Instance().Register(impl, module_id,
+                                                        origin);
+    return impl;
+  } catch (...) {
+    LOG_E() << origin << ": allocation failed";
+    return nullptr;
+  }
+}
+
+auto ReadBuffer(GFBufferView buf, const char* what)
+    -> std::optional<GpgFrontend::GFBuffer> {
+  const auto* impl = ResolveLive(buf, what);
+  if (impl == nullptr) return std::nullopt;
+  return impl->buf;
+}
 
 auto SweepBufferHandles(const QString& module_id) -> QList<const char*> {
   QList<const char*> origins;

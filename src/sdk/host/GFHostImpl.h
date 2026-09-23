@@ -212,6 +212,8 @@ auto GFUIWarningColor(void* widget) -> uint32_t;
 auto GFUIDangerColor(void* widget) -> uint32_t;
 auto GFUIAccentColor(void* widget, int positive) -> uint32_t;
 auto GFUITakeCurrentEditorContent() -> GFBufferRef;
+/// A role colour from the application palette, or 0 for an unknown role.
+auto GFUIPaletteColor(int role) -> uint32_t;
 
 /* --- storage ------------------------------------------------------------- */
 

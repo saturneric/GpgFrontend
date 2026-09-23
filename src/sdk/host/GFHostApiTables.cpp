@@ -27,6 +27,7 @@
  */
 
 #include <QByteArray>
+#include <QCborValue>
 #include <QString>
 #include <cstring>
 
@@ -34,8 +35,12 @@
 #include "GFSDKBuildInfo.h"
 #include "GFSDKHostApi.h"
 #include "GFSDKModuleApi.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/module/ModuleSettingsPolicy.h"
+#include "ui/UIModuleManager.h"
 #include "private/GFHostContext.h"
+#include "private/GFHostGate.h"
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKPrivate.h"
 
@@ -82,46 +87,7 @@ static_assert(GF_HOST_CAP_UI == 1U << 2, "capability bits moved");
 static_assert(GF_HOST_CAP_EDITOR == 1U << 3, "capability bits moved");
 static_assert(GF_HOST_CAP_STORAGE == 1U << 4, "capability bits moved");
 static_assert(GF_HOST_CAP_PROCESS == 1U << 5, "capability bits moved");
-
-/**
- * @brief The gate every thunk opens with: authorize, count, attribute.
- *
- * One object rather than separate statements so they cannot be separated: a
- * thunk that checked the capability and forgot the attribution would work
- * perfectly and quietly stop recording who owns the handles it creates. The
- * call stays counted until the thunk returns, which is what lets shutdown
- * wait for it before freeing the module's handles.
- *
- * `capability` 0 means "a live context is enough", which is the whole question
- * for the always-granted groups.
- */
-class Gate {
- public:
-  Gate(GFHostContextRef ctx, uint32_t capability, const char* entry_point)
-      : ticket_(BeginCall(ctx, capability, entry_point)),
-        attribution_(ticket_.attribution) {}
-
-  ~Gate() { EndCall(ticket_); }
-
-  Gate(const Gate&) = delete;
-  auto operator=(const Gate&) -> Gate& = delete;
-
-  explicit operator bool() const { return ticket_.record != nullptr; }
-
- private:
-  CallTicket ticket_;
-  ScopedContextAttribution attribution_;
-};
-
-/// Shorthand: `GATE(ctx, GF_HOST_CAP_GPG, "gpg.sign", -1);`
-#define GATE(ctx, cap, name, failure)    \
-  const Gate gate((ctx), (cap), (name)); \
-  if (!gate) return failure;
-
-/// The void-returning form, which cannot use `return failure`.
-#define GATE_VOID(ctx, cap, name)        \
-  const Gate gate((ctx), (cap), (name)); \
-  if (!gate) return;
+static_assert(GF_HOST_CAP_UI_CUSTOM == 1U << 6, "capability bits moved");
 
 auto ModuleIdOf(GFHostContextRef ctx) -> QByteArray {
   return gf_sdk_internal::ContextModuleId(ctx).toUtf8();
@@ -660,6 +626,11 @@ auto UiThemeColor(GFHostContextRef ctx, int role, void* widget) -> uint32_t {
   }
 }
 
+auto UiThemeColorRole(GFHostContextRef ctx, int role) -> uint32_t {
+  GATE(ctx, GF_HOST_CAP_UI, "ui.theme_color_role", 0U);
+  return GFUIPaletteColor(role);
+}
+
 auto UiUserFilePath(GFHostContextRef ctx) -> GFBufferRef {
   GATE(ctx, GF_HOST_CAP_UI, "ui.user_file_path", nullptr);
   auto* path = GFUIDefaultUserFilePath();
@@ -720,6 +691,7 @@ const GFHostUiApi kUiApi = {
     &UiRegisterTabView,
     &UiUnregisterTabView,
     &UiRegisterFileExtension,
+    &UiThemeColorRole,
 };
 
 /* --- editor -------------------------------------------------------------- */
@@ -729,8 +701,21 @@ auto EditorTakeCurrentContent(GFHostContextRef ctx) -> GFBufferRef {
   return GFUITakeCurrentEditorContent();
 }
 
+auto EditorCurrentDocument(GFHostContextRef ctx, GFBufferRef* out) -> int {
+  GATE(ctx, GF_HOST_CAP_EDITOR, "editor.current_document", -1);
+  if (out == nullptr) return -1;
+  *out = nullptr;
+  const auto info = GpgFrontend::UI::CurrentDocumentInfo();
+  if (!info.has_value()) return -1;
+  const auto bytes = QCborValue(*info).toCbor();
+  *out = GFBufferNewFromBytes(bytes.constData(),
+                              static_cast<size_t>(bytes.size()));
+  return *out == nullptr ? -1 : 0;
+}
+
 const GFHostEditorApi kEditorApi = {sizeof(GFHostEditorApi),
-                                    &EditorTakeCurrentContent};
+                                    &EditorTakeCurrentContent,
+                                    &EditorCurrentDocument};
 
 /* --- storage ------------------------------------------------------------- */
 
@@ -857,11 +842,76 @@ auto StorageStateListChildren(GFHostContextRef ctx, const char* ns,
       out);
 }
 
+/// The full settings key a module may use, or empty -- which is a refusal,
+/// logged once here so the policy's answer is visible where it bites.
+auto SettingKey(GFHostContextRef ctx, int scope, const char* key, bool write)
+    -> QString {
+  if (key == nullptr) return {};
+  if (scope != GF_SETTING_MODULE && scope != GF_SETTING_HOST) return {};
+  const auto module = gf_sdk_internal::ContextModuleId(ctx);
+  const auto full = GpgFrontend::Module::ResolveModuleSettingKey(
+      module, static_cast<GpgFrontend::Module::ModuleSettingScope>(scope),
+      QString::fromUtf8(key), write);
+  if (full.isEmpty()) {
+    LOG_W() << "module" << module << "may not" << (write ? "write" : "read")
+            << "setting" << key << "in scope" << scope;
+  }
+  return full;
+}
+
+auto StorageSettingGet(GFHostContextRef ctx, int scope, const char* key,
+                       GFBufferRef* out) -> int {
+  GATE(ctx, GF_HOST_CAP_STORAGE, "storage.setting_get", -1);
+  if (out == nullptr) return -1;
+  *out = nullptr;
+  const auto full = SettingKey(ctx, scope, key, false);
+  if (full.isEmpty()) return -1;
+
+  const auto settings = GpgFrontend::GetSettings();
+  if (!settings.contains(full)) return -1;
+  const auto bytes = QCborValue::fromVariant(settings.value(full)).toCbor();
+  *out = GFBufferNewFromBytes(bytes.constData(),
+                              static_cast<size_t>(bytes.size()));
+  return *out == nullptr ? -1 : 0;
+}
+
+auto StorageSettingSet(GFHostContextRef ctx, int scope, const char* key,
+                       GFBufferView cbor) -> int {
+  GATE(ctx, GF_HOST_CAP_STORAGE, "storage.setting_set", -1);
+  const auto full = SettingKey(ctx, scope, key, true);
+  if (full.isEmpty()) return -1;
+
+  const auto* data = static_cast<const char*>(GFBufferData(cbor));
+  const auto size = GFBufferSize(cbor);
+  if (data == nullptr || size == 0) return -1;
+  QCborParserError error{};
+  const auto value = QCborValue::fromCbor(
+      QByteArray(data, static_cast<qsizetype>(size)), &error);
+  if (error.error != QCborError::NoError) return -1;
+
+  // A fresh QSettings per call: the object is not thread-safe, and a module
+  // calls from its own threads. It writes on destruction, which is here.
+  auto settings = GpgFrontend::GetSettings();
+  settings.setValue(full, value.toVariant());
+  return 0;
+}
+
+auto StorageSettingRemove(GFHostContextRef ctx, int scope, const char* key)
+    -> int {
+  GATE(ctx, GF_HOST_CAP_STORAGE, "storage.setting_remove", -1);
+  const auto full = SettingKey(ctx, scope, key, true);
+  if (full.isEmpty()) return -1;
+  auto settings = GpgFrontend::GetSettings();
+  settings.remove(full);
+  return 0;
+}
+
 const GFHostStorageApi kStorageApi = {
     sizeof(GFHostStorageApi),  &StorageSettingsRoot, &StorageCacheGet,
     &StorageCacheSet,          &StorageCacheRemove,  &StorageStateGetText,
     &StorageStateSetText,      &StorageStateGetBool, &StorageStateSetBool,
-    &StorageStateListChildren,
+    &StorageStateListChildren, &StorageSettingGet,   &StorageSettingSet,
+    &StorageSettingRemove,
 };
 
 /* --- process ------------------------------------------------------------- */
@@ -897,6 +947,10 @@ void FillHostApiGroups(GFHostApi& table, uint32_t granted) {
   table.editor = (granted & GF_HOST_CAP_EDITOR) != 0 ? &kEditorApi : nullptr;
   table.storage = (granted & GF_HOST_CAP_STORAGE) != 0 ? &kStorageApi : nullptr;
   table.process = (granted & GF_HOST_CAP_PROCESS) != 0 ? &kProcessApi : nullptr;
+
+  // Always present: every command states the capabilities its CALLER needs,
+  // and the registry checks them per call.
+  table.command = &kCommandApi;
 }
 
 }  // namespace gf_sdk_internal

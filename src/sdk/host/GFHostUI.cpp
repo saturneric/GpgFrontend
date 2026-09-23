@@ -28,6 +28,7 @@
 
 #include <core/utils/CommonUtils.h>
 
+#include <QApplication>
 #include <QMap>
 #include <QObject>
 #include <QString>
@@ -248,6 +249,26 @@ auto GFUIAccentColor(void* widget, int positive) -> uint32_t {
   return ColorOf(widget, [positive](const QPalette& p) {
     return GpgFrontend::UI::AccentColor(p, positive != 0);
   });
+}
+
+auto GFUIPaletteColor(int role) -> uint32_t {
+  const auto p = QApplication::palette();
+  switch (role) {
+    case GF_UI_COLOR_MUTED_TEXT:
+      return GpgFrontend::UI::MutedTextColor(p).rgba();
+    case GF_UI_COLOR_BORDER:
+      return GpgFrontend::UI::BorderColor(p).rgba();
+    case GF_UI_COLOR_WARNING:
+      return GpgFrontend::UI::WarningColor(p).rgba();
+    case GF_UI_COLOR_DANGER:
+      return GpgFrontend::UI::DangerColor(p).rgba();
+    case GF_UI_COLOR_ACCENT_POSITIVE:
+      return GpgFrontend::UI::AccentColor(p, true).rgba();
+    case GF_UI_COLOR_ACCENT_NEGATIVE:
+      return GpgFrontend::UI::AccentColor(p, false).rgba();
+    default:
+      return 0U;
+  }
 }
 
 auto GFUITakeCurrentEditorContent() -> GFBufferRef {

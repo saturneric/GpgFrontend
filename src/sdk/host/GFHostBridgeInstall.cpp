@@ -27,6 +27,7 @@
  */
 
 #include "core/module/ModuleSdkBridge.h"
+#include "ui/command/ModuleUiTeardown.h"
 #include "private/GFHostAttribution.h"
 #include "private/GFHostContext.h"
 #include "sdk/GFSDKModuleApi.h"
@@ -86,6 +87,9 @@ auto InstallBridge() -> bool {
   bridge.current_module = &GFSdkCurrentModule;
   bridge.leave_module = &GFSdkLeaveModule;
   bridge.sweep_module_handles = &GFSdkSweepModuleHandles;
+  bridge.module_deactivated = [](const char* module_id) {
+    GpgFrontend::UI::ModuleUiTeardown(QString::fromUtf8(module_id));
+  };
   GpgFrontend::Module::InstallModuleSdkBridge(bridge);
   return true;
 }
