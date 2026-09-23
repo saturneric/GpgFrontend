@@ -951,6 +951,9 @@ void FillHostApiGroups(GFHostApi& table, uint32_t granted) {
   // Always present: every command states the capabilities its CALLER needs,
   // and the registry checks them per call.
   table.command = &kCommandApi;
+  table.script = (granted & GF_HOST_CAP_UI) != 0 ? &kScriptApi : nullptr;
+  constexpr uint32_t kCustom = GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM;
+  table.native = (granted & kCustom) == kCustom ? &kNativeApi : nullptr;
 }
 
 }  // namespace gf_sdk_internal

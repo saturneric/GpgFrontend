@@ -37,6 +37,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "private/GFHostAttribution.h"
 #include "private/GFHostContext.h"
+#include "private/GFHostEnter.h"
 #include "private/GFHostGate.h"
 #include "private/GFHostTransfer.h"
 #include "private/GFSDKGpgInternal.h"
@@ -118,22 +119,6 @@ auto IssueBlobs(const std::vector<gf::cmd::Blob>& blobs, const QString& module,
   return refs;
 }
 
-/**
- * @brief Enter module code the way every host-to-module call does.
- *
- * @return false without calling @p fn when the module is tearing down.
- */
-template <typename Fn>
-auto EnterModule(const QByteArray& module_utf8, Fn&& fn) -> bool {
-  GpgFrontend::Module::ModuleDispatchScope scope(
-      GpgFrontend::Module::GlobalModuleDispatchGate());
-  if (!scope.Entered()) return false;
-  const GpgFrontend::Module::ModuleAttributionScope attribution(
-      module_utf8.constData());
-  fn();
-  return true;
-}
-
 /// The allowlist a verified module's manifest carries; nullopt if unverified.
 auto AllowlistOf(const QString& module) -> std::optional<QStringList> {
   auto m = GpgFrontend::Module::ModuleManager::GetInstance().SearchModule(
@@ -184,7 +169,7 @@ auto RegisterCommand(GFHostContextRef ctx, const GFCommandSpec* spec) -> int {
     auto context_map = gf::cmd::EncodeMap(cctx, st);
 
     auto enter = [=]() {
-      const auto entered = EnterModule(module_utf8, [&]() {
+      const auto entered = gf_sdk_internal::EnterModule(module_utf8, [&]() {
         auto* context_ref = IssueMap(context_map, module, "command.context");
         auto* args_ref = IssueMap(args, module, "command.args");
         auto refs = IssueBlobs(blobs, module, "command.blob");
@@ -221,7 +206,7 @@ auto RegisterCommand(GFHostContextRef ctx, const GFCommandSpec* spec) -> int {
       uint32_t bits = 0;
       gf::cmd::EncodeState st;
       const auto context_map = gf::cmd::EncodeMap(cctx, st);
-      EnterModule(module_utf8, [&]() {
+      gf_sdk_internal::EnterModule(module_utf8, [&]() {
         auto* context_ref = IssueMap(context_map, module, "command.context");
         bits = state(user, context_ref);
         gf_host::GFBufferRelease(context_ref);
@@ -264,7 +249,7 @@ auto Invoke(GFHostContextRef ctx, const char* id, uint32_t /*flags*/,
   gf::cmd::Completer completer = [module, module_utf8, done,
                                   user](gf::cmd::RawResult r) {
     if (done == nullptr) return;  // fire and forget: the result just drops
-    EnterModule(module_utf8, [&]() {
+    gf_sdk_internal::EnterModule(module_utf8, [&]() {
       auto* result_ref = IssueMap(r.result, module, "command.result");
       auto refs = IssueBlobs(r.blobs, module, "command.result_blob");
       const auto error = r.error.toUtf8();

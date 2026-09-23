@@ -77,4 +77,10 @@ class Gate {
 /// The command group, defined in GFHostCommand.cpp.
 extern const GFHostCommandApi kCommandApi;
 
+/// The script group, defined in GFHostScript.cpp.
+extern const GFHostScriptApi kScriptApi;
+
+/// The native widget group, defined in GFHostNative.cpp.
+extern const GFHostNativeWidgetApi kNativeApi;
+
 }  // namespace gf_sdk_internal
