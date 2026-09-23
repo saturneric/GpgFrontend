@@ -122,6 +122,13 @@ class DocumentWidget : public NativeWidgetBase {
     return {};
   }
 
+  /// Why the raw document may not be edited now -- signed bytes, say -- or
+  /// nullopt when the user may unlock it. Asked by the Host's source view.
+  [[nodiscard]] virtual auto SourceLockReason() const
+      -> std::optional<QString> {
+    return std::nullopt;
+  }
+
  protected:
   /// An edit happened; the tab now has unsaved changes.
   void NotifyModified();

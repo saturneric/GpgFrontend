@@ -186,11 +186,22 @@ auto DocPrepareSave(void*, uint64_t i, GFBufferView bytes, GFBufferRef* out)
   return 0;
 }
 
+auto DocSourcePolicy(void*, uint64_t i, GFBufferRef* reason) -> int {
+  if (reason != nullptr) *reason = nullptr;
+  auto* d = As<DocumentWidget>(i);
+  if (d == nullptr) return 1;
+  const auto why = d->SourceLockReason();
+  if (!why.has_value()) return 1;
+  if (reason != nullptr) *reason = Buffer(why->toUtf8());
+  return 0;
+}
+
 const GFDocumentWidgetOps kDocumentOps = {
-    sizeof(GFDocumentWidgetOps), &DocLoad,       &DocSave,
-    &DocIsDirty,                 &DocCryptoOps,  &DocSuggestedFileName,
-    &DocApplyVerification,       &DocAppendText, &DocAttachPublicKey,
-    &DocApplyFont,               &DocWipe,       &DocPrepareSave,
+    sizeof(GFDocumentWidgetOps), &DocLoad,         &DocSave,
+    &DocIsDirty,                 &DocCryptoOps,    &DocSuggestedFileName,
+    &DocApplyVerification,       &DocAppendText,   &DocAttachPublicKey,
+    &DocApplyFont,               &DocWipe,         &DocPrepareSave,
+    &DocSourcePolicy,
 };
 
 // --- settings
@@ -293,10 +304,9 @@ auto RegisterNativeWidget(const char* name, int kind, bool multi,
 namespace gf::runtime {
 
 void ForgetNativeWidgets() {
-  auto* ctx = SdkContext();
-  for (const auto& reg : Registrations()) {
-    GFNativeWidgetUnregister(ctx, reg.name.constData());
-  }
+  // Nothing to withdraw from the Host: it sweeps every registration a module
+  // made once the module is deactivated, and at shutdown the grant is
+  // already gone by the time this runs. Only this side's own map is cleared.
   Instances().clear();
   // Registrations stay: the Host may still hold `user` pointers until its
   // own sweep has run, and the list costs nothing once nothing calls in.
