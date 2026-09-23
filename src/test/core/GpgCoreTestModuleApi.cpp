@@ -229,6 +229,11 @@ TEST(ModuleApiTest, ThePrefixLayoutIsFrozen) {
   EXPECT_EQ(offsetof(GFHostEditorApi, struct_size), 0U);
   EXPECT_EQ(offsetof(GFHostStorageApi, struct_size), 0U);
   EXPECT_EQ(offsetof(GFHostProcessApi, struct_size), 0U);
+  EXPECT_EQ(offsetof(GFHostCommandApi, struct_size), 0U);
+
+  // Appended groups come strictly after everything an older module reads.
+  EXPECT_EQ(offsetof(GFHostApi, command),
+            offsetof(GFHostApi, process) + sizeof(void*));
 
   // So do the row structs a group hands out, which is what lets a key brief
   // gain a field without a new accessor.
@@ -238,6 +243,11 @@ TEST(ModuleApiTest, ThePrefixLayoutIsFrozen) {
   EXPECT_EQ(offsetof(GFUISettingsPageSpec, struct_size), 0U);
   EXPECT_EQ(offsetof(GFUITabViewSpec, struct_size), 0U);
   EXPECT_EQ(offsetof(GFModuleEventAnswer, struct_size), 0U);
+  EXPECT_EQ(offsetof(GFCommandSpec, struct_size), 0U);
+
+  // The bootstrap payload grew by appending too.
+  EXPECT_EQ(offsetof(GFModuleBootstrapInfo, commands),
+            offsetof(GFModuleBootstrapInfo, events_size) + sizeof(size_t));
 
   EXPECT_EQ(offsetof(GFModuleApi, struct_size), 0U);
   EXPECT_EQ(offsetof(GFModuleApi, abi_version), sizeof(size_t));

@@ -34,6 +34,7 @@
 #include <array>
 
 #include "GpgFrontendTest.h"
+#include "core/module/ModuleCapability.h"
 #include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleManifest.h"
 #include "sdk/GFSDKBuildInfo.h"
@@ -275,6 +276,51 @@ TEST(ModuleManifestTest, RejectsAMalformedEventList) {
   o = GoodManifestObject();
   o["events"] = QJsonArray{};
   EXPECT_TRUE(ParseObject(o).ok);
+}
+
+// "ui.custom" runs module widgets inside Host containers, and those are only
+// ever mounted by the module's UI script, which "ui" is what grants. The
+// narrower name alone would be a signed statement that makes no sense.
+TEST(ModuleManifestTest, UiCustomIsRefusedWithoutUi) {
+  auto o = GoodManifestObject();
+  o["capabilities"] = QJsonArray{"ui.custom"};
+  EXPECT_FALSE(ParseObject(o).ok);
+
+  o = GoodManifestObject();
+  o["capabilities"] = QJsonArray{"ui", "ui.custom"};
+  const auto r = ParseObject(o);
+  ASSERT_TRUE(r.ok) << r.reason.toStdString();
+  EXPECT_EQ(Module::ModuleCapabilityMask(r.manifest.capabilities),
+            static_cast<uint32_t>(Module::ModuleCapability::kUI) |
+                static_cast<uint32_t>(Module::ModuleCapability::kUI_CUSTOM));
+}
+
+// The commands a module provides are signed, and each is in the module's own
+// namespace: another module can invoke a command, so what exists -- and who
+// owns it -- is a statement the Host must be able to trust before load.
+TEST(ModuleManifestTest, CommandsAreOptionalNamespacedAndUnique) {
+  auto o = GoodManifestObject();
+  auto r = ParseObject(o);
+  ASSERT_TRUE(r.ok) << r.reason.toStdString();
+  EXPECT_TRUE(r.manifest.commands.isEmpty()) << "absent means none";
+
+  const auto id = o["id"].toString();
+  o["commands"] = QJsonArray{id + ".open_inspector", id + ".check"};
+  r = ParseObject(o);
+  ASSERT_TRUE(r.ok) << r.reason.toStdString();
+  EXPECT_EQ(r.manifest.commands,
+            (QStringList{id + ".open_inspector", id + ".check"}));
+
+  o["commands"] = QJsonArray{"org.gpgfrontend.document.save"};
+  EXPECT_FALSE(ParseObject(o).ok) << "the Host's namespace is not the module's";
+  o["commands"] = QJsonArray{"com.example.other.thing"};
+  EXPECT_FALSE(ParseObject(o).ok) << "nor another module's";
+  o["commands"] = QJsonArray{id + ".Open"};
+  EXPECT_FALSE(ParseObject(o).ok) << "lower-case dotted only";
+  o["commands"] = QJsonArray{id + ".a", id + ".a"};
+  EXPECT_FALSE(ParseObject(o).ok) << "declared twice";
+  o["commands"] = id + ".a";
+  EXPECT_FALSE(ParseObject(o).ok) << "an array, not a string";
 }
 
 TEST(ModuleManifestTest, RejectsAnEmptyTranslationContext) {

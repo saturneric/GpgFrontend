@@ -127,6 +127,8 @@ class ModuleExternalizeTest : public ::testing::Test {
     spec_.min_host_version = "2.0.0";
     spec_.capabilities = QStringList{"gpg", "ui"};
     spec_.events = QStringList{"APPLICATION_LOADED"};
+    spec_.commands =
+        QStringList{"com.example.module.externalize.open_inspector"};
     spec_.translation_context = "ModuleExternalize";
     spec_.metadata = {{"Name", "Externalize"},
                       {"Description", "a module on its way out"},
@@ -241,6 +243,7 @@ TEST_F(ModuleExternalizeTest, AnIntegratedModuleBecomesAnExternalOne) {
   EXPECT_EQ(out.min_host_version, in.min_host_version);
   EXPECT_EQ(out.capabilities, in.capabilities);
   EXPECT_EQ(out.events, in.events);
+  EXPECT_EQ(out.commands, in.commands);
   EXPECT_EQ(out.translation_context, in.translation_context);
   EXPECT_EQ(out.platform_os, in.platform_os);
   EXPECT_EQ(out.platform_arch, in.platform_arch);

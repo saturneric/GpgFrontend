@@ -1015,10 +1015,11 @@ TEST(ModuleDescriptorSmokeTest, APackageBuiltByTheBuildVerifies) {
   // Sorted and de-duplicated by the packager, so the canonical manifest the
   // signature covers is byte-identical however module.json was ordered.
   EXPECT_EQ(v.manifest.capabilities,
-            (QStringList{"gpg", "process", "storage", "ui"}))
+            (QStringList{"gpg", "process", "storage", "ui", "ui.custom"}))
       << "this module runs gpgconf (process), writes what it learns into the "
-         "register table (storage) and contributes a tab (ui); every one of "
-         "those is now granted from this list rather than assumed";
+         "register table (storage), adds a menu entry (ui) and shows its own "
+         "dialog (ui.custom); every one of those is now granted from this "
+         "list rather than assumed";
 }
 
 }  // namespace GpgFrontend::Test

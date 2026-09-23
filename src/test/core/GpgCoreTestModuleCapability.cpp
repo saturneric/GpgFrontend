@@ -145,6 +145,21 @@ TEST(ModuleCapabilityTest, AMixedDeclarationIsSplitNotFlattened) {
   EXPECT_EQ(Module::AdvisoryDeclarationsOf(declared), QStringList{"network"});
 }
 
+// Separate bits, never implied: a grant of "ui" alone must not carry the
+// right to put module widgets into Host containers.
+TEST(ModuleCapabilityTest, UiCustomIsItsOwnBitAndImpliesNothing) {
+  EXPECT_EQ(Module::ModuleCapabilityKindOf("ui.custom"),
+            Module::ModuleCapabilityKind::kENFORCEABLE);
+  EXPECT_EQ(Module::ModuleCapabilityMask({"ui.custom"}),
+            static_cast<uint32_t>(Module::ModuleCapability::kUI_CUSTOM));
+  EXPECT_EQ(Module::ModuleCapabilityMask({"ui"}) &
+                static_cast<uint32_t>(Module::ModuleCapability::kUI_CUSTOM),
+            0U);
+  EXPECT_EQ(Module::ModuleCapabilityMaskToString(
+                Module::ModuleCapabilityMask({"ui", "ui.custom"})),
+            "ui, ui.custom");
+}
+
 TEST(ModuleCapabilityTest, AMaskReadsBackAsTheNamesItCameFrom) {
   EXPECT_EQ(Module::ModuleCapabilityMaskToString(0), "none");
   EXPECT_EQ(Module::ModuleCapabilityMaskToString(
