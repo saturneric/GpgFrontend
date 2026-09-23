@@ -105,6 +105,10 @@ auto ContextStatusOf(GFHostContextRef ctx, uint32_t capability)
 /// @p ctx is unknown. For log lines and key scoping, never for authorization.
 auto ContextModuleId(GFHostContextRef ctx) -> QString;
 
+/// The GF_HOST_CAP_* bits @p ctx was granted; 0 when it is not live. What a
+/// module may ask of another module's command is decided by this.
+auto ContextGranted(GFHostContextRef ctx) -> uint32_t;
+
 /**
  * @brief One authorized call, from BeginCall() to EndCall().
  *
