@@ -40,11 +40,6 @@
  * forward each, and "or a default" lives in the C++ facade where it belongs.
  */
 
-auto GFStorageSettingsRoot(GFSDKContext* ctx) -> void* {
-  GF_SDK_REQUIRE(ctx, storage, "GFStorageSettingsRoot", nullptr);
-  return g->settings_root(hctx);
-}
-
 auto GFStorageSettingGet(GFSDKContext* ctx, int scope, const char* key,
                          GFBufferRef* out) -> int {
   GF_SDK_REQUIRE(ctx, storage, "GFStorageSettingGet", -1);

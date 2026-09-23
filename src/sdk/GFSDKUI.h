@@ -43,57 +43,14 @@
  * a preference would be a grant that says more than it means. See
  * GFSDKStorage.h.
  *
- * Widgets may only be created and shown on the main thread; the two calls
- * that need it marshal there for you.
+ * No function here hands a module a Host object, or takes one: a module's
+ * UI is its script (anchors, actions, mounts) and its own native widgets,
+ * which the Host places in containers of its own.
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @brief Construct a QObject-derived GUI object on the main thread.
- *
- * If called from another thread the factory is dispatched to the main thread
- * via a blocking queued connection before returning.
- *
- * @return opaque QObject pointer, or NULL on failure
- */
-void* GFUICreateGUIObject(GFSDKContext* ctx, QObjectFactory factory,
-                          void* data);
-
-/**
- * @brief Resolve a GUI handle the host passed in an event parameter.
- *
- * Returns NULL once the object has been destroyed, so a stale handle fails
- * closed. Most handlers should use GFEvent::RequireGui<T>() instead, which
- * does this resolution and produces the failure to return in one line.
- */
-void* GFUIGetGUIObject(GFSDKContext* ctx, const char* id);
-
-/**
- * @brief Show a QDialog on the main thread.
- *
- * The dialog must have been created on the main thread. Ownership transfers
- * to @p parent. Returns immediately after scheduling the show.
- *
- * @param dialog a QDialog; @param parent a QWidget or NULL. Any other
- *        non-QObject pointer is undefined behavior.
- * @return 0 when the show was scheduled; negative otherwise
- */
-int GFUIShowDialog(GFSDKContext* ctx, void* dialog, void* parent);
-
-/**
- * @brief A color of the application's own visual language.
- *
- * Five functions became one taking a @ref GFUIColorRole, because they
- * differed by which role they named and nothing else. Every color is derived
- * from @p widget's palette rather than fixed, so it stays legible under both
- * themes.
- *
- * @return 0xAARRGGBB, or 0 if @p widget is not a QWidget
- */
-uint32_t GFUIThemeColor(GFSDKContext* ctx, int role, void* widget);
 
 /**
  * @brief A colour of the application's visual language, from its palette.
@@ -152,35 +109,6 @@ int GFNativeDocumentOpsChanged(GFSDKContext* ctx, uint64_t instance);
 int GFNativeSettingsRestartNeeded(GFSDKContext* ctx, uint64_t instance,
                                   int level);
 int GFNativeDialogClose(GFSDKContext* ctx, uint64_t instance);
-
-/* --- extension points ----------------------------------------------------
- *
- * Each takes an append-only spec struct rather than positional arguments, so
- * a later field costs an append rather than a new entry point.
- *
- * Every registration MUST be undone from the module's on_deactivate hook: a
- * factory pointing into an unloaded shared object crashes the next time the
- * host needs it. Widgets already on screen keep working.
- */
-
-int GFUIRegisterSettingsPage(GFSDKContext* ctx,
-                             const GFUISettingsPageSpec* spec);
-int GFUIUnregisterSettingsPage(GFSDKContext* ctx, const char* page_id);
-
-int GFUIRegisterTabPageView(GFSDKContext* ctx, const GFUITabViewSpec* spec);
-int GFUIUnregisterTabPageView(GFSDKContext* ctx, const char* tab_type);
-
-/**
- * @brief Take over opening files with @p extension.
- *
- * When the user opens such a file the host fires
- * `FILE_EXT_<PREFIX>_OP_OPEN_FILE` and does nothing else, so the module owns
- * the operation from there.
- *
- * @param extension without the leading dot, e.g. "eml"
- */
-int GFUIRegisterFileExtension(GFSDKContext* ctx, const char* extension,
-                              const char* event_prefix);
 
 /**
  * @brief A file size as the rest of the application writes it. PURE.

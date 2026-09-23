@@ -192,25 +192,7 @@ auto GFPgpInspectData(GFBufferView in, char** out_json) -> int;
 
 /* --- user interface ------------------------------------------------------ */
 
-auto GFUICreateGUIObject(QObjectFactory factory, void* data) -> void*;
-auto GFUIGetGUIObject(const char* id) -> void*;
-auto GFUIShowDialog(void* dialog, void* parent) -> int;
-auto GFUIGlobalSettings() -> void*;
-auto GFUIRegisterFileExtensionHandleEvent(const char* extension,
-                                          const char* event_prefix) -> int;
-auto GFUIRegisterSettingsPage(const char* page_id, const char* section_id,
-                              const char* title, const char* keywords,
-                              QObjectFactory factory, void* data) -> int;
-auto GFUIUnregisterSettingsPage(const char* page_id) -> int;
-auto GFUIRegisterTabPageView(const char* tab_type, QObjectFactory factory,
-                             void* data) -> int;
-auto GFUIUnregisterTabPageView(const char* tab_type) -> int;
 auto GFUIDefaultUserFilePath() -> char*;
-auto GFUIMutedTextColor(void* widget) -> uint32_t;
-auto GFUIBorderColor(void* widget) -> uint32_t;
-auto GFUIWarningColor(void* widget) -> uint32_t;
-auto GFUIDangerColor(void* widget) -> uint32_t;
-auto GFUIAccentColor(void* widget, int positive) -> uint32_t;
 auto GFUITakeCurrentEditorContent() -> GFBufferRef;
 /// A role colour from the application palette, or 0 for an unknown role.
 auto GFUIPaletteColor(int role) -> uint32_t;

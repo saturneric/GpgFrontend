@@ -40,26 +40,9 @@
  * @brief Widgets, dialogs and extension points, module-side.
  */
 
-auto GFUICreateGUIObject(GFSDKContext* ctx, QObjectFactory factory, void* data)
-    -> void* {
-  GF_SDK_REQUIRE(ctx, ui, "GFUICreateGUIObject", nullptr);
-  return g->create_object(hctx, factory, data);
-}
 
-auto GFUIGetGUIObject(GFSDKContext* ctx, const char* id) -> void* {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIGetGUIObject", nullptr);
-  return g->get_object(hctx, id);
-}
 
-auto GFUIShowDialog(GFSDKContext* ctx, void* dialog, void* parent) -> int {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIShowDialog", -1);
-  return g->show_dialog(hctx, dialog, parent);
-}
 
-auto GFUIThemeColor(GFSDKContext* ctx, int role, void* widget) -> uint32_t {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIThemeColor", 0U);
-  return g->theme_color(hctx, role, widget);
-}
 
 auto GFUILoadScript(GFSDKContext* ctx, const char* chunk_name,
                     GFBufferView source) -> int {
@@ -78,33 +61,10 @@ auto GFUIDefaultUserFilePath(GFSDKContext* ctx) -> GFBufferRef {
   return g->user_file_path(hctx);
 }
 
-auto GFUIRegisterSettingsPage(GFSDKContext* ctx,
-                              const GFUISettingsPageSpec* spec) -> int {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIRegisterSettingsPage", -1);
-  return g->register_settings_page(hctx, spec);
-}
 
-auto GFUIUnregisterSettingsPage(GFSDKContext* ctx, const char* page_id) -> int {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIUnregisterSettingsPage", -1);
-  return g->unregister_settings_page(hctx, page_id);
-}
 
-auto GFUIRegisterTabPageView(GFSDKContext* ctx, const GFUITabViewSpec* spec)
-    -> int {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIRegisterTabPageView", -1);
-  return g->register_tab_view(hctx, spec);
-}
 
-auto GFUIUnregisterTabPageView(GFSDKContext* ctx, const char* tab_type) -> int {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIUnregisterTabPageView", -1);
-  return g->unregister_tab_view(hctx, tab_type);
-}
 
-auto GFUIRegisterFileExtension(GFSDKContext* ctx, const char* extension,
-                               const char* event_prefix) -> int {
-  GF_SDK_REQUIRE(ctx, ui, "GFUIRegisterFileExtension", -1);
-  return g->register_file_extension(hctx, extension, event_prefix);
-}
 
 /**
  * @brief PURE. No context, no host.

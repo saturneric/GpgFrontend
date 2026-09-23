@@ -70,11 +70,12 @@ int GFGpgExportKey(GFSDKContext* ctx, int channel, const char* key_id,
  * The import runs in the host and reports its own outcome to the user, so
  * this says only whether it was started.
  *
- * @param parent opaque QWidget to parent the dialog to; may be NULL
+ * The Host parents its dialog to its own window: a module hands it no
+ * widget of its own to parent to.
+ *
  * @return 0 when the import was started; negative when refused
  */
-int GFGpgImportKeys(GFSDKContext* ctx, int channel, void* parent,
-                    GFBufferView data);
+int GFGpgImportKeys(GFSDKContext* ctx, int channel, GFBufferView data);
 
 /**
  * @brief The primary UID of @p key_id, split into its parts.

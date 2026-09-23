@@ -219,10 +219,10 @@ inline void RemoveCache(GFSDKContext* ctx, int store, const QString& key) {
  * done.
  */
 
-inline auto ImportKeys(GFSDKContext* ctx, int channel, void* parent,
-                       const QByteArray& data) -> int {
+inline auto ImportKeys(GFSDKContext* ctx, int channel, const QByteArray& data)
+    -> int {
   const Bytes bytes(ctx, data);
-  return GFGpgImportKeys(ctx, channel, parent, bytes.view());
+  return GFGpgImportKeys(ctx, channel, bytes.view());
 }
 
 inline auto ExportKey(GFSDKContext* ctx, int channel, const QString& key_id,
@@ -289,31 +289,6 @@ inline auto AnalyseResult(GFSDKContext* ctx, int channel, int operation,
  * point. A caller that wants today's fields should not have to fill one in by
  * hand, so these do it.
  */
-
-inline auto RegisterSettingsPage(GFSDKContext* ctx, const char* page_id,
-                                 const char* section_id, const char* title,
-                                 const char* keywords, QObjectFactory factory,
-                                 void* data) -> int {
-  GFUISettingsPageSpec spec{};
-  spec.struct_size = sizeof(GFUISettingsPageSpec);
-  spec.page_id = page_id;
-  spec.section_id = section_id;
-  spec.title = title;
-  spec.keywords = keywords;
-  spec.factory = factory;
-  spec.data = data;
-  return GFUIRegisterSettingsPage(ctx, &spec);
-}
-
-inline auto RegisterTabPageView(GFSDKContext* ctx, const char* tab_type,
-                                QObjectFactory factory, void* data) -> int {
-  GFUITabViewSpec spec{};
-  spec.struct_size = sizeof(GFUITabViewSpec);
-  spec.tab_type = tab_type;
-  spec.factory = factory;
-  spec.data = data;
-  return GFUIRegisterTabPageView(ctx, &spec);
-}
 
 /// The directory a file dialog for user files should open in.
 inline auto UserFilePath(GFSDKContext* ctx) -> QString {

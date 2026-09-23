@@ -130,10 +130,10 @@ auto GFGpgExportKey(GFSDKContext* ctx, int channel, const char* key_id,
   return g->export_key(hctx, channel, key_id, ascii, out);
 }
 
-auto GFGpgImportKeys(GFSDKContext* ctx, int channel, void* parent,
-                     GFBufferView data) -> int {
+auto GFGpgImportKeys(GFSDKContext* ctx, int channel, GFBufferView data)
+    -> int {
   GF_SDK_REQUIRE(ctx, gpg, "GFGpgImportKeys", -1);
-  return g->import_keys(hctx, channel, parent, data);
+  return g->import_keys(hctx, channel, nullptr, data);
 }
 
 auto GFGpgKeyPrimaryUid(GFSDKContext* ctx, int channel, const char* key_id,

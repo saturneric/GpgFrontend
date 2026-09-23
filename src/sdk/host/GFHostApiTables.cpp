@@ -28,6 +28,8 @@
 
 #include <QByteArray>
 #include <QCborValue>
+#include <QMutex>
+#include <QSet>
 #include <QString>
 #include <cstring>
 
@@ -469,7 +471,10 @@ auto GpgExportKey(GFHostContextRef ctx, int channel, const char* key_id,
 auto GpgImportKeys(GFHostContextRef ctx, int channel, void* parent,
                    GFBufferView data) -> int {
   GATE(ctx, GF_HOST_CAP_GPG, "gpg.import_keys", -1);
-  return GFGpgImportKeys(channel, parent,
+  // The parent is ignored: the Host parents its own import dialog, and a
+  // pointer from a module is never taken for a widget.
+  (void)parent;
+  return GFGpgImportKeys(channel, nullptr,
                          static_cast<const char*>(GFBufferData(data)),
                          static_cast<int>(GFBufferSize(data)));
 }
@@ -589,41 +594,52 @@ const GFHostPgpApi kPgpApi = {sizeof(GFHostPgpApi), &PgpInspect};
 
 /* --- ui ------------------------------------------------------------------ */
 
-auto UiCreateObject(GFHostContextRef ctx, QObjectFactory factory, void* data)
-    -> void* {
-  GATE(ctx, GF_HOST_CAP_UI, "ui.create_object", nullptr);
-  return GFUICreateGUIObject(factory, data);
-}
-
-auto UiGetObject(GFHostContextRef ctx, const char* id) -> void* {
-  GATE(ctx, GF_HOST_CAP_UI, "ui.get_object", nullptr);
-  return GFUIGetGUIObject(id);
-}
-
-auto UiShowDialog(GFHostContextRef ctx, void* dialog, void* parent) -> int {
-  GATE(ctx, GF_HOST_CAP_UI, "ui.show_dialog", -1);
-  return GFUIShowDialog(dialog, parent);
-}
-
-auto UiThemeColor(GFHostContextRef ctx, int role, void* widget) -> uint32_t {
-  GATE(ctx, GF_HOST_CAP_UI, "ui.theme_color", 0U);
-  switch (role) {
-    case GF_UI_COLOR_MUTED_TEXT:
-      return GFUIMutedTextColor(widget);
-    case GF_UI_COLOR_BORDER:
-      return GFUIBorderColor(widget);
-    case GF_UI_COLOR_WARNING:
-      return GFUIWarningColor(widget);
-    case GF_UI_COLOR_DANGER:
-      return GFUIDangerColor(widget);
-    case GF_UI_COLOR_ACCENT_POSITIVE:
-      return GFUIAccentColor(widget, 1);
-    case GF_UI_COLOR_ACCENT_NEGATIVE:
-      return GFUIAccentColor(widget, 0);
-    default:
-      LOG_W() << "ui.theme_color: unknown role" << role;
-      return 0U;
+/**
+ * @brief A legacy entry point that handed out, or took, Host Qt objects.
+ *
+ * Each keeps its slot -- the ABI stays at 4, and an older module finds the
+ * table the shape it expects -- and refuses, saying once per module and
+ * entry point what replaced it. A module never receives a Host object, and
+ * never parents anything to one, whatever it was built against.
+ */
+void Removed(GFHostContextRef ctx, const char* entry, const char* instead) {
+  static QMutex mutex;
+  static QSet<QString> said;
+  const auto module = gf_sdk_internal::ContextModuleId(ctx);
+  {
+    QMutexLocker locker(&mutex);
+    const auto key = module + "/" + entry;
+    if (said.contains(key)) return;
+    said.insert(key);
   }
+  LOG_W() << entry << "no longer hands Host objects to modules; module"
+          << module << "should use" << instead;
+}
+
+auto UiCreateObject(GFHostContextRef ctx, QObjectFactory, void*) -> void* {
+  GATE(ctx, GF_HOST_CAP_UI, "ui.create_object", nullptr);
+  Removed(ctx, "ui.create_object", "a native widget (GFModuleNativeWidget.h)");
+  return nullptr;
+}
+
+auto UiGetObject(GFHostContextRef ctx, const char*) -> void* {
+  GATE(ctx, GF_HOST_CAP_UI, "ui.get_object", nullptr);
+  Removed(ctx, "ui.get_object",
+          "an anchor in its UI script, a command, or a query");
+  return nullptr;
+}
+
+auto UiShowDialog(GFHostContextRef ctx, void*, void*) -> int {
+  GATE(ctx, GF_HOST_CAP_UI, "ui.show_dialog", -1);
+  Removed(ctx, "ui.show_dialog",
+          "a dialog mount and org.gpgfrontend.view.open");
+  return -1;
+}
+
+auto UiThemeColor(GFHostContextRef ctx, int, void*) -> uint32_t {
+  GATE(ctx, GF_HOST_CAP_UI, "ui.theme_color", 0U);
+  Removed(ctx, "ui.theme_color", "GFUIThemeColorForRole");
+  return 0U;
 }
 
 auto UiThemeColorRole(GFHostContextRef ctx, int role) -> uint32_t {
@@ -640,43 +656,37 @@ auto UiUserFilePath(GFHostContextRef ctx) -> GFBufferRef {
   return buf;
 }
 
-auto UiRegisterSettingsPage(GFHostContextRef ctx,
-                            const GFUISettingsPageSpec* spec) -> int {
+auto UiRegisterSettingsPage(GFHostContextRef ctx, const GFUISettingsPageSpec*)
+    -> int {
   GATE(ctx, GF_HOST_CAP_UI, "ui.register_settings_page", -1);
-  if (spec == nullptr ||
-      spec->struct_size <
-          offsetof(GFUISettingsPageSpec, data) + sizeof(void*)) {
-    return -1;
-  }
-  return GFUIRegisterSettingsPage(spec->page_id, spec->section_id, spec->title,
-                                  spec->keywords, spec->factory, spec->data);
+  Removed(ctx, "ui.register_settings_page",
+          "a SettingsWidget, mounted by its UI script");
+  return -1;
 }
 
-auto UiUnregisterSettingsPage(GFHostContextRef ctx, const char* page_id)
-    -> int {
+auto UiUnregisterSettingsPage(GFHostContextRef ctx, const char*) -> int {
   GATE(ctx, GF_HOST_CAP_UI, "ui.unregister_settings_page", -1);
-  return GFUIUnregisterSettingsPage(page_id);
+  return -1;
 }
 
-auto UiRegisterTabView(GFHostContextRef ctx, const GFUITabViewSpec* spec)
-    -> int {
+auto UiRegisterTabView(GFHostContextRef ctx, const GFUITabViewSpec*) -> int {
   GATE(ctx, GF_HOST_CAP_UI, "ui.register_tab_view", -1);
-  if (spec == nullptr ||
-      spec->struct_size < offsetof(GFUITabViewSpec, data) + sizeof(void*)) {
-    return -1;
-  }
-  return GFUIRegisterTabPageView(spec->tab_type, spec->factory, spec->data);
+  Removed(ctx, "ui.register_tab_view",
+          "a DocumentWidget, mounted by its UI script on an editor anchor");
+  return -1;
 }
 
-auto UiUnregisterTabView(GFHostContextRef ctx, const char* tab_type) -> int {
+auto UiUnregisterTabView(GFHostContextRef ctx, const char*) -> int {
   GATE(ctx, GF_HOST_CAP_UI, "ui.unregister_tab_view", -1);
-  return GFUIUnregisterTabPageView(tab_type);
+  return -1;
 }
 
-auto UiRegisterFileExtension(GFHostContextRef ctx, const char* extension,
-                             const char* event_prefix) -> int {
+auto UiRegisterFileExtension(GFHostContextRef ctx, const char*, const char*)
+    -> int {
   GATE(ctx, GF_HOST_CAP_UI, "ui.register_file_extension", -1);
-  return GFUIRegisterFileExtensionHandleEvent(extension, event_prefix);
+  Removed(ctx, "ui.register_file_extension",
+          "`extensions` on an editor anchor");
+  return -1;
 }
 
 const GFHostUiApi kUiApi = {
@@ -721,7 +731,9 @@ const GFHostEditorApi kEditorApi = {sizeof(GFHostEditorApi),
 
 auto StorageSettingsRoot(GFHostContextRef ctx) -> void* {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.settings_root", nullptr);
-  return GFUIGlobalSettings();
+  Removed(ctx, "storage.settings_root",
+          "GFStorageSettingGet/Set: the module's own group, or a shared key");
+  return nullptr;
 }
 
 auto StorageCacheGet(GFHostContextRef ctx, int store, const char* key,

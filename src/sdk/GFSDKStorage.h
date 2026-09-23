@@ -38,7 +38,8 @@
  *
  * ## Why the application settings live here and not under "UI"
  *
- * @ref GFStorageSettingsRoot was spelled `GFUIGlobalSettings`. Reading
+ * The settings calls below used to be one, handing out the application's
+ * QSettings object, and before that it was spelled `GFUIGlobalSettings`. Reading
  * configuration is not drawing, and a module that only wants to know a
  * preference should not have to ask for the ability to open dialogs. The
  * capability that grants everything in this header is "storage", and the
@@ -56,13 +57,6 @@
 extern "C" {
 #endif
 
-/**
- * @brief The application-wide QSettings object.
- *
- * Borrowed, valid for the life of the process, never deleted by the module.
- * Opaque here because this header stays C-consumable.
- */
-void* GFStorageSettingsRoot(GFSDKContext* ctx);
 
 /* --- settings ------------------------------------------------------------
  *
