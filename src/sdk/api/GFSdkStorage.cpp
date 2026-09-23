@@ -45,6 +45,27 @@ auto GFStorageSettingsRoot(GFSDKContext* ctx) -> void* {
   return g->settings_root(hctx);
 }
 
+auto GFStorageSettingGet(GFSDKContext* ctx, int scope, const char* key,
+                         GFBufferRef* out) -> int {
+  GF_SDK_REQUIRE(ctx, storage, "GFStorageSettingGet", -1);
+  if (!GF_SDK_GROUP_HAS(g, setting_get)) return -1;
+  return g->setting_get(hctx, scope, key, out);
+}
+
+auto GFStorageSettingSet(GFSDKContext* ctx, int scope, const char* key,
+                         GFBufferView cbor) -> int {
+  GF_SDK_REQUIRE(ctx, storage, "GFStorageSettingSet", -1);
+  if (!GF_SDK_GROUP_HAS(g, setting_set)) return -1;
+  return g->setting_set(hctx, scope, key, cbor);
+}
+
+auto GFStorageSettingRemove(GFSDKContext* ctx, int scope, const char* key)
+    -> int {
+  GF_SDK_REQUIRE(ctx, storage, "GFStorageSettingRemove", -1);
+  if (!GF_SDK_GROUP_HAS(g, setting_remove)) return -1;
+  return g->setting_remove(hctx, scope, key);
+}
+
 auto GFStorageCacheGet(GFSDKContext* ctx, int store, const char* key,
                        GFBufferRef* out) -> int {
   GF_SDK_REQUIRE(ctx, storage, "GFStorageCacheGet", -1);

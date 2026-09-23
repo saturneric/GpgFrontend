@@ -79,10 +79,14 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
  *
  * Declares `g` as the group and `hctx` as the authorization token, read from
  * the same table `g` came from, so the two cannot be a mismatched pair.
+ *
+ * The table's own `struct_size` is checked before @p member is read, so a
+ * group appended to GFHostApi after the host was built reports "unavailable"
+ * instead of being read from past the end of an older host's table.
  */
 #define GF_SDK_REQUIRE(ctx, member, name, failure)                \
   if ((ctx) == nullptr || (ctx)->host == nullptr ||               \
-      (ctx)->host->member == nullptr) {                           \
+      !GF_SDK_GROUP_HAS((ctx)->host, member)) {                   \
     ::gf_sdk_api::GFSdkReportUnavailable((ctx), #member, (name)); \
     return failure;                                               \
   }                                                               \
@@ -110,7 +114,7 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
 /// The void-returning form.
 #define GF_SDK_REQUIRE_VOID(ctx, member, name)                    \
   if ((ctx) == nullptr || (ctx)->host == nullptr ||               \
-      (ctx)->host->member == nullptr) {                           \
+      !GF_SDK_GROUP_HAS((ctx)->host, member)) {                   \
     ::gf_sdk_api::GFSdkReportUnavailable((ctx), #member, (name)); \
     return;                                                       \
   }                                                               \

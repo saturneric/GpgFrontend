@@ -39,3 +39,9 @@ auto GFEditorTakeCurrentContent(GFSDKContext* ctx) -> GFBufferRef {
   GF_SDK_REQUIRE(ctx, editor, "GFEditorTakeCurrentContent", nullptr);
   return g->take_current_content(hctx);
 }
+
+auto GFEditorCurrentDocument(GFSDKContext* ctx, GFBufferRef* out) -> int {
+  GF_SDK_REQUIRE(ctx, editor, "GFEditorCurrentDocument", -1);
+  if (!GF_SDK_GROUP_HAS(g, current_document)) return -1;
+  return g->current_document(hctx, out);
+}

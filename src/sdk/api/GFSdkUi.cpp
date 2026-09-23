@@ -61,6 +61,12 @@ auto GFUIThemeColor(GFSDKContext* ctx, int role, void* widget) -> uint32_t {
   return g->theme_color(hctx, role, widget);
 }
 
+auto GFUIThemeColorForRole(GFSDKContext* ctx, int role) -> uint32_t {
+  GF_SDK_REQUIRE(ctx, ui, "GFUIThemeColorForRole", 0U);
+  if (!GF_SDK_GROUP_HAS(g, theme_color_role)) return 0U;
+  return g->theme_color_role(hctx, role);
+}
+
 auto GFUIDefaultUserFilePath(GFSDKContext* ctx) -> GFBufferRef {
   GF_SDK_REQUIRE(ctx, ui, "GFUIDefaultUserFilePath", nullptr);
   return g->user_file_path(hctx);
