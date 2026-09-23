@@ -226,8 +226,8 @@ class ModuleRuntimeTest : public ::testing::Test {
     g_last_result = GFEventResult::Ok();
     g_activate_calls = g_deactivate_calls = g_unload_calls = 0;
     hooks_ = MakeHooks();
-    // The UI group is granted because the runtime itself reaches it, through
-    // GFEvent::RequireGui. Everything else is withheld, which is what the
+    // The UI group is granted: the runtime hands the Host its embedded UI
+    // scripts through it. Everything else is withheld, which is what the
     // capability tests below are for.
     host_ = stubs::MakeHostApi(GF_HOST_CAP_UI);
   }
@@ -675,30 +675,19 @@ TEST_F(ModuleRuntimeTest, ADenialIsReportedEveryTimeBecauseTheSdkIsStateless) {
   EXPECT_TRUE(Rec().errors.first().contains("gpg"));
 }
 
-TEST_F(ModuleRuntimeTest, TheColourHelpersDifferOnlyByTheRoleTheyAskFor) {
+TEST_F(ModuleRuntimeTest, AColourIsAskedForByRoleAlone) {
   Activate();
 
-  // Five names on this side, one primitive on the other. The fake returns
-  // the role it was given, so this asserts that each name asks for its own
-  // role -- the property that replaced five host entry points.
-  EXPECT_EQ(GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_MUTED_TEXT,
-                           nullptr),
-            0xFF000000U | GF_UI_COLOR_MUTED_TEXT);
-  EXPECT_EQ(
-      GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_BORDER, nullptr),
-      0xFF000000U | GF_UI_COLOR_BORDER);
-  EXPECT_EQ(
-      GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_WARNING, nullptr),
-      0xFF000000U | GF_UI_COLOR_WARNING);
-  EXPECT_EQ(
-      GFUIThemeColor(gf::runtime::SdkContext(), GF_UI_COLOR_DANGER, nullptr),
-      0xFF000000U | GF_UI_COLOR_DANGER);
-  EXPECT_EQ(GFUIThemeColor(gf::runtime::SdkContext(),
-                           GF_UI_COLOR_ACCENT_POSITIVE, nullptr),
-            0xFF000000U | GF_UI_COLOR_ACCENT_POSITIVE);
-  EXPECT_EQ(GFUIThemeColor(gf::runtime::SdkContext(),
-                           GF_UI_COLOR_ACCENT_NEGATIVE, nullptr),
-            0xFF000000U | GF_UI_COLOR_ACCENT_NEGATIVE);
+  // One primitive, a role and nothing else: no widget crosses to the Host to
+  // ask. The fake returns the role it was given, so this asserts each role
+  // reaches it as itself.
+  for (const int role :
+       {GF_UI_COLOR_MUTED_TEXT, GF_UI_COLOR_BORDER, GF_UI_COLOR_WARNING,
+        GF_UI_COLOR_DANGER, GF_UI_COLOR_ACCENT_POSITIVE,
+        GF_UI_COLOR_ACCENT_NEGATIVE}) {
+    EXPECT_EQ(GFUIThemeColorForRole(gf::runtime::SdkContext(), role),
+              0xFF000000U | static_cast<uint32_t>(role));
+  }
 }
 
 TEST_F(ModuleRuntimeTest, AHelperThatNeedsNothingFromTheHostCallsNothing) {

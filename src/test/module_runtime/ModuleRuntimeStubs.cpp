@@ -269,8 +269,8 @@ const GFHostListApi kList = {sizeof(GFHostListApi), &ListCount, &ListAt,
 /* --- ui ------------------------------------------------------------------ */
 
 auto UiGetObject(GFHostContextRef, const char* /*id*/) -> void* {
-  // No QObject registry in a runtime test: a handle never resolves, which is
-  // the case GFEvent::RequireGui has to report rather than crash on.
+  // The legacy slot: it keeps its place in the table and hands out nothing,
+  // as the real Host's does.
   return nullptr;
 }
 
@@ -296,10 +296,14 @@ auto UiRegFileExt(GFHostContextRef, const char*, const char*) -> int {
   return 0;
 }
 
+auto UiThemeColorRole(GFHostContextRef ctx, int role) -> uint32_t {
+  return UiThemeColor(ctx, role, nullptr);
+}
+
 const GFHostUiApi kUi = {
     sizeof(GFHostUiApi), &UiCreateObject, &UiGetObject,   &UiShowDialog,
     &UiThemeColor,       &UiUserFilePath, &UiRegSettings, &UiUnregSettings,
-    &UiRegTab,           &UiUnregTab,     &UiRegFileExt,
+    &UiRegTab,           &UiUnregTab,     &UiRegFileExt,  &UiThemeColorRole,
 };
 
 /* --- command ------------------------------------------------------------- */
@@ -429,8 +433,8 @@ auto MakeHostApi(uint32_t granted) -> GFHostApi {
 
   // Withheld unless asked for, exactly as the real mint withholds them. The
   // UI group is the only grantable one this fake implements, because it is
-  // the only one the runtime itself reaches (GFEvent::RequireGui); the rest
-  // exist in these tests precisely to be absent.
+  // the only one the runtime itself reaches (its embedded UI scripts); the
+  // rest exist in these tests precisely to be absent.
   host.ui = (granted & GF_HOST_CAP_UI) != 0 ? &kUi : nullptr;
 
   // Always present, as in the real mint. Each test starts with a host that
