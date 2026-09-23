@@ -122,6 +122,14 @@ typedef struct GFModuleBootstrapInfo {
    *  allowlist: a module may subscribe to these and to nothing else. */
   const char* const* events;
   size_t events_size;
+
+  /* --- appended ---------------------------------------------------------- */
+
+  /** Command ids the signed manifest says this module provides. The Host
+   *  registry refuses any other; the runtime checks its own table against
+   *  this list before registering anything. */
+  const char* const* commands;
+  size_t commands_size;
 } GFModuleBootstrapInfo;
 
 /** Every field above was backed by a verified signed manifest. When this is

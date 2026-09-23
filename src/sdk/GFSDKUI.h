@@ -96,6 +96,16 @@ int GFUIShowDialog(GFSDKContext* ctx, void* dialog, void* parent);
 uint32_t GFUIThemeColor(GFSDKContext* ctx, int role, void* widget);
 
 /**
+ * @brief A colour of the application's visual language, from its palette.
+ *
+ * The form for everything except a widget with a palette of its own: no
+ * widget is involved, so no object crosses the boundary.
+ *
+ * @return 0xAARRGGBB, or 0 when the Host cannot say
+ */
+uint32_t GFUIThemeColorForRole(GFSDKContext* ctx, int role);
+
+/**
  * @brief The directory a file dialog for USER files should open in.
  *
  * The same answer the application's own dialogs use, so a module's dialog

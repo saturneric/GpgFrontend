@@ -58,6 +58,16 @@ extern "C" {
  */
 GFBufferRef GFEditorTakeCurrentContent(GFSDKContext* ctx);
 
+/**
+ * @brief What the current document is, not what it says.
+ *
+ * A CBOR map: `id` (the document id commands take), `type`, `title`, `path`
+ * and `modified`. No content: for the bytes, GFEditorTakeCurrentContent.
+ *
+ * @return 0 and an owned buffer in @p out, or -1 when no document is open
+ */
+int GFEditorCurrentDocument(GFSDKContext* ctx, GFBufferRef* out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -29,6 +29,8 @@
 #pragma once
 
 #include <QByteArray>
+#include <QCborValue>
+#include <QVariant>
 #include <QList>
 #include <QString>
 #include <QStringList>
@@ -118,6 +120,39 @@ inline void SetStateText(GFSDKContext* ctx, const QString& ns,
   const Bytes bytes(ctx, value.toUtf8());
   GFStorageStateSetText(ctx, ns.toUtf8().constData(), key.toUtf8().constData(),
                         bytes.view());
+}
+
+/**
+ * @brief A setting, by key, in the module's own group or a shared Host one.
+ *
+ * Values are whatever a QVariant carries through CBOR: numbers, booleans,
+ * strings, lists and maps of those. Never a secret -- settings are plain
+ * files; secrets go in the GF_STORE_SECURE_DURABLE cache.
+ */
+inline auto Setting(GFSDKContext* ctx, int scope, const QString& key,
+                    const QVariant& fallback = {}) -> QVariant {
+  GFBufferRef out = nullptr;
+  if (GFStorageSettingGet(ctx, scope, key.toUtf8().constData(), &out) != 0) {
+    return fallback;
+  }
+  const auto* data = static_cast<const char*>(GFBufferData(ctx, out));
+  const auto size = GFBufferSize(ctx, out);
+  const auto value =
+      QCborValue::fromCbor(QByteArray(data, static_cast<int>(size))).toVariant();
+  GFBufferRelease(ctx, out);
+  return value;
+}
+
+inline auto SetSetting(GFSDKContext* ctx, int scope, const QString& key,
+                       const QVariant& value) -> bool {
+  const Bytes bytes(ctx, QCborValue::fromVariant(value).toCbor());
+  return GFStorageSettingSet(ctx, scope, key.toUtf8().constData(),
+                             bytes.view()) == 0;
+}
+
+inline auto RemoveSetting(GFSDKContext* ctx, int scope, const QString& key)
+    -> bool {
+  return GFStorageSettingRemove(ctx, scope, key.toUtf8().constData()) == 0;
 }
 
 inline auto StateBool(GFSDKContext* ctx, const QString& ns, const QString& key,

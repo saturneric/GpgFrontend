@@ -116,6 +116,8 @@ typedef struct GFHostContextImpl* GFHostContextRef;
 #define GF_HOST_CAP_EDITOR (1u << 3)
 #define GF_HOST_CAP_STORAGE (1u << 4)
 #define GF_HOST_CAP_PROCESS (1u << 5)
+/** Module-owned native widgets in Host containers. Requires GF_HOST_CAP_UI. */
+#define GF_HOST_CAP_UI_CUSTOM (1u << 6)
 
 /* --- always-granted groups ----------------------------------------------- */
 
@@ -364,6 +366,11 @@ typedef struct GFHostUiApi {
   int (*unregister_tab_view)(GFHostContextRef ctx, const char* tab_type);
   int (*register_file_extension)(GFHostContextRef ctx, const char* extension,
                                  const char* event_prefix);
+
+  /* --- appended ------------------------------------------------------------ */
+
+  /** A role colour from the application palette; no widget involved. */
+  uint32_t (*theme_color_role)(GFHostContextRef ctx, int role);
 } GFHostUiApi;
 
 /**
@@ -378,6 +385,12 @@ typedef struct GFHostEditorApi {
   /** The current tab's exact octets, module views flushed back first. Owned;
    *  release with buffer->release. NULL when no text tab is open. */
   GFBufferRef (*take_current_content)(GFHostContextRef ctx);
+
+  /* --- appended ------------------------------------------------------------ */
+
+  /** What the current document is -- id, type, title, path, modified -- as a
+   *  CBOR map. Never its content. -1 when no document is open. */
+  int (*current_document)(GFHostContextRef ctx, GFBufferRef* out_cbor);
 } GFHostEditorApi;
 
 /**
@@ -420,6 +433,16 @@ typedef struct GFHostStorageApi {
   /** Direct children of ns/key, as a string list. */
   int (*state_list_children)(GFHostContextRef ctx, const char* ns,
                              const char* key, GFStringListRef* out);
+
+  /* --- appended ------------------------------------------------------------ */
+
+  /** One setting, as a CBOR value. @p scope is GF_SETTING_*: the module's
+   *  own group, or a Host setting on the allowlist. -1 when absent. */
+  int (*setting_get)(GFHostContextRef ctx, int scope, const char* key,
+                     GFBufferRef* out_cbor);
+  int (*setting_set)(GFHostContextRef ctx, int scope, const char* key,
+                     GFBufferView cbor);
+  int (*setting_remove)(GFHostContextRef ctx, int scope, const char* key);
 } GFHostStorageApi;
 
 /**
@@ -434,6 +457,33 @@ typedef struct GFHostProcessApi {
   int (*execute)(GFHostContextRef ctx, GFCommandExecuteContext** contexts,
                  size_t count);
 } GFHostProcessApi;
+
+/**
+ * @brief Commands. Always present.
+ *
+ * Present for every module because a command carries its own requirement:
+ * the registry checks the CALLER's grant against the capabilities each
+ * command declares, which is finer than withholding the whole group. See
+ * GFSDKCommand.h for the ownership rules, which every member follows.
+ */
+typedef struct GFHostCommandApi {
+  size_t struct_size;
+
+  int (*register_command)(GFHostContextRef ctx, const GFCommandSpec* spec);
+  int (*unregister_command)(GFHostContextRef ctx, const char* id);
+  int (*invoke)(GFHostContextRef ctx, const char* id, uint32_t flags,
+                GFBufferRef args_cbor, GFBufferRef* blobs, size_t blob_count,
+                GFCommandDoneFn done, void* user, uint64_t* out_call_id);
+  int (*complete)(GFHostContextRef ctx, uint64_t call_id, int status,
+                  GFBufferRef result_cbor, GFBufferRef* blobs,
+                  size_t blob_count, const char* error);
+  int (*cancel)(GFHostContextRef ctx, uint64_t call_id);
+  int (*is_cancelled)(GFHostContextRef ctx, uint64_t call_id);
+  int (*describe)(GFHostContextRef ctx, const char* id, GFBufferRef* out);
+  int (*list)(GFHostContextRef ctx, const char* prefix, GFStringListRef* out);
+  int (*query_state)(GFHostContextRef ctx, const char* id,
+                     uint32_t* out_bits);
+} GFHostCommandApi;
 
 /* --- the table ----------------------------------------------------------- */
 
@@ -465,6 +515,11 @@ typedef struct GFHostApi {
   const GFHostEditorApi* editor;
   const GFHostStorageApi* storage;
   const GFHostProcessApi* process;
+
+  /* --- appended; check struct_size before reading (GF_SDK_REQUIRE does) --- */
+
+  /* always present: each command states the capabilities it needs */
+  const GFHostCommandApi* command;
 } GFHostApi;
 
 #ifdef __cplusplus

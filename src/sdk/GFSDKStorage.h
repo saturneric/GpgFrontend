@@ -64,6 +64,22 @@ extern "C" {
  */
 void* GFStorageSettingsRoot(GFSDKContext* ctx);
 
+/* --- settings ------------------------------------------------------------
+ *
+ * The application's settings, by key, as CBOR values. A module names a key
+ * and the Host decides where it lives: GF_SETTING_MODULE is the module's own
+ * group, which no other module can see; GF_SETTING_HOST is one of the few
+ * Host settings the Host shares on purpose, read-only unless it says so.
+ * A key is relative -- "servers/default", never "/x" or "a/../b".
+ */
+
+/** @return 0 and an owned CBOR buffer in @p out, or -1 when absent. */
+int GFStorageSettingGet(GFSDKContext* ctx, int scope, const char* key,
+                        GFBufferRef* out);
+int GFStorageSettingSet(GFSDKContext* ctx, int scope, const char* key,
+                        GFBufferView cbor);
+int GFStorageSettingRemove(GFSDKContext* ctx, int scope, const char* key);
+
 /* --- caches --------------------------------------------------------------
  *
  * Three tiers, one set of calls. They differ in how long a value lives and

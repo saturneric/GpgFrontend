@@ -283,6 +283,12 @@ typedef enum GFStorageStore {
   GF_STORE_SECURE_DURABLE = 2, /**< on disk, flushed at once; for secrets */
 } GFStorageStore;
 
+/** Where a setting key is looked up. */
+typedef enum GFSettingScope {
+  GF_SETTING_MODULE = 0, /**< the module's own group; private to it */
+  GF_SETTING_HOST = 1,   /**< a Host setting the Host shares, by full name */
+} GFSettingScope;
+
 /* --- events -------------------------------------------------------------- */
 
 /** One named parameter of an event. */
@@ -340,6 +346,70 @@ typedef struct {
 } GFCommandExecuteContext;
 
 /* --- translations -------------------------------------------------------- */
+
+/* --- commands (see GFSDKCommand.h) ------------------------------------- */
+
+/* --- status ---------------------------------------------------------------- */
+
+#define GF_CMD_OK 0
+#define GF_CMD_E_UNKNOWN (-1)     /**< no command with that id */
+#define GF_CMD_E_DENIED (-2)      /**< caller may not invoke or register it */
+#define GF_CMD_E_BAD_ARGS (-3)    /**< arguments do not match the schema */
+#define GF_CMD_E_DISABLED (-4)    /**< exists, but not enabled right now */
+#define GF_CMD_E_UNAVAILABLE (-5) /**< its provider went away */
+#define GF_CMD_E_CANCELLED (-6)   /**< cancelled before it completed */
+#define GF_CMD_E_FAILED (-7)      /**< ran, and failed */
+
+/* --- state ----------------------------------------------------------------- */
+
+#define GF_CMD_STATE_ENABLED 0x1u
+#define GF_CMD_STATE_VISIBLE 0x2u
+#define GF_CMD_STATE_CHECKED 0x4u
+
+/* --- callbacks ------------------------------------------------------------- */
+
+/**
+ * @brief A command finished. Called exactly once per successful invoke,
+ *        unless the call was cancelled first; never after cancel returns.
+ *
+ * @p result_cbor and every element of @p blobs are the callee's to release.
+ * @p error is borrowed for the duration of the call, and NULL on success.
+ */
+typedef void (*GFCommandDoneFn)(void* user, uint64_t call_id, int status,
+                                GFBufferRef result_cbor, GFBufferRef* blobs,
+                                size_t blob_count, const char* error);
+
+/**
+ * @brief Run a command this module provides.
+ *
+ * @p context_cbor describes who asked and in what situation; borrowed for the
+ * call. @p args_cbor and every blob are the handler's to release. Complete the
+ * call exactly once with GFCommandComplete, now or later, from any thread.
+ */
+typedef void (*GFCommandHandlerFn)(void* user, uint64_t call_id,
+                                   GFBufferView context_cbor,
+                                   GFBufferRef args_cbor, GFBufferRef* blobs,
+                                   size_t blob_count);
+
+/**
+ * @brief Whether a command this module provides is enabled right now.
+ *
+ * Called on the GUI thread, often -- before every menu is shown -- so it must
+ * be cheap. Returns GF_CMD_STATE_* bits.
+ */
+typedef uint32_t (*GFCommandStateFn)(void* user, GFBufferView context_cbor);
+
+/** One command a module provides. Borrowed for the registering call. */
+typedef struct GFCommandSpec {
+  size_t struct_size;
+  /** "<module_id>.<name>"; must also be listed in the signed manifest. */
+  const char* id;
+  /** CBOR descriptor: title, category, required capabilities, schemas. */
+  GFBufferView descriptor_cbor;
+  GFCommandHandlerFn handler;
+  GFCommandStateFn state; /**< NULL: always enabled and visible */
+  void* user;
+} GFCommandSpec;
 
 /**
  * @brief Supplies translation data for a locale.
