@@ -63,7 +63,11 @@ struct SafeOutputPath {
  * @brief
  *
  */
+struct HostCommandHandlers;
+
 class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
+  friend struct HostCommandHandlers;
+
   Q_OBJECT
 
  public:
@@ -620,6 +624,17 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_import_keys_from_key_server(const QStringList& fprs);
 
  private:
+  /**
+   * @brief Register the Host's own commands, bound to this window.
+   *
+   * Before the actions are created, because the catalogued menu entries
+   * invoke through the registry rather than connecting to a slot directly.
+   */
+  void register_host_commands();
+
+  /// Invoke a Host command on the active document, as a menu entry does.
+  void invoke_host_command(const char* id);
+
   /**
    * @brief Open one package in a new window, wherever the request came from.
    *

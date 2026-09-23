@@ -87,6 +87,7 @@ void MainWindow::Init() noexcept {
     // init menu bar
     this->setMenuBar(new QMenuBar());
 
+    register_host_commands();
     create_actions();
     create_menus();
     create_tool_bars();

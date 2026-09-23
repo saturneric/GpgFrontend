@@ -55,7 +55,8 @@ void MainWindow::create_actions() {
       "new_tab", tr("New Text Editor"), ":/icons/misc_doc.png",
       tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
-  connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
+  connect(new_tab_act_, &QAction::triggered, this,
+          [this]() { invoke_host_command("org.gpgfrontend.document.new"); });
 
   browser_act_ = create_action(
       "file_browser_dir", tr("New File Panel"), ":/icons/file-operator.png",
@@ -77,12 +78,15 @@ void MainWindow::create_actions() {
 
   save_act_ = create_action("save", tr("Save File"), ":/icons/filesave.png",
                             tr("Save the current File"), {QKeySequence::Save});
-  connect(save_act_, &QAction::triggered, edit_, &TextEdit::SlotSave);
+  connect(save_act_, &QAction::triggered, this,
+          [this]() { invoke_host_command("org.gpgfrontend.document.save"); });
 
   save_as_act_ =
       create_action("save_as", tr("Save As") + "...", ":/icons/filesaveas.png",
                     tr("Save the current File as..."), {QKeySequence::SaveAs});
-  connect(save_as_act_, &QAction::triggered, edit_, &TextEdit::SlotSaveAs);
+  connect(save_as_act_, &QAction::triggered, this, [this]() {
+    invoke_host_command("org.gpgfrontend.document.save_as");
+  });
 
   print_act_ = create_action("print", tr("Print"), ":/icons/fileprint.png",
                              tr("Print Document"), {QKeySequence::Print});
@@ -91,7 +95,9 @@ void MainWindow::create_actions() {
   close_tab_act_ =
       create_action("close_tab", tr("Close Tab"), ":/icons/close.png",
                     tr("Close the current tab"), {QKeySequence::Close});
-  connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
+  connect(close_tab_act_, &QAction::triggered, this, [this]() {
+    invoke_host_command("org.gpgfrontend.document.close");
+  });
 
   /* Profile Menu — profiles this computer keeps */
   //
@@ -212,8 +218,9 @@ void MainWindow::create_actions() {
       create_action("settings", tr("Settings"), ":/icons/setting.png",
                     tr("Open settings dialog"), {QKeySequence::Preferences});
   open_settings_act_->setMenuRole(QAction::PreferencesRole);
-  connect(open_settings_act_, &QAction::triggered, this,
-          &MainWindow::slot_open_settings_dialog);
+  connect(open_settings_act_, &QAction::triggered, this, [this]() {
+    invoke_host_command("org.gpgfrontend.app.open_settings");
+  });
 
   /*
    * Crypt Menu
@@ -222,38 +229,41 @@ void MainWindow::create_actions() {
                                tr("Encrypt Message"),
                                {QKeySequence(Qt::CTRL | Qt::Key_E)});
   connect(encrypt_act_, &QAction::triggered, this,
-          &MainWindow::SlotGeneralEncrypt);
+          [this]() { invoke_host_command("org.gpgfrontend.crypto.encrypt"); });
 
   encrypt_sign_act_ =
       create_action("encrypt_sign", tr("Encrypt && Sign"),
                     ":/icons/encr-sign.png", tr("Encrypt and Sign Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
-  connect(encrypt_sign_act_, &QAction::triggered, this,
-          &MainWindow::SlotGeneralEncryptSign);
+  connect(encrypt_sign_act_, &QAction::triggered, this, [this]() {
+    invoke_host_command("org.gpgfrontend.crypto.encrypt_sign");
+  });
 
   decrypt_act_ = create_action("decrypt", tr("Decrypt"), ":/icons/unlock.png",
                                tr("Decrypt Message"),
                                {QKeySequence(Qt::CTRL | Qt::Key_D)});
   connect(decrypt_act_, &QAction::triggered, this,
-          &MainWindow::SlotGeneralDecrypt);
+          [this]() { invoke_host_command("org.gpgfrontend.crypto.decrypt"); });
 
   decrypt_verify_act_ =
       create_action("decrypt_verify", tr("Decrypt && Verify"),
                     ":/icons/decr-verify.png", tr("Decrypt and Verify Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
-  connect(decrypt_verify_act_, &QAction::triggered, this,
-          &MainWindow::SlotGeneralDecryptVerify);
+  connect(decrypt_verify_act_, &QAction::triggered, this, [this]() {
+    invoke_host_command("org.gpgfrontend.crypto.decrypt_verify");
+  });
 
   sign_act_ = create_action("sign", tr("Sign"), ":/icons/signature.png",
                             tr("Sign Message"),
                             {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_I)});
-  connect(sign_act_, &QAction::triggered, this, &MainWindow::SlotGeneralSign);
+  connect(sign_act_, &QAction::triggered, this,
+          [this]() { invoke_host_command("org.gpgfrontend.crypto.sign"); });
 
   verify_act_ = create_action("verify", tr("Verify"), ":/icons/verify.png",
                               tr("Verify Message"),
                               {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V)});
   connect(verify_act_, &QAction::triggered, this,
-          &MainWindow::SlotGeneralVerify);
+          [this]() { invoke_host_command("org.gpgfrontend.crypto.verify"); });
 
   sym_encrypt_act_ = create_action(
       "symmetric_encryption", tr("Sym. Encrypt"),
@@ -299,8 +309,9 @@ void MainWindow::create_actions() {
   open_key_management_act_ =
       create_action("open_key_management", tr("Manage Keys"),
                     ":/icons/keymgmt.png", tr("Open Key Management"));
-  connect(open_key_management_act_, &QAction::triggered, this,
-          &MainWindow::slot_open_key_management);
+  connect(open_key_management_act_, &QAction::triggered, this, [this]() {
+    invoke_host_command("org.gpgfrontend.keys.open_manager");
+  });
 
   module_controller_open_act_ =
       create_action("module_controller_open", tr("Open Module Controller"),
