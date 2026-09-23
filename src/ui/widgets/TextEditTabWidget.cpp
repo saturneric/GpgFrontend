@@ -1050,6 +1050,9 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
       has_explicit_icon_name ? QIcon(effective_icon_name) : icon;
 
   auto* page = new PlainTextEditorPage(file_path);
+  // Never reused, so a stale id finds nothing instead of the wrong document.
+  static qint64 next_document_id = 1;
+  page->setProperty("gf_document_id", next_document_id++);
   page->setProperty("type", "text");
   page->setProperty("base_title", clean_title);
   page->setProperty("icon_name", effective_icon_name);
@@ -1220,6 +1223,22 @@ void TextEditTabWidget::SlotTabClosedForRecovery() {
   recovery_dirty_pages_.clear();
 
   SlotCacheTextEditors();
+}
+
+auto TextEditTabWidget::PageForDocument(qint64 id) -> PlainTextEditorPage* {
+  if (id == 0) return CurTextPage();
+  for (int i = 0; i < count(); ++i) {
+    if (DocumentIdOf(widget(i)) == id) {
+      return qobject_cast<PlainTextEditorPage*>(widget(i));
+    }
+  }
+  return nullptr;
+}
+
+auto TextEditTabWidget::DocumentIdOf(const QWidget* page) -> qint64 {
+  if (page == nullptr) return 0;
+  const auto v = page->property("gf_document_id");
+  return v.isValid() ? v.toLongLong() : 0;
 }
 
 }  // namespace GpgFrontend::UI

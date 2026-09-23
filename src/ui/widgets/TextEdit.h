@@ -367,6 +367,21 @@ class GF_UI_EXPORT TextEdit : public QWidget {
   void SlotNewTabWithContent(QString title, const QString& content);
 
   /**
+   * @brief Open a document of @p type holding @p content, in a new tab.
+   *
+   * What a module used to do by finding this widget and invoking
+   * SlotNewCustomTab, SetContentFromBytes and SetFilePath on it by name. The
+   * type decides which view the tab gets, exactly as for a tab the user
+   * opened.
+   *
+   * @param saved whether @p content is exactly what @p path holds on disk
+   * @return the new document's id
+   */
+  auto OpenDocument(const QString& type, const QString& title,
+                    const QString& path, const GFBuffer& content, bool saved)
+      -> qint64;
+
+  /**
    * @brief Opens a file path in a text-editor tab after validation.
    *
    * Delegates to TextEditTabWidget::SlotOpenFile, which performs all validation

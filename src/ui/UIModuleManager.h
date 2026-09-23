@@ -334,4 +334,14 @@ auto GF_UI_EXPORT FileExtensionEventId(const QString& extension,
  */
 auto GF_UI_EXPORT CurrentEditorContent() -> std::optional<QByteArray>;
 
+/**
+ * @brief What the current document is: `id`, `type`, `title`, `path`,
+ *        `modified`. Never what it says.
+ *
+ * Marshalled to the GUI thread the same way as CurrentEditorContent().
+ *
+ * @return nullopt when no editor document is open
+ */
+auto GF_UI_EXPORT CurrentDocumentInfo() -> std::optional<QCborMap>;
+
 }  // namespace GpgFrontend::UI

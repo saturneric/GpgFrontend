@@ -825,4 +825,21 @@ auto TextEdit::SlotNewCustomTab(const QString& type, const QString& title,
 }
 
 auto TextEdit::SlotGetTabWidget() -> QTabWidget* { return tab_widget_; }
+auto TextEdit::OpenDocument(const QString& type, const QString& title,
+                            const QString& path, const GFBuffer& content,
+                            bool saved) -> qint64 {
+  auto* page = qobject_cast<PlainTextEditorPage*>(
+      tab_widget_->SlotNewTab(type.isEmpty() ? QStringLiteral("text") : type,
+                              title, QIcon(), {}));
+  if (page == nullptr) return 0;
+
+  page->SetContentFromBytes(content.ConvertToQByteArray());
+  if (!path.isEmpty()) page->SetFilePath(path);
+  // Loading content never marks a document modified -- the same as a tab a
+  // module filled by hand used to be -- so `saved` only adds the file's
+  // saved state on top.
+  if (saved) page->NotifyFileSaved();
+  return TextEditTabWidget::DocumentIdOf(page);
+}
+
 }  // namespace GpgFrontend::UI

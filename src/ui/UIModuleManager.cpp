@@ -34,7 +34,9 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/TextEdit.h"
+#include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
 
@@ -300,6 +302,31 @@ auto CurrentEditorContent() -> std::optional<QByteArray> {
   QMetaObject::invokeMethod(
       edit, [&] { bytes = read(); }, Qt::BlockingQueuedConnection);
   return bytes;
+}
+
+auto CurrentDocumentInfo() -> std::optional<QCborMap> {
+  auto* edit = qobject_cast<TextEdit*>(
+      UIModuleManager::GetInstance().GetQObject("main_window_edit"));
+  if (edit == nullptr) return std::nullopt;
+
+  const auto read = [edit]() -> std::optional<QCborMap> {
+    auto* page = edit->CurTextPage();
+    if (page == nullptr) return std::nullopt;
+    QCborMap m;
+    m.insert(QStringLiteral("id"), TextEditTabWidget::DocumentIdOf(page));
+    m.insert(QStringLiteral("type"), page->property("type").toString());
+    m.insert(QStringLiteral("title"), page->property("base_title").toString());
+    m.insert(QStringLiteral("path"), page->GetFilePath());
+    m.insert(QStringLiteral("modified"),
+             page->GetTextPage()->document()->isModified());
+    return m;
+  };
+  if (QThread::currentThread() == edit->thread()) return read();
+
+  std::optional<QCborMap> info;
+  QMetaObject::invokeMethod(
+      edit, [&] { info = read(); }, Qt::BlockingQueuedConnection);
+  return info;
 }
 
 auto UIModuleManager::RegisterFileExtensionHandleEvent(
