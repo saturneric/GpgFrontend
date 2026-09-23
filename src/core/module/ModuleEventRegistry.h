@@ -47,8 +47,8 @@ namespace GpgFrontend::Module {
  * -- could only be learned by reading the call site. Two of those facts are
  * load-bearing:
  *
- *   - `MAINWINDOW_MENU_MOUNTED` passes a menu and ignores the reply. A module
- *     that "returns" something there is talking to nobody.
+ *   - `TAB_ACTIVATED` reports a fact and ignores the reply. A module that
+ *     "returns" something there is talking to nobody.
  *   - `EDIT_TAB_TYPE_EMAIL_OP_DECRYPT` has its reply written straight into
  *     the user's document. A module that gets that wrong changes what the
  *     user is looking at.

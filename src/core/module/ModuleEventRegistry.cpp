@@ -45,9 +45,8 @@ constexpr auto kExtend = ModuleEventSemantics::kEXTEND;
  * Seeded from what the Host actually fires, not from what would be tidy. The
  * honest finding while writing it down was that the extension points already
  * existed and had simply never been labelled -- the six `EDIT_TAB_TYPE_*`
- * operations hand their reply straight to the user's document, and the two
- * `FILE_EXT_*` triggers make the Host return and leave the work to the
- * module. Those were always extension points. Now they say so.
+ * operations hand their reply straight to the user's document. Those were
+ * always extension points. Now they say so.
  *
  * Nothing here is a veto. No trigger site cancels an operation on a module's
  * word, TriggerEvent is asynchronous and returns void, and inventing one
@@ -125,7 +124,9 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
       // Host checks a subscription with. Data only: the document's bytes in,
       // the result's bytes back. Opening and saving a module's document type
       // is the Host's own work now (an editor mount, and its `extensions`).
-      {"EDIT_TAB_TYPE_<TYPE>_OP_<OP>", kUi, kExtend,
+      {"EDIT_TAB_TYPE_<TYPE>_OP_{ENCRYPT|DECRYPT|SIGN|VERIFY|ENCRYPT_SIGN|"
+       "DECRYPT_VERIFY}",
+       kUi, kExtend,
        GF_EVENT_PATTERN | GF_EVENT_REPLY_CONSUMED | GF_EVENT_DEFERRABLE,
        "a crypto operation on a module's document type; the reply replaces "
        "the document"},
@@ -133,7 +134,8 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
   return kCatalog;
 }
 
-/// Turn a pattern into a regular expression: `<...>` becomes one segment.
+/// Turn a pattern into a regular expression: `<...>` becomes one segment,
+/// and `{A|B}` exactly one of the listed literals.
 auto PatternToRegex(const QString& pattern) -> QRegularExpression {
   QString expr = "^";
   qsizetype i = 0;
@@ -144,6 +146,18 @@ auto PatternToRegex(const QString& pattern) -> QRegularExpression {
       // A placeholder stands for one upper-case identifier segment, which is
       // the only shape the Host ever substitutes there.
       expr += "[A-Z][A-Z0-9_]*";
+      i = close + 1;
+      continue;
+    }
+    if (pattern[i] == '{') {
+      const auto close = pattern.indexOf('}', i);
+      if (close < 0) break;
+      QStringList alternatives;
+      for (const auto& literal :
+           pattern.mid(i + 1, close - i - 1).split('|')) {
+        alternatives << QRegularExpression::escape(literal);
+      }
+      expr += "(?:" + alternatives.join('|') + ")";
       i = close + 1;
       continue;
     }
