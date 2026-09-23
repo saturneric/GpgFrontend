@@ -164,6 +164,9 @@ auto AdoptBootstrapInfo(const GFModuleBootstrapInfo* info,
   if (Covers(info, &GFModuleBootstrapInfo::events_size)) {
     facts.events = OwnList(info->events, info->events_size);
   }
+  if (Covers(info, &GFModuleBootstrapInfo::commands_size)) {
+    facts.commands = OwnList(info->commands, info->commands_size);
+  }
 
   // A verified payload is the authority; anything it did not carry falls back
   // to the compiled-in constant, which is all a loose build ever had.

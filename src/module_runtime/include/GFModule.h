@@ -34,6 +34,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "GFModuleCommand.h"
 #include "GFModuleEvent.h"
 #include "GFModuleExport.h"
 #include "GFModuleLog.h"
@@ -176,6 +177,14 @@ struct GFModuleHooks {
 
   const GFEventBinding* events;  ///< borrowed, static storage
   size_t events_size;
+
+  /* --- appended ---------------------------------------------------------- */
+
+  /// The commands this module provides, each `gf::cmd::Bind<C, &Fn>()`.
+  /// Registered after activation and before on_activate, withdrawn at
+  /// deactivation; the manifest's `commands` must list exactly these.
+  const gf::cmd::Binding* commands;  ///< borrowed, static storage
+  size_t commands_size;
 };
 
 /**

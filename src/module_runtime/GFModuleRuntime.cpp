@@ -30,6 +30,7 @@
 #include <cstddef>
 
 #include "GFModuleRuntimeBoot.h"
+#include "GFModuleRuntimeCommand.h"
 #include "GFModuleRuntimeDispatch.h"
 #include "GFModuleRuntimeI18n.h"
 #include "include/GFModule.h"
@@ -160,6 +161,29 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
     host->event->subscribe(host->context, event_id.toUtf8().constData());
   }
 
+  // Before on_activate, which may already invoke them or load a UI script
+  // that refers to them.
+  if (HooksCover(g_hooks, &GFModuleHooks::commands_size) &&
+      !gf::runtime::RegisterCommands(g_hooks->commands,
+                                     g_hooks->commands_size)) {
+    return -1;
+  }
+  if (HooksCover(g_hooks, &GFModuleHooks::commands_size) &&
+      facts.verified) {
+    // And the other direction: a declared command nothing provides.
+    for (const auto& id : facts.commands) {
+      bool bound = false;
+      for (size_t i = 0; i < g_hooks->commands_size; ++i) {
+        bound = bound || id == QString::fromUtf8(g_hooks->commands[i].id);
+      }
+      if (!bound) {
+        LOG_ERROR(QString("module %1 declares command %2 but provides none")
+                      .arg(facts.id, id));
+        return -1;
+      }
+    }
+  }
+
   if (HooksCover(g_hooks, &GFModuleHooks::on_activate) &&
       g_hooks->on_activate != nullptr) {
     const auto result = g_hooks->on_activate();
@@ -195,6 +219,9 @@ auto RuntimeExecute(GFModuleEvent* raw) -> int {
 }
 
 auto RuntimeDeactivate() -> int {
+  // The Host withdraws the module's commands itself once this returns;
+  // anything still owed to the module is forgotten here, on its side.
+  gf::runtime::DropContinuations();
   if (g_hooks != nullptr &&
       HooksCover(g_hooks, &GFModuleHooks::on_deactivate) &&
       g_hooks->on_deactivate != nullptr) {

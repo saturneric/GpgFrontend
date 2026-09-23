@@ -38,6 +38,7 @@
 add_library(gf_module_runtime STATIC
   GFModuleRuntime.cpp
   GFModuleRuntimeBoot.cpp
+  GFModuleRuntimeCommand.cpp
   GFModuleRuntimeDispatch.cpp
   GFModuleRuntimeI18n.cpp)
 

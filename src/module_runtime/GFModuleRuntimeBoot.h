@@ -50,6 +50,7 @@ struct RuntimeFacts {
   QString locale;
   QStringList capabilities;
   QStringList events;
+  QStringList commands;
 
   /// Whether a verified manifest backed the fields above.
   bool verified = false;
