@@ -403,6 +403,12 @@ typedef struct GFDocumentWidgetOps {
    */
   int (*prepare_save)(void* user, uint64_t instance, GFBufferView bytes,
                       GFBufferRef* out);
+  /**
+   * May the raw document be edited? The Host shows it read-only and offers
+   * to unlock it; this is asked before it does. 1: it may; 0: it may not,
+   * with the reason, for the user, in @p reason. Absent: it may.
+   */
+  int (*source_policy)(void* user, uint64_t instance, GFBufferRef* reason);
 } GFDocumentWidgetOps;
 
 /** A settings page: what the Host asks of it. Append-only. */

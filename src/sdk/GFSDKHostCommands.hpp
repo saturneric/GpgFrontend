@@ -94,11 +94,13 @@ struct DocumentOpen {
     QString path;          ///< where it came from, or empty
     Blob content;          ///< the document's bytes, never copied into CBOR
     bool saved = false;    ///< true: identical to @p path on disk
+    bool modified = false; ///< true: a draft nobody has saved yet
     static constexpr auto Fields() {
       return std::make_tuple(F("type", &Args::type), F("title", &Args::title),
                              F("path", &Args::path),
                              F("content", &Args::content),
-                             F("saved", &Args::saved));
+                             F("saved", &Args::saved),
+                             F("modified", &Args::modified));
     }
   };
   using Result = detail::DocumentResult;

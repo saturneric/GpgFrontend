@@ -206,6 +206,21 @@ void AdaptDocument(NativeWidgetEntry& e, const GFDocumentWidgetOps ops,
       return out;
     };
   }
+  if (ops.source_policy != nullptr) {
+    d.source_lock = [=](quint64 i) -> std::optional<QString> {
+      std::optional<QString> reason;
+      EnterModule(m, [&] {
+        GFBufferRef text = nullptr;
+        if (ops.source_policy(user, i, &text) == 0) {
+          const auto b = Take(text);
+          reason = b.has_value() ? QString::fromUtf8(*b) : QString();
+        } else if (text != nullptr) {
+          Take(text);
+        }
+      });
+      return reason;
+    };
+  }
 }
 
 // ------------------------------------------------------------------ thunks
