@@ -68,6 +68,7 @@ void PrintUsage(QTextStream& err) {
       << "                         [--security-epoch N]\n"
       << "                         [--capability NAME]...\n"
       << "                         [--event EVENT_ID]...\n"
+      << "                         [--command COMMAND_ID]...\n"
       << "                         [--translation-context NAME]\n"
       << "                         [--meta KEY=VALUE]...\n"
       << "                         --entry-native name=NAME,file=PATH\n"
@@ -369,6 +370,7 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
     spec.security_epoch = manifest.security_epoch;
     spec.capabilities = manifest.capabilities;
     spec.events = manifest.events;
+    spec.commands = manifest.commands;
     spec.translation_context = manifest.translation_context;
     spec.metadata = manifest.metadata;
     spec.build_id = manifest.build_id;
@@ -493,6 +495,8 @@ auto main(int argc, char** argv) -> int {
       spec.capabilities.append(value());
     } else if (flag == "--event") {
       spec.events.append(value());
+    } else if (flag == "--command") {
+      spec.commands.append(value());
     } else if (flag == "--translation-context") {
       spec.translation_context = value();
     } else if (flag == "--meta") {
