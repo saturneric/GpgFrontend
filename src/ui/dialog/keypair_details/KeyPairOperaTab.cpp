@@ -26,6 +26,7 @@
  *
  */
 
+#include "ui/lua/LuaPlacements.h"
 #include "KeyPairOperaTab.h"
 
 #include <utility>
@@ -119,6 +120,17 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   if (!m_key_->IsPrivateKey() && if_owner_trust_level_supported) {
     vbox_p_k->addWidget(set_owner_trust_level_button);
   }
+  // Module actions for this key, in the anchor scripts name.
+  const gf::cmd::KeyRef key_ref{current_gpg_context_channel_, m_key_->ID(),
+                                m_key_->Fingerprint(),
+                                m_key_->IsPrivateKey()};
+  Lua::LuaPlacements::BuildButtons("key.details.actions", vbox_p_k,
+                                   [key_ref]() {
+                                     Lua::UiContext ctx;
+                                     ctx.key = key_ref;
+                                     return ctx;
+                                   });
+
   m_vbox->addStretch(0);
 
   setLayout(m_vbox);

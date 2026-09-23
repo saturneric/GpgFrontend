@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/lua/LuaMounts.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
@@ -347,6 +348,15 @@ auto SettingsDialog::collect_module_pages() -> QVector<SettingsPageDescriptor> {
     descriptors.append({page, title, registration.section_id, keywords});
   }
 
+  // Pages module UI scripts mounted: typed, so nothing is found by name.
+  for (const auto& info : Lua::BuildNativeSettingsPages()) {
+    native_pages_.append(info.page);
+    module_page_titles_.insert(info.page, info.title);
+    connect(info.page, &Lua::NativeSettingsPage::SignalRestartNeeded, this,
+            &SettingsDialog::slot_module_restart_needed);
+    descriptors.append({info.page, info.title, info.section, info.keywords});
+  }
+
   return descriptors;
 }
 
@@ -504,6 +514,9 @@ void SettingsDialog::revert_all_tabs() {
   im_tab_->SetSettings();
   advanced_tab_->SetSettings();
 
+  for (const auto& page : native_pages_) {
+    if (!page.isNull()) page->Load();
+  }
   for (const auto& page : module_pages_) {
     invoke_on_module_page(page, "SetSettings");
   }
@@ -552,6 +565,9 @@ void SettingsDialog::SlotAccept() {
   // Applied synchronously, before the flush below: these pages are destroyed
   // with the dialog a few lines further down, so anything queued would run
   // against a page that no longer exists.
+  for (const auto& page : native_pages_) {
+    if (!page.isNull()) page->Apply();
+  }
   for (const auto& page : module_pages_) {
     invoke_on_module_page(page, "ApplySettings");
   }

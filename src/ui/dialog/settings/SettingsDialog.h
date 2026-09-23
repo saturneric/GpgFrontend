@@ -33,6 +33,10 @@
 
 namespace GpgFrontend::UI {
 
+namespace Lua {
+class NativeSettingsPage;
+}
+
 class GeneralTab;
 class AppearanceTab;
 class NetworkTab;
@@ -241,6 +245,7 @@ class SettingsDialog : public GeneralDialog {
   /// Module-owned pages, guarded: a page is destroyed with the stack it sits
   /// in, and apply runs while the dialog is on its way out.
   QVector<QPointer<QWidget>> module_pages_;
+  QVector<QPointer<Lua::NativeSettingsPage>> native_pages_;
   QHash<QWidget*, QString> module_page_titles_;  ///< for restart confirmation
   int restart_mode_{kNonRestartCode};            ///<
   QStringList restart_pages_;                    ///< pages with such a change
