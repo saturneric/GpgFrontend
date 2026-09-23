@@ -44,6 +44,7 @@
    that does not happen to include them in the order this tree does. */
 #include "GFSDKApp.h"
 #include "GFSDKBuffer.h"
+#include "GFSDKCommand.h"
 #include "GFSDKContext.h"
 #include "GFSDKEditor.h"
 #include "GFSDKGpg.h"
