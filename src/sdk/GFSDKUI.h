@@ -55,8 +55,9 @@ extern "C" {
 /**
  * @brief A colour of the application's visual language, from its palette.
  *
- * The form for everything except a widget with a palette of its own: no
- * widget is involved, so no object crosses the boundary.
+ * Asked for by role alone, from the application palette: no widget is
+ * involved, so no object crosses the boundary. A module widget with a palette
+ * of its own reads that palette itself.
  *
  * @return 0xAARRGGBB, or 0 when the Host cannot say
  */

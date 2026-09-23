@@ -297,6 +297,7 @@ typedef struct GFHostGpgApi {
                          GFBufferRef* comment);
   int (*export_key)(GFHostContextRef ctx, int channel, const char* key_id,
                     int ascii, GFBufferRef* out);
+  /** @p parent is ignored: the Host parents its own result dialog. */
   int (*import_keys)(GFHostContextRef ctx, int channel, void* parent,
                      GFBufferView data);
 
@@ -347,18 +348,23 @@ typedef struct GFHostPgpApi {
 typedef struct GFHostUiApi {
   size_t struct_size;
 
-  void* (*create_object)(GFHostContextRef ctx, QObjectFactory factory,
-                         void* data);
-  void* (*get_object)(GFHostContextRef ctx, const char* id);
-  int (*show_dialog)(GFHostContextRef ctx, void* dialog, void* parent);
+  /* --- retired -------------------------------------------------------------
+   * Each of these handed a module a Host Qt object, or took one. They keep
+   * their place so the table layout does not move, and every one of them now
+   * refuses: NULL, -1 or 0, logged once per module with its replacement. A
+   * module's UI is its script and its own native widgets (GFSDKUI.h). */
 
-  /** 0xAARRGGBB, derived from @p widget's palette; 0 if @p widget is NULL
-   *  or a QObject that is not a QWidget. Any other non-QObject pointer is
-   *  undefined behavior. */
-  uint32_t (*theme_color)(GFHostContextRef ctx, int role, void* widget);
+  void* (*create_object)(GFHostContextRef ctx, QObjectFactory factory,
+                         void* data);                        /**< NULL */
+  void* (*get_object)(GFHostContextRef ctx, const char* id); /**< NULL */
+  int (*show_dialog)(GFHostContextRef ctx, void* dialog,
+                     void* parent); /**< -1; a dialog mount + view.open */
+  uint32_t (*theme_color)(GFHostContextRef ctx, int role,
+                          void* widget); /**< 0; theme_color_role */
   /** Owned; release with buffer->release. */
   GFBufferRef (*user_file_path)(GFHostContextRef ctx);
 
+  /* retired, -1: a settings mount, an editor mount, its `extensions` */
   int (*register_settings_page)(GFHostContextRef ctx,
                                 const GFUISettingsPageSpec* spec);
   int (*unregister_settings_page)(GFHostContextRef ctx, const char* page_id);
@@ -367,7 +373,8 @@ typedef struct GFHostUiApi {
   int (*register_file_extension)(GFHostContextRef ctx, const char* extension,
                                  const char* event_prefix);
 
-  /* --- appended ------------------------------------------------------------ */
+  /* --- appended ------------------------------------------------------------
+   */
 
   /** A role colour from the application palette; no widget involved. */
   uint32_t (*theme_color_role)(GFHostContextRef ctx, int role);
@@ -386,7 +393,8 @@ typedef struct GFHostEditorApi {
    *  release with buffer->release. NULL when no text tab is open. */
   GFBufferRef (*take_current_content)(GFHostContextRef ctx);
 
-  /* --- appended ------------------------------------------------------------ */
+  /* --- appended ------------------------------------------------------------
+   */
 
   /** What the current document is -- id, type, title, path, modified -- as a
    *  CBOR map. Never its content. -1 when no document is open. */
@@ -403,8 +411,8 @@ typedef struct GFHostEditorApi {
 typedef struct GFHostStorageApi {
   size_t struct_size;
 
-  /** The application-wide QSettings. Borrowed; valid for the process, never
-   *  deleted by the module. */
+  /** Retired: always NULL. Settings are read and written through
+   *  setting_get/set/remove, scoped to the module's own group. */
   void* (*settings_root)(GFHostContextRef ctx);
 
   /** @p out owned on success. Returns 0 on a hit, negative when absent. */
@@ -434,7 +442,8 @@ typedef struct GFHostStorageApi {
   int (*state_list_children)(GFHostContextRef ctx, const char* ns,
                              const char* key, GFStringListRef* out);
 
-  /* --- appended ------------------------------------------------------------ */
+  /* --- appended ------------------------------------------------------------
+   */
 
   /** One setting, as a CBOR value. @p scope is GF_SETTING_*: the module's
    *  own group, or a Host setting on the allowlist. -1 when absent. */
@@ -481,8 +490,7 @@ typedef struct GFHostCommandApi {
   int (*is_cancelled)(GFHostContextRef ctx, uint64_t call_id);
   int (*describe)(GFHostContextRef ctx, const char* id, GFBufferRef* out);
   int (*list)(GFHostContextRef ctx, const char* prefix, GFStringListRef* out);
-  int (*query_state)(GFHostContextRef ctx, const char* id,
-                     uint32_t* out_bits);
+  int (*query_state)(GFHostContextRef ctx, const char* id, uint32_t* out_bits);
 } GFHostCommandApi;
 
 /**
