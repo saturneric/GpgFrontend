@@ -104,26 +104,9 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] auto DocumentBytes() const -> QByteArray;
 
   /**
-   * @brief Mounts a module-supplied widget as this page's primary view.
-   *
-   * The page keeps owning the text document, which stays the canonical content
-   * of the tab: saving, crash recovery, the unsaved-changes prompt and
-   * CurPlainText() all keep reading it. The mounted widget is shown above the
-   * editor and a switcher lets the user move between it ("Message") and the
-   * raw document ("Raw Source").
-   *
-   * Ownership of @p view passes to the page. Mounting a second view is
-   * rejected; a page has one primary view for its whole life.
-   *
-   * @param view Fresh, unparented widget. Must not be nullptr.
-   * @return true when the view was mounted.
-   */
-  auto MountPrimaryView(QWidget* view) -> bool;
-
-  /**
    * @brief Mount a module's native document widget as the primary view.
    *
-   * The typed form of MountPrimaryView(): the Host talks to the view only
+   * The Host talks to the view only
    * through its GFDocumentWidgetOps, keyed by @p instance, and never hands
    * it the page's own editor -- switching to the raw source is the page's
    * switcher, which the view may only ask for.
@@ -438,19 +421,6 @@ class PlainTextEditorPage : public QWidget {
    */
   void slot_primary_view_modified();
 
-  /// Relays the mounted view's request up to whoever can actually run it.
-  void slot_primary_view_crypto_operation_requested(const QString& operation);
-
-  /**
-   * @brief Writes the primary view back into the document before its own
-   * raw-source presentation is shown.
-   *
-   * Only used by a view that adopted the editor: it is the same guarantee the
-   * built-in switcher gives, that what the user reads as the raw source is
-   * never behind the structured view.
-   */
-  void slot_flush_before_source_view();
-
   /**
    * @brief Applies a subdued text style to OpenPGP cleartext signature
    * metadata.
@@ -491,6 +461,24 @@ class PlainTextEditorPage : public QWidget {
   QToolButton* source_unlock_ = nullptr;
   bool source_unlocked_ = false;
   void refresh_source_lock();
+
+  /**
+   * @brief Mounts a module-supplied widget as this page's primary view.
+   *
+   * The page keeps owning the text document, which stays the canonical content
+   * of the tab: saving, crash recovery, the unsaved-changes prompt and
+   * CurPlainText() all keep reading it. The mounted widget is shown above the
+   * editor and a switcher lets the user move between it ("Message") and the
+   * raw document ("Raw Source").
+   *
+   * Ownership of @p view passes to the page. Mounting a second view is
+   * rejected; a page has one primary view for its whole life. Reached only
+   * through MountNativeView().
+   *
+   * @param view Fresh, unparented widget. Must not be nullptr.
+   * @return true when the view was mounted.
+   */
+  auto mount_primary_view(QWidget* view) -> bool;
   void set_source_unlocked(bool on);
 
   QString full_file_path_;  ///< File path associated with this editor page.
@@ -506,10 +494,6 @@ class PlainTextEditorPage : public QWidget {
   QMenu* text_direction_menu_ = nullptr;  ///< Submenu holding the mode actions.
   QPointer<QWidget> primary_view_;        ///< Module-supplied view, or null.
   QWidget* view_switcher_ = nullptr;      ///< Message / Raw Source selector.
-  /// Set when the mounted view took the editor over and presents it itself.
-  /// The page then builds no switcher and never toggles visibility: the view
-  /// decides when the raw document is on screen.
-  bool source_view_adopted_ = false;
   /// Set while content is being moved between the view and the document, in
   /// either direction. Both handlers bail out on it, which is what stops a
   /// write in one direction bouncing straight back as a write in the other.
@@ -520,16 +504,6 @@ class PlainTextEditorPage : public QWidget {
   int source_generation_ = -1;
   QActionGroup* text_direction_group_ =
       nullptr;  ///< Makes the three mode actions exclusive.
-
-  /**
-   * @brief Calls a no-argument member on the primary view, if it declares one.
-   *
-   * The page/view contract is additive: a view that does not declare a member
-   * simply sits out that step, so every call site probes rather than assumes.
-   *
-   * @param method Member name, without parentheses.
-   */
-  void invoke_primary_view(const char* method);
 
   /**
    * @brief Builds the Message / Raw Source selector shown above both views.

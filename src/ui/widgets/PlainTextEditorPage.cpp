@@ -193,7 +193,7 @@ QWidget#PlainTextEditorPage QLabel[loading="true"] {
 void PlainTextEditorPage::set_loading_state(bool loading,
                                             const QString &message) {
   // The whole status row stays collapsed once a module view is mounted (see
-  // MountPrimaryView()), loading or not.
+  // mount_primary_view()), loading or not.
   const bool status_row_hidden = !primary_view_.isNull();
   ui_->loadingLabel->setHidden(status_row_hidden || !loading);
   ui_->sha256Label->setHidden(status_row_hidden || loading);
@@ -210,7 +210,7 @@ void PlainTextEditorPage::set_loading_state(bool loading,
 }
 
 void PlainTextEditorPage::update_status_bar() {
-  // Collapsed for good once a module view is mounted (see MountPrimaryView())
+  // Collapsed for good once a module view is mounted (see mount_primary_view())
   // -- line/column, char count and line-ending all describe the raw editor
   // text, which nobody is looking at behind that view.
   if (!primary_view_.isNull()) return;
@@ -370,7 +370,7 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 void PlainTextEditorPage::slot_update_sha256() {
   if (!read_done_) return;
 
-  // Hidden behind a mounted module view (see MountPrimaryView()) -- skip the
+  // Hidden behind a mounted module view (see mount_primary_view()) -- skip the
   // full-document hash, there is no label left to show it in.
   if (!primary_view_.isNull()) return;
 
@@ -567,7 +567,7 @@ auto PlainTextEditorPage::MountNativeView(const QString& widget_id) -> bool {
     return false;
   }
   native_instance_ = instance->id;
-  if (!MountPrimaryView(instance->widget)) {
+  if (!mount_primary_view(instance->widget)) {
     NativeInstances::Instance().Destroy(native_instance_);
     native_instance_ = 0;
     native_port_.reset();
@@ -602,13 +602,11 @@ void PlainTextEditorPage::WipeContent() {
     if (e.has_value() && e->document.wipe_content) {
       e->document.wipe_content(native_instance_);
     }
-  } else {
-    invoke_primary_view("WipeContent");
   }
   Clear();
 }
 
-auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
+auto PlainTextEditorPage::mount_primary_view(QWidget *view) -> bool {
   if (view == nullptr) {
     LOG_W() << "refusing to mount a null primary view";
     return false;
@@ -638,37 +636,14 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   ui_->horizontalLayout->setContentsMargins(0, 0, 0, 0);
   ui_->horizontalLayout->invalidate();
 
-  // A view may present the raw document itself, as one more tab beside its own
-  // rather than behind a switcher the page puts above it. It is handed the
-  // real editor, not a copy: the document stays the one canonical content of
-  // the tab, and editing the raw source keeps working exactly as before.
-  //
-  // Never for a native view: the Host's editor does not cross to a module.
-  source_view_adopted_ =
-      native_instance_ == 0 &&
-      view->metaObject()->indexOfMethod("AdoptSourceView(QWidget*)") >= 0;
-
   const int editor_index = ui_->verticalLayout->indexOf(ui_->textPage);
   ui_->verticalLayout->insertWidget(editor_index, view);
 
-  if (source_view_adopted_) {
-    QMetaObject::invokeMethod(view, "AdoptSourceView", Qt::DirectConnection,
-                              Q_ARG(QWidget *, ui_->textPage));
-
-    // The view owns the choice of what is on screen, so the page stops
-    // hiding either side. It only needs to hear when the raw document is
-    // about to be read, so it can be made current first.
-    if (view->metaObject()->indexOfSignal("SignalSourceViewRequested()") >= 0) {
-      connect(view, SIGNAL(SignalSourceViewRequested()), this,
-              SLOT(slot_flush_before_source_view()));
-    }
-  } else {
-    build_view_switcher();
-    // The switcher sits above both views, the mounted view directly above the
-    // editor. The editor keeps its place in the layout so everything that
-    // reaches for it by name still finds it.
-    ui_->verticalLayout->insertWidget(editor_index, view_switcher_);
-  }
+  build_view_switcher();
+  // The switcher sits above both views, the mounted view directly above the
+  // editor. The editor keeps its place in the layout so everything that
+  // reaches for it by name still finds it.
+  ui_->verticalLayout->insertWidget(editor_index, view_switcher_);
 
   // Content can also arrive from outside the view: a file being opened, or the
   // result of a crypto operation replacing the whole document. The view has to
@@ -684,37 +659,7 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
             ReloadPrimaryView();
           });
 
-  // Eager marking, lazy serialization: the view says "I changed" the moment an
-  // edit happens, which is what makes closing the tab right afterwards prompt
-  // to save. Reserializing the document is deferred until something actually
-  // needs to read it.
-  if (native_instance_ == 0 &&
-      view->metaObject()->indexOfSignal("SignalContentModified()") >= 0) {
-    connect(view, SIGNAL(SignalContentModified()), this,
-            SLOT(slot_primary_view_modified()));
-  }
-
-  // A view may offer the crypto operations from inside the message itself --
-  // a Decrypt button on an encrypted mail, say. It only names the operation;
-  // running it stays with the host, so there is exactly one implementation of
-  // each and no way for the two entry points to diverge.
-  if (native_instance_ == 0 &&
-      view->metaObject()->indexOfSignal(
-          "SignalCryptoOperationRequested(QString)") >= 0) {
-    connect(view, SIGNAL(SignalCryptoOperationRequested(QString)), this,
-            SLOT(slot_primary_view_crypto_operation_requested(QString)));
-  }
-
-  // A view may also say which of those operations mean anything for what it
-  // currently holds, and tell us when that changes.
-  if (native_instance_ == 0 &&
-      view->metaObject()->indexOfSignal("SignalCryptoOperationsChanged()") >=
-          0) {
-    connect(view, SIGNAL(SignalCryptoOperationsChanged()), this,
-            SIGNAL(SignalCryptoOperationsChanged()));
-  }
-
-  if (!source_view_adopted_) show_primary_view(true);
+  show_primary_view(true);
 
   // The editor font was resolved in the constructor, before this view existed.
   // Re-applying now is what gets the user's chosen font and size into it from
@@ -725,149 +670,59 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   return true;
 }
 
-void PlainTextEditorPage::slot_flush_before_source_view() {
-  FlushPrimaryView();
-}
-
-void PlainTextEditorPage::slot_primary_view_crypto_operation_requested(
-    const QString &operation) {
-  emit SignalCryptoOperationRequested(operation);
-}
-
 auto PlainTextEditorPage::AttachPublicKeyToPrimaryView(const QByteArray &key,
                                                        const QString &name)
     -> int {
   if (primary_view_.isNull()) return 0;
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.attach_public_key) return 0;
-    return e->document.attach_public_key(native_instance_, key, name) ? 1 : 0;
-  }
-
-  auto *view = primary_view_.data();
-  if (view->metaObject()->indexOfMethod("AttachPublicKey(QByteArray,QString)") <
-      0) {
-    return 0;
-  }
-
-  int result = 0;
-  QMetaObject::invokeMethod(view, "AttachPublicKey", Qt::DirectConnection,
-                            Q_RETURN_ARG(int, result), Q_ARG(QByteArray, key),
-                            Q_ARG(QString, name));
-  return result;
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.attach_public_key) return 0;
+  return e->document.attach_public_key(native_instance_, key, name) ? 1 : 0;
 }
 
 auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
     -> QStringList {
   has_opinion = false;
   if (primary_view_.isNull()) return {};
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.crypto_ops) return {};
-    const auto bits = e->document.crypto_ops(native_instance_);
-    if (!bits.has_value()) return {};
-    has_opinion = true;
-    QStringList names;
-    for (const auto& [name, bit] : kCryptoOps) {
-      if ((*bits & bit) != 0) names << QString::fromLatin1(name);
-    }
-    return names;
-  }
-
-  auto *view = primary_view_.data();
-  if (view->metaObject()->indexOfMethod("AvailableCryptoOperations()") < 0) {
-    return {};
-  }
-
-  QStringList operations;
-  if (!QMetaObject::invokeMethod(view, "AvailableCryptoOperations",
-                                 Qt::DirectConnection,
-                                 Q_RETURN_ARG(QStringList, operations))) {
-    return {};
-  }
-
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.crypto_ops) return {};
+  const auto bits = e->document.crypto_ops(native_instance_);
+  if (!bits.has_value()) return {};
   has_opinion = true;
-  return operations;
+  QStringList names;
+  for (const auto &[name, bit] : kCryptoOps) {
+    if ((*bits & bit) != 0) names << QString::fromLatin1(name);
+  }
+  return names;
 }
 
 auto PlainTextEditorPage::PrimaryViewSuggestedFileName() const -> QString {
   if (primary_view_.isNull()) return {};
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.suggested_file_name) return {};
-    return e->document.suggested_file_name(native_instance_);
-  }
-
-  auto *view = primary_view_.data();
-  if (view->metaObject()->indexOfMethod("SuggestedFileName()") < 0) return {};
-
-  QString name;
-  if (!QMetaObject::invokeMethod(view, "SuggestedFileName",
-                                 Qt::DirectConnection,
-                                 Q_RETURN_ARG(QString, name))) {
-    return {};
-  }
-  return name;
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.suggested_file_name) return {};
+  return e->document.suggested_file_name(native_instance_);
 }
 
 auto PlainTextEditorPage::PrimaryViewFileTypeFilter() const -> QString {
   if (primary_view_.isNull()) return {};
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || e->filter.isEmpty()) return {};
-    return QCoreApplication::translate("GTrC", e->filter.toUtf8().constData());
-  }
-
-  auto *view = primary_view_.data();
-  if (view->metaObject()->indexOfMethod("FileTypeFilter()") < 0) return {};
-
-  QString filter;
-  if (!QMetaObject::invokeMethod(view, "FileTypeFilter", Qt::DirectConnection,
-                                 Q_RETURN_ARG(QString, filter))) {
-    return {};
-  }
-  return filter;
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || e->filter.isEmpty()) return {};
+  return QCoreApplication::translate("GTrC", e->filter.toUtf8().constData());
 }
 
 auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {
   if (primary_view_.isNull()) return 0;
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.append_text) return 0;
-    return e->document.append_text(native_instance_, text) ? 1 : 0;
-  }
-
-  auto *view = primary_view_.data();
-  if (view->metaObject()->indexOfMethod("AppendBodyText(QString)") < 0) {
-    return 0;
-  }
-
-  int result = 0;
-  QMetaObject::invokeMethod(view, "AppendBodyText", Qt::DirectConnection,
-                            Q_RETURN_ARG(int, result), Q_ARG(QString, text));
-  return result;
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.append_text) return 0;
+  return e->document.append_text(native_instance_, text) ? 1 : 0;
 }
 
 auto PlainTextEditorPage::ApplyVerificationToPrimaryView(
     const QByteArray &payload) -> bool {
   if (primary_view_.isNull()) return false;
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.apply_verification) return false;
-    e->document.apply_verification(native_instance_, payload);
-    return true;
-  }
-
-  // Probed rather than assumed: the contract is additive, so a view that does
-  // not declare this member simply does not take part.
-  const auto *meta = primary_view_->metaObject();
-  if (meta->indexOfMethod("ApplyVerificationResult(QByteArray)") < 0) {
-    return false;
-  }
-
-  return QMetaObject::invokeMethod(
-      primary_view_.data(), "ApplyVerificationResult", Qt::DirectConnection,
-      Q_ARG(QByteArray, payload));
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.apply_verification) return false;
+  e->document.apply_verification(native_instance_, payload);
+  return true;
 }
 
 void PlainTextEditorPage::slot_primary_view_modified() {
@@ -884,23 +739,11 @@ void PlainTextEditorPage::FlushPrimaryView() {
   if (primary_view_.isNull() || primary_view_syncing_) return;
   if (!PrimaryViewIsDirty()) return;
 
-  QByteArray bytes;
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.save) return;
-    const auto saved = e->document.save(native_instance_);
-    if (!saved.has_value()) return;
-    bytes = *saved;
-  } else {
-    const auto *meta = primary_view_->metaObject();
-    if (meta->indexOfMethod("SaveToSource()") < 0) return;
-    if (!QMetaObject::invokeMethod(primary_view_.data(), "SaveToSource",
-                                   Qt::DirectConnection,
-                                   Q_RETURN_ARG(QByteArray, bytes))) {
-      LOG_W() << "primary view SaveToSource failed";
-      return;
-    }
-  }
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.save) return;
+  const auto saved = e->document.save(native_instance_);
+  if (!saved.has_value()) return;
+  const QByteArray &bytes = *saved;
 
   // The view has just told us what the message's canonical form is. A message
   // it built with CRLF endings has to be remembered as a CRLF document, or
@@ -927,60 +770,22 @@ void PlainTextEditorPage::FlushPrimaryView() {
 
 auto PlainTextEditorPage::PrimaryViewIsDirty() const -> bool {
   if (primary_view_.isNull()) return false;
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    return e.has_value() && e->document.is_dirty &&
-           e->document.is_dirty(native_instance_);
-  }
-
-  const auto *meta = primary_view_->metaObject();
-  if (meta->indexOfMethod("IsDirty()") < 0) return false;
-
-  bool dirty = false;
-  QMetaObject::invokeMethod(primary_view_.data(), "IsDirty",
-                            Qt::DirectConnection, Q_RETURN_ARG(bool, dirty));
-  return dirty;
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  return e.has_value() && e->document.is_dirty &&
+         e->document.is_dirty(native_instance_);
 }
 
 void PlainTextEditorPage::ReloadPrimaryView() {
   if (primary_view_.isNull()) return;
   if (primary_view_syncing_) return;
 
-  if (native_instance_ != 0) {
-    const auto e = NativeInstances::Instance().Entry(native_instance_);
-    if (!e.has_value() || !e->document.load) return;
-    const auto bytes = DocumentBytes();
-    primary_view_syncing_ = true;
-    e->document.load(native_instance_, bytes);
-    primary_view_syncing_ = false;
-    source_generation_ = ui_->textPage->document()->revision();
-    return;
-  }
-
-  const auto *meta = primary_view_->metaObject();
-  if (meta->indexOfMethod("LoadFromSource(QByteArray)") < 0) return;
-
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.load) return;
   const auto bytes = DocumentBytes();
-
   primary_view_syncing_ = true;
-  QMetaObject::invokeMethod(primary_view_.data(), "LoadFromSource",
-                            Qt::DirectConnection, Q_ARG(QByteArray, bytes));
+  e->document.load(native_instance_, bytes);
   primary_view_syncing_ = false;
-
   source_generation_ = ui_->textPage->document()->revision();
-}
-
-void PlainTextEditorPage::invoke_primary_view(const char *method) {
-  if (primary_view_.isNull()) return;
-
-  // Probed rather than assumed: the contract is additive, so a view that does
-  // not declare a member simply does not take part in that step.
-  const auto signature = QByteArray(method) + "()";
-  if (primary_view_->metaObject()->indexOfMethod(signature.constData()) < 0) {
-    return;
-  }
-
-  QMetaObject::invokeMethod(primary_view_.data(), method, Qt::DirectConnection);
 }
 
 void PlainTextEditorPage::build_view_switcher() {
@@ -1014,7 +819,7 @@ void PlainTextEditorPage::build_view_switcher() {
   layout->addWidget(source_button);
   layout->addStretch();
 
-  if (native_instance_ != 0) {
+  {
     source_notice_ = new QLabel(view_switcher_);
     source_notice_->setVisible(false);
     source_unlock_ = new QToolButton(view_switcher_);
@@ -1066,12 +871,10 @@ void PlainTextEditorPage::show_primary_view(bool primary) {
   primary_view_->setVisible(primary);
   ui_->textPage->setVisible(!primary);
 
-  // A native view's raw source opens read-only, every time.
-  if (native_instance_ != 0) {
-    set_source_unlocked(false);
-    if (source_notice_ != nullptr) source_notice_->setVisible(!primary);
-    if (source_unlock_ != nullptr) source_unlock_->setVisible(!primary);
-  }
+  // The raw source opens read-only, every time.
+  set_source_unlocked(false);
+  source_notice_->setVisible(!primary);
+  source_unlock_->setVisible(!primary);
 
   if (primary) {
     ReloadPrimaryView();
@@ -1145,11 +948,6 @@ void PlainTextEditorPage::ApplyAppearanceSettings() {
       e->document.apply_font(native_instance_, editor_font.family(),
                              editor_font.pointSize());
     }
-  } else if (!primary_view_.isNull() &&
-             primary_view_->metaObject()->indexOfMethod(
-                 "ApplyEditorFont(QFont)") >= 0) {
-    QMetaObject::invokeMethod(primary_view_.data(), "ApplyEditorFont",
-                              Qt::DirectConnection, Q_ARG(QFont, editor_font));
   }
 }
 

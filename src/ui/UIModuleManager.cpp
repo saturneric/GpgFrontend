@@ -41,8 +41,7 @@
 namespace GpgFrontend::UI {
 
 UIModuleManager::UIModuleManager(int channel)
-    : SingletonFunctionObject<UIModuleManager>(channel),
-      settings_(GpgFrontend::GetSettings()) {}
+    : SingletonFunctionObject<UIModuleManager>(channel) {}
 
 UIModuleManager::~UIModuleManager() { clear_installed_translators(); }
 
@@ -146,15 +145,6 @@ auto UIModuleManager::RegisterQObject(const QString& id, QObject* p)
   return id;
 }
 
-auto UIModuleManager::RegisterQObject(QObject* p) -> QString {
-  const QString id = QString::number(reinterpret_cast<quintptr>(p), 16);
-  QPointer<QObject> ptr = p;
-  registered_qobjects_[id] = ptr;
-  QObject::connect(p, &QObject::destroyed, QCoreApplication::instance(),
-                   [this, id]() { registered_qobjects_.remove(id); });
-  return id;
-}
-
 auto UIModuleManager::GetQObject(const QString& id) -> QObject* {
   return registered_qobjects_.value(id, nullptr);
 }
@@ -169,116 +159,8 @@ auto UIModuleManager::MakeCapsule(std::any v) -> QString {
   return uuid;
 }
 
-auto UIModuleManager::GetSettings() const -> const QSettings* {
-  // settings_ is a long-lived copy, while the host writes through short-lived
-  // QSettings objects returned by GetSettings(). QSettings only reconciles with
-  // the backing store inside sync(), so without this a module would never see
-  // a value the host wrote after startup.
-  settings_.sync();
-  return &settings_;
-}
-
-auto UIModuleManager::RegisterSettingsPage(const SettingsPageRegistration& reg)
-    -> bool {
-  if (reg.id.isEmpty() || reg.title.isEmpty() || reg.factory == nullptr) {
-    LOG_W() << "incomplete settings page registration, id:" << reg.id;
-    return false;
-  }
-
-  // Rejected rather than replaced: a Settings dialog that is already open holds
-  // a widget built by the current factory, and swapping the registration under
-  // it would leave that dialog pointing at a page nobody owns any more.
-  const QWriteLocker locker(&registry_lock_);
-
-  const auto exists = std::any_of(
-      settings_pages_.cbegin(), settings_pages_.cend(),
-      [&reg](const SettingsPageRegistration& p) { return p.id == reg.id; });
-  if (exists) {
-    LOG_W() << "settings page already registered:" << reg.id;
-    return false;
-  }
-
-  settings_pages_.append(reg);
-  return true;
-}
-
-auto UIModuleManager::UnregisterSettingsPage(const QString& id) -> bool {
-  if (id.isEmpty()) return false;
-
-  const QWriteLocker locker(&registry_lock_);
-  // Not QList::removeIf(): that arrived in Qt 6.1 and this has to build against
-  // Qt 5 as well.
-  const auto before = settings_pages_.size();
-  settings_pages_.erase(
-      std::remove_if(
-          settings_pages_.begin(), settings_pages_.end(),
-          [&id](const SettingsPageRegistration& p) { return p.id == id; }),
-      settings_pages_.end());
-  return settings_pages_.size() != before;
-}
-
-auto UIModuleManager::ListSettingsPages() const
-    -> QList<SettingsPageRegistration> {
-  const QReadLocker locker(&registry_lock_);
-  // A copy, not a reference: the caller reads it after this lock is gone, and
-  // a module can be deactivated from another thread at any moment.
-  return settings_pages_;
-}
-
-auto UIModuleManager::RegisterTabPageView(const TabPageViewRegistration& reg)
-    -> bool {
-  if (reg.tab_type.isEmpty() || reg.factory == nullptr) {
-    LOG_W() << "incomplete tab page view registration, type:" << reg.tab_type;
-    return false;
-  }
-
-  // Rejected rather than replaced, for the same reason a settings page is: a
-  // tab that is already open holds a widget built by the current factory, and
-  // swapping the registration under it would leave that tab pointing at a view
-  // nobody owns any more.
-  const QWriteLocker locker(&registry_lock_);
-
-  const auto key = reg.tab_type.toUpper();
-  if (tab_page_views_.contains(key)) {
-    LOG_W() << "tab page view already registered:" << key;
-    return false;
-  }
-
-  auto normalized = reg;
-  normalized.tab_type = key;
-  tab_page_views_.insert(key, normalized);
-  return true;
-}
-
-auto UIModuleManager::UnregisterTabPageView(const QString& tab_type) -> bool {
-  if (tab_type.isEmpty()) return false;
-
-  const QWriteLocker locker(&registry_lock_);
-  return tab_page_views_.remove(tab_type.toUpper()) > 0;
-}
-
-auto UIModuleManager::TabPageViewFor(const QString& tab_type) const
-    -> std::optional<TabPageViewRegistration> {
-  if (tab_type.isEmpty()) return std::nullopt;
-
-  const QReadLocker locker(&registry_lock_);
-  const auto it = tab_page_views_.constFind(tab_type.toUpper());
-  if (it == tab_page_views_.constEnd()) return std::nullopt;
-  return *it;
-}
-
-auto RegisterQObject(QObject* p) -> QString {
-  return UIModuleManager::GetInstance().RegisterQObject(p);
-}
-
 auto RegisterNamedQObject(const QString& id, QObject* p) -> QString {
   return UIModuleManager::GetInstance().RegisterQObject(id, p);
-}
-
-auto FileExtensionEventId(const QString& extension, const QString& operation)
-    -> QString {
-  return UIModuleManager::GetInstance().GetFileExtensionEventId(extension,
-                                                                operation);
 }
 
 auto CurrentEditorContent() -> std::optional<QByteArray> {
@@ -327,27 +209,6 @@ auto CurrentDocumentInfo() -> std::optional<QCborMap> {
   QMetaObject::invokeMethod(
       edit, [&] { info = read(); }, Qt::BlockingQueuedConnection);
   return info;
-}
-
-auto UIModuleManager::RegisterFileExtensionHandleEvent(
-    const QString& extension, const QString& event_prefix) -> bool {
-  if (file_ext_event_prefix_map_.contains(extension)) {
-    LOG_W() << "extension already registered:" << extension;
-    return false;
-  }
-  file_ext_event_prefix_map_.insert(extension, event_prefix);
-  return true;
-}
-
-auto UIModuleManager::GetFileExtensionEventId(const QString& extension,
-                                              const QString& operation)
-    -> QString {
-  auto event_prefix = file_ext_event_prefix_map_.value(extension, QString());
-  if (event_prefix.isEmpty()) {
-    LOG_W() << "no event prefix registered for extension:" << extension;
-    return {};
-  }
-  return QString("FILE_EXT_%1_OP_%2").arg(event_prefix, operation).toUpper();
 }
 
 }  // namespace GpgFrontend::UI

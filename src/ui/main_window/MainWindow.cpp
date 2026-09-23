@@ -249,10 +249,7 @@ void MainWindow::Init() noexcept {
     emit SignalLoaded();
 
     // notify other modules that application is loaded
-    Module::TriggerEvent("APPLICATION_LOADED",
-                         {
-                             {"main_window", GFBuffer(RegisterQObject(this))},
-                         });
+    Module::TriggerEvent("APPLICATION_LOADED");
     Lua::LuaPlacements::Notify("app.ui_ready", edit_->CurTextPage());
 
     // The UI events a module's script may subscribe to. A closed set, fed

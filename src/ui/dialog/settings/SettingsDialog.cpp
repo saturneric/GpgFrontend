@@ -307,47 +307,6 @@ auto SettingsDialog::eventFilter(QObject* watched, QEvent* event) -> bool {
 auto SettingsDialog::collect_module_pages() -> QVector<SettingsPageDescriptor> {
   QVector<SettingsPageDescriptor> descriptors;
 
-  // Titles and keywords arrive as untranslated source strings: a module is
-  // activated before the module translators are installed, so anything it
-  // translated at registration time would be frozen at the source text and
-  // would not follow a later language change.
-  const auto translate = [](const QString& source) {
-    return QCoreApplication::translate("GTrC", source.toUtf8().constData());
-  };
-
-  for (const auto& registration :
-       UIModuleManager::GetInstance().ListSettingsPages()) {
-    auto* object =
-        static_cast<QObject*>(registration.factory(registration.data));
-    auto* page = qobject_cast<QWidget*>(object);
-    if (page == nullptr) {
-      // One misbehaving module must not cost the user every other page.
-      LOG_W() << "module settings page factory produced no widget, id:"
-              << registration.id;
-      delete object;
-      continue;
-    }
-
-    QStringList keywords;
-    keywords.reserve(registration.keywords.size());
-    for (const auto& keyword : registration.keywords) {
-      keywords << translate(keyword);
-    }
-
-    const auto title = translate(registration.title);
-    module_pages_.append(page);
-    module_page_titles_.insert(page, title);
-
-    // Taking part in the restart confirmation is optional, and the page type is
-    // unknown here, so it is discovered rather than required.
-    if (page->metaObject()->indexOfSignal("SignalRestartNeeded(int)") >= 0) {
-      connect(page, SIGNAL(SignalRestartNeeded(int)), this,
-              SLOT(slot_module_restart_needed(int)));
-    }
-
-    descriptors.append({page, title, registration.section_id, keywords});
-  }
-
   // Pages module UI scripts mounted: typed, so nothing is found by name.
   for (const auto& info : Lua::BuildNativeSettingsPages()) {
     native_pages_.append(info.page);
@@ -358,15 +317,6 @@ auto SettingsDialog::collect_module_pages() -> QVector<SettingsPageDescriptor> {
   }
 
   return descriptors;
-}
-
-void SettingsDialog::invoke_on_module_page(QWidget* page, const char* method) {
-  if (page == nullptr) return;
-
-  if (!QMetaObject::invokeMethod(page, method, Qt::DirectConnection)) {
-    LOG_W() << "module settings page" << page->metaObject()->className()
-            << "has no" << method << "slot; its changes were not applied";
-  }
 }
 
 void SettingsDialog::slot_module_restart_needed(int mode) {
@@ -517,9 +467,6 @@ void SettingsDialog::revert_all_tabs() {
   for (const auto& page : native_pages_) {
     if (!page.isNull()) page->Load();
   }
-  for (const auto& page : module_pages_) {
-    invoke_on_module_page(page, "SetSettings");
-  }
 
   restart_mode_ = kNonRestartCode;
   restart_pages_.clear();
@@ -567,9 +514,6 @@ void SettingsDialog::SlotAccept() {
   // against a page that no longer exists.
   for (const auto& page : native_pages_) {
     if (!page.isNull()) page->Apply();
-  }
-  for (const auto& page : module_pages_) {
-    invoke_on_module_page(page, "ApplySettings");
   }
 
   emit SignalAppearanceChanged();

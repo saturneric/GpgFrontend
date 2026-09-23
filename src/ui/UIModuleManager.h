@@ -55,37 +55,6 @@ struct InstalledModuleTranslator {
   QByteArray data;
 };
 
-/**
- * @brief A settings page contributed by a module.
- *
- * Holds a factory rather than a widget: the Settings dialog is built and
- * destroyed on every open, so each dialog instance needs its own page.
- */
-struct GF_UI_EXPORT SettingsPageRegistration {
-  QString id;            ///< unique, module-namespaced
-  QString section_id;    ///< canonical section key, see SettingsSectionOrder()
-  QString title;         ///< untranslated source string, "GTrC" context
-  QStringList keywords;  ///< untranslated source strings, "GTrC" context
-  QObjectFactory factory{nullptr};  ///< runs on the main thread
-  void* data{nullptr};              ///< passed to factory on every invocation
-};
-
-/**
- * @brief A tab page view contributed by a module.
- *
- * The host still builds the PlainTextEditorPage that owns the document; this
- * factory only supplies the widget mounted on top of it as the page's primary
- * view. Keeping the host page means save, crash recovery, the unsaved-changes
- * prompt and CurPlainText() all keep working untouched.
- *
- * Holds a factory rather than a widget: every tab of the type needs its own.
- */
-struct GF_UI_EXPORT TabPageViewRegistration {
-  QString tab_type;                 ///< upper-cased, e.g. "EMAIL"
-  QObjectFactory factory{nullptr};  ///< runs on the main thread
-  void* data{nullptr};              ///< passed to factory on every invocation
-};
-
 class GF_UI_EXPORT UIModuleManager
     : public SingletonFunctionObject<UIModuleManager> {
  public:
@@ -137,14 +106,6 @@ class GF_UI_EXPORT UIModuleManager
    * @param id
    * @return auto
    */
-  auto RegisterQObject(QObject*) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param id
-   * @return auto
-   */
   auto GetQObject(const QString& id) -> QObject*;
 
   /**
@@ -181,99 +142,6 @@ class GF_UI_EXPORT UIModuleManager
   [[nodiscard]] auto InstalledTranslators() const
       -> QContainer<QPointer<QTranslator>>;
 
-  /**
-   * @brief Register a module-owned page for the Settings dialog.
-   *
-   * A duplicate id is rejected rather than overwritten: a dialog that is
-   * already open may hold a widget built by the previous factory.
-   *
-   * @param reg the registration; id, title and factory are required
-   * @return true when the page was registered
-   */
-  auto RegisterSettingsPage(const SettingsPageRegistration& reg) -> bool;
-
-  /**
-   * @brief Drop a module-owned settings page registration.
-   *
-   * Modules must do this before unloading -- a factory pointing into an
-   * unloaded shared object would crash the next dialog build.
-   *
-   * @param id the identifier used to register
-   * @return true when a registration was removed
-   */
-  auto UnregisterSettingsPage(const QString& id) -> bool;
-
-  /**
-   * @brief Register a module-owned primary view for a tab type.
-   *
-   * A duplicate tab type is rejected rather than overwritten, for the same
-   * reason a duplicate settings page is: tabs already open hold a widget built
-   * by the previous factory.
-   *
-   * @param reg the registration; tab_type and factory are required
-   * @return true when the view was registered
-   */
-  auto RegisterTabPageView(const TabPageViewRegistration& reg) -> bool;
-
-  /**
-   * @brief Drop a module-owned tab page view registration.
-   *
-   * Modules must do this before unloading -- a factory pointing into an
-   * unloaded shared object would crash the next time a tab of this type opens.
-   *
-   * @param tab_type the type used to register; matched case-insensitively
-   * @return true when a registration was removed
-   */
-  auto UnregisterTabPageView(const QString& tab_type) -> bool;
-
-  /**
-   * @brief The view factory registered for a tab type, if any.
-   *
-   * @param tab_type matched case-insensitively
-   * @return the registration, or nullopt when the type has no module view
-   */
-  [[nodiscard]] auto TabPageViewFor(const QString& tab_type) const
-      -> std::optional<TabPageViewRegistration>;
-
-  /**
-   * @brief Every registered module settings page, in registration order.
-   *
-   * Order is preserved so it can act as the tiebreak between pages sharing a
-   * section.
-   *
-   * @return const QList<SettingsPageRegistration>&
-   */
-  /// Returned BY VALUE, deliberately: a reference would outlive the lock that
-  /// makes reading the list safe at all. See registry_lock_.
-  [[nodiscard]] auto ListSettingsPages() const
-      -> QList<SettingsPageRegistration>;
-
-  /**
-   * @brief
-   *
-   * @return const QSettings*
-   */
-  [[nodiscard]] auto GetSettings() const -> const QSettings*;
-
-  /**
-   * @brief
-   *
-   * @param extension
-   * @param event_prefix
-   */
-  auto RegisterFileExtensionHandleEvent(const QString& extension,
-                                        const QString& event_prefix) -> bool;
-
-  /**
-   * @brief Get the File Extension Event Id object
-   *
-   * @param extension
-   * @param operation
-   * @return QString
-   */
-  auto GetFileExtensionEventId(const QString& extension,
-                               const QString& operation) -> QString;
-
  private:
   /**
    * @brief Uninstall and destroy every installed module translator, then
@@ -285,35 +153,10 @@ class GF_UI_EXPORT UIModuleManager
   QContainer<InstalledModuleTranslator> installed_translators_;
   QMap<QString, QPointer<QObject>> registered_qobjects_;
   QMap<QString, std::any> capsule_;
-  QMap<QString, QString> file_ext_event_prefix_map_;
-  QList<SettingsPageRegistration> settings_pages_;
-  QMap<QString, TabPageViewRegistration> tab_page_views_;
-  /// Guards the two registries above.
-  ///
-  /// Modules register from GFRegisterModule and unregister from
-  /// GFDeactivateModule, and BOTH of those run on the module task runner --
-  /// ModuleManager posts them there -- while the GUI thread reads the same
-  /// containers to build a Settings dialog or open a tab. Deactivating a
-  /// module from the Module Controller while a .eml file is being opened was
-  /// enough to have one thread erasing from a QMap another was walking.
-  ///
-  /// A lock rather than marshalling onto the GUI thread: the GUI thread can be
-  /// sitting in a nested event loop waiting on the module runner (see
-  /// GpgOperaHelper::WaitForOpera), so a blocking queued call in the other
-  /// direction would deadlock.
-  mutable QReadWriteLock registry_lock_;
-  /// Mutable so the const accessor can sync() it; syncing only reconciles with
-  /// the backing store, it does not change what this object represents.
-  mutable QSettings settings_;
 };
-
-auto GF_UI_EXPORT RegisterQObject(QObject* p) -> QString;
 
 auto GF_UI_EXPORT RegisterNamedQObject(const QString& id, QObject* p)
     -> QString;
-
-auto GF_UI_EXPORT FileExtensionEventId(const QString& extension,
-                                       const QString& operation) -> QString;
 
 /**
  * @brief The current editor tab's exact octets, for the SDK to hand modules.

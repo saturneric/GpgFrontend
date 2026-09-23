@@ -154,19 +154,9 @@ void TextEdit::SlotSave() {
 
   if (type == "file") return;
 
-  auto event_id = QString("EDIT_TAB_TYPE_%1_OP_SAVE_FILE").arg(type.toUpper());
-
-  if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(
-        this, tr("Unsupported Operation"),
-        tr("Saving is not supported for tabs of type '%1'.").arg(type));
-    return;
-  }
-
-  Module::TriggerEvent(event_id,
-                       {{"page", GFBuffer{RegisterQObject(page)}},
-                        {"tab_widget", GFBuffer{RegisterQObject(tab_widget_)}}},
-                       {});
+  QMessageBox::warning(
+      this, tr("Unsupported Operation"),
+      tr("Saving is not supported for tabs of type '%1'.").arg(type));
 }
 
 auto TextEdit::saveFile(const QString& file_name) -> bool {

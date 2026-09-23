@@ -385,12 +385,6 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
     return;
   }
 
-  auto event_id = FileExtensionEventId(file_info.suffix(), "OPEN_FILE");
-  if (!event_id.isEmpty() && Module::IsEventListening(event_id)) {
-    Module::TriggerEvent(event_id, {{"file_path", GFBuffer{path}}}, {});
-    return;
-  }
-
   const int existing_index = find_tab_by_file_path(path);
   if (existing_index >= 0) {
     setCurrentIndex(existing_index);
@@ -517,25 +511,6 @@ void TextEditTabWidget::mount_module_view(PlainTextEditorPage* page,
 
   // A tab type no module has claimed stays an ordinary plain text tab, which
   // is what every tab type was before module views existed.
-  const auto reg = UIModuleManager::GetInstance().TabPageViewFor(type);
-  if (!reg.has_value()) return;
-
-  auto* raw = reg->factory(reg->data);
-  if (raw == nullptr) {
-    LOG_W() << "tab page view factory returned nothing for type:" << type;
-    return;
-  }
-
-  // The factory is declared to return a QWidget. Anything else is a module
-  // bug, and mounting it would crash later rather than here.
-  auto* view = qobject_cast<QWidget*>(static_cast<QObject*>(raw));
-  if (view == nullptr) {
-    LOG_W() << "tab page view factory returned a non-widget for type:" << type;
-    delete static_cast<QObject*>(raw);
-    return;
-  }
-
-  if (!page->MountPrimaryView(view)) delete view;
 }
 
 void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,

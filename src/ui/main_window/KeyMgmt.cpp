@@ -595,7 +595,6 @@ void KeyMgmt::create_keyserver_actions() {
     Module::TriggerEvent("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT",
                          {
                              {"fingerprint", GFBuffer(fpr)},
-                             {"parent", GFBuffer(RegisterQObject(this))},
                          });
   });
 

@@ -335,7 +335,6 @@ void MainWindow::slot_verifying_unknown_signature_helper(
       Module::TriggerEvent("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT",
                            {
                                {"fingerprint", GFBuffer(fpr_values.first())},
-                               {"parent", GFBuffer(RegisterQObject(this))},
                            });
     }
 
