@@ -40,6 +40,8 @@ aux_source_directory(dialog/profile UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 aux_source_directory(function UI_SOURCE)
 aux_source_directory(model UI_SOURCE)
+aux_source_directory(command UI_SOURCE)
+aux_source_directory(lua UI_SOURCE)
 
 # register module
 register_library(ui LIBRARY_TARGET ${UI_SOURCE})
@@ -65,6 +67,10 @@ target_link_libraries(${LIBRARY_TARGET}
 
 # link gpgfrontend_core
 target_link_libraries(${LIBRARY_TARGET} gf_core)
+
+# The Lua interpreter behind module UI scripts. Private: nothing outside
+# gf_ui sees a lua_State, and no module links Lua at all.
+target_link_libraries(${LIBRARY_TARGET} gf_lua)
 
 # set up pch
 target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendUI.h)
