@@ -73,7 +73,7 @@ function(_gf_module_package_command)
   cmake_parse_arguments(GAMP
     ""
     "TARGET_NAME;SHORT_NAME;MODULE_ID;VERSION;MIN_HOST_VERSION;TRANSLATION_CONTEXT"
-    "CAPABILITIES;EVENTS;META;RESOURCES"
+    "CAPABILITIES;EVENTS;COMMANDS;META;RESOURCES"
     ${ARGN})
 
   set(module_target "${GAMP_TARGET_NAME}")
@@ -139,6 +139,10 @@ function(_gf_module_package_command)
 
   foreach(event IN LISTS GAMP_EVENTS)
     list(APPEND packager_args --event "${event}")
+  endforeach()
+
+  foreach(command IN LISTS GAMP_COMMANDS)
+    list(APPEND packager_args --command "${command}")
   endforeach()
 
   foreach(entry IN LISTS GAMP_META)
@@ -372,7 +376,7 @@ set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_host_api gf_test)
 # compares the two so they cannot drift.
 #
 # Enforceable: maps to a GFHostApi group the Host hands over or withholds.
-set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui editor storage process)
+set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui ui.custom editor storage process)
 # Advisory: signed, recorded and shown to the user, but not Host-mediated --
 # a module opens a socket through Qt, so there is nothing here to withhold.
 # Kept separate rather than mixed in, so a grant mask never claims more than
@@ -490,6 +494,13 @@ function(gf_add_module)
         "so the host cannot withhold it.")
     endif()
   endforeach()
+  if("ui.custom" IN_LIST module_capabilities AND
+     NOT "ui" IN_LIST module_capabilities)
+    message(FATAL_ERROR
+      "${manifest_file}: \"ui.custom\" requires \"ui\" as well. Native "
+      "widgets are mounted by the module's Lua UI script, which only exists "
+      "for a module that declares \"ui\".")
+  endif()
 
   # events: the subscription allowlist, required. The runtime subscribes to
   # exactly these and refuses to activate if the module's handler table
@@ -510,6 +521,29 @@ function(gf_add_module)
   list(LENGTH module_events _gf_events_uniq)
   if(NOT _gf_events_raw EQUAL _gf_events_uniq)
     message(FATAL_ERROR "${manifest_file}: \"events\" contains duplicates")
+  endif()
+
+  # commands: optional. The command ids this module provides. Signed, because
+  # another module can invoke a command, so which ones exist is a statement
+  # the user may want to see before the module runs. Each id is in the
+  # module's own namespace, and the Host checks that again at load time.
+  _gf_module_json_string_array_optional("${manifest_json}" "${manifest_file}"
+    commands module_commands)
+  foreach(command IN LISTS module_commands)
+    string(FIND "${command}" "${module_id}." _gf_cmd_prefix)
+    if(NOT command MATCHES "^[a-z0-9_]+(\\.[a-z0-9_]+)*$" OR
+       NOT _gf_cmd_prefix EQUAL 0)
+      message(FATAL_ERROR
+        "${manifest_file}: command \"${command}\" must be lower-case, dotted "
+        "and start with \"${module_id}.\"")
+    endif()
+  endforeach()
+  list(LENGTH module_commands _gf_commands_raw)
+  list(SORT module_commands)
+  list(REMOVE_DUPLICATES module_commands)
+  list(LENGTH module_commands _gf_commands_uniq)
+  if(NOT _gf_commands_raw EQUAL _gf_commands_uniq)
+    message(FATAL_ERROR "${manifest_file}: \"commands\" contains duplicates")
   endif()
 
   set(module_min_host_version "${PROJECT_VERSION}")
@@ -721,6 +755,7 @@ function(gf_add_module)
     TRANSLATION_CONTEXT "${module_translation_context}"
     CAPABILITIES ${module_capabilities}
     EVENTS       ${module_events}
+    COMMANDS     ${module_commands}
     META         "Name=${module_name}"
                  "Description=${module_description}"
                  "Author=${module_author}"
