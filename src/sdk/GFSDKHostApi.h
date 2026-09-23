@@ -485,6 +485,47 @@ typedef struct GFHostCommandApi {
                      uint32_t* out_bits);
 } GFHostCommandApi;
 
+/**
+ * @brief The module's UI scripts. Capability "ui".
+ *
+ * A script is text, loaded into a sandboxed Lua state the Host keeps for the
+ * module; see GFSDKUI.h. The runtime loads a module's embedded scripts by
+ * itself, so a module rarely calls this directly.
+ */
+typedef struct GFHostScriptApi {
+  size_t struct_size;
+  int (*load)(GFHostContextRef ctx, const char* chunk_name,
+              GFBufferView source);
+} GFHostScriptApi;
+
+/**
+ * @brief Module-owned widgets in Host containers. Capability "ui.custom".
+ *
+ * The module -> Host half of the typed native widget interfaces. Every call
+ * names an instance the calling module owns and is refused for any other,
+ * or for one of another kind. See GFSDKTypes.h for the Host -> module half.
+ */
+typedef struct GFHostNativeWidgetApi {
+  size_t struct_size;
+  int (*register_widget)(GFHostContextRef ctx, const GFNativeWidgetSpec* spec);
+  int (*unregister_widget)(GFHostContextRef ctx, const char* name);
+
+  /* documents */
+  int (*document_modified)(GFHostContextRef ctx, uint64_t instance);
+  int (*document_show_source)(GFHostContextRef ctx, uint64_t instance,
+                              int source);
+  int (*document_request_crypto)(GFHostContextRef ctx, uint64_t instance,
+                                 uint32_t op);
+  int (*document_ops_changed)(GFHostContextRef ctx, uint64_t instance);
+
+  /* settings pages */
+  int (*settings_restart_needed)(GFHostContextRef ctx, uint64_t instance,
+                                 int level);
+
+  /* dialogs */
+  int (*dialog_close)(GFHostContextRef ctx, uint64_t instance);
+} GFHostNativeWidgetApi;
+
 /* --- the table ----------------------------------------------------------- */
 
 /**
@@ -520,6 +561,12 @@ typedef struct GFHostApi {
 
   /* always present: each command states the capabilities it needs */
   const GFHostCommandApi* command;
+
+  /* NULL unless "ui" was granted */
+  const GFHostScriptApi* script;
+
+  /* NULL unless "ui.custom" was granted */
+  const GFHostNativeWidgetApi* native;
 } GFHostApi;
 
 #ifdef __cplusplus

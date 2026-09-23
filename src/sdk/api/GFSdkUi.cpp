@@ -61,6 +61,12 @@ auto GFUIThemeColor(GFSDKContext* ctx, int role, void* widget) -> uint32_t {
   return g->theme_color(hctx, role, widget);
 }
 
+auto GFUILoadScript(GFSDKContext* ctx, const char* chunk_name,
+                    GFBufferView source) -> int {
+  GF_SDK_REQUIRE(ctx, script, "GFUILoadScript", -1);
+  return g->load(hctx, chunk_name, source);
+}
+
 auto GFUIThemeColorForRole(GFSDKContext* ctx, int role) -> uint32_t {
   GF_SDK_REQUIRE(ctx, ui, "GFUIThemeColorForRole", 0U);
   if (!GF_SDK_GROUP_HAS(g, theme_color_role)) return 0U;
@@ -124,4 +130,48 @@ auto GFUIHumanSize(int64_t bytes, char* out, size_t cap) -> int {
   memcpy(out, text.constData(), text.size());
   out[text.size()] = '\0';
   return static_cast<int>(text.size());
+}
+
+auto GFNativeWidgetRegister(GFSDKContext* ctx, const GFNativeWidgetSpec* spec)
+    -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeWidgetRegister", -1);
+  return g->register_widget(hctx, spec);
+}
+
+auto GFNativeWidgetUnregister(GFSDKContext* ctx, const char* name) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeWidgetUnregister", -1);
+  return g->unregister_widget(hctx, name);
+}
+
+auto GFNativeDocumentModified(GFSDKContext* ctx, uint64_t instance) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDocumentModified", -1);
+  return g->document_modified(hctx, instance);
+}
+
+auto GFNativeDocumentShowSource(GFSDKContext* ctx, uint64_t instance,
+                                int source) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDocumentShowSource", -1);
+  return g->document_show_source(hctx, instance, source);
+}
+
+auto GFNativeDocumentRequestCrypto(GFSDKContext* ctx, uint64_t instance,
+                                   uint32_t op) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDocumentRequestCrypto", -1);
+  return g->document_request_crypto(hctx, instance, op);
+}
+
+auto GFNativeDocumentOpsChanged(GFSDKContext* ctx, uint64_t instance) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDocumentOpsChanged", -1);
+  return g->document_ops_changed(hctx, instance);
+}
+
+auto GFNativeSettingsRestartNeeded(GFSDKContext* ctx, uint64_t instance,
+                                   int level) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeSettingsRestartNeeded", -1);
+  return g->settings_restart_needed(hctx, instance, level);
+}
+
+auto GFNativeDialogClose(GFSDKContext* ctx, uint64_t instance) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDialogClose", -1);
+  return g->dialog_close(hctx, instance);
 }

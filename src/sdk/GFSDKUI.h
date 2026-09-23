@@ -117,6 +117,42 @@ uint32_t GFUIThemeColorForRole(GFSDKContext* ctx, int role);
  */
 GFBufferRef GFUIDefaultUserFilePath(GFSDKContext* ctx);
 
+/**
+ * @brief Load one of the module's UI scripts, by name.
+ *
+ * The runtime does this itself for every script embedded with
+ * `gf_add_module(... LUA_SCRIPTS ...)`, after on_activate -- so the native
+ * widgets on_activate registered already exist when the script mounts them.
+ * Loading happens on the GUI thread, later; a script that fails is reported
+ * in the log and the Module Controller, and nothing it registered remains.
+ *
+ * @return 0 when the load was scheduled
+ */
+int GFUILoadScript(GFSDKContext* ctx, const char* chunk_name,
+                   GFBufferView source);
+
+/* --- native widgets (capability "ui.custom") -----------------------------
+ *
+ * A module's own QWidget, which its UI script mounts into a container the
+ * Host owns: a dialog, a settings page, a document view. The widget is the
+ * module's in every respect; the Host only ever hands back an instance
+ * number, and every call below is refused for an instance the calling
+ * module does not own, or of another kind. Most modules use the C++ classes
+ * in GFModuleNativeWidget.h instead of these.
+ */
+
+int GFNativeWidgetRegister(GFSDKContext* ctx, const GFNativeWidgetSpec* spec);
+int GFNativeWidgetUnregister(GFSDKContext* ctx, const char* name);
+int GFNativeDocumentModified(GFSDKContext* ctx, uint64_t instance);
+int GFNativeDocumentShowSource(GFSDKContext* ctx, uint64_t instance,
+                               int source);
+int GFNativeDocumentRequestCrypto(GFSDKContext* ctx, uint64_t instance,
+                                  uint32_t op);
+int GFNativeDocumentOpsChanged(GFSDKContext* ctx, uint64_t instance);
+int GFNativeSettingsRestartNeeded(GFSDKContext* ctx, uint64_t instance,
+                                  int level);
+int GFNativeDialogClose(GFSDKContext* ctx, uint64_t instance);
+
 /* --- extension points ----------------------------------------------------
  *
  * Each takes an append-only spec struct rather than positional arguments, so

@@ -347,6 +347,113 @@ typedef struct {
 
 /* --- translations -------------------------------------------------------- */
 
+/* --- native widgets (see GFSDKUI.h) ------------------------------------- */
+
+/** Which typed interface a native widget implements. */
+typedef enum GFNativeWidgetKind {
+  GF_NATIVE_DOCUMENT = 1, /**< the view for a document type */
+  GF_NATIVE_SETTINGS = 2, /**< a page in the Settings dialog */
+  GF_NATIVE_DIALOG = 3,   /**< a dialog the module opens */
+} GFNativeWidgetKind;
+
+/** The crypto operations a document may say apply to it, as bits. */
+#define GF_CRYPTO_OP_ENCRYPT (1u << 0)
+#define GF_CRYPTO_OP_DECRYPT (1u << 1)
+#define GF_CRYPTO_OP_SIGN (1u << 2)
+#define GF_CRYPTO_OP_VERIFY (1u << 3)
+#define GF_CRYPTO_OP_ENCRYPT_SIGN (1u << 4)
+#define GF_CRYPTO_OP_DECRYPT_VERIFY (1u << 5)
+
+/**
+ * @brief A document view: what the Host asks of it.
+ *
+ * Every call is on the GUI thread and names the instance; `user` is the
+ * spec's. Buffers handed in are borrowed; buffers returned are the Host's.
+ * Append-only.
+ */
+typedef struct GFDocumentWidgetOps {
+  size_t struct_size;
+  /** The document's bytes changed underneath the view; show them. */
+  void (*load)(void* user, uint64_t instance, GFBufferView bytes);
+  /** The document as the view now has it, or NULL for "unchanged". */
+  GFBufferRef (*save)(void* user, uint64_t instance);
+  /** 1 when the view holds edits the document does not have yet. */
+  int (*is_dirty)(void* user, uint64_t instance);
+  /** GF_CRYPTO_OP_* bits in @p out; 0 when the view has an opinion. */
+  int (*crypto_ops)(void* user, uint64_t instance, uint32_t* out);
+  /** A file name to offer when saving, or NULL. */
+  GFBufferRef (*suggested_file_name)(void* user, uint64_t instance);
+  /** A verification finished; @p json is the Host's result document. */
+  void (*apply_verification)(void* user, uint64_t instance, GFBufferView json);
+  /** Text to add to the body; 1 when taken. */
+  int (*append_text)(void* user, uint64_t instance, GFBufferView utf8);
+  /** A public key to attach; 1 when taken. */
+  int (*attach_public_key)(void* user, uint64_t instance, GFBufferView key,
+                           const char* name);
+  /** The editor font the user chose. */
+  void (*apply_font)(void* user, uint64_t instance, const char* family,
+                     int point_size);
+  /** Forget everything decrypted or parsed: the tab is closing. */
+  void (*wipe_content)(void* user, uint64_t instance);
+  /**
+   * The Host is about to write @p bytes to a file. The view may check and
+   * normalise them -- a mail's line endings, say -- and may ask the user.
+   * @return 0 and the bytes to write in @p out (NULL: write @p bytes as
+   *         they are), or 1 when the user cancelled
+   */
+  int (*prepare_save)(void* user, uint64_t instance, GFBufferView bytes,
+                      GFBufferRef* out);
+} GFDocumentWidgetOps;
+
+/** A settings page: what the Host asks of it. Append-only. */
+typedef struct GFSettingsWidgetOps {
+  size_t struct_size;
+  void (*load)(void* user, uint64_t instance);  /**< show stored values */
+  int (*apply)(void* user, uint64_t instance);  /**< store them; 0 on success */
+} GFSettingsWidgetOps;
+
+/** A dialog: what the Host asks of it. Append-only. */
+typedef struct GFDialogWidgetOps {
+  size_t struct_size;
+  /** It is being shown; @p args_cbor is what org.gpgfrontend.view.open had. */
+  void (*opened)(void* user, uint64_t instance, GFBufferView args_cbor);
+  /** The user is closing it; 1 to allow, 0 to keep it open. */
+  int (*close_requested)(void* user, uint64_t instance);
+} GFDialogWidgetOps;
+
+/**
+ * @brief A native widget, registered once, mounted by the module's script.
+ *
+ * The module creates the widget; the Host puts it in a container of its own
+ * and never hands the module anything back but the instance number. Exactly
+ * one ops table matches `kind`; the others are NULL.
+ */
+typedef struct GFNativeWidgetSpec {
+  size_t struct_size;
+  const char* name;  /**< the module's own name for it; "<module id>." is added */
+  int kind;          /**< GFNativeWidgetKind */
+  int multi_instance; /**< 1: a factory, one widget per mount instance */
+
+  /* presentation, untranslated source strings in the "GTrC" context */
+  const char* title;
+  const char* keywords; /**< comma-separated */
+  const char* suffix;   /**< documents: default file suffix, no dot */
+  const char* filter;   /**< documents: file dialog filter */
+  const char* icon;     /**< ":/..." */
+  int width;
+  int height;
+
+  void* user;
+  /** Build the widget for @p instance; a QWidget*, owned by the Host after. */
+  void* (*create)(void* user, uint64_t instance, GFBufferView args_cbor);
+  /** @p instance is gone; the module forgets it. */
+  void (*destroyed)(void* user, uint64_t instance);
+
+  const GFDocumentWidgetOps* document;
+  const GFSettingsWidgetOps* settings;
+  const GFDialogWidgetOps* dialog;
+} GFNativeWidgetSpec;
+
 /* --- commands (see GFSDKCommand.h) ------------------------------------- */
 
 /* --- status ---------------------------------------------------------------- */
