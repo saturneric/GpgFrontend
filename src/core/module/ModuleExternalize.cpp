@@ -69,7 +69,7 @@ struct ContractRow {
 /// build.id is PRESERVED as provenance only. It names the build tree that
 /// produced the binaries; the external verifier never compares it, and no
 /// external trust or compatibility decision reads it.
-constexpr std::array<ContractRow, 30> kContract{{
+constexpr std::array<ContractRow, 31> kContract{{
     {"schema_version", D::kPRESERVE},
     {"id", D::kPRESERVE},
     {"version", D::kPRESERVE},
@@ -78,6 +78,10 @@ constexpr std::array<ContractRow, 30> kContract{{
     {"security_epoch", D::kPRESERVE},
     {"capabilities", D::kPRESERVE},
     {"events", D::kPRESERVE},
+    // The command ids the module provides. Preserved: they are in the
+    // module's own namespace, which externalizing does not change, and the
+    // Host registry refuses any the manifest does not list.
+    {"commands", D::kPRESERVE},
     {"translation_context", D::kPRESERVE},
 
     {"build", D::kSTRUCTURE},
