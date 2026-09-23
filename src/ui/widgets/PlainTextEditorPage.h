@@ -70,6 +70,8 @@ class PlainTextEditorPage : public QWidget {
   explicit PlainTextEditorPage(QString file_path = {},
                                QWidget* parent = nullptr);
 
+  ~PlainTextEditorPage() override;
+
   /**
    * @brief Returns the full plain text currently shown in the editor.
    *
@@ -114,6 +116,35 @@ class PlainTextEditorPage : public QWidget {
    * @return true when the view was mounted.
    */
   auto MountPrimaryView(QWidget* view) -> bool;
+
+  /**
+   * @brief Mount a module's native document widget as the primary view.
+   *
+   * The typed form of MountPrimaryView(): the Host talks to the view only
+   * through its GFDocumentWidgetOps, keyed by @p instance, and never hands
+   * it the page's own editor -- switching to the raw source is the page's
+   * switcher, which the view may only ask for.
+   *
+   * @param widget_id the native widget registration to build one of
+   */
+  auto MountNativeView(const QString& widget_id) -> bool;
+
+  /// The native instance mounted here, or 0.
+  [[nodiscard]] auto NativeInstanceId() const -> quint64 {
+    return native_instance_;
+  }
+
+  /**
+   * @brief Let the mounted view check and normalise what is about to be
+   *        written to a file. It may ask the user.
+   *
+   * @return the bytes to write, or nullopt when the user cancelled
+   */
+  auto PrimaryViewPrepareSave(const QByteArray& bytes)
+      -> std::optional<QByteArray>;
+
+  /// The default file suffix a mounted native view declared, or empty.
+  [[nodiscard]] auto PrimaryViewDefaultSuffix() const -> QString;
 
   /**
    * @brief Offers an exported public key to the mounted view.
@@ -445,6 +476,11 @@ class PlainTextEditorPage : public QWidget {
   void slot_insert_text(QByteArray bytes_data);
 
  private:
+  friend class NativeDocumentPort;
+
+  quint64 native_instance_ = 0;  ///< the native view's instance, or 0
+  std::unique_ptr<class NativeDocumentPort> native_port_;
+
   QString full_file_path_;  ///< File path associated with this editor page.
   bool sign_marked_{};  ///< Whether OpenPGP signature metadata was formatted.
   bool read_done_ = false;  ///< Whether asynchronous file loading has finished.

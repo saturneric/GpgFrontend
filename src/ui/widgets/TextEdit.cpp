@@ -35,6 +35,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/function/FilePanelPath.h"
@@ -142,7 +143,10 @@ void TextEdit::SlotSave() {
   LOG_D() << "Saving file for tab type: " << type
           << ", page object name: " << page->objectName();
 
-  if (type == "text") {
+  // A plain text tab, or a document whose view is a module's native widget:
+  // either way the Host saves it, asking the view to prepare the bytes.
+  if (type == "text" || (CurPageTextEdit() != nullptr &&
+                         CurPageTextEdit()->NativeInstanceId() != 0)) {
     auto filename = CurPageTextEdit()->GetFilePath();
     filename.isEmpty() ? SlotSaveAs() : saveFile(filename);
     return;
@@ -178,13 +182,18 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
   // call site guarantees against.
   page->FlushPrimaryView();
 
+  // The view's last word on what is written: it may normalise the bytes, or
+  // ask the user whether to go ahead at all. A plain tab is written as is.
+  const auto bytes = page->PrimaryViewPrepareSave(page->DocumentBytes());
+  if (!bytes.has_value()) return false;  // the user cancelled
+
   QFile file(file_name);
   // Written as bytes, and without QIODevice::Text: the document knows which
   // line endings it came with and DocumentBytes() has already applied them.
   // Going through a text-mode stream would translate them a second time.
   if (file.open(QIODevice::WriteOnly)) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    file.write(page->DocumentBytes());
+    file.write(*bytes);
     QApplication::restoreOverrideCursor();
     QTextDocument* document = page->GetTextPage()->document();
 
@@ -198,6 +207,7 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     Module::TriggerEvent("DOCUMENT_SAVED",
                          {{"file_path", GFBuffer{file_name}},
                           {"tab_index", GFBuffer{QString::number(cur_index)}}});
+    Lua::LuaPlacements::Notify("document.saved", page);
 
     // The document has been saved. Rewrite recovery cache immediately so stale
     // unsaved content will not be restored on next startup.
@@ -248,8 +258,15 @@ auto TextEdit::SlotSaveAs() -> bool {
     }
   }
 
-  return saveFile(QFileDialog::getSaveFileName(
-      this, tr("Save File"), path, page->PrimaryViewFileTypeFilter()));
+  auto chosen = QFileDialog::getSaveFileName(this, tr("Save File"), path,
+                                             page->PrimaryViewFileTypeFilter());
+  // The document type's own suffix, when the user typed a bare name.
+  const auto suffix = page->PrimaryViewDefaultSuffix();
+  if (!chosen.isEmpty() && !suffix.isEmpty() &&
+      QFileInfo(chosen).suffix().isEmpty()) {
+    chosen += "." + suffix;
+  }
+  return saveFile(chosen);
 }
 
 void TextEdit::SlotCloseTab() { slot_remove_tab(tab_widget_->currentIndex()); }

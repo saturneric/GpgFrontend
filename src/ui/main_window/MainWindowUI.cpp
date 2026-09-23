@@ -43,6 +43,7 @@
 #include "ui/function/ImportKey.h"
 #include "ui/function/ProfileController.h"
 #include "ui/function/WindowGeometry.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/StatusIndicatorBar.h"
@@ -592,6 +593,16 @@ void MainWindow::create_menus() {
           {"view_menu", GFBuffer(RegisterQObject(view_menu_))},
           {"import_key_menu", GFBuffer(RegisterQObject(import_key_menu_))},
       });
+
+  // The anchors module UI scripts attach to. The menus are the Host's; a
+  // script only ever names the anchor.
+  const auto ctx = [this]() { return Lua::LuaPlacements::EditorContext(edit_); };
+  Lua::LuaPlacements::AttachMenu("main.menu.file.workspace", workspace_menu_,
+                                 ctx);
+  Lua::LuaPlacements::AttachMenu("main.menu.advanced", advance_menu_, ctx);
+  Lua::LuaPlacements::AttachMenu("main.menu.help", help_menu_, ctx);
+  Lua::LuaPlacements::AttachMenu("main.menu.import_key", import_key_menu_,
+                                 ctx);
 }
 
 void MainWindow::create_tool_bars() {

@@ -26,6 +26,8 @@
  *
  */
 
+#include "ui/lua/LuaPlacements.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 #include "PlainTextEditor.h"
 
 #include <QContextMenuEvent>
@@ -124,6 +126,20 @@ void PlainTextEditor::contextMenuEvent(QContextMenuEvent* event) {
   if (const auto extra_actions = actions(); !extra_actions.isEmpty()) {
     menu->addSeparator();
     menu->addActions(extra_actions);
+  }
+
+  // Module actions for this document, evaluated against it now.
+  QPointer<PlainTextEditorPage> page;
+  for (auto* p = parentWidget(); p != nullptr; p = p->parentWidget()) {
+    if (auto* candidate = qobject_cast<PlainTextEditorPage*>(p)) {
+      page = candidate;
+      break;
+    }
+  }
+  if (!page.isNull()) {
+    Lua::LuaPlacements::PopulateMenu("editor.context", menu, [page]() {
+      return Lua::LuaPlacements::PageContext(page.data());
+    });
   }
 
   // popup() rather than exec(): exec() would spin a nested event loop inside

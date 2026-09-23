@@ -32,6 +32,7 @@
 #include "sdk/GFSDKHostCommands.hpp"
 #include "ui/command/CommandRegistry.h"
 #include "ui/function/ImportKey.h"
+#include "ui/lua/LuaMounts.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -222,6 +223,17 @@ struct HostCommandHandlers {
     return Ok();
   }
 
+  /// A module's own dialog mount, and only its own.
+  static auto ViewOpen(const CommandContext& ctx, const host::ViewOpen::Args& a)
+      -> Outcome<Unit> {
+    if (window.isNull()) return NoWindow();
+    const auto status = Lua::OpenDialogMount(ctx.caller, a.view.id, {}, window);
+    if (status != GF_CMD_OK) {
+      return Outcome<Unit>::Failure(status, QStringLiteral("no such view"));
+    }
+    return Ok();
+  }
+
   static auto Message(const CommandContext&, const host::AppMessage::Args& a)
       -> Outcome<Unit> {
     if (window.isNull()) return NoWindow();
@@ -315,6 +327,8 @@ void MainWindow::register_host_commands() {
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Settings"),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow",
                         "Open settings dialog"));
+  reg(gf::cmd::Bind<host::ViewOpen, &H::ViewOpen>(),
+      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Open"));
   reg(gf::cmd::Bind<host::AppMessage, &H::Message>(),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Message"));
 }

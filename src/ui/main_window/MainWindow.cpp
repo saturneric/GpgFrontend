@@ -36,6 +36,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
@@ -252,6 +253,20 @@ void MainWindow::Init() noexcept {
                          {
                              {"main_window", GFBuffer(RegisterQObject(this))},
                          });
+    Lua::LuaPlacements::Notify("app.ui_ready", edit_->CurTextPage());
+
+    // The UI events a module's script may subscribe to. A closed set, fed
+    // from the Host's own signals; see LuaModuleRuntime::Events().
+    connect(edit_->TabWidget(), &TextEditTabWidget::currentChanged, this,
+            [this](int) {
+              Lua::LuaPlacements::Notify("document.activated",
+                                         edit_->CurTextPage());
+            });
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseRefreshDone, this, [this]() {
+              Lua::LuaPlacements::Notify("key_database.refreshed",
+                                         edit_->CurTextPage());
+            });
   } catch (...) {
     LOG_W() << tr("A critical error occurred while loading GpgFrontend.");
     QMessageBox::critical(

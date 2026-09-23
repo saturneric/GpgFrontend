@@ -26,6 +26,8 @@
  *
  */
 
+#include "sdk/GFSDKTypes.h"
+#include "ui/lua/NativeInstances.h"
 #include "PlainTextEditorPage.h"
 
 #include <QActionGroup>
@@ -495,12 +497,110 @@ void PlainTextEditorPage::Clear() {
   set_editor_modified(false);
 }
 
+namespace {
+
+/// The crypto operations by the names the menu and module events use, and
+/// by the bits a native view answers with.
+constexpr std::array<std::pair<const char*, uint32_t>, 6> kCryptoOps{{
+    {"encrypt", GF_CRYPTO_OP_ENCRYPT},
+    {"decrypt", GF_CRYPTO_OP_DECRYPT},
+    {"sign", GF_CRYPTO_OP_SIGN},
+    {"verify", GF_CRYPTO_OP_VERIFY},
+    {"encrypt_sign", GF_CRYPTO_OP_ENCRYPT_SIGN},
+    {"decrypt_verify", GF_CRYPTO_OP_DECRYPT_VERIFY},
+}};
+
+}  // namespace
+
+/**
+ * @brief How a native document view's notifications reach its page.
+ *
+ * The instance registry has already checked they come from the module that
+ * owns the view; this only turns each into what the page does anyway.
+ */
+class NativeDocumentPort : public NativeContainer {
+ public:
+  explicit NativeDocumentPort(PlainTextEditorPage* page) : page_(page) {}
+
+  void OnModified() override {
+    if (!page_.isNull()) page_->slot_primary_view_modified();
+  }
+  void OnShowSource(bool source) override {
+    if (!page_.isNull()) page_->show_primary_view(!source);
+  }
+  void OnRequestCrypto(uint32_t op) override {
+    if (page_.isNull()) return;
+    for (const auto& [name, bit] : kCryptoOps) {
+      if (bit == op) {
+        emit page_->SignalCryptoOperationRequested(QString::fromLatin1(name));
+      }
+    }
+  }
+  void OnOpsChanged() override {
+    if (!page_.isNull()) emit page_->SignalCryptoOperationsChanged();
+  }
+
+ private:
+  QPointer<PlainTextEditorPage> page_;
+};
+
+PlainTextEditorPage::~PlainTextEditorPage() {
+  // The module forgets the instance before its widget, a child of this page,
+  // is destroyed with it.
+  if (native_instance_ != 0) NativeInstances::Instance().Destroy(native_instance_);
+}
+
+auto PlainTextEditorPage::MountNativeView(const QString& widget_id) -> bool {
+  if (native_instance_ != 0 || primary_view_ != nullptr) return false;
+  // The port exists before the instance: the widget may notify from its
+  // constructor, and must find somewhere to go.
+  native_port_ = std::make_unique<NativeDocumentPort>(this);
+  const auto instance =
+      NativeInstances::Instance().Create(widget_id, {}, native_port_.get());
+  if (!instance.has_value() || instance->kind != NativeWidgetKind::kDOCUMENT) {
+    if (instance.has_value()) NativeInstances::Instance().Destroy(instance->id);
+    native_port_.reset();
+    return false;
+  }
+  native_instance_ = instance->id;
+  if (!MountPrimaryView(instance->widget)) {
+    NativeInstances::Instance().Destroy(native_instance_);
+    native_instance_ = 0;
+    native_port_.reset();
+    return false;
+  }
+  return true;
+}
+
+auto PlainTextEditorPage::PrimaryViewPrepareSave(const QByteArray& bytes)
+    -> std::optional<QByteArray> {
+  if (native_instance_ == 0) return bytes;
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  if (!e.has_value() || !e->document.prepare_save) return bytes;
+  const auto answer = e->document.prepare_save(native_instance_, bytes);
+  if (!answer.has_value()) return std::nullopt;  // the user cancelled
+  return answer->has_value() ? **answer : bytes;
+}
+
+auto PlainTextEditorPage::PrimaryViewDefaultSuffix() const -> QString {
+  if (native_instance_ == 0) return {};
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  return e.has_value() ? e->suffix : QString();
+}
+
 void PlainTextEditorPage::WipeContent() {
   // The primary view holds its own copy of whatever it parsed out of the
   // document -- a decrypted body, attachment buffers -- and clearing the
   // document alone would leave all of that in memory. Ask it first, while it
   // still exists, then clear the document.
-  invoke_primary_view("WipeContent");
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (e.has_value() && e->document.wipe_content) {
+      e->document.wipe_content(native_instance_);
+    }
+  } else {
+    invoke_primary_view("WipeContent");
+  }
   Clear();
 }
 
@@ -538,7 +638,10 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   // rather than behind a switcher the page puts above it. It is handed the
   // real editor, not a copy: the document stays the one canonical content of
   // the tab, and editing the raw source keeps working exactly as before.
+  //
+  // Never for a native view: the Host's editor does not cross to a module.
   source_view_adopted_ =
+      native_instance_ == 0 &&
       view->metaObject()->indexOfMethod("AdoptSourceView(QWidget*)") >= 0;
 
   const int editor_index = ui_->verticalLayout->indexOf(ui_->textPage);
@@ -581,7 +684,8 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   // edit happens, which is what makes closing the tab right afterwards prompt
   // to save. Reserializing the document is deferred until something actually
   // needs to read it.
-  if (view->metaObject()->indexOfSignal("SignalContentModified()") >= 0) {
+  if (native_instance_ == 0 &&
+      view->metaObject()->indexOfSignal("SignalContentModified()") >= 0) {
     connect(view, SIGNAL(SignalContentModified()), this,
             SLOT(slot_primary_view_modified()));
   }
@@ -590,7 +694,8 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   // a Decrypt button on an encrypted mail, say. It only names the operation;
   // running it stays with the host, so there is exactly one implementation of
   // each and no way for the two entry points to diverge.
-  if (view->metaObject()->indexOfSignal(
+  if (native_instance_ == 0 &&
+      view->metaObject()->indexOfSignal(
           "SignalCryptoOperationRequested(QString)") >= 0) {
     connect(view, SIGNAL(SignalCryptoOperationRequested(QString)), this,
             SLOT(slot_primary_view_crypto_operation_requested(QString)));
@@ -598,8 +703,9 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
 
   // A view may also say which of those operations mean anything for what it
   // currently holds, and tell us when that changes.
-  if (view->metaObject()->indexOfSignal("SignalCryptoOperationsChanged()") >=
-      0) {
+  if (native_instance_ == 0 &&
+      view->metaObject()->indexOfSignal("SignalCryptoOperationsChanged()") >=
+          0) {
     connect(view, SIGNAL(SignalCryptoOperationsChanged()), this,
             SIGNAL(SignalCryptoOperationsChanged()));
   }
@@ -628,6 +734,11 @@ auto PlainTextEditorPage::AttachPublicKeyToPrimaryView(const QByteArray &key,
                                                        const QString &name)
     -> int {
   if (primary_view_.isNull()) return 0;
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.attach_public_key) return 0;
+    return e->document.attach_public_key(native_instance_, key, name) ? 1 : 0;
+  }
 
   auto *view = primary_view_.data();
   if (view->metaObject()->indexOfMethod("AttachPublicKey(QByteArray,QString)") <
@@ -646,6 +757,18 @@ auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
     -> QStringList {
   has_opinion = false;
   if (primary_view_.isNull()) return {};
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.crypto_ops) return {};
+    const auto bits = e->document.crypto_ops(native_instance_);
+    if (!bits.has_value()) return {};
+    has_opinion = true;
+    QStringList names;
+    for (const auto& [name, bit] : kCryptoOps) {
+      if ((*bits & bit) != 0) names << QString::fromLatin1(name);
+    }
+    return names;
+  }
 
   auto *view = primary_view_.data();
   if (view->metaObject()->indexOfMethod("AvailableCryptoOperations()") < 0) {
@@ -665,6 +788,11 @@ auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
 
 auto PlainTextEditorPage::PrimaryViewSuggestedFileName() const -> QString {
   if (primary_view_.isNull()) return {};
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.suggested_file_name) return {};
+    return e->document.suggested_file_name(native_instance_);
+  }
 
   auto *view = primary_view_.data();
   if (view->metaObject()->indexOfMethod("SuggestedFileName()") < 0) return {};
@@ -680,6 +808,11 @@ auto PlainTextEditorPage::PrimaryViewSuggestedFileName() const -> QString {
 
 auto PlainTextEditorPage::PrimaryViewFileTypeFilter() const -> QString {
   if (primary_view_.isNull()) return {};
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || e->filter.isEmpty()) return {};
+    return QCoreApplication::translate("GTrC", e->filter.toUtf8().constData());
+  }
 
   auto *view = primary_view_.data();
   if (view->metaObject()->indexOfMethod("FileTypeFilter()") < 0) return {};
@@ -694,6 +827,11 @@ auto PlainTextEditorPage::PrimaryViewFileTypeFilter() const -> QString {
 
 auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {
   if (primary_view_.isNull()) return 0;
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.append_text) return 0;
+    return e->document.append_text(native_instance_, text) ? 1 : 0;
+  }
 
   auto *view = primary_view_.data();
   if (view->metaObject()->indexOfMethod("AppendBodyText(QString)") < 0) {
@@ -709,6 +847,12 @@ auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {
 auto PlainTextEditorPage::ApplyVerificationToPrimaryView(
     const QByteArray &payload) -> bool {
   if (primary_view_.isNull()) return false;
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.apply_verification) return false;
+    e->document.apply_verification(native_instance_, payload);
+    return true;
+  }
 
   // Probed rather than assumed: the contract is additive, so a view that does
   // not declare this member simply does not take part.
@@ -736,15 +880,22 @@ void PlainTextEditorPage::FlushPrimaryView() {
   if (primary_view_.isNull() || primary_view_syncing_) return;
   if (!PrimaryViewIsDirty()) return;
 
-  const auto *meta = primary_view_->metaObject();
-  if (meta->indexOfMethod("SaveToSource()") < 0) return;
-
   QByteArray bytes;
-  if (!QMetaObject::invokeMethod(primary_view_.data(), "SaveToSource",
-                                 Qt::DirectConnection,
-                                 Q_RETURN_ARG(QByteArray, bytes))) {
-    LOG_W() << "primary view SaveToSource failed";
-    return;
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.save) return;
+    const auto saved = e->document.save(native_instance_);
+    if (!saved.has_value()) return;
+    bytes = *saved;
+  } else {
+    const auto *meta = primary_view_->metaObject();
+    if (meta->indexOfMethod("SaveToSource()") < 0) return;
+    if (!QMetaObject::invokeMethod(primary_view_.data(), "SaveToSource",
+                                   Qt::DirectConnection,
+                                   Q_RETURN_ARG(QByteArray, bytes))) {
+      LOG_W() << "primary view SaveToSource failed";
+      return;
+    }
   }
 
   // The view has just told us what the message's canonical form is. A message
@@ -772,6 +923,11 @@ void PlainTextEditorPage::FlushPrimaryView() {
 
 auto PlainTextEditorPage::PrimaryViewIsDirty() const -> bool {
   if (primary_view_.isNull()) return false;
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    return e.has_value() && e->document.is_dirty &&
+           e->document.is_dirty(native_instance_);
+  }
 
   const auto *meta = primary_view_->metaObject();
   if (meta->indexOfMethod("IsDirty()") < 0) return false;
@@ -784,11 +940,21 @@ auto PlainTextEditorPage::PrimaryViewIsDirty() const -> bool {
 
 void PlainTextEditorPage::ReloadPrimaryView() {
   if (primary_view_.isNull()) return;
+  if (primary_view_syncing_) return;
+
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (!e.has_value() || !e->document.load) return;
+    const auto bytes = DocumentBytes();
+    primary_view_syncing_ = true;
+    e->document.load(native_instance_, bytes);
+    primary_view_syncing_ = false;
+    source_generation_ = ui_->textPage->document()->revision();
+    return;
+  }
 
   const auto *meta = primary_view_->metaObject();
   if (meta->indexOfMethod("LoadFromSource(QByteArray)") < 0) return;
-
-  if (primary_view_syncing_) return;
 
   const auto bytes = DocumentBytes();
 
@@ -905,8 +1071,15 @@ void PlainTextEditorPage::ApplyAppearanceSettings() {
   // to do nothing for exactly the tabs that have a view. Only the view knows
   // which of its widgets are editors rather than chrome, so it is asked
   // rather than restyled from here.
-  if (!primary_view_.isNull() && primary_view_->metaObject()->indexOfMethod(
-                                     "ApplyEditorFont(QFont)") >= 0) {
+  if (native_instance_ != 0) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    if (e.has_value() && e->document.apply_font) {
+      e->document.apply_font(native_instance_, editor_font.family(),
+                             editor_font.pointSize());
+    }
+  } else if (!primary_view_.isNull() &&
+             primary_view_->metaObject()->indexOfMethod(
+                 "ApplyEditorFont(QFont)") >= 0) {
     QMetaObject::invokeMethod(primary_view_.data(), "ApplyEditorFont",
                               Qt::DirectConnection, Q_ARG(QFont, editor_font));
   }

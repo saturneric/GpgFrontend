@@ -37,6 +37,9 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "ui/lua/LuaHost.h"
+#include "ui/lua/NativeWidgetRegistry.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/FilePanelPath.h"
@@ -350,6 +353,38 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
     return;
   }
 
+  // A document type a module's UI script mounted an editor for: the Host
+  // opens the file itself, in a tab of that type, and the module's view
+  // loads it like any other document.
+  const auto suffix = file_info.suffix().toLower();
+  for (const auto& m : Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
+    if (!m.info.extensions.contains(suffix)) continue;
+    if (const int existing = find_tab_by_file_path(path); existing >= 0) {
+      setCurrentIndex(existing);
+      return;
+    }
+    QString error_message;
+    if (!can_open_as_text_file(file_info, &error_message)) {
+      QMessageBox::warning(this, tr("File Open Error"), error_message);
+      return;
+    }
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+      QMessageBox::warning(this, tr("File Open Error"), file.errorString());
+      return;
+    }
+    const auto entry = NativeWidgetRegistry::Instance().Find(m.info.widget);
+    const auto icon = entry.has_value() ? entry->icon : QString();
+    auto* page = qobject_cast<PlainTextEditorPage*>(
+        SlotNewTab(m.info.document_type, stripped_name(path), QIcon(), icon));
+    if (page == nullptr) return;
+    page->SetContentFromBytes(file.readAll());
+    page->SetFilePath(path);
+    page->NotifyFileSaved();
+    setTabToolTip(indexOf(page), path);
+    return;
+  }
+
   auto event_id = FileExtensionEventId(file_info.suffix(), "OPEN_FILE");
   if (!event_id.isEmpty() && Module::IsEventListening(event_id)) {
     Module::TriggerEvent(event_id, {{"file_path", GFBuffer{path}}}, {});
@@ -468,6 +503,17 @@ auto TextEditTabWidget::SlotNewTab(const QString& type, const QString& title,
 void TextEditTabWidget::mount_module_view(PlainTextEditorPage* page,
                                           const QString& type) {
   if (page == nullptr) return;
+
+  // A module UI script's editor mount for this document type: the typed
+  // native view, in the page's own container.
+  for (const auto& m : Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
+    if (m.info.document_type.compare(type, Qt::CaseInsensitive) != 0) continue;
+    if (!page->MountNativeView(m.info.widget)) {
+      LOG_W() << "the native view for document type" << type
+              << "could not be mounted";
+    }
+    return;
+  }
 
   // A tab type no module has claimed stays an ordinary plain text tab, which
   // is what every tab type was before module views existed.
@@ -1056,6 +1102,14 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
   page->setProperty("type", "text");
   page->setProperty("base_title", clean_title);
   page->setProperty("icon_name", effective_icon_name);
+
+  QPointer<PlainTextEditorPage> guarded(page);
+  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
+          page, [guarded](bool) {
+            if (!guarded.isNull()) {
+              Lua::LuaPlacements::Notify("document.state_changed", guarded);
+            }
+          });
 
   const int index = addTab(page, effective_icon, clean_title);
   setCurrentIndex(index);
