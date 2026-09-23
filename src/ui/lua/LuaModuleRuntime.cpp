@@ -286,6 +286,24 @@ auto LuaModuleRuntime::CheckUpdateResult(const ActionEntry& action,
     }
   }
 
+  // Arguments are what the command would run with, so an action that
+  // cannot run -- hidden, or disabled -- needs none, and a wrong one is not
+  // an error until it could matter.
+  if (!st.visible || !st.enabled) {
+    if (args_node >= 0) {
+      QString ignored;
+      std::vector<gf::cmd::Blob> unused;
+      const auto resolve = [this](const Handle& h,
+                                  std::vector<gf::cmd::Blob>* b,
+                                  QString* e) { return Resolve(h, b, e); };
+      if (!NodeToCbor(tree, args_node, args_schema, resolve, &unused,
+                      &ignored)
+               .has_value()) {
+        return fail(QStringLiteral("args: ") + ignored);
+      }
+    }
+    return st;
+  }
   if (args_node < 0 &&
       args_schema.value(QStringLiteral("fields")).toArray().isEmpty()) {
     return st;  // a command that takes nothing

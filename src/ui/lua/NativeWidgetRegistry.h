@@ -38,6 +38,36 @@ namespace GpgFrontend::UI {
 /// The three typed interfaces a native widget may implement.
 enum class NativeWidgetKind { kDOCUMENT = 1, kSETTINGS = 2, kDIALOG = 3 };
 
+/// What the Host may ask of a document view. Adapted from the C ops table by
+/// the SDK host layer, which enters module code properly for each call.
+struct GF_UI_EXPORT NativeDocumentOps {
+  std::function<void(quint64, const QByteArray&)> load;
+  std::function<std::optional<QByteArray>(quint64)> save;  ///< nullopt: same
+  std::function<bool(quint64)> is_dirty;
+  std::function<std::optional<uint32_t>(quint64)> crypto_ops;
+  std::function<QString(quint64)> suggested_file_name;
+  std::function<void(quint64, const QByteArray&)> apply_verification;
+  std::function<bool(quint64, const QString&)> append_text;
+  std::function<bool(quint64, const QByteArray&, const QString&)>
+      attach_public_key;
+  std::function<void(quint64, const QString&, int)> apply_font;
+  std::function<void(quint64)> wipe_content;
+  /// nullopt: the user cancelled. Inner nullopt: write the bytes unchanged.
+  std::function<std::optional<std::optional<QByteArray>>(quint64,
+                                                         const QByteArray&)>
+      prepare_save;
+};
+
+struct GF_UI_EXPORT NativeSettingsOps {
+  std::function<void(quint64)> load;
+  std::function<bool(quint64)> apply;
+};
+
+struct GF_UI_EXPORT NativeDialogOps {
+  std::function<void(quint64, const QCborMap&)> opened;
+  std::function<bool(quint64)> close_requested;
+};
+
 /**
  * @brief A widget a module registered from C++, for its UI script to mount.
  *
@@ -67,9 +97,10 @@ struct GF_UI_EXPORT NativeWidgetEntry {
   /// The instance is going away; the module forgets it. Optional.
   std::function<void(quint64 instance)> destroyed;
 
-  /// Typed operations, by kind. Filled by the SDK adapter; see
-  /// NativeWidgetOps.h. Opaque here so the registry itself stays kind-agnostic.
-  std::shared_ptr<void> ops;
+  /// The typed interface matching `kind`; the other two stay empty.
+  NativeDocumentOps document;
+  NativeSettingsOps settings;
+  NativeDialogOps dialog;
 };
 
 class GF_UI_EXPORT NativeWidgetRegistry {
