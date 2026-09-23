@@ -56,7 +56,7 @@ constexpr auto kExtend = ModuleEventSemantics::kEXTEND;
 auto Catalog() -> const QList<ModuleEventSpec>& {
   static const QList<ModuleEventSpec> kCatalog = {
       // ---- lifecycle, core ------------------------------------------------
-      {"APPLICATION_LOADED", kCore, kObserve, GF_EVENT_GUI_HANDLES,
+      {"APPLICATION_LOADED", kCore, kObserve, 0,
        "the application has finished starting; the main window exists"},
       {"KEY_DATABASE_REFRESH_DONE", kCore, kObserve, 0,
        "the key database finished reloading"},
@@ -95,25 +95,12 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
        "a document's content was modified"},
       {"DOCUMENT_SAVED", kUi, kObserve, 0, "a document was written to a file"},
 
-      // ---- gui extension points -------------------------------------------
+      // ---- no gui extension points ---------------------------------------
       //
-      // The reply is not read; the module acts on a BORROWED host object
-      // handed to it in the parameters. That still makes it an extension
-      // point -- what it does to that menu is visible to the user -- so the
-      // semantics say kEXTEND while REPLY_CONSUMED stays clear. The two
-      // facts are separate and were previously both unwritten.
-      {"MAINWINDOW_MENU_MOUNTED", kUi, kExtend, GF_EVENT_GUI_HANDLES,
-       "the main window's menus exist and may be extended"},
-      {"KEY_PAIR_OPERA_MENU_CREATED", kUi, kExtend, GF_EVENT_GUI_HANDLES,
-       "a key's operations menu may be extended"},
-      {"ABOUT_DIALOG_TABS_MOUNTED", kUi, kExtend, GF_EVENT_GUI_HANDLES,
-       "the about dialog's tab widget may gain tabs"},
-      {"NETWORK_SETTINGS_TAB_UI_CREATED", kUi, kExtend, GF_EVENT_GUI_HANDLES,
-       "the network settings tab may gain controls"},
-      {"NETWORK_SETTINGS_TAB_LOAD_SETTINGS", kUi, kObserve,
-       GF_EVENT_GUI_HANDLES, "load your controls from the settings store"},
-      {"NETWORK_SETTINGS_TAB_APPLY_SETTINGS", kUi, kObserve,
-       GF_EVENT_GUI_HANDLES, "write your controls back to the settings store"},
+      // The events that handed a module the Host's own menus, layouts, tabs
+      // and settings pages are gone, and nothing replaces them here: a
+      // module's UI is its script (anchors, actions, mounts) and its own
+      // native widgets, and no Host object crosses to a module at all.
 
       // ---- key server requests --------------------------------------------
       {"REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT", kUi, kExtend,
@@ -123,7 +110,7 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
        GF_EVENT_REPLY_CONSUMED | GF_EVENT_DEFERRABLE,
        "fetch a key by key id; the reply's key_data is imported"},
       {"REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT", kUi, kObserve,
-       GF_EVENT_GUI_HANDLES | GF_EVENT_DEFERRABLE,
+       GF_EVENT_DEFERRABLE,
        "open your own key search UI; the reply is not read"},
       {"REQUEST_UPLOAD_PUBLIC_KEY", kUi, kExtend,
        GF_EVENT_REPLY_CONSUMED | GF_EVENT_DEFERRABLE,
@@ -131,19 +118,17 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
       {"REQUEST_GATHERING_ALL_GNUPG_INFO", kCore, kObserve, GF_EVENT_DEFERRABLE,
        "collect GnuPG environment information into the register table"},
 
-      // ---- generated families ---------------------------------------------
+      // ---- generated family -----------------------------------------------
       //
-      // Both are built from a runtime value -- a tab type, a file extension
-      // prefix -- so they cannot be listed. The pattern is what a module
-      // subscribes against and what the Host checks a subscription with.
+      // Built from a runtime value -- a document type -- so it cannot be
+      // listed. The pattern is what a module subscribes against and what the
+      // Host checks a subscription with. Data only: the document's bytes in,
+      // the result's bytes back. Opening and saving a module's document type
+      // is the Host's own work now (an editor mount, and its `extensions`).
       {"EDIT_TAB_TYPE_<TYPE>_OP_<OP>", kUi, kExtend,
-       GF_EVENT_PATTERN | GF_EVENT_REPLY_CONSUMED | GF_EVENT_DEFERRABLE |
-           GF_EVENT_GUI_HANDLES,
-       "a crypto or save operation on a module-owned tab type; the reply "
-       "replaces the document"},
-      {"FILE_EXT_<PREFIX>_OP_<OP>", kUi, kExtend,
-       GF_EVENT_PATTERN | GF_EVENT_DEFERRABLE,
-       "the module takes over opening a file of its registered extension"},
+       GF_EVENT_PATTERN | GF_EVENT_REPLY_CONSUMED | GF_EVENT_DEFERRABLE,
+       "a crypto operation on a module's document type; the reply replaces "
+       "the document"},
   };
   return kCatalog;
 }

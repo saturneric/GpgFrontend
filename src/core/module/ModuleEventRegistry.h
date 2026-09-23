@@ -89,9 +89,8 @@ enum class ModuleEventLayer { kCORE, kUI };
 /// thread. Not universal: a trigger whose caller has already moved on cannot
 /// use a late answer.
 #define GF_EVENT_DEFERRABLE (1U << 2)
-/// The event carries handles to Host GUI objects the module may mutate. The
-/// objects are BORROWED; the Host owns them and outlives the call.
-#define GF_EVENT_GUI_HANDLES (1U << 3)
+// Bit 3 was GF_EVENT_GUI_HANDLES: an event that lent a module Host GUI
+// objects. No event does any more, and the bit is not reused.
 
 /**
  * @brief One event's contract.
