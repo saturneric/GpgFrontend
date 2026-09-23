@@ -135,19 +135,6 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   setLayout(m_vbox);
 
-  Module::TriggerEvent(
-      "KEY_PAIR_OPERA_MENU_CREATED",
-      {
-          {"tab", GFBuffer(RegisterQObject(this))},
-          {"opera_layout", GFBuffer(RegisterQObject(vbox_p_k))},
-          {"channel", GFBuffer(QString::number(current_gpg_context_channel_))},
-          {"key_id", GFBuffer(m_key_->ID())},
-          {"fpr", GFBuffer(m_key_->Fingerprint())},
-          {"has_master_key", GFBuffer(QString::number(
-                                 static_cast<int>(m_key_->IsHasMasterKey())))},
-          {"is_private_key",
-           GFBuffer(QString::number(static_cast<int>(m_key_->IsPrivateKey())))},
-      });
 
   // set up signal
   connect(this, &KeyPairOperaTab::SignalKeyDatabaseRefresh,

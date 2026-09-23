@@ -208,11 +208,6 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     tab_widget->addTab(new RpgpEngineTab(tab_widget), tr("Rust Engine"));
   }
 
-  Module::TriggerEvent(
-      "ABOUT_DIALOG_TABS_MOUNTED",
-      {
-          {"tab_widget", GFBuffer(RegisterQObject(tab_widget))},
-      });
 
   int default_index = 0;
   for (int i = 0; i < tab_widget->count(); ++i) {

@@ -86,16 +86,6 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
     ui_->capabilityGroupBox->setHidden(true);
   }
 
-  Module::TriggerEvent(
-      "NETWORK_SETTINGS_TAB_UI_CREATED",
-      {
-          {"network_settings_tab", GFBuffer(RegisterQObject(this))},
-          {"proxy_group_box", GFBuffer(RegisterQObject(ui_->proxyGroupBox))},
-          {"capability_group_box",
-           GFBuffer(RegisterQObject(ui_->capabilityGroupBox))},
-          {"operations_group_box",
-           GFBuffer(RegisterQObject(ui_->operationsGroupBox))},
-      });
 
   SetSettings();
 }
@@ -134,11 +124,6 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
 
-  Module::TriggerEvent(
-      "NETWORK_SETTINGS_TAB_LOAD_SETTINGS",
-      {
-          {"network_settings_tab", GFBuffer(RegisterQObject(this))},
-      });
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
@@ -156,11 +141,6 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
 
   apply_proxy_settings();
 
-  Module::TriggerEvent(
-      "NETWORK_SETTINGS_TAB_APPLY_SETTINGS",
-      {
-          {"network_settings_tab", GFBuffer(RegisterQObject(this))},
-      });
 }
 
 void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {

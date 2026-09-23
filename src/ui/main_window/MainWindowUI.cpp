@@ -578,21 +578,6 @@ void MainWindow::create_menus() {
 
   help_menu_->addAction(about_act_);
 
-  Module::TriggerEvent(
-      "MAINWINDOW_MENU_MOUNTED",
-      {
-          {"main_window", GFBuffer(RegisterQObject(this))},
-          {"file_menu", GFBuffer(RegisterQObject(file_menu_))},
-          {"file_open_menu", GFBuffer(RegisterQObject(open_menu_))},
-          {"file_workspace_menu", GFBuffer(RegisterQObject(workspace_menu_))},
-          {"edit_menu", GFBuffer(RegisterQObject(edit_menu_))},
-          {"crypt_menu", GFBuffer(RegisterQObject(crypt_menu_))},
-          {"key_menu", GFBuffer(RegisterQObject(key_menu_))},
-          {"advance_menu", GFBuffer(RegisterQObject(advance_menu_))},
-          {"help_menu", GFBuffer(RegisterQObject(help_menu_))},
-          {"view_menu", GFBuffer(RegisterQObject(view_menu_))},
-          {"import_key_menu", GFBuffer(RegisterQObject(import_key_menu_))},
-      });
 
   // The anchors module UI scripts attach to. The menus are the Host's; a
   // script only ever names the anchor.
