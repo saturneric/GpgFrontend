@@ -56,6 +56,8 @@ struct GF_UI_EXPORT NativeDocumentOps {
   std::function<std::optional<std::optional<QByteArray>>(quint64,
                                                          const QByteArray&)>
       prepare_save;
+  /// nullopt: the source may be unlocked; otherwise why it may not.
+  std::function<std::optional<QString>(quint64)> source_lock;
 };
 
 struct GF_UI_EXPORT NativeSettingsOps {

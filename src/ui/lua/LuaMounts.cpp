@@ -69,6 +69,9 @@ NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
       resize(entry->width, entry->height);
     }
   }
+  // A module may build its widget as a QDialog; inside the Host's frame it
+  // is an ordinary child, not a second window.
+  instance->widget->setWindowFlags(Qt::Widget);
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(instance->widget);
@@ -117,6 +120,7 @@ NativeSettingsPage::NativeSettingsPage(const QString& widget_id,
     return;
   }
   instance_ = instance->id;
+  instance->widget->setWindowFlags(Qt::Widget);
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(instance->widget);

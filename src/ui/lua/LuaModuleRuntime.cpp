@@ -312,8 +312,15 @@ auto LuaModuleRuntime::CheckUpdateResult(const ActionEntry& action,
   const auto resolve = [this](const Handle& h,
                               std::vector<gf::cmd::Blob>* blobs,
                               QString* err) { return Resolve(h, blobs, err); };
+  // No `args` reads as an empty table: a command whose fields are all
+  // optional runs, and one with a required field says which is missing.
+  LuaTree empty;
+  empty.push_back(LuaNode{});
+  empty[0].type = LuaNode::Type::kTABLE;
   const auto args =
-      NodeToCbor(tree, args_node, args_schema, resolve, &st.blobs, &error);
+      args_node >= 0
+          ? NodeToCbor(tree, args_node, args_schema, resolve, &st.blobs, &error)
+          : NodeToCbor(empty, 0, args_schema, resolve, &st.blobs, &error);
   if (!args.has_value()) return fail(QStringLiteral("args: ") + error);
   st.args = args->toMap();
   return st;

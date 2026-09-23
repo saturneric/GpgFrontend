@@ -49,7 +49,13 @@ auto LuaHost::Load(const QString& module, uint32_t caps,
             &LuaHost::SignalChanged);
     runtimes_.insert(module, rt);
   }
-  return rt->Load(source, chunk, error);
+  const bool ok = rt->Load(source, chunk, error);
+  if (ok) {
+    LOG_D() << "module" << module << "UI script" << chunk << "loaded:"
+            << rt->Actions().size() << "action(s)," << rt->Mounts().size()
+            << "mount(s)," << rt->Subscriptions().size() << "subscription(s)";
+  }
+  return ok;
 }
 
 auto LuaHost::Runtime(const QString& module) const -> LuaModuleRuntime* {
