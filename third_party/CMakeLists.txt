@@ -206,3 +206,36 @@ add_subdirectory(corrosion)
 
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
 corrosion_import_crate(MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust/Cargo.toml)
+# ---------------------------------------------------------------------------
+# gf_lua -- the Lua interpreter behind module UI scripts. Host-only.
+# ---------------------------------------------------------------------------
+#
+# Compiled as C, with Lua's own setjmp/longjmp error handling. The Host never
+# lets a Lua error jump across a C++ frame that owns an object: every entry
+# into Lua is a lua_pcall, and every binding raises only from a frame with
+# nothing to destroy (src/ui/lua/LuaBinding.h). That invariant is checked by
+# tests, and holds the same way on every compiler -- which building Lua as C++
+# and relying on exceptions to unwind through it would not.
+#
+# Only the libraries the sandbox opens are built. There is no io, os,
+# package, debug or coroutine library in the binary at all, so no mistake in
+# the sandbox's setup could open one.
+set(GF_LUA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lua")
+set(GF_LUA_SOURCES
+  lapi.c lcode.c lctype.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c lmem.c
+  lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c lundump.c
+  lvm.c lzio.c
+  lauxlib.c lbaselib.c lmathlib.c lstrlib.c ltablib.c lutf8lib.c)
+list(TRANSFORM GF_LUA_SOURCES PREPEND "${GF_LUA_DIR}/")
+
+add_library(gf_lua STATIC ${GF_LUA_SOURCES})
+set_source_files_properties(${GF_LUA_SOURCES} PROPERTIES LANGUAGE C)
+set_target_properties(gf_lua PROPERTIES
+  C_STANDARD 99
+  POSITION_INDEPENDENT_CODE ON   # linked into libgf_ui
+  C_VISIBILITY_PRESET hidden     # nothing of Lua is exported from the Host
+  AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
+target_include_directories(gf_lua PUBLIC "${GF_LUA_DIR}")
+if(UNIX)
+  target_link_libraries(gf_lua PRIVATE m)
+endif()
