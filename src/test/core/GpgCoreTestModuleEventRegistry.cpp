@@ -28,7 +28,10 @@
 
 #include <gtest/gtest.h>
 
+#include <QDirIterator>
+#include <QFile>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QSet>
 
 #include "GpgFrontendTest.h"
@@ -115,6 +118,36 @@ TEST(ModuleEventRegistryTest, TheEventsThatLentHostWidgetsAreGone) {
            "FILE_EXT_EMAIL_OP_OPEN_FILE",
        }) {
     EXPECT_FALSE(Module::IsKnownModuleEvent(QString::fromLatin1(id))) << id;
+  }
+}
+
+TEST(ModuleEventRegistryTest, NoEventLendsAHostObject) {
+  // Bit 3 was GF_EVENT_GUI_HANDLES. Nothing may claim it again.
+  for (const auto& spec : Module::ModuleEventCatalog()) {
+    EXPECT_EQ(spec.flags & (1U << 3), 0U) << spec.id;
+  }
+
+  // And no trigger site passes one: a Host object crossed as a registered
+  // QObject's name, so a TriggerEvent call that names one is the old route
+  // coming back.
+  const QRegularExpression trigger(R"(TriggerEvent\s*\((?:[^;]|\n)*?\)\s*;)");
+  const QRegularExpression handle(
+      R"(RegisterQObject|RegisterNamedQObject|GetQObject)");
+  for (const auto* root : {"/src/ui", "/src/core"}) {
+    QDirIterator it(QString(GF_TEST_SOURCE_DIR) + root, {"*.cpp"}, QDir::Files,
+                    QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+      const auto path = it.next();
+      QFile f(path);
+      ASSERT_TRUE(f.open(QIODevice::ReadOnly)) << path.toStdString();
+      const auto text = QString::fromUtf8(f.readAll());
+      auto calls = trigger.globalMatch(text);
+      while (calls.hasNext()) {
+        const auto call = calls.next().captured(0);
+        EXPECT_FALSE(handle.match(call).hasMatch())
+            << path.toStdString() << ": " << call.toStdString();
+      }
+    }
   }
 }
 

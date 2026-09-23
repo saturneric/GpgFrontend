@@ -30,6 +30,7 @@
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
+#include <QFile>
 #include <atomic>
 
 #include "GpgFrontendTest.h"
@@ -64,8 +65,8 @@ constexpr auto kModule = "com.example.luamod";
 // --- the commands a script is tested against ------------------------------
 
 struct Echo {
-  static constexpr gf::cmd::Meta kMeta{"com.example.luat.echo", "Echo", "", "",
-                                       0, 0};
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.echo", "Echo", "", "", 0, 0};
   struct Args {
     gf::cmd::DocumentRef target;
     static constexpr auto Fields() {
@@ -92,7 +93,7 @@ auto DoEcho(const gf::cmd::CommandContext&, const Echo::Args& a)
 
 struct Gpg {
   static constexpr gf::cmd::Meta kMeta{"com.example.luat.gpg", "Gpg", "", "",
-                                       GF_HOST_CAP_GPG, 0};
+                                       GF_HOST_CAP_GPG,        0};
   using Args = gf::cmd::Unit;
   using Result = gf::cmd::Unit;
 };
@@ -103,8 +104,8 @@ auto DoNothing(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
 }
 
 struct Secret {
-  static constexpr gf::cmd::Meta kMeta{"com.example.luat.secret", "Secret", "",
-                                       "", 0, 0};
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.secret", "Secret", "", "", 0, 0};
   using Args = gf::cmd::Unit;
   struct Result {
     gf::cmd::Blob data;
@@ -121,8 +122,8 @@ auto DoSecret(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
 }
 
 struct Sink {
-  static constexpr gf::cmd::Meta kMeta{"com.example.luat.sink", "Sink", "", "",
-                                       0, 0};
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.sink", "Sink", "", "", 0, 0};
   struct Args {
     gf::cmd::Blob data;
     static constexpr auto Fields() {
@@ -143,8 +144,8 @@ auto DoSink(const gf::cmd::CommandContext&, const Sink::Args& a)
 
 /// Never answers: for continuation limits and teardown.
 struct Park {
-  static constexpr gf::cmd::Meta kMeta{"com.example.luat.park", "Park", "", "",
-                                       0, 0};
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.park", "Park", "", "", 0, 0};
   using Args = gf::cmd::Unit;
   using Result = gf::cmd::Unit;
 };
@@ -157,8 +158,8 @@ void DoPark(const gf::cmd::CommandContext&, gf::cmd::Unit,
 
 /// Answers with a result its schema does not describe.
 struct Liar {
-  static constexpr gf::cmd::Meta kMeta{"com.example.luat.liar", "Liar", "", "",
-                                       0, 0};
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.liar", "Liar", "", "", 0, 0};
   using Args = gf::cmd::Unit;
   using Result = Echo::Result;
 };
@@ -199,7 +200,9 @@ class LuaApiTest : public ::testing::Test {
     dialog.owner = kModule;
     dialog.id = QString(kModule) + ".inspector";
     dialog.kind = UI::NativeWidgetKind::kDIALOG;
-    dialog.create = [](quint64, const QCborMap&) -> QWidget* { return nullptr; };
+    dialog.create = [](quint64, const QCborMap&) -> QWidget* {
+      return nullptr;
+    };
     UI::NativeWidgetRegistry::Instance().Register(dialog);
 
     UI::NativeWidgetEntry editor = dialog;
@@ -293,12 +296,14 @@ TEST_F(LuaApiTest, EveryReferenceIsCheckedAtLoad) {
   EXPECT_TRUE(error.contains("main.menu.help")) << "lists the valid anchors";
   EXPECT_FALSE(Load(*rt, "ui.anchor('editor')", &error))
       << "a mount anchor is not an action anchor";
-  EXPECT_FALSE(Load(*rt, "ui.subscribe{event='MAINWINDOW_MENU_MOUNTED', "
-                         "handler=function() end}",
+  EXPECT_FALSE(Load(*rt,
+                    "ui.subscribe{event='MAINWINDOW_MENU_MOUNTED', "
+                    "handler=function() end}",
                     &error))
       << "no legacy event reaches Lua";
-  EXPECT_FALSE(Load(*rt, "ui.subscribe{event='anything.at.all', "
-                         "handler=function() end}"));
+  EXPECT_FALSE(Load(*rt,
+                    "ui.subscribe{event='anything.at.all', "
+                    "handler=function() end}"));
   EXPECT_FALSE(Load(*rt, "native.widget('missing')", &error));
   EXPECT_FALSE(Load(*rt, "native.widget('../com.example.other.inspector')"));
   EXPECT_FALSE(Load(*rt, "native.factory('inspector')"))
@@ -309,8 +314,9 @@ TEST_F(LuaApiTest, AnActionDeclaresOnlyWhatItMay) {
   auto rt = Make();
   const auto action = [&](const char* fields) {
     const auto code =
-        QString("ui.action{ anchor = ui.anchor('main.menu.help'), command = "
-                "commands.get('com.example.luat.echo'), %1 }")
+        QString(
+            "ui.action{ anchor = ui.anchor('main.menu.help'), command = "
+            "commands.get('com.example.luat.echo'), %1 }")
             .arg(fields)
             .toUtf8();
     return Load(*rt, code.constData());
@@ -331,8 +337,9 @@ TEST_F(LuaApiTest, CapabilitiesAreTheModulesAndNoMore) {
   EXPECT_TRUE(error.contains("capability")) << error.toStdString();
   EXPECT_TRUE(Load(*ui_only, "assert(native == nil)"))
       << "no ui.custom, no native table";
-  EXPECT_FALSE(Load(*ui_only, "ui.mount{ id='d', anchor=ui.anchor.dialog{}, "
-                              "widget=nil }",
+  EXPECT_FALSE(Load(*ui_only,
+                    "ui.mount{ id='d', anchor=ui.anchor.dialog{}, "
+                    "widget=nil }",
                     &error));
   EXPECT_TRUE(error.contains("ui.custom")) << error.toStdString();
   EXPECT_FALSE(Load(*ui_only, "state.get('x')")) << "no storage, no state";
@@ -341,13 +348,15 @@ TEST_F(LuaApiTest, CapabilitiesAreTheModulesAndNoMore) {
   EXPECT_TRUE(Load(*custom,
                    "ui.mount{ id='d', anchor=ui.anchor.dialog{}, "
                    "widget=native.widget('inspector') }"));
-  EXPECT_FALSE(Load(*custom, "ui.mount{ id='e', anchor=ui.anchor.editor{"
-                             "document_type='x'}, "
-                             "widget=native.widget('inspector') }"))
+  EXPECT_FALSE(Load(*custom,
+                    "ui.mount{ id='e', anchor=ui.anchor.editor{"
+                    "document_type='x'}, "
+                    "widget=native.widget('inspector') }"))
       << "an editor needs a document widget, and a factory";
-  EXPECT_TRUE(Load(*custom, "ui.mount{ id='e', anchor=ui.anchor.editor{"
-                            "document_type='x', extensions={'eml'}}, "
-                            "widget=native.factory('editor') }"));
+  EXPECT_TRUE(Load(*custom,
+                   "ui.mount{ id='e', anchor=ui.anchor.editor{"
+                   "document_type='x', extensions={'eml'}}, "
+                   "widget=native.factory('editor') }"));
   EXPECT_EQ(custom->Mounts().size(), 2);
 }
 
@@ -382,8 +391,8 @@ ui.action { id = "c", anchor = ui.anchor("main.menu.help"), command = echo,
 )lua"));
   for (const char* id : {"a", "b", "c"}) {
     const auto st = rt->Evaluate(QString(kModule) + "." + id, Doc(1));
-    EXPECT_TRUE(st.error.contains("not allowed in update")) << id << ": "
-                                                           << st.error.toStdString();
+    EXPECT_TRUE(st.error.contains("not allowed in update"))
+        << id << ": " << st.error.toStdString();
     EXPECT_FALSE(st.visible);
   }
 }
@@ -661,6 +670,30 @@ TEST_F(LuaApiTest, TheAnchorCatalogIsStable) {
   }
   EXPECT_EQ(UI::Lua::FindAnchor("main_menu.help"), nullptr);
   EXPECT_TRUE(UI::Lua::LuaApiReference().contains("ui.action"));
+}
+
+/// The fenced block that follows @p marker in the SDK README, or empty.
+auto ReadmeBlock(const QString& marker) -> QString {
+  QFile f(QString(GF_TEST_SOURCE_DIR) + "/src/sdk/README.md");
+  if (!f.open(QIODevice::ReadOnly)) return {};
+  const auto text = QString::fromUtf8(f.readAll());
+  const auto at = text.indexOf(marker);
+  if (at < 0) return {};
+  const auto open = text.indexOf(QStringLiteral("```text\n"), at);
+  if (open < 0) return {};
+  const auto begin = open + 8;
+  const auto close = text.indexOf(QStringLiteral("\n```"), begin);
+  if (close < 0) return {};
+  return text.mid(begin, close - begin);
+}
+
+// The documented reference IS the runtime's: a change to either that is not
+// made to both fails here, so the docs cannot drift from what scripts get.
+TEST_F(LuaApiTest, TheDocumentedReferenceIsTheRuntimeOne) {
+  EXPECT_EQ(ReadmeBlock("<!-- lua-api-reference").toStdString(),
+            UI::Lua::LuaApiReference().trimmed().toStdString());
+  EXPECT_EQ(ReadmeBlock("<!-- anchor-catalog").toStdString(),
+            UI::Lua::AnchorCatalogReference().toStdString());
 }
 
 }  // namespace GpgFrontend::Test
