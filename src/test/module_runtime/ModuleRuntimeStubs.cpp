@@ -302,6 +302,103 @@ const GFHostUiApi kUi = {
     &UiRegTab,           &UiUnregTab,     &UiRegFileExt,
 };
 
+/* --- command ------------------------------------------------------------- */
+
+struct RegisteredCommand {
+  GFCommandHandlerFn handler = nullptr;
+  void* user = nullptr;
+};
+
+struct PendingCall {
+  GFCommandDoneFn done = nullptr;
+  void* user = nullptr;
+};
+
+auto Registered() -> QMap<QString, RegisteredCommand>& {
+  static QMap<QString, RegisteredCommand> m;
+  return m;
+}
+
+auto Calls() -> QMap<uint64_t, PendingCall>& {
+  static QMap<uint64_t, PendingCall> m;
+  return m;
+}
+
+uint64_t g_next_call = 1;
+
+void ReleaseAll(GFHostContextRef ctx, GFBufferRef cbor, GFBufferRef* blobs,
+                size_t n) {
+  BufRelease(ctx, cbor);
+  for (size_t i = 0; blobs != nullptr && i < n; ++i) BufRelease(ctx, blobs[i]);
+}
+
+auto CmdRegister(GFHostContextRef, const GFCommandSpec* spec) -> int {
+  Registered().insert(QString::fromUtf8(spec->id),
+                      RegisteredCommand{spec->handler, spec->user});
+  Rec().commands_registered.append(QString::fromUtf8(spec->id));
+  return GF_CMD_OK;
+}
+
+auto CmdUnregister(GFHostContextRef, const char* id) -> int {
+  return Registered().remove(QString::fromUtf8(id)) > 0 ? GF_CMD_OK
+                                                        : GF_CMD_E_UNKNOWN;
+}
+
+auto CmdInvoke(GFHostContextRef ctx, const char* id, uint32_t,
+               GFBufferRef args, GFBufferRef* blobs, size_t n,
+               GFCommandDoneFn done, void* user, uint64_t* out_call) -> int {
+  Rec().commands_invoked.append(QString::fromUtf8(id));
+  const auto it = Registered().constFind(QString::fromUtf8(id));
+  if (it == Registered().constEnd()) {
+    ReleaseAll(ctx, args, blobs, n);
+    return GF_CMD_E_UNKNOWN;
+  }
+  const auto call = g_next_call++;
+  if (out_call != nullptr) *out_call = call;
+  Calls().insert(call, PendingCall{done, user});
+
+  const QByteArray context("\xa0", 1);  // an empty CBOR map
+  auto* context_buf = BufNew(ctx, context.constData(), 1);
+  it->handler(it->user, call, context_buf, args, blobs, n);
+  BufRelease(ctx, context_buf);
+  return GF_CMD_OK;
+}
+
+auto CmdComplete(GFHostContextRef ctx, uint64_t call, int status,
+                 GFBufferRef result, GFBufferRef* blobs, size_t n,
+                 const char* error) -> int {
+  Rec().completions++;
+  const auto pending = Calls().take(call);
+  if (pending.done == nullptr) {
+    ReleaseAll(ctx, result, blobs, n);
+    return GF_CMD_OK;
+  }
+  pending.done(pending.user, call, status, result, blobs, n, error);
+  return GF_CMD_OK;
+}
+
+auto CmdCancel(GFHostContextRef, uint64_t call) -> int {
+  return Calls().remove(call) > 0 ? GF_CMD_OK : GF_CMD_E_UNKNOWN;
+}
+auto CmdIsCancelled(GFHostContextRef, uint64_t call) -> int {
+  return Calls().contains(call) ? 0 : 1;
+}
+auto CmdDescribe(GFHostContextRef, const char*, GFBufferRef*) -> int {
+  return GF_CMD_E_UNKNOWN;
+}
+auto CmdList(GFHostContextRef, const char*, GFStringListRef*) -> int {
+  return GF_CMD_E_UNKNOWN;
+}
+auto CmdQueryState(GFHostContextRef, const char*, uint32_t*) -> int {
+  return GF_CMD_E_UNKNOWN;
+}
+
+const GFHostCommandApi kCommand = {
+    sizeof(GFHostCommandApi), &CmdRegister, &CmdUnregister, &CmdInvoke,
+    &CmdComplete,             &CmdCancel,   &CmdIsCancelled, &CmdDescribe,
+    &CmdList,                 &CmdQueryState,
+};
+
 }  // namespace
 
 Recorder& Rec() {
@@ -335,6 +432,12 @@ auto MakeHostApi(uint32_t granted) -> GFHostApi {
   // the only one the runtime itself reaches (GFEvent::RequireGui); the rest
   // exist in these tests precisely to be absent.
   host.ui = (granted & GF_HOST_CAP_UI) != 0 ? &kUi : nullptr;
+
+  // Always present, as in the real mint. Each test starts with a host that
+  // has no commands registered and no calls in flight.
+  Registered().clear();
+  Calls().clear();
+  host.command = &kCommand;
   return host;
 }
 

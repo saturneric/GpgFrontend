@@ -29,7 +29,9 @@
 #include <gtest/gtest.h>
 
 #include <QThread>
+#include <array>
 #include <cstring>
+#include <optional>
 
 #include "GFModule.h"
 #include "GFModuleRuntimeBoot.h"
@@ -95,13 +97,61 @@ auto MakeHooks() -> GFModuleHooks {
                        std::size(kEvents)};
 }
 
+// ------------------------------------------------------------ commands
+
+struct Upper {
+  static constexpr gf::cmd::Meta kMeta{
+      "com.bktus.gpgfrontend.module.test.upper", "Upper", "", "", 0, 0};
+  struct Args {
+    QString text;
+    static constexpr auto Fields() {
+      return std::make_tuple(gf::cmd::F("text", &Args::text));
+    }
+  };
+  struct Result {
+    QString text;
+    static constexpr auto Fields() {
+      return std::make_tuple(gf::cmd::F("text", &Result::text));
+    }
+  };
+};
+
+auto DoUpper(const gf::cmd::CommandContext& /*ctx*/, const Upper::Args& a)
+    -> gf::cmd::Outcome<Upper::Result> {
+  return gf::cmd::Outcome<Upper::Result>::Success({a.text.toUpper()});
+}
+
+/// Never answers until the test says so.
+struct Park {
+  static constexpr gf::cmd::Meta kMeta{
+      "com.bktus.gpgfrontend.module.test.park", "Park", "", "", 0, 0};
+  using Args = gf::cmd::Unit;
+  using Result = gf::cmd::Unit;
+};
+
+std::optional<gf::cmd::Reply<gf::cmd::Unit>> g_parked_reply;
+
+void DoPark(const gf::cmd::CommandContext& /*ctx*/, gf::cmd::Unit /*args*/,
+            gf::cmd::Reply<gf::cmd::Unit> reply) {
+  g_parked_reply = reply;
+}
+
+const std::array<gf::cmd::Binding, 2> kCommands = {
+    gf::cmd::Bind<Upper, &DoUpper>(), gf::cmd::Bind<Park, &DoPark>()};
+
+const QStringList kDeclaredCommands = {
+    "com.bktus.gpgfrontend.module.test.upper",
+    "com.bktus.gpgfrontend.module.test.park"};
+
 // ------------------------------------------------------- host-side fakes
 
 /// Build the payload the host hands over at activate.
 class Payload {
  public:
-  Payload(QStringList events, bool verified)
-      : events_(std::move(events)), verified_(verified) {
+  Payload(QStringList events, bool verified, QStringList commands = {})
+      : events_(std::move(events)),
+        verified_(verified),
+        commands_(std::move(commands)) {
     id_ = "com.bktus.gpgfrontend.module.test";
     version_ = "1.0.0";
     context_ = "ModuleTest";
@@ -118,6 +168,10 @@ class Payload {
     info_.locale = locale_.constData();
     info_.events = event_ptrs_.constData();
     info_.events_size = static_cast<size_t>(event_ptrs_.size());
+    for (const auto& c : commands_) command_utf8_.append(c.toUtf8());
+    for (const auto& c : command_utf8_) command_ptrs_.append(c.constData());
+    info_.commands = command_ptrs_.constData();
+    info_.commands_size = static_cast<size_t>(command_ptrs_.size());
   }
 
   auto Get() -> GFModuleBootstrapInfo* { return &info_; }
@@ -125,9 +179,12 @@ class Payload {
  private:
   QStringList events_;
   bool verified_;
+  QStringList commands_;
   QByteArray id_, version_, context_, locale_;
   QList<QByteArray> event_utf8_;
   QVector<const char*> event_ptrs_;
+  QList<QByteArray> command_utf8_;
+  QVector<const char*> command_ptrs_;
   GFModuleBootstrapInfo info_{};
 };
 
@@ -683,6 +740,87 @@ TEST_F(ModuleRuntimeTest, AWrapperWorksFromAThreadTheModuleStarted) {
   EXPECT_EQ(copied.toStdString(), "from a worker");
   EXPECT_GT(Rec().calls_off_thread, 0)
       << "the call did not actually happen on another thread";
+}
+
+// ------------------------------------------------------------ commands
+
+// Declared in the manifest and bound in the hook table: registered with the
+// Host during activation, before on_activate runs.
+TEST_F(ModuleRuntimeTest, BoundCommandsAreRegisteredAtActivation) {
+  hooks_.commands = kCommands.data();
+  hooks_.commands_size = kCommands.size();
+  Payload payload({"ALPHA", "BETA"}, true, kDeclaredCommands);
+  ASSERT_EQ(Api()->activate(&host_, payload.Get()), 0);
+  EXPECT_EQ(Rec().commands_registered, kDeclaredCommands);
+  EXPECT_EQ(g_activate_calls, 1);
+}
+
+// The manifest and the hook table must agree, in both directions, exactly as
+// they must for events.
+TEST_F(ModuleRuntimeTest, ACommandTheManifestDoesNotListRefusesActivation) {
+  hooks_.commands = kCommands.data();
+  hooks_.commands_size = kCommands.size();
+  Payload undeclared({"ALPHA", "BETA"}, true,
+                     {"com.bktus.gpgfrontend.module.test.upper"});
+  EXPECT_NE(Api()->activate(&host_, undeclared.Get()), 0);
+  EXPECT_EQ(g_activate_calls, 0);
+}
+
+TEST_F(ModuleRuntimeTest, ADeclaredCommandNothingProvidesRefusesActivation) {
+  Payload unbound({"ALPHA", "BETA"}, true,
+                  {"com.bktus.gpgfrontend.module.test.ghost"});
+  EXPECT_NE(Api()->activate(&host_, unbound.Get()), 0);
+}
+
+// Both halves of the path in one module: the typed call is encoded, the
+// fake host loops it into the bound handler, and the typed result comes back
+// through the continuation.
+TEST_F(ModuleRuntimeTest, ATypedInvokeReturnsATypedResult) {
+  hooks_.commands = kCommands.data();
+  hooks_.commands_size = kCommands.size();
+  Payload payload({"ALPHA", "BETA"}, true, kDeclaredCommands);
+  ASSERT_EQ(Api()->activate(&host_, payload.Get()), 0);
+
+  std::optional<gf::cmd::Outcome<Upper::Result>> got;
+  const auto ticket = Commands().Invoke<Upper>(
+      {"abc"}, nullptr,
+      [&](const gf::cmd::Outcome<Upper::Result>& r) { got = r; });
+  EXPECT_TRUE(ticket.Ok());
+  ASSERT_TRUE(got.has_value()) << "no receiver: delivered inline";
+  EXPECT_TRUE(got->Ok());
+  EXPECT_EQ(got->value.text, "ABC");
+
+  // Fire and forget: nothing comes back, and nothing is leaked.
+  EXPECT_TRUE(Commands().Invoke<Upper>({"x"}).Ok());
+  EXPECT_EQ(Rec().allocations, Rec().frees);
+
+  EXPECT_EQ(Commands().Invoke<Upper>({"x"}).status, GF_CMD_OK);
+  EXPECT_EQ(Commands().InvokeDynamic("com.example.nothing", {}).status,
+            GF_CMD_E_UNKNOWN);
+}
+
+// Deactivation forgets what the module was owed: a result that arrives
+// later finds nobody waiting, rather than calling into code being unloaded.
+TEST_F(ModuleRuntimeTest, DeactivationForgetsOutstandingContinuations) {
+  hooks_.commands = kCommands.data();
+  hooks_.commands_size = kCommands.size();
+  Payload payload({"ALPHA", "BETA"}, true, kDeclaredCommands);
+  ASSERT_EQ(Api()->activate(&host_, payload.Get()), 0);
+
+  int called = 0;
+  ASSERT_TRUE(Commands()
+                  .Invoke<Park>({}, nullptr,
+                                [&](const gf::cmd::Outcome<gf::cmd::Unit>&) {
+                                  ++called;
+                                })
+                  .Ok());
+  ASSERT_TRUE(g_parked_reply.has_value());
+
+  ASSERT_EQ(Api()->deactivate(), 0);
+  g_parked_reply->Ok({});
+  g_parked_reply.reset();
+  EXPECT_EQ(called, 0);
+  EXPECT_EQ(Rec().completions, 1) << "the provider still finished its call";
 }
 
 }  // namespace GpgFrontend::Test

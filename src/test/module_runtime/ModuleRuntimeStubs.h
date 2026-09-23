@@ -54,6 +54,13 @@ struct Recorder {
   /// The point of the context is that they are served all the same.
   int calls_off_thread = 0;
 
+  /// Command traffic. The fake host loops an invoke straight back into the
+  /// handler this module registered for that id, so one module can exercise
+  /// both halves of the command path.
+  QStringList commands_registered;
+  QStringList commands_invoked;
+  int completions = 0;
+
   void Reset();
 };
 
