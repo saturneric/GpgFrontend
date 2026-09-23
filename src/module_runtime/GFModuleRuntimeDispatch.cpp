@@ -213,25 +213,6 @@ auto GFEvent::Context() const -> GFSDKContext* {
   return gf::runtime::SdkContext();
 }
 
-auto GFEvent::require_gui_object(const QString& key, QObject*& out) const
-    -> GFEventResult {
-  QString handle;
-  if (auto r = Require(key, handle); !r.ok) return r;
-
-  out = static_cast<QObject*>(
-      GFUIGetGUIObject(gf::runtime::SdkContext(), handle.toUtf8().constData()));
-  if (out == nullptr) {
-    return GFEventResult::Unavailable(
-        QString("%1 handle is not a live object").arg(key));
-  }
-  return GFEventResult::Ok();
-}
-
-auto GFEvent::gui_object_wrong_type(const QString& key) -> GFEventResult {
-  return GFEventResult::Unavailable(
-      QString("%1 is not of the expected type").arg(key));
-}
-
 auto GFEvent::Answer() const -> GFEventAnswer {
   GFEventAnswer answer;
   answer.s_ = QSharedPointer<GFEventAnswer::State>::create();

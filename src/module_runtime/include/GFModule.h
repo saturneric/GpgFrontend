@@ -40,7 +40,6 @@
 #include "GFModuleExport.h"
 #include "GFModuleLog.h"
 #include "GFModuleMemory.h"
-#include "GFModuleUI.h"
 #include "GFSDKBuildInfo.h"
 // The whole public SDK, so a module author includes one header. Each of
 // these declares functions that take a GFSDKContext*; the context comes from
@@ -77,24 +76,32 @@
  *     #include <GFModule.h>
  *     #include "GFModuleIdentity.h"
  *
- *     auto OnActivate() -> GFResult { ... }
- *
- *     auto OnMainWindowMenuMounted(const GFEvent& e) -> GFEventResult {
- *       QMenu* help_menu = nullptr;
- *       if (auto r = e.RequireGui("help_menu", help_menu); !r.ok) return r;
- *       ...
- *       return GFEventResult::Ok();
- *     }
- *
- *     constexpr GFEventBinding kEvents[] = {
- *         {"MAINWINDOW_MENU_MOUNTED", &OnMainWindowMenuMounted},
+ *     struct ShowAbout {                       // a command: what it does
+ *       static constexpr gf::cmd::Meta kMeta{GF_MODULE_ID ".show_about",
+ *           GC_TR("About My Module"), "", "", 0, gf::cmd::kNeedsGuiThread};
+ *       using Args = gf::cmd::Unit;
+ *       using Result = gf::cmd::Unit;
  *     };
- *     constexpr GFModuleHooks kHooks = {
+ *     auto DoShowAbout(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
+ *         -> gf::cmd::Outcome<gf::cmd::Unit> { ... }
+ *
+ *     auto OnActivate() -> GFResult { ... }  // register native widgets here
+ *
+ *     const std::array<gf::cmd::Binding, 1> kCommands = {
+ *         gf::cmd::Bind<ShowAbout, &DoShowAbout>()};
+ *     const GFModuleHooks kHooks = {
  *         sizeof(GFModuleHooks),
  *         GF_MODULE_ID, GF_MODULE_VERSION, GF_MODULE_TRANSLATION_CONTEXT,
  *         &OnActivate, nullptr, nullptr,
- *         kEvents, std::size(kEvents),
+ *         nullptr, 0,                          // events it handles
+ *         kCommands.data(), kCommands.size(),  // commands it provides
  *     };
+ *
+ * and where the command is offered is its UI script, embedded with
+ * `gf_add_module(... LUA_SCRIPTS ui/main.lua)`:
+ *
+ *     ui.action { id = "about", anchor = ui.anchor("main.menu.help"),
+ *                 command = commands.get("<module id>.show_about") }
  *
  *     extern "C" GF_MODULE_EXPORT auto GFModuleGetApi(uint32_t abi)
  *         -> const GFModuleApi* {

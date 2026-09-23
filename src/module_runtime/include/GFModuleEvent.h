@@ -168,23 +168,6 @@ class GFEvent {
   [[nodiscard]] auto Require(const QString& key, QString& out) const
       -> GFEventResult;
 
-  /**
-   * @brief Read a required GUI handle and cast it to the type it must be.
-   *
-   * Collapses the guard-cast-check-report sequence that appears three times
-   * near-identically across the modules, and a dozen more times inside
-   * m_email, into one line per object.
-   */
-  template <typename T>
-  [[nodiscard]] auto RequireGui(const QString& key, T*& out) const
-      -> GFEventResult {
-    QObject* object = nullptr;
-    if (auto r = require_gui_object(key, object); !r.ok) return r;
-    out = qobject_cast<T*>(object);
-    if (out == nullptr) return gui_object_wrong_type(key);
-    return GFEventResult::Ok();
-  }
-
   /// A handle that answers this event later, at most once.
   [[nodiscard]] auto Answer() const -> GFEventAnswer;
 
@@ -200,11 +183,6 @@ class GFEvent {
 
  private:
   friend class GFEventFactory;
-
-  [[nodiscard]] auto require_gui_object(const QString& key, QObject*& out) const
-      -> GFEventResult;
-  [[nodiscard]] static auto gui_object_wrong_type(const QString& key)
-      -> GFEventResult;
 
   QSharedPointer<const GFEventData> d_;
 };
