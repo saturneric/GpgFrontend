@@ -85,20 +85,37 @@ TEST(ModuleEventRegistryTest, AnEventTheHostNeverFiresIsNotKnown) {
   EXPECT_FALSE(Module::IsKnownModuleEvent(""));
   // Near misses, because those are the ones a typo produces.
   EXPECT_FALSE(Module::IsKnownModuleEvent("APPLICATION_LOAD"));
-  EXPECT_FALSE(Module::IsKnownModuleEvent("MAINWINDOW_MENU_MOUNT"));
+  EXPECT_FALSE(Module::IsKnownModuleEvent("APPLICATION_LOADED_"));
 }
 
 TEST(ModuleEventRegistryTest, TheGeneratedFamiliesMatchThroughTheirPattern) {
-  // These ids are built at run time from a tab type or a file extension, so
-  // they cannot be listed. The pattern is what a subscription is checked
-  // against.
+  // These ids are built at run time from a tab type, so they cannot be
+  // listed. The pattern is what a subscription is checked against.
   EXPECT_TRUE(Module::IsKnownModuleEvent("EDIT_TAB_TYPE_EMAIL_OP_DECRYPT"));
-  EXPECT_TRUE(Module::IsKnownModuleEvent("EDIT_TAB_TYPE_EMAIL_OP_SAVE_FILE"));
-  EXPECT_TRUE(Module::IsKnownModuleEvent("FILE_EXT_EMAIL_OP_OPEN_FILE"));
+  EXPECT_TRUE(
+      Module::IsKnownModuleEvent("EDIT_TAB_TYPE_EMAIL_OP_DECRYPT_VERIFY"));
+  EXPECT_TRUE(Module::IsKnownModuleEvent("EDIT_TAB_TYPE_MY_DOC_OP_SIGN"));
 
   // A pattern matches a SHAPE, not a prefix.
   EXPECT_FALSE(Module::IsKnownModuleEvent("EDIT_TAB_TYPE_EMAIL"));
   EXPECT_FALSE(Module::IsKnownModuleEvent("EDIT_TAB_TYPE__OP_DECRYPT"));
+}
+
+TEST(ModuleEventRegistryTest, TheEventsThatLentHostWidgetsAreGone) {
+  // Each of these handed a module a Host menu, layout, tab widget or page, or
+  // made the Host leave opening or saving a file to a module. Their work is
+  // the UI script's and the native widget's now; a module still subscribing
+  // is refused at load rather than silently never called.
+  for (const auto* id : {
+           "MAINWINDOW_MENU_MOUNTED",
+           "KEY_PAIR_OPERA_MENU_CREATED",
+           "ABOUT_DIALOG_TABS_MOUNTED",
+           "NETWORK_SETTINGS_TAB_UI_CREATED",
+           "EDIT_TAB_TYPE_EMAIL_OP_SAVE_FILE",
+           "FILE_EXT_EMAIL_OP_OPEN_FILE",
+       }) {
+    EXPECT_FALSE(Module::IsKnownModuleEvent(QString::fromLatin1(id))) << id;
+  }
 }
 
 TEST(ModuleEventRegistryTest, ALiteralWinsOverAPatternItWouldFit) {
@@ -128,12 +145,8 @@ TEST(ModuleEventRegistryTest, TheExtensionPointsAreTheOnesThatChangeBehaviour) {
   extend.sort();
 
   EXPECT_EQ(extend, (QStringList{
-                        "ABOUT_DIALOG_TABS_MOUNTED",
-                        "EDIT_TAB_TYPE_<TYPE>_OP_<OP>",
-                        "FILE_EXT_<PREFIX>_OP_<OP>",
-                        "KEY_PAIR_OPERA_MENU_CREATED",
-                        "MAINWINDOW_MENU_MOUNTED",
-                        "NETWORK_SETTINGS_TAB_UI_CREATED",
+                        "EDIT_TAB_TYPE_<TYPE>_OP_{ENCRYPT|DECRYPT|SIGN|"
+                        "VERIFY|ENCRYPT_SIGN|DECRYPT_VERIFY}",
                         "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
                         "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
                         "REQUEST_UPLOAD_PUBLIC_KEY",

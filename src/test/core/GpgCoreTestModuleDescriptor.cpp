@@ -95,7 +95,7 @@ auto GoodSpec(const QString& dir, const QString& payload_path)
   spec.sdk_abi = GF_SDK_ABI_VERSION;
   spec.min_host_version = "2.0.0";
   spec.capabilities = QStringList{"gpg", "ui"};
-  spec.events = QStringList{"APPLICATION_LOADED", "MAINWINDOW_MENU_MOUNTED"};
+  spec.events = QStringList{"APPLICATION_LOADED", "TAB_ACTIVATED"};
   spec.translation_context = "ModuleTest";
   spec.metadata = {{"Name", "Test Module"},
                    {"Description", "a module that exists to be packaged"},
