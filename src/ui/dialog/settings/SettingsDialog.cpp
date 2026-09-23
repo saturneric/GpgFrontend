@@ -32,7 +32,6 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
-#include "ui/lua/LuaMounts.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
@@ -43,6 +42,7 @@
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/dialog/settings/SettingsPageOrder.h"
 #include "ui/dialog/settings/SettingsRpgp.h"
+#include "ui/lua/LuaMounts.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {

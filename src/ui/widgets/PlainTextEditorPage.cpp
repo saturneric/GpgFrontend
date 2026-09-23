@@ -26,8 +26,6 @@
  *
  */
 
-#include "sdk/GFSDKTypes.h"
-#include "ui/lua/NativeInstances.h"
 #include "PlainTextEditorPage.h"
 
 #include <QActionGroup>
@@ -40,10 +38,12 @@
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/MemoryUtils.h"
+#include "sdk/GFSDKTypes.h"
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/SecureWipe.h"
 #include "ui/function/TextDirection.h"
 #include "ui/function/UIStyle.h"
+#include "ui/lua/NativeInstances.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 
@@ -501,7 +501,7 @@ namespace {
 
 /// The crypto operations by the names the menu and module events use, and
 /// by the bits a native view answers with.
-constexpr std::array<std::pair<const char*, uint32_t>, 6> kCryptoOps{{
+constexpr std::array<std::pair<const char *, uint32_t>, 6> kCryptoOps{{
     {"encrypt", GF_CRYPTO_OP_ENCRYPT},
     {"decrypt", GF_CRYPTO_OP_DECRYPT},
     {"sign", GF_CRYPTO_OP_SIGN},
@@ -520,7 +520,7 @@ constexpr std::array<std::pair<const char*, uint32_t>, 6> kCryptoOps{{
  */
 class NativeDocumentPort : public NativeContainer {
  public:
-  explicit NativeDocumentPort(PlainTextEditorPage* page) : page_(page) {}
+  explicit NativeDocumentPort(PlainTextEditorPage *page) : page_(page) {}
 
   void OnModified() override {
     if (!page_.isNull()) page_->slot_primary_view_modified();
@@ -530,7 +530,7 @@ class NativeDocumentPort : public NativeContainer {
   }
   void OnRequestCrypto(uint32_t op) override {
     if (page_.isNull()) return;
-    for (const auto& [name, bit] : kCryptoOps) {
+    for (const auto &[name, bit] : kCryptoOps) {
       if (bit == op) {
         emit page_->SignalCryptoOperationRequested(QString::fromLatin1(name));
       }
@@ -551,10 +551,11 @@ class NativeDocumentPort : public NativeContainer {
 PlainTextEditorPage::~PlainTextEditorPage() {
   // The module forgets the instance before its widget, a child of this page,
   // is destroyed with it.
-  if (native_instance_ != 0) NativeInstances::Instance().Destroy(native_instance_);
+  if (native_instance_ != 0)
+    NativeInstances::Instance().Destroy(native_instance_);
 }
 
-auto PlainTextEditorPage::MountNativeView(const QString& widget_id) -> bool {
+auto PlainTextEditorPage::MountNativeView(const QString &widget_id) -> bool {
   if (native_instance_ != 0 || primary_view_ != nullptr) return false;
   // The port exists before the instance: the widget may notify from its
   // constructor, and must find somewhere to go.
@@ -576,7 +577,7 @@ auto PlainTextEditorPage::MountNativeView(const QString& widget_id) -> bool {
   return true;
 }
 
-auto PlainTextEditorPage::PrimaryViewPrepareSave(const QByteArray& bytes)
+auto PlainTextEditorPage::PrimaryViewPrepareSave(const QByteArray &bytes)
     -> std::optional<QByteArray> {
   if (native_instance_ == 0) return bytes;
   const auto e = NativeInstances::Instance().Entry(native_instance_);
@@ -915,8 +916,8 @@ void PlainTextEditorPage::refresh_source_lock() {
   const QSignalBlocker blocker(source_unlock_);
   source_unlock_->setChecked(source_unlocked_);
   source_unlock_->setEnabled(source_unlocked_ || !reason.has_value());
-  source_unlock_->setIcon(QIcon(source_unlocked_ ? ":/icons/unlock.png"
-                                                 : ":/icons/read-only.png"));
+  source_unlock_->setIcon(
+      QIcon(source_unlocked_ ? ":/icons/unlock.png" : ":/icons/read-only.png"));
   source_unlock_->setText(source_unlocked_ ? tr("Stop Editing")
                                            : tr("Edit Raw Source"));
   source_notice_->setText(

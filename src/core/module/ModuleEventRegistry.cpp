@@ -153,8 +153,7 @@ auto PatternToRegex(const QString& pattern) -> QRegularExpression {
       const auto close = pattern.indexOf('}', i);
       if (close < 0) break;
       QStringList alternatives;
-      for (const auto& literal :
-           pattern.mid(i + 1, close - i - 1).split('|')) {
+      for (const auto& literal : pattern.mid(i + 1, close - i - 1).split('|')) {
         alternatives << QRegularExpression::escape(literal);
       }
       expr += "(?:" + alternatives.join('|') + ")";

@@ -92,11 +92,15 @@ class GF_UI_EXPORT UIModuleManager
       -> bool;
 
   /**
-   * @brief
+   * @brief Name a Host object for the Host's own later lookup.
    *
-   * @param id
-   * @param p
-   * @return QString
+   * Host-internal only: nothing registered here is reachable from a module.
+   * The entry drops itself when the object is destroyed; a null @p p clears
+   * the name.
+   *
+   * @param id the name
+   * @param p the object, or null
+   * @return QString the name
    */
   auto RegisterQObject(const QString& id, QObject* p) -> QString;
 

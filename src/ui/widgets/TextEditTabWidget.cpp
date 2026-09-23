@@ -37,12 +37,12 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/lua/LuaHost.h"
-#include "ui/lua/NativeWidgetRegistry.h"
-#include "ui/lua/LuaPlacements.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/FilePanelPath.h"
+#include "ui/lua/LuaHost.h"
+#include "ui/lua/LuaPlacements.h"
+#include "ui/lua/NativeWidgetRegistry.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 
@@ -357,7 +357,8 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
   // opens the file itself, in a tab of that type, and the module's view
   // loads it like any other document.
   const auto suffix = file_info.suffix().toLower();
-  for (const auto& m : Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
+  for (const auto& m :
+       Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
     if (!m.info.extensions.contains(suffix)) continue;
     if (const int existing = find_tab_by_file_path(path); existing >= 0) {
       setCurrentIndex(existing);
@@ -500,7 +501,8 @@ void TextEditTabWidget::mount_module_view(PlainTextEditorPage* page,
 
   // A module UI script's editor mount for this document type: the typed
   // native view, in the page's own container.
-  for (const auto& m : Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
+  for (const auto& m :
+       Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
     if (m.info.document_type.compare(type, Qt::CaseInsensitive) != 0) continue;
     if (!page->MountNativeView(m.info.widget)) {
       LOG_W() << "the native view for document type" << type

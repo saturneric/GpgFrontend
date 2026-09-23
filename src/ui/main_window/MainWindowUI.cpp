@@ -96,9 +96,8 @@ void MainWindow::create_actions() {
   close_tab_act_ =
       create_action("close_tab", tr("Close Tab"), ":/icons/close.png",
                     tr("Close the current tab"), {QKeySequence::Close});
-  connect(close_tab_act_, &QAction::triggered, this, [this]() {
-    invoke_host_command("org.gpgfrontend.document.close");
-  });
+  connect(close_tab_act_, &QAction::triggered, this,
+          [this]() { invoke_host_command("org.gpgfrontend.document.close"); });
 
   /* Profile Menu — profiles this computer keeps */
   //
@@ -578,16 +577,16 @@ void MainWindow::create_menus() {
 
   help_menu_->addAction(about_act_);
 
-
   // The anchors module UI scripts attach to. The menus are the Host's; a
   // script only ever names the anchor.
-  const auto ctx = [this]() { return Lua::LuaPlacements::EditorContext(edit_); };
+  const auto ctx = [this]() {
+    return Lua::LuaPlacements::EditorContext(edit_);
+  };
   Lua::LuaPlacements::AttachMenu("main.menu.file.workspace", workspace_menu_,
                                  ctx);
   Lua::LuaPlacements::AttachMenu("main.menu.advanced", advance_menu_, ctx);
   Lua::LuaPlacements::AttachMenu("main.menu.help", help_menu_, ctx);
-  Lua::LuaPlacements::AttachMenu("main.menu.import_key", import_key_menu_,
-                                 ctx);
+  Lua::LuaPlacements::AttachMenu("main.menu.import_key", import_key_menu_, ctx);
 }
 
 void MainWindow::create_tool_bars() {

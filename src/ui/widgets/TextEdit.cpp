@@ -35,10 +35,10 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/lua/LuaPlacements.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/function/FilePanelPath.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
@@ -835,9 +835,8 @@ auto TextEdit::SlotGetTabWidget() -> QTabWidget* { return tab_widget_; }
 auto TextEdit::OpenDocument(const QString& type, const QString& title,
                             const QString& path, const GFBuffer& content,
                             bool saved, bool modified) -> qint64 {
-  auto* page = qobject_cast<PlainTextEditorPage*>(
-      tab_widget_->SlotNewTab(type.isEmpty() ? QStringLiteral("text") : type,
-                              title, QIcon(), {}));
+  auto* page = qobject_cast<PlainTextEditorPage*>(tab_widget_->SlotNewTab(
+      type.isEmpty() ? QStringLiteral("text") : type, title, QIcon(), {}));
   if (page == nullptr) return 0;
 
   page->SetContentFromBytes(content.ConvertToQByteArray());

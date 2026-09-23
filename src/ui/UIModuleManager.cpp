@@ -130,6 +130,12 @@ auto UIModuleManager::InstalledTranslators() const
 
 auto UIModuleManager::RegisterQObject(const QString& id, QObject* p)
     -> QString {
+  // Null clears the name: there is nothing to watch for destruction.
+  if (p == nullptr) {
+    registered_qobjects_.remove(id);
+    return id;
+  }
+
   QPointer<QObject> ptr = p;
 
   if (registered_qobjects_.contains(id)) {

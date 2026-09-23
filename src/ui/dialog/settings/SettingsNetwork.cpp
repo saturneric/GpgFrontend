@@ -86,7 +86,6 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
     ui_->capabilityGroupBox->setHidden(true);
   }
 
-
   SetSettings();
 }
 
@@ -123,7 +122,6 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
 
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
-
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
@@ -140,7 +138,6 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
                     ui_->autoFetchKeyPublishStatusCheckBox->isChecked());
 
   apply_proxy_settings();
-
 }
 
 void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
