@@ -23,12 +23,16 @@
 #      bootstrap requires. Anything else is host API leaking back out.
 #   3. No host implementation library in the needed list: libgf_core,
 #      libgf_ui, libgf_sdk.
+#   6. No Lua. The UI script interpreter is the host's (gf_lua, linked into
+#      gf_ui only): a module ships its scripts as data and the host runs them
+#      in a sandbox. A module carrying its own interpreter -- linked, imported
+#      or statically folded in -- would run Lua outside that sandbox.
 #
 # The mirror rule, on the other side of the boundary (--host):
 #
 #   4. No host artifact -- neither a host library nor the application itself --
-#      exports a public SDK entry point (GFSDK*, GFGpg*, GFUI*, GFPgp*, and the
-#      rest of the domain prefixes). The public SDK is module-side and static
+#      exports a public SDK entry point (GFSDK*, GFGpg*, GFUI*, GFPgp*,
+#      GFCommand*, GFNative*, and the rest of the domain prefixes). The public SDK is module-side and static
 #      now; a host artifact exporting one of these names would mean the old
 #      bypass had come back, and a module could reach it by name again.
 #   5. GFHostApiInstallBridge is not dynamically visible. Caller and
@@ -68,7 +72,7 @@ while [[ $# -gt 0 ]]; do
     --artifact-dir)   ARTIFACT_DIR="$2";   shift 2 ;;
     --expect-count)   EXPECT_COUNT="$2";   shift 2 ;;
     --quiet)          QUIET=1;             shift ;;
-    -h|--help)        sed -n '3,52p' "$0"; exit 0 ;;
+    -h|--help)        sed -n '3,57p' "$0"; exit 0 ;;
     -*) echo "check_module_boundary: unknown option $1" >&2; exit 2 ;;
     *)  FILES+=("$1"); shift ;;
   esac
@@ -80,6 +84,9 @@ say()  { [[ "$QUIET" -eq 1 ]] || echo "$@"; }
 # The one symbol a module is required to export, and the only one it may.
 readonly ALLOWED_EXPORT="GFModuleGetApi"
 readonly FORBIDDEN_LIBS="libgf_core|libgf_ui|libgf_sdk"
+# Rule 6: the Lua C API and library entry points, and a Lua shared library.
+readonly LUA_SYMBOLS='\b_?(lua_|luaL_|luaopen_)[A-Za-z0-9_]+'
+readonly LUA_LIBS='liblua[^ ]*|lua[0-9.]*\.dll'
 
 failures=0
 checked=0
@@ -121,6 +128,19 @@ GFHostApi table it is given at activation" $undef
   if [[ -n "$needed" ]]; then
     fail "$f links a host implementation library" $needed
   fi
+
+  # The full symbol table, not only the dynamic one: a statically folded-in
+  # interpreter exports nothing and imports nothing, and only shows up here.
+  # A stripped native has no such table, which leaves the dynamic view.
+  local lua lua_libs
+  lua=$( { nm -D "$f" 2>/dev/null; nm "$f" 2>/dev/null; } \
+            | grep -oE "${LUA_SYMBOLS}" | sort -u || true)
+  lua_libs=$(readelf -d "$f" 2>/dev/null \
+            | grep -E 'NEEDED' | grep -oE "${LUA_LIBS}" || true)
+  if [[ -n "$lua" || -n "$lua_libs" ]]; then
+    fail "$f carries a Lua interpreter; UI scripts run only in the host's \
+sandbox" $lua $lua_libs
+  fi
 }
 
 check_macho() {
@@ -152,6 +172,14 @@ check_macho() {
   if [[ -n "$needed" ]]; then
     fail "$f links a host implementation library" $needed
   fi
+
+  local lua lua_libs
+  lua=$(nm "$f" 2>/dev/null | grep -oE "${LUA_SYMBOLS}" | sed 's/^_//' \
+            | sort -u || true)
+  lua_libs=$(otool -L "$f" 2>/dev/null | grep -oE "${LUA_LIBS}" || true)
+  if [[ -n "$lua" || -n "$lua_libs" ]]; then
+    fail "$f carries a Lua interpreter" $lua $lua_libs
+  fi
 }
 
 check_pe() {
@@ -174,6 +202,12 @@ check_pe() {
   if [[ -n "$imports" ]]; then
     fail "$f imports from a host implementation DLL" $imports
   fi
+  local lua
+  lua=$(objdump -p "$f" 2>/dev/null \
+            | grep -oiE "DLL Name: (${LUA_LIBS})|${LUA_SYMBOLS}" || true)
+  if [[ -n "$lua" ]]; then
+    fail "$f carries a Lua interpreter" $lua
+  fi
   local extra
   extra=$(echo "$exported" | grep -v "^${ALLOWED_EXPORT}$" || true)
   if [[ -n "$extra" ]]; then
@@ -185,7 +219,7 @@ check_pe() {
 
 # The public SDK's domain prefixes, as §4 of the API redesign named them. A
 # host artifact defining any of these is the bypass the whole design removed.
-readonly PUBLIC_SDK_PREFIXES='GF(SDK|Gpg|Pgp|UI|Editor|Storage|Process|App|Log|Mem|Buffer|Module|Event|Compare)'
+readonly PUBLIC_SDK_PREFIXES='GF(SDK|Gpg|Pgp|UI|Editor|Storage|Process|App|Log|Mem|Buffer|Module|Event|Compare|Command|Native)'
 readonly HIDDEN_HOST_SYMBOLS='GFHostApiInstallBridge'
 
 check_host_elf() {

@@ -77,7 +77,7 @@
 #   scripts/run_tests.sh --rust-only
 #   scripts/run_tests.sh --rust-slow-only
 #   scripts/run_tests.sh --unit-only -p auto
-#   scripts/run_tests.sh --asan                     # module tests + stress, 2000x
+#   scripts/run_tests.sh --asan                     # module + Lua tests + stress
 #   scripts/run_tests.sh --asan -f '*RpgpCore*'     # focus rPGP FFI paths
 #   scripts/run_tests.sh --asan-gui                 # reproduce a crash by hand
 #
@@ -85,8 +85,8 @@
 # -fsanitize=address,undefined injected directly (the in-tree
 # GPGFRONTEND_ENABLE_ASAN option requires clang; this works with gcc) and
 # leaves the normal build/ tree untouched. It composes with the modes above;
-# with none given it runs the module test binaries and the *Stress* tests
-# (default 2000 iterations). The Rust phases are skipped: cargo builds the
+# with none given it runs the module test binaries, the GFUiLua* tests and the
+# *Stress* tests (default 2000 iterations). The Rust phases are skipped: cargo builds the
 # crate without instrumentation. LeakSanitizer is off (detect_leaks=0),
 # because the app keeps many intentional process-lifetime singletons; set
 # ASAN_OPTIONS yourself to turn it on. A sanitizer report anywhere in a
@@ -854,6 +854,10 @@ case "$MODE" in
   asan)
     run_modules_phase || overall_rc=1
     phases+=("modules")
+    # The Lua error model rests on no longjmp crossing a live C++ object; a
+    # skipped destructor or a leaked allocation shows up here and nowhere else.
+    run_gtest_phase "lua" 'GFUiLua*' "$STRESS_ITER" || overall_rc=1
+    phases+=("lua")
     run_gtest_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("stress")
     ;;
