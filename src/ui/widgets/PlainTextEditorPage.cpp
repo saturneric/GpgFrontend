@@ -537,7 +537,11 @@ class NativeDocumentPort : public NativeContainer {
     }
   }
   void OnOpsChanged() override {
-    if (!page_.isNull()) emit page_->SignalCryptoOperationsChanged();
+    if (page_.isNull()) return;
+    emit page_->SignalCryptoOperationsChanged();
+    // What may be edited can change with the content: a message just signed
+    // is protected now, and an unlock already in force is withdrawn.
+    page_->refresh_source_lock();
   }
 
  private:
@@ -1010,6 +1014,20 @@ void PlainTextEditorPage::build_view_switcher() {
   layout->addWidget(source_button);
   layout->addStretch();
 
+  if (native_instance_ != 0) {
+    source_notice_ = new QLabel(view_switcher_);
+    source_notice_->setVisible(false);
+    source_unlock_ = new QToolButton(view_switcher_);
+    source_unlock_->setCheckable(true);
+    source_unlock_->setAutoRaise(true);
+    source_unlock_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    source_unlock_->setVisible(false);
+    layout->addWidget(source_notice_);
+    layout->addWidget(source_unlock_);
+    connect(source_unlock_, &QToolButton::toggled, this,
+            [this](bool on) { set_source_unlocked(on); });
+  }
+
   // A hairline under the row, which is what turns two flat buttons into a tab
   // strip. Drawn from the palette so it follows the theme, like every other
   // rule in the application.
@@ -1048,11 +1066,61 @@ void PlainTextEditorPage::show_primary_view(bool primary) {
   primary_view_->setVisible(primary);
   ui_->textPage->setVisible(!primary);
 
+  // A native view's raw source opens read-only, every time.
+  if (native_instance_ != 0) {
+    set_source_unlocked(false);
+    if (source_notice_ != nullptr) source_notice_->setVisible(!primary);
+    if (source_unlock_ != nullptr) source_unlock_->setVisible(!primary);
+  }
+
   if (primary) {
     ReloadPrimaryView();
   } else {
     ui_->textPage->setFocus();
   }
+}
+
+void PlainTextEditorPage::set_source_unlocked(bool on) {
+  if (native_instance_ == 0) return;
+  if (on) {
+    const auto e = NativeInstances::Instance().Entry(native_instance_);
+    const auto reason = e.has_value() && e->document.source_lock
+                            ? e->document.source_lock(native_instance_)
+                            : std::nullopt;
+    if (reason.has_value()) {
+      QMessageBox::information(this, tr("Protected Document"), *reason);
+      on = false;
+    }
+  }
+  source_unlocked_ = on;
+  ui_->textPage->setReadOnly(!on);
+  refresh_source_lock();
+}
+
+void PlainTextEditorPage::refresh_source_lock() {
+  if (native_instance_ == 0 || source_unlock_ == nullptr) return;
+
+  const auto e = NativeInstances::Instance().Entry(native_instance_);
+  const auto reason = e.has_value() && e->document.source_lock
+                          ? e->document.source_lock(native_instance_)
+                          : std::nullopt;
+  if (source_unlocked_ && reason.has_value()) {
+    source_unlocked_ = false;  // protected now: the unlock does not survive
+    ui_->textPage->setReadOnly(true);
+  }
+
+  const QSignalBlocker blocker(source_unlock_);
+  source_unlock_->setChecked(source_unlocked_);
+  source_unlock_->setEnabled(source_unlocked_ || !reason.has_value());
+  source_unlock_->setIcon(QIcon(source_unlocked_ ? ":/icons/unlock.png"
+                                                 : ":/icons/read-only.png"));
+  source_unlock_->setText(source_unlocked_ ? tr("Stop Editing")
+                                           : tr("Edit Raw Source"));
+  source_notice_->setText(
+      source_unlocked_
+          ? tr("You are editing the raw source. What you type here is the "
+               "document.")
+          : reason.value_or(tr("Read-only. Unlock to edit the source.")));
 }
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {

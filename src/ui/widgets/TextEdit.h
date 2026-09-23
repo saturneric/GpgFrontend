@@ -378,8 +378,8 @@ class GF_UI_EXPORT TextEdit : public QWidget {
    * @return the new document's id
    */
   auto OpenDocument(const QString& type, const QString& title,
-                    const QString& path, const GFBuffer& content, bool saved)
-      -> qint64;
+                    const QString& path, const GFBuffer& content, bool saved,
+                    bool modified = false) -> qint64;
 
   /**
    * @brief Opens a file path in a text-editor tab after validation.

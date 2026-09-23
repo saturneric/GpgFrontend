@@ -844,7 +844,7 @@ auto TextEdit::SlotNewCustomTab(const QString& type, const QString& title,
 auto TextEdit::SlotGetTabWidget() -> QTabWidget* { return tab_widget_; }
 auto TextEdit::OpenDocument(const QString& type, const QString& title,
                             const QString& path, const GFBuffer& content,
-                            bool saved) -> qint64 {
+                            bool saved, bool modified) -> qint64 {
   auto* page = qobject_cast<PlainTextEditorPage*>(
       tab_widget_->SlotNewTab(type.isEmpty() ? QStringLiteral("text") : type,
                               title, QIcon(), {}));
@@ -856,6 +856,8 @@ auto TextEdit::OpenDocument(const QString& type, const QString& title,
   // module filled by hand used to be -- so `saved` only adds the file's
   // saved state on top.
   if (saved) page->NotifyFileSaved();
+  // A draft -- a reply, say -- exists nowhere yet, so closing it asks first.
+  if (modified) page->GetTextPage()->document()->setModified(true);
   return TextEditTabWidget::DocumentIdOf(page);
 }
 

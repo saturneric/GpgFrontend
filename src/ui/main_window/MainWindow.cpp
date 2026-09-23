@@ -283,8 +283,6 @@ void MainWindow::restore_settings() {
     settings.setValue("gnupg/non_ascii_at_file_operation", true);
   }
 
-  prohibit_update_checking_ =
-      settings.value("network/prohibit_update_check", true).toBool();
   show_wizard_on_startup_ = settings.value("wizard/show_wizard", true).toBool();
 
   AppearanceSO const appearance(SettingsObject("general_settings_state"));

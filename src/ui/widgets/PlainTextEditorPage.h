@@ -33,6 +33,9 @@
 class Ui_PlainTextEditor;
 class QActionGroup;
 
+class QLabel;
+class QToolButton;
+
 namespace GpgFrontend::UI {
 
 /**
@@ -480,6 +483,15 @@ class PlainTextEditorPage : public QWidget {
 
   quint64 native_instance_ = 0;  ///< the native view's instance, or 0
   std::unique_ptr<class NativeDocumentPort> native_port_;
+
+  /// For a native view: the raw source is read-only until the user unlocks
+  /// it, and unlocking asks the view first -- signed bytes, say, must not be
+  /// edited by accident. The row lives in the page's own switcher.
+  QLabel* source_notice_ = nullptr;
+  QToolButton* source_unlock_ = nullptr;
+  bool source_unlocked_ = false;
+  void refresh_source_lock();
+  void set_source_unlocked(bool on);
 
   QString full_file_path_;  ///< File path associated with this editor page.
   bool sign_marked_{};  ///< Whether OpenPGP signature metadata was formatted.

@@ -111,7 +111,8 @@ struct HostCommandHandlers {
     using R = Outcome<host::DocumentOpen::Result>;
     if (window.isNull()) return R::Failure(GF_CMD_E_UNAVAILABLE, {});
     const auto id = window->edit_->OpenDocument(
-        a.type, a.title, a.path, BlobToGFBuffer(a.content), a.saved);
+        a.type, a.title, a.path, BlobToGFBuffer(a.content), a.saved,
+        a.modified);
     if (id == 0) return R::Failure(GF_CMD_E_FAILED, {});
     return R::Success({id});
   }

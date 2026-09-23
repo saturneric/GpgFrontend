@@ -772,7 +772,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   bool attachment_dock_created_{};         ///<
   int restart_mode_{0};                    ///<
-  bool prohibit_update_checking_ = false;  ///<
   bool show_wizard_on_startup_ = false;    ///<
   bool wizard_checked_ = false;            ///<
   unsigned int operations_menu_mask_ = ~0;
