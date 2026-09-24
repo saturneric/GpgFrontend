@@ -35,10 +35,13 @@ namespace GpgFrontend::Module {
 
 namespace {
 
-/// The groups two modules already had their users' data in.
+/// The groups modules already had their users' data in. The im group is
+/// where the Host kept the instant-messaging settings before the feature
+/// became a module.
 auto LegacyGroups() -> const QMap<QString, QString>& {
   static const QMap<QString, QString> kGroups = {
       {"com.bktus.gpgfrontend.module.email", "email"},
+      {"com.bktus.gpgfrontend.module.im", "im"},
       {"com.bktus.gpgfrontend.module.key_server_sync", "key_server_sync"},
   };
   return kGroups;

@@ -71,8 +71,8 @@ enum GpgOperation : uint16_t {
   kAUTH = 1 << 6,
   kCERT = 1 << 7,
   kSYMMETRIC_ENCRYPT = 1 << 8,
-  kIM_ENCRYPT = 1 << 9,
-  kIM_ENCRYPT_SIGN = 1 << 10
+  // 1 << 9 and 1 << 10 were the IM encrypt toolbar buttons, now the IM
+  // module's; kept unused so a stored toolbar mask still means what it did.
 };
 
 enum class GpgComponentType : std::uint8_t {
