@@ -63,10 +63,6 @@ auto CurrentLoadingPolicy() -> Module::ModuleLoadingPolicy {
 
 namespace {
 
-/// delay before the second refresh; module (de)activation is posted to the
-/// module task runner and does not take effect synchronously
-constexpr int kActivationSettleMs = 300;
-
 /// number of hash characters shown before the ellipsis
 
 }  // namespace
@@ -164,14 +160,22 @@ void ModuleControllerDialog::init_connections() {
     auto module_id = ui_->moduleListView->GetCurrentModuleID();
     if (module_id.isEmpty()) return;
 
+    // One transition at a time, and the dialog hears when it has run rather
+    // than guessing how long it takes: two quick clicks used to read the same
+    // stale state and post the same transition twice.
+    transition_pending_ = true;
+    ui_->activateOrDeactivateButton->setEnabled(false);
+    QPointer<ModuleControllerDialog> self(this);
+    auto done = [self](bool) {
+      if (self == nullptr) return;
+      self->transition_pending_ = false;
+      self->refresh_all();
+    };
     if (!module_manager_->IsModuleActivated(module_id)) {
-      module_manager_->ActiveModule(module_id);
+      module_manager_->ActiveModule(module_id, done);
     } else {
-      module_manager_->DeactivateModule(module_id);
+      module_manager_->DeactivateModule(module_id, done);
     }
-
-    refresh_all();
-    QTimer::singleShot(kActivationSettleMs, this, [=]() { refresh_all(); });
   });
 
   connect(ui_->autoActivateCheckBox, &QCheckBox::clicked, this,
@@ -297,7 +301,11 @@ void ModuleControllerDialog::init_authorization_actions() {
            "<p>Only continue if you obtained this fingerprint from the "
            "module's "
            "author through a channel you trust.</p>")
-            .arg(fingerprint.toHtmlEscaped()),
+                .arg(fingerprint.toHtmlEscaped()) +
+            // A separate string, so the translations of the one above stay.
+            tr("<p>A module you enable runs inside GpgFrontend and can do "
+               "anything GpgFrontend can. The capabilities it lists are what "
+               "it asked for, not a limit.</p>"),
         QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
     if (answer != QMessageBox::Yes) return;
 
@@ -436,19 +444,15 @@ void ModuleControllerDialog::slot_load_module_details(
     return;
   }
 
-  SettingsObject so(QString("module.%1.so").arg(module_id));
-  ModuleSO module_so(so);
-
-  if (module_so.module_id != module_id ||
-      module_so.module_hash != module->GetModuleHash()) {
-    module_so.module_id = module_id;
-    module_so.module_hash = module->GetModuleHash();
-    module_so.auto_activate = false;
-    so.Store(module_so.ToJson());
-  }
+  // The one settings policy, the loader's own: this used to reset the same
+  // record by a rule of its own, which disagreed with the loader's about
+  // integrated modules.
+  const auto module_so = Module::ReconcileModuleSettings(
+      module_id, module->GetModuleHash(),
+      module_manager_->IsIntegratedModule(module_id));
 
   ui_->detailStackedWidget->setCurrentWidget(ui_->detailPage);
-  ui_->activateOrDeactivateButton->setEnabled(true);
+  ui_->activateOrDeactivateButton->setEnabled(!transition_pending_);
   ui_->autoActivateCheckBox->setEnabled(true);
   trust_key_button_->hide();
   enable_module_button_->hide();

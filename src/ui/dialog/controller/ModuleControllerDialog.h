@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/module/Module.h"
+#include "core/module/ModuleManager.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_ModuleControllerDialog;
@@ -58,6 +58,7 @@ class ModuleControllerDialog : public GeneralDialog {
  private:
   QSharedPointer<Ui_ModuleControllerDialog> ui_;  ///<
   Module::ModuleManager* module_manager_;
+  bool transition_pending_ = false;  ///< an activation or deactivation runs
 
   /**
    * @brief Translate all static texts of the dialog.
