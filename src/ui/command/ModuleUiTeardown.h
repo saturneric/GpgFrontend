@@ -33,11 +33,20 @@ namespace GpgFrontend::UI {
 /**
  * @brief Withdraw everything the Host holds on behalf of @p module.
  *
- * Called once a module has been deactivated -- after its own on_deactivate
- * hook -- and again, harmlessly, on the other paths out of a module's life.
- * Idempotent. After it returns, no command call enters the module and no
- * command result is delivered to it.
+ * THE withdrawal: run when a module is deactivated, when its activation
+ * fails, and at shutdown -- always after its entry gate has closed and
+ * before its own deactivate hook, so the hook never races a Host call into
+ * the state it is tearing down. Idempotent, and callable from any thread.
+ *
+ * At once, on the calling thread: its commands are withdrawn and it becomes
+ * a closed caller (CommandRegistry::RemoveAllFor), its translations go, and
+ * its native widget registrations. Queued to the GUI thread, which owns them:
+ * its UI script, and every live instance of its widgets, whose containers
+ * drop them.
  */
 void GF_UI_EXPORT ModuleUiTeardown(const QString& module);
+
+/// The module is being activated again: undo what ModuleUiTeardown closed.
+void GF_UI_EXPORT ModuleUiReopen(const QString& module);
 
 }  // namespace GpgFrontend::UI

@@ -32,6 +32,8 @@
 #include <QThread>
 #include <atomic>
 
+#include "core/module/ModuleNamespace.h"
+
 namespace GpgFrontend::UI {
 
 namespace {
@@ -126,7 +128,7 @@ struct CommandRegistry::Pending {
   std::atomic<bool> cancelled{false};
 
   QRecursiveMutex delivery;
-  bool finished = false;  // guarded by delivery
+  bool finished = false;    // guarded by delivery
   gf::cmd::Completer done;  // guarded by delivery
 };
 
@@ -155,7 +157,7 @@ auto CommandRegistry::Register(CommandProvider provider,
       return GF_CMD_E_DENIED;
     }
   } else {
-    if (!provider.id.startsWith(provider.owner + ".")) {
+    if (!Module::IsOwnedName(provider.owner, provider.id)) {
       LOG_W() << "module" << provider.owner << "may not register command"
               << provider.id << ": outside its namespace";
       return GF_CMD_E_DENIED;
@@ -169,10 +171,13 @@ auto CommandRegistry::Register(CommandProvider provider,
   }
 
   QMutexLocker locker(&mutex_);
+  if (!provider.owner.isEmpty() && closed_.contains(provider.owner)) {
+    return GF_CMD_E_UNAVAILABLE;
+  }
   if (providers_.contains(provider.id)) return GF_CMD_E_DENIED;
   const auto id = provider.id;
-  providers_.insert(id, std::make_shared<const CommandProvider>(
-                            std::move(provider)));
+  providers_.insert(
+      id, std::make_shared<const CommandProvider>(std::move(provider)));
   return GF_CMD_OK;
 }
 
@@ -211,6 +216,15 @@ auto CommandRegistry::Invoke(const QString& id, QCborMap args,
                              const CommandCaller& caller,
                              gf::cmd::CommandContext context,
                              gf::cmd::Completer done) -> Ticket {
+  if (!caller.IsHost()) {
+    QMutexLocker locker(&mutex_);
+    if (closed_.contains(caller.module)) {
+      LOG_W() << "module" << caller.module << "may not invoke" << id
+              << ": it has been withdrawn";
+      return {GF_CMD_E_UNAVAILABLE, 0};
+    }
+  }
+
   const auto provider = Lookup(id);
   if (provider == nullptr) return {GF_CMD_E_UNKNOWN, 0};
 
@@ -251,8 +265,8 @@ auto CommandRegistry::Invoke(const QString& id, QCborMap args,
   context.call_id = static_cast<qint64>(call_id);
   context.cancelled = [call]() { return call->cancelled.load(); };
 
-  auto completer = [this, call_id, owner = provider->owner](
-                       gf::cmd::RawResult r) {
+  auto completer = [this, call_id,
+                    owner = provider->owner](gf::cmd::RawResult r) {
     Finish(call_id, owner, std::move(r));
   };
 
@@ -264,7 +278,10 @@ auto CommandRegistry::Invoke(const QString& id, QCborMap args,
     // called after that, and the caller learns why.
     if (Lookup(provider->id) != provider) {
       Finish(call->id, provider->owner,
-             {GF_CMD_E_UNAVAILABLE, 0, {}, {},
+             {GF_CMD_E_UNAVAILABLE,
+              0,
+              {},
+              {},
               QStringLiteral("the command's provider went away")});
       return;
     }
@@ -388,6 +405,7 @@ void CommandRegistry::RemoveAllFor(const QString& module) {
   QList<std::shared_ptr<Pending>> provided;
   {
     QMutexLocker locker(&mutex_);
+    closed_.insert(module);
     for (auto it = providers_.begin(); it != providers_.end();) {
       if ((*it)->owner == module) {
         it = providers_.erase(it);
@@ -409,10 +427,18 @@ void CommandRegistry::RemoveAllFor(const QString& module) {
 
   // Calls it was serving: their callers are told, rather than left waiting.
   for (const auto& call : provided) {
-    Deliver(call, {GF_CMD_E_UNAVAILABLE, 0, {}, {},
+    Deliver(call, {GF_CMD_E_UNAVAILABLE,
+                   0,
+                   {},
+                   {},
                    QStringLiteral("the module providing the command was "
                                   "unloaded")});
   }
+}
+
+void CommandRegistry::Reopen(const QString& module) {
+  QMutexLocker locker(&mutex_);
+  closed_.remove(module);
 }
 
 }  // namespace GpgFrontend::UI

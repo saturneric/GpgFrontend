@@ -191,9 +191,14 @@ class GF_UI_EXPORT CommandRegistry {
    *
    * Its commands are withdrawn; calls it was providing fail with
    * GF_CMD_E_UNAVAILABLE; calls it made are cancelled, so no callback ever
-   * enters its code again. Idempotent.
+   * enters its code again. Until Reopen(), it is also a CLOSED module: it
+   * can neither register nor invoke -- which covers whatever of it is still
+   * running meanwhile, its UI script included. Idempotent.
    */
   void RemoveAllFor(const QString& module);
+
+  /// @p module is being activated again: it may register and invoke.
+  void Reopen(const QString& module);
 
  private:
   struct Pending;
@@ -205,6 +210,7 @@ class GF_UI_EXPORT CommandRegistry {
   QHash<QString, std::shared_ptr<const CommandProvider>> providers_;
   std::unordered_map<quint64, std::shared_ptr<Pending>> pending_;
   quint64 next_call_id_ = 1;
+  QSet<QString> closed_;  ///< modules withdrawn and not yet reactivated
 };
 
 }  // namespace GpgFrontend::UI

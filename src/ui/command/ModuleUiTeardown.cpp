@@ -31,9 +31,10 @@
 #include <QCoreApplication>
 #include <QThread>
 
+#include "ui/UIModuleManager.h"
 #include "ui/command/CommandRegistry.h"
 #include "ui/lua/LuaHost.h"
-#include "ui/lua/LuaMounts.h"
+#include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
 namespace GpgFrontend::UI {
@@ -41,39 +42,38 @@ namespace GpgFrontend::UI {
 void ModuleUiTeardown(const QString& module) {
   if (module.isEmpty()) return;
 
-  // 1. Nothing enters the module's Lua from here on -- set now, from
-  //    whatever thread this is, before anything else can deliver.
-  auto* app = QCoreApplication::instance();
-  const bool on_gui = app == nullptr || QThread::currentThread() == app->thread();
-  if (on_gui) {
-    if (auto* rt = Lua::LuaHost::Instance().Runtime(module)) rt->StopCallbacks();
-  }
-
-  // 2. Its command calls, both ways, and the commands it provides. This is
-  //    also what drops every continuation its script is still owed.
+  // Thread-safe, so done here and now: from this point the module neither
+  // provides nor invokes a command -- its script included, even while the
+  // GUI half below is still queued -- and no command result reaches it.
   CommandRegistry::Instance().RemoveAllFor(module);
+  UIModuleManager::GetInstance().UnregisterTranslatorDataReader(module);
+  // Here and now too, not queued: a reactivation posted right behind this
+  // registers anew, and a queued removal landing after it would take the new
+  // registrations with it.
+  NativeWidgetRegistry::Instance().RemoveAllFor(module);
 
-  // 3-6. The runtime itself, on the thread that owns it. Queued rather than
-  //      waited for when this is a module thread: that thread must never
-  //      block on the GUI thread. Nothing can enter the runtime meanwhile --
-  //      its calls are gone and its flag is set -- and it holds no pointer
-  //      into module code.
+  // The runtime and the widgets, on the thread that owns them. Queued rather
+  // than waited for when this is a module thread: that thread must never
+  // block on the GUI thread. Nothing enters the module meanwhile -- its gate
+  // is closed -- and the runtime holds no pointer into module code.
   const auto rest = [module]() {
-    if (auto* rt = Lua::LuaHost::Instance().Runtime(module)) {
-      rt->StopCallbacks();
-    }
-    Lua::LuaHost::Instance().Teardown(module);
-    // Its dialogs close; its settings pages and document views live in
-    // containers that forget the instance when they go, and a document tab
-    // keeps its bytes -- the page, not the view, owns the document.
-    Lua::CloseDialogsOf(module);
-    NativeWidgetRegistry::Instance().RemoveAllFor(module);
+    auto& lua = Lua::LuaHost::Instance();
+    if (auto* rt = lua.Runtime(module)) rt->StopCallbacks();
+    lua.Teardown(module);
+    NativeInstances::Instance().WithdrawAll(module);
   };
-  if (on_gui) {
+
+  auto* app = QCoreApplication::instance();
+  if (app == nullptr || QThread::currentThread() == app->thread()) {
     rest();
   } else {
     QMetaObject::invokeMethod(app, rest, Qt::QueuedConnection);
   }
+}
+
+void ModuleUiReopen(const QString& module) {
+  if (module.isEmpty()) return;
+  CommandRegistry::Instance().Reopen(module);
 }
 
 }  // namespace GpgFrontend::UI
