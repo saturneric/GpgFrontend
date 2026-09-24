@@ -28,6 +28,7 @@
 
 #include "GFHostImpl.h"
 #include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/model/GFBuffer.h"
@@ -176,6 +177,43 @@ auto LegacyModuleCacheKey(const QString& key) -> QString {
   return QStringLiteral("__module_") + key;
 }
 
+/**
+ * @brief Where the Host itself kept a module's secret, before the feature
+ *        became a module; empty for anything else.
+ *
+ * Read once, on the module's first miss, and moved to the module's scoped key
+ * -- the same one-shot move as the unscoped legacy key below. Remove an entry
+ * once no supported version can still hold the old key.
+ */
+auto LegacyHostSecretKey(const QString& module_id, int store,
+                         const QString& key) -> QString {
+  static const QMap<QString, QString> kKeys = {
+      // The instant-messaging book phrase, and its value format, unchanged.
+      {QStringLiteral("com.bktus.gpgfrontend.module.im/%1/book_phrase")
+           .arg(GF_STORE_SECURE_DURABLE),
+       QStringLiteral("im/password_book_phrase")},
+  };
+  return kKeys.value(QStringLiteral("%1/%2/%3").arg(module_id).arg(store).arg(
+      key));
+}
+
+/**
+ * @brief The book phrase an even older Host left in the plaintext settings
+ *        file, in the secure cache's value format; empty when there is none.
+ *        Removed from the settings file as it is read.
+ */
+auto TakeLegacyPlaintextSecret(const QString& host_key) -> GpgFrontend::GFBuffer {
+  auto settings = GpgFrontend::GetSettings();
+  if (!settings.contains(host_key)) return {};
+  const auto phrase = settings.value(host_key).toString().trimmed();
+  settings.remove(host_key);
+  settings.sync();
+  if (phrase.isEmpty()) return {};
+  QByteArray blob(1, '\x01');  // the phrase value's version prefix
+  blob.append(phrase.toUtf8());
+  return GpgFrontend::GFBuffer(blob);
+}
+
 auto IsDurable(int store) -> bool {
   return store == GF_STORE_DURABLE || store == GF_STORE_SECURE_DURABLE;
 }
@@ -196,6 +234,19 @@ auto GFModuleCacheGet(const QString& module_id, int store, const QString& key,
 
   *out = cache.LoadSecDurableCache(scoped);
   if (!out->Empty()) return true;
+
+  // A secret the Host kept for this feature before it became a module.
+  if (const auto host_key = LegacyHostSecretKey(module_id, store, key);
+      !host_key.isEmpty()) {
+    auto value = cache.LoadSecDurableCache(host_key);
+    if (value.Empty()) value = TakeLegacyPlaintextSecret(host_key);
+    if (!value.Empty()) {
+      cache.SaveSecDurableCache(scoped, value, true);
+      cache.ResetDurableCache(host_key);
+      *out = value;
+      return true;
+    }
+  }
 
   // Migrate a value written before keys were scoped: move it to the scoped
   // key the first time it is asked for. Both durable stores used the same
