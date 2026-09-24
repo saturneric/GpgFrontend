@@ -432,6 +432,25 @@ function(_gf_module_forbid_host_libraries target)
   endwhile()
 endfunction()
 
+# A module-side test executable, for the modules phase of scripts/run_tests.sh.
+#
+# The Host's scripts know no module by name: which test binaries a complete
+# run must produce is the module tree's own statement, made here beside each
+# target. The top-level CMakeLists writes the registered binaries to one list
+# (test-bin/module-tests.list); the script runs exactly that list and fails a
+# listed binary that was never built, which is what a glob cannot catch.
+# `gf_module_tests` builds them all.
+function(gf_register_module_test target)
+  if(NOT TARGET ${target})
+    message(FATAL_ERROR "gf_register_module_test: no such target: ${target}")
+  endif()
+  set_property(GLOBAL APPEND PROPERTY GPGFRONTEND_MODULE_TEST_TARGETS ${target})
+  if(NOT TARGET gf_module_tests)
+    add_custom_target(gf_module_tests)
+  endif()
+  add_dependencies(gf_module_tests ${target})
+endfunction()
+
 function(gf_add_module)
   cmake_parse_arguments(GAM
     ""
