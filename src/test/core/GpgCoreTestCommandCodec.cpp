@@ -30,6 +30,7 @@
 
 #include "GpgFrontendTest.h"
 #include "sdk/GFSDKCommand.hpp"
+#include "sdk/GFSDKHostCommands.hpp"
 #include "sdk/GFSDKHostApi.h"
 
 /**
@@ -239,6 +240,24 @@ TEST(CommandCodecTest, DecodingIsStrict) {
   m.insert(QStringLiteral("secret"), QCborValue(QCborValue::Null));
   EXPECT_TRUE(gf::cmd::DecodeMap(m, st.blobs, e, &error))
       << error.toStdString();
+}
+
+// The "New Text Editor" menu action used to hand document.new the
+// current-document target every other menu command takes, and document.new
+// refused it ("missing field type") on every click.
+TEST(CommandCodecTest, DocumentNewTakesATypeNotATarget) {
+  gf::cmd::host::DocumentNew::Args out;
+  QString error;
+
+  gf::cmd::EncodeState st;
+  const auto target =
+      gf::cmd::EncodeMap(gf::cmd::host::detail::TargetArgs{}, st);
+  EXPECT_FALSE(gf::cmd::DecodeMap(target, {}, out, &error));
+
+  const auto menu = gf::cmd::EncodeMap(
+      gf::cmd::host::DocumentNew::Args{QStringLiteral("text"), QString()}, st);
+  ASSERT_TRUE(gf::cmd::DecodeMap(menu, {}, out, &error)) << error.toStdString();
+  EXPECT_EQ(out.type, QStringLiteral("text"));
 }
 
 TEST(CommandCodecTest, TheDescriptorIsDerivedFromTheType) {
