@@ -142,6 +142,26 @@ auto DoSink(const gf::cmd::CommandContext&, const Sink::Args& a)
   return gf::cmd::Outcome<gf::cmd::Unit>::Success({});
 }
 
+/// Takes one key or a selection, the way key-list actions are invoked.
+struct Keys {
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.keys", "Keys", "", "", 0, 0};
+  struct Args {
+    std::optional<gf::cmd::KeyRef> key;
+    std::optional<QList<gf::cmd::KeyRef>> keys;
+    static constexpr auto Fields() {
+      return std::make_tuple(gf::cmd::F("key", &Args::key),
+                             gf::cmd::F("keys", &Args::keys));
+    }
+  };
+  using Result = gf::cmd::Unit;
+};
+
+auto DoKeys(const gf::cmd::CommandContext&, const Keys::Args&)
+    -> gf::cmd::Outcome<gf::cmd::Unit> {
+  return gf::cmd::Outcome<gf::cmd::Unit>::Success({});
+}
+
 /// Never answers: for continuation limits and teardown.
 struct Park {
   static constexpr gf::cmd::Meta kMeta{
@@ -185,6 +205,7 @@ class LuaApiTest : public ::testing::Test {
     RegisterTestCommand<Secret, &DoSecret>();
     RegisterTestCommand<Sink, &DoSink>();
     RegisterTestCommand<Park, &DoPark>();
+    RegisterTestCommand<Keys, &DoKeys>();
 
     CommandProvider liar;
     liar.id = "com.example.luat.liar";
@@ -470,6 +491,118 @@ ui.action { id = "wrongkind", anchor = ui.anchor("main.menu.help"),
   EXPECT_FALSE(st.error.isEmpty()) << "a Key is not a DocumentRef";
 }
 
+// A key list's selection arrives as ctx.keys; ctx.key is there only when the
+// selection is one key, so single-key update functions keep working.
+TEST_F(LuaApiTest, AKeyListSelectionIsCtxKeys) {
+  auto rt = Make();
+  ASSERT_TRUE(Load(*rt, R"lua(
+local keys = commands.get("com.example.luat.keys")
+ui.action { id = "all", anchor = ui.anchor("key.list.context"),
+  command = keys,
+  update = function(ctx)
+    if #ctx.keys == 0 then return { visible = false } end
+    assert(ctx.keys[2] == nil or ctx.key == nil,
+           "ctx.key stands for a single selection only")
+    assert(ctx.keys[1].fingerprint ~= nil)
+    return { args = { keys = ctx.keys } }
+  end }
+ui.action { id = "one", anchor = ui.anchor("key.list.context"),
+  command = keys,
+  update = function(ctx)
+    if not ctx.key then return { visible = false } end
+    return { args = { key = ctx.key } }
+  end }
+)lua"));
+  const auto all = QString(kModule) + ".all";
+  const auto one = QString(kModule) + ".one";
+
+  UiContext none;
+  EXPECT_FALSE(rt->Evaluate(all, none).visible);
+  EXPECT_FALSE(rt->Evaluate(one, none).visible);
+
+  UiContext two;
+  two.keys = {gf::cmd::KeyRef{3, "ID1", "FPR1", false},
+              gf::cmd::KeyRef{3, "ID2", "FPR2", true}};
+  auto st = rt->Evaluate(all, two);
+  ASSERT_TRUE(st.error.isEmpty()) << st.error.toStdString();
+  const auto list = st.args.value("keys").toArray();
+  ASSERT_EQ(list.size(), 2);
+  EXPECT_EQ(list[0].toMap().value("fingerprint").toString(), "FPR1");
+  EXPECT_EQ(list[1].toMap().value("key_id").toString(), "ID2");
+  EXPECT_TRUE(list[1].toMap().value("has_secret").toBool());
+  EXPECT_EQ(list[1].toMap().value("channel").toInteger(), 3);
+  EXPECT_FALSE(rt->Evaluate(one, two).visible);
+
+  UiContext single;
+  single.keys = {gf::cmd::KeyRef{0, "ID9", "FPR9", false}};
+  single.key = single.keys.front();
+  st = rt->Evaluate(one, single);
+  ASSERT_TRUE(st.error.isEmpty()) << st.error.toStdString();
+  EXPECT_EQ(st.args.value("key").toMap().value("fingerprint").toString(),
+            "FPR9");
+}
+
+TEST_F(LuaApiTest, ASelectedKeyHandleDiesWithItsCall) {
+  auto rt = Make();
+  ASSERT_TRUE(Load(*rt, R"lua(
+local keys = commands.get("com.example.luat.keys")
+ui.action { id = "keep", anchor = ui.anchor("key.list.context"),
+  command = keys,
+  update = function(ctx)
+    if kept == nil then kept = ctx.keys[1] return { visible = false } end
+    return { args = { key = kept } }
+  end }
+ui.action { id = "ref", anchor = ui.anchor("key.list.context"),
+  command = keys,
+  update = function(ctx)
+    if kept_ref == nil then kept_ref = ctx.keys[1]:ref() return {} end
+    return { args = { key = kept_ref } }
+  end }
+)lua"));
+  UiContext ctx;
+  ctx.keys = {gf::cmd::KeyRef{0, "ID", "FPR", false}};
+
+  rt->Evaluate(QString(kModule) + ".keep", ctx);
+  auto st = rt->Evaluate(QString(kModule) + ".keep", ctx);
+  EXPECT_TRUE(st.error.contains("outlived")) << st.error.toStdString();
+
+  rt->Evaluate(QString(kModule) + ".ref", ctx);
+  st = rt->Evaluate(QString(kModule) + ".ref", UiContext{});
+  ASSERT_TRUE(st.error.isEmpty()) << st.error.toStdString();
+  EXPECT_EQ(st.args.value("key").toMap().value("fingerprint").toString(),
+            "FPR");
+}
+
+// A key sequence belongs to a main-menu action: a button or a popup has no
+// window-wide action to carry it.
+TEST_F(LuaApiTest, AShortcutIsForMainMenuActionsOnly) {
+  auto rt = Make();
+  QString error;
+  ASSERT_TRUE(Load(*rt, R"lua(
+ui.action { id = "ops", anchor = ui.anchor("main.menu.operations"),
+  command = commands.get("com.example.luat.echo"), shortcut = "Ctrl+Shift+Y" }
+)lua",
+                   &error))
+      << error.toStdString();
+  const auto actions = rt->Actions("main.menu.operations");
+  ASSERT_EQ(actions.size(), 1);
+  EXPECT_EQ(actions.front().shortcut, "Ctrl+Shift+Y");
+
+  for (const char* code : {
+           R"lua(ui.action { id = "k", anchor = ui.anchor("key.list.context"),
+  command = commands.get("com.example.luat.keys"), shortcut = "Ctrl+Y" })lua",
+           R"lua(ui.action { id = "e", anchor = ui.anchor("editor.context"),
+  command = commands.get("com.example.luat.echo"), shortcut = "Ctrl+Y" })lua",
+           R"lua(ui.action { id = "b", anchor = ui.anchor("main.menu.help"),
+  command = commands.get("com.example.luat.echo"), shortcut = "" })lua",
+           R"lua(ui.action { id = "n", anchor = ui.anchor("main.menu.help"),
+  command = commands.get("com.example.luat.echo"), shortcut = 7 })lua"}) {
+    error.clear();
+    EXPECT_FALSE(Load(*rt, code, &error)) << code;
+    EXPECT_TRUE(error.contains("shortcut")) << error.toStdString();
+  }
+}
+
 TEST_F(LuaApiTest, TriggerReevaluatesAgainstTheContextOfNow) {
   auto rt = Make();
   ASSERT_TRUE(Load(*rt, kEchoAction));
@@ -663,12 +796,17 @@ TEST_F(LuaApiTest, TheAnchorCatalogIsStable) {
   const auto reference = UI::Lua::AnchorCatalogReference();
   for (const char* id :
        {"main.menu.file.workspace", "main.menu.advanced", "main.menu.help",
-        "main.menu.import_key", "editor.context", "key.details.actions",
-        "settings", "editor", "dialog"}) {
+        "main.menu.import_key", "main.menu.operations", "editor.context",
+        "key.details.actions", "key.list.context", "settings", "editor",
+        "dialog"}) {
     EXPECT_NE(UI::Lua::FindAnchor(id), nullptr) << id;
     EXPECT_TRUE(reference.contains(QLatin1String(id))) << id;
   }
   EXPECT_EQ(UI::Lua::FindAnchor("main_menu.help"), nullptr);
+  EXPECT_EQ(UI::Lua::kAnchorCatalogVersion, 2);
+  EXPECT_TRUE(reference.contains(
+      "key.list.context | menu | context: key, keys | modules: many | since "
+      "2"));
   EXPECT_TRUE(UI::Lua::LuaApiReference().contains("ui.action"));
 }
 

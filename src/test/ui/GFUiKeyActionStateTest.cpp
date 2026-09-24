@@ -42,8 +42,7 @@ using UI::KeyAction;
 using UI::KeyActionContext;
 
 /**
- * @brief A context where everything the engine and the modules could offer is
- * available, so a test only has to state the part it cares about.
+ * @brief A context where everything the engine could offer is available, so a test only has to state the part it cares about.
  */
 auto FullySupported() -> KeyActionContext {
   KeyActionContext ctx;
@@ -51,9 +50,6 @@ auto FullySupported() -> KeyActionContext {
   ctx.owner_trust_supported = true;
   ctx.subkey_generation_supported = true;
   ctx.ssh_export_supported = true;
-  ctx.keyserver_search_available = true;
-  ctx.keyserver_upload_available = true;
-  ctx.keyserver_fetch_available = true;
   ctx.any_private_key_in_keyring = true;
   return ctx;
 }
@@ -99,12 +95,6 @@ TEST(KeyActionStateTest, NothingSelectedDisablesEveryPerKeyAction) {
     // A greyed entry with no explanation is worse than no entry.
     EXPECT_FALSE(state.reason.isEmpty());
   }
-}
-
-TEST(KeyActionStateTest, SearchingAKeyserverNeedsNoSelection) {
-  // The point of searching is to find a key you do not have yet.
-  EXPECT_TRUE(
-      EvaluateKeyAction(KeyAction::kKeyserverSearch, FullySupported()).enabled);
 }
 
 TEST(KeyActionStateTest, BackupAllPrivateFollowsTheKeyringNotTheSelection) {
@@ -223,8 +213,6 @@ TEST(KeyActionStateTest, SelectionAloneEnablesTheMultiKeyOperations) {
 
   EXPECT_TRUE(EvaluateKeyAction(KeyAction::kExportPackage, ctx).enabled);
   EXPECT_TRUE(EvaluateKeyAction(KeyAction::kExportClipboard, ctx).enabled);
-  EXPECT_TRUE(EvaluateKeyAction(KeyAction::kKeyserverPublish, ctx).enabled);
-  EXPECT_TRUE(EvaluateKeyAction(KeyAction::kKeyserverRefresh, ctx).enabled);
   EXPECT_TRUE(EvaluateKeyAction(KeyAction::kCategory, ctx).enabled);
 }
 
@@ -269,32 +257,6 @@ TEST(KeyActionStateTest, OpenSshExportTakesExactlyOneKey) {
   const auto state = EvaluateKeyAction(KeyAction::kExportOpenSsh, ctx);
   EXPECT_FALSE(state.enabled);
   EXPECT_FALSE(state.reason.isEmpty());
-}
-
-TEST(KeyActionStateTest, KeyserverActionsTrackTheirOwnModuleEvents) {
-  // Search available but upload not is a real configuration, and it must not
-  // take the whole submenu down with it.
-  auto ctx = FullySupported();
-  ctx.selected_count = 1;
-  ctx.keyserver_upload_available = false;
-
-  EXPECT_TRUE(EvaluateKeyAction(KeyAction::kKeyserverSearch, ctx).supported);
-  EXPECT_FALSE(EvaluateKeyAction(KeyAction::kKeyserverPublish, ctx).supported);
-  EXPECT_TRUE(EvaluateKeyAction(KeyAction::kKeyserverRefresh, ctx).supported);
-}
-
-TEST(KeyActionStateTest, NoKeyserverModuleHidesAllThreeKeyserverActions) {
-  auto ctx = FullySupported();
-  ctx.selected_count = 1;
-  ctx.keyserver_search_available = false;
-  ctx.keyserver_upload_available = false;
-  ctx.keyserver_fetch_available = false;
-
-  for (const auto action :
-       {KeyAction::kKeyserverSearch, KeyAction::kKeyserverPublish,
-        KeyAction::kKeyserverRefresh}) {
-    EXPECT_FALSE(EvaluateKeyAction(action, ctx).supported);
-  }
 }
 
 TEST(KeyActionStateTest, BulkExtendExpiryNeedsAPrivateKeyAmongTheTargets) {
