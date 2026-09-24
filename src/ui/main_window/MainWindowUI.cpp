@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "sdk/GFSDKHostCommands.hpp"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
@@ -57,7 +58,18 @@ void MainWindow::create_actions() {
       tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, this,
-          [this]() { invoke_host_command("org.gpgfrontend.document.new"); });
+          [this]() {
+            // A new plain-text document; the Host picks its title. Not the
+            // current-document target the other menu commands take, which
+            // document.new refuses.
+            gf::cmd::EncodeState st;
+            invoke_host_command(
+                "org.gpgfrontend.document.new",
+                gf::cmd::EncodeMap(
+                    gf::cmd::host::DocumentNew::Args{QStringLiteral("text"),
+                                                     QString()},
+                    st));
+          });
 
   browser_act_ = create_action(
       "file_browser_dir", tr("New File Panel"), ":/icons/file-operator.png",

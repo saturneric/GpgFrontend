@@ -349,22 +349,30 @@ void MainWindow::register_host_commands() {
 
 void MainWindow::invoke_host_command(const char* id) {
   gf::cmd::EncodeState st;
-  const auto args = gf::cmd::EncodeMap(gf::cmd::host::detail::TargetArgs{}, st);
+  const auto target =
+      gf::cmd::EncodeMap(gf::cmd::host::detail::TargetArgs{}, st);
   const auto command = QString::fromLatin1(id);
 
-  // Commands that take no target are given none: the registry refuses an
+  // Commands that take no arguments are given none: the registry refuses an
   // argument a command does not declare, which is what makes a typo in a
-  // module's call fail loudly instead of being ignored.
+  // module's call fail loudly instead of being ignored. Everything else a
+  // menu reaches through here acts on the current document, so it gets the
+  // current-document target; a command with other arguments has to be given
+  // them by its caller, through the overload below.
   const auto descriptor = CommandRegistry::Instance().Describe(command);
-  const auto declares_target =
+  const auto declares_args =
       descriptor.has_value() && !descriptor->value(QStringLiteral("args"))
                                      .toMap()
                                      .value(QStringLiteral("fields"))
                                      .toArray()
                                      .isEmpty();
+  invoke_host_command(id, declares_args ? target : QCborMap{});
+}
 
+void MainWindow::invoke_host_command(const char* id, const QCborMap& args) {
+  const auto command = QString::fromLatin1(id);
   const auto ticket = CommandRegistry::Instance().Invoke(
-      command, declares_target ? args : QCborMap{}, {},
+      command, args, {},
       CommandCaller{{}, 0, QStringLiteral("host")}, {},
       [command](gf::cmd::RawResult r) {
         if (r.status != GF_CMD_OK) {

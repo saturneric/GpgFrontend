@@ -635,6 +635,10 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /// Invoke a Host command on the active document, as a menu entry does.
   void invoke_host_command(const char* id);
 
+  /// The same, with the arguments given rather than derived: for a host
+  /// command whose arguments are not the current-document target.
+  void invoke_host_command(const char* id, const QCborMap& args);
+
   /**
    * @brief Open one package in a new window, wherever the request came from.
    *
