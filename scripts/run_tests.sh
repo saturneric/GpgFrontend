@@ -205,16 +205,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-# The module test binaries a complete run must produce. Named rather than
-# globbed: a glob that finds *something* cannot tell a full run from one where
-# a target silently stopped being built.
-MODULE_TESTS=(
-  gf_mod_email_test
-  gf_mod_email_net_test
-  gf_mod_email_crypto_test
-  gf_mod_pgp_inspect_test
-  gf_module_runtime_test
-)
+# The module test binaries are not named here: this script knows no module.
+# Each test target registers itself with gf_register_module_test(), and the
+# build writes what it registered to test-bin/module-tests.list; the modules
+# phase runs exactly that list (see run_modules_phase).
 
 # --- sanitizer build (--asan / --asan-gui) ---------------------------------
 if [[ "$ASAN" != "no" ]]; then
@@ -250,7 +244,7 @@ if [[ "$ASAN" != "no" ]]; then
   # tree you iterate in, so it is easy to leave stale.
   if [[ "$DO_BUILD" != "no" ]]; then
     targets=(gpgfrontend)
-    [[ "$ASAN" == "tests" ]] && targets+=("${MODULE_TESTS[@]}")
+    [[ "$ASAN" == "tests" ]] && targets+=(gf_module_tests)
     echo "==> Building ${targets[*]} ($BUILD_DIR, -j$JOBS); a full sanitized rebuild is slow"
     cmake --build "$BUILD_DIR" --target "${targets[@]}" -j"$JOBS" \
       || { echo "error: build failed" >&2; exit 1; }
@@ -778,36 +772,46 @@ run_modules_phase() {
 
   : > "$log"
 
+  # The list the build wrote, not a glob: a glob that finds *something*
+  # cannot tell a full run from one where a registered target silently
+  # stopped being built. Which binaries belong on it is the module tree's own
+  # statement, made where each test target is defined.
+  local list="${dir}/module-tests.list"
   local -a binaries=()
-  if [[ -d "$dir" ]]; then
-    while IFS= read -r -d '' b; do binaries+=("$b"); done \
-      < <(find "$dir" -maxdepth 1 -type f -name '*_test' -print0 2>/dev/null)
+  if [[ -f "$list" ]]; then
+    while IFS= read -r b; do
+      [[ -n "$b" ]] && binaries+=("$b")
+    done < "$list"
   fi
 
   if [[ ${#binaries[@]} -eq 0 ]]; then
     if [[ "$REQUIRE_MODULES" == "yes" ]]; then
-      echo "error: no module test binaries found in ${dir}" \
-        "(configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" \
+      echo "error: no module tests registered (${list} missing or empty;" \
+        "configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" \
         | tee -a "$log" >&2
       return 1
     fi
-    echo "warning: no module test binaries found; skipping modules phase" \
+    echo "warning: no module tests registered; skipping modules phase" \
       "(configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" | tee -a "$log" >&2
     return 0
   fi
 
-  # Named rather than merely counted; see MODULE_TESTS.
-  if [[ "$REQUIRE_MODULES" == "yes" ]]; then
-    local missing=0
-    for name in "${MODULE_TESTS[@]}"; do
-      if [[ ! -x "${dir}/${name}" ]]; then
-        echo "error: expected module test binary not built: ${name}" \
-          | tee -a "$log" >&2
-        missing=1
-      fi
-    done
-    [[ "$missing" -eq 0 ]] || return 1
-  fi
+  # A registered binary that is missing was never built: a failure when a
+  # complete run is required, otherwise reported and skipped.
+  local -a present=()
+  local missing=0
+  for b in "${binaries[@]}"; do
+    if [[ -x "$b" ]]; then
+      present+=("$b")
+    else
+      echo "$([[ "$REQUIRE_MODULES" == "yes" ]] && echo error || echo warning):" \
+        "registered module test binary not built: $(basename "$b")" \
+        | tee -a "$log" >&2
+      missing=1
+    fi
+  done
+  [[ "$missing" -eq 0 || "$REQUIRE_MODULES" != "yes" ]] || return 1
+  binaries=("${present[@]}")
 
   local rc=0
   for b in "${binaries[@]}"; do
