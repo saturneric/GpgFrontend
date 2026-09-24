@@ -481,6 +481,9 @@ class PlainTextEditorPage : public QWidget {
   auto mount_primary_view(QWidget* view) -> bool;
   void set_source_unlocked(bool on);
 
+  /// The native view's module was withdrawn: drop its view, show the source.
+  void withdraw_native_view();
+
   QString full_file_path_;  ///< File path associated with this editor page.
   bool sign_marked_{};  ///< Whether OpenPGP signature metadata was formatted.
   bool read_done_ = false;  ///< Whether asynchronous file loading has finished.

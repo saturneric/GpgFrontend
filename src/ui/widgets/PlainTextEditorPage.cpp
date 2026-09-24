@@ -543,10 +543,40 @@ class NativeDocumentPort : public NativeContainer {
     // is protected now, and an unlock already in force is withdrawn.
     page_->refresh_source_lock();
   }
+  void OnWithdrawn() override {
+    if (!page_.isNull()) page_->withdraw_native_view();
+  }
 
  private:
   QPointer<PlainTextEditorPage> page_;
 };
+
+void PlainTextEditorPage::withdraw_native_view() {
+  // The module that drew this document is gone. The document itself was
+  // always this page's -- it keeps its bytes -- so what remains is to stop
+  // showing the module's view of it and show the source instead, editable,
+  // since no module is left to have an opinion about editing it.
+  native_instance_ = 0;
+  if (!primary_view_.isNull()) delete primary_view_.data();
+  if (view_switcher_ != nullptr) {
+    // The source notice and its unlock button live in the switcher.
+    delete view_switcher_;
+    view_switcher_ = nullptr;
+    source_notice_ = nullptr;
+    source_unlock_ = nullptr;
+  }
+  source_unlocked_ = false;
+  ui_->textPage->setVisible(true);
+  ui_->textPage->setReadOnly(false);
+  ui_->sha256Label->setHidden(false);
+  ui_->characterLabel->setHidden(false);
+  ui_->lfLabel->setHidden(false);
+  ui_->encodingLabel->setHidden(false);
+  ui_->horizontalSpacer->changeSize(40, 20, QSizePolicy::Expanding,
+                                    QSizePolicy::Minimum);
+  ui_->horizontalLayout->invalidate();
+  emit SignalCryptoOperationsChanged();
+}
 
 PlainTextEditorPage::~PlainTextEditorPage() {
   // The module forgets the instance before its widget, a child of this page,
@@ -563,13 +593,18 @@ auto PlainTextEditorPage::MountNativeView(const QString &widget_id) -> bool {
   const auto instance =
       NativeInstances::Instance().Create(widget_id, {}, native_port_.get());
   if (!instance.has_value() || instance->kind != NativeWidgetKind::kDOCUMENT) {
-    if (instance.has_value()) NativeInstances::Instance().Destroy(instance->id);
+    // The module built a widget; not mounted, it is the Host's to delete.
+    if (instance.has_value()) {
+      NativeInstances::Instance().Destroy(instance->id);
+      delete instance->widget.data();
+    }
     native_port_.reset();
     return false;
   }
   native_instance_ = instance->id;
   if (!mount_primary_view(instance->widget)) {
     NativeInstances::Instance().Destroy(native_instance_);
+    delete instance->widget.data();
     native_instance_ = 0;
     native_port_.reset();
     return false;

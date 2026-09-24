@@ -31,6 +31,7 @@
 #include "MainWindow.h"
 #include "sdk/GFSDKHostCommands.hpp"
 #include "ui/command/CommandRegistry.h"
+#include "ui/function/FileTypeUtils.h"
 #include "ui/function/ImportKey.h"
 #include "ui/lua/LuaMounts.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -95,24 +96,30 @@ struct HostCommandHandlers {
     return page;
   }
 
-  static auto DocumentNew(const CommandContext&, const host::DocumentNew::Args& a)
+  static auto DocumentNew(const CommandContext&,
+                          const host::DocumentNew::Args& a)
       -> Outcome<host::DocumentNew::Result> {
     using R = Outcome<host::DocumentNew::Result>;
     if (window.isNull()) return R::Failure(GF_CMD_E_UNAVAILABLE, {});
     auto* page = window->edit_->TabWidget()->SlotNewTab(
-        a.type.isEmpty() ? QStringLiteral("text") : a.type, a.title, QIcon(),
-        {});
+        a.type.isEmpty() ? QStringLiteral("text") : a.type,
+        SanitizedDocumentTitle(a.title), QIcon(), {});
     return R::Success({TextEditTabWidget::DocumentIdOf(page)});
   }
 
-  static auto DocumentOpen(const CommandContext&,
+  static auto DocumentOpen(const CommandContext& ctx,
                            const host::DocumentOpen::Args& a)
       -> Outcome<host::DocumentOpen::Result> {
     using R = Outcome<host::DocumentOpen::Result>;
     if (window.isNull()) return R::Failure(GF_CMD_E_UNAVAILABLE, {});
+    // A module cannot bind a tab to a file. A bound, saved tab is one the next
+    // Save writes straight back to its path without asking, so letting a
+    // module name that path would let it write any file the user can write.
+    // What a module opens is always a new, unsaved document; saving it asks.
+    const bool from_host = ctx.caller.isEmpty();
     const auto id = window->edit_->OpenDocument(
-        a.type, a.title, a.path, BlobToGFBuffer(a.content), a.saved,
-        a.modified);
+        a.type, SanitizedDocumentTitle(a.title), from_host ? a.path : QString(),
+        BlobToGFBuffer(a.content), from_host && a.saved, a.modified);
     if (id == 0) return R::Failure(GF_CMD_E_FAILED, {});
     return R::Success({id});
   }
@@ -143,7 +150,14 @@ struct HostCommandHandlers {
 
   // --- the crypto family: one implementation, parameterized by operation
 
-  enum class Op { kEncrypt, kDecrypt, kSign, kVerify, kEncryptSign, kDecryptVerify };
+  enum class Op {
+    kEncrypt,
+    kDecrypt,
+    kSign,
+    kVerify,
+    kEncryptSign,
+    kDecryptVerify
+  };
 
   static auto ActionFor(Op op) -> QAction* {
     if (window.isNull()) return nullptr;
@@ -267,10 +281,10 @@ void MainWindow::register_host_commands() {
   auto crypto = [&r](gf::cmd::Binding b, auto state, const char* title,
                      const char* description) {
     b.state = state;
-    r.RegisterHost(b, HostCommandText{kContext, title, description,
-                                      QT_TRANSLATE_NOOP(
-                                          "GpgFrontend::UI::MainWindow",
-                                          "Crypto")});
+    r.RegisterHost(
+        b, HostCommandText{
+               kContext, title, description,
+               QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Crypto")});
   };
 
   reg(gf::cmd::Bind<host::DocumentNew, &H::DocumentNew>(),
@@ -306,12 +320,12 @@ void MainWindow::register_host_commands() {
          &H::CryptoState<H::Op::kVerify>,
          QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Verify"),
          QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Verify Message"));
-  crypto(gf::cmd::Bind<host::CryptoEncryptSign,
-                       &H::Crypto<H::Op::kEncryptSign>>(),
-         &H::CryptoState<H::Op::kEncryptSign>,
-         QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Encrypt && Sign"),
-         QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow",
-                           "Encrypt and Sign Message"));
+  crypto(
+      gf::cmd::Bind<host::CryptoEncryptSign, &H::Crypto<H::Op::kEncryptSign>>(),
+      &H::CryptoState<H::Op::kEncryptSign>,
+      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Encrypt && Sign"),
+      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow",
+                        "Encrypt and Sign Message"));
   crypto(gf::cmd::Bind<host::CryptoDecryptVerify,
                        &H::Crypto<H::Op::kDecryptVerify>>(),
          &H::CryptoState<H::Op::kDecryptVerify>,
@@ -326,8 +340,7 @@ void MainWindow::register_host_commands() {
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Open Key Management"));
   reg(gf::cmd::Bind<host::AppOpenSettings, &H::OpenSettings>(),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Settings"),
-      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow",
-                        "Open settings dialog"));
+      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Open settings dialog"));
   reg(gf::cmd::Bind<host::ViewOpen, &H::ViewOpen>(),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Open"));
   reg(gf::cmd::Bind<host::AppMessage, &H::Message>(),
@@ -344,12 +357,11 @@ void MainWindow::invoke_host_command(const char* id) {
   // module's call fail loudly instead of being ignored.
   const auto descriptor = CommandRegistry::Instance().Describe(command);
   const auto declares_target =
-      descriptor.has_value() &&
-      !descriptor->value(QStringLiteral("args"))
-           .toMap()
-           .value(QStringLiteral("fields"))
-           .toArray()
-           .isEmpty();
+      descriptor.has_value() && !descriptor->value(QStringLiteral("args"))
+                                     .toMap()
+                                     .value(QStringLiteral("fields"))
+                                     .toArray()
+                                     .isEmpty();
 
   const auto ticket = CommandRegistry::Instance().Invoke(
       command, declares_target ? args : QCborMap{}, {},
