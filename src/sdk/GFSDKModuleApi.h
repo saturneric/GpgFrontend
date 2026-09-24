@@ -154,15 +154,21 @@ typedef struct GFModuleApi {
   const char* module_id; /**< borrowed, static, never freed by the host */
   const char* version;   /**< borrowed, static */
 
-  /** Called once after the module is accepted. @p host is borrowed and stays
-   *  valid for the module's lifetime. Return 0 on success. */
+  /** Called on each activation. @p host is borrowed; it stays mapped for the
+   *  life of the process, and is live until the module is deactivated -- a
+   *  later activation may hand over a new one. Return 0 on success; on
+   *  failure the host withdraws whatever this registered. */
   int (*activate)(const GFHostApi* host, void* reserved);
 
   /** Handle one event. Return 0 on success. */
   int (*execute)(GFModuleEvent* event);
 
-  /** Cancel in-flight work and drop host registrations. Return 0 on success.
-   *  The host waits for in-flight calls to return AFTER this, not before. */
+  /** Stop the module's own work: its threads, timers and network requests.
+   *  Before this runs the host has already closed the module's entry gate,
+   *  withdrawn everything it registered, and waited for host calls already
+   *  inside it -- so this never races a host call into the state it tears
+   *  down. Cannot refuse: a nonzero return is logged, and the module is
+   *  inactive either way. Its grant is revoked after this returns. */
   int (*deactivate)(void);
 
   /** Final teardown. No module code runs after this returns. */

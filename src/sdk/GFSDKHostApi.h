@@ -96,7 +96,11 @@ extern "C" {
 /* --- the context --------------------------------------------------------- */
 
 /**
- * @brief An opaque grant, minted per module, valid until that module unloads.
+ * @brief An opaque grant, minted per module, live while the module is active.
+ *
+ * Revoked when the module is deactivated and at shutdown; a call presenting a
+ * revoked grant is refused. The record behind it is never freed, so holding
+ * one past its revocation is safe -- it simply stops working.
  *
  * Borrowed: the host owns it and the module never releases it. Safe to copy
  * and to pass between the module's own threads, which is the entire point.
@@ -195,13 +199,14 @@ typedef struct GFHostAppApi {
  */
 typedef struct GFHostEventApi {
   size_t struct_size;
-  /** Ask to subscribe to @p event_id. The request is queued and checked
-   *  later on the host's module thread: an event the signed manifest did not
-   *  declare, or the host does not know, is dropped there and logged. So 0
-   *  means "accepted for checking", not "subscribed"; negative means the
-   *  request itself was refused. */
+  /** Subscribe to @p event_id, decided at once: 0 means subscribed, and
+   *  negative means refused -- an event the host does not fire, one the
+   *  signed manifest does not declare, or a module that is not being
+   *  activated or active. The refusal is logged. */
   int (*subscribe)(GFHostContextRef ctx, const char* event_id);
-  /** Answer a trigger. @p answer->params is transferred to the host. */
+  /** Answer a trigger. @p answer->params is transferred to the host.
+   *  Refused unless this module was delivered that trigger and has not
+   *  answered it yet: one answer per delivery. */
   int (*answer)(GFHostContextRef ctx, const GFModuleEventAnswer* answer);
 } GFHostEventApi;
 
@@ -339,8 +344,8 @@ typedef struct GFHostPgpApi {
 /**
  * @brief Putting things on the screen. Capability "ui".
  *
- * Reading the application's settings is NOT here, although the SDK spelling
- * for it is still `GFUIGlobalSettings`. A module reading configuration is
+ * Reading the application's settings is NOT here. A module reading
+ * configuration is
  * doing storage, and making it ask for the ability to open dialogs in order to
  * read a preference would be a grant that says more than it means. See
  * @ref GFHostStorageApi.

@@ -72,8 +72,12 @@ struct DocumentResult {
 
 /// A new, empty document of @p type, in a tab of its own.
 struct DocumentNew {
-  static constexpr Meta kMeta{"org.gpgfrontend.document.new", "New Document",
-                              "", "", 0, kNeedsGuiThread};
+  static constexpr Meta kMeta{"org.gpgfrontend.document.new",
+                              "New Document",
+                              "",
+                              "",
+                              0,
+                              kNeedsGuiThread};
   struct Args {
     QString type;   ///< "text", or a document type a module provides
     QString title;  ///< may be empty: the Host picks one
@@ -85,44 +89,62 @@ struct DocumentNew {
 };
 
 /// A document with content, in a tab of its own.
+///
+/// From a module, @p path and @p saved are ignored: a module cannot bind a
+/// tab to a file, so what it opens is always a new, unsaved document.
 struct DocumentOpen {
   static constexpr Meta kMeta{"org.gpgfrontend.document.open",
-                              "Open Document", "", "", 0, kNeedsGuiThread};
+                              "Open Document",
+                              "",
+                              "",
+                              0,
+                              kNeedsGuiThread};
   struct Args {
     QString type;
     QString title;
-    QString path;          ///< where it came from, or empty
-    Blob content;          ///< the document's bytes, never copied into CBOR
-    bool saved = false;    ///< true: identical to @p path on disk
-    bool modified = false; ///< true: a draft nobody has saved yet
+    QString path;           ///< where it came from, or empty
+    Blob content;           ///< the document's bytes, never copied into CBOR
+    bool saved = false;     ///< true: identical to @p path on disk
+    bool modified = false;  ///< true: a draft nobody has saved yet
     static constexpr auto Fields() {
-      return std::make_tuple(F("type", &Args::type), F("title", &Args::title),
-                             F("path", &Args::path),
-                             F("content", &Args::content),
-                             F("saved", &Args::saved),
-                             F("modified", &Args::modified));
+      return std::make_tuple(
+          F("type", &Args::type), F("title", &Args::title),
+          F("path", &Args::path), F("content", &Args::content),
+          F("saved", &Args::saved), F("modified", &Args::modified));
     }
   };
   using Result = detail::DocumentResult;
 };
 
 struct DocumentSave {
-  static constexpr Meta kMeta{"org.gpgfrontend.document.save", "Save", "", "",
-                              0, kNeedsGuiThread};
+  static constexpr Meta kMeta{"org.gpgfrontend.document.save",
+                              "Save",
+                              "",
+                              "",
+                              GF_HOST_CAP_EDITOR,
+                              kNeedsGuiThread};
   using Args = detail::TargetArgs;
   using Result = Unit;
 };
 
 struct DocumentSaveAs {
-  static constexpr Meta kMeta{"org.gpgfrontend.document.save_as", "Save As",
-                              "", "", 0, kNeedsGuiThread};
+  static constexpr Meta kMeta{"org.gpgfrontend.document.save_as",
+                              "Save As",
+                              "",
+                              "",
+                              GF_HOST_CAP_EDITOR,
+                              kNeedsGuiThread};
   using Args = detail::TargetArgs;
   using Result = Unit;
 };
 
 struct DocumentClose {
-  static constexpr Meta kMeta{"org.gpgfrontend.document.close", "Close", "",
-                              "", 0, kNeedsGuiThread};
+  static constexpr Meta kMeta{"org.gpgfrontend.document.close",
+                              "Close",
+                              "",
+                              "",
+                              GF_HOST_CAP_EDITOR,
+                              kNeedsGuiThread};
   using Args = detail::TargetArgs;
   using Result = Unit;
 };
@@ -133,12 +155,12 @@ struct DocumentClose {
 // -- key selection, passphrase, progress -- on the target document and
 // returns once it has started; the result lands in the document.
 
-#define GF_HOST_CRYPTO_COMMAND(Name, id, title)                         \
-  struct Name {                                                          \
-    static constexpr Meta kMeta{id, title, "", "", GF_HOST_CAP_GPG,      \
-                                kNeedsGuiThread};                        \
-    using Args = detail::TargetArgs;                                     \
-    using Result = Unit;                                                 \
+#define GF_HOST_CRYPTO_COMMAND(Name, id, title)                        \
+  struct Name {                                                        \
+    static constexpr Meta kMeta{id, title,           "",               \
+                                "", GF_HOST_CAP_GPG, kNeedsGuiThread}; \
+    using Args = detail::TargetArgs;                                   \
+    using Result = Unit;                                               \
   };
 
 GF_HOST_CRYPTO_COMMAND(CryptoEncrypt, "org.gpgfrontend.crypto.encrypt",
@@ -147,8 +169,7 @@ GF_HOST_CRYPTO_COMMAND(CryptoDecrypt, "org.gpgfrontend.crypto.decrypt",
                        "Decrypt")
 GF_HOST_CRYPTO_COMMAND(CryptoSign, "org.gpgfrontend.crypto.sign", "Sign")
 GF_HOST_CRYPTO_COMMAND(CryptoVerify, "org.gpgfrontend.crypto.verify", "Verify")
-GF_HOST_CRYPTO_COMMAND(CryptoEncryptSign,
-                       "org.gpgfrontend.crypto.encrypt_sign",
+GF_HOST_CRYPTO_COMMAND(CryptoEncryptSign, "org.gpgfrontend.crypto.encrypt_sign",
                        "Encrypt and Sign")
 GF_HOST_CRYPTO_COMMAND(CryptoDecryptVerify,
                        "org.gpgfrontend.crypto.decrypt_verify",
@@ -160,8 +181,12 @@ GF_HOST_CRYPTO_COMMAND(CryptoDecryptVerify,
 
 /// Import keys from bytes, with the Host's own import dialog and report.
 struct KeysImport {
-  static constexpr Meta kMeta{"org.gpgfrontend.keys.import", "Import Keys", "",
-                              "", GF_HOST_CAP_GPG, kNeedsGuiThread};
+  static constexpr Meta kMeta{"org.gpgfrontend.keys.import",
+                              "Import Keys",
+                              "",
+                              "",
+                              GF_HOST_CAP_GPG,
+                              kNeedsGuiThread};
   struct Args {
     Blob data;  ///< may hold secret keys, so never inside the CBOR
     static constexpr auto Fields() {
@@ -173,7 +198,11 @@ struct KeysImport {
 
 struct KeysOpenManager {
   static constexpr Meta kMeta{"org.gpgfrontend.keys.open_manager",
-                              "Key Management", "", "", 0, kNeedsGuiThread};
+                              "Key Management",
+                              "",
+                              "",
+                              0,
+                              kNeedsGuiThread};
   using Args = Unit;
   using Result = Unit;
 };
@@ -183,8 +212,8 @@ struct KeysOpenManager {
 /// Open one of the caller's own mounted views -- a dialog, say. A module may
 /// open only what it mounted.
 struct ViewOpen {
-  static constexpr Meta kMeta{"org.gpgfrontend.view.open", "Open", "", "", 0,
-                              kNeedsGuiThread};
+  static constexpr Meta kMeta{
+      "org.gpgfrontend.view.open", "Open", "", "", 0, kNeedsGuiThread};
   struct Args {
     ViewRef view;
     static constexpr auto Fields() {
@@ -197,8 +226,12 @@ struct ViewOpen {
 // ------------------------------------------------------------------ app
 
 struct AppOpenSettings {
-  static constexpr Meta kMeta{"org.gpgfrontend.app.open_settings", "Settings",
-                              "", "", 0, kNeedsGuiThread};
+  static constexpr Meta kMeta{"org.gpgfrontend.app.open_settings",
+                              "Settings",
+                              "",
+                              "",
+                              0,
+                              kNeedsGuiThread};
   using Args = Unit;
   using Result = Unit;
 };
@@ -206,8 +239,8 @@ struct AppOpenSettings {
 /// A message to the user, from the Host's window, in the Host's style.
 /// Replaces message boxes a module used to parent to a Host window.
 struct AppMessage {
-  static constexpr Meta kMeta{"org.gpgfrontend.app.message", "Message", "", "",
-                              0, kNeedsGuiThread};
+  static constexpr Meta kMeta{
+      "org.gpgfrontend.app.message", "Message", "", "", 0, kNeedsGuiThread};
   enum class Severity : int { kInfo = 0, kWarning = 1, kError = 2 };
   struct Args {
     Severity severity = Severity::kInfo;

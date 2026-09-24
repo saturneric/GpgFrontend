@@ -37,8 +37,8 @@
  * @file GFSDKUI.h
  * @brief Putting things on the screen.
  *
- * Reading the application's settings is NOT here, although it used to be
- * spelled `GFUIGlobalSettings`. A module reading configuration is doing
+ * Reading the application's settings is NOT here. A module reading
+ * configuration is doing
  * storage, and making it ask for the ability to open dialogs in order to read
  * a preference would be a grant that says more than it means. See
  * GFSDKStorage.h.

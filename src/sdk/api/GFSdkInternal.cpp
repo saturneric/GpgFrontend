@@ -30,6 +30,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <array>
 
 /**
  * @file GFSdkInternal.cpp
@@ -48,24 +49,50 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
   const auto* log = ctx->host->log;
   if (log == nullptr || log->write == nullptr) return;
 
-  // Only some groups are grantable. The rest are always present, so a
-  // missing one means the host is too old or broken, not that the manifest
-  // forgot something, and telling the author to declare it would mislead.
-  const QStringList grantable = {"gpg",    "pgp",     "ui",
-                                 "editor", "storage", "process"};
-  const auto group_name = QString::fromLatin1(group);
+  // Which capabilities put each grantable group into the table -- the same
+  // rule FillHostApiGroups() applies on the host side. The rest are always
+  // present, so a missing one means the host is too old or broken, not that
+  // the manifest forgot something, and telling the author to declare it
+  // would mislead.
+  struct Grantable {
+    const char* group;
+    const char* capabilities;
+    uint32_t bits;
+  };
+  static const std::array<Grantable, 8> kGrantable = {{
+      {"gpg", "gpg", GF_HOST_CAP_GPG},
+      {"pgp", "pgp", GF_HOST_CAP_PGP},
+      {"ui", "ui", GF_HOST_CAP_UI},
+      {"editor", "editor", GF_HOST_CAP_EDITOR},
+      {"storage", "storage", GF_HOST_CAP_STORAGE},
+      {"process", "process", GF_HOST_CAP_PROCESS},
+      {"script", "ui", GF_HOST_CAP_UI},
+      {"native", "ui\" and \"ui.custom",
+       GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM},
+  }};
+  const Grantable* grantable = nullptr;
+  for (const auto& g : kGrantable) {
+    if (qstrcmp(g.group, group) == 0) grantable = &g;
+  }
+
+  // What the table says was granted is the fact; a group whose bits were all
+  // granted and is still missing is the host's problem, not the manifest's.
+  const bool withheld =
+      grantable != nullptr &&
+      (ctx->host->granted & grantable->bits) != grantable->bits;
   const auto message =
-      grantable.contains(group_name)
+      withheld
           ? QString(
                 "%1 needs the \"%2\" capability, which this module's signed "
                 "manifest does not declare. Add it to module.json's "
                 "\"capabilities\" and rebuild; the call did nothing.")
-                .arg(QLatin1String(entry_point), group_name)
+                .arg(QLatin1String(entry_point),
+                     QLatin1String(grantable->capabilities))
           : QString(
                 "%1 needs the \"%2\" group, which the host did not provide. "
                 "The host is older than this module or failed to start the "
                 "SDK; the call did nothing.")
-                .arg(QLatin1String(entry_point), group_name);
+                .arg(QLatin1String(entry_point), QLatin1String(group));
 
   log->write(ctx->host->context, GF_LOG_ERROR, __FILE__, __LINE__,
              "GFSdkReportUnavailable", message.toUtf8().constData());

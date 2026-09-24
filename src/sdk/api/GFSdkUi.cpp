@@ -37,12 +37,8 @@
 
 /**
  * @file GFSdkUi.cpp
- * @brief Widgets, dialogs and extension points, module-side.
+ * @brief UI scripts, theme colours and native widgets, module-side.
  */
-
-
-
-
 
 auto GFUILoadScript(GFSDKContext* ctx, const char* chunk_name,
                     GFBufferView source) -> int {
@@ -60,11 +56,6 @@ auto GFUIDefaultUserFilePath(GFSDKContext* ctx) -> GFBufferRef {
   GF_SDK_REQUIRE(ctx, ui, "GFUIDefaultUserFilePath", nullptr);
   return g->user_file_path(hctx);
 }
-
-
-
-
-
 
 /**
  * @brief PURE. No context, no host.
