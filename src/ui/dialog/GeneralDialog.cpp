@@ -237,6 +237,11 @@ void GeneralDialog::closeEvent(QCloseEvent *event) {
   QDialog::closeEvent(event);
 }
 
+void GeneralDialog::done(int result) {
+  if (isVisible()) slot_save_settings();
+  QDialog::done(result);
+}
+
 void GeneralDialog::setPosCenterOfScreen() {
   update_rect_cache();
 

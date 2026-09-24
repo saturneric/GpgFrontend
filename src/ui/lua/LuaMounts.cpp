@@ -42,7 +42,8 @@ auto Translate(const QString& source) -> QString {
   return QCoreApplication::translate("GTrC", source.toUtf8().constData());
 }
 
-/// Open dialogs, by mount id: one each.
+/// Open dialogs, by module and mount id: one each. The mount id alone is only
+/// unique within its module.
 auto OpenDialogs() -> QHash<QString, QPointer<NativeDialog>>& {
   static QHash<QString, QPointer<NativeDialog>> dialogs;
   return dialogs;
@@ -50,10 +51,14 @@ auto OpenDialogs() -> QHash<QString, QPointer<NativeDialog>>& {
 
 }  // namespace
 
+auto NativeDialogStateName(const QString& widget_id) -> QString {
+  return QStringLiteral("native_dialog.") + widget_id;
+}
+
 NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
                            const QCborMap& args, QWidget* parent)
-    : QDialog(parent), mount_id_(mount_id) {
-  setAttribute(Qt::WA_DeleteOnClose);
+    : GeneralDialog(NativeDialogStateName(widget_id), parent),
+      mount_id_(mount_id) {
   const auto instance =
       NativeInstances::Instance().Create(widget_id, args, this);
   if (!instance.has_value() || instance->kind != NativeWidgetKind::kDIALOG) {
@@ -69,9 +74,6 @@ NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
   const auto entry = NativeInstances::Instance().Entry(instance_);
   if (entry.has_value()) {
     setWindowTitle(Translate(entry->title));
-    if (entry->width > 0 && entry->height > 0) {
-      resize(entry->width, entry->height);
-    }
   }
   // A module may build its widget as a QDialog; inside the Host's frame it
   // is an ordinary child, not a second window.
@@ -79,6 +81,31 @@ NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(instance->widget);
+
+  // Such a QDialog still answers Escape, and its own Close button, with
+  // done(), which for a widget that is no longer a window only hides it: the
+  // frame would stay open around nothing. Its end is the frame's end, on the
+  // same terms as the frame's own close button.
+  if (auto* inner = qobject_cast<QDialog*>(instance->widget.data())) {
+    const QPointer<QWidget> widget = instance->widget;
+    connect(inner, &QDialog::finished, this, [this, widget](int) {
+      if (closing_) return;
+      if (CloseAllowed()) {
+        closing_ = true;
+        close();
+      } else if (!widget.isNull()) {
+        widget->show();  // refused: bring the content back
+      }
+    });
+  }
+
+  // The declared size is where a first open starts, never smaller than the
+  // widget's own hint. With none declared the frame fits its content when it
+  // is first shown. A remembered geometry overrides either.
+  if (entry.has_value() && entry->width > 0 && entry->height > 0) {
+    layout->activate();
+    resize(QSize(entry->width, entry->height).expandedTo(sizeHint()));
+  }
 
   if (entry.has_value() && entry->dialog.opened) {
     entry->dialog.opened(instance_, args);
@@ -101,11 +128,11 @@ void NativeDialog::closeEvent(QCloseEvent* event) {
     event->ignore();
     return;
   }
-  QDialog::closeEvent(event);
+  GeneralDialog::closeEvent(event);
 }
 
 void NativeDialog::reject() {
-  if (CloseAllowed()) QDialog::reject();
+  if (CloseAllowed()) GeneralDialog::reject();
 }
 
 void NativeDialog::OnClose() {
@@ -184,7 +211,8 @@ auto OpenDialogMount(const QString& module, const QString& view_id,
     if (m.kind != AnchorKind::kDIALOG) return GF_CMD_E_BAD_ARGS;
 
     auto& open = OpenDialogs();
-    if (auto existing = open.value(view_id); !existing.isNull()) {
+    const auto key = module + QLatin1Char('/') + view_id;
+    if (auto existing = open.value(key); !existing.isNull()) {
       existing->raise();
       existing->activateWindow();
       return GF_CMD_OK;
@@ -194,7 +222,7 @@ auto OpenDialogMount(const QString& module, const QString& view_id,
       delete dialog;
       return GF_CMD_E_FAILED;
     }
-    open.insert(view_id, dialog);
+    open.insert(key, dialog);
     dialog->show();
     return GF_CMD_OK;
   }

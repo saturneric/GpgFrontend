@@ -30,7 +30,7 @@
 
 namespace GpgFrontend::UI {
 
-class GeneralDialog : public QDialog {
+class GF_UI_EXPORT GeneralDialog : public QDialog {
  public:
   /**
    *
@@ -55,6 +55,17 @@ class GeneralDialog : public QDialog {
    * @param visible
    */
   void setVisible(bool visible) override;
+
+  /**
+   * @brief Save the geometry however the dialog ends.
+   *
+   * Escape, Cancel, OK, accept() and reject() all end here, and since Qt 6.3
+   * done() closes the dialog but swallows the close event, so closeEvent()
+   * alone only ever sees the title bar's close button.
+   *
+   * @param result
+   */
+  void done(int result) override;
 
  protected:
   /**

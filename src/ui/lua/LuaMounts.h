@@ -32,6 +32,7 @@
 #include <QDialog>
 #include <QWidget>
 
+#include "ui/dialog/GeneralDialog.h"
 #include "ui/lua/NativeInstances.h"
 
 namespace GpgFrontend::UI::Lua {
@@ -45,8 +46,16 @@ namespace GpgFrontend::UI::Lua {
  * Host but an instance number.
  */
 
+/// The settings name a module dialog's geometry is remembered under: one per
+/// widget, and the widget id already carries the module's.
+auto GF_UI_EXPORT NativeDialogStateName(const QString& widget_id) -> QString;
+
 /// A dialog frame of the Host's around a module's dialog widget.
-class GF_UI_EXPORT NativeDialog : public QDialog, public NativeContainer {
+///
+/// A GeneralDialog, so it opens where the user last left it and at the size
+/// they gave it, remembered per widget: the module's own widget is a child of
+/// this frame and is not a window, so it cannot remember that itself.
+class GF_UI_EXPORT NativeDialog : public GeneralDialog, public NativeContainer {
   Q_OBJECT
 
  public:
