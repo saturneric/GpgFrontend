@@ -41,7 +41,7 @@ namespace GpgFrontend::UI {
 enum class KeyMenuAbility : unsigned int {
   kNONE = 0,
   kREFRESH = 1 << 0,
-  kSYNC_PUBLIC_KEY = 1 << 1,
+  // 1 << 1 was kSYNC_PUBLIC_KEY; key-server sync is the module's now.
   kUNCHECK_ALL = 1 << 2,
   kCHECK_ALL = 1 << 3,
   kCOLUMN_FILTER = 1 << 4,
@@ -315,16 +315,6 @@ class KeyList : public QWidget {
   [[maybe_unused]] auto ContainsPrivateKeys() -> bool;
 
   /**
-   * @brief Fetch fresh copies of the given keys from the default keyserver.
-   *
-   * Drives the same batch flow as the toolbar "Sync Public Key" button, but on
-   * an explicit key set rather than the checked/all selection.
-   *
-   * @param keys keys to refresh
-   */
-  void SyncKeysFromKeyServer(const GpgAbstractKeyPtrList& keys);
-
-  /**
    * @brief Move keyboard focus into the search box and select what is there.
    *
    * So the host window can offer the Ctrl+F everyone expects; the search box is
@@ -444,12 +434,6 @@ class KeyList : public QWidget {
   void dropEvent(QDropEvent* event) override;
 
  private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_sync_with_key_server();
 
   /**
    * @brief
@@ -728,16 +712,6 @@ class KeyList : public QWidget {
    * @param keyword the keyword just applied, already trimmed and lower-cased
    */
   void report_search_result(const QString& keyword);
-
-  /**
-   * @brief
-   *
-   * @param key_ids
-   */
-  void sync_keys_from_key_server(
-      const KeyIdArgsList& key_ids,
-      const std::function<void(const QString&, const QString&, size_t, size_t)>&
-          callback) const;
 
   /**
    * @brief

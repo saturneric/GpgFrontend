@@ -37,8 +37,6 @@
 #include "core/function/openpgp/helper/OpSupport.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgImportInformation.h"
-#include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
@@ -255,7 +253,6 @@ void KeyList::init_ui_visibility() {
   ui_->menuWidget->setHidden(menu_ability_ == KeyMenuAbility::kNONE);
 
   ui_->refreshKeyListButton->setHidden(!has_ability(KeyMenuAbility::kREFRESH));
-  ui_->syncButton->setHidden(!has_ability(KeyMenuAbility::kSYNC_PUBLIC_KEY));
   ui_->checkALLButton->setHidden(!has_ability(KeyMenuAbility::kCHECK_ALL));
   ui_->uncheckButton->setHidden(!has_ability(KeyMenuAbility::kUNCHECK_ALL));
   ui_->columnTypeButton->setHidden(
@@ -301,7 +298,6 @@ QLineEdit[gfNoMatch="true"] {
   };
 
   setup_tool_button(ui_->refreshKeyListButton);
-  setup_tool_button(ui_->syncButton);
   setup_tool_button(ui_->uncheckButton);
   setup_tool_button(ui_->checkALLButton);
   setup_tool_button(ui_->columnTypeButton);
@@ -604,10 +600,6 @@ void KeyList::init_texts() {
   ui_->refreshKeyListButton->setToolTip(
       tr("Refresh the key list to synchronize changes."));
 
-  ui_->syncButton->setText(tr("Sync Public Key"));
-  ui_->syncButton->setToolTip(
-      tr("Sync public keys with the key server configured as the default."));
-
   ui_->uncheckButton->setText(tr("Uncheck All"));
   ui_->uncheckButton->setToolTip(tr("Uncheck all keys in the current tab."));
 
@@ -832,8 +824,6 @@ void KeyList::init_signals() {
           &KeyList::uncheck_all);
   connect(ui_->checkALLButton, &QPushButton::clicked, this,
           &KeyList::check_all);
-  connect(ui_->syncButton, &QPushButton::clicked, this,
-          &KeyList::slot_sync_with_key_server);
 
   search_timer_ = new QTimer(this);
   search_timer_->setSingleShot(true);
@@ -885,10 +875,6 @@ void KeyList::update_action_state() {
     ui_->checkALLButton->setEnabled(false);
     ui_->uncheckButton->setEnabled(false);
 
-    if (!ui_->syncButton->isHidden()) {
-      ui_->syncButton->setEnabled(false);
-    }
-
     return;
   }
 
@@ -906,10 +892,6 @@ void KeyList::update_action_state() {
   }
 
   ui_->keyGroupButton->setEnabled(can_create_group);
-
-  if (!ui_->syncButton->isHidden()) {
-    ui_->syncButton->setEnabled(true);
-  }
 }
 
 void KeyList::update_checked_indicators() {
@@ -972,9 +954,6 @@ void KeyList::init() {
     w->deleteLater();
   }
   ui_->categoryList->clear();
-
-  ui_->syncButton->setHidden(
-      !Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_KEY_ID"));
 
   init_signals();
   init_texts();
@@ -1418,7 +1397,6 @@ void KeyList::rename_category(const QString& id, const QString& current_name) {
 
 void KeyList::SlotRefresh() {
   ui_->refreshKeyListButton->setDisabled(true);
-  ui_->syncButton->setDisabled(true);
 
   // Swapping in a fresh model makes every table report "nothing checked"
   // (KeyTable::RefreshModel emits SignalKeyChecked). That is not the user
@@ -1450,7 +1428,6 @@ void KeyList::SlotRefresh() {
 void KeyList::SlotRefreshUI() {
   emit SignalRefreshStatusBar(tr("Key List Refreshed."), 1000);
   ui_->refreshKeyListButton->setDisabled(false);
-  ui_->syncButton->setDisabled(false);
   emit SignalKeyChecked();
 }
 
@@ -1632,140 +1609,6 @@ auto KeyList::GetSelectedGpgKeys() -> GpgKeyPtrList {
     g_keys.push_back(qSharedPointerDynamicCast<GpgKey>(key));
   }
   return g_keys;
-}
-
-void KeyList::sync_keys_from_key_server(
-    const KeyIdArgsList& key_ids,
-    const std::function<void(const QString&, const QString&, size_t, size_t)>&
-        callback) const {
-  // LOOP
-  decltype(key_ids.size()) current_index = 1;
-  decltype(key_ids.size()) all_index = key_ids.size();
-
-  auto channel = current_gpg_context_channel_;
-
-  for (const auto& key_id : key_ids) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-        ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr&) -> int {
-              // rate limit
-              QThread::msleep(200);
-              // call
-              Module::TriggerEvent(
-                  "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
-                  {
-                      {"key_id", GFBuffer{key_id}},
-                  },
-                  [key_id, channel, callback, current_index, all_index](
-                      const Module::EventIdentifier&,
-                      const Module::Event::ListenerIdentifier&,
-                      Module::Event::Params p) {
-                    QString status;
-
-                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-                      LOG_E()
-                          << "An error occurred trying to get data from key:"
-                          << key_id << "error message: "
-                          << p["error_msg"].ConvertToQString() << "reply data: "
-                          << p["reply_data"].ConvertToQString();
-                      status = p["error_msg"].ConvertToQString() +
-                               p["reply_data"].ConvertToQString();
-                    } else if (p.contains("key_data")) {
-                      const auto key_data = p["key_data"];
-                      LOG_D() << "got key data of key " << key_id
-                              << " from key server: "
-                              << key_data.ConvertToQString();
-
-                      auto result =
-                          KeyImportExportOperation::GetInstance(channel)
-                              .ImportKey(GFBuffer(key_data));
-                      if (result->imported == 1) {
-                        status = tr("The key has been updated");
-                      } else {
-                        status = tr("No need to update the key");
-                      }
-                    }
-
-                    callback(key_id, status, current_index, all_index);
-                  });
-
-              return 0;
-            },
-            QString("key_%1_import_task").arg(key_id)));
-
-    current_index++;
-  }
-}
-
-void KeyList::slot_sync_with_key_server() {
-  auto keys = GetCheckedPublicKey();
-  if (keys.empty()) {
-    QMessageBox::StandardButton const reply = QMessageBox::question(
-        this, QCoreApplication::tr("Sync All Public Key"),
-        QCoreApplication::tr("You have not checked any public keys that you "
-                             "want to synchronize, do you want to synchronize "
-                             "all local public keys from the key server?"),
-        QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::No) return;
-
-    keys = model_->GetAllKeys();
-  }
-
-  auto key_ids = ConvertKey2GpgKeyIdList(current_gpg_context_channel_, keys);
-  if (key_ids.empty()) return;
-
-  ui_->refreshKeyListButton->setDisabled(true);
-  ui_->syncButton->setDisabled(true);
-
-  emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
-
-  sync_keys_from_key_server(
-      key_ids, [=](const QString& key_id, const QString& status,
-                   size_t current_index, size_t all_index) {
-        auto status_str = tr("Sync [%1/%2] %3 %4")
-                              .arg(current_index)
-                              .arg(all_index)
-                              .arg(key_id)
-                              .arg(status);
-        emit SignalRefreshStatusBar(status_str, 1500);
-
-        if (current_index == all_index) {
-          ui_->syncButton->setDisabled(false);
-          ui_->refreshKeyListButton->setDisabled(false);
-          emit SignalRefreshStatusBar(tr("Key List Sync Done."), 3000);
-          emit this->SignalRefreshDatabase();
-        }
-      });
-}
-
-void KeyList::SyncKeysFromKeyServer(const GpgAbstractKeyPtrList& keys) {
-  auto key_ids = ConvertKey2GpgKeyIdList(current_gpg_context_channel_, keys);
-  if (key_ids.empty()) return;
-
-  ui_->refreshKeyListButton->setDisabled(true);
-  ui_->syncButton->setDisabled(true);
-
-  emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
-
-  sync_keys_from_key_server(
-      key_ids, [=](const QString& key_id, const QString& status,
-                   size_t current_index, size_t all_index) {
-        auto status_str = tr("Sync [%1/%2] %3 %4")
-                              .arg(current_index)
-                              .arg(all_index)
-                              .arg(key_id)
-                              .arg(status);
-        emit SignalRefreshStatusBar(status_str, 1500);
-
-        if (current_index == all_index) {
-          ui_->syncButton->setDisabled(false);
-          ui_->refreshKeyListButton->setDisabled(false);
-          emit SignalRefreshStatusBar(tr("Key List Sync Done."), 3000);
-          emit this->SignalRefreshDatabase();
-        }
-      });
 }
 
 void KeyList::filter_by_keyword() {

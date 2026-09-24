@@ -516,8 +516,8 @@ void InfoBoardWidget::clear_document_fields() {
   if (id_label_ != nullptr) id_label_->clear();
   if (hash_label_ != nullptr) hash_label_->clear();
   // Not plaintext — this board shows operation metadata (signer identities,
-  // fingerprints, key ids, paths, hashes) and, on the instant message path,
-  // the ciphertext token. The labels above are left to plain clear():
+  // fingerprints, key ids, paths, hashes) and, on a decoded message's path,
+  // the ciphertext encoding. The labels above are left to plain clear():
   // overwriting a QLabel's text before clearing it is theatre one indirection
   // further out than the strings themselves.
   WipeString(current_id_);
