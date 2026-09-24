@@ -46,14 +46,13 @@
  *
  * **SDK arguments are borrowed.** Pass a pointer straight through --
  * `s.toUtf8().constData()` for a QString -- and keep owning it. Do *not*
- * pre-allocate one to hand over: nothing on the other side will free it. That
- * is what the old `DUP()`/`QDUP()` at call sites was for, and why doing it now
- * simply leaks.
+ * pre-allocate one to hand over: nothing on the other side will free it, so
+ * doing it simply leaks.
  *
  * The one exception is a struct rather than an argument: the few aggregates a
- * module builds and hands over whole -- `GFModuleEvent`, `GFModuleEventParam`,
- * `GFModuleMetaData`, `GFCommandExecuteContext` -- still transfer, so their
- * `char*` members are still allocated with GFModuleStrDup.
+ * module builds and hands over whole -- `GFModuleEventParam`,
+ * `GFCommandExecuteContext` -- still transfer, so their `char*` members are
+ * allocated with GFMemStrDup (`DUP`).
  *
  * **SDK return values are owned.** Reclaim them, which is what the `U...`
  * family below is for.
@@ -114,6 +113,13 @@ inline auto UnSecStrDup(const char* s) -> QString {
   return q_s;
 }
 
+/// An owning Qt value is not an SDK allocation. Without these, a QByteArray
+/// converts to `const char*` and its storage is handed to GFMemFree -- a free
+/// of memory Qt still owns, followed by Qt freeing it again.
+auto UnStrDup(const QByteArray&) -> QString = delete;
+auto UnSecStrDup(const QByteArray&) -> QString = delete;
+auto UnBytesDup(const QByteArray&, size_t) -> QByteArray = delete;
+
 inline auto QStrDup(const QString& str) -> char* { return DUP(str.toUtf8()); }
 
 inline auto QSecStrDup(const QString& str) -> char* {
@@ -148,12 +154,9 @@ class PointerConverter {
 /**
  * @brief Construct a T in SDK-allocated memory, freed through the SDK.
  *
- * NAMING. These four used to be called `Secure...`, which said the wrong
- * thing: they allocate from the ORDINARY SDK arena (GFAllocateMemory), not the
- * wiping one (GFSecAllocateMemory). The old names had a comment saying so,
- * which is the weakest possible place to put it -- a name is read every time
- * and a comment once. For anything that must actually be erased, use the
- * secure entry points explicitly or a GFBuf handle.
+ * These allocate from the ORDINARY SDK arena (GF_ARENA_NORMAL), not the
+ * wiping one. For anything that must actually be erased, allocate from
+ * GF_ARENA_SECURE explicitly or use a GFBuf handle.
  */
 template <typename T, typename... Args>
 auto SdkCreateSharedObject(Args&&... args) -> std::shared_ptr<T> {

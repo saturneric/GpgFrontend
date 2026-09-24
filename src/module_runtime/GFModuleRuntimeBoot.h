@@ -54,10 +54,23 @@ struct RuntimeFacts {
 
   /// Whether a verified manifest backed the fields above.
   bool verified = false;
+
+  /// @c id, encoded once, so a C string of it can be handed out for good.
+  QByteArray id_utf8;
 };
 
-/// The process-wide facts for this module. Empty before activation.
-auto Facts() -> RuntimeFacts&;
+/**
+ * @brief This module's facts, as the current activation established them.
+ *
+ * Empty before the first activation. Published whole and never written in
+ * place: the module's own threads read these while a later activation may be
+ * replacing them, and a reference taken here stays valid for the life of the
+ * process.
+ */
+auto Facts() -> const RuntimeFacts&;
+
+/// Make @p facts the current facts. At activation.
+void PublishFacts(RuntimeFacts facts);
 
 /**
  * @brief Build this module's SDK context from the table activate() received.
@@ -90,9 +103,10 @@ auto SdkContext() -> GFSDKContext*;
 /**
  * @brief Copy a host bootstrap payload into owned storage.
  *
- * Tolerates @p info being null, which is what an older host passes and what a
- * loose development build gets. Reads no field the payload's struct_size does
- * not cover, so a host older than a field is detected rather than trusted.
+ * Tolerates @p info being null, which is what an older host passes -- the
+ * facts are then unverified, and activation is refused. Reads no field the
+ * payload's struct_size does not cover, so a host older than a field is
+ * detected rather than trusted.
  *
  * @param info the borrowed payload, or nullptr
  * @param fallback_id identity to use when the payload carries none

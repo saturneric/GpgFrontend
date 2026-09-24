@@ -29,6 +29,7 @@
 #include "GFModuleRuntimeBoot.h"
 
 #include <QByteArray>
+#include <atomic>
 #include <cstddef>
 
 #include "GFSDKBuildInfo.h"
@@ -68,44 +69,52 @@ auto Covers(const T* t, M T::* member) -> bool {
 
 }  // namespace
 
-auto Facts() -> RuntimeFacts& {
-  static RuntimeFacts facts;
-  return facts;
-}
-
 namespace {
 
-/// The one context for this module instance.
-///
-/// A function-local static, never destroyed. See SdkContext() for why. It is
-/// per module because this archive is linked statically into each module with
-/// hidden visibility, so two modules cannot see each other's.
-auto ContextStorage() -> GFSDKContext& {
-  static GFSDKContext context{};
-  return context;
-}
-
-QByteArray g_module_id;
+/// The current facts and context. Each activation publishes new ones and the
+/// previous ones are deliberately never freed: a thread the module started
+/// may still be reading them, and replacing a field in place under it -- a
+/// QByteArray reassigned while another thread holds its constData() -- was a
+/// use-after-free. A few dozen bytes per activation. Per module, because this
+/// archive is linked statically into each module with hidden visibility.
+std::atomic<const RuntimeFacts*> g_facts{nullptr};
+std::atomic<GFSDKContext*> g_context{nullptr};
 
 }  // namespace
 
-void AdoptHostApi(const GFHostApi* host, const char* module_id) {
-  g_module_id = QByteArray(module_id == nullptr ? "" : module_id);
+auto Facts() -> const RuntimeFacts& {
+  static const RuntimeFacts kNone;
+  const auto* facts = g_facts.load();
+  return facts == nullptr ? kNone : *facts;
+}
 
-  auto& context = ContextStorage();
-  context.struct_size = sizeof(GFSDKContext);
-  context.abi_version = GF_SDK_ABI_VERSION;
-  context.reserved = 0;
-  context.host = host;
+void PublishFacts(RuntimeFacts facts) {
+  facts.id_utf8 = facts.id.toUtf8();
+  g_facts.store(new RuntimeFacts(std::move(facts)));
+}
+
+void AdoptHostApi(const GFHostApi* host, const char* module_id) {
+  // The same table again -- a reactivation with an unchanged grant -- needs
+  // no new context: every thread already holds the right one.
+  if (const auto* current = g_context.load();
+      current != nullptr && current->host == host) {
+    return;
+  }
+
+  auto* context = new GFSDKContext{};
+  context->struct_size = sizeof(GFSDKContext);
+  context->abi_version = GF_SDK_ABI_VERSION;
+  context->reserved = 0;
+  context->host = host;
   // Diagnostic only. Nothing on either side of the boundary decides anything
   // from it: the host identifies the caller from the token it validates.
-  context.module_id = g_module_id.constData();
+  // Owned by the context, and like it, never freed.
+  context->module_id =
+      (new QByteArray(module_id == nullptr ? "" : module_id))->constData();
+  g_context.store(context);
 }
 
-auto SdkContext() -> GFSDKContext* {
-  auto& context = ContextStorage();
-  return context.host == nullptr ? nullptr : &context;
-}
+auto SdkContext() -> GFSDKContext* { return g_context.load(); }
 
 auto HostApiIsUsable(const GFHostApi* host) -> bool {
   if (host == nullptr) return false;
@@ -132,9 +141,9 @@ auto AdoptBootstrapInfo(const GFModuleBootstrapInfo* info,
                         const char* fallback_context) -> RuntimeFacts {
   RuntimeFacts facts;
 
-  // No payload at all: an older host, or a loose build. Everything the module
-  // knows then comes from constants compiled into it, which is exactly what
-  // `verified` being false records.
+  // No payload at all: an older host. Everything the module knows then comes
+  // from constants compiled into it, which is exactly what `verified` being
+  // false records -- and the runtime refuses to activate on that.
   if (info == nullptr) {
     facts.id = Own(fallback_id);
     facts.version = Own(fallback_version);
@@ -169,7 +178,7 @@ auto AdoptBootstrapInfo(const GFModuleBootstrapInfo* info,
   }
 
   // A verified payload is the authority; anything it did not carry falls back
-  // to the compiled-in constant, which is all a loose build ever had.
+  // to the compiled-in constant.
   if (facts.id.isEmpty()) facts.id = Own(fallback_id);
   if (facts.version.isEmpty()) facts.version = Own(fallback_version);
   if (facts.translation_context.isEmpty()) {

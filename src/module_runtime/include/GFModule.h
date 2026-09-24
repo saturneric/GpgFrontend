@@ -36,10 +36,10 @@
 
 #include "GFModuleCommand.h"
 #include "GFModuleEvent.h"
-#include "GFModuleNativeWidget.h"
 #include "GFModuleExport.h"
 #include "GFModuleLog.h"
 #include "GFModuleMemory.h"
+#include "GFModuleNativeWidget.h"
 #include "GFSDKBuildInfo.h"
 // The whole public SDK, so a module author includes one header. Each of
 // these declares functions that take a GFSDKContext*; the context comes from
@@ -97,18 +97,18 @@
  *         kCommands.data(), kCommands.size(),  // commands it provides
  *     };
  *
+ *     extern "C" GF_MODULE_EXPORT auto GFModuleGetApi(uint32_t abi)
+ *         -> const GFModuleApi* {
+ *       return GFModuleRuntimeGetApi(abi, &kHooks);
+ *     }
+ *
  * and where the command is offered is its UI script, embedded with
  * `gf_add_module(... LUA_SCRIPTS ui/main.lua)`:
  *
  *     ui.action { id = "about", anchor = ui.anchor("main.menu.help"),
  *                 command = commands.get("<module id>.show_about") }
  *
- *     extern "C" GF_MODULE_EXPORT auto GFModuleGetApi(uint32_t abi)
- *         -> const GFModuleApi* {
- *       return GFModuleRuntimeGetApi(abi, &kHooks);
- *     }
- *
- * That last function is the one piece of ABI a module writes, and it is
+ * GFModuleGetApi is the one piece of ABI a module writes, and it is
  * written out rather than hidden in a macro for a reason: it is the reference
  * that makes the linker keep the runtime's entry point. A static archive
  * member is pulled in only to resolve a symbol something already references,
@@ -168,16 +168,18 @@ struct GFModuleHooks {
   const char* module_id;
   const char* module_version;
 
-  /// Names this module's .qm files. Used only when the host hands over no
-  /// verified context, i.e. in a loose development build.
+  /// Names this module's .qm files when the verified context does not.
   const char* translation_context;
 
-  /// After the runtime has registered translations and subscriptions. This is
-  /// where a module registers settings pages, tab views and metatypes.
+  /// After the runtime has registered translations, subscriptions and
+  /// commands. This is where a module registers its native widgets and
+  /// metatypes.
   GFResult (*on_activate)();
 
-  /// Undo what on_activate registered with the host. Anything holding a
-  /// function pointer into this shared object MUST be unregistered here.
+  /// Stop the module's OWN work -- threads it started, timers, network
+  /// requests. Everything it registered with the Host (commands, widgets,
+  /// scripts, subscriptions, translations) the Host withdraws itself, before
+  /// this runs; there is nothing to unregister here. May be null.
   GFResult (*on_deactivate)();
 
   /// Final teardown. No module code runs after this returns.
@@ -221,8 +223,9 @@ auto GFModuleVersion() -> const QString&;
 /// module may actually do is decided by what the host put in GFHostApi.
 auto GFModuleHasCapability(const QString& name) -> bool;
 
-/// Whether the facts above came from a verified manifest rather than from the
-/// module's own word for itself (a loose development build).
+/// Whether the facts above came from a verified manifest. Always true in an
+/// active module: the Host activates only modules it verified, and the
+/// runtime refuses to activate without that.
 auto GFModuleIsVerified() -> bool;
 
 /**

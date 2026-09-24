@@ -26,15 +26,18 @@
  *
  */
 
+#include "GFModuleRuntimeNative.h"
+
 #include <QCborValue>
+#include <QCoreApplication>
 #include <QFont>
-#include <QWidget>
 #include <QHash>
 #include <QPointer>
+#include <QThread>
+#include <QWidget>
 #include <list>
 
 #include "GFModuleRuntimeBoot.h"
-#include "GFModuleRuntimeNative.h"
 #include "include/GFModule.h"
 #include "include/GFModuleNativeWidget.h"
 
@@ -111,8 +114,7 @@ auto Buffer(const QByteArray& bytes) -> GFBufferRef {
 auto Create(void* user, uint64_t instance, GFBufferView args) -> void* {
   auto* reg = static_cast<Registration*>(user);
   NativeWidgetBase* base = nullptr;
-  auto* widget = reg->make(
-      QCborValue::fromCbor(Bytes(args)).toMap(), &base);
+  auto* widget = reg->make(QCborValue::fromCbor(Bytes(args)).toMap(), &base);
   if (widget == nullptr || base == nullptr) return nullptr;
   gf::ui::NativeWidgetAccess::SetInstance(base, instance);
   Instances().insert(instance, Live{widget, base});
@@ -162,8 +164,7 @@ auto DocAppendText(void*, uint64_t i, GFBufferView utf8) -> int {
 auto DocAttachPublicKey(void*, uint64_t i, GFBufferView key, const char* name)
     -> int {
   auto* d = As<DocumentWidget>(i);
-  return d != nullptr &&
-                 d->AttachPublicKey(Bytes(key), QString::fromUtf8(name))
+  return d != nullptr && d->AttachPublicKey(Bytes(key), QString::fromUtf8(name))
              ? 1
              : 0;
 }
@@ -182,7 +183,8 @@ auto DocPrepareSave(void*, uint64_t i, GFBufferView bytes, GFBufferRef* out)
   if (d == nullptr) return 0;
   const auto decision = d->PrepareSave(Bytes(bytes));
   if (decision.cancelled) return 1;
-  if (decision.bytes.has_value() && out != nullptr) *out = Buffer(*decision.bytes);
+  if (decision.bytes.has_value() && out != nullptr)
+    *out = Buffer(*decision.bytes);
   return 0;
 }
 
@@ -197,10 +199,18 @@ auto DocSourcePolicy(void*, uint64_t i, GFBufferRef* reason) -> int {
 }
 
 const GFDocumentWidgetOps kDocumentOps = {
-    sizeof(GFDocumentWidgetOps), &DocLoad,         &DocSave,
-    &DocIsDirty,                 &DocCryptoOps,    &DocSuggestedFileName,
-    &DocApplyVerification,       &DocAppendText,   &DocAttachPublicKey,
-    &DocApplyFont,               &DocWipe,         &DocPrepareSave,
+    sizeof(GFDocumentWidgetOps),
+    &DocLoad,
+    &DocSave,
+    &DocIsDirty,
+    &DocCryptoOps,
+    &DocSuggestedFileName,
+    &DocApplyVerification,
+    &DocAppendText,
+    &DocAttachPublicKey,
+    &DocApplyFont,
+    &DocWipe,
+    &DocPrepareSave,
     &DocSourcePolicy,
 };
 
@@ -214,8 +224,8 @@ auto SetApply(void*, uint64_t i) -> int {
   return s == nullptr || s->ApplySettings() ? 0 : -1;
 }
 
-const GFSettingsWidgetOps kSettingsOps = {sizeof(GFSettingsWidgetOps),
-                                          &SetLoad, &SetApply};
+const GFSettingsWidgetOps kSettingsOps = {sizeof(GFSettingsWidgetOps), &SetLoad,
+                                          &SetApply};
 
 // --- dialogs
 
@@ -304,12 +314,24 @@ auto RegisterNativeWidget(const char* name, int kind, bool multi,
 namespace gf::runtime {
 
 void ForgetNativeWidgets() {
-  // Nothing to withdraw from the Host: it sweeps every registration a module
-  // made once the module is deactivated, and at shutdown the grant is
-  // already gone by the time this runs. Only this side's own map is cleared.
-  Instances().clear();
-  // Registrations stay: the Host may still hold `user` pointers until its
-  // own sweep has run, and the list costs nothing once nothing calls in.
+  // Nothing to withdraw from the Host: it withdrew every registration and
+  // closed this module's gate before this runs, so nothing calls in. The
+  // instance map belongs to the GUI thread, where every op touching it runs,
+  // so it is cleared there -- this runs on the module runner.
+  auto* app = QCoreApplication::instance();
+  if (app == nullptr || QThread::currentThread() == app->thread()) {
+    Instances().clear();
+  } else {
+    QMetaObject::invokeMethod(
+        app, []() { Instances().clear(); }, Qt::QueuedConnection);
+  }
+}
+
+void ResetNativeRegistrations() {
+  // The Host dropped every `user` pointer into this list when the module was
+  // last withdrawn; each activation registers afresh, and the list used to
+  // grow by one set per activation.
+  Registrations().clear();
 }
 
 }  // namespace gf::runtime

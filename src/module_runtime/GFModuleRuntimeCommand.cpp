@@ -32,6 +32,7 @@
 #include <QHash>
 #include <QMutex>
 #include <QMutexLocker>
+#include <atomic>
 
 #include "GFModuleRuntimeBoot.h"
 #include "include/GFModule.h"
@@ -148,10 +149,10 @@ void HandlerTrampoline(void* user, uint64_t call_id, GFBufferView context_cbor,
                  auto* result = IssueMap(r.result);
                  auto refs = IssueBlobs(r.blobs);
                  const auto error = r.error.toUtf8();
-                 GFCommandComplete(gf::runtime::SdkContext(), call_id,
-                                   r.status, result, refs.data(), refs.size(),
-                                   r.error.isEmpty() ? nullptr
-                                                     : error.constData());
+                 GFCommandComplete(
+                     gf::runtime::SdkContext(), call_id, r.status, result,
+                     refs.data(), refs.size(),
+                     r.error.isEmpty() ? nullptr : error.constData());
                });
 }
 
@@ -167,6 +168,10 @@ struct Continuation {
   bool has_receiver = false;
   gf::cmd::CommandBus::RawFn fn;
   quint64 call_id = 0;
+  /// Set by Cancel() and by deactivation. A result already queued to the
+  /// receiver checks it when it runs, so "no callback after cancel" holds
+  /// for that one too.
+  std::atomic<bool> dropped{false};
 };
 
 /// Continuations owed to this module. Keyed by the `user` pointer the Host
@@ -210,7 +215,8 @@ void DoneTrampoline(void* user, uint64_t call_id, int status,
   QMetaObject::invokeMethod(
       c->receiver.data(),
       [c, r = std::move(r)]() {
-        if (!c->receiver.isNull()) c->fn(r);
+        if (c->dropped.load() || c->receiver.isNull()) return;
+        c->fn(r);
       },
       Qt::QueuedConnection);
 }
@@ -228,7 +234,7 @@ auto RegisterCommands(const gf::cmd::Binding* bindings, size_t count) -> bool {
 
     // The manifest is the allowlist; the Host checks it too, but refusing
     // here says which side is wrong in the module's own log.
-    if (facts.verified && !facts.commands.contains(id)) {
+    if (!facts.commands.contains(id)) {
       LOG_ERROR(QString("module %1 provides command %2, which its manifest "
                         "does not declare")
                     .arg(facts.id, id));
@@ -260,6 +266,7 @@ auto RegisterCommands(const gf::cmd::Binding* bindings, size_t count) -> bool {
 void DropContinuations() {
   auto& owed = Owed();
   QMutexLocker locker(&owed.mutex);
+  for (const auto& c : std::as_const(owed.live)) c->dropped = true;
   owed.live.clear();
 }
 
@@ -274,8 +281,8 @@ auto MakeBlob(const void* data, size_t size) -> Blob {
 }
 
 auto CommandBus::InvokeRaw(const char* id, QCborMap args,
-                           std::vector<Blob> blobs, QObject* receiver,
-                           RawFn fn) -> CallTicket {
+                           std::vector<Blob> blobs, QObject* receiver, RawFn fn)
+    -> CallTicket {
   auto* args_ref = IssueMap(args);
   auto refs = IssueBlobs(blobs);
 
@@ -318,6 +325,7 @@ auto CommandBus::Cancel(quint64 call_id) -> int {
   QMutexLocker locker(&owed.mutex);
   for (auto it = owed.live.begin(); it != owed.live.end();) {
     if ((*it)->call_id == call_id) {
+      (*it)->dropped = true;
       it = owed.live.erase(it);
     } else {
       ++it;

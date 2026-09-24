@@ -34,8 +34,9 @@ namespace gf::runtime {
  * @brief Register this module's translator with the host.
  *
  * Called during activation, before any subscription and before the module's
- * own on_activate() -- the same ordering the old REGISTER_TRANS_READER() had
- * by convention, now by construction.
+ * own on_activate(). The Host installs the translator as soon as it has the
+ * reader -- queued to the GUI thread, so it is in place by the time any UI
+ * the module mounts is shown, but not necessarily while on_activate() runs.
  *
  * @return true when the host accepted the reader
  */

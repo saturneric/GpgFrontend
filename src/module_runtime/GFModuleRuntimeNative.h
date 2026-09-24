@@ -30,7 +30,11 @@
 
 namespace gf::runtime {
 
-/// Withdraw every native widget this module registered. At deactivation.
+/// Forget every live native widget instance. At deactivation, after the Host
+/// has withdrawn the registrations.
 void ForgetNativeWidgets();
+
+/// Drop the previous activation's registrations. At activation.
+void ResetNativeRegistrations();
 
 }  // namespace gf::runtime

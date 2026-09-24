@@ -33,19 +33,18 @@
 
 #include "GFModuleRuntimeBoot.h"
 #include "GFModuleRuntimeCommand.h"
-#include "GFModuleRuntimeNative.h"
 #include "GFModuleRuntimeDispatch.h"
 #include "GFModuleRuntimeI18n.h"
+#include "GFModuleRuntimeNative.h"
 #include "include/GFModule.h"
 
 /**
  * @file GFModuleRuntime.cpp
  * @brief The module ABI, implemented once for every module.
  *
- * Every module used to carry its own expansion of GF_MODULE_BOOTSTRAP(): its
- * own ABI range check, its own table, its own dispatch loop, and its own
- * handler registry in an anonymous namespace -- which is what confined every
- * handler to one translation unit.
+ * The ABI range check, the module table, the dispatch loop and the handler
+ * registry live here, once; a module hands over a hook table and nothing
+ * else.
  */
 
 namespace {
@@ -89,27 +88,10 @@ auto IndexHooks(const GFModuleHooks* hooks) -> QSet<QString> {
  * what was subscribed. Both used to be possible and silent -- the LISTEN list
  * and the handler registry were separate, and stayed in step only by care.
  *
- * @return true when they agree, or when there is nothing verified to compare
+ * @return true when they agree
  */
 auto ReconcileSubscriptions(const QSet<QString>& hooked) -> bool {
   const auto& facts = gf::runtime::Facts();
-
-  // Two cases fall back to the module's own table, and both are weaker
-  // guarantees than a declared allowlist, so both say so.
-  //
-  // An unverified module has no manifest at all. A verified one that declares
-  // nothing is a package built before the field existed -- indistinguishable
-  // from one that genuinely subscribes to nothing, which is why the builder
-  // omits the field rather than writing an empty array.
-  if (!facts.verified || facts.events.isEmpty()) {
-    LOG_WARN(
-        QString("module %1 (%2): subscribing to %3 event(s) from its own "
-                "hook table; a module whose manifest declares its events "
-                "subscribes only to those")
-            .arg(facts.id, facts.verified ? "no events declared" : "unverified")
-            .arg(hooked.size()));
-    return true;
-  }
 
   const auto declared =
       QSet<QString>(facts.events.cbegin(), facts.events.cend());
@@ -142,8 +124,8 @@ void LoadEmbeddedScripts() {
       QStringLiteral(":/gf_module/%1/lua").arg(gf::runtime::Facts().id);
   QDir dir(root);
   if (!dir.exists()) return;
-  auto names = dir.entryList({QStringLiteral("*.lua")}, QDir::Files,
-                             QDir::Name);
+  auto names =
+      dir.entryList({QStringLiteral("*.lua")}, QDir::Files, QDir::Name);
   for (const auto& name : names) {
     QFile f(dir.filePath(name));
     if (!f.open(QIODevice::ReadOnly)) continue;
@@ -166,30 +148,44 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
     return -1;
   }
 
-  gf::runtime::Facts() = gf::runtime::AdoptBootstrapInfo(
+  gf::runtime::PublishFacts(gf::runtime::AdoptBootstrapInfo(
       static_cast<const GFModuleBootstrapInfo*>(reserved), g_hooks->module_id,
-      g_hooks->module_version, g_hooks->translation_context);
+      g_hooks->module_version, g_hooks->translation_context));
 
   // Before anything else can log, translate or subscribe: every one of those
   // goes through the context, and the SDK holds none of its own.
   gf::runtime::AdoptHostApi(host, gf::runtime::Facts().id.toUtf8().constData());
 
+  // The host activates only verified modules; the runtime relies on the
+  // signed lists below and has no other source for them.
+  if (!gf::runtime::Facts().verified) {
+    LOG_ERROR("the host did not vouch for this module; refusing to activate");
+    return -1;
+  }
+
+  gf::runtime::ResetNativeRegistrations();
+
   const auto hooked = IndexHooks(g_hooks);
   if (!ReconcileSubscriptions(hooked)) return -1;
 
   // Before any subscription, so a handler that fires immediately already has
-  // its translations. This is the ordering the old macros had by convention.
+  // its translations.
   if (!gf::runtime::RegisterTranslations()) {
     LOG_WARN("could not register translations for " + gf::runtime::Facts().id);
   }
 
   const auto& facts = gf::runtime::Facts();
-  const auto& subscribe = facts.verified ? facts.events : hooked.values();
-  for (const auto& event_id : subscribe) {
+  for (const auto& event_id : facts.events) {
     // Straight to the primitive: subscribing is the runtime's own business,
     // not something a module calls, so it is not part of the public SDK. The
-    // host reads which module is subscribing from the context.
-    host->event->subscribe(host->context, event_id.toUtf8().constData());
+    // host reads which module is subscribing from the context -- and a
+    // subscription it refuses is a module that cannot do what it declared.
+    if (host->event->subscribe(host->context, event_id.toUtf8().constData()) !=
+        0) {
+      LOG_ERROR(QString("the host refused module %1's subscription to %2")
+                    .arg(facts.id, event_id));
+      return -1;
+    }
   }
 
   // Before on_activate, which may already invoke them or load a UI script
@@ -199,8 +195,7 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
                                      g_hooks->commands_size)) {
     return -1;
   }
-  if (HooksCover(g_hooks, &GFModuleHooks::commands_size) &&
-      facts.verified) {
+  if (HooksCover(g_hooks, &GFModuleHooks::commands_size)) {
     // And the other direction: a declared command nothing provides.
     for (const auto& id : facts.commands) {
       bool bound = false;
@@ -319,11 +314,10 @@ extern "C" auto GFModuleRuntimeGetApi(uint32_t host_abi,
 auto GFModuleId() -> const QString& { return gf::runtime::Facts().id; }
 
 auto GFGetModuleID() -> const char* {
-  // Encoded once and held, so the pointer stays valid for as long as the
-  // module does. Re-encoding per call would hand out a dangling pointer the
-  // moment the temporary died.
-  static const QByteArray kId = gf::runtime::Facts().id.toUtf8();
-  return kId.constData();
+  // Encoded once per published set of facts, which are never freed, so the
+  // pointer stays valid for as long as the module does. A static cache here
+  // used to freeze whatever the first call saw -- empty, before activation.
+  return gf::runtime::Facts().id_utf8.constData();
 }
 auto GFModuleVersion() -> const QString& {
   return gf::runtime::Facts().version;

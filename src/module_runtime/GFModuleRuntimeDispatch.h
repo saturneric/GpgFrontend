@@ -69,9 +69,8 @@ void SendAnswer(const QString& event_id, const QString& trigger_id,
 
 /// Turn a handler verdict into the parameters that go on the wire.
 ///
-/// kOK becomes {"ret","0"}; everything else becomes {"ret","-1"} plus "err".
-/// That is byte-for-byte what the CB_SUCC and CB_ERR macros produced, so no
-/// host-side consumer can tell the difference.
+/// kOK becomes {"ret","0"}; everything else becomes {"ret","-1"} plus "err",
+/// which is what every Host-side consumer of an answer reads.
 auto ResultToParams(const GFEventResult& result) -> QMap<QString, QString>;
 
 /// The table the module handed over, indexed for dispatch. Built once.

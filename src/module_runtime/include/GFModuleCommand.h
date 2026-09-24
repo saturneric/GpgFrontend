@@ -52,9 +52,13 @@
  * @endcode
  *
  * Nothing here blocks. A result arrives later, on the receiver's thread, and
- * never after the receiver has been destroyed or the module deactivated.
+ * never after the receiver has been destroyed, the call was cancelled, or the
+ * module was deactivated -- including a result already queued to the
+ * receiver when that happened. A result without a receiver runs on whatever
+ * thread delivers it: do not block there waiting for the GUI thread.
  * The commands a module PROVIDES are listed in its hook table with
- * gf::cmd::Bind<>(); the runtime registers and withdraws them.
+ * gf::cmd::Bind<>(); the runtime registers them, and the Host withdraws them
+ * when the module is deactivated.
  */
 
 namespace gf::cmd {
@@ -101,8 +105,8 @@ class CommandBus {
           R value{};
           QString error;
           if (!DecodeMap(raw.result, raw.blobs, value, &error)) {
-            fn(Outcome<R>::Failure(GF_CMD_E_FAILED,
-                                   QStringLiteral("malformed result: ") + error));
+            fn(Outcome<R>::Failure(
+                GF_CMD_E_FAILED, QStringLiteral("malformed result: ") + error));
             return;
           }
           fn(Outcome<R>::Success(std::move(value)));
@@ -111,8 +115,7 @@ class CommandBus {
 
   /// By stable id, for commands this module knows only by name.
   auto InvokeDynamic(const QString& id, const QCborMap& args,
-                     QObject* receiver = nullptr, RawFn fn = {})
-      -> CallTicket;
+                     QObject* receiver = nullptr, RawFn fn = {}) -> CallTicket;
 
   auto Cancel(quint64 call_id) -> int;
   auto Describe(const QString& id) -> std::optional<QCborMap>;

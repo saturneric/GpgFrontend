@@ -65,9 +65,7 @@
  *
  * `LOG_TRACE` through `LOG_ERROR`. Trace is for per-item chatter -- one line
  * per key, per message, per request -- and is off even at `--log-level debug`;
- * `--log-level trace` is what turns it on. It used to be an alias of debug at
- * the ABI (`GFModuleLogTrace` had a body byte-identical to `GFModuleLogDebug`)
- * and had no macro at all, so nothing in any module ever used it.
+ * `--log-level trace` is what turns it on.
  *
  * Before that, `LOG_INFO`, `LOG_WARN` and `LOG_ERROR` all expanded to
  * `MLogDebug`, so 58 call sites -- 46 of them `LOG_ERROR` -- were emitted at

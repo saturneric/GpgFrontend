@@ -41,10 +41,10 @@
  * @file GFModuleEvent.h
  * @brief What a module receives when an event fires, and what it answers with.
  *
- * Replaces the CB/CB_SUCC/CB_ERR macros, which between them wrote the answer
- * transport into 83 call sites -- 64 of them passing the same error code, -1,
- * because the code never carried information. A handler now returns a value
- * and the runtime does the transport.
+ * A handler returns a value and the runtime does the transport. The Host
+ * accepts exactly one answer per delivered event from each listener it was
+ * delivered to; a listener that is deactivated before it answers is answered
+ * for, with a failure, so whoever triggered the event is never left waiting.
  */
 
 class GFEventAnswer;
