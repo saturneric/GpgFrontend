@@ -59,12 +59,6 @@ class KeyPairDetailTab : public QWidget {
    * @brief
    *
    */
-  void slot_query_key_publish_state();
-
-  /**
-   * @brief
-   *
-   */
   void slot_refresh_notice(const QString& icon, const QString& info);
 
  private:

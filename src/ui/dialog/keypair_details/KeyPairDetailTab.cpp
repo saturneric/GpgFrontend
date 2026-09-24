@@ -32,7 +32,6 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgKey.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
@@ -357,8 +356,6 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   } else if (key_->IsPrivateKey() && !key_->IsHasMasterKey()) {
     slot_refresh_notice(":/icons/warning.png",
                         tr("Warning: The primary key is not exists."));
-  } else {
-    slot_query_key_publish_state();
   }
 }
 
@@ -371,56 +368,6 @@ void KeyPairDetailTab::slot_refresh_key() {
 
   std::swap(this->key_, refreshed_key);
   this->slot_refresh_key_info();
-}
-
-void KeyPairDetailTab::slot_query_key_publish_state() {
-  bool forbid_all_gnupg_connection =
-      GetSettings().value("network/forbid_all_gnupg_connection").toBool();
-
-  bool auto_fetch_key_publish_status =
-      GetSettings().value("network/auto_fetch_key_publish_status").toBool();
-
-  if (forbid_all_gnupg_connection || !auto_fetch_key_publish_status) return;
-
-  if (!Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT")) {
-    return;
-  }
-
-  const auto fpr = key_->Fingerprint();
-
-  QPointer<KeyPairDetailTab> self = this;
-
-  Module::TriggerEvent(
-      "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
-      {
-          {"fingerprint", GFBuffer{fpr}},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        // avoid crash while outer dialog was already closed
-        if (!self) return;
-
-        if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-          LOG_E() << "An error occurred trying to get data from key:" << fpr
-                  << "error message: " << p["error_msg"].ConvertToQString()
-                  << "reply data: " << p["reply_data"].ConvertToQString();
-        } else if (p.contains("key_data")) {
-          const auto key_data = p["key_data"];
-
-          if (!key_data.Empty()) {
-            // Which key server answered is the user's choice now, so name the
-            // one that actually did rather than assuming.
-            const auto key_server = p["key_server"].ConvertToQString();
-            self->slot_refresh_notice(
-                ":/icons/publish.png",
-                key_server.isEmpty()
-                    ? tr("Notice: The public key has been published on the key "
-                         "server.")
-                    : tr("Notice: The public key has been published on %1.")
-                          .arg(QUrl(key_server).host()));
-          }
-        }
-      });
 }
 
 void KeyPairDetailTab::slot_refresh_notice(const QString& icon,
