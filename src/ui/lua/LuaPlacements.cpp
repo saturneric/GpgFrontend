@@ -34,6 +34,7 @@
 #include <QJsonObject>
 #include <QKeySequence>
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <algorithm>
 
@@ -91,6 +92,68 @@ auto Category(const QString& command) -> QString {
   return d.has_value() ? CommandCategory(*d) : QString();
 }
 
+auto AttentionText(const QString& command) -> QString {
+  const auto d = CommandRegistry::Instance().Describe(command);
+  return d.has_value() ? CommandAttention(*d) : QString();
+}
+
+/// @p base with the Host's one attention mark, a dot in its top-right corner;
+/// the dot alone when there is no icon.
+auto WithBadge(const QIcon& base) -> QIcon {
+  QIcon badged;
+  for (const int size : {16, 24, 32, 48}) {
+    QPixmap pixmap(size, size);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (!base.isNull()) base.paint(&painter, pixmap.rect());
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(0xE5, 0x39, 0x35));
+    if (base.isNull()) {
+      // Alone, the dot sits where an icon would: centred, not in a corner.
+      const qreal d = size * 0.4;
+      painter.drawEllipse(QRectF((size - d) / 2, (size - d) / 2, d, d));
+    } else {
+      const qreal d = size * 0.45;
+      painter.drawEllipse(QRectF(size - d, 0, d, d));
+    }
+    painter.end();
+    badged.addPixmap(pixmap);
+  }
+  return badged;
+}
+
+/**
+ * @brief Show or clear the attention mark on @p action.
+ *
+ * Passive by design: a badge and a tooltip that says why, nothing that opens,
+ * moves or takes focus. The application hides menu icons, so a badged entry
+ * shows its icon regardless, and goes back to the application's default when
+ * the badge clears.
+ */
+void ApplyAttention(QAction* action, const PlacedAction& placed, bool on) {
+  const auto key = "gf_lua_attention";
+  if (action->property(key).toBool() == on) return;
+  action->setProperty(key, on);
+
+  const auto& command = placed.info.command;
+  const QIcon base =
+      placed.info.icon.isEmpty() ? QIcon() : QIcon(placed.info.icon);
+  const auto title = Title(command);
+  auto tip = Tooltip(command);
+
+  if (on) {
+    const auto why = AttentionText(command);
+    if (!why.isEmpty()) tip = why;
+  }
+  action->setToolTip(tip);
+  action->setStatusTip(tip);
+  action->setIcon(on ? WithBadge(base) : base);
+  action->setText(title);
+  action->setIconVisibleInMenu(
+      on || !QCoreApplication::testAttribute(Qt::AA_DontShowIconsInMenus));
+}
+
 /// A Host action standing for one module action. Holds ids, not pointers.
 auto MakeAction(const PlacedAction& placed, QObject* parent,
                 const ContextFn& ctx) -> QAction* {
@@ -113,6 +176,7 @@ void Refresh(QAction* action, const PlacedAction& placed,
              const UiContext& ctx) {
   if (placed.runtime.isNull()) {
     action->setVisible(false);
+    ApplyAttention(action, placed, false);
     return;
   }
   const auto st = placed.runtime->Evaluate(placed.info.id, ctx);
@@ -120,6 +184,7 @@ void Refresh(QAction* action, const PlacedAction& placed,
   action->setEnabled(st.enabled);
   action->setCheckable(st.has_checked);
   if (st.has_checked) action->setChecked(st.checked);
+  ApplyAttention(action, placed, st.attention);
 }
 
 /// The window a menu's shortcuts belong to: past any menus it sits in.

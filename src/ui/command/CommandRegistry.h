@@ -107,6 +107,9 @@ auto GF_UI_EXPORT BlobToGFBuffer(const gf::cmd::Blob& blob) -> GFBuffer;
 auto GF_UI_EXPORT CommandTitle(const QCborMap& descriptor) -> QString;
 auto GF_UI_EXPORT CommandDescription(const QCborMap& descriptor) -> QString;
 auto GF_UI_EXPORT CommandCategory(const QCborMap& descriptor) -> QString;
+/// What an entry says while the command reports GF_CMD_STATE_ATTENTION;
+/// empty when the command gave no text.
+auto GF_UI_EXPORT CommandAttention(const QCborMap& descriptor) -> QString;
 
 /// Presentation text for a Host command, marked for translation where the
 /// Host's own translation scan finds it.

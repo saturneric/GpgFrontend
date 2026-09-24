@@ -134,6 +134,10 @@ auto CommandCategory(const QCborMap& descriptor) -> QString {
   return Translated(descriptor, "category");
 }
 
+auto CommandAttention(const QCborMap& descriptor) -> QString {
+  return Translated(descriptor, "attention");
+}
+
 auto MakeHostBlob(GFBuffer buffer) -> gf::cmd::Blob {
   return gf::cmd::Blob(std::make_shared<HostBlobStorage>(std::move(buffer)));
 }

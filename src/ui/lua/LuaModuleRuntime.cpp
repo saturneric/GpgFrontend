@@ -356,6 +356,7 @@ auto LuaModuleRuntime::Evaluate(const QString& action_id, const UiContext& ctx)
   if (action->update == LUA_NOREF) {
     st.visible = (bits & GF_CMD_STATE_VISIBLE) != 0;
     st.enabled = (bits & GF_CMD_STATE_ENABLED) != 0;
+    st.attention = st.visible && (bits & GF_CMD_STATE_ATTENTION) != 0;
     return st;
   }
 
@@ -409,6 +410,8 @@ auto LuaModuleRuntime::Evaluate(const QString& action_id, const UiContext& ctx)
   // the module may not use, nor enabled when the command says it is not.
   st.visible = st.visible && (bits & GF_CMD_STATE_VISIBLE) != 0;
   st.enabled = st.enabled && (bits & GF_CMD_STATE_ENABLED) != 0;
+  // Only the command raises attention: a script's update() cannot fake it.
+  st.attention = st.visible && (bits & GF_CMD_STATE_ATTENTION) != 0;
   return st;
 }
 

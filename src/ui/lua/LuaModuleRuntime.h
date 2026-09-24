@@ -79,6 +79,7 @@ struct ActionState {
   bool enabled = false;
   bool checked = false;
   bool has_checked = false;
+  bool attention = false;  ///< the command reports GF_CMD_STATE_ATTENTION
   QCborMap args;
   std::vector<gf::cmd::Blob> blobs;
   QString error;  ///< empty when update() ran and its result was valid

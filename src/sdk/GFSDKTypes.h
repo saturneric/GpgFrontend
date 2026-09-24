@@ -478,6 +478,13 @@ typedef struct GFNativeWidgetSpec {
 #define GF_CMD_STATE_ENABLED 0x1u
 #define GF_CMD_STATE_VISIBLE 0x2u
 #define GF_CMD_STATE_CHECKED 0x4u
+/**
+ * Something behind the command wants the user's eventual attention (a new
+ * version, say). Entries placed for it show a small badge, and their tooltip
+ * the command's attention text; nothing opens, moves or takes focus. Only
+ * meaningful together with GF_CMD_STATE_VISIBLE.
+ */
+#define GF_CMD_STATE_ATTENTION 0x8u
 
 /* --- callbacks ------------------------------------------------------------- */
 

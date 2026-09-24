@@ -59,10 +59,9 @@
  *   static constexpr gf::cmd::Meta kMeta{
  *       "com.example.module.publish_key", GC_TR("Publish Key"),
  *       GC_TR("Upload the public key to the key server"),
- *       GC_TR("Key Server Operations"), GF_HOST_CAP_GPG, gf::cmd::kLongRunning};
- *   struct Args {
- *     gf::cmd::KeyRef key;
- *     static constexpr auto Fields() { return std::make_tuple(gf::cmd::F("key", &Args::key)); }
+ *       GC_TR("Key Server Operations"), GF_HOST_CAP_GPG,
+ * gf::cmd::kLongRunning}; struct Args { gf::cmd::KeyRef key; static constexpr
+ * auto Fields() { return std::make_tuple(gf::cmd::F("key", &Args::key)); }
  *   };
  *   using Result = gf::cmd::Unit;
  * };
@@ -112,8 +111,8 @@ enum Flag : uint32_t {
 
 /// Everything about a command that is not its argument types.
 struct Meta {
-  const char* id;           ///< stable, "<module_id>.<name>" or "org.gpgfrontend.*"
-  const char* title;        ///< untranslated source string
+  const char* id;     ///< stable, "<module_id>.<name>" or "org.gpgfrontend.*"
+  const char* title;  ///< untranslated source string
   const char* description;  ///< untranslated source string, may be ""
   const char* category;     ///< untranslated source string, may be ""
   uint32_t required_caps;   ///< GF_HOST_CAP_* bits the CALLER must hold
@@ -225,7 +224,9 @@ struct KeyRef {
 struct ViewRef {
   QString id;
 
-  static constexpr auto Fields() { return std::make_tuple(F("id", &ViewRef::id)); }
+  static constexpr auto Fields() {
+    return std::make_tuple(F("id", &ViewRef::id));
+  }
 };
 
 // ------------------------------------------------------------------ codec
@@ -271,8 +272,8 @@ struct Codec<bool> {
 };
 
 template <typename T>
-struct Codec<T, std::enable_if_t<std::is_integral_v<T> &&
-                                 !std::is_same_v<T, bool>>> {
+struct Codec<
+    T, std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>>> {
   static auto Schema() -> QCborMap { return detail::Schema("int"); }
   static auto Encode(T v, EncodeState&) -> QCborValue {
     return static_cast<qint64>(v);
@@ -281,7 +282,8 @@ struct Codec<T, std::enable_if_t<std::is_integral_v<T> &&
     if (!v.isInteger()) return st.Fail(QStringLiteral("expected an integer"));
     const auto i = v.toInteger();
     if constexpr (std::is_unsigned_v<T>) {
-      if (i < 0) return st.Fail(QStringLiteral("expected a non-negative integer"));
+      if (i < 0)
+        return st.Fail(QStringLiteral("expected a non-negative integer"));
     }
     out = static_cast<T>(i);
     return true;
@@ -402,8 +404,7 @@ struct Codec<std::optional<T>> {
     m.insert(QStringLiteral("optional"), true);
     return m;
   }
-  static auto Encode(const std::optional<T>& v, EncodeState& st)
-      -> QCborValue {
+  static auto Encode(const std::optional<T>& v, EncodeState& st) -> QCborValue {
     if (!v.has_value()) return QCborValue(QCborValue::Null);
     return Codec<T>::Encode(*v, st);
   }
@@ -421,7 +422,8 @@ struct Codec<std::optional<T>> {
 };
 
 template <typename T>
-struct Codec<QList<T>, std::enable_if_t<!std::is_same_v<QList<T>, QStringList>>> {
+struct Codec<QList<T>,
+             std::enable_if_t<!std::is_same_v<QList<T>, QStringList>>> {
   static auto Schema() -> QCborMap {
     auto m = detail::Schema("list");
     m.insert(QStringLiteral("item"), Codec<T>::Schema());
@@ -492,10 +494,9 @@ struct Codec<T, std::enable_if_t<IsReflected<T>::value>> {
   static auto EncodeMap(const T& v, EncodeState& st) -> QCborMap {
     QCborMap m;
     detail::ForEachField<T>([&](const auto& f) {
-      m.insert(QString::fromLatin1(f.name), Codec<std::remove_cv_t<
-                                                std::remove_reference_t<
-                                                    decltype(v.*(f.member))>>>::
-                                                Encode(v.*(f.member), st));
+      m.insert(QString::fromLatin1(f.name),
+               Codec<std::remove_cv_t<std::remove_reference_t<
+                   decltype(v.*(f.member))>>>::Encode(v.*(f.member), st));
     });
     return m;
   }
@@ -510,8 +511,8 @@ struct Codec<T, std::enable_if_t<IsReflected<T>::value>> {
     bool ok = true;
     detail::ForEachField<T>([&](const auto& f) {
       if (!ok) return;
-      using M = std::remove_cv_t<
-          std::remove_reference_t<decltype(out.*(f.member))>>;
+      using M =
+          std::remove_cv_t<std::remove_reference_t<decltype(out.*(f.member))>>;
       const auto key = QString::fromLatin1(f.name);
       if (!m.contains(key)) {
         if constexpr (!detail::IsOptional<M>::value) {
@@ -571,9 +572,9 @@ using Completer = std::function<void(RawResult)>;
  * its own capabilities.
  */
 struct CommandContext {
-  QString caller;       ///< module id, or "" for the Host itself
+  QString caller;  ///< module id, or "" for the Host itself
   qint64 caller_caps = 0;
-  QString source;       ///< "host", "module", "lua:<chunk>:<id>"
+  QString source;  ///< "host", "module", "lua:<chunk>:<id>"
   std::optional<DocumentRef> document;
   bool has_selection = false;
   std::optional<KeyRef> key;
@@ -638,8 +639,8 @@ class Reply {
   void Fail(int status, const QString& why) const {
     auto done = state_->Take();
     if (!done) return;
-    done(RawResult{status == GF_CMD_OK ? GF_CMD_E_FAILED : status, 0, {}, {},
-                   why});
+    done(RawResult{
+        status == GF_CMD_OK ? GF_CMD_E_FAILED : status, 0, {}, {}, why});
   }
 
  private:
@@ -647,7 +648,10 @@ class Reply {
     explicit State(Completer d) : done(std::move(d)) {}
     ~State() {
       if (done) {
-        done(RawResult{GF_CMD_E_FAILED, 0, {}, {},
+        done(RawResult{GF_CMD_E_FAILED,
+                       0,
+                       {},
+                       {},
                        QStringLiteral("the handler never replied")});
       }
     }
@@ -665,8 +669,25 @@ class Reply {
 
 // ------------------------------------------------------------------ descriptor
 
-/// The descriptor of @p C: metadata plus both schemas. The one source for
-/// the registry, the marshalling, the Lua conversion and the documentation.
+namespace detail {
+
+/// Whether @p C declares `static constexpr const char* kAttention`.
+template <typename C, typename = void>
+struct HasAttention : std::false_type {};
+template <typename C>
+struct HasAttention<C, std::void_t<decltype(C::kAttention)>> : std::true_type {
+};
+
+}  // namespace detail
+
+/**
+ * @brief The descriptor of @p C: metadata plus both schemas. The one source
+ * for the registry, the marshalling, the Lua conversion and the documentation.
+ *
+ * A command whose State() can report GF_CMD_STATE_ATTENTION may also declare
+ * `static constexpr const char* kAttention = GC_TR("...")`: the untranslated
+ * text a badged entry's tooltip says, so the badge is never the only signal.
+ */
 template <typename C>
 auto Describe() -> QCborMap {
   QCborMap m;
@@ -675,6 +696,9 @@ auto Describe() -> QCborMap {
   m.insert(QStringLiteral("description"),
            QString::fromUtf8(C::kMeta.description));
   m.insert(QStringLiteral("category"), QString::fromUtf8(C::kMeta.category));
+  if constexpr (detail::HasAttention<C>::value) {
+    m.insert(QStringLiteral("attention"), QString::fromUtf8(C::kAttention));
+  }
   m.insert(QStringLiteral("required_caps"),
            static_cast<qint64>(C::kMeta.required_caps));
   m.insert(QStringLiteral("flags"), static_cast<qint64>(C::kMeta.flags));
@@ -694,8 +718,8 @@ auto Describe() -> QCborMap {
 struct Binding {
   const char* id;
   auto (*describe)() -> QCborMap;
-  void (*run)(const CommandContext& ctx, QCborMap args,
-              std::vector<Blob> blobs, Completer done);
+  void (*run)(const CommandContext& ctx, QCborMap args, std::vector<Blob> blobs,
+              Completer done);
   auto (*state)(const CommandContext& ctx) -> uint32_t;  ///< may be null
 };
 
@@ -704,8 +728,8 @@ namespace detail {
 template <typename C, typename = void>
 struct HasState : std::false_type {};
 template <typename C>
-struct HasState<C, std::void_t<decltype(C::State(
-                       std::declval<const CommandContext&>()))>>
+struct HasState<
+    C, std::void_t<decltype(C::State(std::declval<const CommandContext&>()))>>
     : std::true_type {};
 
 template <typename C, auto Handler>
