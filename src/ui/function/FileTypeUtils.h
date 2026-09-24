@@ -70,4 +70,18 @@ auto GF_UI_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
  */
 auto GF_UI_EXPORT IsProfilePackageFile(const QFileInfo& info) -> bool;
 
+/**
+ * @brief A document title a tab can show and a Save dialog can offer.
+ *
+ * A title may come from a module, and a module may take it from a message a
+ * stranger wrote -- a Subject line. It becomes the suggested file name, so it
+ * must not be able to name a directory or smuggle control characters into
+ * the tab bar. The Host applies this itself rather than trusting every module
+ * to.
+ *
+ * @return the title with whitespace collapsed, control characters dropped,
+ *         path separators replaced, and at most 120 characters
+ */
+auto GF_UI_EXPORT SanitizedDocumentTitle(const QString& title) -> QString;
+
 }  // namespace GpgFrontend::UI

@@ -64,4 +64,26 @@ auto IsProfilePackageFile(const QFileInfo& info) -> bool {
   return LowerSuffix(info) == kSuffix;
 }
 
+auto SanitizedDocumentTitle(const QString& title) -> QString {
+  static const QRegularExpression kWhitespace(QStringLiteral("\\s+"));
+  QString out;
+  out.reserve(title.size());
+  for (const auto c : title) {
+    // A folded header line is still a separator between words.
+    if (c.isSpace()) {
+      out.append(u' ');
+      continue;
+    }
+    if (c.category() == QChar::Other_Control ||
+        c.category() == QChar::Other_Format) {
+      continue;
+    }
+    out.append(c == u'/' || c == u'\\' || c == u':' ? QChar(u'_') : c);
+  }
+  out = out.replace(kWhitespace, QStringLiteral(" ")).trimmed();
+  // Leading dots would make a hidden file, or "..".
+  while (out.startsWith(u'.')) out.remove(0, 1);
+  return out.left(120).trimmed();
+}
+
 }  // namespace GpgFrontend::UI
