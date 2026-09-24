@@ -70,11 +70,6 @@ struct GFGpgResultImpl {
   /// Owned. Released with the result unless GFGpgResultTakeData took it.
   GFBufferRef data = nullptr;
 
-  /// The engine's full result model, for GFGpgAnalyse(). It lives and dies
-  /// with this handle -- owned, attributed and swept like everything else the
-  /// module holds -- and is consumed by the first analysis.
-  std::any model;
-
   // QByteArray keeps its own NUL terminator, so constData() is a valid C
   // string and the accessors never need to allocate.
   QByteArray capsule_id;
@@ -88,11 +83,28 @@ namespace {
 
 using ResultRegistry = GFHandleRegistry<GFGpgResultImpl>;
 
-/// capsule id -> the result carrying that model. A capsule id is how the ABI
-/// names a result's model; the handle registry still decides who may use it.
+/// The engine's full result model behind one capsule id, for GFGpgAnalyse().
+///
+/// Deliberately NOT part of the result handle: the SDK contract is that a
+/// capsule id stays analysable after its result is released -- callers copy
+/// the id, let the result go, and analyse later -- and it is consumed by the
+/// first analysis. It belongs to the module the operation ran for, is refused
+/// to any other, is capped per module, and goes with the module's handles in
+/// the shutdown sweep.
+struct Capsule {
+  QString owner;
+  std::any model;
+  quint64 serial = 0;  ///< insertion order, for the per-module cap
+};
+
+/// Capsules one module may hold unanalysed. A module that never analyses what
+/// it asks for loses its oldest, rather than growing the table for ever.
+constexpr int kMaxCapsulesPerModule = 64;
+
 struct CapsuleIndex {
   QMutex mutex;
-  QHash<QByteArray, GFGpgResultImpl*> by_id;
+  QHash<QByteArray, Capsule> by_id;
+  quint64 next_serial = 0;
 };
 
 auto Capsules() -> CapsuleIndex& {
@@ -117,10 +129,6 @@ void DestroyResult(GFGpgResultImpl* impl) {
   // registry rather than being destroyed behind its back -- which is also
   // what stops the buffer sweep finding it again afterwards.
   GFBufferRelease(impl->data);
-  if (!impl->capsule_id.isEmpty()) {
-    const QMutexLocker lock(&Capsules().mutex);
-    Capsules().by_id.remove(impl->capsule_id);
-  }
   impl->magic = 0;
   impl->~GFGpgResultImpl();
   GpgFrontend::SMAFree(impl);
@@ -191,11 +199,27 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
             const GpgFrontend::GFBuffer& out_buffer, GpgFrontend::GFError err) {
   impl->status = GF_GPG_OK;
   impl->gpgme_error = static_cast<uint32_t>(err);
-  impl->model = result;
   impl->capsule_id = QUuid::createUuid().toString().toUtf8();
   {
-    const QMutexLocker lock(&Capsules().mutex);
-    Capsules().by_id.insert(impl->capsule_id, impl);
+    const auto owner = gf_sdk_internal::CurrentModuleId();
+    auto& index = Capsules();
+    const QMutexLocker lock(&index.mutex);
+    index.by_id.insert(impl->capsule_id,
+                       Capsule{owner, std::any(result), index.next_serial++});
+
+    // The cap: this module's oldest unanalysed capsule goes first.
+    QByteArray oldest;
+    quint64 oldest_serial = 0;
+    int held = 0;
+    for (auto it = index.by_id.cbegin(); it != index.by_id.cend(); ++it) {
+      if (it->owner != owner) continue;
+      ++held;
+      if (oldest.isEmpty() || it->serial < oldest_serial) {
+        oldest = it.key();
+        oldest_serial = it->serial;
+      }
+    }
+    if (held > kMaxCapsulesPerModule) index.by_id.remove(oldest);
   }
   impl->error_string = GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
   impl->data = GFBufferNewFromBytes(out_buffer.Data(), out_buffer.Size());
@@ -205,17 +229,23 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
 
 auto TakeResultModel(const char* capsule_id) -> std::any {
   if (capsule_id == nullptr) return {};
-  GFGpgResultImpl* impl = nullptr;
-  {
-    const QMutexLocker lock(&Capsules().mutex);
-    impl = Capsules().by_id.value(QByteArray(capsule_id), nullptr);
+  const auto caller = gf_sdk_internal::CurrentModuleId();
+  auto& index = Capsules();
+  const QMutexLocker lock(&index.mutex);
+  const auto it = index.by_id.find(QByteArray(capsule_id));
+  if (it == index.by_id.end()) return {};
+  // Only the module the operation ran for. An id is unguessable, but it is
+  // also handed around -- in event answers, in logs -- and knowing one must
+  // not be enough to read another module's result.
+  if (!caller.isEmpty() && !it->owner.isEmpty() && it->owner != caller) {
+    LOG_W() << "gpg.analyse_result: module" << caller
+            << "presented a capsule issued to module" << it->owner
+            << "; refused";
+    return {};
   }
-  // Through the registry, so a result that was released meanwhile, or that
-  // belongs to another module, is refused exactly as its handle would be.
-  // (A capsule id is only ever issued inside a result the caller received.)
-  impl = ResolveLive(impl, "gpg.analyse_result");
-  if (impl == nullptr) return {};
-  return std::exchange(impl->model, std::any{});
+  auto model = std::move(it->model);
+  index.by_id.erase(it);
+  return model;
 }
 
 auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
@@ -456,6 +486,13 @@ auto SweepResultHandles(const QString& module_id) -> QList<const char*> {
   for (const auto& entry : ResultRegistry::Instance().TakeAllFor(module_id)) {
     origins.append(entry.second);
     DestroyResult(entry.first);
+  }
+  // Its unanalysed capsules go with it.
+  {
+    auto& index = Capsules();
+    const QMutexLocker lock(&index.mutex);
+    index.by_id.removeIf(
+        [&](const auto& entry) { return entry.value().owner == module_id; });
   }
   return origins;
 }
