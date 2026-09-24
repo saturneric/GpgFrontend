@@ -185,4 +185,36 @@ TEST(SdkStorageTest, AnUnknownStoreIsRefused) {
   EXPECT_NE(GFStorageCacheRemove(CtxA(), 99, "key"), 0);
 }
 
+// The register table carries the host's own `core` values -- startup reads
+// some of them back -- next to every module's. A module writes only its own
+// namespace; reading is not restricted.
+TEST(SdkStorageTest, AModuleWritesOnlyItsOwnStateNamespace) {
+  EXPECT_NE(GFStorageStateSetBool(CtxA(), "core", "env.state.probe", 1), 0);
+  EXPECT_NE(
+      GFStorageStateSetBool(CtxA(), "com.example.sdk.storage.b", "probe", 1),
+      0);
+  EXPECT_EQ(
+      GFStorageStateSetBool(CtxA(), "com.example.sdk.storage.a", "probe", 1),
+      0);
+
+  int value = 0;
+  // Readable by the other module, and by the one that wrote it.
+  EXPECT_EQ(GFStorageStateGetBool(CtxB(), "com.example.sdk.storage.a", "probe",
+                                  &value),
+            0);
+  EXPECT_EQ(value, 1);
+}
+
+TEST(SdkStorageTest, StateKeysAreOneCaseForReadingAndWriting) {
+  // A mixed-case read used to miss a value the write had lower-cased.
+  ASSERT_EQ(GFStorageStateSetBool(CtxA(), "com.example.sdk.storage.a",
+                                  "Mixed.Case", 1),
+            0);
+  int value = 0;
+  EXPECT_EQ(GFStorageStateGetBool(CtxA(), "com.example.sdk.storage.a",
+                                  "Mixed.Case", &value),
+            0);
+  EXPECT_EQ(value, 1);
+}
+
 }  // namespace GpgFrontend::Test

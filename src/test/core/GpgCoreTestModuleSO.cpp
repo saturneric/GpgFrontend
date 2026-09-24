@@ -29,6 +29,7 @@
 #include <QTemporaryDir>
 
 #include "GFCoreTest.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/utils/IOUtils.h"
@@ -36,19 +37,6 @@
 namespace GpgFrontend::Test {
 
 namespace {
-
-/**
- * @brief The image header InspectModuleLibrary() accepts on this platform.
- */
-auto NativeImageHeader() -> QByteArray {
-#if defined(Q_OS_WINDOWS)
-  return QByteArrayLiteral("MZ\x90\x00");
-#elif defined(Q_OS_MACOS)
-  return QByteArrayLiteral("\xcf\xfa\xed\xfe");
-#else
-  return QByteArray("\x7f", 1) + "ELF";
-#endif
-}
 
 auto WriteFile(const QString& path, const QByteArray& data) -> bool {
   QFile f(path);
@@ -171,124 +159,82 @@ TEST_F(GFCoreTest, ModuleLibraryFileNameRuleMatchesTheScanFilter) {
   EXPECT_FALSE(Module::IsModuleLibraryFileName("evil_libgf_mod_test.so"));
 }
 
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsEmptyPath) {
-  const auto r = Module::InspectModuleLibrary({});
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_FALSE(r.reason.isEmpty());
-  EXPECT_TRUE(r.hash.isEmpty());
+TEST_F(GFCoreTest, AFileIdentityIsInvalidForAMissingFile) {
+  EXPECT_FALSE(Module::CaptureModuleFileIdentity({}).IsValid());
+  EXPECT_FALSE(Module::CaptureModuleFileIdentity("/nonexistent/libgf_mod_x.so")
+                   .IsValid());
 }
 
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsMissingFile) {
+TEST_F(GFCoreTest, AFileIdentityIsStableWhileTheFileIsUntouched) {
   QTemporaryDir tmp;
   ASSERT_TRUE(tmp.isValid());
-
-  const auto r = Module::InspectModuleLibrary(
-      QDir(tmp.path()).absoluteFilePath("libgf_mod_missing.so"));
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_TRUE(r.hash.isEmpty());
-}
-
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsDirectory) {
-  QTemporaryDir tmp;
-  ASSERT_TRUE(tmp.isValid());
-  ASSERT_TRUE(QDir(tmp.path()).mkdir("libgf_mod_dir.so"));
-
-  const auto r = Module::InspectModuleLibrary(
-      QDir(tmp.path()).absoluteFilePath("libgf_mod_dir.so"));
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_TRUE(r.hash.isEmpty());
-}
-
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsEmptyFile) {
-  QTemporaryDir tmp;
-  ASSERT_TRUE(tmp.isValid());
-
-  const auto path = QDir(tmp.path()).absoluteFilePath("libgf_mod_empty.so");
-  ASSERT_TRUE(WriteFile(path, {}));
-
-  const auto r = Module::InspectModuleLibrary(path);
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_TRUE(r.hash.isEmpty());
-}
-
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsForeignFileName) {
-  QTemporaryDir tmp;
-  ASSERT_TRUE(tmp.isValid());
-
-  // a perfectly valid image, but not under a module name
-  const auto path = QDir(tmp.path()).absoluteFilePath("notamodule.so");
-  ASSERT_TRUE(WriteFile(path, NativeImageHeader() + QByteArray(512, '\0')));
-
-  const auto r = Module::InspectModuleLibrary(path);
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_TRUE(r.hash.isEmpty());
-}
-
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsNonExecutableImage) {
-  QTemporaryDir tmp;
-  ASSERT_TRUE(tmp.isValid());
-
   const auto path = QDir(tmp.path()).absoluteFilePath("libgf_mod_fake.so");
-  ASSERT_TRUE(WriteFile(path, QByteArrayLiteral("#!/bin/sh\necho hi\n")));
+  ASSERT_TRUE(WriteFile(path, QByteArray(64, 'a')));
 
-  const auto r = Module::InspectModuleLibrary(path);
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_FALSE(r.reason.isEmpty());
-  EXPECT_TRUE(r.hash.isEmpty());
+  const auto first = Module::CaptureModuleFileIdentity(path);
+  ASSERT_TRUE(first.IsValid());
+  EXPECT_EQ(first, Module::CaptureModuleFileIdentity(path));
 }
 
-TEST_F(GFCoreTest, InspectModuleLibraryRejectsTruncatedImage) {
+TEST_F(GFCoreTest, AFileSwappedInUnderThePathHasAnotherIdentity) {
+  // What an attacker with write access to the modules directory would do
+  // between verification and load: put different bytes under the same name,
+  // the same size, in the same millisecond.
   QTemporaryDir tmp;
   ASSERT_TRUE(tmp.isValid());
-
-  // shorter than any image header the loader could work with
-  const auto path = QDir(tmp.path()).absoluteFilePath("libgf_mod_short.so");
-  ASSERT_TRUE(WriteFile(path, NativeImageHeader().left(1)));
-
-  const auto r = Module::InspectModuleLibrary(path);
-
-  EXPECT_FALSE(r.ok);
-  EXPECT_TRUE(r.hash.isEmpty());
-}
-
-TEST_F(GFCoreTest, InspectModuleLibraryAcceptsImageAndHashesTheWholeFile) {
-  QTemporaryDir tmp;
-  ASSERT_TRUE(tmp.isValid());
-
   const auto path = QDir(tmp.path()).absoluteFilePath("libgf_mod_fake.so");
-  const auto content = NativeImageHeader() + QByteArray(9000, 'z');
-  ASSERT_TRUE(WriteFile(path, content));
+  const auto other = QDir(tmp.path()).absoluteFilePath("replacement");
+  ASSERT_TRUE(WriteFile(path, QByteArray(64, 'a')));
+  const auto verified = Module::CaptureModuleFileIdentity(path);
 
-  const auto r = Module::InspectModuleLibrary(path);
+  ASSERT_TRUE(WriteFile(other, QByteArray(64, 'b')));
+  ASSERT_TRUE(QFile::remove(path));
+  ASSERT_TRUE(QFile::rename(other, path));
 
-  EXPECT_TRUE(r.ok);
-  EXPECT_TRUE(r.reason.isEmpty());
-  // the header read must not shorten what gets hashed
-  EXPECT_EQ(r.hash, CalculateBinaryChacksum(path));
-  EXPECT_FALSE(r.hash.isEmpty());
+  EXPECT_NE(verified, Module::CaptureModuleFileIdentity(path));
 }
 
-TEST_F(GFCoreTest, InspectModuleLibraryHashFollowsTheFileContent) {
+TEST_F(GFCoreTest, AFileThatGrewHasAnotherIdentity) {
   QTemporaryDir tmp;
   ASSERT_TRUE(tmp.isValid());
-
   const auto path = QDir(tmp.path()).absoluteFilePath("libgf_mod_fake.so");
+  ASSERT_TRUE(WriteFile(path, QByteArray(64, 'a')));
+  const auto verified = Module::CaptureModuleFileIdentity(path);
 
-  ASSERT_TRUE(WriteFile(path, NativeImageHeader() + QByteArray(64, 'a')));
-  const auto first = Module::InspectModuleLibrary(path);
-  ASSERT_TRUE(first.ok);
+  ASSERT_TRUE(WriteFile(path, QByteArray(65, 'a')));
+  EXPECT_NE(verified, Module::CaptureModuleFileIdentity(path));
+}
 
-  ASSERT_TRUE(WriteFile(path, NativeImageHeader() + QByteArray(64, 'b')));
-  const auto second = Module::InspectModuleLibrary(path);
-  ASSERT_TRUE(second.ok);
+// One policy for a module's stored settings, used by the loader and the
+// Module Controller alike. They used to disagree about integrated modules, and
+// both reset a choice the user had made the moment the module was rebuilt --
+// which an upgrade always does.
+TEST_F(GFCoreTest, ASettingsReconcileKeepsTheUsersChoiceAcrossARebuild) {
+  const auto id = QStringLiteral("com.example.reconcile.integrated");
 
-  EXPECT_NE(first.hash, second.hash);
+  const auto first = Module::ReconcileModuleSettings(id, "hash-1", true);
+  EXPECT_TRUE(first.auto_activate) << "integrated modules start on";
+  EXPECT_FALSE(first.set_by_user);
+
+  {
+    SettingsObject so(QString("module.%1.so").arg(id));
+    ModuleSO chosen(so);
+    chosen.auto_activate = false;
+    chosen.set_by_user = true;
+    so.Store(chosen.ToJson());
+  }
+
+  const auto upgraded = Module::ReconcileModuleSettings(id, "hash-2", true);
+  EXPECT_EQ(upgraded.module_hash, "hash-2");
+  EXPECT_FALSE(upgraded.auto_activate) << "the user turned it off";
+  EXPECT_TRUE(upgraded.set_by_user);
+}
+
+TEST_F(GFCoreTest, ASettingsReconcileDefaultsAnExternalModuleToOff) {
+  const auto so = Module::ReconcileModuleSettings(
+      QStringLiteral("com.example.reconcile.external"), "h", false);
+  EXPECT_FALSE(so.auto_activate);
+  EXPECT_FALSE(so.set_by_user);
 }
 
 }  // namespace GpgFrontend::Test

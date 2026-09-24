@@ -42,6 +42,7 @@
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleHostPolicy.h"
+#include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/module/ModulePublisherKey.h"
 #include "core/module/ModuleTrustRoot.h"
@@ -498,6 +499,40 @@ TEST_F(ModuleExternalTrustTest, TheFingerprintComesFromTheKeyItself) {
   ungrouped.remove(' ');
   EXPECT_EQ(ungrouped.toLower(),
             QString::fromLatin1(foreign_.public_key.toHex()));
+}
+
+// An id is owned by one trust origin. Everything keyed by it -- settings,
+// the secure cache, commands -- would otherwise belong to whichever package
+// was scanned first, and the scan order is a directory listing.
+TEST_F(ModuleExternalTrustTest, AnExternalPackageMayNotClaimAnIntegratedId) {
+  auto& manager = Module::ModuleManager::GetInstance();
+
+  // An id an integrated module actually has...
+  const auto shadowing = manager.PrepareModule(
+      external_path_, Module::ModuleOrigin::kEXTERNAL, {module_id_});
+  EXPECT_FALSE(shadowing.ok);
+
+  // ...and the project's reserved namespace, whether or not anything
+  // integrated uses the id today.
+  auto spec = spec_;
+  spec.module_id = "com.bktus.gpgfrontend.module.impostor";
+  spec.origin = Module::ModuleOrigin::kEXTERNAL;
+  spec.build_id = kForeignBuildId;
+  spec.signing_seed = foreign_.seed;
+  spec.output_path = dir_.path() + "/impostor.gfmodule";
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+  const auto reserved = manager.PrepareModule(
+      spec.output_path, Module::ModuleOrigin::kEXTERNAL, {});
+  EXPECT_FALSE(reserved.ok);
+
+  bool recorded = false;
+  for (const auto& r : manager.ListModuleRefusals()) {
+    if (r.descriptor_path == spec.output_path) {
+      recorded = true;
+      EXPECT_FALSE(r.pending_user_action) << "nothing the user can approve";
+    }
+  }
+  EXPECT_TRUE(recorded);
 }
 
 TEST(ModuleExternalTrustRuleTest, AnEmptyKeyIsNeverTrusted) {

@@ -40,17 +40,19 @@ namespace GpgFrontend::Test {
 namespace {
 
 /// One granted context for this file, minted the way the module loader
-/// mints one. Process-lifetime on purpose: a grant is retired, never
-/// freed, so that a stale caller is refused rather than following a
-/// dangling pointer.
+/// mints one. Never under a real module's id: minting a different grant for
+/// an id revokes the live one, which used to take the bundled modules' grants
+/// away from every test that ran after this file. Process-lifetime on purpose:
+/// a grant is retired, never freed, so that a stale caller is refused rather
+/// than following a dangling pointer.
 auto Ctx() -> GFSDKContext* {
-  static SdkTestContext context("com.bktus.gpgfrontend.module.email");
+  static SdkTestContext context("com.example.logtest.email");
   return context.get();
 }
 
 /// A second module, because "two modules are distinguishable" needs two.
 auto OtherCtx() -> GFSDKContext* {
-  static SdkTestContext context("com.bktus.gpgfrontend.module.key_server_sync");
+  static SdkTestContext context("com.example.logtest.key_server_sync");
   return context.get();
 }
 
@@ -58,8 +60,8 @@ auto OtherCtx() -> GFSDKContext* {
 
 namespace {
 
-constexpr auto kEmailId = "com.bktus.gpgfrontend.module.email";
-constexpr auto kOtherId = "com.bktus.gpgfrontend.module.key_server_sync";
+constexpr auto kEmailId = "com.example.logtest.email";
+constexpr auto kOtherId = "com.example.logtest.key_server_sync";
 
 /// What one intercepted message carried.
 struct Captured {
@@ -228,7 +230,7 @@ TEST_F(LogCaptureFixture, EverySeverityKeepsItsOwnQtTypeRatherThanCollapsing) {
   EXPECT_EQ(captured_[3].type, QtCriticalMsg);
 }
 
-TEST_F(LogCaptureFixture, TheLegacyEntryPointsStillEmitRatherThanBreaking) {
+TEST_F(LogCaptureFixture, EverySeverityEmitsOneMessageWithoutACallSite) {
   GFLogAt(Ctx(), GF_LOG_TRACE, nullptr, 0, nullptr, "t");
   GFLogAt(Ctx(), GF_LOG_DEBUG, nullptr, 0, nullptr, "d");
   GFLogAt(Ctx(), GF_LOG_INFO, nullptr, 0, nullptr, "i");

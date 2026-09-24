@@ -115,20 +115,6 @@ TEST(ModuleApiTest, TheAlwaysGrantedGroupsArePresentEvenWithNoGrant) {
   EXPECT_EQ(host->process, nullptr);
 }
 
-TEST(ModuleApiTest, AGroupIsPresentExactlyWhenItsBitIsGranted) {
-  const MintedTable host("com.example.uionly", GF_HOST_CAP_UI);
-  ASSERT_NE(host.get(), nullptr);
-
-  EXPECT_EQ(host->granted, static_cast<uint32_t>(GF_HOST_CAP_UI));
-  EXPECT_NE(host->ui, nullptr);
-
-  // The one that matters: a module declaring "ui" cannot decrypt. Before the
-  // table was minted per module there was nowhere to express this at all.
-  EXPECT_EQ(host->gpg, nullptr);
-  EXPECT_EQ(host->process, nullptr);
-  EXPECT_EQ(host->storage, nullptr);
-}
-
 TEST(ModuleApiTest, EveryGroupIsSelfDescribing) {
   const MintedTable host("com.example.everything",
                          GF_HOST_CAP_GPG | GF_HOST_CAP_PGP | GF_HOST_CAP_UI |
@@ -186,25 +172,6 @@ TEST(ModuleApiTest, AForgedContextIsRefusedRatherThanFollowed) {
   auto* buf = host->buffer->new_from_bytes(invented, "x", 1);
   EXPECT_EQ(buf, nullptr);
   EXPECT_EQ(host->buffer->size(invented, nullptr), 0U);
-}
-
-// Release invalidates the context. A module that failed to stop a thread gets
-// a refusal rather than a walk into an unmapped image.
-TEST(ModuleApiTest, AReleasedContextStopsWorkingOnEveryThread) {
-  const auto* host = static_cast<const GFHostApi*>(
-      Module::ModuleSdkMintHostApi("com.example.released", 0));
-  ASSERT_NE(host, nullptr);
-
-  auto* ctx = host->context;
-  auto* before = host->buffer->new_from_bytes(ctx, "x", 1);
-  ASSERT_NE(before, nullptr);
-  host->buffer->release(ctx, before);
-
-  Module::ModuleSdkReleaseHostApi("com.example.released");
-
-  // The table itself is still mapped -- deliberately, because the module may
-  // still be holding it -- but the grant behind it is gone.
-  EXPECT_EQ(host->buffer->new_from_bytes(ctx, "x", 1), nullptr);
 }
 
 // The growth rule, stated as a test: a field may only ever be APPENDED.

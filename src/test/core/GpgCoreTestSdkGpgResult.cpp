@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 
 #include <QByteArray>
+#include <array>
 
 #include "GpgFrontendTest.h"
 #include "core/GpgCoreEngineTest.h"
@@ -218,6 +219,44 @@ TEST_P(GpgCoreEngineTest, SdkBinaryKeyExportIsByteForByte) {
             0);
   EXPECT_EQ(QByteArray(out.Data(), static_cast<qsizetype>(out.Size())),
             expected.ConvertToQByteArray());
+
+  DeleteKey(key);
+}
+
+// The engine result model an analysis reads used to sit in a UI-level map,
+// unlocked, written from module threads, freed only if someone analysed it,
+// and handed to any module presenting its id. It is part of the result handle
+// now: owned, attributed, consumed once, and gone when the result is.
+TEST_P(GpgCoreEngineTest, AResultModelIsItsHoldersAndIsConsumedOnce) {
+  static SdkTestContext other("com.example.sdk.gpgresult.other");
+  auto key = GenerateFullKey("sdk_capsule");
+  ASSERT_TRUE(key != nullptr);
+
+  const auto id = key->ID().toUtf8();
+  const std::array<const char*, 1> ids = {id.constData()};
+  auto in = GFBuf::Copy(Ctx(), QByteArray("capsule me"));
+  GFGpgResult r(Ctx());
+  ASSERT_EQ(GFGpgEncrypt(Ctx(), Channel(), ids.data(), ids.size(), in.View(), 1,
+                         r.Out()),
+            GF_GPG_OK);
+  const auto capsule = r.CapsuleId().toUtf8();
+  ASSERT_FALSE(capsule.isEmpty());
+
+  const auto analyse = [&](GFSDKContext* ctx) {
+    GFGpgAnalysis a{};
+    a.struct_size = sizeof(a);
+    const auto rc =
+        GFGpgAnalyseResult(ctx, Channel(), GF_GPG_ANALYSE_ENCRYPT, 0,
+                           capsule.constData(), GF_GPG_ANALYSE_WANT_REPORT, &a);
+    GFMemFree(ctx, GF_ARENA_NORMAL, a.report);
+    GFMemFree(ctx, GF_ARENA_NORMAL, a.cards);
+    GFMemFree(ctx, GF_ARENA_NORMAL, a.info_json);
+    return rc;
+  };
+
+  EXPECT_LT(analyse(other()), 0) << "another module's result is not its own";
+  EXPECT_GE(analyse(Ctx()), 0);
+  EXPECT_LT(analyse(Ctx()), 0) << "the model is consumed by its analysis";
 
   DeleteKey(key);
 }

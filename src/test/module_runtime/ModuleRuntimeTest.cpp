@@ -28,9 +28,12 @@
 
 #include <gtest/gtest.h>
 
+#include <QCoreApplication>
 #include <QThread>
 #include <array>
+#include <atomic>
 #include <cstring>
+#include <memory>
 #include <optional>
 
 #include "GFModule.h"
@@ -360,20 +363,15 @@ TEST_F(ModuleRuntimeTest, AHostTableTooSmallIsRefused) {
 
 // An older host passes nothing. The module still has to load, from the only
 // facts it has -- its own.
-TEST_F(ModuleRuntimeTest, NoPayloadFallsBackToTheModulesOwnTable) {
+TEST_F(ModuleRuntimeTest, NoPayloadIsRefusedRatherThanTrustingTheModule) {
+  // A host that vouches for nothing gives the runtime no signed lists to
+  // subscribe and register from. It used to fall back to the module's own
+  // table; the host only ever activates verified modules, so the fallback
+  // could only ever serve a module nothing vouched for.
   const auto* api = Api();
   ASSERT_NE(api, nullptr);
-  ASSERT_EQ(api->activate(&host_, nullptr), 0);
-
-  EXPECT_FALSE(GFModuleIsVerified());
-  EXPECT_EQ(GFModuleId(), "com.bktus.gpgfrontend.module.test");
-
-  EXPECT_EQ(Rec().listened.size(), 2);
-  EXPECT_TRUE(Rec().listened.contains("ALPHA"));
-  EXPECT_TRUE(Rec().listened.contains("BETA"));
-  EXPECT_FALSE(Rec().warnings.isEmpty())
-      << "subscribing without a declaration is a weaker guarantee and must "
-         "say so";
+  EXPECT_NE(api->activate(&host_, nullptr), 0);
+  EXPECT_TRUE(Rec().listened.isEmpty());
 }
 
 // ---------------------------------------------------------- subscriptions
@@ -798,10 +796,9 @@ TEST_F(ModuleRuntimeTest, DeactivationForgetsOutstandingContinuations) {
 
   int called = 0;
   ASSERT_TRUE(Commands()
-                  .Invoke<Park>({}, nullptr,
-                                [&](const gf::cmd::Outcome<gf::cmd::Unit>&) {
-                                  ++called;
-                                })
+                  .Invoke<Park>(
+                      {}, nullptr,
+                      [&](const gf::cmd::Outcome<gf::cmd::Unit>&) { ++called; })
                   .Ok());
   ASSERT_TRUE(g_parked_reply.has_value());
 
@@ -810,6 +807,34 @@ TEST_F(ModuleRuntimeTest, DeactivationForgetsOutstandingContinuations) {
   g_parked_reply.reset();
   EXPECT_EQ(called, 0);
   EXPECT_EQ(Rec().completions, 1) << "the provider still finished its call";
+}
+
+TEST_F(ModuleRuntimeTest, AResultAlreadyQueuedToItsReceiverIsDroppedToo) {
+  // The case the flag exists for: the Host delivered the result, the runtime
+  // queued it to the receiver's thread, and the module was deactivated before
+  // that thread ran it. "Never after deactivation" includes this one.
+  hooks_.commands = kCommands.data();
+  hooks_.commands_size = kCommands.size();
+  Payload payload({"ALPHA", "BETA"}, true, kDeclaredCommands);
+  ASSERT_EQ(Api()->activate(&host_, payload.Get()), 0);
+
+  std::atomic<int> called{0};
+  QObject receiver;
+  ASSERT_TRUE(Commands()
+                  .Invoke<Park>(
+                      {}, &receiver,
+                      [&](const gf::cmd::Outcome<gf::cmd::Unit>&) { ++called; })
+                  .Ok());
+  ASSERT_TRUE(g_parked_reply.has_value());
+
+  // Delivered and queued to the receiver, whose thread has not run it yet...
+  g_parked_reply->Ok({});
+  g_parked_reply.reset();
+  // ...when the module is deactivated.
+  ASSERT_EQ(Api()->deactivate(), 0);
+
+  QCoreApplication::sendPostedEvents(&receiver);
+  EXPECT_EQ(called.load(), 0);
 }
 
 }  // namespace GpgFrontend::Test

@@ -109,6 +109,29 @@ TEST(ModuleManifestTest, AcceptsAGoodManifest) {
   EXPECT_TRUE(r.manifest.resources.isEmpty());
 }
 
+TEST(ModuleManifestTest, AModuleIdHasTheOneIdentityShape) {
+  // The same rule the module bootstrap and the packager apply: a package
+  // cannot be signed for an id no binary may carry, and nothing downstream
+  // has to case-fold an id to find it again.
+  for (const auto* bad : {"com.Example.Mixed", "single", "com..empty",
+                          "1com.starts.with.digit", "com.bad-dash.id", ""}) {
+    auto o = GoodManifestObject();
+    o["id"] = bad;
+    EXPECT_FALSE(ParseObject(o).ok) << bad;
+  }
+}
+
+TEST(ModuleManifestTest, ACommandIsTheModuleIdAndOneName) {
+  auto o = GoodManifestObject();
+  o["commands"] = QJsonArray{"com.bktus.gpgfrontend.module.test.open"};
+  EXPECT_TRUE(ParseObject(o).ok);
+
+  // A deeper name would sit in the namespace of a module called
+  // `com.bktus.gpgfrontend.module.test.sub`.
+  o["commands"] = QJsonArray{"com.bktus.gpgfrontend.module.test.sub.open"};
+  EXPECT_FALSE(ParseObject(o).ok);
+}
+
 TEST(ModuleManifestTest, RejectsAnUnsupportedSchemaVersion) {
   auto o = GoodManifestObject();
   o["schema_version"] = Module::kModuleManifestSchemaVersion + 1;
