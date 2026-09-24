@@ -30,10 +30,10 @@
 
 #include <functional>
 
-#include "core/function/InstantMessageOperator.h"
 #include "core/module/Event.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
+#include "ui/command/CodecStage.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/GpgOperaResult.h"
 
@@ -195,8 +195,8 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   /**
    * @details Verify the text of currently active tab and show verify
-   * information. If document is signed with a key, which is not in keylist,
-   * show import missing key from keyserver in Menu of verifynotification.
+   * information. If a signing key is not in the key list, offer to look it
+   * up.
    */
   void SlotVerify();
 
@@ -438,19 +438,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_clean_double_line_breaks();
 
   /**
-   * @details Encrypt the current tab's text to the checked key(s) and output a
-   * compact, single-line, instant-messaging-friendly Base58 token. Regular
-   * Decrypt auto-detects and decrypts such tokens.
-   */
-  void slot_im_encrypt_message();
-
-  /**
-   * @details As slot_im_encrypt_message(), but also signs. Regular Decrypt &
-   * Verify auto-detects such tokens and verifies the signature.
-   */
-  void slot_im_encrypt_sign_message();
-
-  /**
    * @details Disable tab related actions, if number of tabs is 0.
    * @param number number of the opened tabs and -1, if no tab is opened
    */
@@ -617,12 +604,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void slot_refresh_recent_profiles();
 
-  /**
-   * @brief
-   *
-   */
-  void slot_import_keys_from_key_server(const QStringList& fprs);
-
  private:
   /**
    * @brief Register the Host's own commands, bound to this window.
@@ -758,9 +739,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* open_settings_act_{};        ///< Action to open settings dialog
   QAction* show_key_details_act_{};     ///< Action to open key-details dialog
   QAction* start_wizard_act_{};         ///< Action to open the wizard
-  QAction*
-      im_encrypt_act_{};  ///< Action for instant-messaging-friendly encrypt
-  QAction* im_encrypt_sign_act_{};  ///< Action for IM-friendly encrypt & sign
   QAction* import_key_from_file_act_{};       ///<
   QAction* import_key_from_clipboard_act_{};  ///<
   QAction* show_log_view_act_{};              ///<
@@ -906,54 +884,42 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
 
   /**
-   * @brief Run a decrypt/decrypt-verify for an instant-messaging token, showing
-   * a dedicated status-panel card alongside the standard decrypt result.
+   * @brief Offer @p text to the modules' decoders (see CodecStage), behind the
+   * usual waiting dialog, and wait for the answer.
+   *
+   * A decoder may run a memory-hard derivation, so the stage runs off the
+   * GUI thread; the dialog is deferred, so in the common case none appears.
+   */
+  auto exec_decoder_stage_helper(const QString& text) -> CodecStageResult;
+
+  /**
+   * @brief Decrypt (or decrypt-verify) the OpenPGP message a decoder
+   * recovered, reporting the decoder's card ahead of the OpenPGP result.
    *
    * @return true if every operation succeeded.
    */
-  auto exec_im_normal_decrypt_helper(
+  auto exec_decoded_decrypt_helper(
       const QString& task,
-      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+      const QSharedPointer<GpgOperaContextBasement>& contexts,
+      const CodecStageResult& decoded) -> bool;
 
   /**
-   * @brief Un-whiten @p text with the active Message Book, off the GUI thread.
-   *
-   * Decode() costs one Argon2id at 128 MiB (~0.1-0.2s) and runs speculatively
-   * on whatever the user pressed Decrypt on, so it cannot run inline here.
-   * Driven through the standard waiting-dialog helper, which defers showing the
-   * dialog — so in the common case nothing is presented at all.
-   *
-   * @return the decode result, valid once this call returns.
+   * @brief Show a decoder's or an encoder's failure: one card, one message,
+   * and no OpenPGP operation after it.
    */
-  auto exec_im_decode_helper(const QString& text)
-      -> QSharedPointer<InstantMessageOperator::DecodeResult>;
+  void show_codec_failure_helper(const QString& operation,
+                                 const CodecStageResult& failed);
 
   /**
-   * @brief Whiten @p pgp_message into a single Base58 token, off the GUI
-   * thread. Same cost and the same reasoning as exec_im_decode_helper().
+   * @brief Encrypt (and optionally sign) the current tab's text as binary
+   * OpenPGP, then replace the tab's content with what encoder @p encoder
+   * makes of it. The Host's key selection applies: the checked keys, or a
+   * passphrase when none are checked and it is not signing.
    *
-   * @return the token, or empty on failure.
+   * @param encoder a kOutputEncoder command
+   * @param sign also sign; requires a recipient key
    */
-  auto exec_im_encode_helper(const GFBuffer& pgp_message) -> QString;
-
-  /**
-   * @brief Warn, once, that no Message Book phrase is set before the first
-   * instant-messaging encrypt — the default book ships in every copy of
-   * GpgFrontend, so it conceals the format only from a naive scanner.
-   *
-   * @return true to go ahead with the encryption.
-   */
-  auto confirm_default_im_book() -> bool;
-
-  /**
-   * @brief Encrypt (and optionally sign) the current tab's text, then whiten
-   * the ciphertext into a single instant-messaging Base58 token, replacing the
-   * tab's content with it.
-   *
-   * @param sign also sign the message; requires a recipient key, so there is no
-   * symmetric fallback in that mode.
-   */
-  void exec_im_encrypt_helper(bool sign);
+  void exec_encoded_encrypt_helper(const QString& encoder, bool sign);
 
   /**
    * @brief

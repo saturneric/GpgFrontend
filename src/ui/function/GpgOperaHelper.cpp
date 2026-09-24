@@ -62,8 +62,8 @@ constexpr int kWaitingDialogFocusRecheckMs = 150;  // 150 ms
 // parent window, and any ancestor of it, are the expected modal context the
 // progress window should appear over; a *different* modal dialog is something
 // the operation popped up mid-flight that needs the user's input — the
-// passphrase prompt, or a module's own input dialog (e.g. the EML module asking
-// for sender/recipient/subject/cc/bcc). Presenting the (also modal) waiting
+// passphrase prompt, or a module's own input dialog (e.g. one asking for
+// message headers). Presenting the (also modal) waiting
 // window now would stack above it and block its input.
 auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog)
     -> bool {
@@ -88,7 +88,7 @@ auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog)
 //      QApplication::activeWindow() is null exactly when no GpgFrontend window
 //      is active, i.e. another app (pinentry) owns focus.
 //   2. A foreign modal dialog is up (passphrase prompt, a module's input dialog
-//      such as the EML header editor): the waiting window would stack above it
+//      such as a message header editor): the waiting window would stack above it
 //      and block its input. See ForeignModalDialogIsActive().
 auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
   auto* timer = new QTimer(dialog);

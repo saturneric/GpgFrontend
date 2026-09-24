@@ -29,6 +29,7 @@
 #include <QMessageBox>
 
 #include "MainWindow.h"
+#include "core/module/ModuleNamespace.h"
 #include "sdk/GFSDKHostCommands.hpp"
 #include "ui/command/CommandRegistry.h"
 #include "ui/function/FileTypeUtils.h"
@@ -216,6 +217,39 @@ struct HostCommandHandlers {
                             : GF_CMD_STATE_VISIBLE;
   }
 
+  /**
+   * @brief Encrypt the Host's way, then encode with the caller's own encoder.
+   *
+   * A module may name only an encoder in its own namespace: it asks the Host
+   * to run its codec, never somebody else's.
+   */
+  static auto EncryptEncoded(const CommandContext& ctx,
+                             const host::CryptoEncryptEncoded::Args& a)
+      -> Outcome<Unit> {
+    if (window.isNull()) return NoWindow();
+    if (!ctx.caller.isEmpty() && !Module::IsOwnedName(ctx.caller, a.encoder)) {
+      return Outcome<Unit>::Failure(
+          GF_CMD_E_DENIED, QStringLiteral("not the caller's own encoder"));
+    }
+    if (!CommandRegistry::Instance()
+             .ProvidersWithFlag(gf::cmd::kOutputEncoder)
+             .contains(a.encoder)) {
+      return Outcome<Unit>::Failure(GF_CMD_E_UNKNOWN,
+                                    QStringLiteral("no such encoder"));
+    }
+    if (Focus(a.target) == nullptr) return NoDocument();
+    window->exec_encoded_encrypt_helper(a.encoder, a.sign);
+    return Ok();
+  }
+
+  /// Only a text tab: the encoding replaces the text.
+  static auto EncryptEncodedState(const CommandContext& ctx) -> uint32_t {
+    if (window.isNull()) return 0;
+    const bool text = window->edit_->CurPageIsPlainText();
+    const auto encrypt = CryptoState<Op::kEncrypt>(ctx);
+    return text ? encrypt : (encrypt & GF_CMD_STATE_VISIBLE);
+  }
+
   static auto ImportKeys(const CommandContext&, const host::KeysImport::Args& a)
       -> Outcome<Unit> {
     if (window.isNull()) return NoWindow();
@@ -332,6 +366,13 @@ void MainWindow::register_host_commands() {
          QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Decrypt && Verify"),
          QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow",
                            "Decrypt and Verify Message"));
+
+  crypto(gf::cmd::Bind<host::CryptoEncryptEncoded, &H::EncryptEncoded>(),
+         &H::EncryptEncodedState,
+         QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Encrypt and Encode"),
+         QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow",
+                           "Encrypt the message, then encode it with a "
+                           "module's encoder"));
 
   reg(gf::cmd::Bind<host::KeysImport, &H::ImportKeys>(),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Import Key"));

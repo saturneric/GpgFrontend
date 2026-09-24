@@ -28,7 +28,6 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/InstantMessageOperator.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/AsyncUtils.h"
@@ -38,8 +37,6 @@
 #include "core/utils/MemoryUtils.h"
 #include "ui/dialog/EncryptionKeysPicker.h"
 #include "ui/dialog/SigningKeysPicker.h"
-#include "ui/dialog/settings/SettingsDialog.h"
-#include "ui/dialog/settings/SettingsIM.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/struct/GpgOperaResultContext.h"
@@ -50,10 +47,6 @@
 namespace GpgFrontend::UI {
 
 namespace {
-
-// Positive sense with a default of true, mirroring "wizard/show_wizard": an
-// absent key means the user has not been told about the default book yet.
-constexpr auto kWarnDefaultBookKey = "im/warn_default_book";
 
 // Drop the staging directories once their outputs have been committed or
 // cleaned up.
@@ -97,69 +90,12 @@ auto PrepareSafeOutputPath(const QString& final_path,
   return temp_path;
 }
 
-/**
- * @brief The "Instant Messaging" card describing the wire container itself:
- * how the token is framed and, above all, whether a shared book phrase is in
- * use — the default book only hides the format from naive scanners, so it is
- * reported as a warning.
- *
- * @param status the status of the surrounding OpenPGP operation
- * @param token the Base58 token on the wire
- * @param payload_size size in bytes of the OpenPGP message inside the token
- */
-auto BuildInstantMessageCard(InfoBoardStatus status, const QString& token,
-                             qsizetype payload_size) -> InfoBoardCard {
-  const auto book_configured = InstantMessageOperator::BookConfigured();
-
-  InfoBoardCard card;
-  card.title = MainWindow::tr("Instant Messaging");
-  card.status = status;
-  if (status == kINFO_ERROR_OK && !book_configured) {
-    card.status = kINFO_ERROR_WARN;
-  }
-
-  card.fields.append(
-      {MainWindow::tr("Encoding"), QStringLiteral("Base58 (Bitcoin/IPFS)")});
-  card.fields.append(
-      {MainWindow::tr("Container Format"),
-       QString("v%1").arg(InstantMessageOperator::FormatVersion())});
-  card.fields.append({MainWindow::tr("Message Book"),
-                      book_configured
-                          ? MainWindow::tr("Shared phrase (Argon2id)")
-                          : MainWindow::tr("Default — no shared phrase set")});
-  // Lets both sides confirm they are on the same book. Only meaningful when a
-  // phrase is set — everyone shares the default book, so its digest is a
-  // constant and says nothing.
-  if (book_configured) {
-    card.fields.append({MainWindow::tr("Book Fingerprint"),
-                        InstantMessageOperator::BookFingerprint()});
-  } else {
-    // The card is the only place a user sees that the default book is in play,
-    // so say where to change it rather than leaving them to find the tab.
-    card.fields.append({MainWindow::tr("Set a Phrase"),
-                        MainWindow::tr("Settings → Instant Messaging")});
-  }
-
-  if (payload_size > 0) {
-    card.fields.append({MainWindow::tr("OpenPGP Payload"),
-                        MainWindow::tr("%1 bytes").arg(payload_size)});
-  }
-  if (!token.isEmpty()) {
-    card.fields.append({MainWindow::tr("Token Length"),
-                        MainWindow::tr("%1 characters").arg(token.size())});
-  }
-  if (payload_size > 0 && !token.isEmpty()) {
-    // Random padding plus Base58 expansion. The padding part is deliberately
-    // random, so this ratio does not pin down the true payload length.
-    const auto ratio =
-        static_cast<double>(token.size()) / static_cast<double>(payload_size);
-    card.fields.append(
-        {MainWindow::tr("Wire Overhead"),
-         QString("+%1%").arg((ratio * 100.0) - 100.0, 0, 'f', 0)});
-  }
-
-  return card;
+/// A codec's cards, from its result_cards JSON; none when it sent none.
+auto CodecCards(const CodecStageResult& r) -> InfoBoardCardsPayload {
+  if (r.cards.isEmpty()) return {};
+  return decode_info_board_cards(r.cards.toUtf8());
 }
+
 }  // namespace
 
 auto MainWindow::commit_safe_output_files(
@@ -485,17 +421,21 @@ void MainWindow::SlotDecrypt() {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  // If this is one of our IM tokens, un-whiten it with the password book and
-  // hand the inner OpenPGP message to the standard decrypt path. If not, the
-  // text is treated as ordinary input below.
-  const auto im = exec_im_decode_helper(edit_->CurPlainText());
-  if (im->ok) {
+  // A module may recognise the text as its own encoding of an OpenPGP
+  // message and hand that message back; one that fails to decode it ends the
+  // operation. Unclaimed, the text is decrypted as it is, below.
+  const auto decoded = exec_decoder_stage_helper(edit_->CurPlainText());
+  if (decoded.kind == CodecStageResult::Kind::kFailed) {
+    show_codec_failure_helper(tr("Decrypt"), decoded);
+    return;
+  }
+  if (decoded.kind == CodecStageResult::Kind::kHandled) {
     GpgOperaContextHolder contexts;
     contexts->ascii = true;
-    contexts->GetContextBuffer(0).append(im->pgp_message);
+    contexts->GetContextBuffer(0).append(decoded.output);
     GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                                 GpgOperaHelper::BuildOperasDecrypt);
-    exec_im_normal_decrypt_helper(tr("Decrypting"), contexts.Base());
+    exec_decoded_decrypt_helper(tr("Decrypting"), contexts.Base(), decoded);
     return;
   }
 
@@ -566,15 +506,19 @@ void MainWindow::SlotDecryptVerify() {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  const auto im = exec_im_decode_helper(edit_->CurPlainText());
-  if (im->ok) {
+  const auto decoded = exec_decoder_stage_helper(edit_->CurPlainText());
+  if (decoded.kind == CodecStageResult::Kind::kFailed) {
+    show_codec_failure_helper(tr("Decrypt Verify"), decoded);
+    return;
+  }
+  if (decoded.kind == CodecStageResult::Kind::kHandled) {
     GpgOperaContextHolder contexts;
     contexts->ascii = true;
-    contexts->GetContextBuffer(0).append(im->pgp_message);
+    contexts->GetContextBuffer(0).append(decoded.output);
     GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                                 GpgOperaHelper::BuildOperasDecryptVerify);
-    exec_im_normal_decrypt_helper(tr("Decrypting and Verifying"),
-                                  contexts.Base());
+    exec_decoded_decrypt_helper(tr("Decrypting and Verifying"),
+                                contexts.Base(), decoded);
     if (!contexts->unknown_fprs.isEmpty()) {
       slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
     }
@@ -593,73 +537,14 @@ void MainWindow::SlotDecryptVerify() {
   }
 }
 
-void MainWindow::slot_im_encrypt_message() { exec_im_encrypt_helper(false); }
-
-void MainWindow::slot_im_encrypt_sign_message() {
-  exec_im_encrypt_helper(true);
-}
-
-auto MainWindow::confirm_default_im_book() -> bool {
-  if (InstantMessageOperator::BookConfigured()) return true;
-  if (!GetSettings().value(kWarnDefaultBookKey, true).toBool()) return true;
-
-  QMessageBox box(this);
-  box.setIcon(QMessageBox::Information);
-  box.setWindowTitle(tr("No Message Book Phrase Set"));
-  box.setText(tr("You have not set a Message Book phrase."));
-  box.setInformativeText(tr(
-      "Instant messages are hidden using a shared \"Message Book\". "
-      "Without a phrase, GpgFrontend falls back to the built-in default "
-      "book and that book ships in every copy of the program. It hides "
-      "the format from a simple scanner, but anyone who knows GpgFrontend "
-      "can still recognise your message for what it is.\n\n"
-      "Your message is OpenPGP-encrypted either way; what is at stake here "
-      "is only whether it is recognisable as an encrypted message at all.\n\n"
-      "To get that, set a phrase and share it privately with the person you "
-      "are writing to. You must both use exactly the same one."));
-
-  auto* settings_button =
-      box.addButton(tr("Open Settings…"), QMessageBox::ActionRole);
-  auto* continue_button =
-      box.addButton(tr("Continue with Default"), QMessageBox::AcceptRole);
-  auto* never_button =
-      box.addButton(tr("Continue, Don't Ask Again"), QMessageBox::AcceptRole);
-  box.addButton(QMessageBox::Cancel);
-  box.setDefaultButton(settings_button);
-  box.exec();
-
-  auto* clicked = box.clickedButton();
-
-  if (clicked == settings_button) {
-    // The settings dialog is not modal, so it cannot be waited on from here.
-    // Open it on the right page and let the user run the operation again.
-    auto* dialog = open_settings_dialog();
-    dialog->SelectPageFor(dialog->im_tab_);
-    return false;
-  }
-
-  if (clicked == never_button) {
-    // GetSettings() hands back a QSettings by value: writing through the
-    // temporary would drop the value on the floor.
-    auto settings = GetSettings();
-    settings.setValue(kWarnDefaultBookKey, false);
-    settings.sync();
-  }
-
-  return clicked == continue_button || clicked == never_button;
-}
-
-void MainWindow::exec_im_encrypt_helper(bool sign) {
+void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
+                                             bool sign) {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
-  // Turning the editor's text into a chat token only means anything when that
-  // text IS the document. The action is greyed out elsewhere, but it also has
-  // a shortcut, so the rule is enforced here too.
+  // Replacing the editor's text with an encoding only means anything when
+  // that text IS the document.
   if (!edit_->CurPageIsPlainText()) return;
-
-  // Ask before making the user pick recipients, not after.
-  if (!confirm_default_im_book()) return;
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
@@ -667,7 +552,7 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
   contexts->ascii = false;
 
   if (sign) {
-    // Signing needs a named recipient, so — unlike the encrypt-only path —
+    // Signing needs a named recipient, so -- unlike the encrypt-only path --
     // there is no symmetric fallback here. Same rule as the standard
     // Encrypt & Sign.
     auto keys = m_key_list_->GetCheckedKeys();
@@ -683,7 +568,7 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
     if (!sign_operation_key_validate(contexts.Base())) return;
   } else {
     // Encrypt to the checked recipient key(s), or symmetrically (passphrase)
-    // when none are checked — same rule as the standard Encrypt.
+    // when none are checked -- same rule as the standard Encrypt.
     if (!encrypt_operation_key_validate(contexts.Base())) return;
   }
 
@@ -692,8 +577,6 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
   GFBuffer secure_plain_text(plain_text);
   WipeString(plain_text);
 
-  // PGP-encrypt, then whiten the binary ciphertext into one Base58 token with
-  // the shared password book — no marker survives on the wire.
   contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               sign ? GpgOperaHelper::BuildOperasEncryptSign
@@ -714,102 +597,99 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
   }
 
   const auto& result = contexts->opera_results.first();
+  const QString op_name = !result.op_info.operation.isEmpty()
+                              ? result.op_info.operation
+                              : (sign ? tr("Encrypt Sign") : tr("Encrypt"));
 
-  // The codec's payload limit exists so a token we emit is one we can read
-  // back. Check it here rather than letting Encode() fail silently, so the user
-  // is told what actually went wrong and what to do about it.
-  const auto payload = static_cast<qsizetype>(result.o_buffer.Size());
-  const auto limit = InstantMessageOperator::MaxPayloadBytes();
-  if (payload > limit) {
-    QMessageBox::warning(
-        this, tr("Message Too Long"),
-        tr("This message is too long to send as an instant message.\n\n"
-           "The encrypted message is %1 bytes, and the instant-messaging "
-           "format carries at most %2. Shorten the text, or send it as a "
-           "normal OpenPGP message instead.")
-            .arg(payload)
-            .arg(limit));
+  // The encoder may run a memory-hard derivation: off the GUI thread, behind
+  // the deferred waiting dialog.
+  auto encoded = SecureCreateSharedObject<CodecStageResult>();
+  QContainer<OperaWaitingCb> operas;
+  operas.append([encoder, input = result.o_buffer,
+                 encoded](const OperaWaitingHd& hd) {
+    CodecStage::RunEncoder(encoder, input, [encoded, hd](CodecStageResult r) {
+      *encoded = std::move(r);
+      hd();
+    });
+  });
+  GpgOperaHelper::WaitForMultipleOperas(this, tr("Encoding"), operas);
+
+  if (encoded->kind != CodecStageResult::Kind::kHandled) {
+    show_codec_failure_helper(op_name, *encoded);
     return;
   }
 
-  const auto token = exec_im_encode_helper(result.o_buffer);
-  if (token.isEmpty()) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Failed to prepare the instant message: the encrypted message "
-           "could not be converted into a token."));
+  // What replaces the document is text; an encoder that answers otherwise
+  // does not get to put bytes in the editor.
+  const auto text = QString::fromUtf8(encoded->output.ConvertToQByteArray());
+  if (text.toUtf8() != encoded->output.ConvertToQByteArray()) {
+    CodecStageResult not_text = *encoded;
+    not_text.kind = CodecStageResult::Kind::kFailed;
+    not_text.error = tr("The encoder did not return text.");
+    show_codec_failure_helper(op_name, not_text);
     return;
   }
-  edit_->SlotFillTextEditWithText(token);
+  edit_->SlotFillTextEditWithText(text);
 
-  QContainer<InfoBoardCard> cards;
-  cards.append(BuildInstantMessageCard(
-      kINFO_ERROR_OK, token, static_cast<qsizetype>(result.o_buffer.Size())));
-
-  QString op_name = sign ? tr("Encrypt Sign") : tr("Encrypt");
-  if (!result.op_info.operation.isEmpty()) op_name = result.op_info.operation;
+  const auto codec = CodecCards(*encoded);
+  QContainer<InfoBoardCard> cards = codec.cards;
   cards.append(convert_op_info_to_cards(result.op_info));
 
   info_board_->SetInfoBoardCards(
-      sign ? tr("Message encrypted and signed for instant messaging.")
-           : tr("Message encrypted for instant messaging."),
-      kINFO_ERROR_OK, cards, op_name,
-      tr("An Instant Messaging section followed by the OpenPGP result."));
+      sign ? tr("Message encrypted, signed and encoded.")
+           : tr("Message encrypted and encoded."),
+      kINFO_ERROR_OK, cards, op_name, codec.description);
 }
 
-auto MainWindow::exec_im_decode_helper(const QString& text)
-    -> QSharedPointer<InstantMessageOperator::DecodeResult> {
-  auto state = SecureCreateSharedObject<InstantMessageOperator::DecodeResult>();
+auto MainWindow::exec_decoder_stage_helper(const QString& text)
+    -> CodecStageResult {
+  auto decoded = SecureCreateSharedObject<CodecStageResult>();
 
   QContainer<OperaWaitingCb> operas;
-  operas.append([text, state](const OperaWaitingHd& hd) {
-    RunOperaAsync(
-        [text, state](const DataObjectPtr&) -> GFError {
-          *state = InstantMessageOperator::Decode(text);
-          return 0;
-        },
-        [hd](GFError, const DataObjectPtr&) { hd(); }, "im_decode");
+  operas.append([input = GFBuffer(text), decoded](const OperaWaitingHd& hd) {
+    CodecStage::RunDecoders(input, [decoded, hd](CodecStageResult r) {
+      *decoded = std::move(r);
+      hd();
+    });
   });
 
-  // No cancel channel: the KDF is not interruptible, and there is no GPG
-  // operation to abort. At ~0.1-0.2s the deferred-show timer usually means no
-  // dialog is presented at all.
+  // No cancel channel: a decoder's derivation is not interruptible, and the
+  // stage bounds each decoder itself. The deferred-show timer usually means
+  // no dialog is presented at all.
   GpgOperaHelper::WaitForMultipleOperas(this, tr("Checking Message"), operas);
-  return state;
+  return *decoded;
 }
 
-auto MainWindow::exec_im_encode_helper(const GFBuffer& pgp_message) -> QString {
-  auto token = SecureCreateSharedObject<QString>();
+void MainWindow::show_codec_failure_helper(const QString& operation,
+                                           const CodecStageResult& failed) {
+  const auto codec = CodecCards(failed);
+  QContainer<InfoBoardCard> cards = codec.cards;
+  for (auto& card : cards) card.status = kINFO_ERROR_CRITICAL;
 
-  QContainer<OperaWaitingCb> operas;
-  operas.append([pgp_message, token](const OperaWaitingHd& hd) {
-    RunOperaAsync(
-        [pgp_message, token](const DataObjectPtr&) -> GFError {
-          *token = InstantMessageOperator::Encode(pgp_message);
-          return 0;
-        },
-        [hd](GFError, const DataObjectPtr&) { hd(); }, "im_encode");
-  });
-
-  GpgOperaHelper::WaitForMultipleOperas(this, tr("Preparing Instant Message"),
-                                        operas);
-  return *token;
+  const auto reason =
+      failed.error.isEmpty() ? tr("The message could not be decoded.")
+                             : failed.error;
+  info_board_->SlotReset();
+  info_board_->SetInfoBoardCards(reason, kINFO_ERROR_CRITICAL, cards,
+                                 operation, codec.description);
+  QMessageBox::warning(this, operation, reason);
 }
 
-auto MainWindow::exec_im_normal_decrypt_helper(
+auto MainWindow::exec_decoded_decrypt_helper(
     const QString& task,
-    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
+    const QSharedPointer<GpgOperaContextBasement>& contexts,
+    const CodecStageResult& decoded) -> bool {
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
   // Releases the reference cycle the operas hold on this basement, the same as
-  // the other exec helpers. Without it every instant message decrypted in this
-  // session keeps its plaintext buffer alive until the process exits.
+  // the other exec helpers. Without it every decoded message decrypted in
+  // this session keeps its plaintext buffer alive until the process exits.
   contexts->operas.clear();
 
   // Overall status like the standard path: the minimum across results. A
-  // status of 0 is a warning (e.g. Decrypt & Verify on an encrypt-only IM
-  // message, which has no signature) — not an error.
+  // status of 0 is a warning (e.g. Decrypt & Verify on an encrypt-only
+  // message, which has no signature) -- not an error.
   int overall = contexts->opera_results.empty() ? -1 : 1;
   for (const auto& result : contexts->opera_results) {
     overall = std::min(overall, result.op_info.status);
@@ -825,10 +705,12 @@ auto MainWindow::exec_im_normal_decrypt_helper(
     status = kINFO_ERROR_WARN;
   }
 
-  QContainer<InfoBoardCard> cards;
-  // IM section first. The token and its payload are not carried this far, so
-  // only the container-level facts are reported here.
-  cards.append(BuildInstantMessageCard(status, {}, 0));
+  // The decoder's section first, then the OpenPGP result.
+  const auto codec = CodecCards(decoded);
+  QContainer<InfoBoardCard> cards = codec.cards;
+  if (status == kINFO_ERROR_CRITICAL) {
+    for (auto& card : cards) card.status = kINFO_ERROR_CRITICAL;
+  }
 
   QString op_name = tr("Decrypt");
   if (!contexts->opera_results.empty()) {
@@ -839,16 +721,15 @@ auto MainWindow::exec_im_normal_decrypt_helper(
 
   QString summary;
   if (overall < 0) {
-    summary = tr("Failed to decrypt instant message.");
+    summary = tr("Failed to decrypt the decoded message.");
   } else if (overall == 0) {
-    summary = tr("Instant message decrypted (not signed).");
+    summary = tr("Decoded message decrypted (not signed).");
   } else {
-    summary = tr("Instant message decrypted.");
+    summary = tr("Decoded message decrypted.");
   }
 
-  info_board_->SetInfoBoardCards(
-      summary, status, cards, op_name,
-      tr("An Instant Messaging section followed by the OpenPGP result."));
+  info_board_->SetInfoBoardCards(summary, status, cards, op_name,
+                                 codec.description);
 
   return overall >= 0;
 }

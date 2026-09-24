@@ -199,6 +199,10 @@ void MainWindow::Init() noexcept {
     popup_menu_->addSeparator();
     popup_menu_->addAction(show_key_details_act_);
 
+    Lua::LuaPlacements::AttachMenu("key.list.context", popup_menu_, [this]() {
+      return Lua::LuaPlacements::KeyListContext(m_key_list_);
+    });
+
     connect(m_key_list_, &KeyList::SignalRequestContextMenu, this,
             &MainWindow::slot_popup_menu_by_key_list);
     connect(m_key_list_, &KeyList::SignalRefreshDatabase, this,
@@ -300,8 +304,6 @@ void MainWindow::restore_settings() {
       {kENCRYPT_SIGN, encrypt_sign_act_},
       {kDECRYPT_VERIFY, decrypt_verify_act_},
       {kSYMMETRIC_ENCRYPT, sym_encrypt_act_},
-      {kIM_ENCRYPT, im_encrypt_act_},
-      {kIM_ENCRYPT_SIGN, im_encrypt_sign_act_},
   }};
 
   for (const auto& [opera, act] : operas) {

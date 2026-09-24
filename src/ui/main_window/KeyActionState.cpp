@@ -108,10 +108,9 @@ auto AllKeyActions() -> const QVector<KeyAction>& {
       KeyAction::kDeleteSelected,    KeyAction::kDeleteChecked,
       KeyAction::kExportPackage,     KeyAction::kExportClipboard,
       KeyAction::kExportOpenSsh,     KeyAction::kExportPublicKey,
-      KeyAction::kExportPrivateKey,  KeyAction::kKeyserverSearch,
-      KeyAction::kKeyserverPublish,  KeyAction::kKeyserverRefresh,
-      KeyAction::kBulkSetOwnerTrust, KeyAction::kBulkExtendExpiry,
-      KeyAction::kBackupAllPrivate,  KeyAction::kCategory,
+      KeyAction::kExportPrivateKey,  KeyAction::kBulkSetOwnerTrust,
+      KeyAction::kBulkExtendExpiry,  KeyAction::kBackupAllPrivate,
+      KeyAction::kCategory,
   };
   return kActions;
 }
@@ -207,20 +206,6 @@ auto EvaluateKeyAction(KeyAction action, const KeyActionContext& ctx)
       if (targets > 1) return Blocked(SingleKeyOnly());
       return Ok();
     }
-
-    // --- key server --------------------------------------------------------
-    case KeyAction::kKeyserverSearch:
-      // Searching needs no selection: it is how you find a key you do not have
-      // yet. A selected key only seeds the search box.
-      return ctx.keyserver_search_available ? Ok() : Unsupported();
-
-    case KeyAction::kKeyserverPublish:
-      if (!ctx.keyserver_upload_available) return Unsupported();
-      return AnyTarget(ctx);
-
-    case KeyAction::kKeyserverRefresh:
-      if (!ctx.keyserver_fetch_available) return Unsupported();
-      return AnyTarget(ctx);
 
     // --- bulk --------------------------------------------------------------
     case KeyAction::kBulkSetOwnerTrust:

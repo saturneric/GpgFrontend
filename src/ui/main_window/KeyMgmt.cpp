@@ -60,6 +60,7 @@
 #include "ui/function/ImportKey.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/function/ShowKeyDetails.h"
+#include "ui/lua/LuaPlacements.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
@@ -269,18 +270,15 @@ void KeyMgmt::create_popup_menu() {
   popup_key_ops_menu_->addSeparator();
   popup_key_ops_menu_->addAction(generate_revoke_cert_act_);
 
-  // Keyserver actions share their own submenu; it hides wholesale when the
-  // key-server module is not loaded.
-  popup_keyserver_menu_ = popup_menu_->addMenu(tr("Keyserver"));
-  popup_keyserver_menu_->setIcon(QIcon(":/icons/server.png"));
-  popup_keyserver_menu_->addAction(import_key_from_key_server_act_);
-  popup_keyserver_menu_->addAction(publish_key_to_key_server_act_);
-  popup_keyserver_menu_->addAction(refresh_selected_from_key_server_act_);
-
   add_key_2_category_menu_ = popup_menu_->addMenu(tr("Category"));
   popup_menu_->addSeparator();
 
   popup_menu_->addAction(delete_selected_keys_act_);
+
+  // What modules offer for the selected keys, e.g. key-server operations.
+  Lua::LuaPlacements::AttachMenu("key.list.context", popup_menu_, [this]() {
+    return Lua::LuaPlacements::KeyListContext(key_list_);
+  });
 
   // Flat, and including the submenu children: those are exactly the actions
   // shared with the menu bar, so a per-menu walk would miss them.
@@ -298,9 +296,6 @@ void KeyMgmt::create_popup_menu() {
       generate_subkey_act_,
       set_owner_trust_of_key_act_,
       generate_revoke_cert_act_,
-      import_key_from_key_server_act_,
-      publish_key_to_key_server_act_,
-      refresh_selected_from_key_server_act_,
       delete_selected_keys_act_,
   };
 
@@ -457,7 +452,6 @@ void KeyMgmt::create_actions() {
   });
 
   create_quick_actions();
-  create_keyserver_actions();
   create_bulk_actions();
 
   // Every gated action, by the rule that governs it. Anything missing here is
@@ -480,9 +474,6 @@ void KeyMgmt::create_actions() {
       {KeyAction::kExportOpenSsh, export_key_as_open_ssh_format_},
       {KeyAction::kExportPublicKey, export_public_key_act_},
       {KeyAction::kExportPrivateKey, export_private_key_act_},
-      {KeyAction::kKeyserverSearch, import_key_from_key_server_act_},
-      {KeyAction::kKeyserverPublish, publish_key_to_key_server_act_},
-      {KeyAction::kKeyserverRefresh, refresh_selected_from_key_server_act_},
       {KeyAction::kBulkSetOwnerTrust, bulk_set_owner_trust_act_},
       {KeyAction::kBulkExtendExpiry, bulk_extend_expiry_act_},
       {KeyAction::kBackupAllPrivate, backup_all_private_keys_act_},
@@ -581,42 +572,6 @@ void KeyMgmt::create_quick_actions() {
   });
 }
 
-void KeyMgmt::create_keyserver_actions() {
-  import_key_from_key_server_act_ = make_action(
-      tr("Search Keyserver..."), ":/icons/import_key_from_server.png",
-      tr("Search a keyserver and import keys"));
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
-    // Seed the search with the selected key so the context-menu entry searches
-    // the key the user clicked; stays blank when nothing is selected.
-    QString fpr;
-    auto selected = key_list_->GetSelectedKey();
-    if (selected != nullptr) fpr = selected->Fingerprint();
-
-    Module::TriggerEvent("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT",
-                         {
-                             {"fingerprint", GFBuffer(fpr)},
-                         });
-  });
-
-  publish_key_to_key_server_act_ = make_action(
-      tr("Publish Key to Keyserver..."), {},
-      tr("Upload the checked public key(s) to the key server configured as the "
-         "default"));
-  connect(publish_key_to_key_server_act_, &QAction::triggered, this,
-          [this]() { publish_keys_to_key_server(target_keys()); });
-
-  refresh_selected_from_key_server_act_ =
-      make_action(tr("Refresh Selected from Keyserver"), {},
-                  tr("Fetch the latest copy of these key(s) from the key "
-                     "server, picking up new signatures and revocations"));
-  connect(refresh_selected_from_key_server_act_, &QAction::triggered, this,
-          [this]() {
-            auto keys = target_keys();
-            if (keys.empty()) return;
-            key_list_->SyncKeysFromKeyServer(keys);
-          });
-}
-
 void KeyMgmt::create_bulk_actions() {
   bulk_set_owner_trust_act_ =
       make_action(tr("Set Owner Trust for Checked Keys..."), {},
@@ -666,6 +621,8 @@ void KeyMgmt::create_menus() {
   import_key_menu_->addAction(import_key_from_file_act_);
   import_key_menu_->addAction(import_key_from_clipboard_act_);
   import_key_menu_->addAction(import_keys_from_key_package_act_);
+  Lua::LuaPlacements::AttachMenu("main.menu.import_key", import_key_menu_,
+                                 []() { return Lua::UiContext{}; });
 
   export_key_menu_ = key_menu_->addMenu(tr("Export Key"));
   export_key_menu_->addAction(export_key_to_file_act_);
@@ -705,11 +662,6 @@ void KeyMgmt::create_menus() {
   bulk_menu_->addSeparator();
   bulk_menu_->addAction(backup_all_private_keys_act_);
 
-  keyserver_menu_ = menuBar()->addMenu(tr("Keyserver"));
-  keyserver_menu_->addAction(import_key_from_key_server_act_);
-  keyserver_menu_->addAction(publish_key_to_key_server_act_);
-  keyserver_menu_->addAction(refresh_selected_from_key_server_act_);
-  // Visibility is derived from its entries by sync_submenu_visibility().
 }
 
 void KeyMgmt::create_tool_bars() {
@@ -970,91 +922,6 @@ void KeyMgmt::copy_text_to_clipboard(const QString& text, const QString& what) {
   }
   QApplication::clipboard()->setText(text);
   emit SignalStatusBarChanged(tr("%1 copied to clipboard").arg(what));
-}
-
-void KeyMgmt::publish_keys_to_key_server(const GpgAbstractKeyPtrList& keys) {
-  if (keys.empty()) return;
-
-  QString names;
-  for (const auto& key : keys) {
-    if (key == nullptr || !key->IsGood()) continue;
-    names.append("<br/>&nbsp;&nbsp;" + key->Name() + " &lt;" + key->Email() +
-                 "&gt;");
-  }
-
-  int const ret = QMessageBox::warning(
-      this, tr("Publish Key to Keyserver"),
-      "<b>" +
-          tr("You are about to upload the following public key(s) to the "
-             "default keyserver:") +
-          "</b>" + names + "<br/><br/>" +
-          tr("Publication is <b>permanent and public</b>: the key(s) cannot be "
-             "removed from most keyservers once uploaded. Only the public part "
-             "is uploaded, never your private key.") +
-          "<br/><br/>" + tr("Do you want to proceed?"),
-      QMessageBox::No | QMessageBox::Yes);
-  if (ret != QMessageBox::Yes) return;
-
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
-        KeyImportExportOperation::GetInstance(
-            key_list_->GetCurrentGpgContextChannel())
-            .ExportKeys(
-                keys, false, true, false, false,
-                [=](GpgError err, const DataObjectPtr& data_obj) {
-                  op_hd();
-
-                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                    RaiseMessageBox(this, err);
-                    return;
-                  }
-
-                  if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
-
-                  auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-                  Module::TriggerEvent(
-                      "REQUEST_UPLOAD_PUBLIC_KEY",
-                      {
-                          {"key_text", gf_buffer},
-                      },
-                      [this](Module::EventIdentifier,
-                             Module::Event::ListenerIdentifier,
-                             Module::Event::Params p) -> void {
-                        if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-                          QMessageBox::critical(
-                              this, tr("Upload Failed"),
-                              p["error_msg"].ConvertToQString());
-                          return;
-                        }
-
-                        // The target is configurable, so say where it went.
-                        const auto key_server =
-                            p["key_server"].ConvertToQString();
-                        auto message =
-                            key_server.isEmpty()
-                                ? tr("The public key was uploaded to the key "
-                                     "server.")
-                                : tr("The public key was uploaded to %1.")
-                                      .arg(QUrl(key_server).host());
-
-                        // An HKP upload reports no fingerprint back, so only
-                        // claim one when the server actually gave us one.
-                        const auto fingerprint =
-                            p["fingerprint"].ConvertToQString();
-                        if (!fingerprint.isEmpty()) {
-                          message +=
-                              "\n\n" + tr("Fingerprint: %1").arg(fingerprint);
-                        }
-
-                        QMessageBox::information(this, tr("Upload Complete"),
-                                                 message);
-                      });
-                });
-      });
 }
 
 void KeyMgmt::bulk_set_owner_trust() {
@@ -1441,16 +1308,6 @@ auto KeyMgmt::build_key_action_context() const -> KeyActionContext {
   ctx.ssh_export_supported =
       IsOpSupported<ExportKeyAsOpenSSHFormatOpTag>(channel);
 
-  const bool keyserver_available =
-      Module::IsEventListening("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT");
-  ctx.keyserver_search_available = keyserver_available;
-  ctx.keyserver_upload_available =
-      keyserver_available &&
-      Module::IsEventListening("REQUEST_UPLOAD_PUBLIC_KEY");
-  ctx.keyserver_fetch_available =
-      keyserver_available &&
-      Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_KEY_ID");
-
   const auto targets = !checked.isEmpty() ? checked : selected;
   ctx.any_target_private_key =
       std::any_of(targets.cbegin(), targets.cend(), [](const auto& key) {
@@ -1521,10 +1378,9 @@ void KeyMgmt::sync_submenu_visibility() {
   // A submenu whose every entry is hidden is an empty arrow the user can only
   // learn is empty by opening it.
   const QVector<QMenu*> menus = {
-      popup_key_ops_menu_, popup_export_menu_, popup_keyserver_menu_,
-      keyserver_menu_,     export_key_menu_,   generate_key_menu_,
-      import_key_menu_,    copy_menu_,         bulk_menu_,
-      delete_menu_};
+      popup_key_ops_menu_, popup_export_menu_, export_key_menu_,
+      generate_key_menu_,  import_key_menu_,   copy_menu_,
+      bulk_menu_,          delete_menu_};
 
   for (auto* menu : menus) {
     if (menu == nullptr) continue;

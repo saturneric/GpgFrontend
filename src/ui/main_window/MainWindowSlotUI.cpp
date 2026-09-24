@@ -402,8 +402,6 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   zoom_in_act_->setDisabled(disable);
   import_key_from_edit_act_->setDisabled(disable);
 
-  im_encrypt_act_->setDisabled(disable);
-  im_encrypt_sign_act_->setDisabled(disable);
 
   sync_text_direction_action();
 
@@ -590,8 +588,6 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
   sym_encrypt_act_->setDisabled(true);
-  im_encrypt_act_->setDisabled(true);
-  im_encrypt_sign_act_->setDisabled(true);
 
   // gnupg operations
   if ((opera_type & OperationMenu::kVerify) != 0U) {
@@ -617,22 +613,6 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   if (edit_->CurPageIsPlainText() &&
       (opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
     sym_encrypt_act_->setDisabled(false);
-  }
-
-  // Instant Messaging encrypt wraps a public-key OR symmetric encryption, so it
-  // is available whenever either of those is — but only for a text tab, since
-  // it turns editor text into a chat token (it does nothing on a file tab).
-  if (edit_->CurPageIsPlainText() &&
-      (opera_type &
-       (OperationMenu::kEncrypt | OperationMenu::kSymmetricEncrypt)) != 0U) {
-    im_encrypt_act_->setDisabled(false);
-  }
-
-  // Instant Messaging encrypt & sign wraps a public-key encrypt-and-sign, so it
-  // tracks that operation exactly — again only on a text tab.
-  if (edit_->CurPageIsPlainText() &&
-      (opera_type & OperationMenu::kEncryptAndSign) != 0U) {
-    im_encrypt_sign_act_->setDisabled(false);
   }
 }
 

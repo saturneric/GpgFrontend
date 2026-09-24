@@ -179,12 +179,10 @@ class KeyMgmt : public GeneralMainWindow {
   QMenu* popup_menu_;
   QMenu* empty_area_menu_{};          ///<
   QMenu* add_key_2_category_menu_{};  ///<
-  QMenu* keyserver_menu_{};           ///<
   QMenu* bulk_menu_{};                ///<
   QMenu* copy_menu_{};                ///<
   QMenu* popup_key_ops_menu_{};       ///<
   QMenu* popup_export_menu_{};        ///<
-  QMenu* popup_keyserver_menu_{};     ///<
 
   QAction* open_key_file_act_{};                 ///<
   QAction* export_key_to_file_act_{};            ///<
@@ -196,7 +194,6 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* generate_subkey_act_{};               ///<
   QAction* import_key_from_clipboard_act_{};     ///<
   QAction* import_key_from_file_act_{};          ///<
-  QAction* import_key_from_key_server_act_{};    ///<
   QAction* import_keys_from_key_package_act_{};  ///<
   QAction* close_act_{};                         ///<
   QAction* refresh_keys_act_{};                  ///<
@@ -214,10 +211,6 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* certify_key_act_{};           ///<
   QAction* set_expiry_act_{};            ///<
   QAction* generate_revoke_cert_act_{};  ///<
-
-  // Keyserver actions (Part 3)
-  QAction* publish_key_to_key_server_act_{};         ///<
-  QAction* refresh_selected_from_key_server_act_{};  ///<
 
   // Bulk actions (Part 4)
   QAction* bulk_set_owner_trust_act_{};     ///<
@@ -251,8 +244,8 @@ class KeyMgmt : public GeneralMainWindow {
   /**
    * @brief Build the key-list context menu.
    *
-   * Runs before create_menus(): it owns the Copy / Key Operations / Keyserver /
-   * Category submenus, which the menu bar and the tool bar then reuse rather
+   * Runs before create_menus(): it owns the Copy / Key Operations / Category
+   * submenus, which the menu bar and the tool bar then reuse rather
    * than duplicating.
    */
   void create_popup_menu();
@@ -273,11 +266,6 @@ class KeyMgmt : public GeneralMainWindow {
    * @brief Create the per-key quick actions (copy, certify, expiry, revoke).
    */
   void create_quick_actions();
-
-  /**
-   * @brief Create the keyserver actions (search, publish, refresh).
-   */
-  void create_keyserver_actions();
 
   /**
    * @brief Create the bulk actions operating on all checked keys.
@@ -381,11 +369,6 @@ class KeyMgmt : public GeneralMainWindow {
    * @brief Hide any submenu all of whose entries are hidden.
    */
   void sync_submenu_visibility();
-
-  /**
-   * @brief Publish the checked public key(s) to the default keyserver.
-   */
-  void publish_keys_to_key_server(const GpgAbstractKeyPtrList& keys);
 
   /**
    * @brief Set the owner-trust level of every checked key at once.

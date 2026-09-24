@@ -254,52 +254,6 @@ void MainWindow::slot_import_key_from_edit() {
   WipeByteArray(plain_text);
 }
 
-void MainWindow::slot_import_keys_from_key_server(const QStringList& fprs) {
-  auto channel = m_key_list_->GetCurrentGpgContextChannel();
-  auto all_key_data = SecureCreateSharedObject<GFBuffer>();
-  auto remaining_tasks = SecureCreateSharedObject<int>(fprs.size());
-
-  for (const auto& fpr : fprs) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-        ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr&) -> int {
-              Module::TriggerEvent(
-                  "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
-                  {
-                      {"fingerprint", GFBuffer{fpr}},
-                  },
-                  [fpr, all_key_data, remaining_tasks,
-                   that = QPointer<MainWindow>(this),
-                   channel](Module::EventIdentifier i,
-                            Module::Event::ListenerIdentifier ei,
-                            Module::Event::Params p) -> void {
-                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-                      LOG_E()
-                          << "An error occurred trying to get data from key:"
-                          << fpr << "error message: "
-                          << p["error_msg"].ConvertToQString() << "reply data: "
-                          << p["reply_data"].ConvertToQString();
-                    } else if (p.contains("key_data")) {
-                      all_key_data->Append(p["key_data"]);
-                    }
-
-                    // it only uses one thread for these operations
-                    // so that is no need for locking now
-                    (*remaining_tasks)--;
-
-                    // all tasks are done
-                    if (*remaining_tasks == 0) {
-                      ImportKeys(that, channel, *all_key_data);
-                    }
-                  });
-
-              return 0;
-            },
-            QString("key_%1_import_task").arg(fpr)));
-  }
-}
-
 void MainWindow::slot_verifying_unknown_signature_helper(
     const QStringList& fprs) {
   // check if event is listened by any module
@@ -491,7 +445,7 @@ void MainWindow::slot_refresh_info_board_from_module(
   // The module's report already carries the reason and suggested solutions.
   if (status < 0) {
     const QString operation = payload.operation.isEmpty()
-                                  ? tr("Email Operation Failed")
+                                  ? tr("Operation Failed")
                                   : payload.operation;
     const QString report = text.trimmed();
     info_board_->SlotReset();
@@ -734,13 +688,13 @@ void MainWindow::SlotCustomSign(const QString& type) {
 
   if (keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
-                         tr("Please select a key for signing the EML."));
+                         tr("Please select a key for signing this document."));
     return;
   }
 
   if (keys.size() > 1) {
     QMessageBox::warning(this, tr("Multiple Keys Selected"),
-                         tr("Please select only one key to sign the EML."));
+                         tr("Please select only one key to sign this document."));
     return;
   }
 
@@ -806,7 +760,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
 
   if (keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
-                         tr("Please select a key for encrypt the EML."));
+                         tr("Please select a key for encrypting this document."));
     return;
   }
 
@@ -825,13 +779,13 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
 
   if (signer_keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
-                         tr("Please select a key for signing the EML."));
+                         tr("Please select a key for signing this document."));
     return;
   }
 
   if (signer_keys.size() > 1) {
     QMessageBox::warning(this, tr("Multiple Keys Selected"),
-                         tr("Please select only one key to sign the EML."));
+                         tr("Please select only one key to sign this document."));
     return;
   }
 
@@ -936,7 +890,7 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
   }
 
   if (p["ret"] != "0" || !p["err"].Empty()) {
-    LOG_E() << "An error occurred trying to operate email, "
+    LOG_E() << "An error occurred trying to run the module operation, "
             << "error message: " << p["err"].ConvertToQString();
     return true;
   }

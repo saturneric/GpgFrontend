@@ -428,23 +428,6 @@ void MainWindow::create_actions() {
           &TextEdit::SlotSwitchTabDown);
   this->addAction(switch_tab_down_act_);
 
-  im_encrypt_act_ = create_action(
-      "im_encrypt", tr("IM Encrypt"), ":/icons/email.png",
-      tr("Encrypt the current text into a compact, single-line format that is "
-         "safe to paste into instant messengers. Recipients decrypt it with "
-         "the normal Decrypt action."),
-      {QKeySequence(Qt::CTRL | Qt::Key_M)});
-  connect(im_encrypt_act_, &QAction::triggered, this,
-          &MainWindow::slot_im_encrypt_message);
-
-  im_encrypt_sign_act_ = create_action(
-      "im_encrypt_sign", tr("IM Encrypt && Sign"), ":/icons/email-check.png",
-      tr("Encrypt and sign the current text into a compact, single-line format "
-         "that is safe to paste into instant messengers. Recipients decrypt "
-         "and verify it with the normal Decrypt & Verify action."),
-      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M)});
-  connect(im_encrypt_sign_act_, &QAction::triggered, this,
-          &MainWindow::slot_im_encrypt_sign_message);
 }
 
 void MainWindow::create_menus() {
@@ -491,9 +474,7 @@ void MainWindow::create_menus() {
   crypt_menu_ = menuBar()->addMenu(tr("Operations"));
   crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
-  crypt_menu_->addAction(im_encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
-  crypt_menu_->addAction(im_encrypt_sign_act_);
   crypt_menu_->addAction(decrypt_act_);
   crypt_menu_->addAction(decrypt_verify_act_);
   crypt_menu_->addSeparator();
@@ -597,6 +578,7 @@ void MainWindow::create_menus() {
   Lua::LuaPlacements::AttachMenu("main.menu.advanced", advance_menu_, ctx);
   Lua::LuaPlacements::AttachMenu("main.menu.help", help_menu_, ctx);
   Lua::LuaPlacements::AttachMenu("main.menu.import_key", import_key_menu_, ctx);
+  Lua::LuaPlacements::AttachMenu("main.menu.operations", crypt_menu_, ctx);
 }
 
 void MainWindow::create_tool_bars() {

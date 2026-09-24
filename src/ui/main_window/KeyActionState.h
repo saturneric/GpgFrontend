@@ -53,11 +53,6 @@ struct KeyActionContext {
   bool subkey_generation_supported = false;
   bool ssh_export_supported = false;
 
-  // Whether the key-server module is loaded and listening.
-  bool keyserver_search_available = false;
-  bool keyserver_upload_available = false;
-  bool keyserver_fetch_available = false;
-
   bool any_target_private_key = false;      ///< any target key is one we own
   bool any_private_key_in_keyring = false;  ///< the keyring holds any at all
 };
@@ -83,9 +78,6 @@ enum class KeyAction {
   kExportOpenSsh,
   kExportPublicKey,
   kExportPrivateKey,
-  kKeyserverSearch,
-  kKeyserverPublish,
-  kKeyserverRefresh,
   kBulkSetOwnerTrust,
   kBulkExtendExpiry,
   kBackupAllPrivate,
