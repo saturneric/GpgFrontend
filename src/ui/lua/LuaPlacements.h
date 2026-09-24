@@ -39,6 +39,7 @@ namespace GpgFrontend::UI {
 
 class TextEdit;
 class PlainTextEditorPage;
+class KeyList;
 
 namespace Lua {
 
@@ -78,6 +79,9 @@ class GF_UI_EXPORT LuaPlacements {
 
   /// The context for one document page.
   static auto PageContext(PlainTextEditorPage* page) -> UiContext;
+
+  /// The context a key list's menus see: its selected keys (never groups).
+  static auto KeyListContext(KeyList* list) -> UiContext;
 
   /// Tell every module's script that @p event happened on @p page.
   static void Notify(const QString& event, PlainTextEditorPage* page);

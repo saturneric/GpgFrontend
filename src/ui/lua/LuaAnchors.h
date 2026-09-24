@@ -66,6 +66,7 @@ enum AnchorContext : uint32_t {
   kCTX_DOCUMENT = 1U << 0,   ///< ctx.document
   kCTX_SELECTION = 1U << 1,  ///< ctx:has_selection()
   kCTX_KEY = 1U << 2,        ///< ctx.key
+  kCTX_KEYS = 1U << 3,       ///< ctx.keys
 };
 
 struct AnchorSpec {
@@ -79,7 +80,7 @@ struct AnchorSpec {
 };
 
 /// The catalog version this Host implements.
-constexpr int kAnchorCatalogVersion = 1;
+constexpr int kAnchorCatalogVersion = 2;
 
 /// The anchor named @p id, or nullptr when there is none.
 auto GF_UI_EXPORT FindAnchor(const QString& id) -> const AnchorSpec*;

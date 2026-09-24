@@ -28,16 +28,20 @@
 
 #include "LuaPlacements.h"
 
+#include <algorithm>
+
 #include <QBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QKeySequence>
 #include <QMenu>
 #include <QPushButton>
 
 #include "core/utils/RustUtils.h"
 #include "ui/command/CommandRegistry.h"
 #include "ui/lua/LuaHost.h"
+#include "ui/widgets/KeyList.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -119,6 +123,28 @@ void Refresh(QAction* action, const PlacedAction& placed,
   if (st.has_checked) action->setChecked(st.checked);
 }
 
+/// The window a menu's shortcuts belong to: past any menus it sits in.
+auto ShortcutWindow(QMenu* menu) -> QWidget* {
+  QWidget* w = menu->parentWidget();
+  while (w != nullptr && qobject_cast<QMenu*>(w->window()) != nullptr) {
+    w = w->window()->parentWidget();
+  }
+  return w == nullptr ? nullptr : w->window();
+}
+
+/// Whether @p seq already does something in @p window.
+auto ShortcutTaken(QWidget* window, const QKeySequence& seq) -> bool {
+  const auto actions = window->findChildren<QAction*>();
+  return std::any_of(actions.begin(), actions.end(), [&seq](QAction* a) {
+    // A module entry in a menu only shows its sequence: not a claim on it.
+    if (a->shortcutContext() == Qt::WidgetShortcut &&
+        a->property("gf_lua_action").isValid()) {
+      return false;
+    }
+    return a->shortcuts().contains(seq);
+  });
+}
+
 /// Owns a menu's module actions for one anchor.
 class MenuBinder : public QObject {
  public:
@@ -131,10 +157,53 @@ class MenuBinder : public QObject {
     Rebuild();
   }
 
+  ~MenuBinder() override { DropShortcuts(); }
+
  private:
+  void DropShortcuts() {
+    for (auto& a : shortcuts_) delete a.data();
+    shortcuts_.clear();
+  }
+
+  /**
+   * @brief Give @p placed its key sequence, unless something already has it.
+   *
+   * The menu entry only shows the sequence; a window-wide action carries it,
+   * so the key works without the menu ever opening -- and Trigger() decides
+   * afresh whether the action applies, so a stale menu state never blocks it.
+   */
+  void BindShortcut(const PlacedAction& placed, QAction* shown) {
+    if (placed.info.shortcut.isEmpty()) return;
+    auto* window = ShortcutWindow(menu_);
+    if (window == nullptr) return;
+    const QKeySequence seq(placed.info.shortcut, QKeySequence::PortableText);
+    if (ShortcutTaken(window, seq)) {
+      LOG_W() << "module action" << placed.info.id << "asked for shortcut"
+              << placed.info.shortcut << "which is already in use; dropped";
+      return;
+    }
+    shown->setShortcut(seq);
+    shown->setShortcutContext(Qt::WidgetShortcut);
+
+    auto* key = new QAction(window);
+    key->setShortcut(seq);
+    key->setShortcutContext(Qt::WindowShortcut);
+    key->setProperty("gf_lua_shortcut", placed.info.id);
+    QPointer<LuaModuleRuntime> runtime = placed.runtime;
+    const auto id = placed.info.id;
+    const auto ctx = ctx_;
+    connect(key, &QAction::triggered, key, [runtime, id, ctx]() {
+      if (runtime.isNull()) return;
+      runtime->Trigger(id, ctx());
+    });
+    window->addAction(key);
+    shortcuts_.append(key);
+  }
+
   void Rebuild() {
     for (auto& a : actions_) delete a.data();
     actions_.clear();
+    DropShortcuts();
     delete separator_.data();
 
     placed_ = LuaHost::Instance().ActionsOn(anchor_);
@@ -144,6 +213,7 @@ class MenuBinder : public QObject {
       auto* action = MakeAction(p, menu_, ctx_);
       menu_->addAction(action);
       actions_.append(action);
+      BindShortcut(p, action);
     }
     RefreshAll();
   }
@@ -160,6 +230,7 @@ class MenuBinder : public QObject {
   ContextFn ctx_;
   QList<PlacedAction> placed_;
   QList<QPointer<QAction>> actions_;
+  QList<QPointer<QAction>> shortcuts_;  ///< owned by the window, not the menu
   QPointer<QAction> separator_;
 };
 
@@ -244,6 +315,22 @@ auto LuaPlacements::EditorContext(TextEdit* edit) -> UiContext {
 void LuaPlacements::Notify(const QString& event, PlainTextEditorPage* page) {
   LuaHost::Instance().Deliver(event, PageContext(page),
                               TextEditTabWidget::DocumentIdOf(page));
+}
+
+auto LuaPlacements::KeyListContext(KeyList* list) -> UiContext {
+  UiContext ctx;
+  if (list == nullptr) return ctx;
+  const auto channel = list->GetCurrentGpgContextChannel();
+  for (const auto& key : list->GetSelectedKeys()) {
+    // A key group has no fingerprint of its own to act on.
+    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+      continue;
+    }
+    ctx.keys.push_back(gf::cmd::KeyRef{channel, key->ID(), key->Fingerprint(),
+                                       key->IsPrivateKey()});
+  }
+  if (ctx.keys.size() == 1) ctx.key = ctx.keys.front();
+  return ctx;
 }
 
 auto LuaPlacements::PageContext(PlainTextEditorPage* page) -> UiContext {

@@ -202,13 +202,17 @@ auto LuaModuleRuntime::Resolve(const Handle& h,
       return QCborValue(gf::cmd::EncodeMap(
           gf::cmd::DocumentRef{ctx_->document->id, 0, ctx_->document->type},
           st));
-    case HandleKind::kKEY:
-      if (h.epoch != epoch_ || ctx_ == nullptr || !ctx_->key) {
+    case HandleKind::kKEY: {
+      const auto* key = h.epoch == epoch_ && ctx_ != nullptr
+                            ? ContextKey(*ctx_, h.id)
+                            : nullptr;
+      if (key == nullptr) {
         return fail(
             QStringLiteral("a key handle outlived its call; keep "
                            "key:ref() instead"));
       }
-      return QCborValue(gf::cmd::EncodeMap(*ctx_->key, st));
+      return QCborValue(gf::cmd::EncodeMap(*key, st));
+    }
     case HandleKind::kDOCUMENT_REF: {
       const auto it = document_refs_.constFind(h.id);
       if (it == document_refs_.constEnd()) return fail("a stale document ref");

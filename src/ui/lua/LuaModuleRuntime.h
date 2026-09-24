@@ -34,6 +34,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <vector>
 
 #include "sdk/GFSDKCommand.hpp"
 #include "ui/lua/LuaAnchors.h"
@@ -56,7 +57,18 @@ struct UiContext {
   std::optional<UiDocument> document;
   bool has_selection = false;
   std::optional<gf::cmd::KeyRef> key;
+  /// Every selected key, where an anchor has a selection; `key` is also set
+  /// when exactly one is selected.
+  std::vector<gf::cmd::KeyRef> keys;
 };
+
+/// The key a gf.Key handle names: id 0 is ctx.key, id n is ctx.keys[n - 1].
+inline auto ContextKey(const UiContext& ctx, qint64 id)
+    -> const gf::cmd::KeyRef* {
+  if (id == 0) return ctx.key ? &*ctx.key : nullptr;
+  if (id < 1 || id > static_cast<qint64>(ctx.keys.size())) return nullptr;
+  return &ctx.keys[static_cast<size_t>(id - 1)];
+}
 
 /// What an action's update() said, checked.
 struct ActionState {
@@ -75,6 +87,7 @@ struct ActionInfo {
   QString command;
   int order = 0;
   QString icon;
+  QString shortcut;  ///< portable key sequence text; menu anchors only
   QString chunk;
   bool disabled = false;  ///< after an error that must not repeat
   QString last_error;

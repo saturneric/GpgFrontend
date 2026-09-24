@@ -29,6 +29,7 @@
 #include "LuaApi.h"
 
 #include <QApplication>
+#include <QKeySequence>
 #include <QPalette>
 #include <QPointer>
 #include <QRegularExpression>
@@ -737,7 +738,8 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
 
   const auto fields = FieldsOf(tree);
   const auto unknown =
-      UnknownField(fields, {"id", "anchor", "command", "order", "icon"});
+      UnknownField(fields, {"id", "anchor", "command", "order", "icon",
+                            "shortcut"});
   if (!unknown.isEmpty()) {
     return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
   }
@@ -790,8 +792,29 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
     }
   }
 
+  // A key sequence only where a menu is: a button or a one-shot popup has
+  // no window-wide action to carry it.
+  QString shortcut;
+  if (const auto* k = node("shortcut")) {
+    if (k->type != LuaNode::Type::kSTRING) {
+      return fail("\"shortcut\" is a key sequence, e.g. \"Ctrl+M\"");
+    }
+    const QKeySequence seq(QString::fromUtf8(k->text),
+                           QKeySequence::PortableText);
+    shortcut = seq.toString(QKeySequence::PortableText);
+    if (seq.count() != 1 || shortcut.isEmpty()) {
+      return fail("\"shortcut\" is a key sequence, e.g. \"Ctrl+M\"");
+    }
+    if (!QLatin1String(aref.spec->id).startsWith(QLatin1String("main.menu."))) {
+      return fail(QStringLiteral("\"shortcut\" is for main menu anchors, "
+                                 "not \"%1\"")
+                      .arg(QLatin1String(aref.spec->id)));
+    }
+  }
+
   LuaModuleRuntime::ActionEntry entry;
   entry.info.id = full_id;
+  entry.info.shortcut = shortcut;
   entry.info.anchor = QLatin1String(aref.spec->id);
   entry.info.command = command_id;
   entry.info.order = order;
@@ -1134,8 +1157,22 @@ void LuaApi::Index(lua_State* L, BindingOutcome& out) {
       }
       if (*key == "key") {
         if (!rt->ctx_->key) return ReturnNil(L, out);
-        return ReturnHandle(L, out, HandleKind::kKEY, rt->state_tag_, 1,
+        return ReturnHandle(L, out, HandleKind::kKEY, rt->state_tag_, 0,
                             rt->epoch_);
+      }
+      if (*key == "keys") {
+        // A fresh array each read, of handles as short-lived as ctx.key.
+        const auto n = static_cast<lua_Integer>(rt->ctx_->keys.size());
+        const auto tag = rt->state_tag_;
+        const auto epoch = rt->epoch_;
+        return Return(L, out, [n, tag, epoch](lua_State* S) -> int {
+          lua_createtable(S, static_cast<int>(n), 0);
+          for (lua_Integer i = 1; i <= n; ++i) {
+            PushHandle(S, HandleKind::kKEY, tag, i, epoch);
+            lua_rawseti(S, -2, i);
+          }
+          return 1;
+        });
       }
       if (*key == "has_selection") {
         return fn(&LuaBinding<&LuaApi::ContextHasSelection>);
@@ -1155,8 +1192,9 @@ void LuaApi::Index(lua_State* L, BindingOutcome& out) {
     }
 
     case HandleKind::kKEY: {
-      if (!live || !rt->ctx_->key) return ReturnNil(L, out);
-      const auto& k = *rt->ctx_->key;
+      const auto* found = live ? ContextKey(*rt->ctx_, self.id) : nullptr;
+      if (found == nullptr) return ReturnNil(L, out);
+      const auto& k = *found;
       if (*key == "fingerprint") return ReturnString(L, out, k.fingerprint);
       if (*key == "key_id") return ReturnString(L, out, k.key_id);
       if (*key == "has_secret") return ReturnBool(L, out, k.has_secret);
@@ -1239,8 +1277,10 @@ void LuaApi::MakeRef(lua_State* L, BindingOutcome& out) {
     return ReturnHandle(L, out, HandleKind::kDOCUMENT_REF, rt->state_tag_, id,
                         0);
   }
-  if (h->kind == HandleKind::kKEY && rt->ctx_->key) {
-    rt->key_refs_.insert(id, *rt->ctx_->key);
+  const auto* key =
+      h->kind == HandleKind::kKEY ? ContextKey(*rt->ctx_, h->id) : nullptr;
+  if (key != nullptr) {
+    rt->key_refs_.insert(id, *key);
     return ReturnHandle(L, out, HandleKind::kKEY_REF, rt->state_tag_, id, 0);
   }
   ReturnNil(L, out);
@@ -1261,7 +1301,9 @@ Call:cancel() -> bool
 ui.anchor(id) -> Anchor                           menu and button anchors
 ui.anchor.settings{section} ui.anchor.editor{document_type, extensions}
 ui.anchor.dialog{} -> Anchor                      mount anchors
-ui.action{id, anchor, command, order?, icon?, update?}     while loading
+ui.action{id, anchor, command, order?, icon?, shortcut?, update?}
+                                                  while loading; shortcut:
+                                                  main menu anchors only
   update(ctx) -> {visible?, enabled?, checked?, args?}      pure
 ui.mount{id, anchor, widget, order?} -> Mount     ui.custom; while loading
 ui.subscribe{event, handler, id?}                 while loading
@@ -1279,7 +1321,7 @@ handle lifetimes
   DocumentRef KeyRef                               until the module unloads
   Call                                             until it completes or is cancelled
   Blob                                             until used as an argument
-Context: .document .key :has_selection()
+Context: .document .key .keys :has_selection()
 Document: .type .modified :has_openpgp() :ref()
 Key: .fingerprint .key_id .has_secret .channel :ref()
 )");

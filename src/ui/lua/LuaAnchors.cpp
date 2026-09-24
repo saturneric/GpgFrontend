@@ -34,7 +34,7 @@ namespace GpgFrontend::UI::Lua {
 
 namespace {
 
-constexpr std::array<AnchorSpec, 9> kAnchors{{
+constexpr std::array<AnchorSpec, 11> kAnchors{{
     {"main.menu.file.workspace", AnchorKind::kMENU, kCTX_DOCUMENT, true, 1, 0,
      "File > Workspace: things that open a new workspace or document"},
     {"main.menu.advanced", AnchorKind::kMENU, kCTX_DOCUMENT, true, 1, 0,
@@ -43,10 +43,14 @@ constexpr std::array<AnchorSpec, 9> kAnchors{{
      "Help: information about the application and its environment"},
     {"main.menu.import_key", AnchorKind::kMENU, kCTX_NONE, true, 1, 0,
      "Keys > Import Key: further sources to import keys from"},
+    {"main.menu.operations", AnchorKind::kMENU, kCTX_DOCUMENT, true, 2, 0,
+     "Operations: further ways to protect the current document"},
     {"editor.context", AnchorKind::kMENU, kCTX_DOCUMENT | kCTX_SELECTION, true,
      1, 0, "the text editor's context menu"},
     {"key.details.actions", AnchorKind::kBUTTONS, kCTX_KEY, true, 1, 0,
      "the key details dialog's operations; one button per command category"},
+    {"key.list.context", AnchorKind::kMENU, kCTX_KEY | kCTX_KEYS, true, 2, 0,
+     "a key list's context menu; ctx.keys holds the selected keys"},
     {"settings", AnchorKind::kSETTINGS, kCTX_NONE, true, 1, 0,
      "a page in the Settings dialog; ui.anchor.settings{section=...}"},
     {"editor", AnchorKind::kEDITOR, kCTX_DOCUMENT, false, 1, 0,
@@ -94,6 +98,7 @@ auto AnchorCatalogReference() -> QString {
     if ((a.context & kCTX_DOCUMENT) != 0) ctx << "document";
     if ((a.context & kCTX_SELECTION) != 0) ctx << "selection";
     if ((a.context & kCTX_KEY) != 0) ctx << "key";
+    if ((a.context & kCTX_KEYS) != 0) ctx << "keys";
     lines << QString("%1 | %2 | context: %3 | modules: %4 | since %5%6")
                  .arg(QLatin1String(a.id), QLatin1String(KindName(a.kind)),
                       ctx.isEmpty() ? QStringLiteral("none") : ctx.join(", "),
