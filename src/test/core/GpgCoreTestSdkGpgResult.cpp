@@ -223,10 +223,12 @@ TEST_P(GpgCoreEngineTest, SdkBinaryKeyExportIsByteForByte) {
   DeleteKey(key);
 }
 
-// The engine result model an analysis reads used to sit in a UI-level map,
-// unlocked, written from module threads, freed only if someone analysed it,
-// and handed to any module presenting its id. It is part of the result handle
-// now: owned, attributed, consumed once, and gone when the result is.
+// The engine result model behind a capsule id. It used to sit in a UI-level
+// map, unlocked, written from module threads, and handed to any module that
+// presented its id. It is the calling module's now, consumed once -- and, as
+// the SDK contract has always said, still analysable after the result that
+// carried the id is released: the e-mail module copies the id, lets its
+// result go, and analyses afterwards.
 TEST_P(GpgCoreEngineTest, AResultModelIsItsHoldersAndIsConsumedOnce) {
   static SdkTestContext other("com.example.sdk.gpgresult.other");
   auto key = GenerateFullKey("sdk_capsule");
@@ -255,7 +257,7 @@ TEST_P(GpgCoreEngineTest, AResultModelIsItsHoldersAndIsConsumedOnce) {
   };
 
   EXPECT_LT(analyse(other()), 0) << "another module's result is not its own";
-  EXPECT_GE(analyse(Ctx()), 0);
+  EXPECT_GE(analyse(Ctx()), 0) << "analysable after its result is released";
   EXPECT_LT(analyse(Ctx()), 0) << "the model is consumed by its analysis";
 
   DeleteKey(key);

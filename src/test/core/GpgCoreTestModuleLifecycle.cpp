@@ -30,6 +30,7 @@
 
 #include <atomic>
 #include <future>
+#include <optional>
 
 #include "GpgFrontendTest.h"
 #include "core/module/Module.h"
@@ -453,6 +454,66 @@ TEST(ModuleLifecycleTest,
     EXPECT_EQ(heard->answers[0].second.value("ret"), GFBuffer(QString("-1")));
   }
   Module::ModuleEntryGate(M::Id()).Open();
+}
+
+auto SnapshotOf(const QString& id)
+    -> std::optional<Module::ModuleLifecycleSnapshot> {
+  for (const auto& m : Manager().LifecycleSnapshot()) {
+    if (m.id == id) return m;
+  }
+  return std::nullopt;
+}
+
+TEST(ModuleLifecycleTest, TheSnapshotNamesEachModulesState) {
+  using Good = ProbeModule<11>;
+  using Bad = ProbeModule<12>;
+  Bad::P().activate_rc = -1;
+  Good::Register();
+  Bad::Register();
+  Manager().ActiveModule(Good::Id());
+  Manager().ActiveModule(Bad::Id());
+  DrainModuleRunner();
+
+  const auto good = SnapshotOf(Good::Id());
+  ASSERT_TRUE(good.has_value());
+  EXPECT_EQ(good->state, Module::ModuleLifecycleState::kACTIVE);
+  EXPECT_FALSE(good->integrated);
+  EXPECT_TRUE(good->listening.contains(EventOf(11)));
+
+  const auto bad = SnapshotOf(Bad::Id());
+  ASSERT_TRUE(bad.has_value());
+  EXPECT_EQ(bad->state, Module::ModuleLifecycleState::kFAILED);
+  EXPECT_TRUE(bad->listening.isEmpty());
+
+  Manager().DeactivateModule(Good::Id());
+  DrainModuleRunner();
+  EXPECT_EQ(SnapshotOf(Good::Id())->state,
+            Module::ModuleLifecycleState::kINACTIVE);
+  EXPECT_EQ(
+      Module::ModuleLifecycleStateName(Module::ModuleLifecycleState::kINACTIVE),
+      "Inactive");
+}
+
+TEST(ModuleLifecycleTest, TheSnapshotCountsTheAnswersAModuleOwes) {
+  using M = ProbeModule<13>;
+  M::P().answer_events = false;  // defers
+  M::Register();
+  Manager().ActiveModule(M::Id());
+  DrainModuleRunner();
+  EXPECT_EQ(Manager().ListenersOf(EventOf(13)), QStringList{M::Id()});
+
+  auto heard = std::make_shared<Heard>();
+  auto event = Trigger(13, heard);
+  DrainModuleRunner();
+  EXPECT_EQ(SnapshotOf(M::Id())->owed_answers, 1);
+
+  ASSERT_TRUE(
+      Manager().AnswerEvent(event->GetTriggerIdentifier(), M::Id(), {}));
+  EXPECT_EQ(SnapshotOf(M::Id())->owed_answers, 0);
+
+  Manager().DeactivateModule(M::Id());
+  DrainModuleRunner();
+  EXPECT_TRUE(Manager().ListenersOf(EventOf(13)).isEmpty());
 }
 
 TEST(ModuleLifecycleTest, AModuleWithoutASignedManifestIsNotActivated) {

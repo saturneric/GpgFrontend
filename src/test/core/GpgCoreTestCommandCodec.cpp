@@ -30,8 +30,8 @@
 
 #include "GpgFrontendTest.h"
 #include "sdk/GFSDKCommand.hpp"
-#include "sdk/GFSDKHostCommands.hpp"
 #include "sdk/GFSDKHostApi.h"
+#include "sdk/GFSDKHostCommands.hpp"
 
 /**
  * @file GpgCoreTestCommandCodec.cpp
@@ -88,25 +88,25 @@ struct Everything {
   gf::cmd::Blob secret;
 
   static constexpr auto Fields() {
-    return std::make_tuple(
-        gf::cmd::F("flag", &Everything::flag),
-        gf::cmd::F("count", &Everything::count),
-        gf::cmd::F("ratio", &Everything::ratio),
-        gf::cmd::F("mode", &Everything::mode),
-        gf::cmd::F("text", &Everything::text),
-        gf::cmd::F("tags", &Everything::tags),
-        gf::cmd::F("octets", &Everything::octets),
-        gf::cmd::F("maybe", &Everything::maybe),
-        gf::cmd::F("inners", &Everything::inners),
-        gf::cmd::F("key", &Everything::key),
-        gf::cmd::F("secret", &Everything::secret));
+    return std::make_tuple(gf::cmd::F("flag", &Everything::flag),
+                           gf::cmd::F("count", &Everything::count),
+                           gf::cmd::F("ratio", &Everything::ratio),
+                           gf::cmd::F("mode", &Everything::mode),
+                           gf::cmd::F("text", &Everything::text),
+                           gf::cmd::F("tags", &Everything::tags),
+                           gf::cmd::F("octets", &Everything::octets),
+                           gf::cmd::F("maybe", &Everything::maybe),
+                           gf::cmd::F("inners", &Everything::inners),
+                           gf::cmd::F("key", &Everything::key),
+                           gf::cmd::F("secret", &Everything::secret));
   }
 };
 
 struct Echo {
   static constexpr gf::cmd::Meta kMeta{
-      "com.example.codec.echo", "Echo", "Echo the text", "Tests",
-      GF_HOST_CAP_GPG, gf::cmd::kCheckable};
+      "com.example.codec.echo", "Echo",
+      "Echo the text",          "Tests",
+      GF_HOST_CAP_GPG,          gf::cmd::kCheckable};
   struct Args {
     QString text;
     static constexpr auto Fields() {
@@ -217,13 +217,13 @@ TEST(CommandCodecTest, DecodingIsStrict) {
   EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{}, {}, out, &error));
   EXPECT_TRUE(error.contains("missing")) << error.toStdString();
 
-  EXPECT_FALSE(gf::cmd::DecodeMap(
-      QCborMap{{QStringLiteral("text"), 7}}, {}, out, &error))
+  EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{{QStringLiteral("text"), 7}}, {},
+                                  out, &error))
       << "a number is not a string";
 
-  EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{{QStringLiteral("text"), "a"},
-                                           {QStringLiteral("extra"), 1}},
-                                  {}, out, &error))
+  EXPECT_FALSE(gf::cmd::DecodeMap(
+      QCborMap{{QStringLiteral("text"), "a"}, {QStringLiteral("extra"), 1}}, {},
+      out, &error))
       << "an undeclared field is refused, not dropped";
 
   EXPECT_TRUE(gf::cmd::DecodeMap(QCborMap{{QStringLiteral("text"), "a"}}, {},
@@ -234,8 +234,7 @@ TEST(CommandCodecTest, DecodingIsStrict) {
   gf::cmd::EncodeState st;
   auto m = gf::cmd::EncodeMap(e, st);
   m.remove(QStringLiteral("maybe"));
-  m.insert(QStringLiteral("secret"),
-           QCborMap{{QStringLiteral("$blob"), 5}});
+  m.insert(QStringLiteral("secret"), QCborMap{{QStringLiteral("$blob"), 5}});
   EXPECT_FALSE(gf::cmd::DecodeMap(m, st.blobs, e, &error));
   m.insert(QStringLiteral("secret"), QCborValue(QCborValue::Null));
   EXPECT_TRUE(gf::cmd::DecodeMap(m, st.blobs, e, &error))
@@ -271,8 +270,7 @@ TEST(CommandCodecTest, TheDescriptorIsDerivedFromTheType) {
   EXPECT_EQ(args.value(QStringLiteral("type")).toString(), "object");
   const auto fields = args.value(QStringLiteral("fields")).toArray();
   ASSERT_EQ(fields.size(), 1);
-  EXPECT_EQ(fields[0].toMap().value(QStringLiteral("name")).toString(),
-            "text");
+  EXPECT_EQ(fields[0].toMap().value(QStringLiteral("name")).toString(), "text");
 }
 
 TEST(CommandCodecTest, ASynchronousHandlerIsBoundByOneLine) {
