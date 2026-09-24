@@ -28,6 +28,7 @@
 
 #include "ModuleManager.h"
 
+#include <algorithm>
 #include <atomic>
 #include <map>
 #include <optional>
@@ -684,6 +685,31 @@ class ModuleManager::Impl {
     return static_cast<int>(triggers_.size());
   }
 
+  auto LifecycleSnapshot() -> QList<ModuleLifecycleSnapshot> {
+    const QMutexLocker lock(&mutex_);
+    QList<ModuleLifecycleSnapshot> out;
+    out.reserve(static_cast<qsizetype>(records_.size()));
+    for (const auto& [id, rec] : records_) {
+      int owed = 0;
+      for (const auto& [trigger_id, trigger] : triggers_) {
+        if (trigger.awaiting.contains(id)) ++owed;
+      }
+      out.append({id, rec.state, rec.integrated, rec.listening, owed});
+    }
+    std::sort(out.begin(), out.end(),
+              [](const auto& a, const auto& b) { return a.id < b.id; });
+    return out;
+  }
+
+  auto ListenersOf(const EventIdentifier& event_id) -> QStringList {
+    const QMutexLocker lock(&mutex_);
+    const auto it = events_.find(event_id);
+    if (it == events_.end()) return {};
+    auto listeners = QStringList(it->second.cbegin(), it->second.cend());
+    listeners.sort();
+    return listeners;
+  }
+
   auto IsEventListening(const EventIdentifier& event_id) -> bool {
     const QMutexLocker lock(&mutex_);
     const auto it = events_.find(event_id);
@@ -787,14 +813,7 @@ class ModuleManager::Impl {
   }
 
  private:
-  enum class State {
-    kREGISTERED,
-    kACTIVATING,
-    kACTIVE,
-    kDEACTIVATING,
-    kINACTIVE,
-    kFAILED,
-  };
+  using State = ModuleLifecycleState;
 
   struct ModuleRecord {
     ModulePtr module;
@@ -1155,6 +1174,33 @@ auto ModuleManager::IsAllModulesRegistered() -> bool {
 
 void ModuleManager::SetNeedRegisterModulesNum(int n) {
   p_->SetNeedRegisterModulesNum(n);
+}
+
+auto ModuleManager::LifecycleSnapshot() -> QList<ModuleLifecycleSnapshot> {
+  return p_->LifecycleSnapshot();
+}
+
+auto ModuleManager::ListenersOf(const EventIdentifier& event_id)
+    -> QStringList {
+  return p_->ListenersOf(event_id);
+}
+
+auto ModuleLifecycleStateName(ModuleLifecycleState state) -> QString {
+  switch (state) {
+    case ModuleLifecycleState::kREGISTERED:
+      return QStringLiteral("Registered");
+    case ModuleLifecycleState::kACTIVATING:
+      return QStringLiteral("Activating");
+    case ModuleLifecycleState::kACTIVE:
+      return QStringLiteral("Active");
+    case ModuleLifecycleState::kDEACTIVATING:
+      return QStringLiteral("Deactivating");
+    case ModuleLifecycleState::kINACTIVE:
+      return QStringLiteral("Inactive");
+    case ModuleLifecycleState::kFAILED:
+      return QStringLiteral("Failed");
+  }
+  return QStringLiteral("Unknown");
 }
 
 auto ModuleManager::IsEventListening(const EventIdentifier& event_id) -> bool {

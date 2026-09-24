@@ -175,6 +175,31 @@ struct GF_CORE_EXPORT ModuleLoadCandidate {
   ModuleFileIdentity identity;
 };
 
+/// Where one module is in its lifecycle. Registered -> Activating -> Active ->
+/// Deactivating -> Inactive, with Failed for an activation that did not
+/// succeed.
+enum class ModuleLifecycleState {
+  kREGISTERED,
+  kACTIVATING,
+  kACTIVE,
+  kDEACTIVATING,
+  kINACTIVE,
+  kFAILED,
+};
+
+/// The state's English name, for diagnostics: the developer tab and logs.
+auto GF_CORE_EXPORT ModuleLifecycleStateName(ModuleLifecycleState state)
+    -> QString;
+
+/// One module's lifecycle, as the manager holds it at one instant.
+struct GF_CORE_EXPORT ModuleLifecycleSnapshot {
+  QString id;
+  ModuleLifecycleState state = ModuleLifecycleState::kREGISTERED;
+  bool integrated = false;
+  QStringList listening;  ///< events it is subscribed to
+  int owed_answers = 0;   ///< delivered events it has not answered yet
+};
+
 /// Told once a requested activation or deactivation has run, on the thread
 /// that asked; @p ok says whether the module ended in the requested state.
 using ModuleTransitionCallback = std::function<void(bool ok)>;
@@ -361,6 +386,12 @@ class GF_CORE_EXPORT ModuleManager
 
   /// Whether at least one Active module is subscribed to @p event_id.
   auto IsEventListening(const EventIdentifier& event_id) -> bool;
+
+  /// Every registered module's lifecycle, sorted by id. A diagnostic.
+  auto LifecycleSnapshot() -> QList<ModuleLifecycleSnapshot>;
+
+  /// The Active modules subscribed to @p event_id, sorted.
+  auto ListenersOf(const EventIdentifier& event_id) -> QStringList;
 
  private:
   class Impl;
