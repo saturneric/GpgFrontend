@@ -184,6 +184,25 @@ struct Liar {
   using Result = Echo::Result;
 };
 
+/// Asks for attention while g_beacon is set, and says why.
+bool g_beacon = false;
+struct Beacon {
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.beacon", "Beacon", "Look at the beacon", "", 0, 0};
+  static constexpr const char* kAttention = "The beacon is lit";
+  using Args = gf::cmd::Unit;
+  using Result = gf::cmd::Unit;
+  static auto State(const gf::cmd::CommandContext&) -> uint32_t {
+    return GF_CMD_STATE_ENABLED | GF_CMD_STATE_VISIBLE |
+           (g_beacon ? GF_CMD_STATE_ATTENTION : 0U);
+  }
+};
+
+auto DoBeacon(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
+    -> gf::cmd::Outcome<gf::cmd::Unit> {
+  return gf::cmd::Outcome<gf::cmd::Unit>::Success({});
+}
+
 template <typename C, auto H>
 void RegisterTestCommand() {
   const auto b = gf::cmd::Bind<C, H>();
@@ -194,6 +213,7 @@ void RegisterTestCommand() {
   p.required_caps = C::kMeta.required_caps;
   p.flags = C::kMeta.flags;
   p.run = b.run;
+  if (b.state != nullptr) p.state = b.state;
   ASSERT_EQ(CommandRegistry::Instance().Register(std::move(p)), GF_CMD_OK);
 }
 
@@ -206,6 +226,7 @@ class LuaApiTest : public ::testing::Test {
     RegisterTestCommand<Sink, &DoSink>();
     RegisterTestCommand<Park, &DoPark>();
     RegisterTestCommand<Keys, &DoKeys>();
+    RegisterTestCommand<Beacon, &DoBeacon>();
 
     CommandProvider liar;
     liar.id = "com.example.luat.liar";
@@ -397,6 +418,51 @@ TEST_F(LuaApiTest, UpdateComputesStateAndTypedArguments) {
   EXPECT_TRUE(st.visible);
   EXPECT_TRUE(st.enabled);
   EXPECT_EQ(st.args.value("target").toMap().value("id").toInteger(), 42);
+}
+
+TEST_F(LuaApiTest, AttentionIsTheCommandsToRaise) {
+  auto rt = Make();
+  ASSERT_TRUE(Load(*rt, R"lua(
+local beacon = commands.get("com.example.luat.beacon")
+ui.action { id = "plain", anchor = ui.anchor("main.menu.help"),
+            command = beacon }
+ui.action { id = "hidden", anchor = ui.anchor("main.menu.help"),
+            command = beacon,
+            update = function(ctx) return { visible = false } end }
+ui.action { id = "shown", anchor = ui.anchor("main.menu.help"),
+            command = beacon,
+            update = function(ctx) return { visible = true } end }
+ui.action { id = "faked", anchor = ui.anchor("main.menu.help"),
+            command = beacon,
+            update = function(ctx) return { attention = true } end }
+)lua"));
+  const auto eval = [&rt](const char* id) {
+    return rt->Evaluate(QString(kModule) + "." + id, {});
+  };
+
+  g_beacon = false;
+  EXPECT_FALSE(eval("plain").attention);
+  EXPECT_FALSE(eval("shown").attention);
+
+  g_beacon = true;
+  EXPECT_TRUE(eval("plain").attention);
+  EXPECT_TRUE(eval("shown").attention);
+  // A hidden entry asks for nothing.
+  EXPECT_FALSE(eval("hidden").attention);
+  // A script cannot raise it on its own: an unknown field fails update().
+  const auto faked = eval("faked");
+  EXPECT_FALSE(faked.error.isEmpty());
+  EXPECT_FALSE(faked.attention);
+  g_beacon = false;
+
+  const auto d =
+      CommandRegistry::Instance().Describe("com.example.luat.beacon");
+  ASSERT_TRUE(d.has_value());
+  EXPECT_EQ(UI::CommandAttention(*d), "The beacon is lit");
+  const auto echo =
+      CommandRegistry::Instance().Describe("com.example.luat.echo");
+  ASSERT_TRUE(echo.has_value());
+  EXPECT_TRUE(UI::CommandAttention(*echo).isEmpty());
 }
 
 TEST_F(LuaApiTest, UpdateIsPure) {
