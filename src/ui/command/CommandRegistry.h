@@ -59,6 +59,8 @@ namespace GpgFrontend::UI {
  *
  * Checked on every registration: a module registers only ids in its own
  * namespace and, when its manifest was verified, only ids the manifest lists.
+ * A codec (kInputDecoder / kOutputEncoder) must have the codec shape, must
+ * not need the GUI thread, and its module must hold the editor capability.
  */
 
 /// Who is calling, as the Host established it. Never the caller's own word.
@@ -77,6 +79,8 @@ struct GF_UI_EXPORT CommandProvider {
   QCborMap descriptor;
   uint32_t required_caps = 0;
   uint32_t flags = 0;
+  /// GF_HOST_CAP_* bits the owning module was granted; ignored for the Host.
+  uint32_t owner_caps = 0;
 
   /// Run one call. Completes through @p done, exactly once, now or later.
   std::function<void(const gf::cmd::CommandContext&, QCborMap,
@@ -176,6 +180,9 @@ class GF_UI_EXPORT CommandRegistry {
 
   [[nodiscard]] auto Describe(const QString& id) -> std::optional<QCborMap>;
   [[nodiscard]] auto List(const QString& prefix = {}) -> QStringList;
+
+  /// The ids carrying every bit of @p flags, sorted: the order codecs run in.
+  [[nodiscard]] auto ProvidersWithFlag(uint32_t flags) -> QStringList;
   [[nodiscard]] auto Contains(const QString& id) -> bool;
 
   /// GF_CMD_STATE_* bits for @p caller in @p context. 0 for an unknown id.

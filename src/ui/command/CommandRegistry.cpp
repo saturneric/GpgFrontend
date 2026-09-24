@@ -33,6 +33,7 @@
 #include <atomic>
 
 #include "core/module/ModuleNamespace.h"
+#include "sdk/GFSDKHostCommands.hpp"
 
 namespace GpgFrontend::UI {
 
@@ -70,6 +71,40 @@ void OnGui(std::function<void()> fn) {
 auto ReadUInt(const QCborMap& m, const char* key) -> uint32_t {
   const auto v = m.value(QString::fromLatin1(key));
   return v.isInteger() ? static_cast<uint32_t>(v.toInteger()) : 0U;
+}
+
+/// The argument and result shape every codec has.
+struct CodecShape {
+  static constexpr gf::cmd::Meta kMeta{"", "", "", "", 0, 0};
+  using Args = gf::cmd::host::CodecArgs;
+  using Result = gf::cmd::host::CodecResult;
+};
+
+/**
+ * @brief Why @p p may not be a codec, or empty when it may (or is none).
+ *
+ * The Host hands a decoder the text of whatever the user decrypts, which may
+ * well be plaintext: so only a module that may read the editor anyway gets
+ * to be one. Off the GUI thread, a codec cannot show a dialog; with the one
+ * shape, the Host never has to guess what it returns.
+ */
+auto CodecRefusal(const CommandProvider& p) -> QString {
+  constexpr uint32_t kCodec = gf::cmd::kInputDecoder | gf::cmd::kOutputEncoder;
+  if ((p.flags & kCodec) == 0) return {};
+  if ((p.flags & gf::cmd::kNeedsGuiThread) != 0) {
+    return QStringLiteral("a codec does not run on the GUI thread");
+  }
+  if (!p.owner.isEmpty() && (p.owner_caps & GF_HOST_CAP_EDITOR) == 0) {
+    return QStringLiteral("a codec's module needs the editor capability");
+  }
+  static const auto kShape = gf::cmd::Describe<CodecShape>();
+  for (const auto* key : {"args", "result"}) {
+    const auto k = QString::fromLatin1(key);
+    if (p.descriptor.value(k) != kShape.value(k)) {
+      return QStringLiteral("its %1 are not the codec's").arg(k);
+    }
+  }
+  return {};
 }
 
 }  // namespace
@@ -168,6 +203,11 @@ auto CommandRegistry::Register(CommandProvider provider,
       return GF_CMD_E_DENIED;
     }
     if ((provider.flags & gf::cmd::kHostOnly) != 0) return GF_CMD_E_DENIED;
+  }
+
+  if (const auto why = CodecRefusal(provider); !why.isEmpty()) {
+    LOG_W() << "command" << provider.id << "refused as a codec:" << why;
+    return GF_CMD_E_DENIED;
   }
 
   QMutexLocker locker(&mutex_);
@@ -363,6 +403,16 @@ auto CommandRegistry::List(const QString& prefix) -> QStringList {
   QStringList ids;
   for (auto it = providers_.constBegin(); it != providers_.constEnd(); ++it) {
     if (it.key().startsWith(prefix)) ids.append(it.key());
+  }
+  ids.sort();
+  return ids;
+}
+
+auto CommandRegistry::ProvidersWithFlag(uint32_t flags) -> QStringList {
+  QMutexLocker locker(&mutex_);
+  QStringList ids;
+  for (auto it = providers_.constBegin(); it != providers_.constEnd(); ++it) {
+    if (((*it)->flags & flags) == flags) ids.append(it.key());
   }
   ids.sort();
   return ids;
