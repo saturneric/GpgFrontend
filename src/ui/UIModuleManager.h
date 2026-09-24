@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <QReadWriteLock>
+#include <QMutex>
 #include <optional>
 
 #include "core/function/basic/GpgFunctionObject.h"
@@ -37,10 +37,6 @@
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
-
-struct ModuleTranslatorInfo {
-  GFTranslatorDataReader reader_;
-};
 
 /**
  * @brief A module translator together with the QM bytes it reads from.
@@ -55,108 +51,84 @@ struct InstalledModuleTranslator {
   QByteArray data;
 };
 
+/**
+ * @brief The Host's module-facing UI state: module translators, and the
+ *        names the Host gives its own objects.
+ *
+ * Thread rules, because modules call in from their own threads:
+ *  - translator readers are guarded by a mutex; everything that installs or
+ *    removes a QTranslator runs on the GUI thread;
+ *  - named objects are registered, looked up and dropped on the GUI thread
+ *    only. Callers elsewhere go through the helpers below, which hop first.
+ */
 class GF_UI_EXPORT UIModuleManager
     : public SingletonFunctionObject<UIModuleManager> {
  public:
-  /**
-   * @brief Construct a new UIModuleManager object
-   *
-   * @param channel
-   */
   explicit UIModuleManager(int channel);
 
-  /**
-   * @brief Destroy the UIModuleManager object
-   *
-   */
-  virtual ~UIModuleManager() override;
+  ~UIModuleManager() override;
 
   /**
-   * @brief
+   * @brief Record a module's translator data reader, and install its
+   *        translations -- now, rather than whenever the next full reinstall
+   *        happens to run, so a module activated after startup is translated
+   *        too.
    *
-   * @return auto
+   * Any thread. The install itself is queued to the GUI thread.
    */
   auto RegisterTranslatorDataReader(Module::ModuleIdentifier id,
                                     GFTranslatorDataReader reader) -> bool;
 
   /**
-   * @brief Drop a module's translator data reader.
+   * @brief Drop a module's reader and uninstall its translations.
    *
-   * Modules must do this before unloading -- a reader pointing into an
-   * unloaded shared object would crash the next language switch.
+   * Part of withdrawing a module: a reader is a function pointer into it.
+   * Any thread; the uninstall is queued to the GUI thread.
    *
-   * @param id the identifier used to register
    * @return true when a reader was removed
    */
   auto UnregisterTranslatorDataReader(const Module::ModuleIdentifier& id)
       -> bool;
 
   /**
-   * @brief Name a Host object for the Host's own later lookup.
+   * @brief Name a Host object for the Host's own later lookup. GUI thread.
    *
    * Host-internal only: nothing registered here is reachable from a module.
    * The entry drops itself when the object is destroyed; a null @p p clears
    * the name.
-   *
-   * @param id the name
-   * @param p the object, or null
-   * @return QString the name
    */
   auto RegisterQObject(const QString& id, QObject* p) -> QString;
 
-  /**
-   * @brief
-   *
-   * @param id
-   * @return auto
-   */
+  /// The object registered as @p id, or null. GUI thread only.
   auto GetQObject(const QString& id) -> QObject*;
 
   /**
-   * @brief
+   * @brief Reinstall every module's translations for the current locale.
    *
-   * @param id
-   * @return auto
-   */
-  auto MakeCapsule(std::any) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param id
-   * @return auto
-   */
-  auto GetCapsule(const QString& uuid) -> std::any;
-
-  /**
-   * @brief
-   *
+   * GUI thread. Run on each interface language switch.
    */
   void RegisterAllModuleTranslators();
 
   /**
-   * @brief The translators installed by the last
-   * RegisterAllModuleTranslators() call, in registration order.
+   * @brief The module translators installed now, in module-id order.
    *
    * Handed out as guarded pointers so a caller can tell that a previous round
    * really was destroyed rather than merely forgotten.
-   *
-   * @return QContainer<QPointer<QTranslator>>
    */
   [[nodiscard]] auto InstalledTranslators() const
       -> QContainer<QPointer<QTranslator>>;
 
  private:
-  /**
-   * @brief Uninstall and destroy every installed module translator, then
-   * release the QM bytes they were reading from.
-   */
-  void clear_installed_translators();
+  /// Install @p id's translations, replacing any it had. GUI thread.
+  void install_translator(const QString& id);
 
-  QMap<QString, ModuleTranslatorInfo> translator_data_readers_;
-  QContainer<InstalledModuleTranslator> installed_translators_;
+  /// Uninstall and destroy @p id's translator, then release its bytes.
+  void uninstall_translator(const QString& id);
+
+  mutable QMutex readers_mutex_;
+  QMap<QString, GFTranslatorDataReader> translator_data_readers_;
+  QMap<QString, InstalledModuleTranslator> installed_translators_;
   QMap<QString, QPointer<QObject>> registered_qobjects_;
-  QMap<QString, std::any> capsule_;
 };
 
 auto GF_UI_EXPORT RegisterNamedQObject(const QString& id, QObject* p)
@@ -180,6 +152,9 @@ auto GF_UI_EXPORT RegisterNamedQObject(const QString& id, QObject* p)
  * @return the bytes, or std::nullopt when no text tab is open
  */
 auto GF_UI_EXPORT CurrentEditorContent() -> std::optional<QByteArray>;
+
+/// The key database channel the main window has selected, or -1. Any thread.
+auto GF_UI_EXPORT CurrentGpgContextChannel() -> int;
 
 /**
  * @brief What the current document is: `id`, `type`, `title`, `path`,

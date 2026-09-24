@@ -118,18 +118,6 @@ class UISignalStation : public QObject {
    * @brief
    *
    */
-  void SignalNeedUserInputPassphrase(QSharedPointer<GpgPassphraseContext>);
-
-  /**
-   * @brief
-   *
-   */
-  void SignalUserInputPassphraseCallback(QSharedPointer<GpgPassphraseContext>);
-
-  /**
-   * @brief
-   *
-   */
   void SignalRestartApplication(int);
 
   /**

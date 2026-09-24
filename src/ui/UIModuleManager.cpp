@@ -28,11 +28,12 @@
 
 #include "UIModuleManager.h"
 
-#include <QReadWriteLock>
 #include <QThread>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleManager.h"
+#include "core/module/ModuleSdkBridge.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/TextEdit.h"
@@ -40,82 +41,155 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+auto OnGuiThread() -> bool {
+  auto* app = QCoreApplication::instance();
+  return app == nullptr || QThread::currentThread() == app->thread();
+}
+
+/**
+ * @brief Run @p fn on the GUI thread and return what it returns.
+ *
+ * Blocking is right when the caller is elsewhere -- it asked for the answer --
+ * but a BlockingQueuedConnection to one's OWN thread is a deadlock, so the GUI
+ * thread runs @p fn directly. Once shutdown has begun the GUI event loop is
+ * gone and a blocking hop would never return, so the answer is then "none".
+ */
+template <typename Fn>
+auto AskGui(Fn fn, decltype(fn()) fallback) -> decltype(fn()) {
+  if (OnGuiThread()) return fn();
+  if (Module::GlobalModuleDispatchGate().IsClosed()) return fallback;
+  auto out = fallback;
+  QMetaObject::invokeMethod(
+      QCoreApplication::instance(), [&] { out = fn(); },
+      Qt::BlockingQueuedConnection);
+  return out;
+}
+
+auto MainEditor() -> TextEdit* {
+  return qobject_cast<TextEdit*>(
+      UIModuleManager::GetInstance().GetQObject("main_window_edit"));
+}
+
+}  // namespace
+
 UIModuleManager::UIModuleManager(int channel)
     : SingletonFunctionObject<UIModuleManager>(channel) {}
 
-UIModuleManager::~UIModuleManager() { clear_installed_translators(); }
+UIModuleManager::~UIModuleManager() {
+  for (const auto& id : installed_translators_.keys()) uninstall_translator(id);
+}
 
 auto UIModuleManager::RegisterTranslatorDataReader(
     Module::ModuleIdentifier id, GFTranslatorDataReader reader) -> bool {
-  if (reader != nullptr && !id.isEmpty() && Module::IsModuleExists(id)) {
-    LOG_D() << "module " << id << "registering translator reader...";
-    translator_data_readers_[id] = ModuleTranslatorInfo{reader};
-    return true;
+  if (reader == nullptr || id.isEmpty() || !Module::IsModuleExists(id)) {
+    return false;
   }
-  return false;
+  LOG_D() << "module " << id << "registering translator reader...";
+  {
+    const QMutexLocker lock(&readers_mutex_);
+    translator_data_readers_[id] = reader;
+  }
+  auto* app = QCoreApplication::instance();
+  if (app == nullptr) return true;
+  QMetaObject::invokeMethod(
+      app, [this, id]() { install_translator(id); }, Qt::QueuedConnection);
+  return true;
 }
 
 auto UIModuleManager::UnregisterTranslatorDataReader(
     const Module::ModuleIdentifier& id) -> bool {
-  return translator_data_readers_.remove(id) > 0;
+  bool removed = false;
+  {
+    const QMutexLocker lock(&readers_mutex_);
+    removed = translator_data_readers_.remove(id) > 0;
+  }
+  if (!removed) return false;
+  if (OnGuiThread()) {
+    uninstall_translator(id);
+  } else {
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(),
+        [this, id]() { uninstall_translator(id); }, Qt::QueuedConnection);
+  }
+  return true;
 }
 
-void UIModuleManager::clear_installed_translators() {
+void UIModuleManager::uninstall_translator(const QString& id) {
   // Order matters: a translator still installed on QCoreApplication keeps
   // reading entry.data, so it has to be uninstalled and destroyed before the
   // entry (and with it the QM bytes) is dropped. deleteLater() would not do --
   // it lets the translator outlive the buffer.
-  for (const auto& entry : installed_translators_) {
-    if (entry.translator == nullptr) continue;
-    QCoreApplication::removeTranslator(entry.translator);
+  auto it = installed_translators_.find(id);
+  if (it == installed_translators_.end()) return;
+  if (it->translator != nullptr) {
+    QCoreApplication::removeTranslator(it->translator);
+    delete it->translator;
+  }
+  installed_translators_.erase(it);
+}
+
+void UIModuleManager::install_translator(const QString& id) {
+  uninstall_translator(id);
+
+  GFTranslatorDataReader reader = nullptr;
+  {
+    const QMutexLocker lock(&readers_mutex_);
+    reader = translator_data_readers_.value(id, nullptr);
+  }
+  if (reader == nullptr) return;
+
+  // Borrowed, not donated: the reader must not own the locale string.
+  const auto locale_utf8 = QLocale().name().toUtf8();
+  char* data = nullptr;
+  int data_size = 0;
+
+  // A reader is module code, entered the way every host-to-module call is:
+  // only while the module is active, and attributed to it.
+  {
+    Module::ModuleDispatchScope global(Module::GlobalModuleDispatchGate());
+    if (!global.Entered()) return;
+    Module::ModuleDispatchScope own(Module::ModuleEntryGate(id));
+    if (!own.Entered()) return;
+    const auto id_utf8 = id.toUtf8();
+    const Module::ModuleAttributionScope attributed(id_utf8.constData());
+    data_size = reader(locale_utf8.constData(), &data);
+  }
+  LOG_D() << "module " << id << "reader, read locale " << QLocale().name()
+          << ", data size: " << data_size;
+
+  if (data == nullptr) return;
+  if (data_size <= 0) {
+    SMAFree(data);
+    return;
+  }
+
+  InstalledModuleTranslator entry;
+  entry.data = QByteArray(data, data_size);
+  SMAFree(data);
+
+  // Load from the entry's own copy of the bytes, not from a local that goes
+  // out of scope: QTranslator reads this buffer for as long as it lives.
+  entry.translator = new QTranslator(QCoreApplication::instance());
+  const auto loaded = entry.translator->load(
+      reinterpret_cast<uchar*>(const_cast<char*>(entry.data.data())),
+      static_cast<int>(entry.data.size()));
+  if (loaded && QCoreApplication::installTranslator(entry.translator)) {
+    installed_translators_.insert(id, entry);
+  } else {
     delete entry.translator;
   }
-  installed_translators_.clear();
 }
 
 void UIModuleManager::RegisterAllModuleTranslators() {
-  clear_installed_translators();
-
-  const auto locale_name = QLocale().name();
-
-  // Borrowed, not donated. This used to pass GFStrDup(locale_name) -- a fresh
-  // SDK allocation handed to the module on every reader call, which no module
-  // frees and the host never reclaims, so it leaked once per module per locale
-  // change. It also contradicted the SDK's own rule that arguments are
-  // borrowed, which is the rule every reader is written against.
-  const auto locale_utf8 = locale_name.toUtf8();
-
-  for (auto it = translator_data_readers_.keyValueBegin();
-       it != translator_data_readers_.keyValueEnd(); ++it) {
-    char* data = nullptr;
-
-    auto data_size = it->second.reader_(locale_utf8.constData(), &data);
-    LOG_D() << "module " << it->first << "reader, read locale " << locale_name
-            << ", data size: " << data_size;
-
-    if (data == nullptr) continue;
-
-    if (data_size <= 0) {
-      SMAFree(data);
-      continue;
-    }
-
-    InstalledModuleTranslator entry;
-    entry.data = QByteArray(data, data_size);
-    SMAFree(data);
-
-    // Load from the entry's own copy of the bytes, not from a local that goes
-    // out of scope: QTranslator reads this buffer for as long as it lives.
-    entry.translator = new QTranslator(QCoreApplication::instance());
-    auto load = entry.translator->load(
-        reinterpret_cast<uchar*>(const_cast<char*>(entry.data.data())),
-        static_cast<int>(entry.data.size()));
-    if (load && QCoreApplication::installTranslator(entry.translator)) {
-      installed_translators_.append(entry);
-    } else {
-      delete entry.translator;
-    }
+  QStringList ids;
+  {
+    const QMutexLocker lock(&readers_mutex_);
+    ids = translator_data_readers_.keys();
   }
+  for (const auto& id : installed_translators_.keys()) uninstall_translator(id);
+  for (const auto& id : ids) install_translator(id);
 }
 
 auto UIModuleManager::InstalledTranslators() const
@@ -136,33 +210,29 @@ auto UIModuleManager::RegisterQObject(const QString& id, QObject* p)
     return id;
   }
 
-  QPointer<QObject> ptr = p;
-
   if (registered_qobjects_.contains(id)) {
     LOG_W() << "QObject with id " << id << " already registered, overwriting";
   }
+  registered_qobjects_[id] = QPointer<QObject>(p);
 
-  registered_qobjects_[id] = ptr;
   // qApp as the context object: the lambda captures this manager, so it must
-  // not outlive the application, and the map must only be touched from the
-  // main thread even when p is destroyed on another one.
+  // not outlive the application, and the map is only touched on the GUI
+  // thread even when p is destroyed on another one. Only an entry that no
+  // longer points anywhere is dropped: an object that was replaced under the
+  // same name must not take its replacement's entry with it.
   QObject::connect(p, &QObject::destroyed, QCoreApplication::instance(),
-                   [this, id]() { registered_qobjects_.remove(id); });
+                   [this, id]() {
+                     const auto it = registered_qobjects_.find(id);
+                     if (it != registered_qobjects_.end() && it->isNull()) {
+                       registered_qobjects_.erase(it);
+                     }
+                   });
   return id;
 }
 
 auto UIModuleManager::GetQObject(const QString& id) -> QObject* {
+  Q_ASSERT(OnGuiThread());
   return registered_qobjects_.value(id, nullptr);
-}
-
-auto UIModuleManager::GetCapsule(const QString& uuid) -> std::any {
-  return capsule_.take(uuid);
-}
-
-auto UIModuleManager::MakeCapsule(std::any v) -> QString {
-  auto uuid = QUuid::createUuid().toString();
-  capsule_[uuid] = std::move(v);
-  return uuid;
 }
 
 auto RegisterNamedQObject(const QString& id, QObject* p) -> QString {
@@ -170,51 +240,47 @@ auto RegisterNamedQObject(const QString& id, QObject* p) -> QString {
 }
 
 auto CurrentEditorContent() -> std::optional<QByteArray> {
-  auto* edit = qobject_cast<TextEdit*>(
-      UIModuleManager::GetInstance().GetQObject("main_window_edit"));
-  if (edit == nullptr) return std::nullopt;
-
   // The document belongs to the GUI thread, and a module's handler does not
-  // necessarily run there. Blocking is right when it does not -- the caller
-  // asked for the bytes -- but a BlockingQueuedConnection to one's OWN thread
-  // is a deadlock, which Qt refuses with "Dead lock detected" and an empty
-  // result. A module dialog's button handler is on the GUI thread, so that is
-  // the common case, not the exotic one.
-  const auto read = [edit]() -> std::optional<QByteArray> {
-    if (edit->CurTextPage() == nullptr) return std::nullopt;
-    return edit->CurDocumentBytesForOperation();
-  };
-  if (QThread::currentThread() == edit->thread()) return read();
+  // necessarily run there -- so does the lookup of the editor itself.
+  return AskGui(
+      []() -> std::optional<QByteArray> {
+        auto* edit = MainEditor();
+        if (edit == nullptr || edit->CurTextPage() == nullptr) {
+          return std::nullopt;
+        }
+        return edit->CurDocumentBytesForOperation();
+      },
+      std::nullopt);
+}
 
-  std::optional<QByteArray> bytes;
-  QMetaObject::invokeMethod(
-      edit, [&] { bytes = read(); }, Qt::BlockingQueuedConnection);
-  return bytes;
+auto CurrentGpgContextChannel() -> int {
+  return AskGui(
+      []() -> int {
+        auto* window = qobject_cast<MainWindow*>(
+            UIModuleManager::GetInstance().GetQObject("main_window"));
+        return window == nullptr ? -1 : window->GetCurrentGpgContextChannel();
+      },
+      -1);
 }
 
 auto CurrentDocumentInfo() -> std::optional<QCborMap> {
-  auto* edit = qobject_cast<TextEdit*>(
-      UIModuleManager::GetInstance().GetQObject("main_window_edit"));
-  if (edit == nullptr) return std::nullopt;
-
-  const auto read = [edit]() -> std::optional<QCborMap> {
-    auto* page = edit->CurTextPage();
-    if (page == nullptr) return std::nullopt;
-    QCborMap m;
-    m.insert(QStringLiteral("id"), TextEditTabWidget::DocumentIdOf(page));
-    m.insert(QStringLiteral("type"), page->property("type").toString());
-    m.insert(QStringLiteral("title"), page->property("base_title").toString());
-    m.insert(QStringLiteral("path"), page->GetFilePath());
-    m.insert(QStringLiteral("modified"),
-             page->GetTextPage()->document()->isModified());
-    return m;
-  };
-  if (QThread::currentThread() == edit->thread()) return read();
-
-  std::optional<QCborMap> info;
-  QMetaObject::invokeMethod(
-      edit, [&] { info = read(); }, Qt::BlockingQueuedConnection);
-  return info;
+  return AskGui(
+      []() -> std::optional<QCborMap> {
+        auto* edit = MainEditor();
+        if (edit == nullptr) return std::nullopt;
+        auto* page = edit->CurTextPage();
+        if (page == nullptr) return std::nullopt;
+        QCborMap m;
+        m.insert(QStringLiteral("id"), TextEditTabWidget::DocumentIdOf(page));
+        m.insert(QStringLiteral("type"), page->property("type").toString());
+        m.insert(QStringLiteral("title"),
+                 page->property("base_title").toString());
+        m.insert(QStringLiteral("path"), page->GetFilePath());
+        m.insert(QStringLiteral("modified"),
+                 page->GetTextPage()->document()->isModified());
+        return m;
+      },
+      std::nullopt);
 }
 
 }  // namespace GpgFrontend::UI
