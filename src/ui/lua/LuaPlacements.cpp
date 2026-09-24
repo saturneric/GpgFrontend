@@ -28,8 +28,6 @@
 
 #include "LuaPlacements.h"
 
-#include <algorithm>
-
 #include <QBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -37,6 +35,7 @@
 #include <QKeySequence>
 #include <QMenu>
 #include <QPushButton>
+#include <algorithm>
 
 #include "core/utils/RustUtils.h"
 #include "ui/command/CommandRegistry.h"
@@ -149,10 +148,13 @@ auto ShortcutTaken(QWidget* window, const QKeySequence& seq) -> bool {
 class MenuBinder : public QObject {
  public:
   MenuBinder(QString anchor, QMenu* menu, ContextFn ctx)
-      : QObject(menu), anchor_(std::move(anchor)), menu_(menu),
+      : QObject(menu),
+        anchor_(std::move(anchor)),
+        menu_(menu),
         ctx_(std::move(ctx)) {
-    connect(&LuaHost::Instance(), &LuaHost::SignalChanged, this,
-            [this]() { Rebuild(); }, Qt::QueuedConnection);
+    connect(
+        &LuaHost::Instance(), &LuaHost::SignalChanged, this,
+        [this]() { Rebuild(); }, Qt::QueuedConnection);
     connect(menu_, &QMenu::aboutToShow, this, [this]() { RefreshAll(); });
     Rebuild();
   }
@@ -321,11 +323,20 @@ auto LuaPlacements::KeyListContext(KeyList* list) -> UiContext {
   UiContext ctx;
   if (list == nullptr) return ctx;
   const auto channel = list->GetCurrentGpgContextChannel();
-  for (const auto& key : list->GetSelectedKeys()) {
-    // A key group has no fingerprint of its own to act on.
-    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+  // The keys the Host's own key actions act on: the checked ones when any
+  // are checked, else the selection -- so "refresh" on a key list with ten
+  // keys checked refreshes those ten, whichever row was right-clicked.
+  auto keys = list->GetCheckedKeys();
+  if (keys.isEmpty()) keys = list->GetSelectedKeys();
+  for (const auto& key : keys) {
+    if (key == nullptr) continue;
+    // A key group has no fingerprint of its own to act on; say it is there
+    // rather than pretend the rest is the whole target.
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+      ctx.has_key_group = true;
       continue;
     }
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
     ctx.keys.push_back(gf::cmd::KeyRef{channel, key->ID(), key->Fingerprint(),
                                        key->IsPrivateKey()});
   }

@@ -283,20 +283,13 @@ void KeyMgmt::create_popup_menu() {
   // Flat, and including the submenu children: those are exactly the actions
   // shared with the menu bar, so a per-menu walk would miss them.
   popup_actions_ = {
-      show_key_details_act_,
-      copy_fingerprint_act_,
-      copy_key_id_act_,
-      copy_email_act_,
-      copy_public_key_act_,
-      export_public_key_act_,
-      export_private_key_act_,
-      export_key_as_open_ssh_format_,
-      certify_key_act_,
-      set_expiry_act_,
-      generate_subkey_act_,
-      set_owner_trust_of_key_act_,
-      generate_revoke_cert_act_,
-      delete_selected_keys_act_,
+      show_key_details_act_,     copy_fingerprint_act_,
+      copy_key_id_act_,          copy_email_act_,
+      copy_public_key_act_,      export_public_key_act_,
+      export_private_key_act_,   export_key_as_open_ssh_format_,
+      certify_key_act_,          set_expiry_act_,
+      generate_subkey_act_,      set_owner_trust_of_key_act_,
+      generate_revoke_cert_act_, delete_selected_keys_act_,
   };
 
   // What is worth offering when the click landed on nothing: the ways to get a
@@ -662,6 +655,11 @@ void KeyMgmt::create_menus() {
   bulk_menu_->addSeparator();
   bulk_menu_->addAction(backup_all_private_keys_act_);
 
+  // What modules offer for the checked (else selected) keys, e.g. key-server
+  // operations.
+  Lua::LuaPlacements::AttachMenu(
+      "key.manager.menu.operations", opera_menu_,
+      [this]() { return Lua::LuaPlacements::KeyListContext(key_list_); });
 }
 
 void KeyMgmt::create_tool_bars() {
@@ -1377,10 +1375,10 @@ void KeyMgmt::update_key_action_state() {
 void KeyMgmt::sync_submenu_visibility() {
   // A submenu whose every entry is hidden is an empty arrow the user can only
   // learn is empty by opening it.
-  const QVector<QMenu*> menus = {
-      popup_key_ops_menu_, popup_export_menu_, export_key_menu_,
-      generate_key_menu_,  import_key_menu_,   copy_menu_,
-      bulk_menu_,          delete_menu_};
+  const QVector<QMenu*> menus = {popup_key_ops_menu_, popup_export_menu_,
+                                 export_key_menu_,    generate_key_menu_,
+                                 import_key_menu_,    copy_menu_,
+                                 bulk_menu_,          delete_menu_};
 
   for (auto* menu : menus) {
     if (menu == nullptr) continue;

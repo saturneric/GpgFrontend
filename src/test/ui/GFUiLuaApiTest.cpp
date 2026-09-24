@@ -542,6 +542,38 @@ ui.action { id = "one", anchor = ui.anchor("key.list.context"),
             "FPR9");
 }
 
+// A key group among the targets is reported, not silently dropped: an
+// action that works key by key greys itself out.
+TEST_F(LuaApiTest, AKeyGroupAmongTheTargetsIsReported) {
+  auto rt = Make();
+  ASSERT_TRUE(Load(*rt, R"lua(
+ui.action { id = "g", anchor = ui.anchor("key.manager.menu.operations"),
+  command = commands.get("com.example.luat.keys"),
+  update = function(ctx)
+    if ctx:has_key_group() or #ctx.keys == 0 then return { enabled = false } end
+    return { args = { keys = ctx.keys } }
+  end }
+)lua"));
+  const auto id = QString(kModule) + ".g";
+
+  UiContext keys_only;
+  keys_only.keys = {gf::cmd::KeyRef{0, "ID", "FPR", false}};
+  auto st = rt->Evaluate(id, keys_only);
+  ASSERT_TRUE(st.error.isEmpty()) << st.error.toStdString();
+  EXPECT_TRUE(st.enabled);
+
+  UiContext with_group = keys_only;
+  with_group.has_key_group = true;
+  st = rt->Evaluate(id, with_group);
+  ASSERT_TRUE(st.error.isEmpty()) << st.error.toStdString();
+  EXPECT_TRUE(st.visible);
+  EXPECT_FALSE(st.enabled);
+
+  st = rt->Evaluate(id, UiContext{});
+  EXPECT_TRUE(st.visible) << "a menu bar entry greys, it does not vanish";
+  EXPECT_FALSE(st.enabled);
+}
+
 TEST_F(LuaApiTest, ASelectedKeyHandleDiesWithItsCall) {
   auto rt = Make();
   ASSERT_TRUE(Load(*rt, R"lua(
@@ -797,8 +829,8 @@ TEST_F(LuaApiTest, TheAnchorCatalogIsStable) {
   for (const char* id :
        {"main.menu.file.workspace", "main.menu.advanced", "main.menu.help",
         "main.menu.import_key", "main.menu.operations", "editor.context",
-        "key.details.actions", "key.list.context", "settings", "editor",
-        "dialog"}) {
+        "key.details.actions", "key.list.context",
+        "key.manager.menu.operations", "settings", "editor", "dialog"}) {
     EXPECT_NE(UI::Lua::FindAnchor(id), nullptr) << id;
     EXPECT_TRUE(reference.contains(QLatin1String(id))) << id;
   }

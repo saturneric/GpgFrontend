@@ -60,6 +60,9 @@ struct UiContext {
   /// Every selected key, where an anchor has a selection; `key` is also set
   /// when exactly one is selected.
   std::vector<gf::cmd::KeyRef> keys;
+  /// The keys acted on include a key group, which `keys` leaves out: an
+  /// action that works key by key should not offer itself then.
+  bool has_key_group = false;
 };
 
 /// The key a gf.Key handle names: id 0 is ctx.key, id n is ctx.keys[n - 1].

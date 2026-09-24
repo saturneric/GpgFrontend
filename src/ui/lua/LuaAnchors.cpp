@@ -34,7 +34,7 @@ namespace GpgFrontend::UI::Lua {
 
 namespace {
 
-constexpr std::array<AnchorSpec, 11> kAnchors{{
+constexpr std::array<AnchorSpec, 12> kAnchors{{
     {"main.menu.file.workspace", AnchorKind::kMENU, kCTX_DOCUMENT, true, 1, 0,
      "File > Workspace: things that open a new workspace or document"},
     {"main.menu.advanced", AnchorKind::kMENU, kCTX_DOCUMENT, true, 1, 0,
@@ -50,7 +50,11 @@ constexpr std::array<AnchorSpec, 11> kAnchors{{
     {"key.details.actions", AnchorKind::kBUTTONS, kCTX_KEY, true, 1, 0,
      "the key details dialog's operations; one button per command category"},
     {"key.list.context", AnchorKind::kMENU, kCTX_KEY | kCTX_KEYS, true, 2, 0,
-     "a key list's context menu; ctx.keys holds the selected keys"},
+     "a key list's context menu; ctx.keys: the checked keys, else the "
+     "selection"},
+    {"key.manager.menu.operations", AnchorKind::kMENU, kCTX_KEY | kCTX_KEYS,
+     true, 2, 0,
+     "Key Management > Operations; ctx.keys as for key.list.context"},
     {"settings", AnchorKind::kSETTINGS, kCTX_NONE, true, 1, 0,
      "a page in the Settings dialog; ui.anchor.settings{section=...}"},
     {"editor", AnchorKind::kEDITOR, kCTX_DOCUMENT, false, 1, 0,

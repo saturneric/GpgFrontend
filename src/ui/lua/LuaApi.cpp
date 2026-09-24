@@ -161,7 +161,8 @@ auto UnknownField(const QHash<QString, int>& fields, const QStringList& known)
 }
 
 auto IdIsValid(const QString& id) -> bool {
-  static const QRegularExpression kId(QStringLiteral("^[a-z0-9_][a-z0-9_.\\-]*$"));
+  static const QRegularExpression kId(
+      QStringLiteral("^[a-z0-9_][a-z0-9_.\\-]*$"));
   return !id.isEmpty() && id.size() <= 64 && kId.match(id).hasMatch();
 }
 
@@ -384,8 +385,8 @@ auto LuaApi::Install(LuaModuleRuntime& rt, QString* error) -> bool {
           lua_setglobal(L, "native");
         }
 
-        if (luaL_loadbufferx(L, kPrelude, std::strlen(kPrelude), "=ui",
-                             "t") != LUA_OK) {
+        if (luaL_loadbufferx(L, kPrelude, std::strlen(kPrelude), "=ui", "t") !=
+            LUA_OK) {
           prelude_ok = false;
           return 0;
         }
@@ -532,8 +533,7 @@ void LuaApi::CommandsInvoke(lua_State* L, BindingOutcome& out) {
   if (!tree.empty() ||
       !schema.value(QStringLiteral("fields")).toArray().isEmpty()) {
     QString error;
-    const auto resolve = [rt](const Handle& hh,
-                              std::vector<gf::cmd::Blob>* b,
+    const auto resolve = [rt](const Handle& hh, std::vector<gf::cmd::Blob>* b,
                               QString* e) { return rt->Resolve(hh, b, e); };
     const auto v = NodeToCbor(tree, tree.empty() ? -1 : 0, schema, resolve,
                               &blobs, &error);
@@ -582,9 +582,9 @@ void LuaApi::CommandsInvoke(lua_State* L, BindingOutcome& out) {
     for (const auto& b : blobs) used = used || b.Storage() == it->Storage();
     it = used ? rt->blobs_.erase(it) : std::next(it);
   }
-  rt->calls_.insert(handle, LuaModuleRuntime::PendingCall{
-                                ticket.call_id, continuation, command,
-                                rt->source_});
+  rt->calls_.insert(handle,
+                    LuaModuleRuntime::PendingCall{ticket.call_id, continuation,
+                                                  command, rt->source_});
   ReturnHandle(L, out, HandleKind::kCALL, rt->state_tag_, handle, 0);
 }
 
@@ -616,8 +616,8 @@ void LuaApi::UiAnchor(lua_State* L, BindingOutcome& out) {
     return FailWith(out, QStringLiteral("ui.anchor takes an anchor id"));
   }
   const auto* spec = FindAnchor(*name);
-  if (spec == nullptr || (spec->kind != AnchorKind::kMENU &&
-                          spec->kind != AnchorKind::kBUTTONS)) {
+  if (spec == nullptr ||
+      (spec->kind != AnchorKind::kMENU && spec->kind != AnchorKind::kBUTTONS)) {
     QStringList valid;
     for (const auto* a : AllAnchors()) {
       if (a->kind == AnchorKind::kMENU || a->kind == AnchorKind::kBUTTONS) {
@@ -673,7 +673,8 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
     if (it != fields.constEnd()) {
       for (const int c : ChildrenOf(tree, *it)) {
         const auto& n = tree[static_cast<size_t>(c)];
-        static const QRegularExpression kExt(QStringLiteral("^[a-z0-9]{1,16}$"));
+        static const QRegularExpression kExt(
+            QStringLiteral("^[a-z0-9]{1,16}$"));
         const auto ext = QString::fromUtf8(n.text);
         if (n.type != LuaNode::Type::kSTRING || !kExt.match(ext).hasMatch()) {
           return FailWith(out, "extensions are lower-case, without the dot");
@@ -737,16 +738,14 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
   if (!Flatten(L, 1, &tree, out)) return drop_update();
 
   const auto fields = FieldsOf(tree);
-  const auto unknown =
-      UnknownField(fields, {"id", "anchor", "command", "order", "icon",
-                            "shortcut"});
+  const auto unknown = UnknownField(
+      fields, {"id", "anchor", "command", "order", "icon", "shortcut"});
   if (!unknown.isEmpty()) {
     return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
   }
   const auto node = [&](const char* key) -> const LuaNode* {
     const auto it = fields.constFind(QLatin1String(key));
-    return it == fields.constEnd() ? nullptr
-                                   : &tree[static_cast<size_t>(*it)];
+    return it == fields.constEnd() ? nullptr : &tree[static_cast<size_t>(*it)];
   };
 
   const auto* id_node = node("id");
@@ -781,7 +780,8 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
 
   int order = 0;
   if (const auto* o = node("order")) {
-    if (o->type != LuaNode::Type::kINTEGER) return fail("\"order\" is an integer");
+    if (o->type != LuaNode::Type::kINTEGER)
+      return fail("\"order\" is an integer");
     order = static_cast<int>(o->integer);
   }
   QString icon;
@@ -843,14 +843,14 @@ void LuaApi::UiMount(lua_State* L, BindingOutcome& out) {
   const auto fail = [&out](const QString& why) {
     FailWith(out, QStringLiteral("ui.mount: ") + why);
   };
-  const auto unknown = UnknownField(fields, {"id", "anchor", "widget", "order"});
+  const auto unknown =
+      UnknownField(fields, {"id", "anchor", "widget", "order"});
   if (!unknown.isEmpty()) {
     return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
   }
   const auto node = [&](const char* key) -> const LuaNode* {
     const auto it = fields.constFind(QLatin1String(key));
-    return it == fields.constEnd() ? nullptr
-                                   : &tree[static_cast<size_t>(*it)];
+    return it == fields.constEnd() ? nullptr : &tree[static_cast<size_t>(*it)];
   };
 
   const auto* id_node = node("id");
@@ -909,7 +909,8 @@ void LuaApi::UiMount(lua_State* L, BindingOutcome& out) {
 
   int order = 0;
   if (const auto* o = node("order")) {
-    if (o->type != LuaNode::Type::kINTEGER) return fail("\"order\" is an integer");
+    if (o->type != LuaNode::Type::kINTEGER)
+      return fail("\"order\" is an integer");
     order = static_cast<int>(o->integer);
   }
 
@@ -967,22 +968,25 @@ void LuaApi::UiSubscribe(lua_State* L, BindingOutcome& out) {
   if (handler == LUA_NOREF) return fail("\"handler\" must be a function");
 
   LuaTree tree;
-  if (!Flatten(L, 1, &tree, out)) return fail(QString::fromUtf8(out.message.data()));
+  if (!Flatten(L, 1, &tree, out))
+    return fail(QString::fromUtf8(out.message.data()));
   const auto fields = FieldsOf(tree);
   const auto unknown = UnknownField(fields, {"event", "id"});
   if (!unknown.isEmpty()) {
     return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
   }
   const auto ev = fields.value(QStringLiteral("event"), -1);
-  const auto event = ev >= 0 ? QString::fromUtf8(tree[static_cast<size_t>(ev)].text)
-                             : QString();
+  const auto event = ev >= 0
+                         ? QString::fromUtf8(tree[static_cast<size_t>(ev)].text)
+                         : QString();
   if (!LuaModuleRuntime::Events().contains(event)) {
     return fail(QStringLiteral("\"%1\" is not a UI event; the events are: %2")
                     .arg(event, LuaModuleRuntime::Events().join(", ")));
   }
   const auto idn = fields.value(QStringLiteral("id"), -1);
-  auto id = idn >= 0 ? QString::fromUtf8(tree[static_cast<size_t>(idn)].text)
-                     : QString("subscription%1").arg(rt->subscriptions_.size() + 1);
+  auto id = idn >= 0
+                ? QString::fromUtf8(tree[static_cast<size_t>(idn)].text)
+                : QString("subscription%1").arg(rt->subscriptions_.size() + 1);
   if (!IdIsValid(id)) return fail("\"id\" is a lower-case name");
 
   LuaModuleRuntime::SubscriptionEntry entry;
@@ -1019,10 +1023,10 @@ void LuaApi::NativeRef(lua_State* L, BindingOutcome& out) {
   }
   const auto h = rt->NextId();
   rt->natives_.insert(h, LuaModuleRuntime::NativeRef{full, factory});
-  ReturnHandle(L, out,
-               factory ? HandleKind::kNATIVE_FACTORY
-                       : HandleKind::kNATIVE_WIDGET,
-               rt->state_tag_, h, 0);
+  ReturnHandle(
+      L, out,
+      factory ? HandleKind::kNATIVE_FACTORY : HandleKind::kNATIVE_WIDGET,
+      rt->state_tag_, h, 0);
 }
 
 // ------------------------------------------------------------------ helpers
@@ -1034,11 +1038,11 @@ void LuaApi::StateGet(lua_State* L, BindingOutcome& out) {
     return FailWith(out, "state.get needs the storage capability");
   }
   const auto key = StringArg(L, 1);
-  const auto full = key.has_value()
-                        ? Module::ResolveModuleSettingKey(
-                              rt->Module(), Module::ModuleSettingScope::kMODULE,
-                              *key, false)
-                        : QString();
+  const auto full =
+      key.has_value()
+          ? Module::ResolveModuleSettingKey(
+                rt->Module(), Module::ModuleSettingScope::kMODULE, *key, false)
+          : QString();
   if (full.isEmpty()) return FailWith(out, "state.get: not a valid key");
   const auto settings = GetSettings();
   if (!settings.contains(full)) {
@@ -1060,11 +1064,11 @@ void LuaApi::StateSet(lua_State* L, BindingOutcome& out) {
     return FailWith(out, "state.set needs the storage capability");
   }
   const auto key = StringArg(L, 1);
-  const auto full = key.has_value()
-                        ? Module::ResolveModuleSettingKey(
-                              rt->Module(), Module::ModuleSettingScope::kMODULE,
-                              *key, true)
-                        : QString();
+  const auto full =
+      key.has_value()
+          ? Module::ResolveModuleSettingKey(
+                rt->Module(), Module::ModuleSettingScope::kMODULE, *key, true)
+          : QString();
   if (full.isEmpty()) return FailWith(out, "state.set: not a valid key");
   LuaTree tree;
   if (!Flatten(L, 2, &tree, out)) return;
@@ -1087,11 +1091,11 @@ void LuaApi::StateHost(lua_State* L, BindingOutcome& out) {
     return FailWith(out, "state.host needs the storage capability");
   }
   const auto key = StringArg(L, 1);
-  const auto full = key.has_value()
-                        ? Module::ResolveModuleSettingKey(
-                              rt->Module(), Module::ModuleSettingScope::kHOST,
-                              *key, false)
-                        : QString();
+  const auto full =
+      key.has_value()
+          ? Module::ResolveModuleSettingKey(
+                rt->Module(), Module::ModuleSettingScope::kHOST, *key, false)
+          : QString();
   if (full.isEmpty()) {
     return FailWith(out, "state.host: not a setting the Host shares");
   }
@@ -1117,8 +1121,9 @@ void LuaApi::ThemeColor(lua_State* L, BindingOutcome& out) {
   } else if (role == QStringLiteral("accent_negative")) {
     c = AccentColor(p, false);
   } else {
-    return FailWith(out, "theme.color: muted_text, border, warning, danger, "
-                         "accent_positive or accent_negative");
+    return FailWith(out,
+                    "theme.color: muted_text, border, warning, danger, "
+                    "accent_positive or accent_negative");
   }
   const auto rgba = static_cast<lua_Integer>(c.rgba());
   Return(L, out, [rgba](lua_State* S) -> int {
@@ -1176,6 +1181,9 @@ void LuaApi::Index(lua_State* L, BindingOutcome& out) {
       }
       if (*key == "has_selection") {
         return fn(&LuaBinding<&LuaApi::ContextHasSelection>);
+      }
+      if (*key == "has_key_group") {
+        return fn(&LuaBinding<&LuaApi::ContextHasKeyGroup>);
       }
       return ReturnNil(L, out);
 
@@ -1240,6 +1248,16 @@ void LuaApi::Index(lua_State* L, BindingOutcome& out) {
   }
 }
 
+void LuaApi::ContextHasKeyGroup(lua_State* L, BindingOutcome& out) {
+  auto* rt = Rt(L);
+  const auto* h = HandleAt(L, 1);
+  const bool live = rt != nullptr && h != nullptr &&
+                    h->kind == HandleKind::kCONTEXT &&
+                    h->state_tag == rt->state_tag_ && h->epoch == rt->epoch_ &&
+                    rt->ctx_ != nullptr;
+  ReturnBool(L, out, live && rt->ctx_->has_key_group);
+}
+
 void LuaApi::ContextHasSelection(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   const auto* h = HandleAt(L, 1);
@@ -1271,9 +1289,9 @@ void LuaApi::MakeRef(lua_State* L, BindingOutcome& out) {
   }
   const auto id = rt->NextId();
   if (h->kind == HandleKind::kDOCUMENT && rt->ctx_->document) {
-    rt->document_refs_.insert(
-        id, gf::cmd::DocumentRef{rt->ctx_->document->id, 0,
-                                 rt->ctx_->document->type});
+    rt->document_refs_.insert(id,
+                              gf::cmd::DocumentRef{rt->ctx_->document->id, 0,
+                                                   rt->ctx_->document->type});
     return ReturnHandle(L, out, HandleKind::kDOCUMENT_REF, rt->state_tag_, id,
                         0);
   }
@@ -1321,7 +1339,7 @@ handle lifetimes
   DocumentRef KeyRef                               until the module unloads
   Call                                             until it completes or is cancelled
   Blob                                             until used as an argument
-Context: .document .key .keys :has_selection()
+Context: .document .key .keys :has_selection() :has_key_group()
 Document: .type .modified :has_openpgp() :ref()
 Key: .fingerprint .key_id .has_secret .channel :ref()
 )");

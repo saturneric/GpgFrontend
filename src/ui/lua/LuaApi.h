@@ -73,6 +73,7 @@ struct LuaApi {
   static void ThemeColor(lua_State* L, BindingOutcome& out);
   static void Index(lua_State* L, BindingOutcome& out);
   static void ContextHasSelection(lua_State* L, BindingOutcome& out);
+  static void ContextHasKeyGroup(lua_State* L, BindingOutcome& out);
   static void DocumentHasOpenPgp(lua_State* L, BindingOutcome& out);
   static void MakeRef(lua_State* L, BindingOutcome& out);
 };

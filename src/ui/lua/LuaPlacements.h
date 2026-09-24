@@ -80,7 +80,9 @@ class GF_UI_EXPORT LuaPlacements {
   /// The context for one document page.
   static auto PageContext(PlainTextEditorPage* page) -> UiContext;
 
-  /// The context a key list's menus see: its selected keys (never groups).
+  /// The context a key list's menus see: its checked keys, or else its
+  /// selected ones. Key groups are left out of `keys` and reported by
+  /// `has_key_group`.
   static auto KeyListContext(KeyList* list) -> UiContext;
 
   /// Tell every module's script that @p event happened on @p page.
