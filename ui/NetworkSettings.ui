@@ -209,26 +209,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="capabilityGroupBox">
-       <property name="title">
-        <string>Network Ability</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="2" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QCheckBox" name="autoFetchKeyPublishStatusCheckBox">
-            <property name="text">
-             <string>Automatically fetch key publish status from key server.</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
