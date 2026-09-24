@@ -324,7 +324,7 @@ handle lifetimes
   DocumentRef KeyRef                               until the module unloads
   Call                                             until it completes or is cancelled
   Blob                                             until used as an argument
-Context: .document .key .keys :has_selection()
+Context: .document .key .keys :has_selection() :has_key_group()
 Document: .type .modified :has_openpgp() :ref()
 Key: .fingerprint .key_id .has_secret .channel :ref()
 ```
@@ -350,6 +350,7 @@ main.menu.operations | menu | context: document | modules: many | since 2
 editor.context | menu | context: document, selection | modules: many | since 1
 key.details.actions | buttons | context: key | modules: many | since 1
 key.list.context | menu | context: key, keys | modules: many | since 2
+key.manager.menu.operations | menu | context: key, keys | modules: many | since 2
 settings | settings | context: none | modules: many | since 1
 editor | editor | context: document | modules: one | since 1
 dialog | dialog | context: none | modules: many | since 1
