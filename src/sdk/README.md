@@ -75,7 +75,16 @@ context even if reached another way.
 `event` is always present because it answers a different question from the
 rest: the groups say what a module may actively DO, while a subscription says
 what it may OBSERVE, and that is governed by the signed manifest's event
-allowlist, enforced host-side in `GlobalModuleContext::ListenEvent`.
+allowlist, enforced host-side in `ModuleManager::ListenEvent`. `subscribe`
+answers at once, and the runtime refuses to activate a module whose declared
+subscription the host refused.
+
+Each listener an event is delivered to owes it exactly one `answer`; the host
+refuses an answer from a module the event was not delivered to, and a second
+one. A listener deactivated before it answers is answered for, with
+`ret` = -1, and an event nobody is listening to is answered the same way, so
+whoever triggered it is never left waiting. The event is forgotten once every
+answer is in.
 
 **`network` is not in this table.** A module opens a socket through Qt, so
 there is nothing for the host to mediate. It remains a legal, signed,
@@ -107,14 +116,16 @@ whose calls do not finish in time keeps its handles, which leak at exit
 rather than being freed under a running call.
 
 Minting a module that is still live with the same grant returns the table it
-already holds. Any other mint (a reload, or a different grant) creates a new
-context and revokes the old one, so code still holding the old table is
-refused. A table already handed out is never rewritten, because other threads
-read it without a lock.
+already holds. Any other mint (a reactivation, or a different grant) creates a
+new context and revokes the old one. A table already handed out is never
+rewritten, because other threads read it without a lock.
 
-The grant outlives deactivation, because a module's `on_unload` hook still
-calls the SDK. It is released when the module fails to activate, when it is
-unloaded, and at shutdown.
+The grant lives exactly while the module is active. It is revoked when the
+module is deactivated (after its `on_deactivate` hook), when its activation
+fails, and at shutdown (after its `on_unload` hook, which still logs through
+it). A thread the module failed to stop is refused from then on -- until the
+module is next activated, since all of a module's threads share its one
+context.
 
 ### Storage
 
@@ -125,7 +136,14 @@ values, and neither do two modules. An empty value is the same as no value, and
 `cache_get` reports an absent key as negative.
 
 Values written before keys were scoped (under the old shared `__module_<key>`
-name) move to the module's own key the first time that module reads them.
+name) move to the key of the first module that reads them. The old key named
+no owner, so this is one-shot, not a scoping rule.
+
+The register table (`GFStorageState*`, `gf::sdk::StateText` and friends) is a
+different store: session-only, and shared. Anyone may read any namespace; a
+module writes only its own, named by its id. Namespaces and keys are
+lower-case. Lua's `state.*` is not this -- it is the module's persisted
+settings group, the same one `gf::sdk::Setting` reaches.
 
 ## UI integration
 
@@ -181,10 +199,10 @@ const std::array<gf::cmd::Binding, 1> kCommands = {
     gf::cmd::Bind<PublishKey, &DoPublish>()};  // listed in GFModuleHooks
 ```
 
-- Ids are namespaced: a module's commands start with `<module id>.`, and its
-  signed manifest lists exactly the ones it binds (`commands` in
-  `module.json`, `COMMANDS` in `gf_add_module`). The runtime checks both
-  directions at activation.
+- Ids are namespaced: a module's command is its id, a dot, and one
+  lower-case name without dots, and its signed manifest lists exactly the ones
+  it binds (`commands` in `module.json`). The runtime checks both directions
+  at activation.
 - Arguments and results travel as CBOR, described once by `Describe<C>()`.
   That one descriptor is what the registry checks, what Lua converts through,
   and what these docs describe. Bulk bytes are a `gf::cmd::Blob`, carried
@@ -196,15 +214,20 @@ const std::array<gf::cmd::Binding, 1> kCommands = {
   a C++ module and the Host's own menus all go through the same `Invoke`.
 - `Commands().Invoke<C>(args)` fires and forgets; the overload with a
   receiver and a callback delivers the result on the receiver's thread.
-  `Cancel(call)` guarantees the callback does not run after it returns.
+  `Cancel(call)` guarantees the callback does not run after it returns --
+  including a result already queued to the receiver -- and so does the
+  module's deactivation.
+- A deactivated module is a closed caller: from its withdrawal until its next
+  activation the registry refuses its invocations and registrations, whatever
+  of it is still running.
 
 Host commands (types in `GFSDKHostCommands.hpp`, titles in `src/ui`):
 
 | id                                                     | arguments                                     |
 | ------------------------------------------------------ | --------------------------------------------- |
-| `org.gpgfrontend.document.new`                         | `type`                                        |
+| `org.gpgfrontend.document.new`                         | `type, title`                                 |
 | `org.gpgfrontend.document.open`                        | `type, title, path, content: Blob, saved, modified` |
-| `org.gpgfrontend.document.{save, save_as, close}`      | `target: DocumentRef`                         |
+| `org.gpgfrontend.document.{save, save_as, close}`      | `target: DocumentRef`; needs `editor`         |
 | `org.gpgfrontend.crypto.{encrypt, decrypt, sign, verify, encrypt_sign, decrypt_verify}` | `target: DocumentRef` |
 | `org.gpgfrontend.keys.import`                          | `data: Blob`                                  |
 | `org.gpgfrontend.keys.open_manager`                    |                                               |
@@ -388,14 +411,32 @@ and the Host saves them through `PrepareSave`.
 - **Current document.** `GFEditorCurrentDocument`: id, type, title, path,
   modified. Never the content.
 
+A module's `path` and `saved` for `document.open` are ignored: a module
+cannot bind a tab to a file, so what it opens is a new, unsaved document and
+saving it asks where. Titles are sanitised by the Host -- no path separators,
+no control characters -- because a title becomes the suggested file name.
+
 ### Teardown
 
-When a module deactivates, the Host removes everything it contributed, in this
-order: stop callbacks into Lua; cancel its outstanding calls; remove its
-actions and subscriptions; unmount its views (an open document falls back to
-a plain source tab) and close its dialogs; invalidate its handles; close its
-Lua state; withdraw its commands; sweep its native widget registrations.
-Doing it twice does nothing.
+When a module deactivates, in this order:
+
+1. Its entry gate closes: no Host call enters its code from here on, queued
+   ones included.
+2. The Host withdraws everything it holds for the module, at once: its
+   commands (calls it was serving fail, calls it made are cancelled, and it
+   becomes a closed caller), its native widget registrations, its
+   translations. On the GUI thread, queued: its Lua runtime stops and is torn
+   down, and every live instance of its widgets is dropped by its container
+   -- a dialog closes, a settings page says the module is gone, and a
+   document shows its own source, editable, keeping every byte.
+3. The Host waits, bounded, for calls already inside the module.
+4. The module's `on_deactivate` runs. It stops the module's own threads,
+   timers and network requests; it has nothing to unregister.
+5. Its grant is revoked, and every event it still owed an answer to is
+   answered for, with a failure.
+
+Doing it twice does nothing. SDK handles the module still holds are swept at
+shutdown, not at deactivation.
 
 ### Removed
 
@@ -459,8 +500,8 @@ reason, and says so at the call site.
 `GFHostApi.command`, `.script` and `.native`; `GFHostUiApi.theme_color_role`;
 `GFHostEditorApi.current_document`; `GFHostStorageApi.setting_get/set/remove`;
 `GFModuleBootstrapInfo.commands`; `GFModuleHooks.commands`. A read of an
-appended member is guarded by the table's `struct_size`
-(`GF_SDK_GROUP_HAS`), so a module built against this SDK still runs on a host
+appended member is guarded by the table's `struct_size` (the SDK's internal
+`GF_SDK_GROUP_HAS`), so a module built against this SDK still runs on a host
 that predates it, and is refused rather than crashing.
 
 Every struct here begins with `struct_size`, written by whichever side
