@@ -43,7 +43,6 @@ class NetworkTab;
 class KeyDatabasesTab;
 class GnuPGTab;
 class RpgpTab;
-class InstantMessagingTab;
 class AdvancedTab;
 
 /**
@@ -67,7 +66,6 @@ class SettingsDialog : public GeneralDialog {
   KeyDatabasesTab* key_dbs_tab_;   ///<
   GnuPGTab* gnupg_tab_;            ///<
   RpgpTab* rpgp_tab_;              ///<
-  InstantMessagingTab* im_tab_;    ///<
   AdvancedTab* advanced_tab_;      ///<
 
   /**
@@ -78,7 +76,7 @@ class SettingsDialog : public GeneralDialog {
   static QHash<QString, QString> ListLanguages();
 
   /**
-   * @brief Preselect the navigation entry hosting @p page (e.g. im_tab_).
+   * @brief Preselect the navigation entry hosting @p page.
    *
    * Clears any active search first, so a page filtered out of the list is
    * still reachable. A no-op when that page has no entry: several are

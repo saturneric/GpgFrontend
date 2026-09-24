@@ -49,7 +49,7 @@ struct ToolBarOperaEntry {
   QCheckBox* Ui_AppearanceSettings::* box;
 };
 
-constexpr std::array<ToolBarOperaEntry, 9> kToolBarOperas{{
+constexpr std::array<ToolBarOperaEntry, 7> kToolBarOperas{{
     {kENCRYPT, &Ui_AppearanceSettings::encrCheckBox},
     {kDECRYPT, &Ui_AppearanceSettings::decrCheckBox},
     {kSIGN, &Ui_AppearanceSettings::signCheckBox},
@@ -57,9 +57,18 @@ constexpr std::array<ToolBarOperaEntry, 9> kToolBarOperas{{
     {kENCRYPT_SIGN, &Ui_AppearanceSettings::encrSignCheckBox},
     {kDECRYPT_VERIFY, &Ui_AppearanceSettings::decrVerifyCheckBox},
     {kSYMMETRIC_ENCRYPT, &Ui_AppearanceSettings::symmetricEncrCheckBox},
-    {kIM_ENCRYPT, &Ui_AppearanceSettings::imEncrCheckBox},
-    {kIM_ENCRYPT_SIGN, &Ui_AppearanceSettings::imEncrSignCheckBox},
 }};
+
+// A count larger than the rows leaves zeroed entries whose null member
+// pointer the page would dereference.
+constexpr auto EveryToolBarRowIsFilled() -> bool {
+  for (const auto& e : kToolBarOperas) {
+    if (e.box == nullptr) return false;
+  }
+  return true;
+}
+static_assert(EveryToolBarRowIsFilled(),
+              "kToolBarOperas has more slots than rows");
 
 /// The stored family as a font the combo boxes can select, falling back to the
 /// bundled monospaced family when nothing was ever chosen. That fallback has

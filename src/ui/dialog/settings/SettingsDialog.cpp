@@ -37,7 +37,6 @@
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsGnuPG.h"
-#include "ui/dialog/settings/SettingsIM.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/dialog/settings/SettingsPageOrder.h"
@@ -77,7 +76,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   key_dbs_tab_ = new KeyDatabasesTab();
   gnupg_tab_ = new GnuPGTab();
   rpgp_tab_ = new RpgpTab();
-  im_tab_ = new InstantMessagingTab();
   advanced_tab_ = new AdvancedTab();
 
   // Searching by page name alone only helps someone who already knows how the
@@ -147,11 +145,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
         {rpgp_tab_, tr("rPGP"), "keys_engines", {tr("rust"), tr("engine")}});
   }
 
-  descriptors.append(
-      {im_tab_,
-       tr("Instant Messaging"),
-       "features",
-       {tr("message book"), tr("phrase"), tr("fingerprint"), tr("token")}});
   descriptors.append({advanced_tab_,
                       advanced_title,
                       "system",
@@ -461,7 +454,6 @@ void SettingsDialog::revert_all_tabs() {
   key_dbs_tab_->SetSettings();
   gnupg_tab_->SetSettings();
   rpgp_tab_->SetSettings();
-  im_tab_->SetSettings();
   advanced_tab_->SetSettings();
 
   for (const auto& page : native_pages_) {
@@ -506,7 +498,6 @@ void SettingsDialog::SlotAccept() {
     rpgp_tab_->ApplySettings();
   }
 
-  im_tab_->ApplySettings();
   advanced_tab_->ApplySettings();
 
   // Applied synchronously, before the flush below: these pages are destroyed

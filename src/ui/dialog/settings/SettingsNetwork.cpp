@@ -63,7 +63,6 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
           &NetworkTab::slot_test_proxy_connection_result);
 
   ui_->proxyGroupBox->setTitle(tr("Proxy"));
-  ui_->capabilityGroupBox->setTitle(tr("Network Ability"));
   ui_->operationsGroupBox->setTitle(tr("Operations"));
 
   ui_->enableProxyCheckBox->setText(tr("Enable Proxy"));
@@ -77,14 +76,6 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 
   ui_->checkProxyConnectionButton->setText(
       tr("Apply Proxy Settings and Check Proxy Connection"));
-  ui_->autoFetchKeyPublishStatusCheckBox->setText(
-      tr("Automatically fetch key publish status from key server."));
-
-  auto if_gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
-  if (!if_gnupg_supported) {
-    ui_->autoFetchKeyPublishStatusCheckBox->setHidden(true);
-    ui_->capabilityGroupBox->setHidden(true);
-  }
 
   SetSettings();
 }
@@ -115,11 +106,6 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   ui_->enableProxyCheckBox->setCheckState(proxy_enable ? Qt::Checked
                                                        : Qt::Unchecked);
 
-  auto auto_fetch_key_publish_status =
-      settings.value("network/auto_fetch_key_publish_status", false).toBool();
-  ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
-      auto_fetch_key_publish_status ? Qt::Checked : Qt::Unchecked);
-
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
 }
@@ -133,9 +119,6 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
   settings.setValue("proxy/port", ui_->portSpin->value());
   settings.setValue("proxy/proxy_type", ui_->proxyTypeComboBox->currentText());
   settings.setValue("proxy/enable", ui_->enableProxyCheckBox->isChecked());
-
-  settings.setValue("network/auto_fetch_key_publish_status",
-                    ui_->autoFetchKeyPublishStatusCheckBox->isChecked());
 
   apply_proxy_settings();
 }
