@@ -31,6 +31,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
+#include <QRegularExpression>
 
 namespace GpgFrontend::Module {
 
@@ -45,6 +46,22 @@ constexpr qsizetype kMaxLeafChars = 24;
 constexpr qsizetype kSuffixHexChars = 20;  // 80 bits
 
 }  // namespace
+
+auto IsValidModuleId(const QString& module_id) -> bool {
+  static const QRegularExpression kShape(
+      QStringLiteral(R"(^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$)"));
+  return module_id.size() <= 200 && kShape.match(module_id).hasMatch();
+}
+
+auto IsReservedModuleId(const QString& module_id) -> bool {
+  return module_id.startsWith(QStringLiteral("com.bktus.gpgfrontend."));
+}
+
+auto IsOwnedName(const QString& owner, const QString& id) -> bool {
+  static const QRegularExpression kLocal(QStringLiteral("^[a-z0-9_]+$"));
+  if (owner.isEmpty() || !id.startsWith(owner + '.')) return false;
+  return kLocal.match(id.mid(owner.size() + 1)).hasMatch();
+}
 
 auto ModuleIdLeaf(const QString& module_id) -> QString {
   const auto last_dot = module_id.lastIndexOf('.');

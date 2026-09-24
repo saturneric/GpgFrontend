@@ -31,131 +31,64 @@
 #include <QLocale>
 #include <optional>
 
-#include "core/module/GlobalModuleContext.h"
 #include "core/module/ModuleCapability.h"
+#include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleManifest.h"
+#include "core/module/ModuleNamespace.h"
 #include "core/module/ModuleSdkBridge.h"
-#include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 // For the GFHostApi and GFModuleApi TYPES only. gf_core must not reference a
 // gf_sdk FUNCTION: that would make the two libraries mutually dependent, which
-// neither a MinGW DLL nor a Mach-O dylib can link. The four functions this
-// file used to call now arrive through ModuleSdkBridge.
+// neither a MinGW DLL nor a Mach-O dylib can link. The functions this file
+// needs arrive through ModuleSdkBridge.
 #include "sdk/GFSDKModuleApi.h"
 #include "sdk/GFSDKTypes.h"
 
 namespace GpgFrontend::Module {
 
+namespace {
+
+/// How long a deactivation waits for calls already inside the module. Bounded,
+/// because such a call may itself be waiting on the thread doing the waiting.
+constexpr int kEntryDrainTimeoutMs = 3000;
+
+}  // namespace
+
 class Module::Impl {
  public:
-  friend class GlobalModuleContext;
-
-  using ExecCallback = std::function<void(int)>;
-
-  Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
-       ModuleMetaData meta_data)
-      : m_ptr_(m_ptr),
-        identifier_(std::move(id)),
-        version_(std::move(version)),
-        meta_data_(std::move(meta_data)),
-        good_(true) {
-    identifier_utf8_ = identifier_.toUtf8();
-  }
-
-  Impl(ModuleRawPtr m_ptr, std::unique_ptr<QLibrary> module_library,
-       QString module_hash)
-      : m_ptr_(m_ptr),
-        module_hash_(std::move(module_hash)),
+  Impl(std::unique_ptr<QLibrary> module_library, QString module_hash)
+      : module_hash_(std::move(module_hash)),
         module_library_(std::move(module_library)),
-        module_library_path_(module_library_->fileName()),
-        good_(false) {
+        module_library_path_(module_library_->fileName()) {
     // ONE way in. A module describes itself through a single versioned table
     // returned by GFModuleGetApi; the host hands over its own ABI so the
     // module can decline a host it cannot work with, rather than loading and
     // failing on the first mismatched call.
-    //
-    // The ten separately-resolved symbols this replaces could not express
-    // that negotiation at all, and gave the host no place to stand to
-    // withhold a capability. A module that does not export the bootstrap
-    // symbol is rejected here, by name, rather than half-loaded.
-    if (try_bootstrap_api(*module_library_)) return;
-
-    LOG_W() << "rejected module" << module_library_->fileName()
-            << "- missing symbol GFModuleGetApi (built against an older SDK; "
-               "rebuild it)";
-  }
-
-  /**
-   * @brief Resolve and validate the table-based entry point.
-   *
-   * @return true when this module has been fully decided through the table,
-   *         accepted OR rejected; false means only that the module does not
-   *         export GFModuleGetApi.
-   */
-  auto try_bootstrap_api(QLibrary& module_library) -> bool {
     auto* get_api = reinterpret_cast<GFModuleGetApiFn>(
-        module_library.resolve("GFModuleGetApi"));
-    if (get_api == nullptr) return false;
+        module_library_->resolve("GFModuleGetApi"));
+    if (get_api == nullptr) {
+      LOG_W() << "rejected module" << module_library_path_
+              << "- missing symbol GFModuleGetApi (built against an older SDK; "
+                 "rebuild it)";
+      return;
+    }
 
-    // Hand the module OUR abi so it can decline a host it cannot work with,
-    // rather than being loaded and failing later.
     const auto* api = get_api(GF_SDK_ABI_VERSION);
     if (api == nullptr) {
-      LOG_W() << "module" << module_library.fileName()
+      LOG_W() << "module" << module_library_path_
               << "declined this host (host SDK ABI version"
               << GF_SDK_ABI_VERSION << ")";
-      return true;
+      return;
     }
-
-    // struct_size is written by whichever side COMPILED the struct, so a
-    // module built against an older, smaller table is still usable: only the
-    // prefix both sides agree on is read. A table smaller than the fields we
-    // actually touch is not.
-    static constexpr size_t kMinUsableSize =
-        offsetof(GFModuleApi, unregister) + sizeof(void*);
-    if (api->struct_size < kMinUsableSize) {
-      LOG_W() << "rejected module" << module_library.fileName()
-              << "- its module API table is too small:" << api->struct_size
-              << "<" << kMinUsableSize;
-      return true;
-    }
-
-    // The same decision the verifier makes about a manifest's sdk_abi, made
-    // here about what the module's own table reports. Two ranges compared in
-    // two places was how they could come to disagree.
-    if (const auto why = SdkAbiRejection(static_cast<int>(api->abi_version));
-        why) {
-      LOG_W() << "rejected module" << module_library.fileName() << "-" << *why
-              << "; rebuild it against this SDK";
-      return true;
-    }
-
-    identifier_ =
-        QString::fromUtf8(api->module_id == nullptr ? "" : api->module_id);
-    // Kept as bytes so attribution() can hand out a stable C string without
-    // re-encoding on every call into the module.
-    identifier_utf8_ = identifier_.toUtf8();
-    version_ = QString::fromUtf8(api->version == nullptr ? "" : api->version);
-    sdk_abi_ver_ = static_cast<int>(api->abi_version);
-
-    if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
-      LOG_W() << "rejected module" << module_library.fileName()
-              << "- invalid module id:" << identifier_;
-      return true;
-    }
-
-    if (!module_version_regex_exp_.match(version_).hasMatch()) {
-      LOG_W() << "rejected module" << identifier_
-              << "- invalid version:" << version_;
-      return true;
-    }
-
-    api_ = api;
-    good_ = true;
-    return true;
+    adopt(api, module_library_path_);
   }
 
-  [[nodiscard]] auto IsGood() const -> bool { return good_; }
+  Impl(const GFModuleApi* api, QString module_hash)
+      : module_hash_(std::move(module_hash)) {
+    if (api != nullptr) adopt(api, QStringLiteral("<in-process table>"));
+  }
+
+  [[nodiscard]] auto IsGood() const -> bool { return api_ != nullptr; }
 
   /// Every call that hands control to module code is bracketed so that the
   /// handles created while it runs are recorded against it, including ones
@@ -164,215 +97,153 @@ class Module::Impl {
     return ModuleAttributionScope(identifier_utf8_.constData());
   }
 
-  auto Register() -> int {
-    if (!good_) return -1;
-    // A table-based module has no separate register step: whatever it used to
-    // do there belongs in activate(), which is the call that receives the
-    // host api it needs in order to do anything at all.
-    if (api_ != nullptr) return 0;
-    return -1;
-  }
-
   auto Active() -> int {
-    if (!good_) return -1;
     if (api_ == nullptr || api_->activate == nullptr) return -1;
+
+    // The grant is computed from the signed manifest and from nothing the
+    // binary said about itself. Every module the host loads came from a
+    // verified package, so there is always one; a module without it has
+    // nothing a grant could be derived from.
+    if (!manifest_.has_value()) {
+      LOG_W() << "refusing to activate module" << identifier_
+              << ": it has no signed manifest";
+      return -1;
+    }
+    const auto& m = manifest_.value();
 
     // What the host established about this module, handed over so the module
     // does not have to take its own compiled-in constants as authority. Every
-    // pointer below is BORROWED for the duration of this call only: the
-    // backing storage is in this frame, and the module is required to copy
-    // what it keeps before returning.
+    // pointer below is BORROWED for the duration of this call only.
     const auto locale_utf8 = QLocale().name().toUtf8();
-
-    QByteArray version_utf8;
-    QByteArray context_utf8;
-    QList<QByteArray> capability_utf8;
-    QList<QByteArray> event_utf8;
-    QList<QByteArray> command_utf8;
-    QVector<const char*> capabilities;
-    QVector<const char*> events;
-    QVector<const char*> commands;
+    const auto version_utf8 = version_.toUtf8();
+    const auto context_utf8 = m.translation_context.toUtf8();
+    const auto capability_utf8 = Utf8(m.capabilities);
+    const auto event_utf8 = Utf8(m.events);
+    const auto command_utf8 = Utf8(m.commands);
+    const auto capabilities = Pointers(capability_utf8);
+    const auto events = Pointers(event_utf8);
+    const auto commands = Pointers(command_utf8);
 
     GFModuleBootstrapInfo info{};
     info.struct_size = sizeof(GFModuleBootstrapInfo);
     info.abi_version = GF_SDK_ABI_VERSION;
+    info.flags = GF_MODULE_BOOT_VERIFIED;
     info.locale = locale_utf8.constData();
-
-    // Identity always comes from the binary itself, because that is the only
-    // thing that exists for a loose build. What the flag records is whether a
-    // verified manifest AGREED with it -- and by the time this runs, the load
-    // path has already refused the package if it did not.
     info.module_id = identifier_utf8_.constData();
-    version_utf8 = version_.toUtf8();
     info.module_version = version_utf8.constData();
-
-    if (manifest_.has_value()) {
-      const auto& m = manifest_.value();
-      info.flags |= GF_MODULE_BOOT_VERIFIED;
-
-      context_utf8 = m.translation_context.toUtf8();
-      if (!context_utf8.isEmpty()) {
-        info.translation_context = context_utf8.constData();
-      }
-
-      capability_utf8.reserve(m.capabilities.size());
-      for (const auto& c : m.capabilities) capability_utf8.append(c.toUtf8());
-      capabilities.reserve(capability_utf8.size());
-      for (const auto& c : capability_utf8) capabilities.append(c.constData());
-      info.capabilities = capabilities.constData();
-      info.capabilities_size = static_cast<size_t>(capabilities.size());
-
-      event_utf8.reserve(m.events.size());
-      for (const auto& e : m.events) event_utf8.append(e.toUtf8());
-      events.reserve(event_utf8.size());
-      for (const auto& e : event_utf8) events.append(e.constData());
-      info.events = events.constData();
-      info.events_size = static_cast<size_t>(events.size());
-
-      command_utf8.reserve(m.commands.size());
-      for (const auto& c : m.commands) command_utf8.append(c.toUtf8());
-      commands.reserve(command_utf8.size());
-      for (const auto& c : command_utf8) commands.append(c.constData());
-      info.commands = commands.constData();
-      info.commands_size = static_cast<size_t>(commands.size());
+    if (!context_utf8.isEmpty()) {
+      info.translation_context = context_utf8.constData();
     }
+    info.capabilities = capabilities.constData();
+    info.capabilities_size = static_cast<size_t>(capabilities.size());
+    info.events = events.constData();
+    info.events_size = static_cast<size_t>(events.size());
+    info.commands = commands.constData();
+    info.commands_size = static_cast<size_t>(commands.size());
 
-    // What this module is allowed to reach, computed from the SIGNED
-    // manifest and from nothing the binary said about itself.
-    //
-    // An unpackaged module -- a loose development build -- has no manifest and
-    // therefore no declaration, so it is granted nothing beyond the
-    // always-present groups. That is a real tightening over the previous
-    // behavior, where every module reached everything, and it is said out
-    // loud rather than discovered as a puzzling failure.
-    uint32_t granted = 0;
-    if (manifest_.has_value()) {
-      granted = ModuleCapabilityMask(manifest_->capabilities);
-      const auto advisory = AdvisoryDeclarationsOf(manifest_->capabilities);
-      LOG_I() << "module" << identifier_ << "granted host capabilities:"
-              << QString("%1%2").arg(
-                     ModuleCapabilityMaskToString(granted),
-                     advisory.isEmpty()
-                         ? QString()
-                         : QString("; declared but not host-mediated: %1")
-                               .arg(advisory.join(", ")));
-    } else {
-      LOG_W() << "module" << identifier_
-              << "has no signed manifest, so it declares no capabilities and "
-                 "is granted only the always-available groups (buffer, log, "
-                 "app, event, bootstrap, list)";
-    }
+    const auto granted = ModuleCapabilityMask(m.capabilities);
+    const auto advisory = AdvisoryDeclarationsOf(m.capabilities);
+    LOG_I() << "module" << identifier_ << "granted host capabilities:"
+            << QString("%1%2").arg(
+                   ModuleCapabilityMaskToString(granted),
+                   advisory.isEmpty()
+                       ? QString()
+                       : QString("; declared but not host-mediated: %1")
+                             .arg(advisory.join(", ")));
 
     // Refused rather than activated with nothing: a module handed a null host
-    // api could call nothing and could not say why. This cannot happen in a
-    // normal process -- main() installs the bridge before any module loads --
-    // but "cannot happen" is the wrong thing to encode as an unchecked
-    // dereference.
+    // api could call nothing and could not say why.
     const auto* host_api =
         ModuleSdkMintHostApi(identifier_utf8_.constData(), granted);
     if (host_api == nullptr) {
-      LOG_W() << "refusing to activate module" << identifier_utf8_
+      LOG_W() << "refusing to activate module" << identifier_
               << ": the SDK bridge is not installed, so no host API can be "
                  "created for it";
       return -1;
     }
-
     minted_ = true;
 
-    const auto attributed = attribution();
-    // The minted table is never freed, so the module may hold on to it for
-    // its whole life. The bootstrap payload may not: it is only valid for
-    // this call.
-    const auto rc =
-        api_->activate(static_cast<const GFHostApi*>(host_api), &info);
+    // Open before activate(): the module may already register commands and
+    // widgets there, and the host must be able to call them back.
+    ModuleSdkNotifyActivating(identifier_utf8_.constData());
+    gate().Open();
 
-    // A module that refused to activate is not running, so it has no use for
-    // the grant. It lives on after a normal deactivation, because the
-    // module's on_unload hook still calls the SDK.
+    int rc = -1;
+    {
+      const auto attributed = attribution();
+      rc = api_->activate(static_cast<const GFHostApi*>(host_api), &info);
+    }
+
+    // A module that refused to activate is not running: it goes back to
+    // exactly where it started, whatever it registered on the way.
     if (rc != 0) {
-      // A half-activated module may already have registered commands.
-      ModuleSdkNotifyDeactivated(identifier_utf8_.constData());
-      ModuleSdkReleaseHostApi(identifier_utf8_.constData());
-      minted_ = false;
+      withdraw();
+      ReleaseGrant();
     }
     return rc;
   }
 
   auto Exec(const EventReference& event) -> int {
-    if (!good_) return -1;
-    if (api_ != nullptr) {
-      if (api_->execute == nullptr) return -1;
-      const auto attributed = attribution();
-      return api_->execute(event->ToModuleEvent());
-    }
-    return -1;
+    if (api_ == nullptr || api_->execute == nullptr) return -1;
+    const auto attributed = attribution();
+    return api_->execute(event->ToModuleEvent());
   }
 
-  auto Deactivate() -> int {
-    if (!good_) return -1;
-    if (api_ != nullptr) {
-      int rc = 0;
-      if (api_->deactivate != nullptr) {
-        const auto attributed = attribution();
-        rc = api_->deactivate();
-      }
-      // After the module's own hook, never before: that hook may still be
-      // withdrawing things itself. Whatever it left behind goes now.
-      ModuleSdkNotifyDeactivated(identifier_utf8_.constData());
-      return rc;
+  auto Deactivate(bool revoke) -> int {
+    if (api_ == nullptr) return -1;
+
+    // Nothing enters the module from here on, and nothing the host holds for
+    // it can reach it again -- BEFORE its own hook runs, so that hook never
+    // races a host call into the state it is tearing down.
+    const auto drained = withdraw();
+
+    int rc = 0;
+    if (!drained) {
+      LOG_W() << "module" << identifier_
+              << "still has calls inside it; its deactivate hook is skipped "
+                 "and it stays inert behind its closed gate";
+      rc = -1;
+    } else if (api_->deactivate != nullptr) {
+      const auto attributed = attribution();
+      rc = api_->deactivate();
     }
-    return -1;
+
+    if (revoke) ReleaseGrant();
+    return rc;
   }
 
   auto UnRegister() -> int {
-    if (!good_) return -1;
-    if (api_ != nullptr) {
-      // Returns void in the table: final teardown has nothing useful to
-      // report, and a host that is shutting down has nothing to do with a
-      // failure code anyway.
-      const auto attributed = attribution();
-      if (api_->unregister != nullptr) api_->unregister();
-      return 0;
-    }
-    return -1;
+    if (api_ == nullptr) return -1;
+    // Returns void in the table: final teardown has nothing useful to report.
+    const auto attributed = attribution();
+    if (api_->unregister != nullptr) api_->unregister();
+    return 0;
+  }
+
+  void ReleaseGrant() {
+    if (!minted_) return;
+    ModuleSdkReleaseHostApi(identifier_utf8_.constData());
+    minted_ = false;
   }
 
   auto UnloadLibrary() -> bool {
-    if (module_library_ == nullptr) return false;
-
-    // Before the unmap, not after: this table has static storage inside the
-    // image, so keeping it would leave every entry point dangling. Clearing
-    // `good_` too makes every lifecycle call above refuse rather than follow
-    // a pointer into memory that is no longer mapped.
+    // Before the unmap, not after: the table has static storage inside the
+    // image, so keeping it would leave every entry point dangling.
     api_ = nullptr;
-    good_ = false;
+    // Only a gate this instance opened: a package rejected before activation
+    // shares its claimed id with whatever module really owns it.
+    if (minted_) gate().Close();
 
     // The grant dies with the module. A call that somehow arrives afterwards
     // -- from a thread the module failed to stop -- presents a context the
-    // host no longer recognizes and is refused, on whatever thread it is on,
-    // rather than followed into an unmapped image.
-    if (minted_) {
-      ModuleSdkReleaseHostApi(identifier_utf8_.constData());
-      minted_ = false;
-    }
+    // host has revoked and is refused, rather than followed into an unmapped
+    // image.
+    ReleaseGrant();
 
+    if (module_library_ == nullptr) return false;
     const auto unloaded = module_library_->unload();
     module_library_.reset();
     return unloaded;
-  }
-
-  auto GetChannel() -> int { return get_gpc()->GetChannel(m_ptr_); }
-
-  auto GetDefaultChannel() -> int {
-    return GlobalModuleContext::GetDefaultChannel(m_ptr_);
-  }
-
-  auto GetTaskRunner() -> std::optional<TaskRunnerPtr> {
-    return get_gpc()->GetTaskRunner(m_ptr_);
-  }
-
-  auto ListenEvent(EventIdentifier event) -> bool {
-    return get_gpc()->ListenEvent(GetModuleIdentifier(), std::move(event));
   }
 
   [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier {
@@ -419,106 +290,149 @@ class Module::Impl {
 
   [[nodiscard]] auto GetModuleHash() const -> QString { return module_hash_; }
 
-  void SetGPC(GlobalModuleContext* gpc) { gpc_ = gpc; }
-
  private:
-  GlobalModuleContext* gpc_{};
-  Module* m_ptr_;
   ModuleIdentifier identifier_;
+  QByteArray identifier_utf8_;
   ModuleVersion version_;
   ModuleMetaData meta_data_;
   QString module_hash_;
-  QByteArray identifier_utf8_;
 
-  /// Owned, so that teardown has something to unload. It used to be a
-  /// reference to a local in the loader, which meant a successfully loaded
-  /// module stayed mapped for the life of the process because nothing had a
-  /// handle on it any more.
+  /// Owned, so that teardown has something to unload.
   std::unique_ptr<QLibrary> module_library_;
   QString module_library_path_;
 
-  /// The `*.gfmodule` this was verified from, for a packaged module.
+  /// The `*.gfmodule` this was verified from.
   QString source_package_path_;
 
-  /// The signed manifest, for a packaged module. Its presence is what
-  /// "packaged" means -- a loose library has nothing vouching for it.
+  /// The signed manifest. Its presence is what "packaged" means.
   std::optional<ModuleManifest> manifest_;
 
-  QRegularExpression module_identifier_regex_exp_ = QRegularExpression(
-      R"(^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$)");
-  QRegularExpression module_version_regex_exp_ =
-      QRegularExpression(R"(^(\d+\.)?(\d+\.)?(\*|\d+)$)");
-
-  bool good_;
-
-  /// Whether THIS instance minted a grant. A package rejected before
+  /// Whether THIS instance holds a grant. A package rejected before
   /// activation shares its claimed id with whatever module really owns it,
-  /// and unloading it must not revoke that module's grant.
+  /// and dropping it must not revoke that module's grant.
   bool minted_ = false;
 
   int sdk_abi_ver_ = 0;
 
-  /// Non-null when this module described itself through the bootstrap table.
-  /// Borrowed: it has static storage inside the module's own library.
+  /// Non-null once the table was accepted. Borrowed: static storage inside
+  /// the module's own library.
   const GFModuleApi* api_ = nullptr;
 
-  auto get_gpc() -> GlobalModuleContext* {
-    if (gpc_ == nullptr) {
-      throw std::runtime_error(
-          "module is not registered by the module manager");
+  static auto Utf8(const QStringList& list) -> QList<QByteArray> {
+    QList<QByteArray> out;
+    out.reserve(list.size());
+    for (const auto& s : list) out.append(s.toUtf8());
+    return out;
+  }
+
+  static auto Pointers(const QList<QByteArray>& list) -> QVector<const char*> {
+    QVector<const char*> out;
+    out.reserve(list.size());
+    for (const auto& s : list) out.append(s.constData());
+    return out;
+  }
+
+  [[nodiscard]] auto gate() const -> ModuleDispatchGate& {
+    return ModuleEntryGate(identifier_);
+  }
+
+  /**
+   * @brief Stop every host-to-module path and withdraw what the host holds.
+   *
+   * Idempotent. @return false when calls already inside the module did not
+   * finish in time.
+   */
+  auto withdraw() -> bool {
+    gate().Close();
+    ModuleSdkNotifyDeactivated(identifier_utf8_.constData());
+    return gate().WaitQuiescent(kEntryDrainTimeoutMs);
+  }
+
+  /// Validate a module's self-description. Leaves api_ null on refusal.
+  void adopt(const GFModuleApi* api, const QString& source) {
+    // struct_size is written by whichever side COMPILED the struct, so a
+    // module built against an older, smaller table is still usable: only the
+    // prefix both sides agree on is read.
+    static constexpr size_t kMinUsableSize =
+        offsetof(GFModuleApi, unregister) + sizeof(void*);
+    if (api->struct_size < kMinUsableSize) {
+      LOG_W() << "rejected module" << source
+              << "- its module API table is too small:" << api->struct_size
+              << "<" << kMinUsableSize;
+      return;
     }
-    return gpc_;
+
+    // The same decision the verifier makes about a manifest's sdk_abi.
+    if (const auto why = SdkAbiRejection(static_cast<int>(api->abi_version));
+        why) {
+      LOG_W() << "rejected module" << source << "-" << *why
+              << "; rebuild it against this SDK";
+      return;
+    }
+
+    const auto id =
+        QString::fromUtf8(api->module_id == nullptr ? "" : api->module_id);
+    const auto version =
+        QString::fromUtf8(api->version == nullptr ? "" : api->version);
+
+    // The one identity rule, shared with the manifest parser and the
+    // packager, so a binary cannot call itself something a package could
+    // never be signed as.
+    if (!IsValidModuleId(id)) {
+      LOG_W() << "rejected module" << source << "- invalid module id:" << id;
+      return;
+    }
+
+    static const QRegularExpression kVersion(R"(^(\d+\.)?(\d+\.)?(\*|\d+)$)");
+    if (!kVersion.match(version).hasMatch()) {
+      LOG_W() << "rejected module" << id << "- invalid version:" << version;
+      return;
+    }
+
+    identifier_ = id;
+    // Kept as bytes so attribution() can hand out a stable C string without
+    // re-encoding on every call into the module.
+    identifier_utf8_ = id.toUtf8();
+    version_ = version;
+    sdk_abi_ver_ = static_cast<int>(api->abi_version);
+    api_ = api;
   }
 };
 
-Module::Module(ModuleIdentifier id, ModuleVersion version,
-               const ModuleMetaData& meta_data)
-    : p_(SecureCreateUniqueObject<Impl>(this, id, version, meta_data)) {}
-
 Module::Module(std::unique_ptr<QLibrary> module_library, QString module_hash)
-    : p_(SecureCreateUniqueObject<Impl>(this, std::move(module_library),
+    : p_(SecureCreateUniqueObject<Impl>(std::move(module_library),
                                         std::move(module_hash))) {}
+
+Module::Module(const GFModuleApi* api, QString module_hash)
+    : p_(SecureCreateUniqueObject<Impl>(api, std::move(module_hash))) {}
 
 Module::~Module() = default;
 
-auto Module::IsGood() -> bool { return p_->IsGood(); }
-
-auto Module::Register() -> int { return p_->Register(); }
+auto Module::IsGood() const -> bool { return p_->IsGood(); }
 
 auto Module::Active() -> int { return p_->Active(); }
 
-auto Module::Exec(EventReference event) -> int {
-  LOG_D() << "module" << GetModuleIdentifier() << "executing...";
+auto Module::Exec(const EventReference& event) -> int {
   return p_->Exec(event);
 }
 
-auto Module::Deactivate() -> int { return p_->Deactivate(); }
+auto Module::Deactivate(bool revoke) -> int { return p_->Deactivate(revoke); }
 
 auto Module::UnRegister() -> int { return p_->UnRegister(); }
 
+void Module::ReleaseGrant() { p_->ReleaseGrant(); }
+
 auto Module::UnloadLibrary() -> bool { return p_->UnloadLibrary(); }
-
-auto Module::getChannel() -> int { return p_->GetChannel(); }
-
-auto Module::getDefaultChannel() -> int { return p_->GetDefaultChannel(); }
-
-auto Module::getTaskRunner() -> TaskRunnerPtr {
-  return p_->GetTaskRunner().value_or(nullptr);
-}
-
-auto Module::listenEvent(EventIdentifier event) -> bool {
-  return p_->ListenEvent(std::move(event));
-}
 
 auto Module::GetModuleIdentifier() const -> ModuleIdentifier {
   return p_->GetModuleIdentifier();
 }
 
-[[nodiscard]] auto Module::GetModuleVersion() const -> ModuleVersion {
+auto Module::GetModuleVersion() const -> ModuleVersion {
   return p_->GetModuleVersion();
 }
 
-[[nodiscard]] auto Module::GetModuleMetaData() const -> ModuleMetaData {
+auto Module::GetModuleMetaData() const -> ModuleMetaData {
   return p_->GetModuleMetaData();
 }
 
@@ -526,20 +440,15 @@ void Module::SetModuleMetaData(const ModuleMetaData& meta_data) {
   p_->SetModuleMetaData(meta_data);
 }
 
-[[nodiscard]] auto Module::GetModulePath() const -> QString {
-  return p_->GetModulePath();
-}
+auto Module::GetModulePath() const -> QString { return p_->GetModulePath(); }
 
 void Module::SetSourcePackagePath(const QString& path) {
   p_->SetSourcePackagePath(path);
 }
 
-[[nodiscard]] auto Module::IsPackaged() const -> bool {
-  return p_->IsPackaged();
-}
+auto Module::IsPackaged() const -> bool { return p_->IsPackaged(); }
 
-[[nodiscard]] auto Module::GetModuleManifest() const
-    -> std::optional<ModuleManifest> {
+auto Module::GetModuleManifest() const -> std::optional<ModuleManifest> {
   return p_->GetModuleManifest();
 }
 
@@ -547,13 +456,10 @@ void Module::SetModuleManifest(const ModuleManifest& manifest) {
   p_->SetModuleManifest(manifest);
 }
 
-[[nodiscard]] auto Module::GetModuleSDKABIVersion() const -> int {
+auto Module::GetModuleSDKABIVersion() const -> int {
   return p_->GetModuleSDKABIVersion();
 }
 
-[[nodiscard]] auto Module::GetModuleHash() const -> QString {
-  return p_->GetModuleHash();
-}
+auto Module::GetModuleHash() const -> QString { return p_->GetModuleHash(); }
 
-void Module::SetGPC(GlobalModuleContext* gpc) { p_->SetGPC(gpc); }
 }  // namespace GpgFrontend::Module

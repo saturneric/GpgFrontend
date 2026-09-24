@@ -38,31 +38,21 @@ namespace GpgFrontend::Module {
 /**
  * @brief Admission control for calls that enter module code.
  *
- * WHY THIS EXISTS. Until now there was no module teardown at all:
- * ShutdownGpgFrontendModules() was an empty function, UnRegister() had no
- * callers, Deactivate() was only ever reached from the Module Controller
- * dialog, and QLibrary::unload() ran only on the rejection path. Nothing ever
- * waited for in-flight module work, because nothing ever tore a module down.
+ * Two kinds exist. The process-wide gate closes once, when shutdown begins.
+ * Each module also has its own (ModuleEntryGate), open while it is active and
+ * closed from the moment its deactivation begins. A host-to-module call must
+ * pass both; see gf_sdk_internal::EnterModule().
  *
- * That is fine right up until something wants to reclaim a module's
- * resources -- release its outstanding SDK handles, unload its library --
- * because doing either while module code may still be running turns a leak
- * into a use-after-free, which is strictly worse than the leak.
- *
- * So teardown needs two things this class provides:
+ * Teardown needs two things from a gate:
  *
  *   1. a way to STOP admitting new calls, so the set of in-flight calls can
  *      only shrink; and
  *   2. a way to WAIT until the calls already inside have returned.
  *
- * HOW IT IS NOT IMPLEMENTED, and why. The obvious approach -- have the GUI
- * thread post a blocking queued call to the module task runner and wait for
- * it -- deadlocks. The GUI thread can already be inside a nested event loop
- * waiting on the module runner (GpgOperaHelper::WaitForOpera), so a blocking
- * call back the other way closes a cycle. The same reasoning is why
- * UIModuleManager guards its registries with a QReadWriteLock instead of
- * marshalling. A plain counter plus a condition variable has no such
- * dependency on which thread is waiting.
+ * Deliberately a counter and a condition variable rather than a blocking
+ * queued call to the module runner: the GUI thread can already be inside a
+ * nested event loop waiting on that runner (GpgOperaHelper::WaitForOpera), so
+ * a blocking call back the other way would close a cycle.
  */
 class GF_CORE_EXPORT ModuleDispatchGate {
  public:
@@ -78,6 +68,10 @@ class GF_CORE_EXPORT ModuleDispatchGate {
   /// Stop admitting. Calls already inside are unaffected and still Leave().
   void Close();
 
+  /// Admit again. Only a per-module gate reopens -- on reactivation. The
+  /// process-wide gate is closed once, at shutdown, and stays closed.
+  void Open();
+
   [[nodiscard]] auto IsClosed() -> bool;
 
   /// In-flight calls right now. Diagnostic; do not branch on it.
@@ -85,6 +79,10 @@ class GF_CORE_EXPORT ModuleDispatchGate {
 
   /**
    * @brief Wait until no call is inside module code.
+   *
+   * Calls the WAITING thread itself is inside are not waited for: a thread
+   * can only be here while such a call is on its own stack, and waiting for
+   * it would wait forever.
    *
    * @param timeout_ms how long to wait before giving up
    * @return true when it went quiet, false on timeout -- and a timeout is
@@ -133,5 +131,16 @@ constexpr int kModuleUnloadingCode = -1000;
 
 /// The process-wide gate guarding entry into module code.
 auto GF_CORE_EXPORT GlobalModuleDispatchGate() -> ModuleDispatchGate&;
+
+/**
+ * @brief The gate guarding entry into ONE module's code.
+ *
+ * Open while the module is active; closed from the moment its deactivation
+ * begins. Every host-to-module call passes this and the process-wide gate,
+ * so a call queued before a deactivation cannot enter the module after it.
+ * The reference is valid for the life of the process.
+ */
+auto GF_CORE_EXPORT ModuleEntryGate(const QString& module_id)
+    -> ModuleDispatchGate&;
 
 }  // namespace GpgFrontend::Module

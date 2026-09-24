@@ -36,6 +36,7 @@
 #include <cmath>
 
 #include "core/module/ModuleCapability.h"
+#include "core/module/ModuleNamespace.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 namespace GpgFrontend::Module {
@@ -218,6 +219,10 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
   m.schema_version = schema_version;
 
   if (!TakeString(root, "id", m.id, error)) return Malformed(error);
+  if (!IsValidModuleId(m.id)) {
+    return Malformed(
+        QString("the module id \"%1\" is not lower-case and dotted").arg(m.id));
+  }
   if (!TakeString(root, "version", m.version, error)) return Malformed(error);
   if (!TakeInt(root, "sdk_abi", m.sdk_abi, error)) return Malformed(error);
   if (!TakeString(root, "min_host_version", m.min_host_version, error)) {
@@ -314,9 +319,10 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
           return Malformed(
               QString("command id \"%1\" is not lower-case dotted").arg(id));
         }
-        if (!m.id.isEmpty() && !id.startsWith(m.id + ".")) {
+        if (!IsOwnedName(m.id, id)) {
           return Malformed(
-              QString("command id \"%1\" is outside the module's namespace")
+              QString("command id \"%1\" is not the module's id followed by "
+                      "one lower-case name")
                   .arg(id));
         }
         if (m.commands.contains(id)) {

@@ -33,21 +33,16 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleManifest.h"
+#include "core/struct/settings_object/ModuleSO.h"
 #include "core/utils/MemoryUtils.h"
-
-namespace GpgFrontend::Thread {
-class TaskRunner;
-}
 
 namespace GpgFrontend::Module {
 
-using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
-
 class Event;
 class Module;
-class GlobalModuleContext;
 class ModuleManager;
 class GlobalRegisterTable;
 
@@ -102,20 +97,10 @@ struct GF_CORE_EXPORT ModuleProvenance {
   QMap<QString, QString> metadata;
 };
 
-using ModuleMangerPtr = QSharedPointer<ModuleManager>;
-using GMCPtr = QSharedPointer<GlobalModuleContext>;
 using Namespace = QString;
 using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
-/**
- * @brief A module the scan offered, and what preparing it established.
- *
- * Loading happens in two phases, and this is what passes between them. The
- * split is what lets the expensive half run concurrently while the half that
- * maps an image and runs its initialisers stays sequential -- see
- * ModuleManager::PrepareModule().
- */
 /**
  * @brief A module that was found and not loaded, and why.
  *
@@ -152,74 +137,69 @@ struct GF_CORE_EXPORT ModuleRefusalRecord {
   bool pending_user_action = false;
 };
 
+/**
+ * @brief A module the scan offered, and what preparing it established.
+ *
+ * Loading happens in two phases, and this is what passes between them. The
+ * split is what lets the expensive half run concurrently while the half that
+ * maps an image and runs its initialisers stays sequential -- see
+ * ModuleManager::PrepareModule().
+ */
 struct GF_CORE_EXPORT ModuleLoadCandidate {
-  QString source_path;  ///< the `*.gfmodule`, or the loose library
+  QString source_path;  ///< the `*.gfmodule`
 
   /// Which trust boundary this module crossed, decided by the directory it
   /// was found in and never by anything the module says. See
   /// ModuleHostPolicy.h.
   ModuleOrigin origin = ModuleOrigin::kEXTERNAL;
 
-  bool packaged = false;
-
   bool ok = false;  ///< preparation succeeded; phase 2 may proceed
 
-  /// Where phase 2 maps from. For a loose library this is the library itself;
-  /// for a package it is the entry native its descriptor binds, verified and
-  /// resolved inside that module's own namespace.
+  /// Where phase 2 maps from: the entry native the descriptor binds, verified
+  /// and resolved inside that module's own namespace.
   QString library_path;
 
-  /// Set for a package only: the library's name as the signed manifest spells
-  /// it. Taken from the manifest rather than from the path, so identity comes
-  /// from what was signed rather than from what a directory happens to be
-  /// called.
+  /// The library's name as the signed manifest spells it. Taken from the
+  /// manifest rather than from the path, so identity comes from what was signed
+  /// rather than from what a directory happens to be called.
   QString library_name;
 
-  std::optional<ModuleManifest> manifest;  ///< set for a package only
+  std::optional<ModuleManifest> manifest;  ///< always set once @c ok
 
-  /// The digest to record against this module's settings. For a package it is
-  /// the manifest's, already checked against the bytes; for a loose library
-  /// the pre-load inspection computes it.
+  /// The digest to record against this module's settings: the manifest's,
+  /// already checked against the bytes.
   QString module_hash;
+
+  /// The file @c library_path named while phase one verified it. Phase two
+  /// re-checks it immediately before mapping and refuses a changed file.
+  ModuleFileIdentity identity;
 };
 
+/// Told once a requested activation or deactivation has run, on the thread
+/// that asked; @p ok says whether the module ended in the requested state.
+using ModuleTransitionCallback = std::function<void(bool ok)>;
+
 /**
- * @brief Singleton facade over GlobalModuleContext and GlobalRegisterTable.
+ * @brief The module system: the load pipeline, every module's lifecycle
+ *        state, event routing, and the runtime value store.
  *
- * Provides the primary API for loading, registering, activating, and
- * communicating with modules. Also exposes the runtime value store
- * (UpsertRTValue / RetrieveRTValue) and event dispatch (TriggerEvent).
+ * ONE lock guards the module records, the event subscriptions and the
+ * in-flight triggers, so any thread may ask about them. Module code is never
+ * called with it held.
+ *
+ * Module code runs on the module task runner and only there: activation,
+ * deactivation and event delivery are posted to it. A module's lifecycle is
+ * Registered -> Activating -> Active -> Deactivating -> Inactive, with
+ * Failed for an activation that did not succeed; only an Active (or
+ * Activating) module may subscribe, and only an Active one receives events.
  */
 class GF_CORE_EXPORT ModuleManager
     : public SingletonFunctionObject<ModuleManager> {
  public:
-  /**
-   * @brief Construct the manager and create the GlobalModuleContext and
-   * GlobalRegisterTable.
-   *
-   * @param channel singleton channel identifier
-   */
   explicit ModuleManager(int channel);
 
-  virtual ~ModuleManager() override;
+  ~ModuleManager() override;
 
-  /**
-   * @brief Phase one: verify and install, without mapping anything.
-   *
-   * All the expensive work -- reading a package, checking its signature,
-   * extracting it, re-verifying the installed tree -- and none of the
-   * dangerous work. It maps no image and runs no module code, so it is safe
-   * to run for several modules at once and is where the wall-clock win is.
-   *
-   * Safe to call from any thread. It takes an admission ticket, so a
-   * preparation started before teardown is waited for and one started after it
-   * declines.
-   *
-   * @param path the `*.gfmodule` or loose library the scan found
-   * @param origin which namespace it was found in; a trust input, not a
-   * label, and the only thing that can say so
-   * @return what was established; @c ok is false when it was refused
-   */
   /**
    * @brief Everything discovered and not loaded, with reasons.
    *
@@ -228,7 +208,23 @@ class GF_CORE_EXPORT ModuleManager
    */
   auto ListModuleRefusals() -> QList<ModuleRefusalRecord>;
 
-  auto PrepareModule(const QString& path, ModuleOrigin origin)
+  /**
+   * @brief Phase one: verify, without mapping anything.
+   *
+   * All the expensive work -- reading a package, checking its signature,
+   * re-verifying the installed tree -- and none of the dangerous work. It maps
+   * no image and runs no module code, so it is safe to run for several
+   * modules at once.
+   *
+   * @param path the `*.gfmodule` the scan found
+   * @param origin which namespace it was found in; a trust input, not a
+   * label, and the only thing that can say so
+   * @param integrated_ids ids of the integrated modules this scan found; an
+   * external package may not claim one
+   * @return what was established; @c ok is false when it was refused
+   */
+  auto PrepareModule(const QString& path, ModuleOrigin origin,
+                     const QSet<QString>& integrated_ids = {})
       -> ModuleLoadCandidate;
 
   /**
@@ -237,8 +233,7 @@ class GF_CORE_EXPORT ModuleManager
    * Deliberately NOT safe to run concurrently with itself.
    * @c QLibrary::load() runs the module's own static initialisers, which are
    * third-party code whose thread-safety against *other modules'* initialisers
-   * the host is in no position to establish. `dlopen` is thread-safe;
-   * arbitrary static constructors racing each other are not.
+   * the host is in no position to establish.
    *
    * @param candidate a prepared candidate whose @c ok is true
    * @return true if the module was loaded and is valid
@@ -246,156 +241,107 @@ class GF_CORE_EXPORT ModuleManager
   auto LoadPreparedModule(const ModuleLoadCandidate& candidate) -> bool;
 
   /**
-   * @brief Find a registered module by its identifier.
+   * @brief Register a module that is already loaded, then apply its stored
+   *        auto-activation setting.
    *
-   * @param module_id module identifier
-   * @return shared pointer to the module, or nullptr if not found
+   * What a test that builds a Module from a table of its own uses; phase two
+   * does the same for what it loaded. Posted to the module runner. Not
+   * counted towards IsAllModulesRegistered(), which is about the startup
+   * scan alone.
    */
+  void RegisterLoadedModule(ModulePtr module, bool integrated);
+
+  /// Find a registered module; nullptr when there is none.
   auto SearchModule(ModuleIdentifier module_id) -> ModulePtr;
 
-  /**
-   * @brief Set the total number of modules expected to register.
-   *
-   * Used by IsAllModulesRegistered() to determine when startup is complete.
-   *
-   * @param n expected module count
-   */
+  /// How many modules the startup scan will try to register.
   void SetNeedRegisterModulesNum(int n);
 
-  /**
-   * @brief Return the identifiers of all currently registered modules.
-   *
-   * @return list of module identifier strings
-   */
+  /// Every registered module id, sorted.
   auto ListAllRegisteredModuleID() -> QStringList;
 
-  /**
-   * @brief Forget every module, returning what was registered.
-   *
-   * Teardown only; see GlobalModuleContext::TakeAllModules().
-   *
-   * @return the modules that were registered
-   */
+  /// Forget every module, returning what was registered. Teardown only.
   auto TakeAllModules() -> QList<ModulePtr>;
 
-  /**
-   * @brief Register a module with the GlobalModuleContext.
-   *
-   * @param module shared pointer to the module to register
-   */
-  void RegisterModule(ModulePtr module);
-
-  /**
-   * @brief Return true when the number of registered modules equals the
-   * expected count.
-   *
-   * @return true if all expected modules have registered
-   */
+  /// Whether every module the startup scan expected has been registered.
   auto IsAllModulesRegistered() -> bool;
 
-  /**
-   * @brief Return whether the given module is currently active.
-   *
-   * @param module_id module identifier
-   * @return true if active
-   */
+  /// Whether the module is Active.
   auto IsModuleActivated(ModuleIdentifier module_id) -> bool;
 
-  /**
-   * @brief Return whether the given module is a built-in integrated module.
-   *
-   * @param module_id module identifier
-   * @return true if integrated
-   */
+  /// Whether the module came from the integrated namespace.
   auto IsIntegratedModule(ModuleIdentifier module_id) -> bool;
 
   /**
    * @brief Everything established about one module, in one place.
    *
-   * The manager is the only thing that knows all of it: it holds the Module,
-   * and it alone knows whether the module is integrated and whether it is
-   * currently active. Callers that need to describe a module ask for this
-   * rather than assembling the same facts from six accessors -- which is how
-   * two widgets came to answer "is this packaged?" in two different ways.
-   *
-   * @param module_id module identifier
    * @return the facts, or a default-constructed value if there is no such
    *         module (its @c identifier is then empty)
    */
   auto GetModuleProvenance(ModuleIdentifier module_id) -> ModuleProvenance;
 
   /**
-   * @brief Subscribe a module to an event type.
+   * @brief Subscribe a module to an event.
    *
-   * @param module_id identifier of the subscribing module
-   * @param event_id event type identifier
+   * Refused unless the host fires such an event, the module's signed manifest
+   * declares it, and the module is Activating or Active.
+   *
+   * @return whether the subscription was made
    */
-  void ListenEvent(ModuleIdentifier module_id, EventIdentifier event_id);
+  auto ListenEvent(ModuleIdentifier module_id, EventIdentifier event_id)
+      -> bool;
 
   /**
-   * @brief Dispatch an event to all subscribed modules.
+   * @brief Deliver an event to every Active module subscribed to it.
    *
-   * @param event shared pointer to the event to dispatch
+   * Every listener it was delivered to owes exactly one answer, and the
+   * event's callback hears each one. A listener that cannot answer -- it was
+   * deactivated first, it refused, it failed -- is answered FOR, with
+   * `ret` = -1, so a caller waiting on the callback is never left waiting. An
+   * event nobody is subscribed to is answered once in the same way.
    */
   void TriggerEvent(EventReference event);
 
   /**
-   * @brief Look up an in-flight event by its trigger UUID.
+   * @brief A module's answer to an event it was delivered.
    *
-   * @param trigger_id trigger UUID string
-   * @return the matching EventReference, or empty if not found
+   * Refused -- logged and dropped -- unless @p listener was delivered this
+   * trigger and has not answered it yet.
+   *
+   * @return whether the answer was accepted
    */
-  auto SearchEvent(EventTriggerIdentifier trigger_id)
-      -> std::optional<EventReference>;
+  auto AnswerEvent(const EventTriggerIdentifier& trigger_id,
+                   const ModuleIdentifier& listener,
+                   const Event::Params& params) -> bool;
 
-  /**
-   * @brief Return the event identifiers the given module is subscribed to.
-   *
-   * @param module_id module identifier
-   * @return list of subscribed event identifiers
-   */
+  /// Triggers still waiting on at least one answer. Diagnostic.
+  auto PendingTriggerCount() -> int;
+
+  /// The events a module is subscribed to.
   auto GetModuleListening(ModuleIdentifier module_id) -> QStringList;
 
-  /**
-   * @brief Activate a registered module.
-   *
-   * @param module_id module identifier
-   */
-  void ActiveModule(ModuleIdentifier module_id);
+  /// Activate a registered module, on the module runner.
+  void ActiveModule(ModuleIdentifier module_id,
+                    ModuleTransitionCallback done = nullptr);
+
+  /// Deactivate an active module, on the module runner.
+  void DeactivateModule(ModuleIdentifier module_id,
+                        ModuleTransitionCallback done = nullptr);
 
   /**
-   * @brief Deactivate an active module.
+   * @brief Deactivate every Active module, then run every module's final
+   *        unregister hook -- in that order, and on the calling thread.
    *
-   * @param module_id module identifier
+   * Shutdown only. Must run on the module runner, which is what makes it the
+   * only thing entering module code while it runs. Grants are kept: the
+   * unregister hooks still log through them. The caller revokes them after.
+   *
+   * @return the ids of every registered module
    */
-  void DeactivateModule(ModuleIdentifier module_id);
+  auto DeactivateAndUnregisterAllForShutdown() -> QStringList;
 
-  /**
-   * @brief Return the TaskRunner for the given module.
-   *
-   * @param module_id module identifier
-   * @return task runner if the module is registered, or empty
-   */
-  auto GetTaskRunner(ModuleIdentifier module_id)
-      -> std::optional<TaskRunnerPtr>;
-
-  /**
-   * @brief Insert or update a value in the global runtime register table.
-   *
-   * @param ns namespace string
-   * @param key key string
-   * @param value typed value to store
-   * @return true on success
-   */
   auto UpsertRTValue(Namespace ns, Key key, std::any value) -> bool;
 
-  /**
-   * @brief Retrieve a value from the global runtime register table.
-   *
-   * @param ns namespace string
-   * @param key key string
-   * @return the stored value if present, or empty
-   */
   auto RetrieveRTValue(Namespace ns, Key key) -> std::optional<std::any>;
 
   /**
@@ -403,39 +349,18 @@ class GF_CORE_EXPORT ModuleManager
    * register table.
    *
    * @param obj QObject whose lifetime bounds the subscription
-   * @param ns namespace string
-   * @param key key string
-   * @param callback called with (namespace, key, version, value) on each
-   * publish
-   * @return true if the subscription was registered
    */
   auto ListenRTPublish(QObject* obj, Namespace ns, Key key, LPCallback callback)
       -> bool;
 
-  /**
-   * @brief List direct child keys under the given namespace/key node.
-   *
-   * @param ns namespace string
-   * @param key parent key string
-   * @return list of child key strings
-   */
   auto ListRTChildKeys(const QString& ns, const QString& key)
       -> QContainer<Key>;
 
-  /**
-   * @brief Return a raw pointer to the GlobalRegisterTable.
-   *
-   * @return pointer to the register table; never null after construction
-   */
+  /// The register table; never null after construction.
   auto GRT() -> GlobalRegisterTable*;
 
-  /**
-   * @brief Return whether any module is listening for the given event trigger.
-   *
-   * @param trigger_id event trigger identifier
-   * @return true if at least one module is subscribed
-   */
-  auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool;
+  /// Whether at least one Active module is subscribed to @p event_id.
+  auto IsEventListening(const EventIdentifier& event_id) -> bool;
 
  private:
   class Impl;
@@ -443,48 +368,33 @@ class GF_CORE_EXPORT ModuleManager
 };
 
 /**
- * @brief Register a module of type T with the singleton ModuleManager.
- *
- * @tparam T module type (must derive from Module)
- * @tparam Args constructor argument types
- * @param args arguments forwarded to the T constructor
- */
-template <typename T, typename... Args>
-void RegisterModule(Args&&... args) {
-  ModuleManager::GetInstance().RegisterModule(
-      GpgFrontend::SecureCreateSharedObject<T>(std::forward<Args>(args)...));
-}
-
-/**
- * @brief Register and immediately activate a module of type T.
- *
- * @tparam T module type (must derive from Module)
- * @tparam Args constructor argument types
- * @param args arguments forwarded to the T constructor
- */
-template <typename T, typename... Args>
-void RegisterAndActivateModule(Args&&... args) {
-  auto& manager = ModuleManager::GetInstance();
-  auto module =
-      GpgFrontend::SecureCreateSharedObject<T>(std::forward<Args>(args)...);
-  manager.RegisterModule(module);
-  manager.ActiveModule(module->GetModuleIdentifier());
-}
-
-/**
  * @brief Create and dispatch an event via the singleton ModuleManager.
  *
  * @param event_id event type identifier
  * @param params key-value parameters (default: empty)
- * @param e_cb optional callback invoked when the event is handled
+ * @param e_cb optional callback, told of every answer
  */
-template <typename... Args>
-void TriggerEvent(const EventIdentifier& event_id,
-                  const Event::Params& params = {},
-                  Event::EventCallback e_cb = nullptr) {
+inline void TriggerEvent(const EventIdentifier& event_id,
+                         const Event::Params& params = {},
+                         Event::EventCallback e_cb = nullptr) {
   ModuleManager::GetInstance().TriggerEvent(
       MakeEvent(event_id, params, std::move(e_cb)));
 }
+
+/**
+ * @brief Reconcile a module's stored settings with the module now loaded.
+ *
+ * THE policy, used by the loader and by the Module Controller alike. A changed
+ * id or hash means a different build: the stored record is refreshed. What
+ * the user decided explicitly -- whether it activates automatically -- is
+ * kept across a rebuild or an upgrade; only a choice nobody made is reset to
+ * the default, which is on for integrated modules and off otherwise.
+ *
+ * @return the reconciled settings, already stored
+ */
+auto GF_CORE_EXPORT ReconcileModuleSettings(const QString& module_id,
+                                            const QString& module_hash,
+                                            bool integrated) -> ModuleSO;
 
 /**
  * @brief Return the directory that should be searched for a module's own
@@ -525,40 +435,6 @@ auto GF_CORE_EXPORT IsModuleLibraryFileName(const QString& file_name) -> bool;
  */
 auto GF_CORE_EXPORT IsModuleDescriptorFileName(const QString& file_name)
     -> bool;
-
-/**
- * @brief Outcome of inspecting a module library before it is loaded.
- */
-struct GF_CORE_EXPORT ModuleLibraryInspection {
-  bool ok = false;  ///< whether the file may be handed to the loader
-  QString reason;   ///< why it was refused, empty when ok
-  QString hash;     ///< sha-256 of the inspected bytes, empty when refused
-};
-
-/**
- * @brief Inspect a module library before mapping it into the process.
- *
- * QLibrary::load() runs the library's own initializers, so everything that can
- * be decided by looking at the file has to be decided first. This opens the
- * file exactly once and, from that one handle, checks that it is a readable
- * regular file with a module file name and a native executable image header,
- * then hashes it. The hash therefore describes the bytes that were inspected
- * rather than whatever the path happens to point at afterwards.
- *
- * The image header check is a cheap sanity filter, not a trust decision: it
- * rejects obvious non-libraries, it does not tell an honest module from a
- * hostile one.
- *
- * @param module_library_path absolute path of the module library
- * @param known_hash the digest of these bytes, when a caller already has one
- * that was checked against them -- a packaged module's signed manifest carries
- * exactly that, and recomputing it means reading the library twice per start.
- * The value is a settings-invalidation marker, not a security check.
- * @return the inspection outcome, carrying the hash when it passed
- */
-auto GF_CORE_EXPORT InspectModuleLibrary(const QString& module_library_path,
-                                         const QString& known_hash = {})
-    -> ModuleLibraryInspection;
 
 /**
  * @brief Return whether a module with the given identifier is registered.

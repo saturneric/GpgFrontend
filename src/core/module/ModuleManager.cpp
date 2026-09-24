@@ -29,18 +29,20 @@
 #include "ModuleManager.h"
 
 #include <atomic>
+#include <map>
 #include <optional>
+#include <unordered_map>
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
-#include "core/module/GlobalModuleContext.h"
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleEventRegistry.h"
 #include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleNamespace.h"
@@ -120,49 +122,6 @@ auto IsModuleDescriptorFileName(const QString& file_name) -> bool {
   return file_name.endsWith(kModulePackageSuffix, Qt::CaseInsensitive);
 }
 
-auto InspectModuleLibrary(const QString& module_library_path,
-                          const QString& known_hash)
-    -> ModuleLibraryInspection {
-  if (module_library_path.isEmpty()) return {false, "empty module path", {}};
-
-  const QFileInfo info(module_library_path);
-  if (!info.exists() || !info.isFile()) {
-    return {false, "not an existing regular file", {}};
-  }
-  if (!info.isReadable()) return {false, "file is not readable", {}};
-  if (info.size() <= 0) return {false, "file is empty", {}};
-
-  if (!IsModuleLibraryFileName(info.fileName())) {
-    return {false, "file name is not a module library name", {}};
-  }
-
-  // one single open: the header check and the hash both come from this handle,
-  // so the hash describes the bytes that were actually inspected
-  QFile file(info.filePath());
-  if (!file.open(QIODevice::ReadOnly)) {
-    return {false, QString("cannot open file: %1").arg(file.errorString()), {}};
-  }
-
-  if (!HasNativeImageHeader(file.read(8))) {
-    return {false, "file is not a native shared library image", {}};
-  }
-
-  // A packaged module already has this value, from the signed manifest, which
-  // ResolveAndVerifyNativeEntry() checked against those very bytes a moment
-  // ago. Recomputing it here read the whole library a second time to arrive at
-  // an answer that was already known.
-  //
-  // Nothing is given up by trusting it here: this value is not a security
-  // check. It records what was last seen so stale module settings can be
-  // reset, and the security check is the tree verification that produced it.
-  if (!known_hash.isEmpty()) return {true, {}, known_hash};
-
-  auto hash = CalculateBinaryChacksum(file);
-  if (hash.isEmpty()) return {false, "cannot calculate module checksum", {}};
-
-  return {true, {}, hash};
-}
-
 auto ResolveModuleLibrarySearchPath(const QString& module_library_path)
     -> QString {
   if (module_library_path.isEmpty()) return {};
@@ -176,9 +135,7 @@ auto ResolveModuleLibrarySearchPath(const QString& module_library_path)
 
 class ModuleManager::Impl {
  public:
-  Impl()
-      : gmc_(GpgFrontend::SecureCreateUniqueObject<GlobalModuleContext>()),
-        grt_(GpgFrontend::SecureCreateUniqueObject<GlobalRegisterTable>()) {}
+  Impl() : grt_(GpgFrontend::SecureCreateUniqueObject<GlobalRegisterTable>()) {}
 
   ~Impl() = default;
 
@@ -207,13 +164,16 @@ class ModuleManager::Impl {
    * @param[out] library_path the verified path to hand the loader, on success
    * @param[out] manifest what the descriptor says about itself, on success
    * @param[out] module_hash the binding value the descriptor recorded
+   * @param integrated_ids the integrated ids an external package may not claim
    * @param[out] library_name the entry's filename on this platform
+   * @param[out] identity the file the entry named while it was verified
    * @return false when the descriptor or its entry was refused
    */
   auto VerifyAndResolveEntry(ModuleOrigin origin, const QString& package_path,
+                             const QSet<QString>& integrated_ids,
                              QString& library_path, ModuleManifest& manifest,
-                             QString& module_hash, QString& library_name)
-      -> bool {
+                             QString& module_hash, QString& library_name,
+                             ModuleFileIdentity& identity) -> bool {
     // Two verifiers, because the two boundaries are genuinely different and
     // one function full of `if (external)` would make it possible to add a
     // check to the wrong side without noticing. Integrated descriptors are
@@ -228,6 +188,26 @@ class ModuleManager::Impl {
               << ", reason: " << read.reason << " ("
               << ModuleDescriptorStatusToString(read.status) << ")";
       RecordRefusal({package_path, origin, {}, read.reason, {}, false});
+      return false;
+    }
+
+    // An id is owned by one trust origin. Everything keyed by it -- settings,
+    // the secure cache, commands, translations -- would otherwise belong to
+    // whichever package claimed it first, and the scan order is a directory
+    // listing, not a decision. The project's own namespace, and every id an
+    // integrated module actually has, are not an external package's to claim.
+    if (origin == ModuleOrigin::kEXTERNAL &&
+        (IsReservedModuleId(read.manifest.id) ||
+         integrated_ids.contains(read.manifest.id))) {
+      const auto why =
+          QObject::tr(
+              "The module claims the ID %1, which belongs to a module "
+              "that comes with GpgFrontend.")
+              .arg(read.manifest.id);
+      LOG_W() << "module manager refuses external module: " << package_path
+              << ", reason: " << why;
+      RecordRefusal({package_path, origin, read.manifest.id, why,
+                     read.signer_public_key, false});
       return false;
     }
 
@@ -342,28 +322,23 @@ class ModuleManager::Impl {
                       ? read.manifest.entry_native.verification->value
                       : QString();
     library_name = QFileInfo(entry.path).fileName();
+    identity = entry.identity;
     return true;
   }
 
   /**
-   * @brief Phase one: verify and install. Maps nothing, runs no module code.
+   * @brief Phase one: verify. Maps nothing, runs no module code.
    *
-   * Takes an admission ticket like any other work inside the module system, so
-   * a preparation already running when teardown begins is waited for by the
-   * quiesce step, and one starting after it declines.
-   *
-   * This is where the seconds are: verifying and unpacking a package is
-   * expensive, and it used to sit on the module runner where
-   * TaskRunner::Stop()'s three-second wait could time out -- and destroying a
-   * QThread that is still running is fatal. Off that thread, the cost is no
-   * longer a shutdown hazard, and no longer serial.
+   * Takes an admission ticket like any other work inside the module system,
+   * so a preparation already running when teardown begins is waited for, and
+   * one starting after it declines.
    */
-  auto PrepareModule(const QString& path, ModuleOrigin origin)
+  auto PrepareModule(const QString& path, ModuleOrigin origin,
+                     const QSet<QString>& integrated_ids)
       -> ModuleLoadCandidate {
     ModuleLoadCandidate candidate;
     candidate.source_path = path;
     candidate.origin = origin;
-    candidate.packaged = IsModuleDescriptorFileName(QFileInfo(path).fileName());
     candidate.library_path = path;
 
     ModuleDispatchScope admission(GlobalModuleDispatchGate());
@@ -372,34 +347,38 @@ class ModuleManager::Impl {
       return candidate;
     }
 
-    if (candidate.packaged) {
-      QString library_path;
-      ModuleManifest verified;
-      QString module_hash;
-      QString library_name;
-      if (!VerifyAndResolveEntry(origin, path, library_path, verified,
-                                 module_hash, library_name)) {
-        return candidate;
-      }
-      candidate.library_path = library_path;
-      candidate.manifest = verified;
-      candidate.module_hash = module_hash;
-      candidate.library_name = library_name;
+    // A module is a signed package, and nothing else: a native library is
+    // something a verified descriptor names, never something that is found.
+    if (!IsModuleDescriptorFileName(QFileInfo(path).fileName())) {
+      const auto why = QObject::tr("This is not a module package.");
+      LOG_W() << "module manager refuses: " << path << ", reason: " << why;
+      RecordRefusal({path, origin, {}, why, {}, false});
+      return candidate;
     }
 
+    QString library_path;
+    ModuleManifest verified;
+    QString module_hash;
+    QString library_name;
+    ModuleFileIdentity identity;
+    if (!VerifyAndResolveEntry(origin, path, integrated_ids, library_path,
+                               verified, module_hash, library_name, identity)) {
+      return candidate;
+    }
+    candidate.library_path = library_path;
+    candidate.manifest = verified;
+    candidate.module_hash = module_hash;
+    candidate.library_name = library_name;
+    candidate.identity = identity;
     candidate.ok = true;
     return candidate;
   }
 
   auto LoadPreparedModule(const ModuleLoadCandidate& candidate) -> bool {
     // Every refusal below owes the same three things: say why, stop waiting
-    // for this module, and count it. Written out seven times, one copy would
+    // for this module, and count it. Written out each time, one copy would
     // eventually forget one of them -- and a forgotten decrement is a startup
     // that never finishes waiting for registration.
-    //
-    // Deliberately not an RAII guard: the SUCCESS path must not decrement, so
-    // a scope-exit version would have to be disarmed, which is the same
-    // discipline problem wearing a different hat.
     const auto refuse = [this](const QString& why) {
       LOG_W() << "module manager refuses module: " << why;
       DropFromExpectedRegistrations();
@@ -407,7 +386,9 @@ class ModuleManager::Impl {
       return false;
     };
 
-    if (!candidate.ok) return refuse(candidate.source_path);
+    if (!candidate.ok || !candidate.manifest.has_value()) {
+      return refuse(candidate.source_path);
+    }
 
     // Phase two is serial because QLibrary::load() below runs third-party
     // static initializers. This records that it stayed serial, so a later
@@ -415,9 +396,9 @@ class ModuleManager::Impl {
     // quietly -- see ModuleLoadStats::NativeLoadScope.
     ModuleLoadStats::NativeLoadScope native_load;
 
-    const auto& module_library_path = candidate.source_path;
+    const auto& package_path = candidate.source_path;
     const auto& library_path = candidate.library_path;
-    const auto& manifest = candidate.manifest;
+    const auto& manifest = *candidate.manifest;
 
     // Mapping an image is work inside the module system too, so it takes its
     // own ticket -- and shutdown may have begun while phase one was reading a
@@ -428,29 +409,19 @@ class ModuleManager::Impl {
       // Not refuse(): shutdown overtaking a load is routine, not a fault of
       // the module, so it is not worth a warning in the user's log.
       LOG_D() << "module manager abandons a load that shutdown overtook: "
-              << module_library_path;
+              << package_path;
       DropFromExpectedRegistrations();
       ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     }
 
-    // A packaged module was inspected in phase one, against its bytes rather
-    // than against a path -- which is the only place that question can be
-    // answered for an image that never becomes a file. A loose library has no
-    // manifest to inspect, so it is inspected here, where it still can be:
-    // QLibrary::load() below runs the module's own initializers, so everything
-    // decidable without mapping has to be decided before this point.
-    QString module_hash = candidate.module_hash;
-    if (!candidate.packaged) {
-      ModuleLoadStats::GetInstance().AddHashedBytes(
-          QFileInfo(library_path).size());
-
-      const auto inspection = InspectModuleLibrary(library_path);
-      if (!inspection.ok) {
-        return refuse(
-            QString("%1, reason: %2").arg(library_path, inspection.reason));
-      }
-      module_hash = inspection.hash;
+    // Phase one verified these bytes by path, and the loader maps by path.
+    // Between the two the file must still be the one that was hashed: the
+    // external namespace is writable by the user, and a library swapped in
+    // after verification would run with the signed package's identity.
+    if (CaptureModuleFileIdentity(library_path) != candidate.identity) {
+      return refuse(QString("%1, reason: it changed after it was verified")
+                        .arg(library_path));
     }
 
     auto module_library = std::make_unique<QLibrary>(library_path);
@@ -463,141 +434,81 @@ class ModuleManager::Impl {
     }
 
     // Ownership moves into the Module, which is what gives teardown something
-    // to unload. It used to be a local here, so a successfully loaded module
-    // stayed mapped for the whole run with nothing holding a handle on it.
+    // to unload.
     auto module = SecureCreateSharedObject<Module>(std::move(module_library),
-                                                   module_hash);
+                                                   candidate.module_hash);
     if (!module->IsGood()) {
-      // Drop the symbol pointers before the image goes away. The Module owns
-      // the library now, so destroying it is what unloads: a rejected module
-      // does not stay mapped for the whole run.
       module->UnloadLibrary();
-      module.reset();
       return refuse(
           QString("%1, reason: it is not a usable module").arg(library_path));
     }
 
-    if (manifest) {
-      // Runtime identity against signed identity. Without this the signature
-      // covers a name nothing enforces: a package could say it is one module
-      // and carry another, and everything downstream -- settings, activation,
-      // the module list -- would key off the binary's word for it.
-      if (module->GetModuleIdentifier() != manifest->id) {
-        const auto said = module->GetModuleIdentifier();
-        module->UnloadLibrary();
-        module.reset();
-        return refuse(
-            QString("%1, reason: its manifest says %2 and the module inside "
-                    "says %3")
-                .arg(module_library_path, manifest->id, said));
-      }
-
-      // The same argument applies to the version, which until now was signed
-      // and then not looked at. A package saying 1.3.2 while the binary says
-      // something else is a package whose signature covers a claim nothing
-      // checks -- and the version is what an update decision is made on.
-      if (module->GetModuleVersion() != manifest->version) {
-        const auto said = module->GetModuleVersion();
-        module->UnloadLibrary();
-        module.reset();
-        return refuse(
-            QString("%1, reason: its manifest says version %2 and the module "
-                    "inside says %3")
-                .arg(module_library_path, manifest->version, said));
-      }
-
-      // Metadata now comes from the manifest, which is readable without
-      // executing anything.
-      module->SetModuleMetaData(manifest->metadata);
-
-      // What a user can act on is the package, not the descriptor or temporary
-      // file the image happened to arrive through.
-      module->SetSourcePackagePath(module_library_path);
-
-      // Kept so the UI can separate what the host verified from what the
-      // module says about itself.
-      module->SetModuleManifest(*manifest);
+    // Runtime identity against signed identity. Without this the signature
+    // covers a name nothing enforces: a package could say it is one module
+    // and carry another, and everything downstream -- settings, activation,
+    // the module list -- would key off the binary's word for it.
+    if (module->GetModuleIdentifier() != manifest.id) {
+      const auto said = module->GetModuleIdentifier();
+      module->UnloadLibrary();
+      return refuse(QString("%1, reason: its manifest says %2 and the module "
+                            "inside says %3")
+                        .arg(package_path, manifest.id, said));
     }
 
-    // The module takes the image with it. Where an open image can be unlinked
-    // this is also when that happens, so the file stops existing the moment it
-    // has been mapped; where it cannot -- Windows -- the module outliving it is
-    // exactly what keeps the mapping valid.
+    // The same argument applies to the version: it is what an update
+    // decision is made on.
+    if (module->GetModuleVersion() != manifest.version) {
+      const auto said = module->GetModuleVersion();
+      module->UnloadLibrary();
+      return refuse(
+          QString("%1, reason: its manifest says version %2 and the module "
+                  "inside says %3")
+              .arg(package_path, manifest.version, said));
+    }
 
-    module->SetGPC(gmc_.get());
+    module->SetModuleMetaData(manifest.metadata);
+    // What a user can act on is the package, not the file the image arrived
+    // through.
+    module->SetSourcePackagePath(package_path);
+    module->SetModuleManifest(manifest);
+
     ModuleLoadStats::GetInstance().AddLoadedModule();
-
     LOG_D() << "module loaded, awaiting registration: "
-            << QFileInfo(module_library_path).fileName();
+            << QFileInfo(package_path).fileName();
 
-    auto runner = Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
-        Thread::TaskRunnerGetter::kTaskRunnerType_Module);
-
-    runner->PostTask(new Thread::Task(
-        [=](const GpgFrontend::DataObjectPtr&) -> int {
-          // register module
-          if (!gmc_->RegisterModule(
-                  module, candidate.origin == ModuleOrigin::kINTEGRATED)) {
-            return -1;
-          }
-
-          return 0;
-        },
-        __func__, nullptr));
-
-    runner->PostTask(new Thread::Task(
-        [=](const GpgFrontend::DataObjectPtr&) -> int {
-          const auto module_id = module->GetModuleIdentifier();
-          const auto module_hash = module->GetModuleHash();
-
-          SettingsObject so(QString("module.%1.so").arg(module_id));
-          ModuleSO module_so(so);
-
-          // A changed hash resets this module's stored settings rather
-          // than refusing the module. That is right while the hash is only a
-          // record of what was last seen: a developer rebuilding a module
-          // changes it every time, and a rebuilt module is not an attack.
-          //
-          // It stops being right once an installed package's digest is
-          // authoritative -- once there is a store that says which version is
-          // installed, a binary that changed underneath it is a refusal and
-          // not a settings migration. That store does not exist yet, so
-          // neither does the refusal.
-          //
-          // reset module settings if necessary
-          if (module_so.module_id != module_id ||
-              module_so.module_hash != module_hash) {
-            module_so.module_id = module_id;
-            module_so.module_hash = module_hash;
-            // Activate integrated modules automatically by default.
-            module_so.auto_activate =
-                candidate.origin == ModuleOrigin::kINTEGRATED;
-            module_so.set_by_user = false;
-
-            so.Store(module_so.ToJson());
-          }
-
-          // If this module should be activated automatically.
-          if (module_so.auto_activate) {
-            if (!gmc_->ActiveModule(module_id)) {
-              return -1;
-            }
-          }
-
-          return 0;
-        },
-        __func__, nullptr));
-
+    RegisterLoadedModule(module, candidate.origin == ModuleOrigin::kINTEGRATED,
+                         true);
     return true;
   }
 
+  /// @param from_scan whether this is one of the modules the startup scan is
+  ///        counting; only those move IsAllModulesRegistered().
+  void RegisterLoadedModule(const ModulePtr& module, bool integrated,
+                            bool from_scan) {
+    PostToRunner(
+        "module/register", [this, module, integrated, from_scan]() -> int {
+          // Counted once this module is DECIDED -- registered and, if its
+          // settings say so, activated -- whatever the outcome. Startup waits
+          // for this count, and what the UI does next (installing module
+          // translations, building menus from their scripts) needs activation
+          // to have happened, not merely registration.
+          const auto counted = qScopeGuard([this, from_scan]() {
+            if (from_scan) ++registered_modules_;
+          });
+          if (!register_now(module, integrated)) return -1;
+
+          const auto settings =
+              ReconcileModuleSettings(module->GetModuleIdentifier(),
+                                      module->GetModuleHash(), integrated);
+          if (settings.auto_activate &&
+              !activate_now(module->GetModuleIdentifier())) {
+            return -1;
+          }
+          return 0;
+        });
+  }
+
   /// Set once, by whichever thread gets there first.
-  ///
-  /// The read and the write used to be two statements over a plain int, and
-  /// the three accessors below run on three different threads: this one on the
-  /// module runner, DropFromExpectedRegistrations() on the load loop, and
-  /// IsAllModulesRegistered() on whatever thread asks -- including the one
-  /// behind `--module-status`, which every platform's smoke test uses.
   void SetNeedRegisterModulesNum(int n) {
     if (n < 0) return;
     auto unset = -1;
@@ -605,83 +516,204 @@ class ModuleManager::Impl {
   }
 
   auto SearchModule(const ModuleIdentifier& module_id) -> ModulePtr {
-    return gmc_->SearchModule(module_id);
+    const QMutexLocker lock(&mutex_);
+    const auto* rec = find_locked(module_id);
+    return rec == nullptr ? nullptr : rec->module;
   }
 
   auto ListAllRegisteredModuleID() -> QStringList {
-    return gmc_->ListAllRegisteredModuleID();
+    const QMutexLocker lock(&mutex_);
+    QStringList ids;
+    for (const auto& [id, rec] : records_) ids.append(id);
+    ids.sort();
+    return ids;
   }
 
-  auto TakeAllModules() -> QList<ModulePtr> { return gmc_->TakeAllModules(); }
-
-  void RegisterModule(const ModulePtr& module) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-        ->PostTask(new Thread::Task(
-            [=](const GpgFrontend::DataObjectPtr&) -> int {
-              module->SetGPC(gmc_.get());
-              return gmc_->RegisterModule(module, false) ? 0 : -1;
-            },
-            __func__, nullptr));
+  auto TakeAllModules() -> QList<ModulePtr> {
+    const QMutexLocker lock(&mutex_);
+    QList<ModulePtr> modules;
+    for (const auto& [id, rec] : records_) {
+      if (rec.module != nullptr) modules.append(rec.module);
+    }
+    records_.clear();
+    events_.clear();
+    triggers_.clear();
+    return modules;
   }
 
-  void ListenEvent(const ModuleIdentifier& module_id,
-                   const EventIdentifier& event_id) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-        ->PostTask(new Thread::Task(
-            [=](const GpgFrontend::DataObjectPtr&) -> int {
-              gmc_->ListenEvent(module_id, event_id);
-              return 0;
-            },
-            __func__, nullptr));
+  auto IsModuleActivated(const ModuleIdentifier& id) -> bool {
+    const QMutexLocker lock(&mutex_);
+    const auto* rec = find_locked(id);
+    return rec != nullptr && rec->state == State::kACTIVE;
+  }
+
+  auto IsIntegratedModule(const ModuleIdentifier& id) -> bool {
+    const QMutexLocker lock(&mutex_);
+    const auto* rec = find_locked(id);
+    return rec != nullptr && rec->integrated;
+  }
+
+  auto GetModuleListening(const ModuleIdentifier& id) -> QStringList {
+    const QMutexLocker lock(&mutex_);
+    const auto* rec = find_locked(id);
+    return rec == nullptr ? QStringList() : rec->listening;
+  }
+
+  auto ListenEvent(const ModuleIdentifier& module_id,
+                   const EventIdentifier& event) -> bool {
+    // An id the Host never fires is a subscription that can only ever be
+    // silence. Refusing it names the module and the id now.
+    if (!IsKnownModuleEvent(event)) {
+      LOG_W() << "refusing to subscribe module" << module_id << "to event"
+              << event
+              << ": this host fires no such event. See "
+                 "core/module/ModuleEventRegistry.cpp for the catalogue.";
+      return false;
+    }
+
+    const QMutexLocker lock(&mutex_);
+    auto* rec = find_locked(module_id);
+    if (rec == nullptr) {
+      LOG_W() << "module" << module_id << "not found in the register table";
+      return false;
+    }
+    if (rec->state != State::kACTIVATING && rec->state != State::kACTIVE) {
+      LOG_W() << "refusing to subscribe module" << module_id << "to event"
+              << event << ": the module is not active";
+      return false;
+    }
+
+    // THE allowlist check. The module runtime reconciles its handler table
+    // against the manifest too, but that code ships inside the module; this
+    // is where the Host decides for itself.
+    const auto manifest = rec->module->GetModuleManifest();
+    if (!manifest.has_value() || !manifest->events.contains(event)) {
+      LOG_W() << "refusing to subscribe module" << module_id << "to event"
+              << event
+              << ": its signed manifest does not declare it. The declared "
+                 "list is the allowlist -- add the event to module.json and "
+                 "rebuild.";
+      return false;
+    }
+
+    if (rec->listening.contains(event)) return true;
+    rec->listening.append(event);
+    events_[event].insert(module_id);
+    return true;
   }
 
   void TriggerEvent(const EventReference& event) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-        ->PostTask(new Thread::Task(
-            [=](const GpgFrontend::DataObjectPtr&) -> int {
-              gmc_->TriggerEvent(event);
-              return 0;
-            },
-            __func__, nullptr));
+    const auto event_id = event->GetIdentifier();
+    const auto trigger_id = event->GetTriggerIdentifier();
+
+    QList<QPair<ModuleIdentifier, ModulePtr>> targets;
+    {
+      const QMutexLocker lock(&mutex_);
+      const auto it = events_.find(event_id);
+      if (it != events_.end()) {
+        for (const auto& listener : it->second) {
+          const auto* rec = find_locked(listener);
+          if (rec == nullptr || rec->state != State::kACTIVE) continue;
+          targets.append({listener, rec->module});
+        }
+      }
+      if (!targets.isEmpty()) {
+        auto& trigger = triggers_[trigger_id];
+        trigger.event = event;
+        for (const auto& t : targets) trigger.awaiting.insert(t.first);
+      }
+    }
+
+    // Nobody to ask is still an answer: a caller waiting on the callback --
+    // a modal waiting dialog, say -- must hear that no one is coming.
+    if (targets.isEmpty()) {
+      LOG_I() << "event" << event_id << "has no active listeners";
+      event->ExecuteCallback(
+          {}, FailureParams(QStringLiteral("no active module handles this")));
+      return;
+    }
+
+    for (const auto& [listener, module] : targets) {
+      PostToRunner(
+          QString("event/%1/module/exec/%2").arg(event_id, listener),
+          [this, listener = listener, module = module, event,
+           trigger_id]() -> int {
+            // Admission is taken here, in the task, not where the task was
+            // posted: whether module code may run is a question about NOW.
+            ModuleDispatchScope scope(GlobalModuleDispatchGate());
+            if (!scope.Entered()) {
+              FailListener(trigger_id, listener,
+                           QStringLiteral("the host is shutting down"));
+              return kModuleUnloadingCode;
+            }
+            ModuleDispatchScope own(ModuleEntryGate(listener));
+            if (!own.Entered()) {
+              FailListener(trigger_id, listener,
+                           QStringLiteral("the module is not active"));
+              return kModuleUnloadingCode;
+            }
+
+            const auto rc = module->Exec(event);
+            if (rc < 0) {
+              LOG_W() << "module" << listener << "failed to handle event"
+                      << event->GetIdentifier() << "- return code:" << rc;
+              FailListener(trigger_id, listener,
+                           QStringLiteral("the module failed to handle it"));
+            }
+            return rc;
+          });
+    }
   }
 
-  auto SearchEvent(const EventTriggerIdentifier& trigger_id)
-      -> std::optional<EventReference> {
-    return gmc_->SearchEvent(trigger_id);
+  auto AnswerEvent(const EventTriggerIdentifier& trigger_id,
+                   const ModuleIdentifier& listener,
+                   const Event::Params& params) -> bool {
+    auto event = take_answer(trigger_id, listener);
+    if (event == nullptr) {
+      LOG_W() << "refusing an answer from module" << listener << "to trigger"
+              << trigger_id
+              << ": it was not delivered that event, or already answered it";
+      return false;
+    }
+    event->ExecuteCallback(listener, params);
+    return true;
   }
 
-  auto GetModuleListening(const ModuleIdentifier& module_id) -> QStringList {
-    return gmc_->GetModuleListening(module_id);
+  auto PendingTriggerCount() -> int {
+    const QMutexLocker lock(&mutex_);
+    return static_cast<int>(triggers_.size());
   }
 
-  void ActiveModule(const ModuleIdentifier& identifier) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-        ->PostTask(new Thread::Task(
-            [=](const GpgFrontend::DataObjectPtr&) -> int {
-              gmc_->ActiveModule(identifier);
-              return 0;
-            },
-            __func__, nullptr));
+  auto IsEventListening(const EventIdentifier& event_id) -> bool {
+    const QMutexLocker lock(&mutex_);
+    const auto it = events_.find(event_id);
+    return it != events_.end() && !it->second.isEmpty();
   }
 
-  void DeactivateModule(const ModuleIdentifier& identifier) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-        ->PostTask(new Thread::Task(
-            [=](const GpgFrontend::DataObjectPtr&) -> int {
-              gmc_->DeactivateModule(identifier);
-              return 0;
-            },
-            __func__, nullptr));
+  void ActiveModule(const ModuleIdentifier& id,
+                    const ModuleTransitionCallback& done) {
+    PostToRunner(
+        "module/activate/" + id,
+        [this, id]() -> int { return activate_now(id) ? 0 : -1; }, done);
   }
 
-  auto GetTaskRunner(const ModuleIdentifier& module_id)
-      -> std::optional<TaskRunnerPtr> {
-    return gmc_->GetTaskRunner(module_id);
+  void DeactivateModule(const ModuleIdentifier& id,
+                        const ModuleTransitionCallback& done) {
+    PostToRunner(
+        "module/deactivate/" + id,
+        [this, id]() -> int { return deactivate_now(id, true) ? 0 : -1; },
+        done);
+  }
+
+  auto DeactivateAndUnregisterAllForShutdown() -> QStringList {
+    const auto ids = ListAllRegisteredModuleID();
+    for (const auto& id : ids) deactivate_now(id, false);
+    for (const auto& id : ids) {
+      if (auto module = SearchModule(id); module != nullptr) {
+        module->UnRegister();
+      }
+    }
+    return ids;
   }
 
   auto UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
@@ -700,28 +732,14 @@ class ModuleManager::Impl {
     return grt_->ListChildKeys(n, k);
   }
 
-  auto IsModuleActivated(const ModuleIdentifier& id) -> bool {
-    return gmc_->IsModuleActivated(id);
-  }
-
-  auto IsIntegratedModule(const ModuleIdentifier& id) -> bool {
-    return gmc_->IsIntegratedModule(id);
-  }
-
   /// One fewer module the startup scan is still waiting for.
   ///
-  /// Only while startup is still waiting. IsAllModulesRegistered() is the
-  /// equality of this count with the number actually registered, so a module
-  /// refused AFTER startup finished -- loaded ad hoc, or by a test -- would
-  /// otherwise push the target below the count permanently, and the
-  /// "modules are ready" signal would never be true again.
+  /// Only while startup is still waiting: a module refused after startup
+  /// finished would otherwise push the target below the count permanently,
+  /// and the "modules are ready" signal would never be true again.
   void DropFromExpectedRegistrations() {
-    // A compare-exchange loop rather than a test followed by a decrement:
-    // between those two statements the registered count can rise, and the
-    // decrement would then take the target below it -- which is exactly the
-    // permanent "never ready" state the comment above warns about.
     auto current = need_register_modules_.load(std::memory_order_relaxed);
-    while (current > gmc_->GetRegisteredModuleNum()) {
+    while (current > registered_modules_.load()) {
       if (need_register_modules_.compare_exchange_weak(
               current, current - 1, std::memory_order_relaxed)) {
         return;
@@ -729,22 +747,18 @@ class ModuleManager::Impl {
     }
   }
 
-  auto IsAllModulesRegistered() {
+  auto IsAllModulesRegistered() -> bool {
     // Read once. Logging one value and comparing another is how a report says
     // "need 4, registered 4" and still answers false.
     const auto needed = need_register_modules_.load(std::memory_order_relaxed);
     if (needed == -1) return false;
-    const auto registered = gmc_->GetRegisteredModuleNum();
+    const auto registered = registered_modules_.load();
     LOG_D() << "module manager report: needing registration" << needed
             << ", registered" << registered;
     return needed == registered;
   }
 
   auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
-
-  auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool {
-    return gmc_->IsEventListening(trigger_id);
-  }
 
   void RecordRefusal(ModuleRefusalRecord record) {
     const QMutexLocker lock(&refusals_mutex_);
@@ -773,14 +787,205 @@ class ModuleManager::Impl {
   }
 
  private:
-  SecureUniquePtr<GlobalModuleContext> gmc_;
+  enum class State {
+    kREGISTERED,
+    kACTIVATING,
+    kACTIVE,
+    kDEACTIVATING,
+    kINACTIVE,
+    kFAILED,
+  };
+
+  struct ModuleRecord {
+    ModulePtr module;
+    bool integrated = false;
+    State state = State::kREGISTERED;
+    QStringList listening;
+  };
+
+  /// One delivered event and the listeners that still owe it an answer.
+  struct Trigger {
+    EventReference event;
+    QSet<ModuleIdentifier> awaiting;
+  };
+
   SecureUniquePtr<GlobalRegisterTable> grt_;
   std::atomic<int> need_register_modules_ = -1;
+  std::atomic<int> registered_modules_ = 0;
+
+  /// Guards records_, events_ and triggers_. Never held across a call into
+  /// module code or an event callback.
+  QMutex mutex_;
+  std::unordered_map<ModuleIdentifier, ModuleRecord> records_;
+  std::map<EventIdentifier, QSet<ModuleIdentifier>> events_;
+  std::map<EventTriggerIdentifier, Trigger> triggers_;
 
   /// Guards refusals_ alone. Phase one prepares modules concurrently, so
   /// every record below is written from a worker thread and read from the UI.
   QMutex refusals_mutex_;
   QList<ModuleRefusalRecord> refusals_;
+
+  static auto FailureParams(const QString& reason) -> Event::Params {
+    // `err` is what the runtime's own failure answers carry; `error_msg` is
+    // what the key-server callers read. Both, so neither kind of caller has
+    // to know which side answered.
+    return {{QStringLiteral("ret"), GFBuffer(QStringLiteral("-1"))},
+            {QStringLiteral("err"), GFBuffer(reason)},
+            {QStringLiteral("error_msg"), GFBuffer(reason)}};
+  }
+
+  static void PostToRunner(const QString& name, std::function<int()> fn,
+                           const ModuleTransitionCallback& done = nullptr) {
+    auto runner = Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+        Thread::TaskRunnerGetter::kTaskRunnerType_Module);
+    auto runnable = [fn = std::move(fn)](const DataObjectPtr&) -> int {
+      return fn();
+    };
+    if (done) {
+      runner->PostTask(new Thread::Task(
+          runnable, name, nullptr,
+          [done](int rc, const DataObjectPtr&) { done(rc == 0); }));
+    } else {
+      runner->PostTask(new Thread::Task(runnable, name, nullptr));
+    }
+  }
+
+  auto find_locked(const ModuleIdentifier& id) -> ModuleRecord* {
+    const auto it = records_.find(id);
+    return it == records_.end() ? nullptr : &it->second;
+  }
+
+  void drop_listeners_locked(const ModuleIdentifier& id, ModuleRecord& rec) {
+    for (const auto& event_id : rec.listening) {
+      const auto it = events_.find(event_id);
+      if (it == events_.end()) continue;
+      it->second.remove(id);
+      if (it->second.isEmpty()) events_.erase(it);
+    }
+    rec.listening.clear();
+  }
+
+  auto register_now(const ModulePtr& module, bool integrated) -> bool {
+    if (module == nullptr || !module->IsGood()) {
+      LOG_W() << "refusing to register a module that is not usable";
+      return false;
+    }
+    const auto id = module->GetModuleIdentifier();
+    const QMutexLocker lock(&mutex_);
+    if (records_.find(id) != records_.end()) {
+      LOG_W() << "module" << id << "has already been registered";
+      return false;
+    }
+    records_[id] = ModuleRecord{module, integrated, State::kREGISTERED, {}};
+    LOG_D() << "registered module" << id;
+    return true;
+  }
+
+  auto activate_now(const ModuleIdentifier& id) -> bool {
+    ModulePtr module;
+    {
+      const QMutexLocker lock(&mutex_);
+      auto* rec = find_locked(id);
+      if (rec == nullptr) {
+        LOG_W() << "module" << id << "not found in the register table";
+        return false;
+      }
+      if (rec->state == State::kACTIVE) return true;
+      if (rec->state == State::kACTIVATING ||
+          rec->state == State::kDEACTIVATING) {
+        return false;
+      }
+      rec->state = State::kACTIVATING;
+      module = rec->module;
+    }
+
+    LOG_D() << "activating module" << id;
+    const auto rc = module->Active();
+
+    const QMutexLocker lock(&mutex_);
+    auto* rec = find_locked(id);
+    if (rec == nullptr) return false;
+    if (rc == 0) {
+      rec->state = State::kACTIVE;
+      LOG_D() << "activated module" << id;
+      return true;
+    }
+    // Whatever it subscribed to while it tried goes with it.
+    rec->state = State::kFAILED;
+    drop_listeners_locked(id, *rec);
+    LOG_W() << "module" << id << "failed to activate, return code:" << rc;
+    return false;
+  }
+
+  auto deactivate_now(const ModuleIdentifier& id, bool revoke) -> bool {
+    ModulePtr module;
+    {
+      const QMutexLocker lock(&mutex_);
+      auto* rec = find_locked(id);
+      if (rec == nullptr) return false;
+      if (rec->state != State::kACTIVE) {
+        return rec->state != State::kACTIVATING &&
+               rec->state != State::kDEACTIVATING;
+      }
+      rec->state = State::kDEACTIVATING;
+      // No new trigger reaches it from here.
+      drop_listeners_locked(id, *rec);
+      module = rec->module;
+    }
+
+    // Cannot be refused: whatever the module says, it is inactive after this.
+    if (const auto rc = module->Deactivate(revoke); rc != 0) {
+      LOG_W() << "module" << id
+              << "reported a failure while deactivating:" << rc;
+    }
+
+    {
+      const QMutexLocker lock(&mutex_);
+      if (auto* rec = find_locked(id); rec != nullptr) {
+        rec->state = State::kINACTIVE;
+      }
+    }
+
+    // It can no longer answer what it was asked; its askers are told so.
+    fail_awaiting(id, QStringLiteral("the module was deactivated"));
+    return true;
+  }
+
+  /// Claim @p listener's answer to @p trigger_id. Null when it owes none.
+  auto take_answer(const EventTriggerIdentifier& trigger_id,
+                   const ModuleIdentifier& listener) -> EventReference {
+    const QMutexLocker lock(&mutex_);
+    const auto it = triggers_.find(trigger_id);
+    if (it == triggers_.end() || !it->second.awaiting.contains(listener)) {
+      return nullptr;
+    }
+    it->second.awaiting.remove(listener);
+    auto event = it->second.event;
+    // The event, its parameters and its callback go the moment the last
+    // answer is in -- they used to stay for the life of the process.
+    if (it->second.awaiting.isEmpty()) triggers_.erase(it);
+    return event;
+  }
+
+  void FailListener(const EventTriggerIdentifier& trigger_id,
+                    const ModuleIdentifier& listener, const QString& reason) {
+    auto event = take_answer(trigger_id, listener);
+    if (event == nullptr) return;  // already answered
+    event->ExecuteCallback(listener, FailureParams(reason));
+  }
+
+  void fail_awaiting(const ModuleIdentifier& listener, const QString& reason) {
+    QList<EventTriggerIdentifier> owed;
+    {
+      const QMutexLocker lock(&mutex_);
+      for (const auto& [trigger_id, trigger] : triggers_) {
+        if (trigger.awaiting.contains(listener)) owed.append(trigger_id);
+      }
+    }
+    for (const auto& trigger_id : owed) {
+      FailListener(trigger_id, listener, reason);
+    }
+  }
 };
 
 auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
@@ -799,6 +1004,26 @@ auto ListRTChildKeys(const QString& namespace_, const QString& key)
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
+auto ReconcileModuleSettings(const QString& module_id,
+                             const QString& module_hash, bool integrated)
+    -> ModuleSO {
+  SettingsObject so(QString("module.%1.so").arg(module_id));
+  ModuleSO module_so(so);
+
+  // A changed hash is a different build -- a developer's rebuild, or an
+  // upgrade -- and the stored record is refreshed for it. What the user chose
+  // is not the build's to undo: an explicit choice survives, and only a
+  // choice nobody made takes the default.
+  if (module_so.module_id != module_id ||
+      module_so.module_hash != module_hash) {
+    module_so.module_id = module_id;
+    module_so.module_hash = module_hash;
+    if (!module_so.set_by_user) module_so.auto_activate = integrated;
+    so.Store(module_so.ToJson());
+  }
+  return module_so;
+}
+
 ModuleManager::ModuleManager(int channel)
     : SingletonFunctionObject<ModuleManager>(channel),
       p_(SecureCreateUniqueObject<Impl>()) {}
@@ -809,9 +1034,10 @@ auto ModuleManager::ListModuleRefusals() -> QList<ModuleRefusalRecord> {
   return p_->ListRefusals();
 }
 
-auto ModuleManager::PrepareModule(const QString& path, ModuleOrigin origin)
+auto ModuleManager::PrepareModule(const QString& path, ModuleOrigin origin,
+                                  const QSet<QString>& integrated_ids)
     -> ModuleLoadCandidate {
-  return p_->PrepareModule(path, origin);
+  return p_->PrepareModule(path, origin, integrated_ids);
 }
 
 auto ModuleManager::LoadPreparedModule(const ModuleLoadCandidate& candidate)
@@ -819,17 +1045,17 @@ auto ModuleManager::LoadPreparedModule(const ModuleLoadCandidate& candidate)
   return p_->LoadPreparedModule(candidate);
 }
 
+void ModuleManager::RegisterLoadedModule(ModulePtr module, bool integrated) {
+  p_->RegisterLoadedModule(module, integrated, false);
+}
+
 auto ModuleManager::SearchModule(ModuleIdentifier id) -> ModulePtr {
   return p_->SearchModule(id);
 }
 
-void ModuleManager::RegisterModule(ModulePtr module) {
-  p_->RegisterModule(module);
-}
-
-void ModuleManager::ListenEvent(ModuleIdentifier module,
-                                EventIdentifier event) {
-  p_->ListenEvent(module, event);
+auto ModuleManager::ListenEvent(ModuleIdentifier module, EventIdentifier event)
+    -> bool {
+  return p_->ListenEvent(module, event);
 }
 
 auto ModuleManager::GetModuleListening(ModuleIdentifier id) -> QStringList {
@@ -840,20 +1066,28 @@ void ModuleManager::TriggerEvent(EventReference event) {
   p_->TriggerEvent(event);
 }
 
-auto ModuleManager::SearchEvent(EventTriggerIdentifier id)
-    -> std::optional<EventReference> {
-  return p_->SearchEvent(id);
+auto ModuleManager::AnswerEvent(const EventTriggerIdentifier& trigger_id,
+                                const ModuleIdentifier& listener,
+                                const Event::Params& params) -> bool {
+  return p_->AnswerEvent(trigger_id, listener, params);
 }
 
-void ModuleManager::ActiveModule(ModuleIdentifier id) { p_->ActiveModule(id); }
-
-void ModuleManager::DeactivateModule(ModuleIdentifier id) {
-  p_->DeactivateModule(id);
+auto ModuleManager::PendingTriggerCount() -> int {
+  return p_->PendingTriggerCount();
 }
 
-auto ModuleManager::GetTaskRunner(ModuleIdentifier id)
-    -> std::optional<TaskRunnerPtr> {
-  return p_->GetTaskRunner(id);
+void ModuleManager::ActiveModule(ModuleIdentifier id,
+                                 ModuleTransitionCallback done) {
+  p_->ActiveModule(id, done);
+}
+
+void ModuleManager::DeactivateModule(ModuleIdentifier id,
+                                     ModuleTransitionCallback done) {
+  p_->DeactivateModule(id, done);
+}
+
+auto ModuleManager::DeactivateAndUnregisterAllForShutdown() -> QStringList {
+  return p_->DeactivateAndUnregisterAllForShutdown();
 }
 
 auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
@@ -894,12 +1128,7 @@ auto ModuleManager::GetModuleProvenance(ModuleIdentifier id)
   p.version = module->GetModuleVersion();
   p.integrated = p_->IsIntegratedModule(id);
   p.activated = p_->IsModuleActivated(id);
-
-  // Asked once, of the module, and recorded. Two widgets used to answer this
-  // separately -- one via IsPackaged(), one by testing whether a manifest was
-  // present -- which are the same answer only for as long as nothing changes.
   p.packaged = module->IsPackaged();
-
   // The descriptor it was verified from, which is the file a person can point
   // at -- not the native inside its namespace.
   p.source_package_path = module->GetModulePath();
@@ -907,7 +1136,6 @@ auto ModuleManager::GetModuleProvenance(ModuleIdentifier id)
   p.sdk_abi = module->GetModuleSDKABIVersion();
   p.hash = module->GetModuleHash();
   p.metadata = module->GetModuleMetaData();
-
   return p;
 }
 
@@ -917,7 +1145,7 @@ auto ModuleManager::ListAllRegisteredModuleID() -> QStringList {
 
 auto ModuleManager::TakeAllModules() -> QList<ModulePtr> {
   return p_->TakeAllModules();
-};
+}
 
 auto ModuleManager::GRT() -> GlobalRegisterTable* { return p_->GRT(); }
 
@@ -929,12 +1157,12 @@ void ModuleManager::SetNeedRegisterModulesNum(int n) {
   p_->SetNeedRegisterModulesNum(n);
 }
 
-auto ModuleManager::IsEventListening(const EventTriggerIdentifier& trigger_id)
-    -> bool {
-  return p_->IsEventListening(trigger_id);
+auto ModuleManager::IsEventListening(const EventIdentifier& event_id) -> bool {
+  return p_->IsEventListening(event_id);
 }
 
 auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool {
   return ModuleManager::GetInstance().IsEventListening(trigger_id);
 }
+
 }  // namespace GpgFrontend::Module

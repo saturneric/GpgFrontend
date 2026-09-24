@@ -164,6 +164,32 @@ auto GF_CORE_EXPORT ModuleEntryStatusToString(ModuleEntryStatus status) -> const
     char*;
 
 /// What resolving and verifying a descriptor's entry native concluded.
+/**
+ * @brief Which file a path named when it was looked at.
+ *
+ * The library is verified by path in one phase and handed to the loader by
+ * path in another, seconds later. This is what lets the second phase notice
+ * that the path no longer names the bytes the first one checked.
+ */
+struct GF_CORE_EXPORT ModuleFileIdentity {
+  qint64 size = -1;
+  qint64 modified_ms = -1;
+  quint64 file_id = 0;  ///< inode, or 0 where the platform has none to offer
+
+  [[nodiscard]] auto IsValid() const -> bool { return size >= 0; }
+  auto operator==(const ModuleFileIdentity& o) const -> bool {
+    return size == o.size && modified_ms == o.modified_ms &&
+           file_id == o.file_id;
+  }
+  auto operator!=(const ModuleFileIdentity& o) const -> bool {
+    return !(*this == o);
+  }
+};
+
+/// The identity of @p path right now; invalid when it cannot be read.
+auto GF_CORE_EXPORT CaptureModuleFileIdentity(const QString& path)
+    -> ModuleFileIdentity;
+
 struct GF_CORE_EXPORT VerifiedNativeEntry {
   bool ok = false;
   ModuleEntryStatus status = ModuleEntryStatus::kOK;
@@ -171,6 +197,10 @@ struct GF_CORE_EXPORT VerifiedNativeEntry {
 
   /// Absolute, verified, and safe to hand a loader. Empty unless @c ok.
   QString path;
+
+  /// The file @c path named while it was verified. The loader re-checks it
+  /// immediately before mapping, and refuses a file that changed.
+  ModuleFileIdentity identity;
 };
 
 /**

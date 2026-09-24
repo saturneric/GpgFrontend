@@ -30,6 +30,8 @@
 
 #include <QDir>
 #include <atomic>
+#include <chrono>
+#include <future>
 #include <thread>
 #include <vector>
 
@@ -48,9 +50,8 @@ using GpgFrontend::Module::ModuleOrigin;
 
 namespace {
 
-auto SearchModuleFromPath(const QString& mods_path, ModuleOrigin origin)
-    -> QMap<QString, ModuleOrigin> {
-  QMap<QString, ModuleOrigin> modules;
+auto SearchModuleFromPath(const QString& mods_path) -> QStringList {
+  QStringList modules;
 
   QDir dir(mods_path);
   if (!dir.exists()) return modules;
@@ -81,13 +82,13 @@ auto SearchModuleFromPath(const QString& mods_path, ModuleOrigin origin)
     // right one for the identity inside is a question only the verified
     // manifest can answer, so it is asked later, by the manager.
     if (!descriptor.isFile()) continue;
-    modules.insert(descriptor.absoluteFilePath(), origin);
+    modules.append(descriptor.absoluteFilePath());
   }
 
   return modules;
 }
 
-auto LoadIntegratedMods() -> QMap<QString, ModuleOrigin> {
+auto LoadIntegratedMods() -> QStringList {
   const auto module_path = GpgFrontend::GlobalSettingStation::GetInstance()
                                .GetIntegratedModulePath();
   LOG_I() << "loading integrated modules from path:" << module_path;
@@ -98,10 +99,10 @@ auto LoadIntegratedMods() -> QMap<QString, ModuleOrigin> {
     return {};
   }
 
-  return SearchModuleFromPath(module_path, ModuleOrigin::kINTEGRATED);
+  return SearchModuleFromPath(module_path);
 }
 
-auto LoadExternalMods() -> QMap<QString, ModuleOrigin> {
+auto LoadExternalMods() -> QStringList {
   auto mods_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
@@ -111,7 +112,7 @@ auto LoadExternalMods() -> QMap<QString, ModuleOrigin> {
     return {};
   }
 
-  return SearchModuleFromPath(mods_path, ModuleOrigin::kEXTERNAL);
+  return SearchModuleFromPath(mods_path);
 }
 
 /**
@@ -126,14 +127,10 @@ auto LoadExternalMods() -> QMap<QString, ModuleOrigin> {
  * run to run is a build that is harder to reason about.
  */
 auto PrepareModulesConcurrently(GpgFrontend::Module::ModuleManager& manager,
-                                const QMap<QString, ModuleOrigin>& modules)
+                                const QStringList& discovered,
+                                ModuleOrigin origin,
+                                const QSet<QString>& integrated_ids)
     -> QList<GpgFrontend::Module::ModuleLoadCandidate> {
-  QList<QPair<QString, ModuleOrigin>> discovered;
-  discovered.reserve(modules.size());
-  for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd(); ++it) {
-    discovered.append({it->first, it->second});
-  }
-
   QList<GpgFrontend::Module::ModuleLoadCandidate> prepared;
   prepared.resize(discovered.size());
   if (discovered.isEmpty()) return prepared;
@@ -151,8 +148,8 @@ auto PrepareModulesConcurrently(GpgFrontend::Module::ModuleManager& manager,
       while (true) {
         const auto i = next.fetch_add(1);
         if (i >= discovered.size()) return;
-        prepared[i] = manager.PrepareModule(discovered.at(i).first,
-                                            discovered.at(i).second);
+        prepared[i] =
+            manager.PrepareModule(discovered.at(i), origin, integrated_ids);
       }
     });
   }
@@ -189,6 +186,25 @@ auto ModuleLoadingPolicyKey(ModuleLoadingPolicy policy) -> QString {
   return "only_integrated";
 }
 
+namespace {
+
+/// The startup scan: discovery and phase one. Its own thread, never the
+/// module runner, so the runner is free to be stopped while packages are
+/// still being verified; joined by ShutdownGpgFrontendModules(). Detached,
+/// rather than std::terminate()d, if the process ends without that.
+struct ScanThread {
+  std::thread thread;
+  ScanThread() = default;
+  ScanThread(const ScanThread&) = delete;
+  auto operator=(const ScanThread&) -> ScanThread& = delete;
+  ~ScanThread() {
+    if (thread.joinable()) thread.detach();
+  }
+};
+ScanThread g_scan;  // NOLINT(cert-err58-cpp)
+
+}  // namespace
+
 void LoadGpgFrontendModules(ModuleInitArgs) {
   const auto stored =
       GetSettings()
@@ -218,86 +234,90 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
     return;
   }
 
-  // Must be initialized on the default thread before the core.
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-      ->PostTask(new Thread::Task(
-          [policy](const DataObjectPtr&) -> int {
-            ModuleLoadStats::GetInstance().Begin();
-            auto& progress = CoreInitProgress::GetInstance();
-            progress.Report(CoreInitStage::kMODULES, 0.0,
-                            CoreInitStep::kSCANNING_MODULES);
+  if (g_scan.thread.joinable()) return;  // one scan per process
 
-            QMap<QString, ModuleOrigin> modules = LoadIntegratedMods();
+  g_scan.thread = std::thread([policy]() {
+    ModuleLoadStats::GetInstance().Begin();
+    auto& progress = CoreInitProgress::GetInstance();
+    progress.Report(CoreInitStage::kMODULES, 0.0,
+                    CoreInitStep::kSCANNING_MODULES);
 
-            // If the user allows modules they added, scan for those too.
-            if (policy == ModuleLoadingPolicy::kALL) {
-              LOG_I() << "also loading external modules, because the settings "
-                         "allow modules the user has added";
-              modules.insert(LoadExternalMods());
-            }
+    auto& manager = ModuleManager::GetInstance();
 
-            auto& manager = ModuleManager::GetInstance();
+    // PHASE ONE, concurrent: verify. This maps no image and runs no module
+    // code, so several can run at once -- and it is essentially the whole
+    // cost of loading.
+    //
+    // Integrated first, and apart: an external package may not claim an id
+    // an integrated module has, so the integrated ids have to be known
+    // before any external descriptor is judged -- and the order modules load
+    // in must not depend on how directories happen to sort.
+    progress.Report(CoreInitStage::kMODULES, 0.1,
+                    CoreInitStep::kVERIFYING_MODULES);
+    auto prepared = PrepareModulesConcurrently(manager, LoadIntegratedMods(),
+                                               ModuleOrigin::kINTEGRATED, {});
 
-            // PHASE ONE, concurrent: verify and install. This maps no image
-            // and runs no module code, so several can run at once -- and it
-            // is essentially the whole cost of loading.
-            progress.Report(CoreInitStage::kMODULES, 0.1,
-                            CoreInitStep::kVERIFYING_MODULES);
-            auto prepared = PrepareModulesConcurrently(manager, modules);
+    if (policy == ModuleLoadingPolicy::kALL) {
+      LOG_I() << "also loading external modules, because the settings "
+                 "allow modules the user has added";
+      QSet<QString> integrated_ids;
+      for (const auto& c : prepared) {
+        if (c.ok && c.manifest.has_value())
+          integrated_ids.insert(c.manifest->id);
+      }
+      prepared.append(PrepareModulesConcurrently(manager, LoadExternalMods(),
+                                                 ModuleOrigin::kEXTERNAL,
+                                                 integrated_ids));
+    }
 
-            // Every prepared candidate is a verified descriptor, so
-            // there is nothing left to reconcile: a loose library is no
-            // longer a candidate, it is a referent.
-            auto to_load = prepared;
+    // The number the manager waits for is the number that will actually be
+    // attempted.
+    manager.SetNeedRegisterModulesNum(static_cast<int>(prepared.size()));
 
-            // The number the manager waits for is the number that will
-            // actually be attempted.
-            manager.SetNeedRegisterModulesNum(static_cast<int>(to_load.size()));
-
-            // PHASE TWO, sequential: map each library and register it.
-            // QLibrary::load() runs the module's own static initializers, and
-            // the host cannot establish that one module's are safe against
-            // another's -- so this half stays one at a time, on purpose.
-            // Phase one is the hashing and so most of the cost, which is why
-            // it is worth the larger share of this track. The rest is spent
-            // naming modules as they register -- the part of a start a user
-            // can actually recognize.
-            const auto to_load_count = static_cast<double>(to_load.size());
-            auto loaded = 0;
-            for (const auto& candidate : to_load) {
-              // library_name is a package's manifest name and is empty for a
-              // loose library, which still has a filename worth showing.
-              progress.Report(CoreInitStage::kMODULES,
-                              0.7 + 0.3 * (loaded / to_load_count),
-                              CoreInitStep::kLOADING_MODULE,
-                              candidate.library_name.isEmpty()
-                                  ? QFileInfo(candidate.source_path).fileName()
-                                  : candidate.library_name);
-              manager.LoadPreparedModule(candidate);
-              ++loaded;
-            }
-
-            // Freeze the figures before anything else in the process can
-            // add to them, so what startup cost stays answerable afterwards.
-            ModuleLoadStats::GetInstance().Finish();
-            progress.MarkStageDone(CoreInitStage::kMODULES,
-                                   CoreInitStep::kLOADING_MODULE);
-
-            // Stated rather than left to be inferred from the gap between
-            // two log lines, which is how it went wrong twice.
-            LOG_I() << "module loading finished:"
-                    << ModuleLoadStats::GetInstance().Summary();
-            return 0;
+    // PHASE TWO, sequential: map each library and register it, one task per
+    // module on the module runner. QLibrary::load() runs the module's own
+    // static initializers, and the host cannot establish that one module's
+    // are safe against another's -- the runner is one thread, so they stay
+    // one at a time, and it is never blocked for longer than one load.
+    const auto total = static_cast<double>(prepared.size());
+    auto runner = Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+        Thread::TaskRunnerGetter::kTaskRunnerType_Module);
+    for (qsizetype i = 0; i < prepared.size(); ++i) {
+      const auto candidate = prepared.at(i);
+      runner->PostTask(new Thread::Task(
+          [candidate, i, total](const DataObjectPtr&) -> int {
+            // library_name is the package's manifest name; the descriptor
+            // file name is shown when it has none.
+            CoreInitProgress::GetInstance().Report(
+                CoreInitStage::kMODULES, 0.7 + 0.3 * (i / total),
+                CoreInitStep::kLOADING_MODULE,
+                candidate.library_name.isEmpty()
+                    ? QFileInfo(candidate.source_path).fileName()
+                    : candidate.library_name);
+            return ModuleManager::GetInstance().LoadPreparedModule(candidate)
+                       ? 0
+                       : -1;
           },
-          "modules_system_init_task"));
+          QString("module/load/%1").arg(i)));
+    }
 
-  LOG_D() << "all modules registered:"
-          << ModuleManager::GetInstance().IsAllModulesRegistered();
+    runner->PostTask(new Thread::Task(
+        [](const DataObjectPtr&) -> int {
+          // Freeze the figures before anything else in the process can add
+          // to them, so what startup cost stays answerable afterwards.
+          ModuleLoadStats::GetInstance().Finish();
+          CoreInitProgress::GetInstance().MarkStageDone(
+              CoreInitStage::kMODULES, CoreInitStep::kLOADING_MODULE);
+          LOG_I() << "module loading finished:"
+                  << ModuleLoadStats::GetInstance().Summary();
+          return 0;
+        },
+        "module/load/finished"));
+  });
 }
 
 /**
- * @brief Whether step 6 actually unmaps the libraries.
+ * @brief Whether step 5 actually unmaps the libraries.
  *
  * Off, on evidence rather than on caution. With it on, roughly one run in four
  * died under ASan in `QArrayDataPointer<char16_t>::data()` -- a QString whose
@@ -306,48 +326,55 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
  * outlives the module (an event id, a registry key, a translation) dangles the
  * moment the image is unmapped, and the crash lands far from the cause.
  *
- * Nothing is gained by unmapping at process exit: the process is ending. What
- * unloading is *for* is replacing a module without restarting, and that needs
- * the host to own every string that came from a module, which is a larger
- * piece of work than the ordering here. Everything that makes it possible is
- * in place -- the Module owns its library, the registries let go first, and
- * this is the right point in the sequence -- so it is one constant away when
- * that work is done.
+ * Nothing is gained by unmapping at process exit: the process is ending, and
+ * replacing a module without restarting is not something this host does.
  */
 constexpr bool kUnloadLibrariesAtShutdown = false;
 
 void ShutdownGpgFrontendModules() {
   // The ordering here is the contract, and every step exists because skipping
-  // it turns a tidy shutdown into a use-after-free. This function used to be
-  // empty: nothing was deactivated, nothing was unregistered, no library was
-  // ever unloaded, and nothing waited for module work to finish.
+  // it turns a tidy shutdown into a use-after-free.
   auto& manager = ModuleManager::GetInstance();
   auto& gate = GlobalModuleDispatchGate();
 
-  // 1. STOP NEW CALLS. From here the set of in-flight calls can only shrink.
-  //    An event that arrives after this point is refused with
-  //    kModuleUnloadingCode rather than being queued into a module that is
-  //    about to go away.
+  // 1. STOP NEW CALLS. From here the set of in-flight calls can only shrink,
+  //    and a scan still verifying packages stops offering them.
   gate.Close();
+  if (g_scan.thread.joinable()) g_scan.thread.join();
 
-  // 2. DEACTIVATE. Gives each module its chance to cancel its own in-flight
-  //    work and drop the registrations it owns (settings pages, tab pages),
-  //    which is why it runs before the wait rather than after it.
-  const auto module_ids = manager.ListAllRegisteredModuleID();
-  for (const auto& module_id : module_ids) {
-    if (!manager.IsModuleActivated(module_id)) continue;
-    manager.DeactivateModule(module_id);
+  // 2. DEACTIVATE, THEN UNREGISTER -- every module, in that order, as ONE
+  //    task on the module runner. On the runner because that is the only
+  //    thread module lifecycle code runs on; as one task because each module's
+  //    unregister hook must run after its deactivate hook has returned, never
+  //    beside it. Waited for with a bound: the event loop is gone, so there is
+  //    no nested loop this wait could deadlock against, but a module stuck in
+  //    a blocking call could still hold the runner forever.
+  constexpr int kLifecycleTimeoutMs = 5000;
+  auto done = std::make_shared<std::promise<QStringList>>();
+  auto finished = done->get_future();
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
+      ->PostTask(new Thread::Task(
+          [done](const DataObjectPtr&) -> int {
+            done->set_value(ModuleManager::GetInstance()
+                                .DeactivateAndUnregisterAllForShutdown());
+            return 0;
+          },
+          "module/shutdown"));
+  if (finished.wait_for(std::chrono::milliseconds(kLifecycleTimeoutMs)) !=
+      std::future_status::ready) {
+    LOG_W() << "module lifecycle hooks did not finish within"
+            << kLifecycleTimeoutMs
+            << "ms. Skipping teardown rather than freeing resources module "
+               "code may still be using.";
+    return;
   }
+  const auto module_ids = finished.get();
 
-  // 3. QUIESCE. The step that did not exist. Without it, everything below
-  //    races module code that is still running: unregistering state it is
-  //    using, reclaiming handles it still holds, unmapping the code itself.
-  //
-  //    A timeout is REPORTED, not swallowed. Continuing to tear down after
-  //    one would be exactly the hazard this ordering exists to prevent, so
-  //    the later steps are skipped and the modules are left mapped -- leaking
-  //    on the way out of a process that is exiting anyway is strictly better
-  //    than freeing memory somebody is still reading.
+  // 3. QUIESCE. Anything still inside module code through another thread --
+  //    a GUI-thread widget call, a command -- finishes before anything below
+  //    frees what it may be using. A timeout is REPORTED, and the remaining
+  //    steps are skipped.
   constexpr int kQuiesceTimeoutMs = 5000;
   if (!gate.WaitQuiescent(kQuiesceTimeoutMs)) {
     LOG_W() << "module system did not go quiet within" << kQuiesceTimeoutMs
@@ -357,30 +384,19 @@ void ShutdownGpgFrontendModules() {
     return;
   }
 
-  // 4. DESTROY MODULE-OWNED STATE. Only now is it safe: no module code runs.
-  for (const auto& module_id : module_ids) {
-    auto module = manager.SearchModule(module_id);
-    if (module == nullptr) continue;
-    module->UnRegister();
-  }
-
-  // 5. REVOKE, THEN SWEEP OUTSTANDING SDK HANDLES. The dispatch gate only
-  //    sees calls the host made INTO a module; a thread the module started
-  //    itself can still be calling the host. Revoking the grant refuses its
-  //    next call, and waiting for the SDK to go idle lets the one already
-  //    past the gate finish. Only then is the ledger authoritative: anything
-  //    a module still holds is leaked rather than in use. Each handle is
-  //    logged against the module and the entry point that issued it, then
-  //    wiped and freed -- for a secret, that means it stops living in the
-  //    heap rather than merely being unreachable.
-  //
-  //    A module whose calls do not finish in time keeps its handles: leaking
-  //    them at exit is better than freeing memory a call is still reading.
+  // 4. REVOKE, THEN SWEEP OUTSTANDING SDK HANDLES. The gates only see calls
+  //    the host made INTO a module; a thread the module started itself can
+  //    still be calling the host. Revoking the grant refuses its next call,
+  //    and waiting for the SDK to go idle lets the one already past the gate
+  //    finish. Only then is the ledger authoritative: anything a module still
+  //    holds is leaked rather than in use, and is wiped and freed.
   constexpr int kSdkIdleTimeoutMs = 2000;
   size_t swept = 0;
   for (const auto& module_id : module_ids) {
+    if (auto module = manager.SearchModule(module_id); module != nullptr) {
+      module->ReleaseGrant();
+    }
     const auto id = module_id.toUtf8();
-    ModuleSdkReleaseHostApi(id.constData());
     if (!ModuleSdkWaitHostApiIdle(id.constData(), kSdkIdleTimeoutMs)) {
       LOG_W() << "module" << module_id << "is still inside an SDK call after"
               << kSdkIdleTimeoutMs << "ms; its handles are not reclaimed";
@@ -389,36 +405,10 @@ void ShutdownGpgFrontendModules() {
     swept += ModuleSdkSweepHandles(id.constData());
   }
 
-  // 6. UNLOAD THE LIBRARIES -- last, so that no module code is unmapped while
-  //    a thread could still be inside it, which is what steps 1 to 3
-  //    established and the only reason this point is safe at all.
-  //
-  //    Gated off; see kUnloadLibrariesAtShutdown for the measurement that
-  //    decided it. The registries still let go here, which is the half that
-  //    matters at shutdown: nothing can route an event into a module any more.
-  //
-  //    The registries let go first. Their ModulePtr is what an event would be
-  //    routed through, so dropping it is what makes "nothing can call into
-  //    this module" true rather than merely likely; unloading before that
-  //    would leave the routing table pointing into unmapped code.
-  //
-  //    Unloading is asked of each module rather than inferred from a refcount
-  //    reaching zero: other holders may still have a reference, and a module
-  //    that has been unloaded is inert rather than dangling -- it drops its
-  //    own function table and refuses every later call.
-  //    Taking the modules out of the registries is part of unloading, so it
-  //    happens only when unloading does. It is not free: this runs on the
-  //    calling thread while step 2's deactivations were POSTED to the module
-  //    runner, so clearing the register table here races a queued deactivation
-  //    still reading it -- observed once in sixteen runs under ASan as a
-  //    double free of a ModuleRegisterInfo, on the module runner, inside
-  //    GlobalModuleContext::DeactivateModule.
-  //
-  //    Doing it unconditionally bought nothing while unloading is off, so it
-  //    no longer happens unconditionally. Turning unloading back on means
-  //    fixing the ordering first: either the deactivations must complete
-  //    before the table is touched, or the table must be taken on the module
-  //    runner rather than from here.
+  // 5. UNLOAD THE LIBRARIES -- gated off; see kUnloadLibrariesAtShutdown.
+  //    Taking the modules out of the registry is part of unloading, so it
+  //    happens only when unloading does. Every lifecycle task has finished by
+  //    now (step 2 waited for them), so the registry is no longer read.
   auto unloaded = 0;
   if (kUnloadLibrariesAtShutdown) {
     for (const auto& module : manager.TakeAllModules()) {

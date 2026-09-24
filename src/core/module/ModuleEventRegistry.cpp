@@ -114,8 +114,6 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
       {"REQUEST_UPLOAD_PUBLIC_KEY", kUi, kExtend,
        GF_EVENT_REPLY_CONSUMED | GF_EVENT_DEFERRABLE,
        "upload a key; the reply's ret and error_msg are shown to the user"},
-      {"REQUEST_GATHERING_ALL_GNUPG_INFO", kCore, kObserve, GF_EVENT_DEFERRABLE,
-       "collect GnuPG environment information into the register table"},
 
       // ---- generated family -----------------------------------------------
       //

@@ -60,7 +60,7 @@ namespace GpgFrontend::Module {
  *
  * Three things, all of which used to be impossible:
  *
- *   1. Host-side subscription control. `GlobalModuleContext::ListenEvent`
+ *   1. Host-side subscription control. `ModuleManager::ListenEvent`
  *      refuses an id no registry entry describes, so a typo is a refusal
  *      naming the module rather than a subscription that never fires.
  *   2. Saying which events may influence the Host. @ref kEXTEND is a small,

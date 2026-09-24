@@ -33,275 +33,133 @@
 
 #include "core/module/Event.h"
 #include "core/module/ModuleManifest.h"
-#include "core/thread/TaskRunner.h"
+
+struct GFModuleApi;
 
 namespace GpgFrontend::Module {
 
 class Module;
-class GlobalModuleContext;
-class ModuleManager;
 
 using ModuleIdentifier = QString;
 using ModuleVersion = QString;
 using ModuleMetaData = QMap<QString, QString>;
 using ModulePtr = QSharedPointer<Module>;
 
-using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
-
 /**
- * @brief Base class for all GpgFrontend modules.
+ * @brief One loaded module: its library, its self-description and its
+ *        signed manifest, and the calls that enter it.
  *
- * A Module can be constructed directly for integrated (built-in) modules or
- * loaded from a QLibrary for dynamically linked modules. Dynamic modules are
- * validated against required symbol exports and version constraints at load
- * time. The lifecycle is: Register -> Active -> Exec (per event) -> Deactivate
- * -> UnRegister. Subclasses override the virtual lifecycle methods.
+ * A module describes itself through the single table GFModuleGetApi returns;
+ * this class owns the library that table lives in and is the only thing that
+ * calls through it. Lifecycle ORDER is decided by the ModuleManager; what each
+ * transition means for the host -- minting and revoking the grant, opening and
+ * closing the module's entry gate, withdrawing what the host holds for it --
+ * is decided here, once.
+ *
+ * Activation needs a signed manifest. Every module the host loads comes from a
+ * verified package, and a module with no manifest has nothing to derive a
+ * grant from.
  */
-class GF_CORE_EXPORT Module : public QObject {
-  Q_OBJECT
+class GF_CORE_EXPORT Module {
  public:
   /**
-   * @brief Construct an integrated (built-in) module with the given identity
-   * and metadata.
+   * @brief Adopt a loaded library, bootstrapping it through GFModuleGetApi.
    *
-   * @param id unique module identifier string
-   * @param version module version string
-   * @param meta_data arbitrary key-value metadata map
-   */
-  Module(ModuleIdentifier id, ModuleVersion version,
-         const ModuleMetaData& meta_data);
-
-  /**
-   * @brief Load and validate a dynamic module from a QLibrary.
+   * Call IsGood() afterwards.
    *
-   * Resolves required symbol exports, reads the module identifier, version,
-   * SDK version, and Qt version strings. Call IsGood() after construction to
-   * verify the module loaded successfully.
-   *
-   * The checksum is taken by the caller before the library is mapped, see
-   * InspectModuleLibrary(), and handed in here so the module binary is never
-   * read a second time behind the loader's back.
-   *
-   * @param module_library loaded QLibrary to extract the module from
-   * @param module_hash checksum of the bytes that were inspected before load
+   * @param module_library the loaded library; owned from here on
+   * @param module_hash checksum of the bytes that were verified before load
    */
   Module(std::unique_ptr<QLibrary> module_library, QString module_hash);
 
+  /**
+   * @brief Adopt a module table that is not in a library of its own.
+   *
+   * For tests: the same validation as a library's table, with no image to
+   * unload. @p api must outlive this object.
+   */
+  Module(const GFModuleApi* api, QString module_hash);
+
   ~Module();
 
-  /**
-   * @brief Return true if the module was successfully initialised.
-   *
-   * @return true if the module is valid and ready to register
-   */
-  auto IsGood() -> bool;
+  Module(const Module&) = delete;
+  auto operator=(const Module&) -> Module& = delete;
+
+  /// Whether the module's table was accepted.
+  [[nodiscard]] auto IsGood() const -> bool;
 
   /**
-   * @brief Called by the module system when the module is registered.
+   * @brief Mint the grant, open the entry gate, and call the module's
+   *        activate().
    *
-   * Override to perform one-time setup. Return 0 on success.
+   * On failure the module is left exactly as before: the gate closed,
+   * whatever it registered withdrawn, the grant revoked.
    *
-   * @return 0 on success, non-zero on failure
+   * @return 0 on success
    */
-  virtual auto Register() -> int;
+  auto Active() -> int;
+
+  /// Deliver one event. The caller has already passed the entry gates.
+  auto Exec(const EventReference& event) -> int;
 
   /**
-   * @brief Called by the module system when the module is activated.
+   * @brief Close the entry gate, withdraw what the host holds for the
+   *        module, wait for calls already inside it, then call its
+   *        deactivate().
    *
-   * Override to start background tasks or subscribe to events.
-   * Return 0 on success.
+   * Cannot be refused: whatever the module returns, it is inactive after
+   * this. If calls already inside it do not finish in time, its deactivate()
+   * is NOT called -- it would free state those calls are still using -- and
+   * the module stays inert behind its closed gate.
    *
-   * @return 0 on success, non-zero on failure
+   * @param revoke also revoke the grant. False only at shutdown, where the
+   *        module's final unregister hook still runs after this.
+   * @return the module's own result, or -1 on a drain timeout
    */
-  virtual auto Active() -> int;
+  auto Deactivate(bool revoke) -> int;
+
+  /// Final teardown hook. No module code runs after it.
+  auto UnRegister() -> int;
+
+  /// Revoke the grant, if this instance holds one. Idempotent.
+  void ReleaseGrant();
 
   /**
-   * @brief Called by the module system to deliver an event to the module.
+   * @brief Drop the module's code and unmap its library.
    *
-   * Override to handle the event and invoke its callback when done.
-   * Return 0 on success.
-   *
-   * @param event the event to handle
-   * @return 0 on success, non-zero on failure
-   */
-  virtual auto Exec(EventReference event) -> int;
-
-  /**
-   * @brief Called by the module system when the module is deactivated.
-   *
-   * Override to stop background tasks and clean up resources.
-   * Return 0 on success.
-   *
-   * @return 0 on success, non-zero on failure
-   */
-  virtual auto Deactivate() -> int;
-
-  /**
-   * @brief Called by the module system when the module is unregistered.
-   *
-   * Override to release any remaining resources. Return 0 on success.
-   *
-   * @return 0 on success, non-zero on failure
-   */
-  virtual auto UnRegister() -> int;
-
-  /**
-   * @brief Return this module's unique identifier.
-   *
-   * @return module identifier string
-   */
-  [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier;
-
-  /**
-   * @brief Return this module's version string.
-   *
-   * @return version string
-   */
-  [[nodiscard]] auto GetModuleVersion() const -> ModuleVersion;
-
-  /**
-   * @brief Return this module's metadata map.
-   *
-   * @return key-value metadata
-   */
-  [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData;
-
-  /**
-   * @brief Supply this module's metadata from outside the module.
-   *
-   * A module used to answer for itself, through an exported function, which
-   * meant the only way to learn what it claimed to be was to map it and run
-   * its initialisers first. That is the wrong order for anything that informs
-   * a decision about whether to load it at all, so a packaged module's
-   * metadata now comes from its signed manifest and is handed here.
-   *
-   * A module loaded loosely has no manifest and so has no metadata, which is
-   * exactly as much as can honestly be said about a file nothing vouches for.
-   *
-   * @param meta_data key-value metadata, as read from the manifest
-   */
-  void SetModuleMetaData(const ModuleMetaData& meta_data);
-
-  /**
-   * @brief Drop this module's code and unmap its library.
-   *
-   * The last step of teardown, and only valid once nothing can call into the
-   * module: the table of function pointers it describes itself with lives
-   * inside the image being unmapped, so this drops that table first and the
-   * module is inert afterwards.
-   *
-   * A module with no library of its own -- an integrated one -- does nothing
-   * here.
+   * Only valid once nothing can call into the module: the function table
+   * lives inside the image. The module is inert afterwards.
    *
    * @return true if a library was unloaded
    */
   auto UnloadLibrary() -> bool;
 
-  /**
-   * @brief Return where this module came from.
-   *
-   * For a packaged module this is the `*.gfmodule` it was verified from,
-   * rather than the native it was loaded through. That is the honest answer:
-   * the descriptor is the thing a signature was checked over, and it is the
-   * file a person can point at.
-   *
-   * Returns an empty string for integrated modules.
-   *
-   * @return the source package, or the library file for a loose module
-   */
+  [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier;
+
+  [[nodiscard]] auto GetModuleVersion() const -> ModuleVersion;
+
+  /// Name / Description / Author, from the signed manifest.
+  [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData;
+
+  void SetModuleMetaData(const ModuleMetaData& meta_data);
+
+  /// The `*.gfmodule` this was verified from, or the library path.
   [[nodiscard]] auto GetModulePath() const -> QString;
 
-  /**
-   * @brief Record the package this module was verified from.
-   *
-   * @param path the `*.gfmodule` on disk
-   */
   void SetSourcePackagePath(const QString& path);
 
-  /**
-   * @brief Whether this module came from a signed package.
-   *
-   * False for a loose development library and for an integrated module. It is
-   * the difference between what the host verified and what it merely loaded,
-   * which is a distinction the user is entitled to see.
-   */
+  /// Whether a signed manifest was recorded for this module.
   [[nodiscard]] auto IsPackaged() const -> bool;
 
-  /**
-   * @brief What the signed manifest says, when there is one.
-   *
-   * Empty for a loose library. Everything in it was covered by a signature the
-   * host checked before any of this module's code ran, which is what separates
-   * it from the module's own word for the same values.
-   */
   [[nodiscard]] auto GetModuleManifest() const -> std::optional<ModuleManifest>;
 
-  /**
-   * @brief Record the manifest this module was verified against.
-   *
-   * @param manifest the verified manifest
-   */
   void SetModuleManifest(const ModuleManifest& manifest);
 
-  /**
-   * @brief The SDK ABI version the module itself reported at load.
-   *
-   * This is the module's OWN number, negotiated when its bootstrap table was
-   * fetched -- not the host's, which would be identical for every module and
-   * so could never tell two of them apart.
-   */
+  /// The module's OWN ABI generation, as its table reported it.
   [[nodiscard]] auto GetModuleSDKABIVersion() const -> int;
 
-  /**
-   * @brief Return a checksum of the module binary.
-   *
-   * Taken from the pre-load inspection, so it describes the bytes that were
-   * checked before the image was mapped. Used to detect version changes
-   * between runs. Empty for integrated modules.
-   *
-   * @return binary checksum string
-   */
+  /// Digest of the verified bytes. Used to notice a changed module.
   [[nodiscard]] auto GetModuleHash() const -> QString;
-
-  /**
-   * @brief Inject the GlobalModuleContext into the module.
-   *
-   * Called by the module system after registration. Must be set before any
-   * lifecycle methods are invoked.
-   *
-   * @param gmc pointer to the global module context
-   */
-  void SetGPC(GlobalModuleContext* gmc);
-
- protected:
-  /**
-   * @brief Return the channel ID assigned to this module.
-   *
-   * @return channel ID
-   */
-  auto getChannel() -> int;
-
-  /**
-   * @brief Return the default channel ID.
-   *
-   * @return default channel ID
-   */
-  auto getDefaultChannel() -> int;
-
-  /**
-   * @brief Return the TaskRunner assigned to this module.
-   *
-   * @return task runner shared pointer
-   */
-  auto getTaskRunner() -> TaskRunnerPtr;
-
-  /**
-   * @brief Subscribe this module to an event type.
-   *
-   * @param event_id event type identifier to subscribe to
-   * @return true if the subscription was registered successfully
-   */
-  auto listenEvent(EventIdentifier event_id) -> bool;
 
  private:
   class Impl;

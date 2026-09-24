@@ -89,6 +89,12 @@ void ModuleSdkNotifyDeactivated(const char* module_id) {
   bridge.module_deactivated(module_id);
 }
 
+void ModuleSdkNotifyActivating(const char* module_id) {
+  const auto& bridge = Bridge();
+  if (bridge.module_activating == nullptr) return;
+  bridge.module_activating(module_id);
+}
+
 ModuleAttributionScope::ModuleAttributionScope(const char* module_id) {
   const auto& bridge = Bridge();
   if (bridge.enter_module == nullptr || bridge.leave_module == nullptr) return;

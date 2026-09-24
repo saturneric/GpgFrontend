@@ -112,6 +112,14 @@ TaskRunner::~TaskRunner() {
   if (p_->isRunning()) {
     Stop();
   }
+  // Destroying a QThread that is still running aborts the process. A thread
+  // that did not stop in time is running code that may still be using what
+  // it was given -- a module's worker stuck in a blocking call, say -- so it
+  // is left to the operating system rather than turned into a crash at exit.
+  if (p_->isRunning()) {
+    LOG_W() << "a task runner thread did not stop; leaving it to process exit";
+    (void)p_.release();
+  }
 }
 
 void TaskRunner::PostTask(Task* task) { p_->PostTask(task); }

@@ -34,6 +34,37 @@
 namespace GpgFrontend::Module {
 
 /**
+ * @brief Whether @p module_id has the shape a module id must have.
+ *
+ * THE identity rule: lower-case, dotted, each part starting with a letter,
+ * at least two parts. The manifest parser, the module bootstrap and the
+ * packager all ask this, so a binary cannot call itself something no package
+ * could be signed as, and nothing downstream has to case-fold an id to find
+ * it again.
+ */
+auto GF_CORE_EXPORT IsValidModuleId(const QString& module_id) -> bool;
+
+/**
+ * @brief Whether @p module_id is in the namespace reserved for modules the
+ *        project itself ships.
+ *
+ * An external package may not claim it: everything keyed by a module id --
+ * its settings, its secure cache, its commands -- would otherwise belong to
+ * whichever package claimed the id first.
+ */
+auto GF_CORE_EXPORT IsReservedModuleId(const QString& module_id) -> bool;
+
+/**
+ * @brief Whether @p id names something @p owner may register: `owner.name`,
+ *        with exactly one more dotless, lower-case part.
+ *
+ * A prefix test alone would let module `a.b` claim `a.b.c.x`, which is the
+ * namespace of module `a.b.c`.
+ */
+auto GF_CORE_EXPORT IsOwnedName(const QString& owner, const QString& id)
+    -> bool;
+
+/**
  * @brief The directory a module owns, derived from the identity it signs.
  *
  * A module id is authoritative but is a poor filesystem name:

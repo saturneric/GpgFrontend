@@ -78,7 +78,7 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
   /// per-module grant advisory.
   const void* (*mint_host_api)(const char* module_id,
                                uint32_t granted) = nullptr;
-  /// Invalidate that module's table and context. A call arriving afterwards
+  /// Revoke that module's table and context. A call arriving afterwards
   /// is refused rather than served, on any thread.
   void (*release_host_api)(const char* module_id) = nullptr;
   /// Wait for calls already past the gate to finish. False on timeout.
@@ -93,6 +93,9 @@ struct GF_CORE_EXPORT ModuleSdkBridge {
   /// commands, its UI registrations, calls it made or was serving -- so that
   /// nothing can enter its code again. Idempotent.
   void (*module_deactivated)(const char* module_id) = nullptr;
+  /// The module is about to be activated (again): what a previous
+  /// withdrawal closed to it opens again. Idempotent.
+  void (*module_activating)(const char* module_id) = nullptr;
 };
 
 /**
@@ -132,10 +135,10 @@ auto GF_CORE_EXPORT ModuleSdkMintHostApi(const char* module_id,
 /**
  * @brief Drop @p module_id's table and invalidate its context.
  *
- * Called at unload, before the image is unmapped. Afterwards the module's
- * context is unknown to the host, so a call that somehow arrives from a
- * thread the module failed to stop is refused rather than followed into
- * memory that is no longer there.
+ * Called when a module is deactivated, when its activation fails, and at
+ * shutdown. Afterwards the module's context is REVOKED: a call that arrives
+ * from a thread the module failed to stop is refused rather than served --
+ * until the module is next activated, since its threads share one context.
  */
 void GF_CORE_EXPORT ModuleSdkReleaseHostApi(const char* module_id);
 
@@ -172,6 +175,9 @@ auto GF_CORE_EXPORT ModuleSdkSweepHandles(const char* module_id) -> size_t;
 
 /// See ModuleSdkBridge::module_deactivated. A no-op without a bridge.
 void GF_CORE_EXPORT ModuleSdkNotifyDeactivated(const char* module_id);
+
+/// See ModuleSdkBridge::module_activating. A no-op without a bridge.
+void GF_CORE_EXPORT ModuleSdkNotifyActivating(const char* module_id);
 
 /**
  * @brief Bracket a call into module code so its handles are attributed to it.

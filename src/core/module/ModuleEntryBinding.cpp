@@ -36,6 +36,8 @@
 // clang-format off
 #include <imagehlp.h>
 // clang-format on
+#else
+#include <sys/stat.h>
 #endif
 
 #include <QCryptographicHash>
@@ -220,6 +222,11 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   const auto& canonical_file = resolved.path;
   const QFileInfo info(canonical_file);
 
+  // Taken BEFORE the bytes are hashed and compared again after, so a file
+  // replaced while it was being hashed is caught here, and one replaced later
+  // is caught by the loader against this same value.
+  const auto identity = CaptureModuleFileIdentity(canonical_file);
+
   // Asked AFTER resolution, deliberately. A module whose file is missing must
   // be reported as missing, not as unbound: the two call for different fixes
   // by different people.
@@ -245,6 +252,7 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
     unbound.ok = true;
     unbound.status = ModuleEntryStatus::kOK;
     unbound.path = canonical_file;
+    unbound.identity = identity;
     return unbound;
   }
 
@@ -296,11 +304,45 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
                       .arg(info.fileName()));
   }
 
+  if (CaptureModuleFileIdentity(canonical_file) != identity) {
+    return Refuse(ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH,
+                  QString("\"%1\" changed while it was being verified")
+                      .arg(info.fileName()));
+  }
+
   VerifiedNativeEntry v;
   v.ok = true;
   v.status = ModuleEntryStatus::kOK;
   v.path = canonical_file;
+  v.identity = identity;
   return v;
+}
+
+auto CaptureModuleFileIdentity(const QString& path) -> ModuleFileIdentity {
+  ModuleFileIdentity id;
+#if defined(Q_OS_WINDOWS)
+  const QFileInfo info(path);
+  if (!info.exists() || !info.isFile()) return id;
+  id.size = info.size();
+  id.modified_ms =
+      info.fileTime(QFileDevice::FileModificationTime).toMSecsSinceEpoch();
+#else
+  struct stat st{};
+  if (::stat(QFile::encodeName(path).constData(), &st) != 0 ||
+      !S_ISREG(st.st_mode)) {
+    return id;
+  }
+  id.size = static_cast<qint64>(st.st_size);
+#if defined(Q_OS_MACOS)
+  id.modified_ms = static_cast<qint64>(st.st_mtimespec.tv_sec) * 1000 +
+                   st.st_mtimespec.tv_nsec / 1000000;
+#else
+  id.modified_ms = static_cast<qint64>(st.st_mtim.tv_sec) * 1000 +
+                   st.st_mtim.tv_nsec / 1000000;
+#endif
+  id.file_id = static_cast<quint64>(st.st_ino);
+#endif
+  return id;
 }
 
 namespace {

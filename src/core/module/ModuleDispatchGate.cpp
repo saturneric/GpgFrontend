@@ -29,27 +29,50 @@
 #include "ModuleDispatchGate.h"
 
 #include <QDeadlineTimer>
+#include <QHash>
+#include <memory>
 
 namespace GpgFrontend::Module {
+
+namespace {
+
+/// How many entries THIS thread holds, per gate. A thread that waits for a
+/// gate to go quiet must not wait for itself: the module runner can be inside
+/// a module's code, spinning a nested event loop, when the task that
+/// deactivates that same module runs.
+auto HeldByThisThread() -> QHash<const ModuleDispatchGate*, int>& {
+  thread_local QHash<const ModuleDispatchGate*, int> held;
+  return held;
+}
+
+}  // namespace
 
 auto ModuleDispatchGate::TryEnter() -> bool {
   QMutexLocker locker(&mutex_);
   if (closed_) return false;
   ++in_flight_;
+  ++HeldByThisThread()[this];
   return true;
 }
 
 void ModuleDispatchGate::Leave() {
   QMutexLocker locker(&mutex_);
   if (in_flight_ > 0) --in_flight_;
-  // Wake every waiter rather than one: a teardown may have several watchers
-  // (the shutdown path and a test), and waking the wrong single one stalls.
-  if (in_flight_ == 0) quiet_.wakeAll();
+  auto& held = HeldByThisThread();
+  if (--held[this] <= 0) held.remove(this);
+  // Wake every waiter, on every leave: a waiter discounts the entries its own
+  // thread holds, so "quiet" for it is not necessarily zero.
+  quiet_.wakeAll();
 }
 
 void ModuleDispatchGate::Close() {
   QMutexLocker locker(&mutex_);
   closed_ = true;
+}
+
+void ModuleDispatchGate::Open() {
+  QMutexLocker locker(&mutex_);
+  closed_ = false;
 }
 
 auto ModuleDispatchGate::IsClosed() -> bool {
@@ -69,7 +92,8 @@ auto ModuleDispatchGate::WaitQuiescent(int timeout_ms) -> bool {
   // return spuriously, and restarting the full timeout each time would let
   // this wait arbitrarily long while still looking bounded.
   QDeadlineTimer deadline(timeout_ms);
-  while (in_flight_ > 0) {
+  const auto own = HeldByThisThread().value(this, 0);
+  while (in_flight_ - own > 0) {
     if (deadline.hasExpired()) return false;
     quiet_.wait(&mutex_, deadline);
   }
@@ -79,6 +103,18 @@ auto ModuleDispatchGate::WaitQuiescent(int timeout_ms) -> bool {
 auto GlobalModuleDispatchGate() -> ModuleDispatchGate& {
   static ModuleDispatchGate gate;
   return gate;
+}
+
+auto ModuleEntryGate(const QString& module_id) -> ModuleDispatchGate& {
+  // Never freed, like the context records: a thread a module failed to stop
+  // may still be about to ask for its gate, and a reference must stay valid.
+  // One small object per module id a process ever sees.
+  static QMutex mutex;
+  static QHash<QString, std::shared_ptr<ModuleDispatchGate>> gates;
+  QMutexLocker locker(&mutex);
+  auto& gate = gates[module_id];
+  if (gate == nullptr) gate = std::make_shared<ModuleDispatchGate>();
+  return *gate;
 }
 
 }  // namespace GpgFrontend::Module
