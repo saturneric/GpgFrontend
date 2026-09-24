@@ -71,8 +71,8 @@ auto Immediate(const QString& id, const QString& owner, uint32_t caps = 0,
   p.owner = owner;
   p.required_caps = caps;
   p.flags = flags;
-  p.run = [](const gf::cmd::CommandContext&, QCborMap, std::vector<gf::cmd::Blob>,
-             gf::cmd::Completer done) {
+  p.run = [](const gf::cmd::CommandContext&, QCborMap,
+             std::vector<gf::cmd::Blob>, gf::cmd::Completer done) {
     done({GF_CMD_OK, 0, QCborMap{{QStringLiteral("ok"), true}}, {}, {}});
   };
   return p;
@@ -110,32 +110,35 @@ TEST(CommandRegistryTest, RegistrationStaysInsideTheOwnersNamespace) {
             GF_CMD_E_DENIED)
       << "the Host registers only under org.gpgfrontend.";
 
-  EXPECT_EQ(Reg().Register(Immediate("com.example.reg.a.x", "com.example.reg.a")),
-            GF_CMD_OK);
-  EXPECT_EQ(Reg().Register(Immediate("com.example.reg.b.x", "com.example.reg.a")),
-            GF_CMD_E_DENIED)
+  EXPECT_EQ(
+      Reg().Register(Immediate("com.example.reg.a.x", "com.example.reg.a")),
+      GF_CMD_OK);
+  EXPECT_EQ(
+      Reg().Register(Immediate("com.example.reg.b.x", "com.example.reg.a")),
+      GF_CMD_E_DENIED)
       << "a module cannot claim another module's namespace";
   EXPECT_EQ(Reg().Register(Immediate("org.gpgfrontend.test.reg.steal",
                                      "com.example.reg.a")),
             GF_CMD_E_DENIED)
       << "nor the Host's";
-  EXPECT_EQ(Reg().Register(Immediate("com.example.reg.a.x", "com.example.reg.a")),
-            GF_CMD_E_DENIED)
+  EXPECT_EQ(
+      Reg().Register(Immediate("com.example.reg.a.x", "com.example.reg.a")),
+      GF_CMD_E_DENIED)
       << "an id is registered once";
-  EXPECT_EQ(Reg().Register(Immediate("com.example.reg.a.hostonly",
-                                     "com.example.reg.a", 0,
-                                     gf::cmd::kHostOnly)),
-            GF_CMD_E_DENIED);
+  EXPECT_EQ(
+      Reg().Register(Immediate("com.example.reg.a.hostonly",
+                               "com.example.reg.a", 0, gf::cmd::kHostOnly)),
+      GF_CMD_E_DENIED);
 
   // A verified module registers only what its signed manifest lists.
-  EXPECT_EQ(Reg().Register(Immediate("com.example.reg.a.unlisted",
-                                     "com.example.reg.a"),
-                           QStringList{"com.example.reg.a.listed"}),
+  EXPECT_EQ(Reg().Register(
+                Immediate("com.example.reg.a.unlisted", "com.example.reg.a"),
+                QStringList{"com.example.reg.a.listed"}),
             GF_CMD_E_DENIED);
-  EXPECT_EQ(Reg().Register(Immediate("com.example.reg.a.listed",
-                                     "com.example.reg.a"),
-                           QStringList{"com.example.reg.a.listed"}),
-            GF_CMD_OK);
+  EXPECT_EQ(
+      Reg().Register(Immediate("com.example.reg.a.listed", "com.example.reg.a"),
+                     QStringList{"com.example.reg.a.listed"}),
+      GF_CMD_OK);
 
   EXPECT_EQ(Reg().Unregister("com.example.reg.a.x", "com.example.reg.b"),
             GF_CMD_E_DENIED)
@@ -146,39 +149,44 @@ TEST(CommandRegistryTest, RegistrationStaysInsideTheOwnersNamespace) {
 }
 
 TEST(CommandRegistryTest, InvocationChecksExistenceOwnershipAndCapabilities) {
-  ASSERT_EQ(Reg().Register(Immediate("org.gpgfrontend.test.inv.gpg", {},
-                                     GF_HOST_CAP_GPG)),
+  ASSERT_EQ(Reg().Register(
+                Immediate("org.gpgfrontend.test.inv.gpg", {}, GF_HOST_CAP_GPG)),
             GF_CMD_OK);
-  ASSERT_EQ(Reg().Register(Immediate("org.gpgfrontend.test.inv.hostonly", {},
-                                     0, gf::cmd::kHostOnly)),
+  ASSERT_EQ(Reg().Register(Immediate("org.gpgfrontend.test.inv.hostonly", {}, 0,
+                                     gf::cmd::kHostOnly)),
             GF_CMD_OK);
 
   int delivered = 0;
   auto done = [&](gf::cmd::RawResult) { ++delivered; };
 
-  EXPECT_EQ(Reg().Invoke("org.gpgfrontend.test.inv.none", {}, {},
-                         Module("com.example.inv"), {}, done)
+  EXPECT_EQ(Reg()
+                .Invoke("org.gpgfrontend.test.inv.none", {}, {},
+                        Module("com.example.inv"), {}, done)
                 .status,
             GF_CMD_E_UNKNOWN);
-  EXPECT_EQ(Reg().Invoke("org.gpgfrontend.test.inv.gpg", {}, {},
-                         Module("com.example.inv", GF_HOST_CAP_UI), {}, done)
+  EXPECT_EQ(Reg()
+                .Invoke("org.gpgfrontend.test.inv.gpg", {}, {},
+                        Module("com.example.inv", GF_HOST_CAP_UI), {}, done)
                 .status,
             GF_CMD_E_DENIED)
       << "the caller lacks the capability the command requires";
-  EXPECT_EQ(Reg().Invoke("org.gpgfrontend.test.inv.hostonly", {}, {},
-                         Module("com.example.inv", ~0U), {}, done)
+  EXPECT_EQ(Reg()
+                .Invoke("org.gpgfrontend.test.inv.hostonly", {}, {},
+                        Module("com.example.inv", ~0U), {}, done)
                 .status,
             GF_CMD_E_DENIED);
   EXPECT_EQ(delivered, 0) << "a refused call never calls back";
 
-  EXPECT_EQ(Reg().Invoke("org.gpgfrontend.test.inv.gpg", {}, {},
-                         Module("com.example.inv", GF_HOST_CAP_GPG), {}, done)
+  EXPECT_EQ(Reg()
+                .Invoke("org.gpgfrontend.test.inv.gpg", {}, {},
+                        Module("com.example.inv", GF_HOST_CAP_GPG), {}, done)
                 .status,
             GF_CMD_OK);
-  EXPECT_EQ(Reg().Invoke("org.gpgfrontend.test.inv.hostonly", {}, {}, Host(),
-                         {}, done)
-                .status,
-            GF_CMD_OK);
+  EXPECT_EQ(
+      Reg()
+          .Invoke("org.gpgfrontend.test.inv.hostonly", {}, {}, Host(), {}, done)
+          .status,
+      GF_CMD_OK);
   EXPECT_EQ(delivered, 2);
 
   Reg().Unregister("org.gpgfrontend.test.inv.gpg", {});
@@ -188,9 +196,8 @@ TEST(CommandRegistryTest, InvocationChecksExistenceOwnershipAndCapabilities) {
 TEST(CommandRegistryTest, StateHidesWhatTheCallerMayNotUse) {
   auto p = Immediate("org.gpgfrontend.test.state", {}, GF_HOST_CAP_GPG);
   p.state = [](const gf::cmd::CommandContext& ctx) -> uint32_t {
-    return ctx.has_selection
-               ? GF_CMD_STATE_ENABLED | GF_CMD_STATE_VISIBLE
-               : GF_CMD_STATE_VISIBLE;
+    return ctx.has_selection ? GF_CMD_STATE_ENABLED | GF_CMD_STATE_VISIBLE
+                             : GF_CMD_STATE_VISIBLE;
   };
   ASSERT_EQ(Reg().Register(std::move(p)), GF_CMD_OK);
 
@@ -200,9 +207,9 @@ TEST(CommandRegistryTest, StateHidesWhatTheCallerMayNotUse) {
   ctx.has_selection = true;
   EXPECT_EQ(Reg().State("org.gpgfrontend.test.state", Host(), ctx),
             GF_CMD_STATE_ENABLED | GF_CMD_STATE_VISIBLE);
-  EXPECT_EQ(Reg().State("org.gpgfrontend.test.state", Module("com.example.s"),
-                        ctx),
-            0U)
+  EXPECT_EQ(
+      Reg().State("org.gpgfrontend.test.state", Module("com.example.s"), ctx),
+      0U)
       << "no capability, no state: not even visible";
   EXPECT_EQ(Reg().State("org.gpgfrontend.test.nothing", Host(), ctx), 0U);
 
@@ -225,8 +232,9 @@ TEST(CommandRegistryTest, AGuiCommandRunsOnTheGuiThread) {
   ASSERT_EQ(Reg().Register(std::move(p)), GF_CMD_OK);
 
   QSemaphore finished;
-  ASSERT_EQ(Reg().Invoke("org.gpgfrontend.test.gui", {}, {}, Host(), {},
-                         [&](gf::cmd::RawResult) { finished.release(); })
+  ASSERT_EQ(Reg()
+                .Invoke("org.gpgfrontend.test.gui", {}, {}, Host(), {},
+                        [&](gf::cmd::RawResult) { finished.release(); })
                 .status,
             GF_CMD_OK);
   ASSERT_TRUE(finished.tryAcquire(1, 10000));
@@ -238,13 +246,13 @@ TEST(CommandRegistryTest, AGuiCommandRunsOnTheGuiThread) {
 TEST(CommandRegistryTest, NoCallbackAfterCancelReturns) {
   Parked parked;
   ASSERT_EQ(Reg().Register(Parking("com.example.cancel.p.cmd",
-                                    "com.example.cancel.p", &parked)),
+                                   "com.example.cancel.p", &parked)),
             GF_CMD_OK);
 
   std::atomic<int> delivered{0};
-  const auto ticket = Reg().Invoke(
-      "com.example.cancel.p.cmd", {}, {}, Module("com.example.cancel.c"), {},
-      [&](gf::cmd::RawResult) { ++delivered; });
+  const auto ticket = Reg().Invoke("com.example.cancel.p.cmd", {}, {},
+                                   Module("com.example.cancel.c"), {},
+                                   [&](gf::cmd::RawResult) { ++delivered; });
   ASSERT_EQ(ticket.status, GF_CMD_OK);
   ASSERT_TRUE(parked.arrived.tryAcquire(1, 10000));
 
@@ -270,13 +278,13 @@ TEST(CommandRegistryTest, NoCallbackAfterCancelReturns) {
 TEST(CommandRegistryTest, OnlyTheProviderFinishesACall) {
   Parked parked;
   ASSERT_EQ(Reg().Register(Parking("com.example.finish.p.cmd",
-                                    "com.example.finish.p", &parked)),
+                                   "com.example.finish.p", &parked)),
             GF_CMD_OK);
 
   std::atomic<int> status{1};
-  const auto ticket = Reg().Invoke(
-      "com.example.finish.p.cmd", {}, {}, Host(), {},
-      [&](gf::cmd::RawResult r) { status = r.status; });
+  const auto ticket =
+      Reg().Invoke("com.example.finish.p.cmd", {}, {}, Host(), {},
+                   [&](gf::cmd::RawResult r) { status = r.status; });
   ASSERT_TRUE(parked.arrived.tryAcquire(1, 10000));
 
   EXPECT_EQ(Reg().Finish(ticket.call_id, "com.example.finish.other",
@@ -299,29 +307,31 @@ TEST(CommandRegistryTest, OnlyTheProviderFinishesACall) {
 // nothing is delivered to it, and whoever it was serving is told.
 TEST(CommandRegistryTest, RemovingAModuleWithdrawsEverythingItTouches) {
   Parked parked;
-  ASSERT_EQ(Reg().Register(Parking("com.example.rm.p.cmd", "com.example.rm.p",
-                                    &parked)),
+  ASSERT_EQ(Reg().Register(
+                Parking("com.example.rm.p.cmd", "com.example.rm.p", &parked)),
             GF_CMD_OK);
 
   // A call the module is serving, for the Host.
   std::atomic<int> served_status{1};
-  ASSERT_EQ(Reg().Invoke("com.example.rm.p.cmd", {}, {}, Host(), {},
-                         [&](gf::cmd::RawResult r) { served_status = r.status; })
+  ASSERT_EQ(Reg()
+                .Invoke("com.example.rm.p.cmd", {}, {}, Host(), {},
+                        [&](gf::cmd::RawResult r) { served_status = r.status; })
                 .status,
             GF_CMD_OK);
   ASSERT_TRUE(parked.arrived.tryAcquire(1, 10000));
 
   // A call the module made, to somebody else.
   Parked other;
-  ASSERT_EQ(Reg().Register(Parking("com.example.rm.q.cmd", "com.example.rm.q",
-                                    &other)),
+  ASSERT_EQ(Reg().Register(
+                Parking("com.example.rm.q.cmd", "com.example.rm.q", &other)),
             GF_CMD_OK);
   std::atomic<int> made_delivered{0};
-  ASSERT_EQ(Reg().Invoke("com.example.rm.q.cmd", {}, {},
-                         Module("com.example.rm.p"), {},
-                         [&](gf::cmd::RawResult) { ++made_delivered; })
-                .status,
-            GF_CMD_OK);
+  ASSERT_EQ(
+      Reg()
+          .Invoke("com.example.rm.q.cmd", {}, {}, Module("com.example.rm.p"),
+                  {}, [&](gf::cmd::RawResult) { ++made_delivered; })
+          .status,
+      GF_CMD_OK);
   ASSERT_TRUE(other.arrived.tryAcquire(1, 10000));
   EXPECT_EQ(Reg().PendingCallsOf("com.example.rm.p"), 2);
 
@@ -342,6 +352,52 @@ TEST(CommandRegistryTest, RemovingAModuleWithdrawsEverythingItTouches) {
       << "a result owed to a removed module is never delivered";
 
   Reg().RemoveAllFor("com.example.rm.q");
+}
+
+TEST(CommandRegistryTest, AWithdrawnModuleIsClosedUntilItIsReopened) {
+  // Between a module's withdrawal and its reactivation, whatever of it is
+  // still running -- its UI script, a worker -- must not be able to reach
+  // the registry: it neither invokes nor registers.
+  ASSERT_EQ(Reg().Register(Immediate("com.example.closed.host.cmd",
+                                     "com.example.closed.host")),
+            GF_CMD_OK);
+  Reg().RemoveAllFor("com.example.closed.m");
+
+  EXPECT_EQ(Reg()
+                .Invoke("com.example.closed.host.cmd", {}, {},
+                        Module("com.example.closed.m"), {}, nullptr)
+                .status,
+            GF_CMD_E_UNAVAILABLE);
+  EXPECT_EQ(Reg().Register(
+                Immediate("com.example.closed.m.cmd", "com.example.closed.m")),
+            GF_CMD_E_UNAVAILABLE);
+
+  Reg().Reopen("com.example.closed.m");
+  EXPECT_EQ(Reg()
+                .Invoke("com.example.closed.host.cmd", {}, {},
+                        Module("com.example.closed.m"), {}, nullptr)
+                .status,
+            GF_CMD_OK);
+  EXPECT_EQ(Reg().Register(
+                Immediate("com.example.closed.m.cmd", "com.example.closed.m")),
+            GF_CMD_OK);
+
+  Reg().RemoveAllFor("com.example.closed.m");
+  Reg().Reopen("com.example.closed.m");
+  Reg().RemoveAllFor("com.example.closed.host");
+  Reg().Reopen("com.example.closed.host");
+}
+
+TEST(CommandRegistryTest, AModuleCannotClaimAChildModulesNamespace) {
+  // `a.b` owning `a.b.c.x` would take the command namespace of module `a.b.c`.
+  EXPECT_EQ(Reg().Register(
+                Immediate("com.example.nest.child.cmd", "com.example.nest")),
+            GF_CMD_E_DENIED);
+  EXPECT_EQ(
+      Reg().Register(Immediate("com.example.nest.cmd", "com.example.nest")),
+      GF_CMD_OK);
+  Reg().RemoveAllFor("com.example.nest");
+  Reg().Reopen("com.example.nest");
 }
 
 TEST(CommandRegistryTest, HostBlobsAreSharedNotCopied) {

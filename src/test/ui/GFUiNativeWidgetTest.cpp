@@ -29,11 +29,13 @@
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QPointer>
 #include <QWidget>
 
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
 #include "sdk/GFSDKUI.h"
+#include "ui/command/ModuleUiTeardown.h"
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
@@ -85,8 +87,10 @@ class Recorder : public UI::NativeContainer {
  public:
   int modified = 0;
   int closed = 0;
+  int withdrawn = 0;
   void OnModified() override { ++modified; }
   void OnClose() override { ++closed; }
+  void OnWithdrawn() override { ++withdrawn; }
 };
 
 }  // namespace
@@ -164,9 +168,87 @@ TEST(NativeWidgetTest, AnInstanceAnswersOnlyToItsOwnerAndItsKind) {
     UI::NativeInstances::Instance().Destroy(id);
   });
   EXPECT_EQ(UI::NativeInstances::Instance().CountFor(kOwner), 0);
-  OnGui([&] { EXPECT_NE(GFNativeDialogClose(owner(), id), 0); })
-      ;  // gone: nothing to address
+  OnGui([&] {
+    EXPECT_NE(GFNativeDialogClose(owner(), id), 0);
+  });  // gone: nothing to address
 
+  GFNativeWidgetUnregister(owner(), "dialog");
+}
+
+TEST(NativeWidgetTest, AWithdrawnModulesInstancesAreDroppedByTheirContainers) {
+  // A module's widgets must not outlive it inside the Host's window, running
+  // module code against state the module has dropped.
+  constexpr auto kModule = "com.example.native.withdrawn";
+  SdkTestContext owner(kModule, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  auto spec = Spec("dialog", GF_NATIVE_DIALOG);
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+
+  Recorder first;
+  Recorder second;
+  QPointer<QWidget> widget;
+  QPointer<QWidget> widget_b;
+  OnGui([&] {
+    auto a = UI::NativeInstances::Instance().Create(
+        QString(kModule) + ".dialog", {}, &first);
+    auto b = UI::NativeInstances::Instance().Create(
+        QString(kModule) + ".dialog", {}, &second);
+    ASSERT_TRUE(a.has_value() && b.has_value());
+    widget = a->widget;
+    widget_b = b->widget;
+  });
+  ASSERT_EQ(UI::NativeInstances::Instance().CountFor(kModule), 2);
+
+  OnGui([&] { UI::NativeInstances::Instance().WithdrawAll(kModule); });
+  EXPECT_EQ(first.withdrawn, 1);
+  EXPECT_EQ(second.withdrawn, 1);
+  EXPECT_EQ(UI::NativeInstances::Instance().CountFor(kModule), 0);
+
+  // A container destroyed afterwards has nothing left to tell the module.
+  OnGui([&] {
+    delete widget.data();
+    delete widget_b.data();
+    UI::NativeInstances::Instance().WithdrawAll(kModule);  // idempotent
+  });
+  EXPECT_EQ(first.withdrawn, 1);
+  GFNativeWidgetUnregister(owner(), "dialog");
+}
+
+TEST(NativeWidgetTest, AWidgetNameIsOneDotlessPart) {
+  // `owner.a.b` would sit in the namespace of a module called `owner.a`.
+  SdkTestContext owner(kOwner, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  auto spec = Spec("nested.name", GF_NATIVE_DIALOG);
+  EXPECT_NE(GFNativeWidgetRegister(owner(), &spec), 0);
+}
+
+TEST(NativeWidgetTest, ModuleUiTeardownWithdrawsAtOnceFromAModuleThread) {
+  // Deactivation runs on the module runner, not the GUI thread. What must
+  // not wait for the GUI's queue -- the commands, the widget registrations --
+  // is gone when the call returns, and the module is a closed caller until
+  // it is reopened; a reactivation right behind it must not lose what it
+  // registers to a removal still sitting in that queue.
+  constexpr auto kModule = "com.example.native.teardown";
+  SdkTestContext owner(kModule, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  auto spec = Spec("dialog", GF_NATIVE_DIALOG);
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+  ASSERT_TRUE(UI::NativeWidgetRegistry::Instance()
+                  .Find(QString(kModule) + ".dialog")
+                  .has_value());
+
+  UI::ModuleUiTeardown(kModule);
+  EXPECT_FALSE(UI::NativeWidgetRegistry::Instance()
+                   .Find(QString(kModule) + ".dialog")
+                   .has_value());
+  UI::ModuleUiTeardown(kModule);  // idempotent
+
+  UI::ModuleUiReopen(kModule);
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0)
+      << "a reopened module registers again";
+  // Let the GUI half of the two teardowns run: it must not take the new
+  // registration with it.
+  OnGui([] {});
+  EXPECT_TRUE(UI::NativeWidgetRegistry::Instance()
+                  .Find(QString(kModule) + ".dialog")
+                  .has_value());
   GFNativeWidgetUnregister(owner(), "dialog");
 }
 

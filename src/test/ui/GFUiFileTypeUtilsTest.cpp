@@ -91,4 +91,19 @@ TEST(FileTypeUtilsTest, SuffixMatchingIgnoresCase) {
   EXPECT_TRUE(UI::IsProfilePackageFile(QFileInfo("Work.GFP")));
 }
 
+// A title may come from a module, which may take it from a Subject line a
+// stranger wrote. It becomes the suggested file name.
+TEST(FileTypeUtilsTest, ADocumentTitleCannotNameADirectory) {
+  EXPECT_EQ(UI::SanitizedDocumentTitle("Re: hello"), "Re_ hello");
+  EXPECT_EQ(UI::SanitizedDocumentTitle("../../etc/passwd"), "_.._etc_passwd");
+  EXPECT_EQ(UI::SanitizedDocumentTitle("a\\b/c"), "a_b_c");
+  EXPECT_EQ(UI::SanitizedDocumentTitle("line\nbreak\tand\r\ncontrol"),
+            "line break and control");
+  EXPECT_EQ(UI::SanitizedDocumentTitle(".hidden"), "hidden");
+  EXPECT_EQ(UI::SanitizedDocumentTitle(QString(500, 'x')).size(), 120);
+  EXPECT_EQ(UI::SanitizedDocumentTitle(QString::fromUtf8("\u202Egnp.exe")),
+            "gnp.exe")
+      << "a bidi override is a format character, and is dropped";
+}
+
 }  // namespace GpgFrontend::Test
