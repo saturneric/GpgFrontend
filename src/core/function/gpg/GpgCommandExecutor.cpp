@@ -231,7 +231,8 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
 
 GpgCommandExecutor::ExecuteContext::ExecuteContext(
     QString cmd, QStringList arguments, GpgCommandExecutorCallback callback,
-    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInterator int_func)
+    QSharedPointer<Thread::TaskRunner> task_runner,
+    GpgCommandExecutorInterator int_func)
     : cmd(std::move(cmd)),
       arguments(std::move(arguments)),
       cb_func(std::move(callback)),
@@ -240,7 +241,8 @@ GpgCommandExecutor::ExecuteContext::ExecuteContext(
 
 GpgCommandExecutor::ExecuteContext::ExecuteContext(
     QStringList arguments, GpgCommandExecutorCallback callback,
-    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInterator int_func)
+    QSharedPointer<Thread::TaskRunner> task_runner,
+    GpgCommandExecutorInterator int_func)
     : arguments(std::move(arguments)),
       cb_func(std::move(callback)),
       int_func(std::move(int_func)),

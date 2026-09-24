@@ -30,7 +30,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/openpgp/OpenPGPContext.h"
-#include "core/module/Module.h"
+#include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend {
 
@@ -50,7 +50,7 @@ class GF_CORE_EXPORT GpgCommandExecutor
     QStringList arguments;
     GpgCommandExecutorCallback cb_func;
     GpgCommandExecutorInterator int_func;
-    Module::TaskRunnerPtr task_runner = nullptr;
+    QSharedPointer<Thread::TaskRunner> task_runner = nullptr;
 
     /**
      * @brief Construct a new Execute Context object
@@ -71,7 +71,7 @@ class GF_CORE_EXPORT GpgCommandExecutor
         QString cmd, QStringList arguments,
         GpgCommandExecutorCallback callback = [](int, const QString &,
                                                  const QString &) {},
-        Module::TaskRunnerPtr task_runner = nullptr,
+        QSharedPointer<Thread::TaskRunner> task_runner = nullptr,
         GpgCommandExecutorInterator int_func = [](QProcess *) {});
 
     /**
@@ -86,7 +86,7 @@ class GF_CORE_EXPORT GpgCommandExecutor
         QStringList arguments,
         GpgCommandExecutorCallback callback = [](int, const QString &,
                                                  const QString &) {},
-        Module::TaskRunnerPtr task_runner = nullptr,
+        QSharedPointer<Thread::TaskRunner> task_runner = nullptr,
         GpgCommandExecutorInterator int_func = [](QProcess *) {});
   };
 
