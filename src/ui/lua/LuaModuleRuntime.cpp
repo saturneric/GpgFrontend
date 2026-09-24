@@ -187,23 +187,26 @@ auto LuaModuleRuntime::Resolve(const Handle& h,
     return std::nullopt;
   };
   if (h.state_tag != state_tag_) {
-    return fail(QStringLiteral("a handle from another module, or from before "
-                               "this module was reloaded"));
+    return fail(
+        QStringLiteral("a handle from another module, or from before "
+                       "this module was reloaded"));
   }
   gf::cmd::EncodeState st;
   switch (h.kind) {
     case HandleKind::kDOCUMENT:
       if (h.epoch != epoch_ || ctx_ == nullptr || !ctx_->document) {
-        return fail(QStringLiteral("a document handle outlived its call; "
-                                   "keep document:ref() instead"));
+        return fail(
+            QStringLiteral("a document handle outlived its call; "
+                           "keep document:ref() instead"));
       }
       return QCborValue(gf::cmd::EncodeMap(
           gf::cmd::DocumentRef{ctx_->document->id, 0, ctx_->document->type},
           st));
     case HandleKind::kKEY:
       if (h.epoch != epoch_ || ctx_ == nullptr || !ctx_->key) {
-        return fail(QStringLiteral("a key handle outlived its call; keep "
-                                   "key:ref() instead"));
+        return fail(
+            QStringLiteral("a key handle outlived its call; keep "
+                           "key:ref() instead"));
       }
       return QCborValue(gf::cmd::EncodeMap(*ctx_->key, st));
     case HandleKind::kDOCUMENT_REF: {
@@ -253,8 +256,7 @@ auto LuaModuleRuntime::CheckUpdateResult(const ActionEntry& action,
   const auto descriptor =
       CommandRegistry::Instance().Describe(action.info.command);
   if (!descriptor.has_value()) return fail(QStringLiteral("unknown command"));
-  const auto args_schema =
-      descriptor->value(QStringLiteral("args")).toMap();
+  const auto args_schema = descriptor->value(QStringLiteral("args")).toMap();
   const bool checkable =
       (descriptor->value(QStringLiteral("flags")).toInteger() &
        gf::cmd::kCheckable) != 0;
@@ -272,8 +274,9 @@ auto LuaModuleRuntime::CheckUpdateResult(const ActionEntry& action,
       if (n.key == "enabled") st.enabled = n.boolean;
       if (n.key == "checked") {
         if (!checkable) {
-          return fail(QStringLiteral("\"checked\" on a command that is not "
-                                     "checkable"));
+          return fail(
+              QStringLiteral("\"checked\" on a command that is not "
+                             "checkable"));
         }
         st.checked = n.boolean;
         st.has_checked = true;
@@ -296,8 +299,7 @@ auto LuaModuleRuntime::CheckUpdateResult(const ActionEntry& action,
       const auto resolve = [this](const Handle& h,
                                   std::vector<gf::cmd::Blob>* b,
                                   QString* e) { return Resolve(h, b, e); };
-      if (!NodeToCbor(tree, args_node, args_schema, resolve, &unused,
-                      &ignored)
+      if (!NodeToCbor(tree, args_node, args_schema, resolve, &unused, &ignored)
                .has_value()) {
         return fail(QStringLiteral("args: ") + ignored);
       }
@@ -341,9 +343,9 @@ auto LuaModuleRuntime::Evaluate(const QString& action_id, const UiContext& ctx)
   }
   if (action->info.disabled) return st;
 
-  const CommandCaller caller{module_, caps_,
-                             QStringLiteral("lua:%1:%2")
-                                 .arg(action->info.chunk, action->info.id)};
+  const CommandCaller caller{
+      module_, caps_,
+      QStringLiteral("lua:%1:%2").arg(action->info.chunk, action->info.id)};
   const auto bits = CommandRegistry::Instance().State(
       action->info.command, caller, CommandContextFor(ctx));
 
@@ -366,7 +368,8 @@ auto LuaModuleRuntime::Evaluate(const QString& action_id, const UiContext& ctx)
   BindingOutcome out;
   const bool ok = Protected(
       state_->L(),
-      [ref, tag, epoch, &tree, &flatten_error, &flattened](lua_State* L) -> int {
+      [ref, tag, epoch, &tree, &flatten_error,
+       &flattened](lua_State* L) -> int {
         lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
         PushHandle(L, HandleKind::kCONTEXT, tag, 1, epoch);
         lua_call(L, 1, 1);
@@ -430,8 +433,8 @@ auto LuaModuleRuntime::Trigger(const QString& action_id, const UiContext& ctx)
     it = used ? blobs_.erase(it) : std::next(it);
   }
 
-  const CommandCaller caller{
-      module_, caps_, QStringLiteral("lua:%1:%2").arg(chunk, action_id)};
+  const CommandCaller caller{module_, caps_,
+                             QStringLiteral("lua:%1:%2").arg(chunk, action_id)};
   const auto ticket = CommandRegistry::Instance().Invoke(
       command, st.args, std::move(st.blobs), caller, CommandContextFor(ctx),
       [module = module_, command](gf::cmd::RawResult r) {
@@ -455,10 +458,10 @@ void LuaModuleRuntime::Deliver(const QString& event, const UiContext& ctx,
     if (document_id != 0) {
       ref_id = NextId();
       document_refs_.insert(
-          ref_id, gf::cmd::DocumentRef{document_id, 0,
-                                       ctx.document.has_value()
-                                           ? ctx.document->type
-                                           : QString()});
+          ref_id,
+          gf::cmd::DocumentRef{
+              document_id, 0,
+              ctx.document.has_value() ? ctx.document->type : QString()});
     }
 
     phase_ = Phase::kHANDLER;
@@ -498,7 +501,8 @@ void LuaModuleRuntime::Deliver(const QString& event, const UiContext& ctx,
 void LuaModuleRuntime::Complete(qint64 call_handle, gf::cmd::RawResult r) {
   if (state_ == nullptr || stopping_.load() || torn_down_) return;
   const auto call = calls_.take(call_handle);
-  if (call.continuation == LUA_NOREF || call.continuation == -2) return;
+  static_assert(PendingCall::kNoRef == LUA_NOREF);
+  if (call.continuation == LUA_NOREF) return;
 
   // Checked against the command's declared result before any of it reaches
   // Lua: a provider cannot hand a script something its schema did not say.
@@ -506,16 +510,15 @@ void LuaModuleRuntime::Complete(qint64 call_handle, gf::cmd::RawResult r) {
   QString error;
   if (r.status == GF_CMD_OK) {
     const auto d = CommandRegistry::Instance().Describe(call.command);
-    const auto schema = d.has_value()
-                            ? d->value(QStringLiteral("result")).toMap()
-                            : QCborMap{};
+    const auto schema =
+        d.has_value() ? d->value(QStringLiteral("result")).toMap() : QCborMap{};
     const auto registrar = [this](gf::cmd::Blob b) -> qint64 {
       const auto id = NextId();
       blobs_.insert(id, std::move(b));
       return id;
     };
-    if (!CborToPushTree(QCborValue(r.result), schema, r.blobs, registrar,
-                        &tree, &error)) {
+    if (!CborToPushTree(QCborValue(r.result), schema, r.blobs, registrar, &tree,
+                        &error)) {
       LOG_W() << "module" << module_ << "command" << call.command
               << "returned a result its schema does not describe";
       tree.clear();
@@ -574,10 +577,10 @@ void LuaModuleRuntime::Teardown() {
   actions_.clear();
   subscriptions_.clear();
   teardown_log_ << QStringLiteral("actions and subscriptions removed");
-  emit SignalChanged();
 
   mounts_.clear();
   teardown_log_ << QStringLiteral("mounts removed");
+  // Once, for both: placements rebuild from scratch either way.
   emit SignalChanged();
 
   commands_.clear();

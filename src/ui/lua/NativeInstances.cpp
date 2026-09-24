@@ -101,12 +101,18 @@ auto NativeInstances::CountFor(const QString& module) const -> int {
   return n;
 }
 
-auto NativeInstances::IdsFor(const QString& module) const -> QList<quint64> {
-  QList<quint64> ids;
-  for (auto it = live_.constBegin(); it != live_.constEnd(); ++it) {
-    if (it->instance.owner == module) ids.append(it.key());
+void NativeInstances::WithdrawAll(const QString& module) {
+  QList<NativeContainer*> containers;
+  for (auto it = live_.begin(); it != live_.end();) {
+    if (it->instance.owner == module) {
+      if (it->container != nullptr) containers.append(it->container);
+      it = live_.erase(it);
+    } else {
+      ++it;
+    }
   }
-  return ids;
+  // After the table is consistent: a container may be destroyed by this.
+  for (auto* c : containers) c->OnWithdrawn();
 }
 
 }  // namespace GpgFrontend::UI

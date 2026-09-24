@@ -69,7 +69,6 @@ class GF_UI_EXPORT LuaHost : public QObject {
             const QString& chunk, QString* error) -> bool;
 
   [[nodiscard]] auto Runtime(const QString& module) const -> LuaModuleRuntime*;
-  [[nodiscard]] auto Modules() const -> QStringList;
 
   /// Every action on @p anchor, across modules, in anchor order.
   [[nodiscard]] auto ActionsOn(const QString& anchor) const
@@ -79,8 +78,7 @@ class GF_UI_EXPORT LuaHost : public QObject {
   [[nodiscard]] auto MountsOf(AnchorKind kind) const -> QList<PlacedMount>;
 
   /// The module whose editor mount owns @p document_type, or empty.
-  [[nodiscard]] auto EditorOwner(const QString& document_type) const
-      -> QString;
+  [[nodiscard]] auto EditorOwner(const QString& document_type) const -> QString;
 
   /// Deliver a UI event to every module that subscribed.
   void Deliver(const QString& event, const UiContext& ctx,
@@ -88,9 +86,6 @@ class GF_UI_EXPORT LuaHost : public QObject {
 
   /// Tear down @p module's runtime, in order, and forget it. Idempotent.
   void Teardown(const QString& module);
-
-  /// For tests: forget every runtime without the rest of module teardown.
-  void Reset();
 
  signals:
   /// Something a placement shows changed; rebuild.

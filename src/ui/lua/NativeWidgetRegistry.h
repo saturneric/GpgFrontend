@@ -109,11 +109,12 @@ class GF_UI_EXPORT NativeWidgetRegistry {
  public:
   static auto Instance() -> NativeWidgetRegistry&;
 
-  /// A module registers only inside its own namespace, once per id.
+  /// A module registers only inside its own namespace -- its id and one
+  /// dotless name -- once per id.
   auto Register(NativeWidgetEntry entry) -> bool;
   auto Unregister(const QString& owner, const QString& id) -> bool;
-  [[nodiscard]] auto Find(const QString& id) -> std::optional<NativeWidgetEntry>;
-  [[nodiscard]] auto IdsOf(const QString& owner) -> QStringList;
+  [[nodiscard]] auto Find(const QString& id)
+      -> std::optional<NativeWidgetEntry>;
   void RemoveAllFor(const QString& owner);
 
  private:

@@ -58,6 +58,7 @@ class GF_UI_EXPORT NativeDialog : public QDialog, public NativeContainer {
   [[nodiscard]] auto MountId() const -> const QString& { return mount_id_; }
 
   void OnClose() override;
+  void OnWithdrawn() override;
 
  protected:
   void closeEvent(QCloseEvent* event) override;
@@ -84,12 +85,14 @@ class GF_UI_EXPORT NativeSettingsPage : public QWidget, public NativeContainer {
   auto Apply() -> bool;
 
   void OnRestartNeeded(int level) override;
+  void OnWithdrawn() override;
 
  signals:
   void SignalRestartNeeded(int level);
 
  private:
   quint64 instance_ = 0;
+  QPointer<QWidget> widget_;
 };
 
 /**
@@ -112,8 +115,5 @@ struct GF_UI_EXPORT NativeSettingsPageInfo {
 };
 
 auto GF_UI_EXPORT BuildNativeSettingsPages() -> QList<NativeSettingsPageInfo>;
-
-/// Close every dialog @p module has open. For teardown.
-void GF_UI_EXPORT CloseDialogsOf(const QString& module);
 
 }  // namespace GpgFrontend::UI::Lua

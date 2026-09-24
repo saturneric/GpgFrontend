@@ -51,21 +51,16 @@ auto LuaHost::Load(const QString& module, uint32_t caps,
   }
   const bool ok = rt->Load(source, chunk, error);
   if (ok) {
-    LOG_D() << "module" << module << "UI script" << chunk << "loaded:"
-            << rt->Actions().size() << "action(s)," << rt->Mounts().size()
-            << "mount(s)," << rt->Subscriptions().size() << "subscription(s)";
+    LOG_D() << "module" << module << "UI script" << chunk
+            << "loaded:" << rt->Actions().size() << "action(s),"
+            << rt->Mounts().size() << "mount(s)," << rt->Subscriptions().size()
+            << "subscription(s)";
   }
   return ok;
 }
 
 auto LuaHost::Runtime(const QString& module) const -> LuaModuleRuntime* {
   return runtimes_.value(module).get();
-}
-
-auto LuaHost::Modules() const -> QStringList {
-  auto m = runtimes_.keys();
-  m.sort();
-  return m;
 }
 
 auto LuaHost::ActionsOn(const QString& anchor) const -> QList<PlacedAction> {
@@ -116,10 +111,6 @@ void LuaHost::Teardown(const QString& module) {
   if (rt == nullptr) return;
   rt->Teardown();
   emit SignalChanged();
-}
-
-void LuaHost::Reset() {
-  for (const auto& m : runtimes_.keys()) Teardown(m);
 }
 
 }  // namespace GpgFrontend::UI::Lua

@@ -53,6 +53,15 @@ class GF_UI_EXPORT NativeContainer {
   virtual void OnOpsChanged() {}
   virtual void OnRestartNeeded(int /*level*/) {}
   virtual void OnClose() {}
+
+  /**
+   * @brief The module that owns this container's widget was withdrawn.
+   *
+   * The instance is already forgotten when this runs, and nothing enters the
+   * module any more: the container drops the module's widget and carries on
+   * without it -- a dialog closes, a document shows its own source.
+   */
+  virtual void OnWithdrawn() {}
 };
 
 /// One live native widget.
@@ -102,8 +111,14 @@ class GF_UI_EXPORT NativeInstances {
 
   [[nodiscard]] auto CountFor(const QString& module) const -> int;
 
-  /// Every instance of @p module, for its containers to close.
-  [[nodiscard]] auto IdsFor(const QString& module) const -> QList<quint64>;
+  /**
+   * @brief Forget every instance of @p module and tell each container.
+   *
+   * Part of withdrawing a module. Its widgets must not outlive it inside the
+   * Host's window, still running module code against state the module has
+   * dropped. GUI thread.
+   */
+  void WithdrawAll(const QString& module);
 
  private:
   struct Live {

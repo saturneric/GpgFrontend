@@ -28,6 +28,8 @@
 
 #include "NativeWidgetRegistry.h"
 
+#include "core/module/ModuleNamespace.h"
+
 namespace GpgFrontend::UI {
 
 auto NativeWidgetRegistry::Instance() -> NativeWidgetRegistry& {
@@ -36,8 +38,7 @@ auto NativeWidgetRegistry::Instance() -> NativeWidgetRegistry& {
 }
 
 auto NativeWidgetRegistry::Register(NativeWidgetEntry entry) -> bool {
-  if (entry.owner.isEmpty() || !entry.id.startsWith(entry.owner + ".") ||
-      !entry.create) {
+  if (!Module::IsOwnedName(entry.owner, entry.id) || !entry.create) {
     return false;
   }
   QMutexLocker locker(&mutex_);
@@ -62,16 +63,6 @@ auto NativeWidgetRegistry::Find(const QString& id)
   const auto it = entries_.constFind(id);
   if (it == entries_.constEnd()) return std::nullopt;
   return *it;
-}
-
-auto NativeWidgetRegistry::IdsOf(const QString& owner) -> QStringList {
-  QMutexLocker locker(&mutex_);
-  QStringList ids;
-  for (const auto& e : entries_) {
-    if (e.owner == owner) ids.append(e.id);
-  }
-  ids.sort();
-  return ids;
 }
 
 void NativeWidgetRegistry::RemoveAllFor(const QString& owner) {

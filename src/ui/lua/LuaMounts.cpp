@@ -57,7 +57,11 @@ NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
   const auto instance =
       NativeInstances::Instance().Create(widget_id, args, this);
   if (!instance.has_value() || instance->kind != NativeWidgetKind::kDIALOG) {
-    if (instance.has_value()) NativeInstances::Instance().Destroy(instance->id);
+    // The module built a widget; not mounted, it is the Host's to delete.
+    if (instance.has_value()) {
+      NativeInstances::Instance().Destroy(instance->id);
+      delete instance->widget.data();
+    }
     return;
   }
   instance_ = instance->id;
@@ -110,16 +114,26 @@ void NativeDialog::OnClose() {
   close();
 }
 
+void NativeDialog::OnWithdrawn() {
+  // The module is gone: nobody is left to ask whether it may close.
+  instance_ = 0;
+  closing_ = true;
+  close();
+}
+
 NativeSettingsPage::NativeSettingsPage(const QString& widget_id,
                                        QWidget* parent)
     : QWidget(parent) {
-  const auto instance =
-      NativeInstances::Instance().Create(widget_id, {}, this);
+  const auto instance = NativeInstances::Instance().Create(widget_id, {}, this);
   if (!instance.has_value() || instance->kind != NativeWidgetKind::kSETTINGS) {
-    if (instance.has_value()) NativeInstances::Instance().Destroy(instance->id);
+    if (instance.has_value()) {
+      NativeInstances::Instance().Destroy(instance->id);
+      delete instance->widget.data();
+    }
     return;
   }
   instance_ = instance->id;
+  widget_ = instance->widget;
   instance->widget->setWindowFlags(Qt::Widget);
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
@@ -145,6 +159,18 @@ auto NativeSettingsPage::Apply() -> bool {
 
 void NativeSettingsPage::OnRestartNeeded(int level) {
   emit SignalRestartNeeded(level);
+}
+
+void NativeSettingsPage::OnWithdrawn() {
+  instance_ = 0;
+  delete widget_.data();
+  if (layout() != nullptr) {
+    layout()->addWidget(new QLabel(
+        QCoreApplication::translate(
+            "GpgFrontend::UI::Lua::NativeSettingsPage",
+            "The module that provided this page is no longer active."),
+        this));
+  }
 }
 
 auto OpenDialogMount(const QString& module, const QString& view_id,
@@ -195,18 +221,6 @@ auto BuildNativeSettingsPages() -> QList<NativeSettingsPageInfo> {
     pages.append({page, Translate(entry->title), m.info.section, keywords});
   }
   return pages;
-}
-
-void CloseDialogsOf(const QString& module) {
-  auto& open = OpenDialogs();
-  for (auto it = open.begin(); it != open.end();) {
-    if (it.key().startsWith(module + ".")) {
-      if (!it->isNull()) (*it)->OnClose();
-      it = open.erase(it);
-    } else {
-      ++it;
-    }
-  }
 }
 
 }  // namespace GpgFrontend::UI::Lua

@@ -133,8 +133,7 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
  public:
   friend struct LuaApi;
 
-  LuaModuleRuntime(QString module, uint32_t caps,
-                   LuaState::Limits limits = {});
+  LuaModuleRuntime(QString module, uint32_t caps, LuaState::Limits limits = {});
   ~LuaModuleRuntime() override;
 
   [[nodiscard]] auto Module() const -> const QString& { return module_; }
@@ -223,7 +222,10 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
 
   struct PendingCall {
     quint64 registry_call = 0;
-    int continuation = -2;  ///< LUA_NOREF when none
+    /// A Lua registry reference, or LUA_NOREF when none. Spelled as a number
+    /// because this header does not include Lua's; the source checks it.
+    static constexpr int kNoRef = -2;
+    int continuation = kNoRef;
     QString command;
     QString source;
   };
@@ -240,12 +242,10 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
 
   auto NextId() -> qint64 { return ++next_id_; }
   void EndEntry();
-  auto CommandContextFor(const UiContext& ctx) const
-      -> gf::cmd::CommandContext;
+  auto CommandContextFor(const UiContext& ctx) const -> gf::cmd::CommandContext;
   auto Resolve(const Handle& h, std::vector<gf::cmd::Blob>* blobs,
                QString* error) -> std::optional<QCborValue>;
-  auto CheckUpdateResult(const ActionEntry& action,
-                         const LuaTree& tree)
+  auto CheckUpdateResult(const ActionEntry& action, const LuaTree& tree)
       -> ActionState;
   void Complete(qint64 call_handle, gf::cmd::RawResult result);
   void RecordError(const QString& where, const QString& what);
@@ -256,10 +256,10 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
   quint64 state_tag_;
 
   Phase phase_ = Phase::kIDLE;
-  QString chunk_;               ///< the chunk being loaded
-  quint64 epoch_ = 1;           ///< bumped when every entry returns
+  QString chunk_;                   ///< the chunk being loaded
+  quint64 epoch_ = 1;               ///< bumped when every entry returns
   const UiContext* ctx_ = nullptr;  ///< valid during an entry only
-  QString source_;              ///< who the current entry acts as
+  QString source_;                  ///< who the current entry acts as
 
   qint64 next_id_ = 0;
   QHash<qint64, QString> commands_;
