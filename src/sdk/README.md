@@ -54,23 +54,23 @@ a context cannot hold one module's token beside another's table.
 the module did not declare is NULL in its table, and its primitives refuse the
 context even if reached another way.
 
-| group       | granted by  | contents                                                                   |
-| ----------- | ----------- | -------------------------------------------------------------------------- |
-| `buffer`    | always      | buffers, and both memory arenas behind one `arena` argument                |
-| `log`       | always      | `write(severity, …)`, `enabled`                                            |
-| `app`       | always      | version, commit, Qt version, user agent, locale, flatpak, key protection   |
-| `event`     | always      | `subscribe`, `answer`                                                      |
-| `bootstrap` | always      | translator registration: runtime plumbing, not a permission                |
-| `list`      | always      | the generic string list, which `gpg` and `storage` both produce            |
-| `gpg`       | `"gpg"`     | operations, results, keys, key and recipient lists, analysis               |
-| `pgp`       | `"pgp"`     | packet-structure inspection; no keyring, no engine                         |
-| `ui`        | `"ui"`      | theme colors by role, the user file path                                   |
-| `command`   | `"ui"`      | register, invoke, cancel and describe typed commands                       |
-| `script`    | `"ui"`      | load the module's embedded UI scripts                                      |
-| `native`    | `"ui"` + `"ui.custom"` | register native widgets; a mounted widget's notifications       |
-| `editor`    | `"editor"`  | the current document's exact octets, and what it is (never its content)    |
-| `storage`   | `"storage"` | the module's settings group, the three caches (scoped per module), the runtime register table |
-| `process`   | `"process"` | running an external program                                                |
+| group       | granted by             | contents                                                                                      |
+| ----------- | ---------------------- | --------------------------------------------------------------------------------------------- |
+| `buffer`    | always                 | buffers, and both memory arenas behind one `arena` argument                                   |
+| `log`       | always                 | `write(severity, …)`, `enabled`                                                               |
+| `app`       | always                 | version, commit, Qt version, user agent, locale, flatpak, key protection                      |
+| `event`     | always                 | `subscribe`, `answer`                                                                         |
+| `bootstrap` | always                 | translator registration: runtime plumbing, not a permission                                   |
+| `list`      | always                 | the generic string list, which `gpg` and `storage` both produce                               |
+| `gpg`       | `"gpg"`                | operations, results, keys, key and recipient lists, analysis                                  |
+| `pgp`       | `"pgp"`                | packet-structure inspection; no keyring, no engine                                            |
+| `ui`        | `"ui"`                 | theme colors by role, the user file path                                                      |
+| `command`   | `"ui"`                 | register, invoke, cancel and describe typed commands                                          |
+| `script`    | `"ui"`                 | load the module's embedded UI scripts                                                         |
+| `native`    | `"ui"` + `"ui.custom"` | register native widgets; a mounted widget's notifications                                     |
+| `editor`    | `"editor"`             | the current document's exact octets, and what it is (never its content)                       |
+| `storage`   | `"storage"`            | the module's settings group, the three caches (scoped per module), the runtime register table |
+| `process`   | `"process"`            | running an external program                                                                   |
 
 `event` is always present because it answers a different question from the
 rest: the groups say what a module may actively DO, while a subscription says
@@ -150,9 +150,9 @@ settings group, the same one `gf::sdk::Setting` reaches.
 A module has exactly two ways to put something on the screen, and neither
 hands it a Host Qt object:
 
-1. **A UI script and commands.** The module's Lua script says *where* its
+1. **A UI script and commands.** The module's Lua script says _where_ its
    commands are offered (a menu, the editor's context menu, the key details
-   dialog) and *when* they are enabled. The commands themselves are typed C++,
+   dialog) and _when_ they are enabled. The commands themselves are typed C++,
    and they carry every user-visible word.
 2. **Module-owned native widgets** (`ui.custom`). The module builds a
    `QWidget`; the script mounts it into a container the Host owns: a dialog, a
@@ -163,10 +163,10 @@ substantial operations.** Lua is Turing-complete, but the Host authority it
 can reach is small, typed, semantic, capability-controlled and tied to the
 module's lifecycle.
 
-| capability  | grants                                                                              |
-| ----------- | ----------------------------------------------------------------------------------- |
+| capability  | grants                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------------------ |
 | `ui`        | the module's Lua state: `commands`, `ui.action`, `ui.subscribe`, `state`, `theme`; C++ command register and invoke |
-| `ui.custom` | adds `native.*` and `ui.mount` in Lua, and native widget registration in C++. Requires `ui` |
+| `ui.custom` | adds `native.*` and `ui.mount` in Lua, and native widget registration in C++. Requires `ui`                        |
 
 There is no third level and no Host-handle escape hatch. A grant check needs
 **every** capability it names: `native` is NULL in a table that has `ui` but
@@ -223,17 +223,17 @@ const std::array<gf::cmd::Binding, 1> kCommands = {
 
 Host commands (types in `GFSDKHostCommands.hpp`, titles in `src/ui`):
 
-| id                                                     | arguments                                     |
-| ------------------------------------------------------ | --------------------------------------------- |
-| `org.gpgfrontend.document.new`                         | `type, title`                                 |
-| `org.gpgfrontend.document.open`                        | `type, title, path, content: Blob, saved, modified` |
-| `org.gpgfrontend.document.{save, save_as, close}`      | `target: DocumentRef`; needs `editor`         |
-| `org.gpgfrontend.crypto.{encrypt, decrypt, sign, verify, encrypt_sign, decrypt_verify}` | `target: DocumentRef` |
-| `org.gpgfrontend.keys.import`                          | `data: Blob`                                  |
-| `org.gpgfrontend.keys.open_manager`                    |                                               |
-| `org.gpgfrontend.view.open`                            | `view: ViewRef`, the caller's own mount only  |
-| `org.gpgfrontend.app.open_settings`                    |                                               |
-| `org.gpgfrontend.app.message`                          | `severity, title, text`                       |
+| id                                                                                      | arguments                                           |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `org.gpgfrontend.document.new`                                                          | `type, title`                                       |
+| `org.gpgfrontend.document.open`                                                         | `type, title, path, content: Blob, saved, modified` |
+| `org.gpgfrontend.document.{save, save_as, close}`                                       | `target: DocumentRef`; needs `editor`               |
+| `org.gpgfrontend.crypto.{encrypt, decrypt, sign, verify, encrypt_sign, decrypt_verify}` | `target: DocumentRef`                               |
+| `org.gpgfrontend.keys.import`                                                           | `data: Blob`                                        |
+| `org.gpgfrontend.keys.open_manager`                                                     |                                                     |
+| `org.gpgfrontend.view.open`                                                             | `view: ViewRef`, the caller's own mount only        |
+| `org.gpgfrontend.app.open_settings`                                                     |                                                     |
+| `org.gpgfrontend.app.message`                                                           | `severity, title, text`                             |
 
 ### The UI script
 
@@ -271,7 +271,7 @@ raise inside it. Its answer (`visible`, `enabled`, `checked`, `args`) is
 validated, and an invalid one hides and disables the action. When the user
 triggers the action, the Host builds a fresh context, runs `update` again,
 requires it to be visible and enabled and the command to be enabled, and only
-then invokes with the arguments from *that* run. Stale arguments cannot reach a
+then invokes with the arguments from _that_ run. Stale arguments cannot reach a
 command. `args` may be omitted and reads as an empty table.
 
 **Continuations.** `commands.invoke(cmd, args, function(result, err) ... end)`
@@ -290,6 +290,7 @@ resolves again on use and refuses once stale. A handle from another module's
 state is refused.
 
 <!-- lua-api-reference: generated by LuaApiReference(), pinned by GFUiLuaApiTest -->
+
 ```text
 Lua UI API v1
 
@@ -336,6 +337,7 @@ SDK-major change. An unknown anchor fails the load and the message lists the
 valid ids.
 
 <!-- anchor-catalog: generated by AnchorCatalogReference(), pinned by GFUiLuaApiTest -->
+
 ```text
 anchor catalog v1
 main.menu.file.workspace | menu | context: document | modules: many | since 1
@@ -384,11 +386,11 @@ auto OnActivate() -> GFResult {
 
 Three typed protocols, and no generic request or query:
 
-| class                     | the Host calls                                                                  | the widget may ask                                   |
-| ------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `gf::ui::DocumentWidget`  | `Load`, `Save`, `IsDirty`, `CryptoOperations`, `ApplyVerification`, `AppendText`, `AttachPublicKey`, `ApplyFont`, `PrepareSave`, `SourceLockReason`, `WipeContent` | modified, show source, run a crypto op, ops changed |
-| `gf::ui::SettingsWidget`  | `LoadSettings`, `ApplySettings`                                                 | restart needed                                       |
-| `gf::ui::DialogWidget`    | `Opened`, `CloseRequested`                                                      | close                                                |
+| class                    | the Host calls                                                                                                                                                     | the widget may ask                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| `gf::ui::DocumentWidget` | `Load`, `Save`, `IsDirty`, `CryptoOperations`, `ApplyVerification`, `AppendText`, `AttachPublicKey`, `ApplyFont`, `PrepareSave`, `SourceLockReason`, `WipeContent` | modified, show source, run a crypto op, ops changed |
+| `gf::ui::SettingsWidget` | `LoadSettings`, `ApplySettings`                                                                                                                                    | restart needed                                      |
+| `gf::ui::DialogWidget`   | `Opened`, `CloseRequested`                                                                                                                                         | close                                               |
 
 `RegisterNativeWidget` makes one instance; `RegisterNativeWidgetFactory` one
 per mount (every document tab needs its own). The widget pointer goes module
@@ -443,15 +445,15 @@ shutdown, not at deactivation.
 These slots keep their place in the table and refuse, logged once per module
 with the replacement:
 
-| slot                                           | now   | instead                                   |
-| ---------------------------------------------- | ----- | ----------------------------------------- |
-| `ui.create_object`, `ui.get_object`            | NULL  | commands; a native widget                 |
-| `ui.show_dialog`                               | -1    | a dialog mount and `view.open`            |
-| `ui.theme_color(widget)`                       | 0     | `theme_color_role`                        |
-| `ui.register_settings_page`                    | -1    | a settings mount                          |
-| `ui.register_tab_view`, `register_file_extension` | -1 | an editor mount and its `extensions`      |
-| `storage.settings_root`                        | NULL  | `setting_get/set/remove`                  |
-| `gpg.import_keys(parent)`                      | `parent` ignored | `gf::sdk::ImportKeys(ctx, channel, data)` |
+| slot                                              | now              | instead                                   |
+| ------------------------------------------------- | ---------------- | ----------------------------------------- |
+| `ui.create_object`, `ui.get_object`               | NULL             | commands; a native widget                 |
+| `ui.show_dialog`                                  | -1               | a dialog mount and `view.open`            |
+| `ui.theme_color(widget)`                          | 0                | `theme_color_role`                        |
+| `ui.register_settings_page`                       | -1               | a settings mount                          |
+| `ui.register_tab_view`, `register_file_extension` | -1               | an editor mount and its `extensions`      |
+| `storage.settings_root`                           | NULL             | `setting_get/set/remove`                  |
+| `gpg.import_keys(parent)`                         | `parent` ignored | `gf::sdk::ImportKeys(ctx, channel, data)` |
 
 The events that lent a module Host widgets are gone, with their trigger sites:
 `MAINWINDOW_MENU_MOUNTED`, `KEY_PAIR_OPERA_MENU_CREATED`,
