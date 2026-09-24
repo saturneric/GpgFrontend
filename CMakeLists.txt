@@ -722,6 +722,22 @@ endif()
 set(GPGFRONTEND_LIBRARY_TARGETS "" CACHE INTERNAL "All libraries" FORCE)
 
 add_subdirectory(src)
+
+# The module test binaries, registered by gf_register_module_test(). Removed
+# when there are none, so a tree reconfigured without tests does not keep
+# running a stale list.
+get_property(gf_module_tests GLOBAL PROPERTY GPGFRONTEND_MODULE_TEST_TARGETS)
+set(gf_module_test_list "${CMAKE_BINARY_DIR}/test-bin/module-tests.list")
+if(gf_module_tests)
+  set(gf_module_test_lines "")
+  foreach(gf_test IN LISTS gf_module_tests)
+    string(APPEND gf_module_test_lines "$<TARGET_FILE:${gf_test}>\n")
+  endforeach()
+  file(GENERATE OUTPUT "${gf_module_test_list}"
+    CONTENT "${gf_module_test_lines}")
+else()
+  file(REMOVE "${gf_module_test_list}")
+endif()
 # ---------------------------------------------------------------------------
 # One file that says what this build is and where it put things.
 #
