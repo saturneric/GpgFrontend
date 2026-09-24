@@ -774,10 +774,10 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   QMenu* popup_menu_;
 
-  bool attachment_dock_created_{};         ///<
-  int restart_mode_{0};                    ///<
-  bool show_wizard_on_startup_ = false;    ///<
-  bool wizard_checked_ = false;            ///<
+  bool attachment_dock_created_{};       ///<
+  int restart_mode_{0};                  ///<
+  bool show_wizard_on_startup_ = false;  ///<
+  bool wizard_checked_ = false;          ///<
   unsigned int operations_menu_mask_ = ~0;
   /// What the CURRENT TAB's type can do, kept apart from the mask above
   /// because that one is overwritten wholesale whenever the key list changes.

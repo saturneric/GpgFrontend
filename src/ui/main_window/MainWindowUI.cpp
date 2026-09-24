@@ -27,7 +27,6 @@
  */
 
 #include "MainWindow.h"
-#include "sdk/GFSDKHostCommands.hpp"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
@@ -35,6 +34,7 @@
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
+#include "sdk/GFSDKHostCommands.hpp"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
@@ -57,19 +57,17 @@ void MainWindow::create_actions() {
       "new_tab", tr("New Text Editor"), ":/icons/misc_doc.png",
       tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
-  connect(new_tab_act_, &QAction::triggered, this,
-          [this]() {
-            // A new plain-text document; the Host picks its title. Not the
-            // current-document target the other menu commands take, which
-            // document.new refuses.
-            gf::cmd::EncodeState st;
-            invoke_host_command(
-                "org.gpgfrontend.document.new",
-                gf::cmd::EncodeMap(
-                    gf::cmd::host::DocumentNew::Args{QStringLiteral("text"),
-                                                     QString()},
-                    st));
-          });
+  connect(new_tab_act_, &QAction::triggered, this, [this]() {
+    // A new plain-text document; the Host picks its title. Not the
+    // current-document target the other menu commands take, which
+    // document.new refuses.
+    gf::cmd::EncodeState st;
+    invoke_host_command(
+        "org.gpgfrontend.document.new",
+        gf::cmd::EncodeMap(
+            gf::cmd::host::DocumentNew::Args{QStringLiteral("text"), QString()},
+            st));
+  });
 
   browser_act_ = create_action(
       "file_browser_dir", tr("New File Panel"), ":/icons/file-operator.png",

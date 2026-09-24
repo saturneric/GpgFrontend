@@ -372,8 +372,7 @@ void MainWindow::invoke_host_command(const char* id) {
 void MainWindow::invoke_host_command(const char* id, const QCborMap& args) {
   const auto command = QString::fromLatin1(id);
   const auto ticket = CommandRegistry::Instance().Invoke(
-      command, args, {},
-      CommandCaller{{}, 0, QStringLiteral("host")}, {},
+      command, args, {}, CommandCaller{{}, 0, QStringLiteral("host")}, {},
       [command](gf::cmd::RawResult r) {
         if (r.status != GF_CMD_OK) {
           LOG_W() << "host command" << command << "failed:" << r.status
