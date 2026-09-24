@@ -177,6 +177,74 @@ GF_HOST_CRYPTO_COMMAND(CryptoDecryptVerify,
 
 #undef GF_HOST_CRYPTO_COMMAND
 
+// ------------------------------------------------------------------ codecs
+//
+// A codec transforms bytes around the Host's own OpenPGP operation and does
+// nothing else: no dialog, no network, no editor. The Host keeps key
+// selection, the editor and the result display.
+//
+//  - kInputDecoder: before a text Decrypt, the Host offers the text to every
+//    decoder in id order. The first to answer kHandled supplies the OpenPGP
+//    message the Host then decrypts; kFailed ends the operation with its
+//    error; when none claims the text, the Host decrypts it as it is. A
+//    decoder that cannot be reached counts as not claiming it.
+//  - kOutputEncoder: CryptoEncryptEncoded encrypts with the Host's own flow,
+//    then has the named encoder turn the binary OpenPGP message into the text
+//    that replaces the document.
+
+enum class CodecOutcome : int {
+  kNotHandled = 0,  ///< not mine; the Host carries on without me
+  kHandled = 1,     ///< `output` is the result
+  kFailed = 2,      ///< mine, but broken: `error` says why
+};
+
+/// What a codec is given: the bytes, never the document.
+struct CodecArgs {
+  Blob input;
+  static constexpr auto Fields() {
+    return std::make_tuple(F("input", &CodecArgs::input));
+  }
+};
+
+/// What a codec answers. `cards` is optional info-board card JSON, in the
+/// format of an operation's `result_cards`; the Host renders it.
+struct CodecResult {
+  CodecOutcome outcome = CodecOutcome::kNotHandled;
+  std::optional<Blob> output;
+  QString error;
+  QString cards;
+  static constexpr auto Fields() {
+    return std::make_tuple(F("outcome", &CodecResult::outcome),
+                           F("output", &CodecResult::output),
+                           F("error", &CodecResult::error),
+                           F("cards", &CodecResult::cards));
+  }
+};
+
+/// Encrypt the document the Host's way -- the checked keys, or a passphrase
+/// when none are checked and it is not signing -- as binary OpenPGP, then
+/// replace the document with what the caller's own `encoder` (a
+/// kOutputEncoder command) makes of it.
+struct CryptoEncryptEncoded {
+  static constexpr Meta kMeta{"org.gpgfrontend.crypto.encrypt_encoded",
+                              "Encrypt and Encode",
+                              "",
+                              "",
+                              GF_HOST_CAP_GPG | GF_HOST_CAP_EDITOR,
+                              kNeedsGuiThread};
+  struct Args {
+    DocumentRef target;  ///< id 0: the active document
+    QString encoder;     ///< a kOutputEncoder command in the caller's namespace
+    bool sign = false;
+    static constexpr auto Fields() {
+      return std::make_tuple(F("target", &Args::target),
+                             F("encoder", &Args::encoder),
+                             F("sign", &Args::sign));
+    }
+  };
+  using Result = Unit;
+};
+
 // ------------------------------------------------------------------ keys
 
 /// Import keys from bytes, with the Host's own import dialog and report.

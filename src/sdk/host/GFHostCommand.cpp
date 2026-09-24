@@ -154,6 +154,7 @@ auto RegisterCommand(GFHostContextRef ctx, const GFCommandSpec* spec) -> int {
       p.descriptor.value(QStringLiteral("required_caps")).toInteger());
   p.flags = static_cast<uint32_t>(
       p.descriptor.value(QStringLiteral("flags")).toInteger());
+  p.owner_caps = gf_sdk_internal::ContextGranted(ctx);
 
   const auto module_utf8 = module.toUtf8();
   const auto gui = (p.flags & gf::cmd::kNeedsGuiThread) != 0;

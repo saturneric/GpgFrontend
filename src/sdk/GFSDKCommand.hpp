@@ -100,6 +100,14 @@ enum Flag : uint32_t {
   kLongRunning = 1U << 2,
   /// The Host's own: invocable from the Host UI, never by a module.
   kHostOnly = 1U << 3,
+  /// A decoder the Host offers text to before its own OpenPGP decrypt. Its
+  /// arguments and result are gf::cmd::host::CodecArgs / CodecResult; it
+  /// never runs on the GUI thread, and needs the editor capability.
+  kInputDecoder = 1U << 4,
+  /// An encoder the Host runs on its own encrypt output when a command asks
+  /// for it by name (org.gpgfrontend.crypto.encrypt_encoded). Same shape and
+  /// rules as kInputDecoder.
+  kOutputEncoder = 1U << 5,
 };
 
 /// Everything about a command that is not its argument types.
