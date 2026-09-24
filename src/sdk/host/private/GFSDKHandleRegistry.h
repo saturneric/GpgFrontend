@@ -127,6 +127,31 @@ class GFHandleRegistry {
     return OwnerStateLocked(it.value(), handle, what);
   }
 
+  /**
+   * @brief @p handle, when Check() calls it live; null otherwise.
+   *
+   * Validate first, dereference second -- never the other way round. A stale
+   * handle is reported here: once, in one wording, for every handle type.
+   */
+  [[nodiscard]] auto ResolveLive(T* handle, const char* what) -> T* {
+    if (handle == nullptr) return nullptr;
+    const auto state = Check(handle, what);
+    if (state == GFHandleState::kLive) return handle;
+    if (state == GFHandleState::kStale) ReportStale(handle, what);
+    return nullptr;
+  }
+
+  /// A handle that was never issued, or was already released or swept.
+  static void ReportStale(const void* handle, const char* what) {
+    LOG_W().nospace()
+        << what
+        << ": stale handle (already released, or never issued by the host): "
+        << handle;
+#ifdef DEBUG
+    qFatal("%s: stale handle %p", what, handle);
+#endif
+  }
+
   /// Remove @p handle if Check() would call it live, reporting what it found.
   auto Take(T* handle, const char* what) -> GFHandleState {
     if (handle == nullptr) return GFHandleState::kStale;

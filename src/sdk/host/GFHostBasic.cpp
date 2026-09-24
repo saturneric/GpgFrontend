@@ -35,6 +35,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "private/GFHostContext.h"
+#include "private/GFHostEnter.h"
 #include "private/GFSDKPrivate.h"
 #include "ui/UIModuleManager.h"
 
@@ -60,7 +61,8 @@ auto GFProjectVersion() -> const char* {
 
 auto GFQtEnvVersion() -> const char* { return QT_VERSION_STR; }
 
-void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
+void GFExecuteCommandBatchSync(const QByteArray& module,
+                               GFCommandExecuteContext** contexts,
                                int32_t contexts_size) {
   // Everything here is borrowed: the module built the array, the contexts and
   // their strings, and it releases them after this returns. Copy what is
@@ -83,9 +85,13 @@ void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
 
     core_contexts.append(
         {GFStrView(sdk_context->cmd), args,
-         [data = sdk_context->data, cb = sdk_context->cb](
+         [module, data = sdk_context->data, cb = sdk_context->cb](
              int exit_code, const QString& out, const QString& err) {
-           cb(data, exit_code, out.toUtf8(), err.toUtf8());
+           // The callback is module code, run on the process runner: entered
+           // through the gates and attributed, like every other callback.
+           gf_sdk_internal::EnterModule(module, [&]() {
+             cb(data, exit_code, out.toUtf8(), err.toUtf8());
+           });
          }});
   }
 
@@ -192,8 +198,12 @@ auto GFModuleCacheGet(const QString& module_id, int store, const QString& key,
   if (!out->Empty()) return true;
 
   // Migrate a value written before keys were scoped: move it to the scoped
-  // key the first time its owner asks for it. Both durable stores used the
-  // same legacy key, so whichever store asks first takes it.
+  // key the first time it is asked for. Both durable stores used the same
+  // legacy key, so whichever store asks first takes it -- and so does
+  // whichever MODULE asks first. That is not a leak this migration opens: the
+  // legacy key recorded no owner, every module already shared it, and nothing
+  // is left that could say whose it was. The move is one-shot, so after the
+  // first read the value is scoped like everything else.
   const auto legacy = LegacyModuleCacheKey(key);
   auto value = cache.LoadSecDurableCache(legacy);
   if (value.Empty()) return false;

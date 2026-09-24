@@ -228,13 +228,6 @@ auto WaitHostApiIdle(const char* module_id, int timeout_ms) -> bool {
   }
 }
 
-auto ContextStatusOf(GFHostContextRef ctx, uint32_t capability)
-    -> HostContextStatus {
-  QMutexLocker locker(&Reg().mutex);
-  ContextRecord* record = nullptr;
-  return StatusLocked(ctx, capability, &record);
-}
-
 auto BeginCall(GFHostContextRef ctx, uint32_t capability,
                const char* entry_point) -> CallTicket {
   HostContextStatus status;

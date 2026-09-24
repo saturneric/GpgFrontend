@@ -46,7 +46,6 @@
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivate.h"
-#include "ui/UIModuleManager.h"
 
 namespace {
 
@@ -71,6 +70,11 @@ struct GFGpgResultImpl {
   /// Owned. Released with the result unless GFGpgResultTakeData took it.
   GFBufferRef data = nullptr;
 
+  /// The engine's full result model, for GFGpgAnalyse(). It lives and dies
+  /// with this handle -- owned, attributed and swept like everything else the
+  /// module holds -- and is consumed by the first analysis.
+  std::any model;
+
   // QByteArray keeps its own NUL terminator, so constData() is a valid C
   // string and the accessors never need to allocate.
   QByteArray capsule_id;
@@ -84,26 +88,26 @@ namespace {
 
 using ResultRegistry = GFHandleRegistry<GFGpgResultImpl>;
 
-void ReportStaleResult(const void* handle, const char* what) {
-  LOG_W().nospace()
-      << what
-      << ": stale handle (already released, or never issued by the host): "
-      << handle;
-#ifdef DEBUG
-  qFatal("%s: stale handle %p", what, handle);
-#endif
+/// capsule id -> the result carrying that model. A capsule id is how the ABI
+/// names a result's model; the handle registry still decides who may use it.
+struct CapsuleIndex {
+  QMutex mutex;
+  QHash<QByteArray, GFGpgResultImpl*> by_id;
+};
+
+auto Capsules() -> CapsuleIndex& {
+  static CapsuleIndex index;
+  return index;
 }
 
-/// Validate against the registry BEFORE dereferencing. Never the other way.
+void ReportStaleResult(const void* handle, const char* what) {
+  ResultRegistry::ReportStale(handle, what);
+}
+
 auto ResolveLive(GFGpgResultRef r, const char* what) -> GFGpgResultImpl* {
-  if (r == nullptr) return nullptr;
-  const auto state = ResultRegistry::Instance().Check(r, what);
-  if (state != GFHandleState::kLive) {
-    if (state == GFHandleState::kStale) ReportStaleResult(r, what);
-    return nullptr;
-  }
-  Q_ASSERT(r->magic == kGFGpgResultMagic);
-  return r;
+  auto* impl = ResultRegistry::Instance().ResolveLive(r, what);
+  Q_ASSERT(impl == nullptr || impl->magic == kGFGpgResultMagic);
+  return impl;
 }
 
 /// Wipe and free one result handle. The single place that knows how, so
@@ -113,6 +117,10 @@ void DestroyResult(GFGpgResultImpl* impl) {
   // registry rather than being destroyed behind its back -- which is also
   // what stops the buffer sweep finding it again afterwards.
   GFBufferRelease(impl->data);
+  if (!impl->capsule_id.isEmpty()) {
+    const QMutexLocker lock(&Capsules().mutex);
+    Capsules().by_id.remove(impl->capsule_id);
+  }
   impl->magic = 0;
   impl->~GFGpgResultImpl();
   GpgFrontend::SMAFree(impl);
@@ -183,14 +191,32 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
             const GpgFrontend::GFBuffer& out_buffer, GpgFrontend::GFError err) {
   impl->status = GF_GPG_OK;
   impl->gpgme_error = static_cast<uint32_t>(err);
-  impl->capsule_id = GpgFrontend::UI::UIModuleManager::GetInstance()
-                         .MakeCapsule(result)
-                         .toUtf8();
+  impl->model = result;
+  impl->capsule_id = QUuid::createUuid().toString().toUtf8();
+  {
+    const QMutexLocker lock(&Capsules().mutex);
+    Capsules().by_id.insert(impl->capsule_id, impl);
+  }
   impl->error_string = GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
   impl->data = GFBufferNewFromBytes(out_buffer.Data(), out_buffer.Size());
 }
 
 }  // namespace
+
+auto TakeResultModel(const char* capsule_id) -> std::any {
+  if (capsule_id == nullptr) return {};
+  GFGpgResultImpl* impl = nullptr;
+  {
+    const QMutexLocker lock(&Capsules().mutex);
+    impl = Capsules().by_id.value(QByteArray(capsule_id), nullptr);
+  }
+  // Through the registry, so a result that was released meanwhile, or that
+  // belongs to another module, is refused exactly as its handle would be.
+  // (A capsule id is only ever issued inside a result the caller received.)
+  impl = ResolveLive(impl, "gpg.analyse_result");
+  if (impl == nullptr) return {};
+  return std::exchange(impl->model, std::any{});
+}
 
 auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
                GFBufferView in, int sign_mode, int ascii, GFGpgResultRef* out)

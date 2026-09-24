@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include <QString>
+#include <any>
 
 #include "GFSDKTypes.h"
 
@@ -104,13 +105,6 @@ auto GFAppKeyProtectionLevel() -> int;
 auto GFAppRegisterTranslatorReader(const char* id, GFTranslatorDataReader r)
     -> int;
 
-/* --- events -------------------------------------------------------------- */
-
-void GFModuleListenEvent(const char* module_id, const char* event_id);
-void GFModuleTriggerModuleEventCallback(GFModuleEvent* event,
-                                        const char* module_id,
-                                        GFModuleEventParam* argv);
-
 /* --- gpg operations and results ------------------------------------------ */
 
 auto GFGpgCurrentGpgContextChannel() -> int;
@@ -132,6 +126,10 @@ auto GFGpgResultErrorString(GFGpgResultRef r) -> const char*;
 auto GFGpgResultHashAlgo(GFGpgResultRef r) -> const char*;
 auto GFGpgResultTakeData(GFGpgResultRef r) -> GFBufferRef;
 void GFGpgResultRelease(GFGpgResultRef r);
+
+/// Consume the engine result model behind @p capsule_id, when it belongs to a
+/// live result the calling module holds; empty otherwise.
+auto TakeResultModel(const char* capsule_id) -> std::any;
 auto GFGpgResultOutstandingCount(const char* module_id) -> size_t;
 
 auto GFAnalyseEncryptResultInfoByCapsule(int channel, uint32_t err,
@@ -159,8 +157,7 @@ auto GFAnalyseVerifyResultInfoByCapsule(int channel, uint32_t err,
 auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef;
 auto GFGpgExportKey(int channel, const char* key_id, int ascii,
                     GFBufferRef* out) -> int;
-auto GFGpgImportKeys(int channel, void* parent, const char* data, int size)
-    -> int;
+auto GFGpgImportKeys(int channel, const char* data, int size) -> int;
 
 /** The three parts of the primary UID, each owned by the caller and freed
  *  with GFFreeMemory. The struct this used to fill in is gone. */
@@ -211,7 +208,8 @@ auto GFModuleCacheRemove(const QString& module_id, int store,
 
 /* --- external programs --------------------------------------------------- */
 
-void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
+void GFExecuteCommandBatchSync(const QByteArray& module,
+                               GFCommandExecuteContext** contexts,
                                int32_t contexts_size);
 
 }  // namespace gf_host

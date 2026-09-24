@@ -30,6 +30,7 @@
 
 #include "GFHostImpl.h"
 #include "GFSDKHostApi.h"
+#include "core/module/ModuleDispatchGate.h"
 #include "private/GFHostContext.h"
 #include "private/GFHostGate.h"
 #include "private/GFHostTransfer.h"
@@ -64,6 +65,9 @@ auto ScriptLoad(GFHostContextRef ctx, const char* chunk_name,
   QMetaObject::invokeMethod(
       app,
       [module, caps, chunk, text]() {
+        // Asked when the load RUNS: a module deactivated after queueing it
+        // must not have its UI brought back by it.
+        if (GpgFrontend::Module::ModuleEntryGate(module).IsClosed()) return;
         QString error;
         if (!GpgFrontend::UI::Lua::LuaHost::Instance().Load(module, caps, text,
                                                             chunk, &error)) {

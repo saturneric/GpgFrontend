@@ -31,8 +31,10 @@
 #include <gpgme.h>
 #include <stddef.h>
 
+#include <QByteArray>
 #include <QList>
 #include <QString>
+#include <optional>
 
 #include "GFSDKHostApi.h"
 #include "GFSDKTypes.h"
@@ -56,81 +58,66 @@
  * Internal to gf_sdk. Not installed, not for modules.
  */
 
-/* The gatherers' own aggregates. These were public once; they are not any
-   more, because their ownership shape -- an array whose every char* member a
-   caller frees individually -- is exactly what the borrowed row structs in
-   GFSDKTypes.h replaced. They survive here as the layer between the engine
-   and those rows. */
-
-typedef struct GFGpgKeyBrief {
-  char* fingerprint;
-  char* key_id;
-  char* uid;            ///< primary UID, "Name (Comment) <email>"
-  char* matched_email;  ///< the UID email that matched the query
-
-  int64_t expires_at;  ///< seconds since the epoch; 0 means never
-
-  /// Mirrors GpgFrontend::GpgKeyStatus:
-  /// 0 ok, 1 expiring soon, 2 expired, 3 revoked, 4 disabled.
-  int usability;
-
-  int can_encrypt;
-  int can_sign;
-
-  /// Whether the matched UID is the key's primary one, and whether that UID
-  /// has itself been revoked. Identity-binding facts, not usability ones.
-  int matched_uid_is_primary;
-  int matched_uid_revoked;
-} GFGpgKeyBrief;
-
-typedef struct GFGpgEncRecipient {
-  /// As the message names it: an 8-byte key id (v3 PKESK) or a full
-  /// fingerprint (v6 PKESK), upper-cased.
-  char* key_id;
-  char* pub_algo;
-
-  /// Of the key this resolved to; empty when nothing resolved.
-  char* fingerprint;
-  /// Primary UID of the key this resolved to; empty when nothing resolved.
-  char* uid;
-
-  /// Whether @ref key_id names a key this channel's key database holds at all.
-  int key_found;
-
-  /// Whether the secret half is held -- the only field that answers "can this
-  /// message be opened on this computer". A public key alone cannot decrypt.
-  int has_secret;
-
-  /// The sender withheld the recipient key id (`--hidden-recipient`), so this
-  /// recipient is deliberately unidentifiable rather than missing. It may
-  /// still be the user themselves.
-  int hidden;
-} GFGpgEncRecipient;
-
-typedef struct GFGpgKeyUID {
-  char* name;     ///< Display name from the UID packet.
-  char* email;    ///< Email address from the UID packet.
-  char* comment;  ///< Optional comment from the UID packet.
-} GFGpgKeyUID;
+namespace GpgFrontend {
+class GFBuffer;
+}  // namespace GpgFrontend
 
 namespace gf_host {
 
-auto GFGpgFindKeysByEmail(int channel, const char* email, GFGpgKeyBrief** keys,
-                          int* count) -> int;
-void GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count);
+/// One key brief, held as real C++ members.
+///
+/// Nothing in here is separately allocated, so there is nothing for a caller
+/// to free field by field and therefore nothing to forget. The list handles
+/// hand out pointers INTO these members.
+struct KeyBriefRow {
+  QByteArray fingerprint;
+  QByteArray key_id;
+  QByteArray uid;            ///< primary UID, "Name (Comment) <email>"
+  QByteArray matched_email;  ///< the UID email that matched the query
+  int64_t expires_at = 0;    ///< seconds since the epoch; 0 means never
+  /// Mirrors GpgFrontend::GpgKeyStatus:
+  /// 0 ok, 1 expiring soon, 2 expired, 3 revoked, 4 disabled.
+  int usability = 0;
+  int can_encrypt = 0;
+  int can_sign = 0;
+  /// Whether the matched UID is the key's primary one, and whether that UID
+  /// has itself been revoked. Identity-binding facts, not usability ones.
+  int matched_uid_is_primary = 0;
+  int matched_uid_revoked = 0;
+};
 
-auto GFGpgSniffEncryptedRecipients(int channel, const char* data, int size,
-                                   GFGpgEncRecipient** out, int* count) -> int;
-void GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count);
+struct RecipientRow {
+  /// As the message names it: an 8-byte key id (v3 PKESK) or a full
+  /// fingerprint (v6 PKESK), upper-cased.
+  QByteArray key_id;
+  QByteArray pub_algo;
+  /// Of the key this resolved to; empty when nothing resolved.
+  QByteArray fingerprint;
+  /// Primary UID of the key this resolved to; empty when nothing resolved.
+  QByteArray uid;
+  /// Whether @ref key_id names a key this channel's key database holds at all.
+  int key_found = 0;
+  /// Whether the secret half is held -- the only field that answers "can this
+  /// message be opened on this computer". A public key alone cannot decrypt.
+  int has_secret = 0;
+  /// The sender withheld the recipient key id (`--hidden-recipient`), so this
+  /// recipient is deliberately unidentifiable rather than missing. It may
+  /// still be the user themselves.
+  int hidden = 0;
+};
 
-auto GFGpgListKeyAddresses(int channel, int secret_only, char*** addresses,
-                           int* count) -> int;
-void GFGpgFreeStringArray(char** strings, int count);
+/// Every key with a UID whose address is @p email. Nullopt when the request
+/// is unusable -- an empty address -- as opposed to matching nothing.
+auto FindKeyBriefRows(int channel, const QString& email)
+    -> std::optional<QList<KeyBriefRow>>;
 
-// A list element crosses the ABI as one borrowed row struct rather than one
-// accessor per field; see KeyBriefRowAt() and RecipientRowAt() in
-// GFHostGpgList.cpp. A row points into the list's own storage and dies with
-// it.
+/// Who @p data is encrypted to, as far as this channel's keys can tell.
+auto SniffRecipientRows(int channel, const GpgFrontend::GFBuffer& data)
+    -> QList<RecipientRow>;
+
+/// Every address a key on this channel carries -- only keys with a secret
+/// half when @p secret_only -- deduplicated and sorted, "Name <email>".
+auto ListKeyAddressRows(int channel, bool secret_only) -> QList<QByteArray>;
 
 }  // namespace gf_host
 

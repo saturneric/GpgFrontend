@@ -44,10 +44,10 @@ namespace {
 
 /// The module a log call should be filed under.
 ///
-/// The host's own thread-local record wins wherever it exists, because it is
-/// the half a module does not write. The argument is the fallback, and it is
-/// what makes attribution survive a module's own worker thread -- a thread the
-/// host never entered, and where the thread-local is therefore empty.
+/// The host's own thread-local record -- set by the gate from the context the
+/// call presents, or by the bracket around a host-to-module callback -- wins
+/// wherever it exists, because it is the half a module does not write. The
+/// argument is only a fallback for a call that reached here unattributed.
 auto ResolveModuleId(const char* module_id) -> QString {
   const auto* entered = GFSdkCurrentModule();
   if (entered != nullptr && *entered != '\0') {

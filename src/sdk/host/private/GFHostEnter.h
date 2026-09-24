@@ -38,13 +38,21 @@ namespace gf_sdk_internal {
 /**
  * @brief Enter module code the way every host-to-module call does.
  *
- * @return false without calling @p fn when the module is tearing down.
+ * Both gates, the process-wide one and the module's own: a call queued
+ * before a module was deactivated must not reach it afterwards, and the
+ * process-wide gate alone only closes at shutdown.
+ *
+ * @return false without calling @p fn when the module is not active, or the
+ *         host is shutting down.
  */
 template <typename Fn>
 auto EnterModule(const QByteArray& module_utf8, Fn&& fn) -> bool {
   GpgFrontend::Module::ModuleDispatchScope scope(
       GpgFrontend::Module::GlobalModuleDispatchGate());
   if (!scope.Entered()) return false;
+  GpgFrontend::Module::ModuleDispatchScope own(
+      GpgFrontend::Module::ModuleEntryGate(QString::fromUtf8(module_utf8)));
+  if (!own.Entered()) return false;
   const GpgFrontend::Module::ModuleAttributionScope attribution(
       module_utf8.constData());
   fn();

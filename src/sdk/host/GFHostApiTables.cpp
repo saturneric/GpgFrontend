@@ -40,11 +40,11 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleSettingsPolicy.h"
-#include "ui/UIModuleManager.h"
 #include "private/GFHostContext.h"
 #include "private/GFHostGate.h"
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKPrivate.h"
+#include "ui/UIModuleManager.h"
 
 /**
  * @file GFHostApiTables.cpp
@@ -235,13 +235,14 @@ const GFHostAppApi kAppApi = {
 
 auto EventSubscribe(GFHostContextRef ctx, const char* event_id) -> int {
   GATE(ctx, 0, "event.subscribe", -1);
-  const auto id = ModuleIdOf(ctx);
-  if (id.isEmpty() || event_id == nullptr) return -1;
+  if (event_id == nullptr) return -1;
   // The module id comes from the context, not from the caller: a module
   // subscribing on another module's behalf is not a thing that should be
-  // expressible, and it used to be an argument.
-  GFModuleListenEvent(id.constData(), event_id);
-  return 0;
+  // expressible. The result is the manager's: a refused subscription says so.
+  return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
+             gf_sdk_internal::ContextModuleId(ctx), QString::fromUtf8(event_id))
+             ? 0
+             : -1;
 }
 
 auto EventAnswer(GFHostContextRef ctx, const GFModuleEventAnswer* answer)
@@ -249,21 +250,16 @@ auto EventAnswer(GFHostContextRef ctx, const GFModuleEventAnswer* answer)
   GATE(ctx, 0, "event.answer", -1);
   if (answer == nullptr) return -1;
 
-  // The host's reply path still wants a GFModuleEvent, and frees it. Building
-  // it here rather than in the module means the module never has to know the
-  // shape of a structure it only ever fills in to be thrown away.
-  auto* reply =
-      static_cast<GFModuleEvent*>(GFAllocateMemory(sizeof(GFModuleEvent)));
-  if (reply == nullptr) return -1;
-  reply->id =
-      GFModuleStrDup(answer->event_id == nullptr ? "" : answer->event_id);
-  reply->trigger_id =
-      GFModuleStrDup(answer->trigger_id == nullptr ? "" : answer->trigger_id);
-  reply->params = nullptr;
+  // The parameter list is transferred whatever happens next, so it is taken
+  // over first: a refused answer must not leak it.
+  const auto params = ConvertEventParamsToMap(answer->params);
+  if (answer->trigger_id == nullptr) return -1;
 
-  const auto id = ModuleIdOf(ctx);
-  GFModuleTriggerModuleEventCallback(reply, id.constData(), answer->params);
-  return 0;
+  return GpgFrontend::Module::ModuleManager::GetInstance().AnswerEvent(
+             QString::fromUtf8(answer->trigger_id),
+             gf_sdk_internal::ContextModuleId(ctx), params)
+             ? 0
+             : -1;
 }
 
 const GFHostEventApi kEventApi = {sizeof(GFHostEventApi), &EventSubscribe,
@@ -474,8 +470,7 @@ auto GpgImportKeys(GFHostContextRef ctx, int channel, void* parent,
   // The parent is ignored: the Host parents its own import dialog, and a
   // pointer from a module is never taken for a widget.
   (void)parent;
-  return GFGpgImportKeys(channel, nullptr,
-                         static_cast<const char*>(GFBufferData(data)),
+  return GFGpgImportKeys(channel, static_cast<const char*>(GFBufferData(data)),
                          static_cast<int>(GFBufferSize(data)));
 }
 
@@ -723,9 +718,8 @@ auto EditorCurrentDocument(GFHostContextRef ctx, GFBufferRef* out) -> int {
   return *out == nullptr ? -1 : 0;
 }
 
-const GFHostEditorApi kEditorApi = {sizeof(GFHostEditorApi),
-                                    &EditorTakeCurrentContent,
-                                    &EditorCurrentDocument};
+const GFHostEditorApi kEditorApi = {
+    sizeof(GFHostEditorApi), &EditorTakeCurrentContent, &EditorCurrentDocument};
 
 /* --- storage ------------------------------------------------------------- */
 
@@ -786,17 +780,42 @@ auto StorageCacheRemove(GFHostContextRef ctx, int store, const char* key)
              : -1;
 }
 
+/**
+ * @brief The register-table address a module may use, or false.
+ *
+ * ONE rule, for reading and writing alike. Namespaces and keys are
+ * lower-case -- a mixed-case read used to miss a value the write had
+ * lower-cased. A module WRITES only its own namespace, named by the context
+ * rather than by the caller: the table also carries the host's `core` values,
+ * which startup reads back, and those are not a module's to change. Reading
+ * is not restricted -- nothing secret is kept here.
+ */
+auto StateAddress(GFHostContextRef ctx, const char* ns, const char* key,
+                  bool write, QString& out_ns, QString& out_key) -> bool {
+  if (ns == nullptr || key == nullptr) return false;
+  out_ns = QString::fromUtf8(ns).toLower();
+  out_key = QString::fromUtf8(key).toLower();
+  if (!write) return true;
+  const auto own = gf_sdk_internal::ContextModuleId(ctx);
+  if (out_ns == own) return true;
+  LOG_W() << "module" << own << "may not write the register table namespace"
+          << out_ns << "; a module writes only its own";
+  return false;
+}
+
 auto StorageStateGetText(GFHostContextRef ctx, const char* ns, const char* key,
                          GFBufferRef* out) -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_get_text", -1);
-  if (out == nullptr || ns == nullptr || key == nullptr) return -1;
+  if (out == nullptr) return -1;
   *out = nullptr;
+  QString n;
+  QString k;
+  if (!StateAddress(ctx, ns, key, false, n, k)) return -1;
 
   // std::optional, not "or a default": the register table really can be asked
   // for something it does not hold, and collapsing that into the caller's
   // fallback is what made the old entry points unable to say "absent".
-  const auto value = GpgFrontend::Module::RetrieveRTValueTyped<QString>(
-      QString::fromUtf8(ns), QString::fromUtf8(key));
+  const auto value = GpgFrontend::Module::RetrieveRTValueTyped<QString>(n, k);
   if (!value.has_value()) return -1;
 
   const auto utf8 = value->toUtf8();
@@ -808,26 +827,26 @@ auto StorageStateGetText(GFHostContextRef ctx, const char* ns, const char* key,
 auto StorageStateSetText(GFHostContextRef ctx, const char* ns, const char* key,
                          GFBufferView value) -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_set_text", -1);
-  if (ns == nullptr || key == nullptr) return -1;
+  QString n;
+  QString k;
+  if (!StateAddress(ctx, ns, key, true, n, k)) return -1;
 
   const auto* data = static_cast<const char*>(GFBufferData(value));
   const auto size = GFBufferSize(value);
   const auto text = QString::fromUtf8(data == nullptr ? "" : data,
                                       static_cast<qsizetype>(size));
-  return GpgFrontend::Module::UpsertRTValue(QString::fromUtf8(ns).toLower(),
-                                            QString::fromUtf8(key).toLower(),
-                                            text)
-             ? 0
-             : -1;
+  return GpgFrontend::Module::UpsertRTValue(n, k, text) ? 0 : -1;
 }
 
 auto StorageStateGetBool(GFHostContextRef ctx, const char* ns, const char* key,
                          int* out) -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_get_bool", -1);
-  if (out == nullptr || ns == nullptr || key == nullptr) return -1;
+  if (out == nullptr) return -1;
+  QString n;
+  QString k;
+  if (!StateAddress(ctx, ns, key, false, n, k)) return -1;
 
-  const auto value = GpgFrontend::Module::RetrieveRTValueTyped<bool>(
-      QString::fromUtf8(ns), QString::fromUtf8(key));
+  const auto value = GpgFrontend::Module::RetrieveRTValueTyped<bool>(n, k);
   if (!value.has_value()) return -1;
   *out = *value ? 1 : 0;
   return 0;
@@ -836,22 +855,21 @@ auto StorageStateGetBool(GFHostContextRef ctx, const char* ns, const char* key,
 auto StorageStateSetBool(GFHostContextRef ctx, const char* ns, const char* key,
                          int value) -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_set_bool", -1);
-  if (ns == nullptr || key == nullptr) return -1;
-  return GpgFrontend::Module::UpsertRTValue(QString::fromUtf8(ns).toLower(),
-                                            QString::fromUtf8(key).toLower(),
-                                            value != 0)
-             ? 0
-             : -1;
+  QString n;
+  QString k;
+  if (!StateAddress(ctx, ns, key, true, n, k)) return -1;
+  return GpgFrontend::Module::UpsertRTValue(n, k, value != 0) ? 0 : -1;
 }
 
 auto StorageStateListChildren(GFHostContextRef ctx, const char* ns,
                               const char* key, GFStringListRef* out) -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_list_children", -1);
-  if (out == nullptr || ns == nullptr || key == nullptr) return -1;
+  if (out == nullptr) return -1;
+  QString n;
+  QString k;
+  if (!StateAddress(ctx, ns, key, false, n, k)) return -1;
   return gf_sdk_internal::NewStringList(
-      GpgFrontend::Module::ListRTChildKeys(QString::fromUtf8(ns).toLower(),
-                                           QString::fromUtf8(key).toLower()),
-      out);
+      GpgFrontend::Module::ListRTChildKeys(n, k), out);
 }
 
 /// The full settings key a module may use, or empty -- which is a refusal,
@@ -932,7 +950,8 @@ auto ProcessExecute(GFHostContextRef ctx, GFCommandExecuteContext** contexts,
                     size_t count) -> int {
   GATE(ctx, GF_HOST_CAP_PROCESS, "process.execute", -1);
   if (contexts == nullptr || count == 0) return -1;
-  GFExecuteCommandBatchSync(contexts, static_cast<int32_t>(count));
+  GFExecuteCommandBatchSync(ModuleIdOf(ctx), contexts,
+                            static_cast<int32_t>(count));
   return 0;
 }
 

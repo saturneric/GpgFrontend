@@ -72,26 +72,14 @@ void DestroyBuffer(GFBufferImpl* impl) {
 }
 
 void ReportStaleHandle(const void* handle, const char* what) {
-  LOG_W().nospace()
-      << what
-      << ": stale handle (already released, or never issued by the host): "
-      << handle;
-#ifdef DEBUG
-  qFatal("%s: stale handle %p", what, handle);
-#endif
+  GFHandleRegistry<GFBufferImpl>::ReportStale(handle, what);
 }
 
-/// Validate then dereference, never the other way around.
 auto ResolveLive(GFBufferView buf, const char* what) -> const GFBufferImpl* {
-  if (buf == nullptr) return nullptr;
-  const auto state =
-      GFHandleRegistry<GFBufferImpl>::Instance().Check(buf, what);
-  if (state != GFHandleState::kLive) {
-    if (state == GFHandleState::kStale) ReportStaleHandle(buf, what);
-    return nullptr;
-  }
-  Q_ASSERT(buf->magic == kGFBufferMagic);
-  return buf;
+  const auto* impl = GFHandleRegistry<GFBufferImpl>::Instance().ResolveLive(
+      const_cast<GFBufferImpl*>(buf), what);
+  Q_ASSERT(impl == nullptr || impl->magic == kGFBufferMagic);
+  return impl;
 }
 
 }  // namespace

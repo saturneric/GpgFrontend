@@ -27,10 +27,10 @@
  */
 
 #include "core/module/ModuleSdkBridge.h"
-#include "ui/command/ModuleUiTeardown.h"
 #include "private/GFHostAttribution.h"
 #include "private/GFHostContext.h"
 #include "sdk/GFSDKModuleApi.h"
+#include "ui/command/ModuleUiTeardown.h"
 
 /**
  * @file GFHostBridgeInstall.cpp
@@ -89,6 +89,9 @@ auto InstallBridge() -> bool {
   bridge.sweep_module_handles = &GFSdkSweepModuleHandles;
   bridge.module_deactivated = [](const char* module_id) {
     GpgFrontend::UI::ModuleUiTeardown(QString::fromUtf8(module_id));
+  };
+  bridge.module_activating = [](const char* module_id) {
+    GpgFrontend::UI::ModuleUiReopen(QString::fromUtf8(module_id));
   };
   GpgFrontend::Module::InstallModuleSdkBridge(bridge);
   return true;

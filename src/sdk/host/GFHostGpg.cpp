@@ -119,29 +119,17 @@ auto GFGpgKeyPrimaryUidParts(int channel, const char* key_id, char** name,
   return 0;
 }
 
-auto GFGpgImportKeys(int channel, void* parent, const char* data, int size)
-    -> int {
+auto GFGpgImportKeys(int channel, const char* data, int size) -> int {
   auto in_buffer = GpgFrontend::GFBuffer(QByteArray::fromRawData(data, size));
-
-  QObject* p = nullptr;
-  if (parent != nullptr) {
-    p = static_cast<QObject*>(parent);
-  }
-
-  GpgFrontend::UI::ImportKeys(qobject_cast<QWidget*>(p), channel, in_buffer);
+  // The Host parents its own import dialog; nothing from a module is ever
+  // taken for a widget.
+  GpgFrontend::UI::ImportKeys(nullptr, channel, in_buffer);
   return 0;
 }
 
 auto GFGpgCurrentGpgContextChannel() -> int {
-  auto* object =
-      GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject("main_window");
-
-  auto* main_window = qobject_cast<GpgFrontend::UI::MainWindow*>(object);
-  if (main_window != nullptr) {
-    return main_window->GetCurrentGpgContextChannel();
-  }
-
-  return -1;
+  // Read on the GUI thread, where the main window lives.
+  return GpgFrontend::UI::CurrentGpgContextChannel();
 }
 
 auto GFGpgExportKey(int channel, const char* key_id, int ascii,
@@ -253,8 +241,8 @@ void EmitResultInfo(const GpgFrontend::GpgOpResultInfo& info,
 
 // Engine-neutral analysis. The raw gpgme_*_result handles only exist for the
 // native (GnuPG) engine; the rPGP engine stores its result in the Gpg*Result
-// model object instead, which the SDK stashed in a UI capsule. Recover that
-// model from the capsule and run the same analyser used by the native path, so
+// model object instead, which the SDK keeps in the result handle. Recover that
+// model and run the same analyser used by the native path, so
 // both engines produce identical reports and status codes. The report, the
 // cards and the structured form come from one call because the capsule is
 // consumed on first use. Returns -1 when the capsule is missing or holds an
@@ -266,8 +254,7 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
     -> int {
   if (analyse == nullptr) return -1;
 
-  auto capsule = GpgFrontend::UI::UIModuleManager::GetInstance().GetCapsule(
-      GFStrView(capsule_id));
+  auto capsule = TakeResultModel(capsule_id);
 
   auto* result = std::any_cast<ResultT>(&capsule);
   if (result == nullptr) return -1;
@@ -321,26 +308,12 @@ auto GFAnalyseDecryptResultInfoByCapsule(int channel, gpgme_error_t err,
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GFGpgFindKeysByEmail(int channel, const char* email, GFGpgKeyBrief** keys,
-                          int* count) -> int {
-  if (keys == nullptr || count == nullptr) return -1;
-  *keys = nullptr;
-  *count = 0;
+auto FindKeyBriefRows(int channel, const QString& email)
+    -> std::optional<QList<KeyBriefRow>> {
+  const auto wanted = email.trimmed();
+  if (wanted.isEmpty()) return std::nullopt;
 
-  // Not GFUnStrDup: that helper FREES what it is handed, which is right for
-  // the char* parameters the SDK takes ownership of, but `email` is a plain
-  // const input the caller still owns and will free itself.
-  if (email == nullptr) return -1;
-  const auto wanted = QString::fromUtf8(email).trimmed();
-  if (wanted.isEmpty()) return -1;
-
-  struct Match {
-    QSharedPointer<GpgFrontend::GpgKey> key;
-    GpgFrontend::GpgUID uid;
-    bool primary;
-  };
-  QList<Match> matches;
-
+  QList<KeyBriefRow> rows;
   auto all = GpgFrontend::AbstractKeyRepository::GetInstance(channel).Fetch();
   for (const auto& abstract_key : all) {
     if (abstract_key == nullptr) continue;
@@ -355,60 +328,35 @@ auto GFGpgFindKeysByEmail(int channel, const char* email, GFGpgKeyBrief** keys,
     // several addresses, and matching only the primary reports "no key" for a
     // key that is sitting right there.
     const auto uids = key->UIDs();
-    bool first = true;
-    for (const auto& uid : uids) {
-      if (uid.GetEmail().compare(wanted, Qt::CaseInsensitive) == 0) {
-        matches.append({key, uid, first});
-        break;
-      }
-      first = false;
-    }
-  }
+    for (qsizetype i = 0; i < uids.size(); ++i) {
+      const auto& uid = uids[i];
+      if (uid.GetEmail().compare(wanted, Qt::CaseInsensitive) != 0) continue;
 
-  if (matches.isEmpty()) return 0;
-
-  auto* array = static_cast<GFGpgKeyBrief*>(
-      GFAllocateMemory(sizeof(GFGpgKeyBrief) * matches.size()));
-  if (array == nullptr) return -1;
-  std::memset(array, 0, sizeof(GFGpgKeyBrief) * matches.size());
-
-  for (int i = 0; i < matches.size(); ++i) {
-    const auto& match = matches[i];
-    auto& brief = array[i];
-
-    brief.fingerprint = GFStrDup(match.key->Fingerprint());
-    brief.key_id = GFStrDup(match.key->ID());
-    brief.uid = GFStrDup(match.key->UID());
-    brief.matched_email = GFStrDup(match.uid.GetEmail());
-
-    const auto expires = match.key->ExpirationTime();
-    brief.expires_at = expires.isValid()
+      KeyBriefRow row;
+      row.fingerprint = key->Fingerprint().toUtf8();
+      row.key_id = key->ID().toUtf8();
+      row.uid = key->UID().toUtf8();
+      row.matched_email = uid.GetEmail().toUtf8();
+      const auto expires = key->ExpirationTime();
+      row.expires_at = expires.isValid()
                            ? static_cast<int64_t>(expires.toSecsSinceEpoch())
                            : 0;
-
-    // Usability only. Whether this key belongs to whoever claimed the address
-    // is a separate question, answered by the matched_uid_* fields and by the
-    // caller -- never folded into this number.
-    brief.usability =
-        static_cast<int>(GpgFrontend::GetKeyStatus(match.key.get()));
-
-    brief.can_encrypt = match.key->IsHasActualEncrCap() ? 1 : 0;
-    brief.can_sign = match.key->IsHasActualSignCap() ? 1 : 0;
-    brief.matched_uid_is_primary = match.primary ? 1 : 0;
-    brief.matched_uid_revoked = match.uid.GetRevoked() ? 1 : 0;
+      // Usability only. Whether this key belongs to whoever claimed the
+      // address is a separate question, answered by the matched_uid_* fields
+      // and by the caller -- never folded into this number.
+      row.usability = static_cast<int>(GpgFrontend::GetKeyStatus(key.get()));
+      row.can_encrypt = key->IsHasActualEncrCap() ? 1 : 0;
+      row.can_sign = key->IsHasActualSignCap() ? 1 : 0;
+      row.matched_uid_is_primary = i == 0 ? 1 : 0;
+      row.matched_uid_revoked = uid.GetRevoked() ? 1 : 0;
+      rows.append(row);
+      break;
+    }
   }
-
-  *keys = array;
-  *count = static_cast<int>(matches.size());
-  return 0;
+  return rows;
 }
 
-auto GFGpgListKeyAddresses(int channel, int secret_only, char*** addresses,
-                           int* count) -> int {
-  if (addresses == nullptr || count == nullptr) return -1;
-  *addresses = nullptr;
-  *count = 0;
-
+auto ListKeyAddressRows(int channel, bool secret_only) -> QList<QByteArray> {
   QStringList entries;
   QSet<QString> seen;
 
@@ -424,7 +372,7 @@ auto GFGpgListKeyAddresses(int channel, int secret_only, char*** addresses,
 
     // The identities this user can send AS are exactly the ones they hold a
     // secret half for. A public key in the keyring is someone else's address.
-    if (secret_only != 0 && !key->IsPrivateKey()) continue;
+    if (secret_only && !key->IsPrivateKey()) continue;
 
     // Every UID, not only the primary: one key legitimately carries several
     // addresses, and offering only the first hides the rest of them.
@@ -450,76 +398,33 @@ auto GFGpgListKeyAddresses(int channel, int secret_only, char*** addresses,
     }
   }
 
-  if (entries.isEmpty()) return 0;
-
   entries.sort(Qt::CaseInsensitive);
-
-  auto* array =
-      static_cast<char**>(GFAllocateMemory(sizeof(char*) * entries.size()));
-  if (array == nullptr) return -1;
-
-  for (int i = 0; i < entries.size(); ++i) {
-    array[i] = GFStrDup(entries.at(i));
-  }
-
-  *addresses = array;
-  *count = static_cast<int>(entries.size());
-  return 0;
+  QList<QByteArray> rows;
+  rows.reserve(entries.size());
+  for (const auto& e : entries) rows.append(e.toUtf8());
+  return rows;
 }
 
-auto GFGpgFreeStringArray(char** strings, int count) -> void {
-  if (strings == nullptr) return;
-  for (int i = 0; i < count; ++i) GFFreeMemory(strings[i]);
-  GFFreeMemory(strings);
-}
-
-auto GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {
-  if (keys == nullptr) return;
-  for (int i = 0; i < count; ++i) {
-    GFFreeMemory(keys[i].fingerprint);
-    GFFreeMemory(keys[i].key_id);
-    GFFreeMemory(keys[i].uid);
-    GFFreeMemory(keys[i].matched_email);
-  }
-  GFFreeMemory(keys);
-}
-
-auto GFGpgSniffEncryptedRecipients(int channel, const char* data, int size,
-                                   GFGpgEncRecipient** out, int* count) -> int {
-  if (out == nullptr || count == nullptr) return -1;
-  *out = nullptr;
-  *count = 0;
-
-  // Like `email` in GFGpgFindKeysByEmail, `data` is a plain const input the
-  // caller still owns: not GFUnStrDup, which would free it.
-  if (data == nullptr || size <= 0) return -1;
-
-  const auto key_ids = GpgFrontend::SniffRecipientKeyIds(
-      GpgFrontend::GFBuffer(data, static_cast<size_t>(size)));
-  if (key_ids.isEmpty()) return 0;
-
-  auto* array = static_cast<GFGpgEncRecipient*>(
-      GFAllocateMemory(sizeof(GFGpgEncRecipient) * key_ids.size()));
-  if (array == nullptr) return -1;
-  std::memset(array, 0, sizeof(GFGpgEncRecipient) * key_ids.size());
-
+auto SniffRecipientRows(int channel, const GpgFrontend::GFBuffer& data)
+    -> QList<RecipientRow> {
+  QList<RecipientRow> rows;
+  const auto key_ids = GpgFrontend::SniffRecipientKeyIds(data);
+  // Before the repository is touched: bytes that name no recipient need no
+  // key lookup, and reaching for a channel's repository creates its context.
+  if (key_ids.isEmpty()) return rows;
   auto& repository = GpgFrontend::AbstractKeyRepository::GetInstance(channel);
 
-  for (int i = 0; i < key_ids.size(); ++i) {
-    const auto& key_id = key_ids[i];
-    auto& entry = array[i];
-
-    entry.key_id = GFStrDup(key_id);
-    entry.pub_algo = GFStrDup(QString{});
-    entry.fingerprint = GFStrDup(QString{});
-    entry.uid = GFStrDup(QString{});
+  for (const auto& key_id : key_ids) {
+    RecipientRow row;
+    row.key_id = key_id.toUtf8();
 
     // An all-zero identifier is the wildcard key id: the sender asked for the
     // recipient to be withheld. Looking it up would report "no such key" for
     // what is really "no answer given", and the user may well be that hidden
     // recipient themselves.
     if (key_id.count('0') == key_id.size()) {
-      entry.hidden = 1;
+      row.hidden = 1;
+      rows.append(row);
       continue;
     }
 
@@ -528,34 +433,17 @@ auto GFGpgSniffEncryptedRecipients(int channel, const char* data, int size,
     // subkey. Engine-neutral, so it is equally right on a GnuPG channel and
     // an rPGP one.
     auto key = repository.GetKey(key_id);
-    if (key == nullptr) continue;
-
-    entry.key_found = 1;
-    // The secret half, and nothing else, is what decides decryptability.
-    entry.has_secret = key->IsPrivateKey() ? 1 : 0;
-
-    GFFreeMemory(entry.pub_algo);
-    GFFreeMemory(entry.fingerprint);
-    GFFreeMemory(entry.uid);
-    entry.pub_algo = GFStrDup(key->PublicKeyAlgo());
-    entry.fingerprint = GFStrDup(key->Fingerprint());
-    entry.uid = GFStrDup(key->UID());
+    if (key != nullptr) {
+      row.key_found = 1;
+      // The secret half, and nothing else, is what decides decryptability.
+      row.has_secret = key->IsPrivateKey() ? 1 : 0;
+      row.pub_algo = key->PublicKeyAlgo().toUtf8();
+      row.fingerprint = key->Fingerprint().toUtf8();
+      row.uid = key->UID().toUtf8();
+    }
+    rows.append(row);
   }
-
-  *out = array;
-  *count = static_cast<int>(key_ids.size());
-  return 0;
-}
-
-auto GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count) -> void {
-  if (out == nullptr) return;
-  for (int i = 0; i < count; ++i) {
-    GFFreeMemory(out[i].key_id);
-    GFFreeMemory(out[i].pub_algo);
-    GFFreeMemory(out[i].fingerprint);
-    GFFreeMemory(out[i].uid);
-  }
-  GFFreeMemory(out);
+  return rows;
 }
 
 }  // namespace gf_host

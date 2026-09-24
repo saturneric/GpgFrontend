@@ -45,33 +45,8 @@ namespace {
 
 constexpr uint32_t kGFListMagic = 0x47464C53U;  // 'GFLS'
 
-/// One key brief, held as real C++ members.
-///
-/// The whole point of the rework: nothing in here is separately allocated, so
-/// there is nothing for a caller to free field by field and therefore nothing
-/// to forget. The accessors hand out pointers INTO these members.
-struct KeyBriefRow {
-  QByteArray fingerprint;
-  QByteArray key_id;
-  QByteArray uid;
-  QByteArray matched_email;
-  int64_t expires_at = 0;
-  int usability = 0;
-  int can_encrypt = 0;
-  int can_sign = 0;
-  int matched_uid_is_primary = 0;
-  int matched_uid_revoked = 0;
-};
-
-struct RecipientRow {
-  QByteArray key_id;
-  QByteArray pub_algo;
-  QByteArray fingerprint;
-  QByteArray uid;
-  int key_found = 0;
-  int has_secret = 0;
-  int hidden = 0;
-};
+using gf_host::KeyBriefRow;
+using gf_host::RecipientRow;
 
 }  // namespace
 
@@ -104,26 +79,14 @@ template <typename T>
 using Reg = GFHandleRegistry<T>;
 
 void ReportStaleList(const void* handle, const char* what) {
-  LOG_W().nospace()
-      << what
-      << ": stale handle (already released, or never issued by the host): "
-      << handle;
-#ifdef DEBUG
-  qFatal("%s: stale handle %p", what, handle);
-#endif
+  GFHandleRegistry<void>::ReportStale(handle, what);
 }
 
-/// Registry first, dereference second -- never the other way round.
 template <typename T>
 auto ResolveLive(T* l, const char* what) -> T* {
-  if (l == nullptr) return nullptr;
-  const auto state = Reg<T>::Instance().Check(l, what);
-  if (state != GFHandleState::kLive) {
-    if (state == GFHandleState::kStale) ReportStaleList(l, what);
-    return nullptr;
-  }
-  Q_ASSERT(l->magic == kGFListMagic);
-  return l;
+  auto* impl = Reg<T>::Instance().ResolveLive(l, what);
+  Q_ASSERT(impl == nullptr || impl->magic == kGFListMagic);
+  return impl;
 }
 
 template <typename T>
@@ -229,32 +192,12 @@ auto GFGpgFindKeys(int channel, const char* email, GFGpgKeyBriefListRef* out)
   if (email == nullptr) return -1;
 
   try {
-    // Reuses the existing gatherer rather than duplicating the UID-matching
-    // rules, which are subtle (every UID, not just the primary) and already
-    // covered by tests.
-    GFGpgKeyBrief* briefs = nullptr;
-    int count = 0;
-    if (GFGpgFindKeysByEmail(channel, email, &briefs, &count) != 0) return -1;
+    auto rows = FindKeyBriefRows(channel, QString::fromUtf8(email));
+    if (!rows.has_value()) return -1;
 
     auto* impl = NewList<GFGpgKeyBriefListImpl>("GFGpgFindKeys");
-    if (impl == nullptr) {
-      GFGpgFreeKeyBriefs(briefs, count);
-      return -1;
-    }
-
-    for (int i = 0; i < count; ++i) {
-      const auto& b = briefs[i];
-      impl->rows.append(KeyBriefRow{
-          b.fingerprint == nullptr ? QByteArray() : QByteArray(b.fingerprint),
-          b.key_id == nullptr ? QByteArray() : QByteArray(b.key_id),
-          b.uid == nullptr ? QByteArray() : QByteArray(b.uid),
-          b.matched_email == nullptr ? QByteArray()
-                                     : QByteArray(b.matched_email),
-          b.expires_at, b.usability, b.can_encrypt, b.can_sign,
-          b.matched_uid_is_primary, b.matched_uid_revoked});
-    }
-
-    GFGpgFreeKeyBriefs(briefs, count);
+    if (impl == nullptr) return -1;
+    impl->rows = std::move(*rows);
     BuildViews(impl);
     *out = impl;
     return 0;
@@ -285,30 +228,9 @@ auto GFGpgSniffRecipients(int channel, GFBufferView in,
   if (data == nullptr || size == 0) return -1;
 
   try {
-    GFGpgEncRecipient* raw = nullptr;
-    int count = 0;
-    if (GFGpgSniffEncryptedRecipients(channel, data, static_cast<int>(size),
-                                      &raw, &count) != 0) {
-      return -1;
-    }
-
     auto* impl = NewList<GFGpgRecipientListImpl>("GFGpgSniffRecipients");
-    if (impl == nullptr) {
-      GFGpgFreeEncRecipients(raw, count);
-      return -1;
-    }
-
-    for (int i = 0; i < count; ++i) {
-      const auto& r = raw[i];
-      impl->rows.append(RecipientRow{
-          r.key_id == nullptr ? QByteArray() : QByteArray(r.key_id),
-          r.pub_algo == nullptr ? QByteArray() : QByteArray(r.pub_algo),
-          r.fingerprint == nullptr ? QByteArray() : QByteArray(r.fingerprint),
-          r.uid == nullptr ? QByteArray() : QByteArray(r.uid), r.key_found,
-          r.has_secret, r.hidden});
-    }
-
-    GFGpgFreeEncRecipients(raw, count);
+    if (impl == nullptr) return -1;
+    impl->rows = SniffRecipientRows(channel, GpgFrontend::GFBuffer(data, size));
     BuildViews(impl);
     *out = impl;
     return 0;
@@ -335,23 +257,9 @@ auto GFGpgListAddresses(int channel, int secret_only, GFStringListRef* out)
   *out = nullptr;
 
   try {
-    char** raw = nullptr;
-    int count = 0;
-    if (GFGpgListKeyAddresses(channel, secret_only, &raw, &count) != 0) {
-      return -1;
-    }
-
     auto* impl = NewList<GFStringListImpl>("GFGpgListAddresses");
-    if (impl == nullptr) {
-      GFGpgFreeStringArray(raw, count);
-      return -1;
-    }
-
-    for (int i = 0; i < count; ++i) {
-      impl->rows.append(raw[i] == nullptr ? QByteArray() : QByteArray(raw[i]));
-    }
-
-    GFGpgFreeStringArray(raw, count);
+    if (impl == nullptr) return -1;
+    impl->rows = ListKeyAddressRows(channel, secret_only != 0);
     *out = impl;
     return 0;
   } catch (...) {

@@ -57,15 +57,11 @@ extern "C" {
  * ## What this attributes, and what it does not
  *
  * A handle created while a module's callback is on the stack is attributed to
- * that module. A handle created on a thread the module started for itself is
- * not -- nothing on that thread ever passed through the host, so there is
- * nothing to have set the current module. Those handles are recorded with no
- * owner and are swept only at process exit rather than at unload.
- *
- * That is a real limit rather than a bug to fix here: attributing them would
- * mean the module telling the SDK who it is, which is a claim rather than an
- * observation, and a module that gets it wrong would have another module's
- * handles freed underneath it.
+ * that module by the bracket the host puts around the callback. A handle a
+ * module asks for from a thread it started itself is attributed too: every
+ * primitive opens with a gate, and the gate attributes the call from the
+ * context it presents -- a record the host minted, not a claim the module
+ * makes. What is never used is anything the module says about itself.
  */
 
 /**

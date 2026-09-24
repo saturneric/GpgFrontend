@@ -57,7 +57,8 @@ namespace gf_sdk_internal {
  * @param granted GF_HOST_CAP_* bits. A group whose bit is clear is NULL in
  *        the table AND unknown to the capability check, so reaching its
  *        primitives some other way does not help.
- * @return borrowed; valid until ReleaseHostApi() for the same id
+ * @return borrowed; the record behind it is never freed, and is refused
+ *         once ReleaseHostApi() has revoked it
  */
 auto MintHostApi(const char* module_id, uint32_t granted) -> const GFHostApi*;
 
@@ -96,10 +97,6 @@ enum class HostContextStatus {
   kREVOKED,  ///< minted, and released when its module unloaded
   kDENIED,   ///< live, but its module was not granted this capability
 };
-
-/// @brief The status of @p ctx with respect to @p capability. No logging.
-auto ContextStatusOf(GFHostContextRef ctx, uint32_t capability)
-    -> HostContextStatus;
 
 /// The module @p ctx belongs to, live or revoked, or an empty string when
 /// @p ctx is unknown. For log lines and key scoping, never for authorization.
