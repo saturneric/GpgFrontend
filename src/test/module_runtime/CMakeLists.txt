@@ -46,3 +46,4 @@ target_compile_definitions(gf_module_runtime_test PRIVATE
 set_target_properties(gf_module_runtime_test PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test-bin"
   AUTOMOC OFF)
+gf_register_module_test(gf_module_runtime_test)
