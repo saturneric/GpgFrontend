@@ -415,52 +415,11 @@
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Debugger</string>
+       <string>Developer</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QPushButton" name="triggerEventButton">
-           <property name="text">
-            <string>Trigger Event</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="upsertGrtValueButton">
-           <property name="text">
-            <string>Upsert GRT Value</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="debuggerSpacer">
-           <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+        <widget class="GpgFrontend::UI::ModuleDeveloperPanel" name="developerPanel" native="true"/>
        </item>
       </layout>
      </widget>
@@ -478,6 +437,12 @@
    <class>GpgFrontend::UI::GRTTreeView</class>
    <extends>QTreeView</extends>
    <header>ui/widgets/GRTTreeView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GpgFrontend::UI::ModuleDeveloperPanel</class>
+   <extends>QWidget</extends>
+   <header>ui/dialog/controller/ModuleDeveloperPanel.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>GpgFrontend::UI::MetaListPanel</class>

@@ -61,12 +61,6 @@ auto CurrentLoadingPolicy() -> Module::ModuleLoadingPolicy {
 
 }  // namespace
 
-namespace {
-
-/// number of hash characters shown before the ellipsis
-
-}  // namespace
-
 ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     : GeneralDialog("ModuleControllerDialog", parent),
       ui_(QSharedPointer<Ui_ModuleControllerDialog>::create()),
@@ -96,7 +90,7 @@ void ModuleControllerDialog::init_texts() {
 
   ui_->tabWidget->setTabText(0, tr("Registered Modules"));
   ui_->tabWidget->setTabText(1, tr("Global Register Table"));
-  ui_->tabWidget->setTabText(2, tr("Debugger"));
+  ui_->tabWidget->setTabText(2, tr("Developer"));
 
   ui_->searchLineEdit->setPlaceholderText(tr("Search modules..."));
   ui_->filterComboBox->addItem(tr("All"),
@@ -127,9 +121,6 @@ void ModuleControllerDialog::init_texts() {
   ui_->grtExpandAllButton->setText(tr("Expand All"));
   ui_->grtCollapseAllButton->setText(tr("Collapse All"));
   ui_->grtRefreshButton->setText(tr("Refresh"));
-
-  ui_->triggerEventButton->setText(tr("Trigger Event"));
-  ui_->upsertGrtValueButton->setText(tr("Upsert GRT Value"));
 }
 
 void ModuleControllerDialog::init_connections() {
@@ -208,32 +199,6 @@ void ModuleControllerDialog::init_connections() {
           [=]() { ui_->treeView->CollapseAll(); });
   connect(ui_->grtRefreshButton, &QPushButton::clicked, this,
           [=]() { ui_->treeView->Refresh(); });
-
-  connect(ui_->triggerEventButton, &QPushButton::clicked, this, [=]() {
-    auto event_id = QInputDialog::getText(this, tr("Trigger Event"),
-                                          tr("Please provide an Event ID"));
-    if (event_id.isEmpty()) return;
-    Module::TriggerEvent(event_id);
-  });
-
-  connect(ui_->upsertGrtValueButton, &QPushButton::clicked, this, [=]() {
-    auto ok = false;
-    auto ns =
-        QInputDialog::getText(this, tr("Upsert GRT Value"), tr("Namespace"),
-                              QLineEdit::Normal, {}, &ok);
-    if (!ok || ns.isEmpty()) return;
-
-    auto key = QInputDialog::getText(this, tr("Upsert GRT Value"), tr("Key"),
-                                     QLineEdit::Normal, {}, &ok);
-    if (!ok || key.isEmpty()) return;
-
-    auto value = QInputDialog::getText(this, tr("Upsert GRT Value"),
-                                       tr("Value"), QLineEdit::Normal, {}, &ok);
-    if (!ok) return;
-
-    Module::UpsertRTValue(ns, key, value);
-    ui_->treeView->Refresh();
-  });
 }
 
 void ModuleControllerDialog::update_policy_notice() {
