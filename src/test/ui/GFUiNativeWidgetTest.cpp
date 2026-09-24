@@ -29,15 +29,19 @@
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QDialog>
 #include <QPointer>
 #include <QWidget>
 
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
+#include "core/model/SettingsObject.h"
 #include "sdk/GFSDKUI.h"
 #include "ui/command/ModuleUiTeardown.h"
+#include "ui/lua/LuaMounts.h"
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
+#include "ui/struct/settings_object/WindowStateSO.h"
 
 /**
  * @file GFUiNativeWidgetTest.cpp
@@ -63,6 +67,11 @@ auto OnGui(const std::function<void()>& fn) {
 
 auto CreateWidget(void*, uint64_t, GFBufferView) -> void* {
   return new QWidget();  // only ever called on the GUI thread here
+}
+
+/// What a module that builds its widget as a QDialog hands over.
+auto CreateDialogWidget(void*, uint64_t, GFBufferView) -> void* {
+  return new QDialog();
 }
 
 void DocLoad(void*, uint64_t, GFBufferView) {}
@@ -210,6 +219,52 @@ TEST(NativeWidgetTest, AWithdrawnModulesInstancesAreDroppedByTheirContainers) {
     UI::NativeInstances::Instance().WithdrawAll(kModule);  // idempotent
   });
   EXPECT_EQ(first.withdrawn, 1);
+  GFNativeWidgetUnregister(owner(), "dialog");
+}
+
+TEST(NativeWidgetTest,
+     AModuleDialogOpensAtItsDeclaredSizeAndThenWhereItWasLeft) {
+  // The module's widget is a child of the Host's frame, not a window, so it
+  // cannot remember its own geometry: the frame has to.
+  constexpr auto kModule = "com.example.native.geometry";
+  const auto widget_id = QString(kModule) + ".dialog";
+  const auto state_name = UI::Lua::NativeDialogStateName(widget_id) +
+                          QStringLiteral("_dialog_state");
+  SdkTestContext owner(kModule, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  auto spec = Spec("dialog", GF_NATIVE_DIALOG);
+  spec.create = &CreateDialogWidget;
+  spec.width = 900;
+  spec.height = 650;
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+  OnGui([&] { SettingsObject(state_name).Store(QJsonObject{}); });
+
+  const QRect left_at(40, 30, 700, 520);  // fits the offscreen screen
+  OnGui([&] {
+    auto* dialog = new UI::Lua::NativeDialog("main", widget_id, {}, nullptr);
+    ASSERT_TRUE(dialog->Ok());
+    EXPECT_GE(dialog->width(), 900);
+    EXPECT_GE(dialog->height(), 650);
+    dialog->show();
+    dialog->setGeometry(left_at);
+
+    // Escape and a Close button reach the module's QDialog, not the frame.
+    // Hiding only itself would leave the frame open around nothing.
+    auto* inner = dialog->findChild<QDialog*>();
+    ASSERT_NE(inner, nullptr);
+    inner->reject();
+    EXPECT_FALSE(dialog->isVisible());
+    delete dialog;
+  });
+
+  OnGui([&] {
+    auto* dialog = new UI::Lua::NativeDialog("main", widget_id, {}, nullptr);
+    ASSERT_TRUE(dialog->Ok());
+    dialog->show();
+    EXPECT_EQ(dialog->size(), left_at.size());
+    delete dialog;
+    SettingsObject(state_name).Store(QJsonObject{});
+  });
+
   GFNativeWidgetUnregister(owner(), "dialog");
 }
 

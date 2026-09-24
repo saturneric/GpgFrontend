@@ -29,7 +29,10 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
+#include "core/model/SettingsObject.h"
+#include "ui/dialog/GeneralDialog.h"
 #include "ui/function/WindowGeometry.h"
+#include "ui/struct/settings_object/WindowStateSO.h"
 
 namespace GpgFrontend::Test {
 
@@ -71,6 +74,51 @@ TEST(WindowGeometryTest, AnOffsetAvailableAreaIsHonoured) {
       UI::ClampRectToAvailableGeometry(QRect(0, 0, 200, 200), available);
   EXPECT_EQ(out.left(), 1920);
   EXPECT_TRUE(available.contains(out));
+}
+
+namespace {
+
+/// Shows a GeneralDialog, gives it @p rect, closes it with @p close and
+/// returns what it saved.
+auto SavedStateAfter(const QString& name, const QRect& rect,
+                     const std::function<void(QDialog*)>& close)
+    -> UI::WindowStateSO {
+  RunOnMainThread([&]() {
+    SettingsObject(name + "_dialog_state").Store(QJsonObject{});
+    auto* dialog = new UI::GeneralDialog(name);
+    dialog->show();
+    dialog->setGeometry(rect);
+    close(dialog);
+    delete dialog;
+  });
+  UI::WindowStateSO state;
+  RunOnMainThread([&]() {
+    SettingsObject settings(name + "_dialog_state");
+    state = UI::WindowStateSO(settings);
+    settings.Store(QJsonObject{});
+  });
+  return state;
+}
+
+}  // namespace
+
+TEST(WindowGeometryTest, ADialogClosedFromItsTitleBarRemembersItsRect) {
+  const QRect rect(120, 90, 640, 480);
+  const auto state = SavedStateAfter(QStringLiteral("gtest_geometry_close"),
+                                     rect, [](QDialog* d) { d->close(); });
+  EXPECT_TRUE(state.window_save);
+  EXPECT_EQ(QSize(state.width, state.height), rect.size());
+}
+
+TEST(WindowGeometryTest, ADialogDismissedWithEscapeRemembersItsRect) {
+  // Escape, Cancel and OK all end in done(). Since Qt 6.3 done() closes the
+  // dialog but swallows the close event, so a save in closeEvent() alone
+  // never sees any of them.
+  const QRect rect(140, 110, 700, 520);
+  const auto state = SavedStateAfter(QStringLiteral("gtest_geometry_reject"),
+                                     rect, [](QDialog* d) { d->reject(); });
+  EXPECT_TRUE(state.window_save);
+  EXPECT_EQ(QSize(state.width, state.height), rect.size());
 }
 
 }  // namespace GpgFrontend::Test
