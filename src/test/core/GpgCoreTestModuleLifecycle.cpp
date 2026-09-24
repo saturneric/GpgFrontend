@@ -28,6 +28,8 @@
 
 #include <gtest/gtest.h>
 
+#include <QCoreApplication>
+#include <QElapsedTimer>
 #include <atomic>
 #include <future>
 #include <optional>
@@ -43,6 +45,8 @@
 #include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKHostApi.h"
 #include "sdk/GFSDKModuleApi.h"
+#include "sdk/GFSDKHostCommands.hpp"
+#include "ui/command/CodecStage.h"
 #include "ui/command/CommandRegistry.h"
 
 /**
@@ -83,6 +87,8 @@ struct Probe {
   std::atomic<int> deactivate_rc{0};
   std::atomic<bool> answer_events{true};
   std::atomic<bool> register_command{true};
+  std::atomic<bool> register_decoder{false};  ///< also provide `<id>.decode`
+  std::atomic<int> decodes{0};                ///< times the decoder was entered
 
   const GFHostApi* host = nullptr;
   QByteArray id;
@@ -109,6 +115,14 @@ void Answer(Probe& p, const QByteArray& trigger) {
 
 void Handler(void*, uint64_t, GFBufferView, GFBufferRef, GFBufferRef*, size_t) {
 }
+
+/// The codec shape a decoder must declare.
+struct DecoderShape {
+  static constexpr gf::cmd::Meta kMeta{"", "", "", "", 0,
+                                       gf::cmd::kInputDecoder};
+  using Args = gf::cmd::host::CodecArgs;
+  using Result = gf::cmd::host::CodecResult;
+};
 
 /// A module of its own for each N: C function pointers cannot capture.
 template <int N>
@@ -142,7 +156,41 @@ struct ProbeModule {
       host->command->register_command(host->context, &spec);
       host->buffer->release(host->context, buf);
     }
+    if (p.register_decoder) {
+      const auto command = (p.id + ".decode");
+      const auto descriptor =
+          QCborValue(gf::cmd::Describe<DecoderShape>()).toCbor();
+      auto* buf =
+          host->buffer->new_from_bytes(host->context, descriptor.constData(),
+                                       static_cast<size_t>(descriptor.size()));
+      GFCommandSpec spec{};
+      spec.struct_size = sizeof(spec);
+      spec.id = command.constData();
+      spec.descriptor_cbor = buf;
+      spec.handler = &Decode;
+      host->command->register_command(host->context, &spec);
+      host->buffer->release(host->context, buf);
+    }
     return p.activate_rc.load();
+  }
+
+  /// Counts the entry, then answers "not mine" at once.
+  static void Decode(void*, uint64_t call_id, GFBufferView, GFBufferRef args,
+                     GFBufferRef* blobs, size_t blob_count) {
+    auto& p = P();
+    ++p.decodes;
+    p.host->buffer->release(p.host->context, args);
+    for (size_t i = 0; i < blob_count; ++i) {
+      p.host->buffer->release(p.host->context, blobs[i]);
+    }
+    gf::cmd::EncodeState st;
+    const auto result =
+        QCborValue(gf::cmd::EncodeMap(gf::cmd::host::CodecResult{}, st))
+            .toCbor();
+    auto* buf = p.host->buffer->new_from_bytes(
+        p.host->context, result.constData(), static_cast<size_t>(result.size()));
+    p.host->command->complete(p.host->context, call_id, GF_CMD_OK, buf, nullptr,
+                              0, nullptr);
   }
 
   static auto Execute(GFModuleEvent* event) -> int {
@@ -175,7 +223,8 @@ struct ProbeModule {
   }
 
   /// Register it with the manager, not auto-activated.
-  static auto Register() -> Module::ModulePtr {
+  static auto Register(const QStringList& capabilities = {})
+      -> Module::ModulePtr {
     P().id = Id().toUtf8();
     P().event = EventOf(N).toUtf8();
     auto module = SecureCreateSharedObject<Module::Module>(Api(), QString());
@@ -183,7 +232,8 @@ struct ProbeModule {
     manifest.id = Id();
     manifest.version = "1.0.0";
     manifest.events = {EventOf(N)};
-    manifest.commands = {Id() + ".probe"};
+    manifest.commands = {Id() + ".probe", Id() + ".decode"};
+    manifest.capabilities = capabilities;
     manifest.translation_context = "GTrC";
     module->SetModuleManifest(manifest);
     module->SetSourcePackagePath(
@@ -551,6 +601,48 @@ TEST(ModuleLifecycleTest, AModuleIdMustHaveTheOneIdentityShape) {
       []() {},
   };
   EXPECT_FALSE(Module::Module(&kApi, QString()).IsGood());
+}
+
+// The pre-decrypt decoder, through the real gates. Once its module starts to
+// deactivate, a decoder is never entered again -- and the Host's decrypt goes
+// on as if it had never been there.
+TEST(ModuleLifecycleTest, ADeactivatedDecoderIsNeverEnteredAndDecryptGoesOn) {
+  using M = ProbeModule<20>;
+  M::P().register_decoder = true;
+  M::Register({"editor"});
+  Manager().ActiveModule(M::Id());
+  DrainModuleRunner();
+  ASSERT_TRUE(Manager().IsModuleActivated(M::Id()));
+  ASSERT_TRUE(UI::CommandRegistry::Instance()
+                  .ProvidersWithFlag(gf::cmd::kInputDecoder)
+                  .contains(M::Id() + ".decode"));
+
+  const auto run = []() {
+    auto done = std::make_shared<std::atomic<int>>(0);
+    auto kind = std::make_shared<UI::CodecStageResult::Kind>();
+    UI::CodecStage::RunDecoders(GFBuffer(QByteArray("plain words, no token")),
+                                [done, kind](UI::CodecStageResult r) {
+                                  *kind = r.kind;
+                                  ++*done;
+                                });
+    QElapsedTimer t;
+    t.start();
+    while (done->load() == 0 && t.elapsed() < 10000) {
+      QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+    }
+    EXPECT_EQ(done->load(), 1);
+    return *kind;
+  };
+
+  EXPECT_EQ(run(), UI::CodecStageResult::Kind::kNotHandled);
+  EXPECT_EQ(M::P().decodes.load(), 1) << "an active decoder is asked";
+
+  Manager().DeactivateModule(M::Id());
+  DrainModuleRunner();
+  EXPECT_TRUE(Module::ModuleEntryGate(M::Id()).IsClosed());
+
+  EXPECT_EQ(run(), UI::CodecStageResult::Kind::kNotHandled);
+  EXPECT_EQ(M::P().decodes.load(), 1) << "a deactivated decoder is not";
 }
 
 }  // namespace GpgFrontend::Test

@@ -35,6 +35,7 @@
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
 #include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
 #include "sdk/GFSDK.hpp"
 #include "sdk/GFSDKBuffer.hpp"
 #include "sdk/GFSDKStorage.h"
@@ -166,6 +167,51 @@ TEST(SdkStorageTest, ALegacyValueIsMigratedOnFirstRead) {
   EXPECT_EQ(Get(CtxA(), GF_STORE_SECURE_DURABLE, "legacy-credential"),
             QByteArray("old value"));
   GFStorageCacheRemove(CtxA(), GF_STORE_SECURE_DURABLE, "legacy-credential");
+}
+
+/// The instant-messaging module's own identity, with exactly the grant its
+/// manifest asks for: minting a different grant for a live module would
+/// revoke the one it holds, and the real module may be loaded in this process.
+auto CtxIm() -> GFSDKContext* {
+  static SdkTestContext context(
+      "com.bktus.gpgfrontend.module.im",
+      Module::ModuleCapabilityMask(
+          {"editor", "gpg", "storage", "ui", "ui.custom"}));
+  return context.get();
+}
+
+// The book phrase the Host kept, before instant messaging became a module,
+// moves to the module's own secure key on its first read, unchanged, once.
+TEST(SdkStorageTest, TheHostsImBookPhraseMovesToTheModuleOnce) {
+  auto& cache = CacheManager::GetInstance();
+  const QString host_key = "im/password_book_phrase";
+  const QByteArray blob("\x01shared phrase");
+  cache.SaveSecDurableCache(host_key, GFBuffer(blob), true);
+
+  // Only the module it belonged to can take it, and only from the one store.
+  EXPECT_FALSE(Get(CtxA(), GF_STORE_SECURE_DURABLE, "book_phrase").has_value());
+  EXPECT_FALSE(Get(CtxIm(), GF_STORE_DURABLE, "book_phrase").has_value());
+  ASSERT_FALSE(cache.LoadSecDurableCache(host_key).Empty());
+
+  EXPECT_EQ(Get(CtxIm(), GF_STORE_SECURE_DURABLE, "book_phrase"), blob);
+  EXPECT_TRUE(cache.LoadSecDurableCache(host_key).Empty());
+
+  // The second read is the module's own value; the move is not repeated.
+  EXPECT_EQ(Get(CtxIm(), GF_STORE_SECURE_DURABLE, "book_phrase"), blob);
+  GFStorageCacheRemove(CtxIm(), GF_STORE_SECURE_DURABLE, "book_phrase");
+}
+
+// An even older Host left the phrase in the plaintext settings file. It
+// moves too -- in the secure value format -- and leaves the settings file.
+TEST(SdkStorageTest, AnImBookPhraseInTheSettingsFileMovesToo) {
+  const QString host_key = "im/password_book_phrase";
+  GetSettings().setValue(host_key, QStringLiteral("  legacy phrase "));
+  ASSERT_TRUE(GetSettings().contains(host_key));
+
+  EXPECT_EQ(Get(CtxIm(), GF_STORE_SECURE_DURABLE, "book_phrase"),
+            QByteArray("\x01legacy phrase"));
+  EXPECT_FALSE(GetSettings().contains(host_key));
+  GFStorageCacheRemove(CtxIm(), GF_STORE_SECURE_DURABLE, "book_phrase");
 }
 
 TEST(SdkStorageTest, RemovingAKeyAlsoDropsAnUnmigratedLegacyValue) {

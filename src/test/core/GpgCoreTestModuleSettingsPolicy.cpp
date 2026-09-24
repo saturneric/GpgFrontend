@@ -45,9 +45,13 @@ namespace GpgFrontend::Test {
 using Module::HostSettingAccess;
 using Module::ModuleSettingScope;
 
-TEST(ModuleSettingsPolicyTest, TwoModulesKeepTheGroupTheyAlwaysUsed) {
+TEST(ModuleSettingsPolicyTest, ModulesKeepTheGroupTheirDataWasIn) {
   EXPECT_EQ(Module::ModuleSettingsGroup("com.bktus.gpgfrontend.module.email"),
             "email");
+  // Instant messaging's settings were the Host's, under "im/", before it
+  // became a module; the module reads them where they are.
+  EXPECT_EQ(Module::ModuleSettingsGroup("com.bktus.gpgfrontend.module.im"),
+            "im");
   EXPECT_EQ(Module::ModuleSettingsGroup(
                 "com.bktus.gpgfrontend.module.key_server_sync"),
             "key_server_sync");

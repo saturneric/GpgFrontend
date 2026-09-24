@@ -32,7 +32,6 @@
 #include <algorithm>
 
 #include "GpgCoreEngineTest.h"
-#include "core/function/InstantMessageOperator.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
@@ -368,19 +367,18 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
 }
 
 // ---------------------------------------------------------------------------
-// Encrypt & Sign for Instant Messaging: the binary encrypt-and-sign ciphertext
-// is whitened into one Base58 token, which must un-whiten back to a message
-// that still decrypts AND verifies. Covers the path behind the IM Encrypt &
-// Sign action, whose token is consumed by the regular Decrypt & Verify.
+// Binary Encrypt & Sign, as the Host hands it to an output encoder: the bytes
+// an encoder gets back from a decoder are exactly these, and they must still
+// decrypt AND verify with no armor around them.
 // ---------------------------------------------------------------------------
 
-TEST_P(GpgCoreEngineTest, InstantMessageEncryptSignDecryptVerify) {
-  auto key = GenerateFullKey("im-encsign");
+TEST_P(GpgCoreEngineTest, BinaryEncryptSignDecryptVerify) {
+  auto key = GenerateFullKey("bin-encsign");
   ASSERT_TRUE(key != nullptr);
 
-  auto plain = GFBuffer(QString("Hello instant messaging, signed!"));
+  auto plain = GFBuffer(QString("Hello binary message, signed!"));
 
-  // ascii = false: the IM container wraps the binary message, as the UI does.
+  // ascii = false: what the Host gives an encoder and gets back from a decoder.
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
           {key}, {key}, plain, false);
@@ -389,21 +387,10 @@ TEST_P(GpgCoreEngineTest, InstantMessageEncryptSignDecryptVerify) {
       (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
   auto cipher = ExtractParams<GFBuffer>(data_object, 2);
 
-  const auto token = InstantMessageOperator::Encode(cipher);
-  ASSERT_FALSE(token.isEmpty());
-
-  // One pasteable word: no armor, no line breaks, nothing a messenger mangles.
-  EXPECT_FALSE(token.contains(QLatin1Char('\n')));
-  EXPECT_FALSE(token.contains(QLatin1Char(' ')));
-  EXPECT_FALSE(token.contains(QStringLiteral("BEGIN PGP")));
-
-  const auto decoded = InstantMessageOperator::Decode(token);
-  ASSERT_TRUE(decoded.ok);
-  ASSERT_EQ(decoded.pgp_message, cipher);
+  EXPECT_FALSE(cipher.ConvertToQByteArray().contains("BEGIN PGP"));
 
   auto [err_0, data_object_0] =
-      MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(
-          decoded.pgp_message);
+      MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(cipher);
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
