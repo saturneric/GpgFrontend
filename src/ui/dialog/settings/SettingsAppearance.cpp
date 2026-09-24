@@ -115,9 +115,6 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->textAndIconsRadioButton->setText(tr("text and icons"));
 
   ui_->toolbarOperasLabel->setText(tr("Actions"));
-  ui_->toolbarImTipLabel->setText(
-      tr("IM actions turn the text into one compact line that is safe to paste "
-         "into an instant messenger."));
 
   ui_->textEditorBox->setTitle(tr("Text Editor"));
   ui_->textEditorFontLabel->setText(tr("Font Family"));

@@ -111,7 +111,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
        appearance_title,
        "application",
        {tr("theme"), tr("icon"), tr("font size"), tr("font family"),
-        tr("toolbar"), tr("actions"), tr("instant messaging"),
+        tr("toolbar"), tr("actions"),
         tr("text editor"), tr("status panel"), tr("arabic")}},
   };
 
