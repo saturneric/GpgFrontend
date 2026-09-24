@@ -242,12 +242,22 @@ struct HostCommandHandlers {
     return Ok();
   }
 
-  /// Only a text tab: the encoding replaces the text.
-  static auto EncryptEncodedState(const CommandContext& ctx) -> uint32_t {
+  /**
+   * @brief Only a text tab, where the encoding replaces the text; and only
+   *        when an encryption applies to it.
+   *
+   * With no key checked, Encrypt is disabled and Sym. Encrypt is what
+   * applies -- this encrypts with a passphrase then -- so any of the three
+   * enables it. Whether this call needs a key is checked when it runs.
+   */
+  static auto EncryptEncodedState(const CommandContext&) -> uint32_t {
     if (window.isNull()) return 0;
     const bool text = window->edit_->CurPageIsPlainText();
-    const auto encrypt = CryptoState<Op::kEncrypt>(ctx);
-    return text ? encrypt : (encrypt & GF_CMD_STATE_VISIBLE);
+    const bool any = window->encrypt_act_->isEnabled() ||
+                     window->sym_encrypt_act_->isEnabled() ||
+                     window->encrypt_sign_act_->isEnabled();
+    return text && any ? GF_CMD_STATE_ENABLED | GF_CMD_STATE_VISIBLE
+                       : GF_CMD_STATE_VISIBLE;
   }
 
   static auto ImportKeys(const CommandContext&, const host::KeysImport::Args& a)
