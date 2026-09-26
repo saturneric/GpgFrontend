@@ -874,6 +874,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief When the user opted in (basic/confirm_multiple_recipients), ask
+   * before encrypting to more than one recipient, listing them all.
+   *
+   * @param keys the checked recipients.
+   * @return false when the user declined.
+   */
+  auto confirm_recipients_helper(const GpgAbstractKeyPtrList& keys) -> bool;
+
+  /**
    * @brief
    *
    * @param context

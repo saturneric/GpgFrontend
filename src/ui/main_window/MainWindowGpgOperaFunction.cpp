@@ -39,6 +39,7 @@
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
+#include "ui/main_window/RecipientConfirm.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/KeyList.h"
@@ -294,11 +295,46 @@ auto MainWindow::check_keys_helper(
   return keys;
 }
 
+auto MainWindow::confirm_recipients_helper(const GpgAbstractKeyPtrList& keys)
+    -> bool {
+  const auto setting_on =
+      GetSettings().value("basic/confirm_multiple_recipients", false).toBool();
+  if (!NeedsRecipientConfirmation(keys.size(), setting_on)) return true;
+
+  const int count = static_cast<int>(keys.size());
+
+  // Only reached with two or more recipients, so the English source can say
+  // "recipients" outright; %n still lets other languages pick their form.
+  QMessageBox box(this);
+  box.setIcon(QMessageBox::Warning);
+  box.setWindowTitle(tr("Confirm Recipients"));
+  box.setTextFormat(Qt::RichText);
+  box.setText(QString("<b>%1</b><br/>%2")
+                  .arg(tr("Encrypt to %n recipients?", nullptr, count),
+                       tr("Each recipient will be able to see the key IDs of "
+                          "all the others.")));
+  box.setInformativeText(BuildRecipientConfirmHtml(
+      keys, box.palette().color(QPalette::PlaceholderText)));
+
+  auto* encrypt = box.addButton(tr("Encrypt"), QMessageBox::AcceptRole);
+  auto* cancel = box.addButton(QMessageBox::Cancel);
+  box.setDefaultButton(cancel);
+  box.setEscapeButton(cancel);
+
+  box.exec();
+  return box.clickedButton() == encrypt;
+}
+
 auto MainWindow::resolve_encrypt_recipients_helper(
     const GpgAbstractKeyPtrList& keys, bool& canceled)
     -> GpgAbstractKeyPtrList {
   canceled = false;
   if (keys.isEmpty()) return keys;
+
+  if (!confirm_recipients_helper(keys)) {
+    canceled = true;
+    return {};
+  }
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 

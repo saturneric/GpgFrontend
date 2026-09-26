@@ -93,6 +93,13 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->rememberCheckedKeysCheckBox->setText(
       tr("Remember which keys are checked in the key list between restarts."));
+  ui_->singleRecipientModeCheckBox->setText(
+      tr("Allow only one checked key in the key list."));
+  ui_->singleRecipientModeCheckBox->setToolTip(
+      tr("Checking a key unchecks the others, so a recipient from an earlier "
+         "message is not added to the next one by mistake."));
+  ui_->confirmMultipleRecipientsCheckBox->setText(
+      tr("Ask before encrypting to more than one recipient."));
 
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
 
@@ -220,6 +227,16 @@ void GeneralTab::SetSettings() {
   ui_->rememberCheckedKeysCheckBox->setCheckState(
       remember_checked_keys ? Qt::Checked : Qt::Unchecked);
 
+  auto single_recipient_mode =
+      settings.value("basic/single_recipient_mode", false).toBool();
+  ui_->singleRecipientModeCheckBox->setCheckState(
+      single_recipient_mode ? Qt::Checked : Qt::Unchecked);
+
+  auto confirm_multiple_recipients =
+      settings.value("basic/confirm_multiple_recipients", false).toBool();
+  ui_->confirmMultipleRecipientsCheckBox->setCheckState(
+      confirm_multiple_recipients ? Qt::Checked : Qt::Unchecked);
+
   ui_->expiringSoonDaysSpinBox->setValue(GetKeyExpiringSoonDays());
 
   // One parse, shared with the loader. The five-branch chain this replaces
@@ -278,6 +295,10 @@ void GeneralTab::ApplySettings() {
                     ui_->importConfirmationCheckBox->isChecked());
   settings.setValue("basic/remember_checked_keys",
                     ui_->rememberCheckedKeysCheckBox->isChecked());
+  settings.setValue("basic/single_recipient_mode",
+                    ui_->singleRecipientModeCheckBox->isChecked());
+  settings.setValue("basic/confirm_multiple_recipients",
+                    ui_->confirmMultipleRecipientsCheckBox->isChecked());
   settings.setValue("keys/expiring_soon_days",
                     ui_->expiringSoonDaysSpinBox->value());
   settings.setValue("basic/lang", ui_->langSelectBox->currentData().toString());

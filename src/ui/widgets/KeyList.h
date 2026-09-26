@@ -171,6 +171,24 @@ class KeyList : public QWidget {
   void SetRememberCheckedKeys(bool enabled = true);
 
   /**
+   * @brief Let this key list honour the single-recipient setting
+   * (basic/single_recipient_mode, off by default): while it is on, checking a
+   * key unchecks every other key and the Check All button is hidden.
+   *
+   * Opt-in per key list: only the main-window key dock picks recipients, so
+   * the Key Management window and the dialogs keep plain multi-check.
+   *
+   * @param allowed true to follow the user setting
+   */
+  void SetSingleCheckAllowed(bool allowed = true);
+
+  /**
+   * @brief Re-read the user settings this key list follows. Call after the
+   * settings dialog applied changes.
+   */
+  void ReloadSettings();
+
+  /**
    * @brief Render the category strip as a compact colour rail (a swatch of the
    * category colour with the name in a tooltip) instead of the default
    * full-width text list.
@@ -502,6 +520,10 @@ class KeyList : public QWidget {
   ///< to the user setting). See SetRememberCheckedKeys().
   bool remember_checked_keys_ = false;
 
+  ///< When true this key list follows the single-recipient setting. See
+  ///< SetSingleCheckAllowed().
+  bool single_check_allowed_ = false;
+
   ///< True while restore_checked_keys() drives the model, so the check signals
   ///< it causes are not mistaken for user edits and written back.
   bool restoring_checked_keys_ = false;
@@ -572,6 +594,12 @@ class KeyList : public QWidget {
    * dropped instead, so a set from an earlier session never resurfaces.
    */
   void save_checked_keys();
+
+  /**
+   * @brief Push the single-recipient mode into the current model and show or
+   * hide the Check All button to match. Called after every model swap.
+   */
+  void apply_check_mode();
 
   /**
    * @brief Delete a user-defined category after confirmation.

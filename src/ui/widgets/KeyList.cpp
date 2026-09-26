@@ -216,6 +216,10 @@ auto RememberCheckedKeysEnabled() -> bool {
   return GetSettings().value("basic/remember_checked_keys", false).toBool();
 }
 
+auto SingleRecipientModeEnabled() -> bool {
+  return GetSettings().value("basic/single_recipient_mode", false).toBool();
+}
+
 }  // namespace
 
 KeyList::KeyList(QWidget* parent)
@@ -1117,6 +1121,27 @@ void KeyList::SetRememberCheckedKeys(bool enabled) {
   restore_checked_keys();
 }
 
+void KeyList::SetSingleCheckAllowed(bool allowed) {
+  single_check_allowed_ = allowed;
+  apply_check_mode();
+}
+
+void KeyList::ReloadSettings() { apply_check_mode(); }
+
+void KeyList::apply_check_mode() {
+  const bool exclusive = single_check_allowed_ && SingleRecipientModeEnabled();
+
+  ui_->checkALLButton->setHidden(!has_ability(KeyMenuAbility::kCHECK_ALL) ||
+                                 exclusive);
+
+  if (model_ == nullptr || model_->IsExclusiveCheck() == exclusive) return;
+
+  // Turning the mode on may collapse a multi-check to one key; that is a real
+  // change of the working set, so let it be persisted like a user edit.
+  model_->SetExclusiveCheck(exclusive);
+  update_action_state();
+}
+
 void KeyList::restore_checked_keys() {
   if (!remember_checked_keys_ || model_ == nullptr) return;
   if (!RememberCheckedKeysEnabled()) return;
@@ -1418,7 +1443,9 @@ void KeyList::SlotRefresh() {
   }
 
   // The model is new, so the check state went with the old one; bring back the
-  // persisted working set (also covers a key database switch).
+  // persisted working set (also covers a key database switch). The check mode
+  // goes first so a remembered multi-check is cut down to one key.
+  apply_check_mode();
   restore_checked_keys();
 
   emit SignalRefreshStatusBar(tr("Refreshing Key List..."), 3000);

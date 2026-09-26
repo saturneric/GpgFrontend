@@ -768,6 +768,10 @@ void MainWindow::create_dock_windows() {
   // restarts; the user setting decides whether it actually does.
   m_key_list_->SetRememberCheckedKeys(true);
 
+  // Recipient privacy: the user may restrict the dock to one checked key so a
+  // previous recipient never rides along on the next message.
+  m_key_list_->SetSingleCheckAllowed(true);
+
   m_key_list_->RebuildCategoryTabs();
 
   m_key_list_->setMinimumWidth(320);

@@ -626,6 +626,8 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
     return;
   }
 
+  if (!confirm_recipients_helper(keys)) return;
+
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
@@ -763,6 +765,8 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
                          tr("Please select a key for encrypting this document."));
     return;
   }
+
+  if (!confirm_recipients_helper(keys)) return;
 
   auto picker = QSharedPointer<SigningKeysPicker>(
       new SigningKeysPicker(m_key_list_->GetCurrentGpgContextChannel(), this),

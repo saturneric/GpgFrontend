@@ -603,6 +603,10 @@ void KeyTable::keyPressEvent(QKeyEvent* event) {
 }
 
 void KeyTable::CheckAll() {
+  // Single-recipient mode: "all" can only ever mean one key, so do nothing
+  // rather than leave the last row of the tab checked.
+  if (model_ != nullptr && model_->IsExclusiveCheck()) return;
+
   bulk_checking_ = true;
 
   for (int row = 0; row < model()->rowCount(); ++row) {

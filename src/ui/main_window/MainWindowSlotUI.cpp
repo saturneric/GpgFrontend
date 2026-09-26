@@ -462,6 +462,7 @@ SettingsDialog* MainWindow::open_settings_dialog() {
 
   connect(dialog, &SettingsDialog::finished, this, [this]() {
     restore_settings();
+    m_key_list_->ReloadSettings();
 
     if (restart_mode_ != kNonRestartCode) {
       auto ok = edit_->MaybeSaveAnyTab();
