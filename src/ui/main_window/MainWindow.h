@@ -857,6 +857,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const QString& capability_err_string) -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief check_keys_helper for encryption recipients, naming the recipient
+   * that cannot be encrypted to and why (e.g. its subkey expired on a date).
+   *
+   * @param keys the checked recipients
+   * @return the keys, or empty after telling the user what is wrong
+   */
+  auto check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
+      -> GpgAbstractKeyPtrList;
+
+  /**
    * @brief For the rPGP engine, let the user pin a specific encryption subkey
    * per recipient when a recipient exposes more than one usable (non-revoked)
    * encryption subkey. Mirrors the signing-key picker ambiguity gate.

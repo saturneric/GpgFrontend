@@ -100,6 +100,12 @@ GeneralTab::GeneralTab(QWidget* parent)
          "message is not added to the next one by mistake."));
   ui_->confirmMultipleRecipientsCheckBox->setText(
       tr("Ask before encrypting to more than one recipient."));
+  ui_->undoableOperationsCheckBox->setText(
+      tr("Allow undoing encrypt, decrypt and other operations in the text "
+         "editor."));
+  ui_->undoableOperationsCheckBox->setToolTip(
+      tr("Undo keeps the previous text in memory. After encrypting, that is "
+         "the plaintext."));
 
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
 
@@ -237,6 +243,11 @@ void GeneralTab::SetSettings() {
   ui_->confirmMultipleRecipientsCheckBox->setCheckState(
       confirm_multiple_recipients ? Qt::Checked : Qt::Unchecked);
 
+  auto undoable_operations =
+      settings.value("basic/undoable_operations", false).toBool();
+  ui_->undoableOperationsCheckBox->setCheckState(
+      undoable_operations ? Qt::Checked : Qt::Unchecked);
+
   ui_->expiringSoonDaysSpinBox->setValue(GetKeyExpiringSoonDays());
 
   // One parse, shared with the loader. The five-branch chain this replaces
@@ -299,6 +310,8 @@ void GeneralTab::ApplySettings() {
                     ui_->singleRecipientModeCheckBox->isChecked());
   settings.setValue("basic/confirm_multiple_recipients",
                     ui_->confirmMultipleRecipientsCheckBox->isChecked());
+  settings.setValue("basic/undoable_operations",
+                    ui_->undoableOperationsCheckBox->isChecked());
   settings.setValue("keys/expiring_soon_days",
                     ui_->expiringSoonDaysSpinBox->value());
   settings.setValue("basic/lang", ui_->langSelectBox->currentData().toString());

@@ -49,6 +49,7 @@
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/ProfileController.h"
+#include "ui/main_window/EncryptBlockReason.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -736,6 +737,7 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
   auto keys = m_key_list_->GetCheckedKeys();
 
   unsigned int temp = ~0;
+  QString encrypt_block_reason;
 
   if (keys.isEmpty()) {
     temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign |
@@ -749,6 +751,9 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
 
       if (!key->IsHasEncrCap()) {
         temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign);
+        if (encrypt_block_reason.isEmpty()) {
+          encrypt_block_reason = DescribeEncryptBlock(key);
+        }
       }
       if (!key->IsHasSignCap()) {
         temp &= ~(OperationMenu::kSign);
@@ -758,6 +763,25 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
 
   slot_update_crypto_operations_menu(operations_menu_mask_ &
                                      tab_type_menu_mask_ & mask & temp);
+
+  // A greyed-out Encrypt says nothing on its own; name the recipient that
+  // blocks it (typically an expired key) where the user is already looking.
+  for (auto* act : {encrypt_act_, encrypt_sign_act_}) {
+    set_action_block_reason(act, encrypt_block_reason);
+  }
+}
+
+void MainWindow::set_action_block_reason(QAction* act, const QString& reason) {
+  if (act == nullptr) return;
+
+  static const char* const kBaseToolTip = "gf_base_tool_tip";
+  if (!act->property(kBaseToolTip).isValid()) {
+    act->setProperty(kBaseToolTip, act->toolTip());
+  }
+
+  const auto base = act->property(kBaseToolTip).toString();
+  act->setToolTip(reason.isEmpty() ? base
+                                   : QString("%1\n\n%2").arg(base, reason));
 }
 
 void MainWindow::slot_update_engine_status() {

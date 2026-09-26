@@ -37,6 +37,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
+#include "ui/function/DocumentReplace.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/lua/LuaPlacements.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -610,18 +611,25 @@ void TextEdit::SlotQuote() const {
 
 void TextEdit::SlotFillTextEditWithText(const QString& text) const {
   auto* edit = this->CurTextPage()->GetTextPage();
-  edit->setUndoRedoEnabled(false);
-  edit->setPlainText(text);
-  edit->setUndoRedoEnabled(true);
+  if (IsOperationUndoEnabled()) {
+    ReplaceDocumentText(edit->document(), text, true);
+  } else {
+    edit->setUndoRedoEnabled(false);
+    edit->setPlainText(text);
+    edit->setUndoRedoEnabled(true);
+  }
   edit->document()->setModified(true);
 }
 
 void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
   auto* page = this->CurTextPage();
   auto* edit = page->GetTextPage();
-  edit->setUndoRedoEnabled(false);
+  // Toggling undo off discards the history, which is exactly what an
+  // undoable result must keep; SetOperationResultBytes handles both modes.
+  const bool keep_history = IsOperationUndoEnabled();
+  if (!keep_history) edit->setUndoRedoEnabled(false);
   SetOperationResultFromBuffer(page, buffer);
-  edit->setUndoRedoEnabled(true);
+  if (!keep_history) edit->setUndoRedoEnabled(true);
 }
 
 void TextEdit::LoadFile(const QString& fileName) {

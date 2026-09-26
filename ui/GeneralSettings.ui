@@ -161,6 +161,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="undoableOperationsCheckBox">
+            <property name="text">
+             <string>Allow undoing operations in the text editor.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="restoreTextEditorPageCheckBox">
             <property name="text">
              <string>Cache text editor contents.</string>

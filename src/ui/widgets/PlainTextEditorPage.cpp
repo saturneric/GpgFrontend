@@ -40,6 +40,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "sdk/GFSDKTypes.h"
 #include "ui/function/AppearanceFont.h"
+#include "ui/function/DocumentReplace.h"
 #include "ui/function/SecureWipe.h"
 #include "ui/function/TextDirection.h"
 #include "ui/function/UIStyle.h"
@@ -277,7 +278,16 @@ void PlainTextEditorPage::SetContentFromBytes(const QByteArray &bytes) {
 }
 
 void PlainTextEditorPage::SetOperationResultBytes(const QByteArray &bytes) {
-  load_bytes_into_editor(bytes);
+  if (IsOperationUndoEnabled()) {
+    // One edit block, so a single Ctrl+Z brings back the text the operation
+    // replaced. Only on request: that history keeps the old text, and after
+    // an encryption the old text is the plaintext.
+    is_crlf_ = bytes.contains("\r\n");
+    ReplaceDocumentText(ui_->textPage->document(), QString::fromUtf8(bytes),
+                        true);
+  } else {
+    load_bytes_into_editor(bytes);
+  }
 
   // setPlainText() CLEARS the modified flag, which would say this document
   // matches a file on disk. These bytes are the RESULT of an operation and
