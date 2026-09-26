@@ -35,6 +35,7 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/DataObject.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -63,6 +64,17 @@ auto IsChannelCancelled(int channel) -> bool {
   std::lock_guard<std::mutex> lock(g_gpg_cancel_mutex);
   return g_gpg_cancelled_channels.count(channel) != 0;
 }
+
+/// One more run of @p operation in the register table's usage figures.
+void CountOperation(const QString& operation, GpgError err) {
+  if (operation.isEmpty()) return;
+  Module::IncrementRTValue(Module::kGRTCoreNamespace,
+                           Module::GRTOperationStatKey(operation, "run"));
+  if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+    Module::IncrementRTValue(Module::kGRTCoreNamespace,
+                             Module::GRTOperationStatKey(operation, "failed"));
+  }
+}
 }  // namespace
 
 auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
@@ -86,9 +98,13 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                 // Skip operations that are still queued when a cancel has been
                 // requested (e.g. remaining files in a batch after the user
                 // cancels the one in progress).
-                auto err = IsChannelCancelled(channel)
-                               ? static_cast<GpgError>(GPG_ERR_CANCELED)
-                               : runnable(custom_data_object);
+                if (IsChannelCancelled(channel)) {
+                  data_object->Swap({static_cast<GpgError>(GPG_ERR_CANCELED),
+                                     custom_data_object});
+                  return 0;
+                }
+                auto err = runnable(custom_data_object);
+                CountOperation(operation, err);
                 data_object->Swap({err, custom_data_object});
                 return 0;
               },
@@ -117,6 +133,7 @@ auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
 
   auto data_object = TransferParams();
   auto err = runnable(data_object);
+  CountOperation(operation, err);
   return {err, data_object};
 }
 

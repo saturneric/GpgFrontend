@@ -173,7 +173,9 @@ auto OpenPGPContext::Initialize() -> bool {
         args.db_path);
     Module::UpsertRTValue(
         "core", QString("gpgme.ctx.list.%1.backend_type").arg(GetChannel()),
-        args.engine);
+        // text, the same "gnupg"/"rpgp" a stored key database carries: the
+        // enum itself matched no typed read, so this always came back empty
+        QString(args.engine == OpenPGPEngine::kGNUPG ? "gnupg" : "rpgp"));
   } else {
     LOG_E() << "OpenPGPContext initialization failed, channel: " << GetChannel()
             << ", key db name: " << KeyDatabase()

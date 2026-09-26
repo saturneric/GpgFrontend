@@ -213,7 +213,7 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
                         home_.IsUsable() ? 1 : 0);
 
   gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{}),
+      "core", "gpgme.ctx.gpgconf_path", QString{});
   gpg_agent_path_ = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gnupg.components.gpg-agent.path", QString{});
   agent_ = SecureCreateSharedObject<GpgAgentProcess>(

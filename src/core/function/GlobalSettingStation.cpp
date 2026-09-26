@@ -31,6 +31,7 @@
 #include <set>
 
 #include "GpgFrontendBuildInstallInfo.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileSession.h"
@@ -257,10 +258,12 @@ class GlobalSettingStation::Impl {
 
   auto AddSupportedOpenPPGEngine(OpenPGPEngine engine) -> void {
     supported_engines_.insert(engine);
+    publish_engine_supported(engine, true);
   }
 
   auto RemoveSupportedOpenPPGEngine(OpenPGPEngine engine) -> void {
     supported_engines_.erase(engine);
+    publish_engine_supported(engine, false);
   }
 
   auto HasSupportedEngine() -> bool { return !supported_engines_.empty(); }
@@ -274,6 +277,15 @@ class GlobalSettingStation::Impl {
   }
 
  private:
+  /// Mirror the supported set into the register table, where modules see it.
+  static void publish_engine_supported(OpenPGPEngine engine, bool supported) {
+    Module::UpsertRTValue(
+        Module::kGRTCoreNamespace,
+        Module::GRTEngineKey(engine == OpenPGPEngine::kGNUPG ? "gnupg" : "rpgp",
+                             "supported"),
+        supported);
+  }
+
   /// Every path this class reports comes from here, so there is exactly one
   /// answer to "where does the application keep its data" in the process.
   [[nodiscard]] static auto accessor() -> ProfileAccessor& {

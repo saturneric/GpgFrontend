@@ -41,6 +41,7 @@
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/CommonTraits.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -441,9 +442,6 @@ auto InitGpgME() -> bool {
 
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{"0.0.0"});
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{});
-
   if (!has_gpgconf) {
     LOG_E() << "cannot get gpgconf backend engine, abort...";
     return false;
@@ -503,6 +501,10 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   progress.Report(CoreInitStage::kCORE, 0.3, CoreInitStep::kCHECKING_GNUPG_ENV);
   if (InitGnuPGEnv()) {
     GetGSS().AddSupportedEngine(OpenPGPEngine::kGNUPG);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                          Module::GRTEngineKey("gnupg", "version"),
+                          Module::RetrieveRTValueTypedOrDefault<>(
+                              "core", "gpgme.ctx.gnupg_version", QString{}));
   }
 
   // check rpgp env, actually rpgp is always integrated and supported, but
@@ -535,6 +537,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     SetRpgpArgon2S2kParams(RpgpArgon2ParamsOfProfile(argon2_profile));
 
     GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
+    Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                          Module::GRTEngineKey("rpgp", "version"),
+                          RustEngineVersion());
   }
 
   // decide gpgconf, gnupg and default home path
@@ -600,6 +605,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // when gnupg is supported.
   auto default_engine =
       settings.value("basic/default_engine", "GNUPG").toString().toUpper();
+  Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                        Module::GRTDefaultEngineKey(),
+                        default_engine.toLower());
 
   // unit test mode
   if (args.unit_test_mode) {
