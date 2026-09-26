@@ -35,6 +35,7 @@
 #include <optional>
 
 #include "GpgFrontendTest.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleManager.h"
@@ -564,6 +565,60 @@ TEST(ModuleLifecycleTest, TheSnapshotCountsTheAnswersAModuleOwes) {
   Manager().DeactivateModule(M::Id());
   DrainModuleRunner();
   EXPECT_TRUE(Manager().ListenersOf(EventOf(13)).isEmpty());
+}
+
+TEST(ModuleLifecycleTest, TheRegisterTableFollowsEachModulesState) {
+  using M = ProbeModule<21>;
+  const auto published = [](const char* field) -> std::optional<std::any> {
+    return Manager().RetrieveRTValue(Module::kGRTCoreNamespace,
+                                     Module::GRTModuleKey(M::Id(), field));
+  };
+  const auto state = [&]() {
+    const auto v = published("state");
+    return v.has_value() ? std::any_cast<QString>(*v) : QString();
+  };
+
+  M::Register();
+  DrainModuleRunner();
+  EXPECT_EQ(state(), QString("registered"));
+
+  Manager().ActiveModule(M::Id());
+  DrainModuleRunner();
+  EXPECT_EQ(state(), QString("active"));
+  ASSERT_TRUE(published("integrated").has_value());
+  EXPECT_FALSE(std::any_cast<bool>(*published("integrated")));
+  // it subscribed while activating, and the count moved with it
+  ASSERT_TRUE(published("listening").has_value());
+  EXPECT_EQ(std::any_cast<int>(*published("listening")), 1);
+
+  Manager().DeactivateModule(M::Id());
+  DrainModuleRunner();
+  EXPECT_EQ(state(), QString("inactive"));
+  EXPECT_EQ(std::any_cast<int>(*published("listening")), 0);
+}
+
+TEST(ModuleLifecycleTest, EventsAreCountedFiredAndUnheard) {
+  using M = ProbeModule<22>;
+  const auto counted = [](const QString& event, const char* field) {
+    return Module::RetrieveRTValueTypedOrDefault<qint64>(
+        Module::kGRTCoreNamespace, Module::GRTEventStatKey(event, field), 0);
+  };
+  M::Register();
+  Manager().ActiveModule(M::Id());
+  DrainModuleRunner();
+
+  auto heard = std::make_shared<Heard>();
+  Trigger(22, heard);
+  ASSERT_TRUE(WaitFor([&] { return heard->Count() == 1; }));
+  EXPECT_EQ(counted(EventOf(22), "fired"), 1);
+  EXPECT_EQ(counted(EventOf(22), "unheard"), 0);
+
+  Manager().DeactivateModule(M::Id());
+  DrainModuleRunner();
+  Trigger(22, heard);
+  ASSERT_TRUE(WaitFor([&] { return heard->Count() == 2; }));
+  EXPECT_EQ(counted(EventOf(22), "fired"), 2);
+  EXPECT_EQ(counted(EventOf(22), "unheard"), 1);
 }
 
 TEST(ModuleLifecycleTest, AModuleWithoutASignedManifestIsNotActivated) {

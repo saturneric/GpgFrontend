@@ -36,6 +36,7 @@
 #include "core/SdkTestContext.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
 #include "sdk/GFSDK.hpp"
 #include "sdk/GFSDKBuffer.hpp"
 #include "sdk/GFSDKStorage.h"
@@ -261,6 +262,54 @@ TEST(SdkStorageTest, StateKeysAreOneCaseForReadingAndWriting) {
                                   "Mixed.Case", &value),
             0);
   EXPECT_EQ(value, 1);
+}
+
+// The host publishes its flags and counters as integers, which the text and
+// bool reads cannot see; this is the read that can.
+TEST(SdkStorageTest, AModuleReadsTheHostsIntegers) {
+  Module::UpsertRTValue("com.example.sdk.storage.ints", "plain", 7);
+  Module::UpsertRTValue("com.example.sdk.storage.ints", "wide",
+                        static_cast<qint64>(1) << 40);
+  Module::IncrementRTValue("com.example.sdk.storage.ints", "counter", 3);
+  Module::UpsertRTValue("com.example.sdk.storage.ints", "text", QString("9"));
+
+  int64_t value = 0;
+  EXPECT_EQ(GFStorageStateGetInt(CtxA(), "com.example.sdk.storage.ints",
+                                 "plain", &value),
+            0);
+  EXPECT_EQ(value, 7);
+  EXPECT_EQ(GFStorageStateGetInt(CtxA(), "com.example.sdk.storage.ints", "wide",
+                                 &value),
+            0);
+  EXPECT_EQ(value, static_cast<int64_t>(1) << 40);
+  EXPECT_EQ(
+      gf::sdk::StateInt(CtxA(), "com.example.sdk.storage.ints", "Counter"), 3)
+      << "keys are one case, as for the other reads";
+
+  // the wrong type is a miss, not a conversion; so is nothing at all
+  EXPECT_NE(GFStorageStateGetInt(CtxA(), "com.example.sdk.storage.ints", "text",
+                                 &value),
+            0);
+  EXPECT_NE(GFStorageStateGetInt(CtxA(), "com.example.sdk.storage.ints",
+                                 "absent", &value),
+            0);
+  EXPECT_EQ(
+      gf::sdk::StateInt(CtxA(), "com.example.sdk.storage.ints", "absent", -5),
+      -5);
+  EXPECT_NE(GFStorageStateGetInt(CtxA(), "com.example.sdk.storage.ints",
+                                 "plain", nullptr),
+            0);
+}
+
+TEST(SdkStorageTest, IntegerReadsNeedTheStorageCapability) {
+  static SdkTestContext no_storage("com.example.sdk.storage.nocap",
+                                   GF_HOST_CAP_UI);
+  Module::UpsertRTValue("com.example.sdk.storage.ints", "gated", 1);
+  int64_t value = 0;
+  EXPECT_NE(
+      GFStorageStateGetInt(no_storage.get(), "com.example.sdk.storage.ints",
+                           "gated", &value),
+      0);
 }
 
 }  // namespace GpgFrontend::Test

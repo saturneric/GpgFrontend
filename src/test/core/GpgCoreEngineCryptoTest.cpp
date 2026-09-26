@@ -43,6 +43,8 @@
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/module/GlobalRegisterTableKeys.h"
+#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
@@ -257,10 +259,18 @@ TEST_P(GpgCoreEngineTest, EncryptDecrypt) {
 
   auto plain = GFBuffer(QString("Hello GpgFrontend engine independent test!"));
 
+  // every operation run is counted in the register table, for modules to read
+  const auto runs = [](const char* op) {
+    return Module::RetrieveRTValueTypedOrDefault<qint64>(
+        Module::kGRTCoreNamespace, Module::GRTOperationStatKey(op, "run"), 0);
+  };
+  const auto encrypt_runs = runs("op_encrypt");
+
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).EncryptSync({key}, plain,
                                                                  true);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_EQ(runs("op_encrypt"), encrypt_runs + 1);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
   auto enc_result = ExtractParams<GpgEncryptResult>(data_object, 0);
   auto cipher = ExtractParams<GFBuffer>(data_object, 1);

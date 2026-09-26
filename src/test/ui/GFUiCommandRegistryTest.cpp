@@ -35,6 +35,8 @@
 #include <mutex>
 
 #include "GpgFrontendTest.h"
+#include "core/module/GlobalRegisterTableKeys.h"
+#include "core/module/ModuleManager.h"
 #include "sdk/GFSDKHostApi.h"
 #include "ui/command/CommandRegistry.h"
 
@@ -101,7 +103,107 @@ auto Parking(const QString& id, const QString& owner, Parked* parked)
   return p;
 }
 
+/// A text value the registry published about a command, or empty.
+auto Published(const QString& command, const char* field) -> QString {
+  return Module::RetrieveRTValueTypedOrDefault(
+      Module::kGRTCoreNamespace, Module::GRTCommandKey(command, field),
+      QString{});
+}
+
+/// How often the registry counted @p outcome for @p command.
+auto Counted(const QString& command, const char* outcome) -> qint64 {
+  return Module::RetrieveRTValueTypedOrDefault<qint64>(
+      Module::kGRTCoreNamespace, Module::GRTCommandStatKey(command, outcome),
+      0);
+}
+
 }  // namespace
+
+TEST(CommandRegistryTest, RegistrationIsMirroredInTheRegisterTable) {
+  const QString id = "com.example.grt.p.cmd";
+  auto p = Immediate(id, "com.example.grt.p", GF_HOST_CAP_STORAGE);
+  p.descriptor.insert(QStringLiteral("title"), QStringLiteral("Mirrored"));
+  ASSERT_EQ(Reg().Register(p), GF_CMD_OK);
+
+  EXPECT_EQ(Published(id, "owner"), QString("com.example.grt.p"));
+  EXPECT_EQ(Published(id, "title"), QString("Mirrored"));
+  EXPECT_EQ(Published(id, "caps"), QString("storage"));
+
+  // the id is one segment: its dots do not nest it under another command
+  EXPECT_TRUE(Module::ListRTChildKeys(Module::kGRTCoreNamespace, "commands")
+                  .contains("com/example/grt/p/cmd"));
+
+  ASSERT_EQ(Reg().Unregister(id, "com.example.grt.p"), GF_CMD_OK);
+  EXPECT_TRUE(Published(id, "owner").isEmpty())
+      << "an unregistered command leaves the table";
+
+  ASSERT_EQ(Reg().Register(Immediate(id, "com.example.grt.p")), GF_CMD_OK);
+  EXPECT_FALSE(Published(id, "owner").isEmpty());
+  Reg().RemoveAllFor("com.example.grt.p");
+  EXPECT_TRUE(Published(id, "owner").isEmpty())
+      << "so does every command of a removed module";
+
+  ASSERT_EQ(Reg().Register(Immediate("org.gpgfrontend.test.grt.host", {})),
+            GF_CMD_OK);
+  EXPECT_EQ(Published("org.gpgfrontend.test.grt.host", "owner"),
+            QString("host"));
+  Reg().Unregister("org.gpgfrontend.test.grt.host", {});
+}
+
+TEST(CommandRegistryTest, CallOutcomesAreCounted) {
+  const QString quick = "com.example.count.p.quick";
+  const QString parked_id = "com.example.count.p.parked";
+  Parked parked;
+  ASSERT_EQ(Reg().Register(
+                Immediate(quick, "com.example.count.p", GF_HOST_CAP_STORAGE)),
+            GF_CMD_OK);
+  ASSERT_EQ(Reg().Register(Parking(parked_id, "com.example.count.p", &parked)),
+            GF_CMD_OK);
+
+  // refused: the caller lacks the capability; that is not an invocation
+  EXPECT_EQ(Reg()
+                .Invoke(quick, {}, {}, Module("com.example.count.c"), {},
+                        [](gf::cmd::RawResult) {})
+                .status,
+            GF_CMD_E_DENIED);
+  EXPECT_EQ(Counted(quick, "refused"), 1);
+  EXPECT_EQ(Counted(quick, "invoked"), 0);
+
+  // invoked and finished
+  ASSERT_EQ(
+      Reg().Invoke(quick, {}, {}, Host(), {}, [](gf::cmd::RawResult) {}).status,
+      GF_CMD_OK);
+  EXPECT_EQ(Counted(quick, "invoked"), 1);
+  EXPECT_EQ(Counted(quick, "finished"), 1);
+
+  // failed
+  auto ticket =
+      Reg().Invoke(parked_id, {}, {}, Host(), {}, [](gf::cmd::RawResult) {});
+  ASSERT_TRUE(parked.arrived.tryAcquire(1, 10000));
+  ASSERT_EQ(Reg().Finish(ticket.call_id, "com.example.count.p",
+                         {GF_CMD_E_FAILED, 0, {}, {}, {}}),
+            GF_CMD_OK);
+  EXPECT_EQ(Counted(parked_id, "failed"), 1);
+
+  // cancelled, and then not also counted when the provider finishes anyway
+  ticket = Reg().Invoke(parked_id, {}, {}, Module("com.example.count.c"), {},
+                        [](gf::cmd::RawResult) {});
+  ASSERT_TRUE(parked.arrived.tryAcquire(1, 10000));
+  ASSERT_EQ(Reg().Cancel(ticket.call_id, "com.example.count.c"), GF_CMD_OK);
+  gf::cmd::Completer late;
+  {
+    std::lock_guard<std::mutex> lock(parked.mutex);
+    late = std::move(parked.done);
+  }
+  late({GF_CMD_OK, 0, {}, {}, {}});
+  EXPECT_EQ(Counted(parked_id, "cancelled"), 1);
+  EXPECT_EQ(Counted(parked_id, "finished"), 0);
+  EXPECT_EQ(Counted(parked_id, "invoked"), 2);
+
+  // counts outlive the command, for the session
+  Reg().RemoveAllFor("com.example.count.p");
+  EXPECT_EQ(Counted(quick, "invoked"), 1);
+}
 
 TEST(CommandRegistryTest, RegistrationStaysInsideTheOwnersNamespace) {
   EXPECT_EQ(Reg().Register(Immediate("org.gpgfrontend.test.reg.host", {})),
