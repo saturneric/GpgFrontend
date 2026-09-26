@@ -883,6 +883,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   auto confirm_recipients_helper(const GpgAbstractKeyPtrList& keys) -> bool;
 
   /**
+   * @brief Append why an action is unavailable to its tooltip, or restore the
+   * plain tooltip when reason is empty.
+   *
+   * @param act the action
+   * @param reason one sentence, or empty
+   */
+  void set_action_block_reason(QAction* act, const QString& reason);
+
+  /**
    * @brief
    *
    * @param context

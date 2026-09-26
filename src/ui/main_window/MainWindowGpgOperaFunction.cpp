@@ -39,6 +39,7 @@
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
+#include "ui/main_window/EncryptBlockReason.h"
 #include "ui/main_window/RecipientConfirm.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -174,9 +175,7 @@ auto MainWindow::encrypt_operation_key_validate(
     return true;
   }
 
-  auto checked = check_keys_helper(
-      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
+  auto checked = check_encrypt_keys_helper(keys);
   if (checked.empty()) {
     contexts->keys = {};
     return false;
@@ -293,6 +292,27 @@ auto MainWindow::check_keys_helper(
   }
 
   return keys;
+}
+
+auto MainWindow::check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
+    -> GpgAbstractKeyPtrList {
+  const auto can_encrypt = [](const GpgAbstractKeyPtr& key) {
+    return key->IsHasEncrCap();
+  };
+  const auto generic = tr("The selected keypair cannot be used for encryption.");
+
+  // Name the recipient and, for an expired key, the date: "cannot be used"
+  // alone leaves the user guessing which key and why.
+  for (const auto& key : keys) {
+    if (key == nullptr || can_encrypt(key)) continue;
+
+    const auto reason = DescribeEncryptBlock(key);
+    QMessageBox::critical(this, tr("Cannot Encrypt"),
+                          reason.isEmpty() ? generic : reason);
+    return {};
+  }
+
+  return check_keys_helper(keys, can_encrypt, generic);
 }
 
 auto MainWindow::confirm_recipients_helper(const GpgAbstractKeyPtrList& keys)
@@ -510,9 +530,7 @@ void MainWindow::SlotEncryptSign() {
 
   auto keys = m_key_list_->GetCheckedKeys();
 
-  auto enc_keys = check_keys_helper(
-      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
+  auto enc_keys = check_encrypt_keys_helper(keys);
   if (enc_keys.empty()) return;
 
   bool canceled = false;
@@ -592,9 +610,7 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
     // there is no symmetric fallback here. Same rule as the standard
     // Encrypt & Sign.
     auto keys = m_key_list_->GetCheckedKeys();
-    auto enc_keys = check_keys_helper(
-        keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-        tr("The selected keypair cannot be used for encryption."));
+    auto enc_keys = check_encrypt_keys_helper(keys);
     if (enc_keys.empty()) return;
 
     bool canceled = false;
@@ -960,9 +976,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
-  auto enc_keys = check_keys_helper(
-      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
+  auto enc_keys = check_encrypt_keys_helper(keys);
   if (enc_keys.empty()) return;
 
   bool canceled = false;

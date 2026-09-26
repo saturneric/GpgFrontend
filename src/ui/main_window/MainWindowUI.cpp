@@ -472,6 +472,8 @@ void MainWindow::create_menus() {
   edit_menu_->addAction(open_settings_act_);
 
   crypt_menu_ = menuBar()->addMenu(tr("Operations"));
+  // Encrypt carries the reason it is greyed out in its tooltip.
+  crypt_menu_->setToolTipsVisible(true);
   crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
