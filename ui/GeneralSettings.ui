@@ -144,6 +144,23 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="singleRecipientModeCheckBox">
+            <property name="text">
+             <string>Allow only one checked key in the key list.</string>
+            </property>
+            <property name="toolTip">
+             <string>Checking a key unchecks the others, so a recipient from an earlier message is not added to the next one by mistake.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="confirmMultipleRecipientsCheckBox">
+            <property name="text">
+             <string>Ask before encrypting to more than one recipient.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="restoreTextEditorPageCheckBox">
             <property name="text">
              <string>Cache text editor contents.</string>
