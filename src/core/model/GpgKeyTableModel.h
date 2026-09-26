@@ -278,6 +278,26 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   void SetCheckedKeyIds(const QStringList &ids);
 
   /**
+   * @brief Allow at most one checked item at a time. While enabled, checking
+   * an item unchecks every other one, and SetCheckedKeyIds() keeps only the
+   * first match. Enabling it collapses an existing multi-check to the first
+   * checked item.
+   *
+   * Recipient privacy: a recipient left checked from an earlier message would
+   * otherwise silently become a recipient of the next one.
+   *
+   * @param exclusive true for single-check mode
+   */
+  void SetExclusiveCheck(bool exclusive);
+
+  /**
+   * @brief Whether single-check mode is enabled.
+   *
+   * @return bool
+   */
+  [[nodiscard]] auto IsExclusiveCheck() const -> bool;
+
+  /**
    * @brief
    *
    * @return int
@@ -307,6 +327,16 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
       -> QVariant;
 
   QContainer<GpgKeyTableItem> cached_items_;
+  bool exclusive_check_ = false;
+
+  /**
+   * @brief Uncheck every item except keep (may be nullptr).
+   *
+   * @return true if any item changed
+   */
+  auto uncheck_all_except(const GpgKeyTableItem *keep) -> bool;
+
+  void emit_all_check_state_changed();
 };
 
 }  // namespace GpgFrontend

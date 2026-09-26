@@ -394,6 +394,11 @@ auto GpgKeyTableModel::setData(const QModelIndex &index, const QVariant &value,
   if (i->Checked() == state) return false;
   i->SetChecked(state);
 
+  if (exclusive_check_ && state && uncheck_all_except(i)) {
+    emit_all_check_state_changed();
+    return true;
+  }
+
   emit dataChanged(index, index, {Qt::CheckStateRole});
   return true;
 }
@@ -423,16 +428,53 @@ void GpgKeyTableModel::SetCheckedKeyIds(const QStringList &ids) {
   const auto wanted = QSet<QString>(ids.begin(), ids.end());
 
   bool changed = false;
+  bool matched = false;
   for (auto &i : cached_items_) {
     auto *key = i.Key();
-    const bool state = key != nullptr && wanted.contains(key->ID());
+    bool state = key != nullptr && wanted.contains(key->ID());
+    if (exclusive_check_ && state && matched) state = false;
+    matched = matched || state;
     if (i.Checked() == state) continue;
 
     i.SetChecked(state);
     changed = true;
   }
 
-  if (!changed || cached_items_.empty()) return;
+  if (changed) emit_all_check_state_changed();
+}
+
+void GpgKeyTableModel::SetExclusiveCheck(bool exclusive) {
+  exclusive_check_ = exclusive;
+  if (!exclusive_check_) return;
+
+  const GpgKeyTableItem *first = nullptr;
+  for (const auto &i : cached_items_) {
+    if (!i.Checked()) continue;
+    first = &i;
+    break;
+  }
+
+  if (first != nullptr && uncheck_all_except(first)) {
+    emit_all_check_state_changed();
+  }
+}
+
+auto GpgKeyTableModel::IsExclusiveCheck() const -> bool {
+  return exclusive_check_;
+}
+
+auto GpgKeyTableModel::uncheck_all_except(const GpgKeyTableItem *keep) -> bool {
+  bool changed = false;
+  for (auto &i : cached_items_) {
+    if (&i == keep || !i.Checked()) continue;
+    i.SetChecked(false);
+    changed = true;
+  }
+  return changed;
+}
+
+void GpgKeyTableModel::emit_all_check_state_changed() {
+  if (cached_items_.empty()) return;
 
   emit dataChanged(index(0, 0, {}),
                    index(static_cast<int>(cached_items_.size()) - 1, 0, {}),
