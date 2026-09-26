@@ -726,14 +726,25 @@ add_subdirectory(src)
 # The module test binaries, registered by gf_register_module_test(). Removed
 # when there are none, so a tree reconfigured without tests does not keep
 # running a stale list.
+#
+# A multi-config generator (Xcode, Visual Studio, Ninja Multi-Config) resolves
+# $<TARGET_FILE> once per configuration, and one output path would then be
+# written with different content per configuration, which is a generate-time
+# error. There the list goes beside that configuration's binaries instead.
 get_property(gf_module_tests GLOBAL PROPERTY GPGFRONTEND_MODULE_TEST_TARGETS)
+get_property(gf_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 set(gf_module_test_list "${CMAKE_BINARY_DIR}/test-bin/module-tests.list")
 if(gf_module_tests)
   set(gf_module_test_lines "")
   foreach(gf_test IN LISTS gf_module_tests)
     string(APPEND gf_module_test_lines "$<TARGET_FILE:${gf_test}>\n")
   endforeach()
-  file(GENERATE OUTPUT "${gf_module_test_list}"
+  set(gf_module_test_output "${gf_module_test_list}")
+  if(gf_multi_config)
+    set(gf_module_test_output
+      "${CMAKE_BINARY_DIR}/test-bin/$<CONFIG>/module-tests.list")
+  endif()
+  file(GENERATE OUTPUT "${gf_module_test_output}"
     CONTENT "${gf_module_test_lines}")
 else()
   file(REMOVE "${gf_module_test_list}")

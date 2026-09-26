@@ -403,9 +403,16 @@ jobs:
           # redirects where the build puts things. The AppDir is produced by
           # `cmake --install` below, which is the same tree a distribution
           # gets, so CI stops assembling something nobody else can reproduce.
+          #
+          # LIBDIR is pinned because a /usr prefix on Debian/Ubuntu makes
+          # GNUInstallDirs pick the multiarch lib/<triplet>, which put the
+          # modules under usr/lib/aarch64-linux-gnu/ -- where neither the
+          # deployment below nor the AppImage runtime ($APPDIR/usr/lib/
+          # gpgfrontend/modules) looks for them.
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCMAKE_INSTALL_LIBDIR=lib \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
@@ -528,12 +535,17 @@ jobs:
           # single flat directory, which the namespace layout no longer has:
           # each module owns usr/lib/gpgfrontend/modules/<key>/native/.
           MODULE_ROOT="$APP_DIR/usr/lib/gpgfrontend/modules"
-          test -d "$MODULE_ROOT"
+          test -d "$MODULE_ROOT" || {
+            echo "no module tree at $MODULE_ROOT; installed module trees:" >&2
+            find "$APP_DIR" -type d -path '*/gpgfrontend/modules' >&2 || true
+            exit 1
+          }
           EXECUTABLES=()
           while read -r native; do
             EXECUTABLES+=("-executable=$native")
           done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
-          test "${#EXECUTABLES[@]}" -gt 0
+          test "${#EXECUTABLES[@]}" -gt 0 \
+            || { echo "no module natives under $MODULE_ROOT" >&2; exit 1; }
           echo "deploying ${#EXECUTABLES[@]} module native(s)"
 
           chmod u+x linuxdeployqt-continuous.AppImage
