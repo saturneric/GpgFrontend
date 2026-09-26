@@ -287,6 +287,106 @@ TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsReplacesAndIgnoresUnknown) {
             Qt::Unchecked);
 }
 
+// Single-recipient mode: checking a key must drop every other one, so a
+// recipient left over from the last message never rides along on the next.
+TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveCheckKeepsOne) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GE(model->rowCount({}), 2);
+  ASSERT_FALSE(model->IsExclusiveCheck());
+
+  model->SetExclusiveCheck(true);
+  ASSERT_TRUE(model->IsExclusiveCheck());
+
+  const auto a = model->index(0, 0, {});
+  const auto b = model->index(1, 0, {});
+  ASSERT_TRUE(model->setData(a, Qt::Checked, Qt::CheckStateRole));
+  ASSERT_TRUE(model->setData(b, Qt::Checked, Qt::CheckStateRole));
+
+  ASSERT_EQ(model->GetCheckedKeyIds(),
+            QStringList{model->GetAllKeys().at(1)->ID()});
+  ASSERT_EQ(model->data(a, Qt::CheckStateRole).toInt(), Qt::Unchecked);
+  ASSERT_EQ(model->data(b, Qt::CheckStateRole).toInt(), Qt::Checked);
+}
+
+TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveUncheckLeavesNone) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GT(model->rowCount({}), 0);
+
+  model->SetExclusiveCheck(true);
+  const auto a = model->index(0, 0, {});
+  ASSERT_TRUE(model->setData(a, Qt::Checked, Qt::CheckStateRole));
+  ASSERT_TRUE(model->setData(a, Qt::Unchecked, Qt::CheckStateRole));
+
+  ASSERT_TRUE(model->GetCheckedKeyIds().isEmpty());
+}
+
+// A remembered multi-key working set is cut down to one key on restore.
+TEST_F(GpgCoreTest, GpgKeyTableModelExclusiveSetCheckedKeyIdsKeepsFirst) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GE(model->rowCount({}), 2);
+
+  QStringList all;
+  for (const auto& key : model->GetAllKeys()) all.append(key->ID());
+
+  model->SetExclusiveCheck(true);
+  model->SetCheckedKeyIds(all);
+
+  ASSERT_EQ(model->GetCheckedKeyIds(), QStringList{all.front()});
+}
+
+// Turning the mode on while several keys are checked must not leave the old
+// multi-selection behind.
+TEST_F(GpgCoreTest, GpgKeyTableModelEnablingExclusiveCollapsesExisting) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GE(model->rowCount({}), 2);
+
+  QStringList all;
+  for (const auto& key : model->GetAllKeys()) all.append(key->ID());
+
+  model->SetCheckedKeyIds(all);
+  ASSERT_EQ(model->GetCheckedKeyIds().size(), all.size());
+
+  int emitted = 0;
+  QObject::connect(model.get(), &GpgKeyTableModel::dataChanged,
+                   [&emitted]() { ++emitted; });
+  model->SetExclusiveCheck(true);
+
+  ASSERT_EQ(model->GetCheckedKeyIds(), QStringList{all.front()});
+  ASSERT_EQ(emitted, 1);
+}
+
+// The default stays plain multi-check, and switching the mode off again
+// restores it.
+TEST_F(GpgCoreTest, GpgKeyTableModelNonExclusiveAllowsMany) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GE(model->rowCount({}), 2);
+
+  ASSERT_TRUE(
+      model->setData(model->index(0, 0, {}), Qt::Checked, Qt::CheckStateRole));
+  ASSERT_TRUE(
+      model->setData(model->index(1, 0, {}), Qt::Checked, Qt::CheckStateRole));
+  ASSERT_EQ(model->GetCheckedKeyIds().size(), 2);
+
+  // On collapses to the first key; off keeps that, then allows many again.
+  model->SetExclusiveCheck(true);
+  model->SetExclusiveCheck(false);
+  ASSERT_EQ(model->GetCheckedKeyIds().size(), 1);
+
+  ASSERT_TRUE(
+      model->setData(model->index(1, 0, {}), Qt::Checked, Qt::CheckStateRole));
+  ASSERT_EQ(model->GetCheckedKeyIds().size(), 2);
+}
+
 // The Expire Date column was inserted between Create Date and Algorithm. This
 // guards both the header order and the renumbering of every column after it.
 TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnLayout) {
