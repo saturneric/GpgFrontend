@@ -87,6 +87,78 @@ class GlobalRegisterTable::Impl {
     return true;
   }
 
+  auto RemoveKV(const Namespace& n, const Key& k) -> bool {
+    QStringList const segments = (n + "." + k).split('.');
+
+    {
+      std::unique_lock lock(lock_);
+
+      auto current = root_node_;
+      for (const QString& segment : segments) {
+        auto it = current->children.find(segment);
+        if (it == current->children.end()) return false;
+        current = it.value();
+      }
+
+      // drop the node with everything under it, then every ancestor it leaves
+      // empty -- a namespace nobody holds anything in is not worth showing
+      auto parent = current->parent.toStrongRef();
+      auto name = current->name;
+      while (parent != nullptr) {
+        parent->children.remove(name);
+        if (parent == root_node_ || parent->type == "LEAF" ||
+            !parent->children.isEmpty()) {
+          break;
+        }
+        name = parent->name;
+        parent = parent->parent.toStrongRef();
+      }
+    }
+
+    emit parent_->SignalRemove(n, k);
+    return true;
+  }
+
+  auto IncrementKV(const Namespace& n, const Key& k, qint64 delta) -> qint64 {
+    QStringList const segments = (n + "." + k).split('.');
+    int version = 0;
+    qint64 count = 0;
+
+    {
+      // read and write under one lock: counters are bumped from worker
+      // threads, and a lookup followed by a publish would lose increments
+      std::unique_lock lock(lock_);
+
+      auto current = root_node_;
+      for (const QString& segment : segments) {
+        auto it = current->children.find(segment);
+        if (it == current->children.end()) {
+          it = current->children.insert(
+              segment, SecureCreateSharedObject<RTNode>(segment, current));
+        }
+        current = it.value();
+      }
+
+      if (current->value.has_value()) {
+        const auto& held = *current->value;
+        if (held.type() == typeid(qint64)) {
+          count = std::any_cast<qint64>(held);
+        } else if (held.type() == typeid(int)) {
+          count = std::any_cast<int>(held);
+        }
+      }
+      count += delta;
+
+      current->type = "LEAF";
+      current->value = std::any(count);
+      current->value_type = &typeid(qint64);
+      version = ++current->version;
+    }
+
+    emit parent_->SignalPublish(n, k, version, std::any(count));
+    return count;
+  }
+
   auto LookupKV(const Namespace& n, const Key& k) -> std::optional<std::any> {
     QStringList const segments = (n + "." + k).split('.');
 
@@ -133,7 +205,7 @@ class GlobalRegisterTable::Impl {
                               if (pn == n && pk == k) {
                                 c(pn, pk, ver, std::move(value));
                               }
-                            }) == nullptr;
+                            }) != nullptr;
   }
 
   auto RootRTNode() -> RTNodePtr { return root_node_; }
@@ -455,6 +527,15 @@ auto GlobalRegisterTable::PublishKV(Namespace n, Key k, std::any v) -> bool {
   return p_->PublishKV(n, k, v);
 }
 
+auto GlobalRegisterTable::RemoveKV(Namespace n, Key k) -> bool {
+  return p_->RemoveKV(n, k);
+}
+
+auto GlobalRegisterTable::IncrementKV(Namespace n, Key k, qint64 delta)
+    -> qint64 {
+  return p_->IncrementKV(n, k, delta);
+}
+
 auto GlobalRegisterTable::LookupKV(Namespace n, Key v)
     -> std::optional<std::any> {
   return p_->LookupKV(n, v);
@@ -479,6 +560,10 @@ GlobalRegisterTableTreeModel::GlobalRegisterTableTreeModel(
       [this](const Namespace&, const Key&, int, const std::any&) {
         p_->ScheduleRefresh();
       },
+      Qt::QueuedConnection);
+  connect(
+      grt, &GlobalRegisterTable::SignalRemove, this,
+      [this](const Namespace&, const Key&) { p_->ScheduleRefresh(); },
       Qt::QueuedConnection);
 }
 

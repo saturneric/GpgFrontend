@@ -141,4 +141,12 @@ class GF_CORE_EXPORT ModuleLoadStats {
   std::atomic<Qt::HANDLE> first_native_load_thread_{nullptr};
 };
 
+/**
+ * @brief Copy the frozen load figures into the register table.
+ *
+ * Under core / stats.module_load.*, where modules and the Module Controller
+ * read them. Called once, right after ModuleLoadStats::Finish().
+ */
+void GF_CORE_EXPORT PublishModuleLoadStats();
+
 }  // namespace GpgFrontend::Module

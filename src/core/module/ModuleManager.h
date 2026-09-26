@@ -369,6 +369,12 @@ class GF_CORE_EXPORT ModuleManager
 
   auto RetrieveRTValue(Namespace ns, Key key) -> std::optional<std::any>;
 
+  /// Remove a register table value and everything beneath it.
+  auto RemoveRTValue(Namespace ns, Key key) -> bool;
+
+  /// Atomically add @p delta to a register table counter; returns the result.
+  auto IncrementRTValue(Namespace ns, Key key, qint64 delta = 1) -> qint64;
+
   /**
    * @brief Subscribe to change notifications for a namespace/key in the
    * register table.
@@ -486,6 +492,29 @@ auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier module_id) -> bool;
  */
 auto GF_CORE_EXPORT UpsertRTValue(const QString& namespace_, const QString& key,
                                   const std::any& value) -> bool;
+
+/**
+ * @brief Remove a value (and everything beneath it) from the runtime register
+ * table.
+ *
+ * @param namespace_ namespace string
+ * @param key key string
+ * @return true if something was removed
+ */
+auto GF_CORE_EXPORT RemoveRTValue(const QString& namespace_, const QString& key)
+    -> bool;
+
+/**
+ * @brief Atomically add @p delta to a counter in the runtime register table.
+ *
+ * @param namespace_ namespace string
+ * @param key key string
+ * @param delta amount to add
+ * @return the counter after the increment
+ */
+auto GF_CORE_EXPORT IncrementRTValue(const QString& namespace_,
+                                     const QString& key, qint64 delta = 1)
+    -> qint64;
 
 /**
  * @brief List child keys under a namespace/key node via the singleton

@@ -31,6 +31,9 @@
 #include <QDateTime>
 #include <QThread>
 
+#include "core/module/GlobalRegisterTableKeys.h"
+#include "core/module/ModuleManager.h"
+
 namespace GpgFrontend::Module {
 
 auto ModuleLoadStats::GetInstance() -> ModuleLoadStats& {
@@ -144,6 +147,17 @@ ModuleLoadStats::NativeLoadScope::NativeLoadScope() {
 
 ModuleLoadStats::NativeLoadScope::~NativeLoadScope() {
   GetInstance().LeaveNativeLoad();
+}
+
+void PublishModuleLoadStats() {
+  const auto& stats = ModuleLoadStats::GetInstance();
+  const auto publish = [](const QString& field, qint64 value) {
+    UpsertRTValue(kGRTCoreNamespace, GRTModuleLoadStatKey(field), value);
+  };
+  publish("loaded", stats.LoadedModules());
+  publish("refused", stats.RefusedModules());
+  publish("hashed_bytes", stats.HashedBytesAtFinish());
+  publish("peak_native", stats.PeakConcurrentNativeLoads());
 }
 
 }  // namespace GpgFrontend::Module

@@ -39,6 +39,7 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalRegisterTable.h"
+#include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDispatchGate.h"
@@ -497,6 +498,7 @@ class ModuleManager::Impl {
             if (from_scan) ++registered_modules_;
           });
           if (!register_now(module, integrated)) return -1;
+          publish_module(module->GetModuleIdentifier());
 
           const auto settings =
               ReconcileModuleSettings(module->GetModuleIdentifier(),
@@ -539,6 +541,9 @@ class ModuleManager::Impl {
     records_.clear();
     events_.clear();
     triggers_.clear();
+    // Taken under the lock on purpose: nothing may re-register in between.
+    // RemoveKV only emits a queued-to-the-model signal, it calls nobody back.
+    grt_->RemoveKV(kGRTCoreNamespace, QStringLiteral("modules"));
     return modules;
   }
 
@@ -572,6 +577,12 @@ class ModuleManager::Impl {
       return false;
     }
 
+    // After the lock below is released: the listening count moved.
+    auto subscribed = false;
+    const auto publish = qScopeGuard([&]() {
+      if (subscribed) publish_module(module_id);
+    });
+
     const QMutexLocker lock(&mutex_);
     auto* rec = find_locked(module_id);
     if (rec == nullptr) {
@@ -600,6 +611,7 @@ class ModuleManager::Impl {
     if (rec->listening.contains(event)) return true;
     rec->listening.append(event);
     events_[event].insert(module_id);
+    subscribed = true;
     return true;
   }
 
@@ -623,6 +635,12 @@ class ModuleManager::Impl {
         trigger.event = event;
         for (const auto& t : targets) trigger.awaiting.insert(t.first);
       }
+    }
+
+    grt_->IncrementKV(kGRTCoreNamespace, GRTEventStatKey(event_id, "fired"));
+    if (targets.isEmpty()) {
+      grt_->IncrementKV(kGRTCoreNamespace,
+                        GRTEventStatKey(event_id, "unheard"));
     }
 
     // Nobody to ask is still an answer: a caller waiting on the callback --
@@ -750,6 +768,14 @@ class ModuleManager::Impl {
     return grt_->LookupKV(std::move(n), std::move(k));
   }
 
+  auto RemoveRTValue(Namespace n, Key k) -> bool {
+    return grt_->RemoveKV(std::move(n), std::move(k));
+  }
+
+  auto IncrementRTValue(Namespace n, Key k, qint64 delta) -> qint64 {
+    return grt_->IncrementKV(std::move(n), std::move(k), delta);
+  }
+
   auto ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) -> bool {
     return grt_->ListenPublish(o, std::move(n), std::move(k), std::move(c));
   }
@@ -787,6 +813,13 @@ class ModuleManager::Impl {
   auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
 
   void RecordRefusal(ModuleRefusalRecord record) {
+    // A descriptor too broken to name its module has nowhere to go in the
+    // table; the Controller still lists it.
+    if (!record.module_id.isEmpty()) {
+      grt_->PublishKV(kGRTCoreNamespace,
+                      GRTModuleKey(record.module_id, "refusal"), record.reason);
+    }
+
     const QMutexLocker lock(&refusals_mutex_);
     // Keyed by descriptor path: a rescan should update what it says about a
     // module rather than list it twice, and a module the user has since
@@ -801,10 +834,18 @@ class ModuleManager::Impl {
   }
 
   void ForgetRefusal(const QString& descriptor_path) {
-    const QMutexLocker lock(&refusals_mutex_);
-    refusals_.removeIf([&](const ModuleRefusalRecord& r) {
-      return r.descriptor_path == descriptor_path;
-    });
+    QStringList forgotten;
+    {
+      const QMutexLocker lock(&refusals_mutex_);
+      refusals_.removeIf([&](const ModuleRefusalRecord& r) {
+        if (r.descriptor_path != descriptor_path) return false;
+        if (!r.module_id.isEmpty()) forgotten.append(r.module_id);
+        return true;
+      });
+    }
+    for (const auto& id : forgotten) {
+      grt_->RemoveKV(kGRTCoreNamespace, GRTModuleKey(id, "refusal"));
+    }
   }
 
   auto ListRefusals() -> QList<ModuleRefusalRecord> {
@@ -884,6 +925,39 @@ class ModuleManager::Impl {
     rec.listening.clear();
   }
 
+  /**
+   * @brief Mirror one module's record into the register table.
+   *
+   * Takes the lock itself and publishes after releasing it, so it must be
+   * called with the lock NOT held. It reads the record as it is now, so calls
+   * racing each other still leave the table showing the latest state.
+   */
+  void publish_module(const ModuleIdentifier& id) {
+    ModulePtr module;
+    State state = State::kREGISTERED;
+    bool integrated = false;
+    qsizetype listening = 0;
+    {
+      const QMutexLocker lock(&mutex_);
+      const auto* rec = find_locked(id);
+      if (rec == nullptr || rec->module == nullptr) return;
+      module = rec->module;
+      state = rec->state;
+      integrated = rec->integrated;
+      listening = rec->listening.size();
+    }
+
+    const auto publish = [&](const QString& field, std::any value) {
+      grt_->PublishKV(kGRTCoreNamespace, GRTModuleKey(id, field),
+                      std::move(value));
+    };
+    publish("state", ModuleLifecycleStateName(state).toLower());
+    publish("integrated", integrated);
+    publish("listening", static_cast<int>(listening));
+    publish("version", module->GetModuleVersion());
+    publish("packaged", module->IsPackaged());
+  }
+
   auto register_now(const ModulePtr& module, bool integrated) -> bool {
     if (module == nullptr || !module->IsGood()) {
       LOG_W() << "refusing to register a module that is not usable";
@@ -901,6 +975,9 @@ class ModuleManager::Impl {
   }
 
   auto activate_now(const ModuleIdentifier& id) -> bool {
+    // Declared first, so it runs after every lock below has been released.
+    const auto publish = qScopeGuard([&]() { publish_module(id); });
+
     ModulePtr module;
     {
       const QMutexLocker lock(&mutex_);
@@ -918,6 +995,7 @@ class ModuleManager::Impl {
       module = rec->module;
     }
 
+    publish_module(id);  // Activating, for as long as Active() takes
     LOG_D() << "activating module" << id;
     const auto rc = module->Active();
 
@@ -937,6 +1015,9 @@ class ModuleManager::Impl {
   }
 
   auto deactivate_now(const ModuleIdentifier& id, bool revoke) -> bool {
+    // Declared first, so it runs after every lock below has been released.
+    const auto publish = qScopeGuard([&]() { publish_module(id); });
+
     ModulePtr module;
     {
       const QMutexLocker lock(&mutex_);
@@ -952,6 +1033,7 @@ class ModuleManager::Impl {
       module = rec->module;
     }
 
+    publish_module(id);  // Deactivating
     // Cannot be refused: whatever the module says, it is inactive after this.
     if (const auto rc = module->Deactivate(revoke); rc != 0) {
       LOG_W() << "module" << id
@@ -1016,6 +1098,15 @@ auto UpsertRTValue(const QString& namespace_, const QString& key,
                    const std::any& value) -> bool {
   return ModuleManager::GetInstance().UpsertRTValue(namespace_, key,
                                                     std::any(value));
+}
+
+auto RemoveRTValue(const QString& namespace_, const QString& key) -> bool {
+  return ModuleManager::GetInstance().RemoveRTValue(namespace_, key);
+}
+
+auto IncrementRTValue(const QString& namespace_, const QString& key,
+                      qint64 delta) -> qint64 {
+  return ModuleManager::GetInstance().IncrementRTValue(namespace_, key, delta);
 }
 
 auto ListRTChildKeys(const QString& namespace_, const QString& key)
@@ -1116,6 +1207,15 @@ auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
 auto ModuleManager::RetrieveRTValue(Namespace n, Key k)
     -> std::optional<std::any> {
   return p_->RetrieveRTValue(n, k);
+}
+
+auto ModuleManager::RemoveRTValue(Namespace n, Key k) -> bool {
+  return p_->RemoveRTValue(std::move(n), std::move(k));
+}
+
+auto ModuleManager::IncrementRTValue(Namespace n, Key k, qint64 delta)
+    -> qint64 {
+  return p_->IncrementRTValue(std::move(n), std::move(k), delta);
 }
 
 auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,

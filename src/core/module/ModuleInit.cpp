@@ -306,6 +306,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
           // Freeze the figures before anything else in the process can add
           // to them, so what startup cost stays answerable afterwards.
           ModuleLoadStats::GetInstance().Finish();
+          PublishModuleLoadStats();
           CoreInitProgress::GetInstance().MarkStageDone(
               CoreInitStage::kMODULES, CoreInitStep::kLOADING_MODULE);
           LOG_I() << "module loading finished:"

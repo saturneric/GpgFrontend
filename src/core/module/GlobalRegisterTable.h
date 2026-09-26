@@ -42,7 +42,8 @@ using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
 /**
- * @brief Hierarchical runtime key-value registry for inter-module communication.
+ * @brief Hierarchical runtime key-value registry for inter-module
+ * communication.
  *
  * Values are stored in a tree indexed by (Namespace, Key) pairs. Modules can
  * publish typed values, retrieve them, subscribe to change notifications, and
@@ -75,6 +76,33 @@ class GlobalRegisterTable : public QObject {
   auto PublishKV(Namespace ns, Key key, std::any value) -> bool;
 
   /**
+   * @brief Remove the value under the given namespace and key, together with
+   * everything published beneath it.
+   *
+   * Namespaces left empty by the removal are pruned as well. Emits
+   * SignalRemove.
+   *
+   * @param ns namespace string
+   * @param key key string
+   * @return true if something was removed, false if nothing was there
+   */
+  auto RemoveKV(Namespace ns, Key key) -> bool;
+
+  /**
+   * @brief Add @p delta to the counter under the given namespace and key.
+   *
+   * The read and the write happen under one lock, so concurrent increments
+   * are never lost. A missing (or non-integer) value counts from zero; the
+   * result is stored as qint64. Emits SignalPublish.
+   *
+   * @param ns namespace string
+   * @param key key string
+   * @param delta amount to add
+   * @return the counter after the increment
+   */
+  auto IncrementKV(Namespace ns, Key key, qint64 delta = 1) -> qint64;
+
+  /**
    * @brief Retrieve the value stored under the given namespace and key.
    *
    * @param ns namespace string
@@ -92,7 +120,8 @@ class GlobalRegisterTable : public QObject {
    * @param obj QObject whose lifetime bounds the subscription
    * @param ns namespace string
    * @param key key string
-   * @param callback function called with (namespace, key, version, value) on each publish
+   * @param callback function called with (namespace, key, version, value) on
+   * each publish
    * @return true if the subscription was registered successfully
    */
   auto ListenPublish(QObject* obj, Namespace ns, Key key, LPCallback callback)
@@ -117,6 +146,14 @@ class GlobalRegisterTable : public QObject {
    * @param value the published value
    */
   void SignalPublish(Namespace ns, Key key, int version, std::any value);
+
+  /**
+   * @brief Emitted whenever a value (and its subtree) is removed via RemoveKV.
+   *
+   * @param ns namespace of the removed value
+   * @param key key of the removed value
+   */
+  void SignalRemove(Namespace ns, Key key);
 
  private:
   class Impl;
