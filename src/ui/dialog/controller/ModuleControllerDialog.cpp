@@ -77,7 +77,11 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   slot_load_module_details({});
 
 #ifdef RELEASE
-  ui_->tabWidget->setTabVisible(2, false);
+  // the developer tabs: debug builds only
+  for (auto* tab : std::initializer_list<QWidget*>{
+           ui_->eventsTab, ui_->moduleStatusTab, ui_->commandsTab}) {
+    ui_->tabWidget->setTabVisible(ui_->tabWidget->indexOf(tab), false);
+  }
 #endif
 
   if (CurrentLoadingPolicy() == Module::ModuleLoadingPolicy::kDISABLE) {
@@ -90,7 +94,12 @@ void ModuleControllerDialog::init_texts() {
 
   ui_->tabWidget->setTabText(0, tr("Registered Modules"));
   ui_->tabWidget->setTabText(1, tr("Global Register Table"));
-  ui_->tabWidget->setTabText(2, tr("Developer"));
+  ui_->tabWidget->setTabText(ui_->tabWidget->indexOf(ui_->eventsTab),
+                             tr("Events"));
+  ui_->tabWidget->setTabText(ui_->tabWidget->indexOf(ui_->moduleStatusTab),
+                             tr("Module Status"));
+  ui_->tabWidget->setTabText(ui_->tabWidget->indexOf(ui_->commandsTab),
+                             tr("Commands"));
 
   ui_->searchLineEdit->setPlaceholderText(tr("Search modules..."));
   ui_->filterComboBox->addItem(tr("All"),

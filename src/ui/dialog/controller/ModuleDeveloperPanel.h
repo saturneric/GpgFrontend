@@ -42,19 +42,24 @@ class QTableWidget;
 
 namespace GpgFrontend::UI {
 
-/**
- * @brief The Module Controller's developer tab: fire an event and watch its
- *        answers, see every module's lifecycle, and invoke a command.
+/*
+ * The Module Controller's developer tabs: fire an event and watch its answers,
+ * see every module's lifecycle, and invoke a command. One widget per tab.
  *
- * Debug builds only -- the dialog hides the tab in a RELEASE build. Nothing
+ * Debug builds only -- the dialog hides these tabs in a RELEASE build. Nothing
  * here writes module state: events go through the Host's own dispatch and
  * commands through the one registry, as the Host itself; lifecycle changes
  * stay on the first tab.
  */
-class GF_UI_EXPORT ModuleDeveloperPanel : public QWidget {
+
+/**
+ * @brief Pick an event from the catalogue, see who listens, fire it and log
+ *        every answer.
+ */
+class GF_UI_EXPORT ModuleEventsPanel : public QWidget {
   Q_OBJECT
  public:
-  explicit ModuleDeveloperPanel(QWidget* parent = nullptr);
+  explicit ModuleEventsPanel(QWidget* parent = nullptr);
 
  protected:
   void showEvent(QShowEvent* event) override;
@@ -62,24 +67,53 @@ class GF_UI_EXPORT ModuleDeveloperPanel : public QWidget {
  private slots:
   void slot_event_text_changed(const QString& text);
   void slot_fire_event();
-  void slot_refresh_modules();
-  void slot_filter_commands(const QString& text);
-  void slot_select_command();
-  void slot_invoke_command();
 
  private:
-  // Events
   QComboBox* event_box_ = nullptr;
   QLabel* event_summary_ = nullptr;
   QLabel* event_listeners_ = nullptr;
   QPlainTextEdit* event_params_ = nullptr;
   QPushButton* fire_button_ = nullptr;
   QPlainTextEdit* event_log_ = nullptr;
+};
 
-  // Modules
+/**
+ * @brief Every registered module's lifecycle, gate, subscriptions, commands
+ *        and live widgets, read-only.
+ */
+class GF_UI_EXPORT ModuleStatusPanel : public QWidget {
+  Q_OBJECT
+ public:
+  explicit ModuleStatusPanel(QWidget* parent = nullptr);
+
+ protected:
+  void showEvent(QShowEvent* event) override;
+
+ private slots:
+  void slot_refresh_modules();
+
+ private:
   QTableWidget* module_table_ = nullptr;
+};
 
-  // Commands
+/**
+ * @brief Browse every registered command's descriptor and invoke one as the
+ *        Host.
+ */
+class GF_UI_EXPORT ModuleCommandsPanel : public QWidget {
+  Q_OBJECT
+ public:
+  explicit ModuleCommandsPanel(QWidget* parent = nullptr);
+
+ protected:
+  void showEvent(QShowEvent* event) override;
+
+ private slots:
+  void slot_filter_commands(const QString& text);
+  void slot_select_command();
+  void slot_invoke_command();
+
+ private:
   QLineEdit* command_filter_ = nullptr;
   QListWidget* command_list_ = nullptr;
   QPlainTextEdit* command_descriptor_ = nullptr;
@@ -87,12 +121,7 @@ class GF_UI_EXPORT ModuleDeveloperPanel : public QWidget {
   QPushButton* invoke_button_ = nullptr;
   QPlainTextEdit* command_log_ = nullptr;
 
-  auto build_events_page() -> QWidget*;
-  auto build_modules_page() -> QWidget*;
-  auto build_commands_page() -> QWidget*;
   void refresh_commands();
-
-  static void append_log(QPlainTextEdit* log, const QString& line);
 };
 
 /**

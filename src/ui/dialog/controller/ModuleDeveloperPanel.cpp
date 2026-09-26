@@ -60,6 +60,11 @@ auto Compact(const QCborMap& map) -> QString {
           .toJson(QJsonDocument::Compact));
 }
 
+void AppendLog(QPlainTextEdit* log, const QString& line) {
+  log->appendPlainText(QString("[%1] %2").arg(
+      QTime::currentTime().toString(QStringLiteral("HH:mm:ss.zzz")), line));
+}
+
 enum ModuleColumn {
   kID,
   kSTATE,
@@ -162,41 +167,10 @@ auto DescribeCommandStatus(int status) -> QString {
   }
 }
 
-ModuleDeveloperPanel::ModuleDeveloperPanel(QWidget* parent) : QWidget(parent) {
-  auto* tabs = new QTabWidget(this);
-  tabs->addTab(build_events_page(), tr("Events"));
-  tabs->addTab(build_modules_page(), tr("Modules"));
-  tabs->addTab(build_commands_page(), tr("Commands"));
-
-  auto* layout = new QVBoxLayout(this);
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(tabs);
-
-  connect(tabs, &QTabWidget::currentChanged, this, [this](int index) {
-    if (index == 1) slot_refresh_modules();
-    if (index == 2) refresh_commands();
-  });
-}
-
-void ModuleDeveloperPanel::showEvent(QShowEvent* event) {
-  QWidget::showEvent(event);
-  slot_event_text_changed(event_box_->currentText());
-  slot_refresh_modules();
-  refresh_commands();
-}
-
-void ModuleDeveloperPanel::append_log(QPlainTextEdit* log,
-                                      const QString& line) {
-  log->appendPlainText(QString("[%1] %2").arg(
-      QTime::currentTime().toString(QStringLiteral("HH:mm:ss.zzz")), line));
-}
-
 // ------------------------------------------------------------------ events
 
-auto ModuleDeveloperPanel::build_events_page() -> QWidget* {
-  auto* page = new QWidget(this);
-
-  event_box_ = new QComboBox(page);
+ModuleEventsPanel::ModuleEventsPanel(QWidget* parent) : QWidget(parent) {
+  event_box_ = new QComboBox(this);
   event_box_->setEditable(true);
   event_box_->setInsertPolicy(QComboBox::NoInsert);
   for (const auto& spec : Module::ModuleEventCatalog()) {
@@ -205,21 +179,21 @@ auto ModuleDeveloperPanel::build_events_page() -> QWidget* {
                             QString::fromUtf8(spec.summary), Qt::ToolTipRole);
   }
 
-  event_summary_ = new QLabel(page);
+  event_summary_ = new QLabel(this);
   event_summary_->setWordWrap(true);
-  event_listeners_ = new QLabel(page);
+  event_listeners_ = new QLabel(this);
   event_listeners_->setWordWrap(true);
   event_listeners_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-  event_params_ = new QPlainTextEdit(page);
+  event_params_ = new QPlainTextEdit(this);
   event_params_->setPlaceholderText(tr("One key=value per line"));
   event_params_->setMaximumHeight(96);
 
-  fire_button_ = new QPushButton(tr("Fire"), page);
+  fire_button_ = new QPushButton(tr("Fire"), this);
 
-  event_log_ = new QPlainTextEdit(page);
+  event_log_ = new QPlainTextEdit(this);
   event_log_->setReadOnly(true);
-  auto* clear = new QPushButton(tr("Clear Log"), page);
+  auto* clear = new QPushButton(tr("Clear Log"), this);
 
   auto* form = new QFormLayout();
   form->addRow(tr("Event"), event_box_);
@@ -232,22 +206,27 @@ auto ModuleDeveloperPanel::build_events_page() -> QWidget* {
   buttons->addWidget(clear);
   buttons->addWidget(fire_button_);
 
-  auto* layout = new QVBoxLayout(page);
+  auto* layout = new QVBoxLayout(this);
   layout->addLayout(form);
   layout->addLayout(buttons);
   layout->addWidget(event_log_, 1);
 
   connect(event_box_, &QComboBox::currentTextChanged, this,
-          &ModuleDeveloperPanel::slot_event_text_changed);
+          &ModuleEventsPanel::slot_event_text_changed);
   connect(fire_button_, &QPushButton::clicked, this,
-          &ModuleDeveloperPanel::slot_fire_event);
+          &ModuleEventsPanel::slot_fire_event);
   connect(clear, &QPushButton::clicked, event_log_, &QPlainTextEdit::clear);
 
   slot_event_text_changed(event_box_->currentText());
-  return page;
 }
 
-void ModuleDeveloperPanel::slot_event_text_changed(const QString& text) {
+void ModuleEventsPanel::showEvent(QShowEvent* event) {
+  QWidget::showEvent(event);
+  // who listens changes as modules come and go
+  slot_event_text_changed(event_box_->currentText());
+}
+
+void ModuleEventsPanel::slot_event_text_changed(const QString& text) {
   const auto id = text.trimmed();
   const auto* spec = Module::FindModuleEventSpec(id);
   const auto known = Module::IsKnownModuleEvent(id);
@@ -270,39 +249,37 @@ void ModuleDeveloperPanel::slot_event_text_changed(const QString& text) {
                                 : listeners.join(QStringLiteral("\n")));
 }
 
-void ModuleDeveloperPanel::slot_fire_event() {
+void ModuleEventsPanel::slot_fire_event() {
   const auto id = event_box_->currentText().trimmed();
   QString error;
   const auto params = ParseEventParams(event_params_->toPlainText(), &error);
   if (!params.has_value()) {
-    append_log(event_log_, tr("Parameters refused, %1").arg(error));
+    AppendLog(event_log_, tr("Parameters refused, %1").arg(error));
     return;
   }
 
   const auto listeners = Module::ModuleManager::GetInstance().ListenersOf(id);
-  append_log(event_log_, tr("Fired %1 to %n listener(s)", nullptr,
-                            static_cast<int>(listeners.size()))
-                             .arg(id));
+  AppendLog(event_log_, tr("Fired %1 to %n listener(s)", nullptr,
+                           static_cast<int>(listeners.size()))
+                            .arg(id));
 
   // Every answer arrives here -- the Host's own failure answers included --
   // on this thread. A late one after the dialog closed is dropped.
-  QPointer<ModuleDeveloperPanel> self(this);
+  QPointer<ModuleEventsPanel> self(this);
   Module::TriggerEvent(id, *params,
                        [self](const Module::EventIdentifier&,
                               const Module::Event::ListenerIdentifier& listener,
                               const Module::Event::Params& answer) {
                          if (self == nullptr) return;
-                         append_log(self->event_log_,
-                                    DescribeEventAnswer(listener, answer));
+                         AppendLog(self->event_log_,
+                                   DescribeEventAnswer(listener, answer));
                        });
 }
 
 // ------------------------------------------------------------------ modules
 
-auto ModuleDeveloperPanel::build_modules_page() -> QWidget* {
-  auto* page = new QWidget(this);
-
-  module_table_ = new QTableWidget(0, kCOLUMNS, page);
+ModuleStatusPanel::ModuleStatusPanel(QWidget* parent) : QWidget(parent) {
+  module_table_ = new QTableWidget(0, kCOLUMNS, this);
   module_table_->setHorizontalHeaderLabels(
       {tr("Module"), tr("State"), tr("Origin"), tr("Entry Gate"),
        tr("Listening"), tr("Answers Owed"), tr("Commands"), tr("Calls"),
@@ -312,23 +289,27 @@ auto ModuleDeveloperPanel::build_modules_page() -> QWidget* {
   module_table_->verticalHeader()->setVisible(false);
   module_table_->horizontalHeader()->setStretchLastSection(true);
 
-  auto* refresh = new QPushButton(tr("Refresh"), page);
+  auto* refresh = new QPushButton(tr("Refresh"), this);
   auto* buttons = new QHBoxLayout();
   buttons->addWidget(new QLabel(
-      tr("Read-only. Activate and deactivate on the first tab."), page));
+      tr("Read-only. Activate and deactivate on the first tab."), this));
   buttons->addStretch();
   buttons->addWidget(refresh);
 
-  auto* layout = new QVBoxLayout(page);
+  auto* layout = new QVBoxLayout(this);
   layout->addLayout(buttons);
   layout->addWidget(module_table_, 1);
 
   connect(refresh, &QPushButton::clicked, this,
-          &ModuleDeveloperPanel::slot_refresh_modules);
-  return page;
+          &ModuleStatusPanel::slot_refresh_modules);
 }
 
-void ModuleDeveloperPanel::slot_refresh_modules() {
+void ModuleStatusPanel::showEvent(QShowEvent* event) {
+  QWidget::showEvent(event);
+  slot_refresh_modules();
+}
+
+void ModuleStatusPanel::slot_refresh_modules() {
   const auto modules = Module::ModuleManager::GetInstance().LifecycleSnapshot();
   auto& registry = CommandRegistry::Instance();
 
@@ -360,32 +341,30 @@ void ModuleDeveloperPanel::slot_refresh_modules() {
 
 // ------------------------------------------------------------------ commands
 
-auto ModuleDeveloperPanel::build_commands_page() -> QWidget* {
-  auto* page = new QWidget(this);
-
-  command_filter_ = new QLineEdit(page);
+ModuleCommandsPanel::ModuleCommandsPanel(QWidget* parent) : QWidget(parent) {
+  command_filter_ = new QLineEdit(this);
   command_filter_->setPlaceholderText(tr("Filter commands..."));
   command_filter_->setClearButtonEnabled(true);
-  command_list_ = new QListWidget(page);
+  command_list_ = new QListWidget(this);
 
-  command_descriptor_ = new QPlainTextEdit(page);
+  command_descriptor_ = new QPlainTextEdit(this);
   command_descriptor_->setReadOnly(true);
 
-  command_args_ = new QPlainTextEdit(page);
+  command_args_ = new QPlainTextEdit(this);
   command_args_->setPlaceholderText(
       tr("Arguments as one JSON object; empty for none. Blobs cannot be "
          "given here."));
   command_args_->setMaximumHeight(96);
 
-  invoke_button_ = new QPushButton(tr("Invoke as Host"), page);
+  invoke_button_ = new QPushButton(tr("Invoke as Host"), this);
   invoke_button_->setToolTip(
       tr("Runs the command with the Host's own authority, which no module "
          "has: capability checks do not apply."));
   invoke_button_->setEnabled(false);
 
-  command_log_ = new QPlainTextEdit(page);
+  command_log_ = new QPlainTextEdit(this);
   command_log_->setReadOnly(true);
-  auto* clear = new QPushButton(tr("Clear Log"), page);
+  auto* clear = new QPushButton(tr("Clear Log"), this);
 
   auto* left = new QVBoxLayout();
   left->addWidget(command_filter_);
@@ -402,21 +381,25 @@ auto ModuleDeveloperPanel::build_commands_page() -> QWidget* {
   right->addLayout(buttons);
   right->addWidget(command_log_, 1);
 
-  auto* layout = new QHBoxLayout(page);
+  auto* layout = new QHBoxLayout(this);
   layout->addLayout(left, 1);
   layout->addLayout(right, 2);
 
   connect(command_filter_, &QLineEdit::textChanged, this,
-          &ModuleDeveloperPanel::slot_filter_commands);
+          &ModuleCommandsPanel::slot_filter_commands);
   connect(command_list_, &QListWidget::currentRowChanged, this,
-          &ModuleDeveloperPanel::slot_select_command);
+          &ModuleCommandsPanel::slot_select_command);
   connect(invoke_button_, &QPushButton::clicked, this,
-          &ModuleDeveloperPanel::slot_invoke_command);
+          &ModuleCommandsPanel::slot_invoke_command);
   connect(clear, &QPushButton::clicked, command_log_, &QPlainTextEdit::clear);
-  return page;
 }
 
-void ModuleDeveloperPanel::refresh_commands() {
+void ModuleCommandsPanel::showEvent(QShowEvent* event) {
+  QWidget::showEvent(event);
+  refresh_commands();
+}
+
+void ModuleCommandsPanel::refresh_commands() {
   const auto selected = command_list_->currentItem() != nullptr
                             ? command_list_->currentItem()->text()
                             : QString();
@@ -427,14 +410,14 @@ void ModuleDeveloperPanel::refresh_commands() {
   slot_filter_commands(command_filter_->text());
 }
 
-void ModuleDeveloperPanel::slot_filter_commands(const QString& text) {
+void ModuleCommandsPanel::slot_filter_commands(const QString& text) {
   for (int i = 0; i < command_list_->count(); ++i) {
     auto* item = command_list_->item(i);
     item->setHidden(!item->text().contains(text, Qt::CaseInsensitive));
   }
 }
 
-void ModuleDeveloperPanel::slot_select_command() {
+void ModuleCommandsPanel::slot_select_command() {
   auto* item = command_list_->currentItem();
   const auto descriptor =
       item == nullptr ? std::nullopt
@@ -454,7 +437,7 @@ void ModuleDeveloperPanel::slot_select_command() {
                        .toJson(QJsonDocument::Indented))));
 }
 
-void ModuleDeveloperPanel::slot_invoke_command() {
+void ModuleCommandsPanel::slot_invoke_command() {
   auto* item = command_list_->currentItem();
   if (item == nullptr) return;
   const auto id = item->text();
@@ -462,12 +445,12 @@ void ModuleDeveloperPanel::slot_invoke_command() {
   QString error;
   const auto args = ParseCommandArgs(command_args_->toPlainText(), &error);
   if (!args.has_value()) {
-    append_log(command_log_, tr("Arguments refused, %1").arg(error));
+    AppendLog(command_log_, tr("Arguments refused, %1").arg(error));
     return;
   }
 
   // The result can arrive on the provider's thread; the log is this one's.
-  QPointer<ModuleDeveloperPanel> self(this);
+  QPointer<ModuleCommandsPanel> self(this);
   const auto ticket = CommandRegistry::Instance().Invoke(
       id, *args, {}, CommandCaller{{}, 0, QStringLiteral("host")}, {},
       [self, id](gf::cmd::RawResult r) {
@@ -484,13 +467,13 @@ void ModuleDeveloperPanel::slot_invoke_command() {
         QMetaObject::invokeMethod(
             QCoreApplication::instance(),
             [self, line]() {
-              if (self != nullptr) append_log(self->command_log_, line);
+              if (self != nullptr) AppendLog(self->command_log_, line);
             },
             Qt::QueuedConnection);
       });
-  append_log(command_log_, QString("%1 invoked: %2 (call %3)")
-                               .arg(id, DescribeCommandStatus(ticket.status))
-                               .arg(ticket.call_id));
+  AppendLog(command_log_, QString("%1 invoked: %2 (call %3)")
+                              .arg(id, DescribeCommandStatus(ticket.status))
+                              .arg(ticket.call_id));
 }
 
 }  // namespace GpgFrontend::UI

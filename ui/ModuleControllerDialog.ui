@@ -413,15 +413,20 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="GpgFrontend::UI::ModuleEventsPanel" name="eventsTab">
       <attribute name="title">
-       <string>Developer</string>
+       <string>Events</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_8">
-       <item>
-        <widget class="GpgFrontend::UI::ModuleDeveloperPanel" name="developerPanel" native="true"/>
-       </item>
-      </layout>
+     </widget>
+     <widget class="GpgFrontend::UI::ModuleStatusPanel" name="moduleStatusTab">
+      <attribute name="title">
+       <string>Module Status</string>
+      </attribute>
+     </widget>
+     <widget class="GpgFrontend::UI::ModuleCommandsPanel" name="commandsTab">
+      <attribute name="title">
+       <string>Commands</string>
+      </attribute>
      </widget>
     </widget>
    </item>
@@ -439,7 +444,19 @@
    <header>ui/widgets/GRTTreeView.h</header>
   </customwidget>
   <customwidget>
-   <class>GpgFrontend::UI::ModuleDeveloperPanel</class>
+   <class>GpgFrontend::UI::ModuleEventsPanel</class>
+   <extends>QWidget</extends>
+   <header>ui/dialog/controller/ModuleDeveloperPanel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GpgFrontend::UI::ModuleStatusPanel</class>
+   <extends>QWidget</extends>
+   <header>ui/dialog/controller/ModuleDeveloperPanel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GpgFrontend::UI::ModuleCommandsPanel</class>
    <extends>QWidget</extends>
    <header>ui/dialog/controller/ModuleDeveloperPanel.h</header>
    <container>1</container>

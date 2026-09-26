@@ -32,6 +32,9 @@
 #include <QThread>
 #include <atomic>
 
+#include "core/module/GlobalRegisterTableKeys.h"
+#include "core/module/ModuleCapability.h"
+#include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
 #include "sdk/GFSDKHostCommands.hpp"
 
@@ -107,6 +110,30 @@ auto CodecRefusal(const CommandProvider& p) -> QString {
   return {};
 }
 
+// The register table mirrors: what is registered, and what became of calls.
+// Always called with mutex_ released -- the table has its own lock.
+
+void PublishCommand(const CommandProvider& p) {
+  const auto publish = [&](const QString& field, std::any value) {
+    Module::UpsertRTValue(Module::kGRTCoreNamespace,
+                          Module::GRTCommandKey(p.id, field), value);
+  };
+  publish("owner", p.owner.isEmpty() ? QStringLiteral("host") : p.owner);
+  // untranslated: the table is read by modules, not shown to a person
+  publish("title", p.descriptor.value(QStringLiteral("title")).toString());
+  publish("flags", static_cast<qint64>(p.flags));
+  publish("caps", Module::ModuleCapabilityMaskToString(p.required_caps));
+}
+
+void ForgetCommand(const QString& id) {
+  Module::RemoveRTValue(Module::kGRTCoreNamespace, Module::GRTCommandKey(id));
+}
+
+void CountCommand(const QString& id, const char* outcome) {
+  Module::IncrementRTValue(Module::kGRTCoreNamespace,
+                           Module::GRTCommandStatKey(id, outcome));
+}
+
 }  // namespace
 
 namespace {
@@ -162,6 +189,7 @@ auto BlobToGFBuffer(const gf::cmd::Blob& blob) -> GFBuffer {
  */
 struct CommandRegistry::Pending {
   quint64 id = 0;
+  QString command;
   QString caller;
   QString provider;
   std::atomic<bool> cancelled{false};
@@ -214,14 +242,17 @@ auto CommandRegistry::Register(CommandProvider provider,
     return GF_CMD_E_DENIED;
   }
 
-  QMutexLocker locker(&mutex_);
-  if (!provider.owner.isEmpty() && closed_.contains(provider.owner)) {
-    return GF_CMD_E_UNAVAILABLE;
+  std::shared_ptr<const CommandProvider> registered;
+  {
+    QMutexLocker locker(&mutex_);
+    if (!provider.owner.isEmpty() && closed_.contains(provider.owner)) {
+      return GF_CMD_E_UNAVAILABLE;
+    }
+    if (providers_.contains(provider.id)) return GF_CMD_E_DENIED;
+    registered = std::make_shared<const CommandProvider>(std::move(provider));
+    providers_.insert(registered->id, registered);
   }
-  if (providers_.contains(provider.id)) return GF_CMD_E_DENIED;
-  const auto id = provider.id;
-  providers_.insert(
-      id, std::make_shared<const CommandProvider>(std::move(provider)));
+  PublishCommand(*registered);
   return GF_CMD_OK;
 }
 
@@ -247,11 +278,14 @@ auto CommandRegistry::RegisterHost(const gf::cmd::Binding& binding,
 
 auto CommandRegistry::Unregister(const QString& id, const QString& owner)
     -> int {
-  QMutexLocker locker(&mutex_);
-  const auto it = providers_.constFind(id);
-  if (it == providers_.constEnd()) return GF_CMD_E_UNKNOWN;
-  if ((*it)->owner != owner) return GF_CMD_E_DENIED;
-  providers_.erase(it);
+  {
+    QMutexLocker locker(&mutex_);
+    const auto it = providers_.constFind(id);
+    if (it == providers_.constEnd()) return GF_CMD_E_UNKNOWN;
+    if ((*it)->owner != owner) return GF_CMD_E_DENIED;
+    providers_.erase(it);
+  }
+  ForgetCommand(id);
   return GF_CMD_OK;
 }
 
@@ -269,16 +303,19 @@ auto CommandRegistry::Invoke(const QString& id, QCborMap args,
     }
   }
 
+  // An unknown id is not counted: it would let any caller grow the table.
   const auto provider = Lookup(id);
   if (provider == nullptr) return {GF_CMD_E_UNKNOWN, 0};
 
   if (!caller.IsHost()) {
     if ((provider->flags & gf::cmd::kHostOnly) != 0) {
+      CountCommand(id, "refused");
       return {GF_CMD_E_DENIED, 0};
     }
     if ((caller.caps & provider->required_caps) != provider->required_caps) {
       LOG_W() << "module" << caller.module << "may not invoke" << id
               << ": it lacks a capability the command requires";
+      CountCommand(id, "refused");
       return {GF_CMD_E_DENIED, 0};
     }
   }
@@ -291,11 +328,15 @@ auto CommandRegistry::Invoke(const QString& id, QCborMap args,
   // A call from elsewhere is checked by the command itself when it runs.
   if (provider->state && OnGuiThread()) {
     if ((provider->state(context) & GF_CMD_STATE_ENABLED) == 0) {
+      CountCommand(id, "refused");
       return {GF_CMD_E_DISABLED, 0};
     }
   }
 
+  CountCommand(id, "invoked");
+
   auto call = std::make_shared<Pending>();
+  call->command = id;
   call->caller = caller.module;
   call->provider = provider->owner;
   call->done = std::move(done);
@@ -350,6 +391,7 @@ void CommandRegistry::Deliver(const std::shared_ptr<Pending>& call,
   }
   if (call->cancelled.load() || call->finished) return;
   call->finished = true;
+  CountCommand(call->command, r.status == GF_CMD_OK ? "finished" : "failed");
   auto done = std::move(call->done);
   call->done = nullptr;
   r.call_id = static_cast<qint64>(call->id);
@@ -382,6 +424,8 @@ auto CommandRegistry::Cancel(quint64 call_id, const QString& caller) -> int {
   call->cancelled.store(true);
   // Waits for a delivery already under way; after this, none can start.
   const std::lock_guard<QRecursiveMutex> delivery(call->delivery);
+  // A delivery that won the race already counted it as finished or failed.
+  if (!call->finished) CountCommand(call->command, "cancelled");
   call->done = nullptr;
   QMutexLocker locker(&mutex_);
   pending_.erase(call_id);
@@ -457,11 +501,13 @@ void CommandRegistry::RemoveAllFor(const QString& module) {
 
   QList<std::shared_ptr<Pending>> made;
   QList<std::shared_ptr<Pending>> provided;
+  QStringList withdrawn;
   {
     QMutexLocker locker(&mutex_);
     closed_.insert(module);
     for (auto it = providers_.begin(); it != providers_.end();) {
       if ((*it)->owner == module) {
+        withdrawn.append(it.key());
         it = providers_.erase(it);
       } else {
         ++it;
@@ -475,6 +521,8 @@ void CommandRegistry::RemoveAllFor(const QString& module) {
       }
     }
   }
+
+  for (const auto& id : withdrawn) ForgetCommand(id);
 
   // Calls the module made: it will never hear back.
   for (const auto& call : made) Cancel(call->id, module);
