@@ -10212,11 +10212,6 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Значение</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="93"/>
-        <source>Developer</source>
-        <translation>Разработчик</translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="208"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Загрузка модулей отключена. Включите её в настройках &gt; Общие, чтобы использовать модули.</translation>
@@ -10405,73 +10400,85 @@ Would you like to fetch these keys from the key server?</source>
         <source>Disable Auto Activate</source>
         <translation type="vanished">Отключить автоактивацию</translation>
     </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::ModuleDeveloperPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="167"/>
         <source>Events</source>
         <translation>События</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="168"/>
-        <source>Modules</source>
-        <translation>Модули</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="169"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Commands</source>
         <translation>Команды</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="215"/>
-        <source>One key=value per line</source>
-        <translation>Одна пара ключ=значение в строке</translation>
+        <source>Module Status</source>
+        <translation>Состояние модулей</translation>
     </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="218"/>
-        <source>Fire</source>
-        <translation>Отправить</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="222"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="388"/>
         <source>Clear Log</source>
         <translation>Очистить журнал</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="225"/>
+        <source>Filter commands...</source>
+        <translation>Фильтровать команды...</translation>
+    </message>
+    <message>
+        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
+        <translation>Аргументы в виде одного JSON-объекта; пусто, если их нет. Блобы здесь указывать нельзя.</translation>
+    </message>
+    <message>
+        <source>Invoke as Host</source>
+        <translation>Вызвать как хост</translation>
+    </message>
+    <message>
+        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
+        <translation>Выполняет команду с собственными полномочиями хоста, которых нет ни у одного модуля: проверки разрешений не применяются.</translation>
+    </message>
+    <message>
+        <source>Arguments refused, %1</source>
+        <translation>Аргументы отклонены, %1</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleEventsPanel</name>
+    <message>
+        <source>One key=value per line</source>
+        <translation>Одна пара ключ=значение в строке</translation>
+    </message>
+    <message>
+        <source>Fire</source>
+        <translation>Отправить</translation>
+    </message>
+    <message>
+        <source>Clear Log</source>
+        <translation>Очистить журнал</translation>
+    </message>
+    <message>
         <source>Event</source>
         <translation>Событие</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="227"/>
         <source>Listeners</source>
         <translation>Слушатели</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="228"/>
         <source>Parameters</source>
         <translation>Параметры</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="256"/>
         <source>Not an event this build fires.</source>
         <translation>Это не событие, отправляемое этой сборкой.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="269"/>
         <source>No active module listens to it.</source>
         <translation>Ни один активный модуль не прослушивает его.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="278"/>
         <source>Parameters refused, %1</source>
         <translation>Параметры отклонены, %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>Событие %1 отправлено %n слушателю
@@ -10481,100 +10488,68 @@ Would you like to fetch these keys from the key server?</source>
             <numerusform></numerusform>
         </translation>
     </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleStatusPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
+        <source>Commands</source>
+        <translation>Команды</translation>
+    </message>
+    <message>
         <source>Module</source>
         <translation>Модуль</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>State</source>
         <translation>Состояние</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>Origin</source>
         <translation>Источник</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>Entry Gate</source>
         <translation>Входной шлюз</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Listening</source>
         <translation>Прослушивание</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Answers Owed</source>
         <translation>Ожидается ответов</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Calls</source>
         <translation>Вызовы</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="309"/>
         <source>Widgets</source>
         <translation>Виджеты</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="315"/>
         <source>Refresh</source>
         <translation>Обновить</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="318"/>
         <source>Read-only. Activate and deactivate on the first tab.</source>
         <translation>Только для чтения. Активировать и деактивировать на первой вкладке.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
         <source>Integrated</source>
         <translation>Интегрированный</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
         <source>External</source>
         <translation>Внешний</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="348"/>
         <source>Closed</source>
         <translation>Закрыто</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="348"/>
         <source>Open</source>
         <translation>Открыто</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
-        <source>Filter commands...</source>
-        <translation>Фильтровать команды...</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="376"/>
-        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
-        <translation>Аргументы в виде одного JSON-объекта; пусто, если их нет. Блобы здесь указывать нельзя.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="380"/>
-        <source>Invoke as Host</source>
-        <translation>Вызвать как хост</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="382"/>
-        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
-        <translation>Выполняет команду с собственными полномочиями хоста, которых нет ни у одного модуля: проверки разрешений не применяются.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="465"/>
-        <source>Arguments refused, %1</source>
-        <translation>Аргументы отклонены, %1</translation>
     </message>
 </context>
 <context>

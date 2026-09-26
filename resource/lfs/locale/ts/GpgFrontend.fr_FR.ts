@@ -10198,11 +10198,6 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
         <translation type="vanished">Valeur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="93"/>
-        <source>Developer</source>
-        <translation>Développeur</translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="208"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Le chargement des modules est désactivé. Activez-le dans Paramètres &gt; Général pour utiliser les modules.</translation>
@@ -10391,73 +10386,85 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
         <source>Disable Auto Activate</source>
         <translation type="vanished">Désactiver l&apos;activation automatique</translation>
     </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::ModuleDeveloperPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="167"/>
         <source>Events</source>
         <translation>Événements</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="168"/>
-        <source>Modules</source>
-        <translation>Modules</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="169"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Commands</source>
         <translation>Commandes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="215"/>
-        <source>One key=value per line</source>
-        <translation>Une clé=valeur par ligne</translation>
+        <source>Module Status</source>
+        <translation>État des modules</translation>
     </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="218"/>
-        <source>Fire</source>
-        <translation>Déclencher</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="222"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="388"/>
         <source>Clear Log</source>
         <translation>Effacer le journal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="225"/>
+        <source>Filter commands...</source>
+        <translation>Filtrer les commandes...</translation>
+    </message>
+    <message>
+        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
+        <translation>Arguments sous forme d’objet JSON unique ; vide si aucun. Les blobs ne peuvent pas être fournis ici.</translation>
+    </message>
+    <message>
+        <source>Invoke as Host</source>
+        <translation>Invoquer en tant qu’hôte</translation>
+    </message>
+    <message>
+        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
+        <translation>Exécute la commande avec l’autorité propre de l’hôte, qu’aucun module ne possède : les contrôles de capacités ne s’appliquent pas.</translation>
+    </message>
+    <message>
+        <source>Arguments refused, %1</source>
+        <translation>Arguments refusés, %1</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleEventsPanel</name>
+    <message>
+        <source>One key=value per line</source>
+        <translation>Une clé=valeur par ligne</translation>
+    </message>
+    <message>
+        <source>Fire</source>
+        <translation>Déclencher</translation>
+    </message>
+    <message>
+        <source>Clear Log</source>
+        <translation>Effacer le journal</translation>
+    </message>
+    <message>
         <source>Event</source>
         <translation>Événement</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="227"/>
         <source>Listeners</source>
         <translation>Écouteurs</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="228"/>
         <source>Parameters</source>
         <translation>Paramètres</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="256"/>
         <source>Not an event this build fires.</source>
         <translation>Ce n&apos;est pas un événement déclenché par cette version.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="269"/>
         <source>No active module listens to it.</source>
         <translation>Aucun module actif ne l&apos;écoute.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="278"/>
         <source>Parameters refused, %1</source>
         <translation>Paramètres refusés, %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>Événement %1 déclenché vers %n écouteur
@@ -10465,100 +10472,68 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
             <numerusform></numerusform>
         </translation>
     </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleStatusPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
+        <source>Commands</source>
+        <translation>Commandes</translation>
+    </message>
+    <message>
         <source>Module</source>
         <translation>Module</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>State</source>
         <translation>État</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>Origin</source>
         <translation>Origine</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>Entry Gate</source>
         <translation>Porte d’entrée</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Listening</source>
         <translation>À l&apos;écoute</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Answers Owed</source>
         <translation>Réponses dues</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Calls</source>
         <translation>Appels</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="309"/>
         <source>Widgets</source>
         <translation>Widgets</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="315"/>
         <source>Refresh</source>
         <translation>Actualiser</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="318"/>
         <source>Read-only. Activate and deactivate on the first tab.</source>
         <translation>Lecture seule. Activer et désactiver dans le premier onglet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
         <source>Integrated</source>
         <translation>Intégré</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
         <source>External</source>
         <translation>Externe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="348"/>
         <source>Closed</source>
         <translation>Fermé</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="348"/>
         <source>Open</source>
         <translation>Ouvert</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
-        <source>Filter commands...</source>
-        <translation>Filtrer les commandes...</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="376"/>
-        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
-        <translation>Arguments sous forme d’objet JSON unique ; vide si aucun. Les blobs ne peuvent pas être fournis ici.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="380"/>
-        <source>Invoke as Host</source>
-        <translation>Invoquer en tant qu’hôte</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="382"/>
-        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
-        <translation>Exécute la commande avec l’autorité propre de l’hôte, qu’aucun module ne possède : les contrôles de capacités ne s’appliquent pas.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="465"/>
-        <source>Arguments refused, %1</source>
-        <translation>Arguments refusés, %1</translation>
     </message>
 </context>
 <context>

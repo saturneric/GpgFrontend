@@ -10184,11 +10184,6 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">值</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="93"/>
-        <source>Developer</source>
-        <translation>开发者</translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="208"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>模块加载已禁用。请在“设置 &gt; 通用”中启用它以使用模块。</translation>
@@ -10377,172 +10372,152 @@ Would you like to fetch these keys from the key server?</source>
         <source>Disable Auto Activate</source>
         <translation type="vanished">禁用自动激活</translation>
     </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::ModuleDeveloperPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="167"/>
         <source>Events</source>
         <translation>事件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="168"/>
-        <source>Modules</source>
-        <translation>模块</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="169"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Commands</source>
         <translation>命令</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="215"/>
-        <source>One key=value per line</source>
-        <translation>每行一个 key=value</translation>
+        <source>Module Status</source>
+        <translation>模块状态</translation>
     </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="218"/>
-        <source>Fire</source>
-        <translation>触发</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="222"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="388"/>
         <source>Clear Log</source>
         <translation>清除日志</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="225"/>
+        <source>Filter commands...</source>
+        <translation>筛选命令...</translation>
+    </message>
+    <message>
+        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
+        <translation>参数作为单个 JSON 对象；留空表示无。此处不能提供 Blob。</translation>
+    </message>
+    <message>
+        <source>Invoke as Host</source>
+        <translation>以 Host 身份调用</translation>
+    </message>
+    <message>
+        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
+        <translation>以 Host 自身的权限运行命令，这是任何模块都不具备的：不适用能力检查。</translation>
+    </message>
+    <message>
+        <source>Arguments refused, %1</source>
+        <translation>参数被拒绝，%1</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleEventsPanel</name>
+    <message>
+        <source>One key=value per line</source>
+        <translation>每行一个 key=value</translation>
+    </message>
+    <message>
+        <source>Fire</source>
+        <translation>触发</translation>
+    </message>
+    <message>
+        <source>Clear Log</source>
+        <translation>清除日志</translation>
+    </message>
+    <message>
         <source>Event</source>
         <translation>事件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="227"/>
         <source>Listeners</source>
         <translation>监听器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="228"/>
         <source>Parameters</source>
         <translation>参数</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="256"/>
         <source>Not an event this build fires.</source>
         <translation>此构建不会触发该事件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="269"/>
         <source>No active module listens to it.</source>
         <translation>没有活动模块监听它。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="278"/>
         <source>Parameters refused, %1</source>
         <translation>参数被拒绝：%1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>已向 %n 个监听器触发 %1</numerusform>
         </translation>
     </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleStatusPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
+        <source>Commands</source>
+        <translation>命令</translation>
+    </message>
+    <message>
         <source>Module</source>
         <translation>模块</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>State</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>Origin</source>
         <translation>来源</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="307"/>
         <source>Entry Gate</source>
         <translation>入口门</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Listening</source>
         <translation>监听中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Answers Owed</source>
         <translation>待应答</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="308"/>
         <source>Calls</source>
         <translation>调用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="309"/>
         <source>Widgets</source>
         <translation>控件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="315"/>
         <source>Refresh</source>
         <translation>刷新</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="318"/>
         <source>Read-only. Activate and deactivate on the first tab.</source>
         <translation>只读。在第一个标签页中启用或禁用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
         <source>Integrated</source>
         <translation>集成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
         <source>External</source>
         <translation>外部</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="348"/>
         <source>Closed</source>
         <translation>已关闭</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="348"/>
         <source>Open</source>
         <translation>已打开</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
-        <source>Filter commands...</source>
-        <translation>筛选命令...</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="376"/>
-        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
-        <translation>参数作为单个 JSON 对象；留空表示无。此处不能提供 Blob。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="380"/>
-        <source>Invoke as Host</source>
-        <translation>以 Host 身份调用</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="382"/>
-        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
-        <translation>以 Host 自身的权限运行命令，这是任何模块都不具备的：不适用能力检查。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="465"/>
-        <source>Arguments refused, %1</source>
-        <translation>参数被拒绝，%1</translation>
     </message>
 </context>
 <context>
