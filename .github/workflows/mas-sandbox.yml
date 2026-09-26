@@ -282,14 +282,33 @@ jobs:
             ${{github.workspace}}/build/package/
       # The same install tree the Developer ID leg uses, for the same reason:
       # `xcodebuild archive` leaves symlinks into DerivedData where CMake asked
-      # for the module natives, and `cmake --install` writes the real files and
-      # then verifies what it wrote.
+      # for the module natives; the step turns them into real files, then
+      # `cmake --install` writes the tree and verifies what it wrote.
       - name: Install The Module Tree (macOS)
         run: |
           set -euo pipefail
           STAGING="${{github.workspace}}/build/staging"
           rm -rf "$STAGING"
-          cmake --install ${{github.workspace}}/build --prefix "$STAGING"
+
+          # `xcodebuild archive` leaves each module native as a RELATIVE
+          # symlink into DerivedData, and install(TARGETS) copies a symlink as
+          # a symlink -- two directories deeper, where it resolves to nothing,
+          # and verify-module-set rightly refuses it. Replace each link with
+          # the file it names first.
+          while IFS= read -r link; do
+            cp -L "$link" "$link.real"
+            mv -f "$link.real" "$link"
+            echo "materialized $link"
+          done < <(find ${{github.workspace}}/build/artifacts/modules -type l)
+
+          # --config: under Xcode an install without it picks "Release",
+          # whatever was built. --component runtime: the one Xcode-only rule
+          # outside it installs the app bundle to /Applications, and the app
+          # is taken from the archive instead; the module-set verification
+          # is in runtime and still runs.
+          cmake --install ${{github.workspace}}/build \
+            --config "${{env.BUILD_TYPE}}" --component runtime \
+            --prefix "$STAGING"
           test -d "$STAGING/lib/gpgfrontend/modules"
 
       - name: Bundle Module Dependencies (macOS)

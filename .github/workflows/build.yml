@@ -107,6 +107,10 @@ env:
 jobs:
   build:
     strategy:
+      # One leg's failure cancelled the others, so the Windows legs never got
+      # past their build and their packaging steps went unrun for weeks. The
+      # release still needs every leg to succeed; this only lets each report.
+      fail-fast: false
       matrix:
         # macOS is built and signed by the separate build-macos / sign-macos
         # jobs below, so that the Developer ID key never shares a runner with a
@@ -806,6 +810,13 @@ jobs:
           # so a test fixture called libgf_mod_test_sentinel.dll was handed to
           # windeployqt6, which correctly reported that it is not a Qt
           # executable and stopped the build.
+          #
+          # Relative paths throughout the Windows steps: ${{github.workspace}}
+          # is D:\a\..., and unquoted in bash its backslashes vanish. Read into
+          # a variable first, because a failure inside `< <(...)` is swallowed
+          # and left windeployqt never run on the libraries at all.
+          LIBS="$(../scripts/build_info.sh . deployable_libraries)"
+          test -n "$LIBS" || { echo "no deployable libraries registered" >&2; exit 1; }
           while IFS= read -r lib; do
             [ -n "$lib" ] || continue
             test -f "./artifacts/bin/$lib" || {
@@ -813,7 +824,7 @@ jobs:
               exit 1
             }
             windeployqt6 --no-translations --force "./artifacts/bin/$lib"
-          done < <(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build deployable_libraries)
+          done <<< "$LIBS"
           windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           # A module may need Qt modules the app itself never links (Qt6Xml,
           # Qt6Network, ...), so each one still has to be scanned. But --dir
@@ -838,8 +849,8 @@ jobs:
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           MODULE_ROOT="build/artifacts/modules"
-          PACKAGER="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)"
-          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
+          PACKAGER="$(./scripts/build_info.sh build module_packager)"
+          EXPECTED="$(./scripts/build_info.sh build module_count)"
           # --require-binding: see the AppImage leg. Windows must ship bound
           # artifacts, and an unbound tree verifies fine without this flag.
           ./scripts/audit_module_natives.sh \
@@ -1001,7 +1012,7 @@ jobs:
         run: |
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
-          TOOL_DIR="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build host_tool_dir)"
+          TOOL_DIR="$(./scripts/build_info.sh build host_tool_dir)"
           rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe" \
                 "$TOOL_DIR/gf_module_externalize.exe"
 
@@ -1107,7 +1118,7 @@ jobs:
           # at configure time. Never a literal: a hardcoded count means adding
           # a fifth module breaks every gate at once, and the obvious repair
           # is to bump the number in each, which is how a gate stops checking.
-          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
+          EXPECTED="$(./scripts/build_info.sh build module_count)"
           STATUS="$SMOKE/module-status.json"
 
           cd "$SMOKE/bin"
@@ -1132,9 +1143,8 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: |
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
-            ${{github.workspace}}/build/artifacts/build-info.json
+          path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
+          if-no-files-found: error
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (Windows)
@@ -1142,7 +1152,22 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
+          if-no-files-found: error
         if: runner.os == 'Windows'
+
+      # A separate artifact, as build-macos does, and for a reason of its own
+      # here: the deliverable artifact must stay flat. Listing build-info.json
+      # as a second path rooted the Linux artifact at their common parent, so
+      # the AppImage arrived as upload-artifact/GpgFrontend-... -- skipped by
+      # the build records and a directory under `sha256sum artifacts/*` in the
+      # release. Windows never carried it at all, so provenance had no build
+      # info for that leg and failed.
+      - name: Upload Build Info
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: buildinfo-${{matrix.os}}-${{matrix.flavor}}
+          path: ${{github.workspace}}/build/artifacts/build-info.json
+          if-no-files-found: error
 
   # Compiles and deploys the macOS bundle. Deliberately holds no secrets: the
   # Developer ID key must never share a runner with brew, cargo build scripts,
@@ -1336,17 +1361,35 @@ jobs:
       # to be copied over by hand before anything could sign, ship or bind
       # them.
       #
-      # `cmake --install` resolves that by construction -- it installs the
-      # target's real file, not the link CMake left behind -- and then verifies
-      # what it wrote. If it ever does not, the failure is exact rather than
-      # mysterious: the installed-tree check refuses a symlinked entry native
-      # by name and prints where it points.
+      # `cmake --install` does NOT resolve that by itself: it copies a symlink
+      # as a symlink. The links are made real files below first, and the
+      # install then verifies what it wrote; a symlinked entry native that
+      # slips through is refused by name with where it points.
       - name: Install The Module Tree (macOS)
         run: |
           set -euo pipefail
           STAGING="${{github.workspace}}/build/staging"
           rm -rf "$STAGING"
-          cmake --install ${{github.workspace}}/build --prefix "$STAGING"
+
+          # `xcodebuild archive` leaves each module native as a RELATIVE
+          # symlink into DerivedData, and install(TARGETS) copies a symlink as
+          # a symlink -- two directories deeper, where it resolves to nothing,
+          # and verify-module-set rightly refuses it. Replace each link with
+          # the file it names first.
+          while IFS= read -r link; do
+            cp -L "$link" "$link.real"
+            mv -f "$link.real" "$link"
+            echo "materialized $link"
+          done < <(find ${{github.workspace}}/build/artifacts/modules -type l)
+
+          # --config: under Xcode an install without it picks "Release",
+          # whatever was built. --component runtime: the one Xcode-only rule
+          # outside it installs the app bundle to /Applications, and the app
+          # is taken from the archive instead; the module-set verification
+          # is in runtime and still runs.
+          cmake --install ${{github.workspace}}/build \
+            --config "${{env.BUILD_TYPE}}" --component runtime \
+            --prefix "$STAGING"
 
           # The same namespace layout a distribution gets. The bundle's two
           # roots are mapped from it below, which is the one macOS-specific
@@ -2373,13 +2416,13 @@ jobs:
       - name: Upload Build Records
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-build-records
+          name: provenance-build-records
           path: records/*
 
       - name: Upload Provenance Bundles
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-provenance
+          name: provenance-bundles
           path: provenance/*
 
   release:
@@ -2413,15 +2456,6 @@ jobs:
           lfs: "false"
           submodules: recursive
 
-      - name: Re-create nightly tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cd ${{github.workspace}}
-          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
-          git tag -f nightly $GITHUB_SHA
-          git push origin nightly --force
-
       # Deliberately two downloads. merge-multiple flattens everything into
       # one directory, which is what the deliverables want and what the
       # provenance bundles must not have: they are matched to artifacts by
@@ -2437,13 +2471,13 @@ jobs:
       - name: Download Build Records
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: gpgfrontend-build-records
+          name: provenance-build-records
           path: artifacts/
 
       - name: Download Provenance Bundles
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: gpgfrontend-provenance
+          name: provenance-bundles
           path: artifacts/provenance/
 
       - name: Install cosign
@@ -2509,6 +2543,18 @@ jobs:
       - name: Generate Nightly Release Title
         id: release_title
         run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      # Last, not first: deleting the release before the downloads, the
+      # provenance check and the checksums meant any failure among them left
+      # the project with no nightly at all and a tag already moved.
+      - name: Re-create nightly tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd ${{github.workspace}}
+          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
+          git tag -f nightly $GITHUB_SHA
+          git push origin nightly --force
 
       - name: Update Nightly Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2

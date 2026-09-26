@@ -60,10 +60,11 @@ def load_infos(info_root):
 def info_for(leg_dir, infos):
     """The build info describing this leg.
 
-    Linux and Windows ship build-info.json inside their own artifact, so it is
-    simply there. macOS cannot: its artifact is produced by the signing job,
-    which is forbidden to carry anything from the build side, so that leg
-    uploads the file separately and it is matched by name.
+    Every leg uploads build-info.json as its own `buildinfo-<os>[-<flavor>]`
+    artifact, matched here by the longest name contained in the leg's. macOS
+    must: its artifact is produced by the signing job, which is forbidden to
+    carry anything from the build side. Linux and Windows do so to keep their
+    deliverable artifacts flat. A build-info.json inside the leg still wins.
     """
     local = leg_dir / "build-info.json"
     if local.is_file():

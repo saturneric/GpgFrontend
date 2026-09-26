@@ -30,7 +30,11 @@ if [ ! -f "$INFO" ]; then
   exit 1
 fi
 
-python3 - "$INFO" "$KEY" <<'PY'
+# tr: under MSYS2 `python3` is the native Windows CPython, whose stdout
+# translates \n to \r\n. Every value then ended in \r, which no caller strips:
+# a count that is not a number, a tool path that is not executable, a library
+# name that is not a file.
+python3 - "$INFO" "$KEY" <<'PY' | tr -d '\r'
 import json, sys
 info, key = sys.argv[1], sys.argv[2]
 with open(info, encoding="utf-8") as f:

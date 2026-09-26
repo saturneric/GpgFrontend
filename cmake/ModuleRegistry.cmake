@@ -838,6 +838,6 @@ function(gf_add_module)
   # ARCHIVE is omitted on purpose: an import library is a build input, and on
   # Windows it is what used to be swept out of the payload by hand afterwards.
   install(TARGETS ${target_name}
-    LIBRARY DESTINATION "${install_namespace}/native" COMPONENT Runtime
+    LIBRARY DESTINATION "${install_namespace}/native" COMPONENT runtime
     RUNTIME DESTINATION "${install_namespace}/native" COMPONENT runtime)
 endfunction()

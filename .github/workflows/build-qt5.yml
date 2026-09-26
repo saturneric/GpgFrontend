@@ -287,11 +287,12 @@ jobs:
 
       - name: Build GpgFrontend (Linux)
         run: |
-          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:${LD_LIBRARY_PATH:-}
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCMAKE_INSTALL_LIBDIR=lib \
             -DGPGFRONTEND_QT5_BUILD=ON \
-            -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
@@ -302,9 +303,25 @@ jobs:
           ccache -s
         if: runner.os == 'Linux'
 
+      # GPGFRONTEND_BUILD_APP_IMAGE no longer redirects the build into an
+      # AppDir, so the AppDir is an install tree, as in build.yml. LIBDIR is
+      # pinned above because a /usr prefix on Ubuntu otherwise picks the
+      # multiarch lib/<triplet>, where the libsecret staging below and the
+      # AppImage runtime do not look.
+      - name: Assemble The AppDir (Linux)
+        run: |
+          set -euo pipefail
+          APP_DIR="${{github.workspace}}/build/artifacts/AppDir"
+          rm -rf "$APP_DIR"
+          cmake --install ${{github.workspace}}/build --prefix "$APP_DIR/usr"
+          cmake --install ${{github.workspace}}/build --component appimage \
+            --prefix "$APP_DIR"
+        if: runner.os == 'Linux'
+
       - name: Package App Image (Linux)
         run: |
-          mkdir ${{github.workspace}}/build/upload-artifact
+          set -euo pipefail
+          mkdir -p ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
@@ -322,7 +339,20 @@ jobs:
           test -f "$LIBSECRET_SRC"
           cp -L "$LIBSECRET_SRC" "$APP_DIR/usr/lib/libsecret-1.so.0"
 
-          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          # googletest is built SHARED into /usr/local above and the app links
+          # it, so the image must carry it; see the same step in build.yml.
+          APP_BIN="$(find "$APP_DIR/usr/bin" -maxdepth 1 -type f -perm -u+x \
+                       | head -1)"
+          test -n "$APP_BIN" || { echo "no application binary in the AppDir" >&2; exit 1; }
+          while IFS= read -r lib; do
+            [ -n "$lib" ] || continue
+            cp -L "$lib" "$APP_DIR/usr/lib/$(basename "$lib")"
+            echo "staged $(basename "$lib") from /usr/local"
+          done < <(LD_LIBRARY_PATH="$APP_DIR/usr/lib:/usr/local/lib:/usr/local/lib64" \
+                     ldd "$APP_BIN" \
+                     | awk '$3 ~ /^\/usr\/local\// { print $3 }' | sort -u)
+
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:${LD_LIBRARY_PATH:-}
           ./linuxdeployqt-continuous-x86_64.AppImage \
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             -no-translations \
