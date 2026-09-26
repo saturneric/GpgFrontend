@@ -116,6 +116,12 @@ int GFStorageStateGetBool(GFSDKContext* ctx, const char* ns, const char* key,
 int GFStorageStateSetBool(GFSDKContext* ctx, const char* ns, const char* key,
                           int value);
 
+/** @return 0 on a hit; negative when absent, not an integer, or the host
+ *          predates integer reads. Read-only: what the host publishes as a
+ *          number -- its flags, counters and statistics -- is the host's. */
+int GFStorageStateGetInt(GFSDKContext* ctx, const char* ns, const char* key,
+                         int64_t* out);
+
 /** @brief Direct children of ns/key. @p out owned; release through the list
  *         accessors in GFSDKGpgList.h. */
 int GFStorageStateListChildren(GFSDKContext* ctx, const char* ns,

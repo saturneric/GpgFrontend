@@ -103,6 +103,13 @@ auto GFStorageStateSetBool(GFSDKContext* ctx, const char* ns, const char* key,
   return g->state_set_bool(hctx, ns, key, value);
 }
 
+auto GFStorageStateGetInt(GFSDKContext* ctx, const char* ns, const char* key,
+                          int64_t* out) -> int {
+  GF_SDK_REQUIRE(ctx, storage, "GFStorageStateGetInt", -1);
+  if (!GF_SDK_GROUP_HAS(g, state_get_int)) return -1;
+  return g->state_get_int(hctx, ns, key, out);
+}
+
 auto GFStorageStateListChildren(GFSDKContext* ctx, const char* ns,
                                 const char* key, GFStringListRef* out) -> int {
   GF_SDK_REQUIRE(ctx, storage, "GFStorageStateListChildren", -1);

@@ -145,6 +145,40 @@ module writes only its own, named by its id. Namespaces and keys are
 lower-case. Lua's `state.*` is not this -- it is the module's persisted
 settings group, the same one `gf::sdk::Setting` reaches.
 
+Values are typed and a read of the wrong type is a miss. Text and bool can be
+read and written (`StateText`, `StateBool`); integers can only be read
+(`GFStorageStateGetInt`, `gf::sdk::StateInt`), because every integer in the
+table is one the host publishes.
+
+The host keeps the `core` namespace up to date on its own, so a module can ask
+it how the application is doing rather than guess. A dotted id (a module's, a
+command's) is folded into ONE segment by turning `.` into `/`:
+`com.example.mod` is read as `modules.com/example/mod.state`.
+
+| Key under `core` | Type | Meaning |
+|---|---|---|
+| `engine.<gnupg\|rpgp>.supported` | bool | the engine is usable this session |
+| `engine.<gnupg\|rpgp>.version` | text | its version |
+| `engine.default` | text | the engine new key databases default to |
+| `modules.<id>.state` | text | `registered`, `activating`, `active`, `deactivating`, `inactive` or `failed` |
+| `modules.<id>.integrated`, `.packaged` | bool | shipped with the application; verified from a signed package |
+| `modules.<id>.version` | text | what the loaded binary reports |
+| `modules.<id>.listening` | int | events it is subscribed to |
+| `modules.<id>.refusal` | text | why it was not loaded, while that holds |
+| `commands.<id>.owner` | text | the providing module's id, or `host` |
+| `commands.<id>.title` | text | the descriptor's title, untranslated |
+| `commands.<id>.flags` | int | its `gf::cmd` flags |
+| `commands.<id>.caps` | text | the capabilities a caller must hold |
+| `stats.events.<event>.fired`, `.unheard` | int | times triggered; times no active module listened |
+| `stats.commands.<id>.<outcome>` | int | `invoked`, `refused`, `finished`, `failed`, `cancelled` |
+| `stats.operations.<op>.run`, `.failed` | int | OpenPGP operations run, and those that errored |
+| `stats.module_load.<field>` | int | `loaded`, `refused`, `hashed_bytes`, `peak_native` at startup |
+| `env.state.*` | int | startup progress flags (`1` done, `0` pending, `-1` failed) |
+| `gpgme.version`, `gpgme.ctx.*` | text | GnuPG paths and versions, when GnuPG is present |
+
+A command's or module's entries go away when it does. Statistics count from
+this session's start.
+
 ## UI integration
 
 A module has exactly two ways to put something on the screen, and neither
@@ -273,6 +307,15 @@ triggers the action, the Host builds a fresh context, runs `update` again,
 requires it to be visible and enabled and the command to be enabled, and only
 then invokes with the arguments from _that_ run. Stale arguments cannot reach a
 command. `args` may be omitted and reads as an empty table.
+
+**Attention is the command's.** A command whose `State()` reports
+`GF_CMD_STATE_ATTENTION` gets a small badge on every visible entry placed for
+it, plus a tooltip. The tooltip says the command's `kAttention` text when it
+declares one (`static constexpr const char* kAttention = GC_TR("...")`), and
+its description otherwise. Nothing opens or takes focus. Entries pick it up
+when their menu is next shown. `update(ctx)` cannot raise it: an `attention`
+field is an unknown field. The badged entry shows its icon even though the
+application hides menu icons.
 
 **Continuations.** `commands.invoke(cmd, args, function(result, err) ... end)`
 never blocks. The result is checked against the command's result schema
@@ -493,6 +536,7 @@ wants one, and release what they borrowed.
 
 ```cpp
 auto version = gf::sdk::StateText(ctx, "core", "gpgme.version", "0.0.0");
+auto sent    = gf::sdk::StateInt(ctx, "core", "stats.operations.op_encrypt.run");
 auto keys    = gf::sdk::ExportKey(ctx, channel, key_id, /*ascii=*/true);
 gf::sdk::SetCacheText(ctx, GF_STORE_DURABLE, "last-check", when);
 ```
@@ -505,7 +549,8 @@ reason, and says so at the call site.
 
 `GF_SDK_ABI_VERSION` is still 4. What this generation added was appended:
 `GFHostApi.command`, `.script` and `.native`; `GFHostUiApi.theme_color_role`;
-`GFHostEditorApi.current_document`; `GFHostStorageApi.setting_get/set/remove`;
+`GFHostEditorApi.current_document`; `GFHostStorageApi.setting_get/set/remove`
+and `.state_get_int`;
 `GFModuleBootstrapInfo.commands`; `GFModuleHooks.commands`. A read of an
 appended member is guarded by the table's `struct_size` (the SDK's internal
 `GF_SDK_GROUP_HAS`), so a module built against this SDK still runs on a host

@@ -32,6 +32,7 @@
 #include <QSet>
 #include <QString>
 #include <cstring>
+#include <limits>
 
 #include "GFHostImpl.h"
 #include "GFSDKBuildInfo.h"
@@ -861,6 +862,39 @@ auto StorageStateSetBool(GFHostContextRef ctx, const char* ns, const char* key,
   return GpgFrontend::Module::UpsertRTValue(n, k, value != 0) ? 0 : -1;
 }
 
+auto StorageStateGetInt(GFHostContextRef ctx, const char* ns, const char* key,
+                        int64_t* out) -> int {
+  GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_get_int", -1);
+  if (out == nullptr) return -1;
+  QString n;
+  QString k;
+  if (!StateAddress(ctx, ns, key, false, n, k)) return -1;
+
+  // Every integer width the host publishes is one answer here; anything else
+  // -- text that happens to hold digits included -- is a miss, as for the
+  // other typed reads.
+  const auto value =
+      GpgFrontend::Module::ModuleManager::GetInstance().RetrieveRTValue(n, k);
+  if (!value.has_value() || !value->has_value()) return -1;
+  const auto& held = *value;
+  if (held.type() == typeid(int)) {
+    *out = std::any_cast<int>(held);
+  } else if (held.type() == typeid(qint64)) {
+    *out = std::any_cast<qint64>(held);
+  } else if (held.type() == typeid(uint)) {
+    *out = std::any_cast<uint>(held);
+  } else if (held.type() == typeid(quint64)) {
+    const auto wide = std::any_cast<quint64>(held);
+    if (wide > static_cast<quint64>(std::numeric_limits<int64_t>::max())) {
+      return -1;
+    }
+    *out = static_cast<int64_t>(wide);
+  } else {
+    return -1;
+  }
+  return 0;
+}
+
 auto StorageStateListChildren(GFHostContextRef ctx, const char* ns,
                               const char* key, GFStringListRef* out) -> int {
   GATE(ctx, GF_HOST_CAP_STORAGE, "storage.state_list_children", -1);
@@ -941,7 +975,7 @@ const GFHostStorageApi kStorageApi = {
     &StorageCacheSet,          &StorageCacheRemove,  &StorageStateGetText,
     &StorageStateSetText,      &StorageStateGetBool, &StorageStateSetBool,
     &StorageStateListChildren, &StorageSettingGet,   &StorageSettingSet,
-    &StorageSettingRemove,
+    &StorageSettingRemove,     &StorageStateGetInt,
 };
 
 /* --- process ------------------------------------------------------------- */

@@ -457,6 +457,11 @@ typedef struct GFHostStorageApi {
   int (*setting_set)(GFHostContextRef ctx, int scope, const char* key,
                      GFBufferView cbor);
   int (*setting_remove)(GFHostContextRef ctx, int scope, const char* key);
+
+  /** A register table integer (the host's flags, counters and statistics),
+   *  widened to 64 bits. -1 when absent or not an integer. */
+  int (*state_get_int)(GFHostContextRef ctx, const char* ns, const char* key,
+                       int64_t* out);
 } GFHostStorageApi;
 
 /**

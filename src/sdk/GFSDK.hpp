@@ -171,6 +171,16 @@ inline void SetStateBool(GFSDKContext* ctx, const QString& ns,
                         value ? 1 : 0);
 }
 
+inline auto StateInt(GFSDKContext* ctx, const QString& ns, const QString& key,
+                     qint64 fallback = 0) -> qint64 {
+  int64_t value = 0;
+  if (GFStorageStateGetInt(ctx, ns.toUtf8().constData(),
+                           key.toUtf8().constData(), &value) != 0) {
+    return fallback;
+  }
+  return value;
+}
+
 inline auto StateChildren(GFSDKContext* ctx, const QString& ns,
                           const QString& key) -> QStringList {
   GFStringListRef list = nullptr;
