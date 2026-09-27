@@ -113,6 +113,8 @@ target_compile_definitions(${LIBRARY_TARGET} PRIVATE HAS_RUST_SUPPORT)
 if(MINGW)
   # bcypt uuid generation
   target_link_libraries(${LIBRARY_TARGET} PRIVATE "-lbcrypt")
+  # ImageGetDigestStream, for the Authenticode digest in ModuleEntryBinding
+  target_link_libraries(${LIBRARY_TARGET} PRIVATE imagehlp)
 endif()
 
 # set up pch
