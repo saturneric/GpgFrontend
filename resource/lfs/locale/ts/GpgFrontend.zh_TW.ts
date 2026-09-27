@@ -8438,7 +8438,7 @@ Right-click a key in another tab and use Category to file it here.</source>
 <context>
     <name>GpgFrontend::UI::Lua::NativeSettingsPage</name>
     <message>
-        <location filename="../../../../src/ui/lua/LuaMounts.cpp" line="196"/>
+        <location filename="../../../../src/ui/lua/LuaMounts.cpp" line="192"/>
         <source>The module that provided this page is no longer active.</source>
         <translation>提供此頁面的模組已不再啟用。</translation>
     </message>
@@ -10002,6 +10002,39 @@ Would you like to fetch these keys from the key server?</source>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
+        <source>Clear Log</source>
+        <translation>清除日誌</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
+        <source>Filter commands...</source>
+        <translation>篩選命令...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="355"/>
+        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
+        <translation>參數以單一 JSON 物件表示；若無參數則留空。此處不能提供 Blob。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="359"/>
+        <source>Invoke as Host</source>
+        <translation>以主機身分叫用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="361"/>
+        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
+        <translation>使用主機自身的權限執行命令，這是任何模組都沒有的權限：能力檢查不適用。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="448"/>
+        <source>Arguments refused, %1</source>
+        <translation>參數遭拒絕，%1</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::ModuleControllerDialog</name>
     <message>
         <source>Module Information</source>
@@ -10012,17 +10045,17 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">動作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="127"/>
         <source>Show Modules Folder</source>
         <translation>顯示模組目錄</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="95"/>
         <source>Registered Modules</source>
         <translation>已註冊模組</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="92"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
         <source>Global Register Table</source>
         <translation>全域註冊表</translation>
     </message>
@@ -10035,7 +10068,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">提示：模組名稱前帶有「*」者為整合模組。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="93"/>
         <source>Module Controller</source>
         <translation>模組控制器</translation>
     </message>
@@ -10056,37 +10089,37 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">版本</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
         <source>Search modules...</source>
         <translation>搜尋模組...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="105"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="109"/>
         <source>Inactive</source>
         <translation>未啟用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="111"/>
         <source>Integrated</source>
         <translation>整合</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="113"/>
         <source>External</source>
         <translation>外部</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="115"/>
         <source>Not Loaded</source>
         <translation>未載入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="119"/>
         <source>Select a module to see its details.</source>
         <translation>選擇一個模組以查看其詳細資訊。</translation>
     </message>
@@ -10107,38 +10140,38 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">路徑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="112"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
         <source>Listening Events</source>
         <translation>監聽事件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
         <source>Activate on Start</source>
         <translation>啟動時啟用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="125"/>
         <source>Activate this module automatically when GpgFrontend starts.</source>
         <translation>當 GpgFrontend 啟動時自動啟用此模組。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="117"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
         <source>Refresh</source>
         <translation>重新整理</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="129"/>
         <source>Search keys and values...</source>
         <translation>搜尋金鑰和數值...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="130"/>
         <source>Expand All</source>
         <translation>全部展開</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="122"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="131"/>
         <source>Collapse All</source>
         <translation>摺疊全部</translation>
     </message>
@@ -10155,14 +10188,14 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">%1 個模組 · %2 個啟用中</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="141"/>
         <source>%n module(s)</source>
         <translation>
             <numerusform>%n 個模組</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="143"/>
         <source>%n active</source>
         <translation>
             <numerusform>%n 個啟用中</numerusform>
@@ -10185,135 +10218,135 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">值</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="208"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="217"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>模組載入已停用。請在設定 &gt; 一般中啟用以使用模組。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="213"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="222"/>
         <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>僅載入整合模組。若要從 mods 目錄載入外部模組，請在設定 &gt; 一般中變更模組載入政策。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="237"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="386"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="395"/>
         <source>Trust This Publisher Key...</source>
         <translation>信任此發布者金鑰...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="247"/>
         <source>Enable This Module</source>
         <translation>啟用此模組</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="266"/>
         <source>Trust This Publisher Key?</source>
         <translation>信任此發布者金鑰？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="267"/>
         <source>&lt;p&gt;Modules signed by this publisher key will be offered for you to enable, one at a time. Trusting it does not enable anything by itself.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Publisher key fingerprint&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;The key is the publisher&apos;s identity. Any name or website a module shows is only its own claim. A module signed with a different key will ask you again.&lt;/p&gt;&lt;p&gt;Only continue if you obtained this fingerprint from the module&apos;s author through a channel you trust.&lt;/p&gt;</source>
         <translation>&lt;p&gt;由此發行者金鑰簽署的模組會逐個提供給您啟用。信任此金鑰本身不會啟用任何模組。&lt;/p&gt;&lt;p&gt;&lt;b&gt;發行者金鑰指紋&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;此金鑰為發行者的身分。模組顯示的任何名稱或網站都只是其自身的宣稱。以不同金鑰簽署的模組會再次要求您確認。&lt;/p&gt;&lt;p&gt;只有在您經由信任的管道從模組作者處取得此指紋時，才繼續進行。&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="271"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
         <source>&lt;p&gt;A module you enable runs inside GpgFrontend and can do anything GpgFrontend can. The capabilities it lists are what it asked for, not a limit.&lt;/p&gt;</source>
         <translation>&lt;p&gt;您啟用的模組會在 GpgFrontend 內執行，可以做 GpgFrontend 能做的任何事。它列出的權限是它所請求的，並非限制。&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="279"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="296"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="305"/>
         <source>Not Saved</source>
         <translation>未儲存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="289"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
         <source>That decision could not be saved, so nothing has changed.</source>
         <translation>無法儲存該決定，因此沒有任何變更。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="314"/>
         <source>Enabled</source>
         <translation>已啟用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="315"/>
         <source>This module will be loaded the next time GpgFrontend starts.</source>
         <translation>此模組將在下次 GpgFrontend 啟動時載入。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
         <source>Needs Approval</source>
         <translation>需要核准</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
         <source>Refused</source>
         <translation>已拒絕</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="357"/>
         <source>Status</source>
         <translation>狀態</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="358"/>
         <source>Waiting for you</source>
         <translation>等待您</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="359"/>
         <source>Not loaded</source>
         <translation>未載入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="362"/>
         <source>Identifier</source>
         <translation>識別碼</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="364"/>
         <source>Descriptor</source>
         <translation>描述符</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="363"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="372"/>
         <source>Publisher key</source>
         <translation>發布者金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="374"/>
         <source>You have trusted this publisher key.</source>
         <translation>您已信任此發布者金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="375"/>
         <source>You have not trusted this publisher key. Before trusting it, compare its fingerprint with the one the publisher published.</source>
         <translation>您尚未信任此發布者金鑰。在信任之前，請將其指紋與發布者公布的指紋進行比對。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="394"/>
         <source>Publisher Key Trusted</source>
         <translation>已信任發布者金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
         <source>● Active</source>
         <translation>● 啟用中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
         <source>○ Inactive</source>
         <translation>○ 未啟用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="453"/>
         <source>Auto Start</source>
         <translation>自動啟動</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="458"/>
         <source>by %1</source>
         <translation>由 %1</translation>
     </message>
@@ -10330,7 +10363,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">按一下以開啟所在資料夾</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="476"/>
         <source>Listening Events (%1)</source>
         <translation>監聽事件（%1）</translation>
     </message>
@@ -10347,7 +10380,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">否</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="107"/>
         <source>Active</source>
         <translation>已啟用</translation>
     </message>
@@ -10360,12 +10393,12 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">監聽事件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="469"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="478"/>
         <source>Deactivate</source>
         <translation>停用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="479"/>
         <source>Activate</source>
         <translation>啟用</translation>
     </message>
@@ -10374,151 +10407,74 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">停用自動啟動</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
         <source>Events</source>
         <translation>事件</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
         <source>Commands</source>
         <translation>命令</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
         <source>Module Status</source>
         <translation>模組狀態</translation>
     </message>
 </context>
 <context>
-    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
-    <message>
-        <source>Clear Log</source>
-        <translation>清除日誌</translation>
-    </message>
-    <message>
-        <source>Filter commands...</source>
-        <translation>篩選命令...</translation>
-    </message>
-    <message>
-        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
-        <translation>參數以單一 JSON 物件表示；若無參數則留空。此處不能提供 Blob。</translation>
-    </message>
-    <message>
-        <source>Invoke as Host</source>
-        <translation>以主機身分叫用</translation>
-    </message>
-    <message>
-        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
-        <translation>使用主機自身的權限執行命令，這是任何模組都沒有的權限：能力檢查不適用。</translation>
-    </message>
-    <message>
-        <source>Arguments refused, %1</source>
-        <translation>參數遭拒絕，%1</translation>
-    </message>
-</context>
-<context>
     <name>GpgFrontend::UI::ModuleEventsPanel</name>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="189"/>
         <source>One key=value per line</source>
         <translation>每行一個 key=value</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="192"/>
         <source>Fire</source>
         <translation>觸發</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="196"/>
         <source>Clear Log</source>
         <translation>清除日誌</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="199"/>
         <source>Event</source>
         <translation>事件</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="201"/>
         <source>Listeners</source>
         <translation>監聽器</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="202"/>
         <source>Parameters</source>
         <translation>參數</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="235"/>
         <source>Not an event this build fires.</source>
         <translation>此版本不會觸發此事件。</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="248"/>
         <source>No active module listens to it.</source>
         <translation>沒有作用中的模組監聽此事件。</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="257"/>
         <source>Parameters refused, %1</source>
         <translation>參數被拒絕：%1</translation>
     </message>
     <message numerus="yes">
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="262"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>已向 %n 個監聽器觸發 %1</numerusform>
         </translation>
-    </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::ModuleStatusPanel</name>
-    <message>
-        <source>Commands</source>
-        <translation>命令</translation>
-    </message>
-    <message>
-        <source>Module</source>
-        <translation>模組</translation>
-    </message>
-    <message>
-        <source>State</source>
-        <translation>狀態</translation>
-    </message>
-    <message>
-        <source>Origin</source>
-        <translation>來源</translation>
-    </message>
-    <message>
-        <source>Entry Gate</source>
-        <translation>入口閘道</translation>
-    </message>
-    <message>
-        <source>Listening</source>
-        <translation>監聽中</translation>
-    </message>
-    <message>
-        <source>Answers Owed</source>
-        <translation>待回覆</translation>
-    </message>
-    <message>
-        <source>Calls</source>
-        <translation>調用</translation>
-    </message>
-    <message>
-        <source>Widgets</source>
-        <translation>小工具</translation>
-    </message>
-    <message>
-        <source>Refresh</source>
-        <translation>重新整理</translation>
-    </message>
-    <message>
-        <source>Read-only. Activate and deactivate on the first tab.</source>
-        <translation>唯讀。可從第一個索引標籤啟用和停用。</translation>
-    </message>
-    <message>
-        <source>Integrated</source>
-        <translation>內建</translation>
-    </message>
-    <message>
-        <source>External</source>
-        <translation>外部</translation>
-    </message>
-    <message>
-        <source>Closed</source>
-        <translation>已關閉</translation>
-    </message>
-    <message>
-        <source>Open</source>
-        <translation>已開啟</translation>
     </message>
 </context>
 <context>
@@ -10557,6 +10513,84 @@ Would you like to fetch these keys from the key server?</source>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="203"/>
         <source>Auto</source>
         <translation>自動</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleStatusPanel</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Commands</source>
+        <translation>命令</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Module</source>
+        <translation>模組</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>State</source>
+        <translation>狀態</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Origin</source>
+        <translation>來源</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Entry Gate</source>
+        <translation>入口閘道</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Listening</source>
+        <translation>監聽中</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Answers Owed</source>
+        <translation>待回覆</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Calls</source>
+        <translation>調用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="286"/>
+        <source>Widgets</source>
+        <translation>小工具</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="292"/>
+        <source>Refresh</source>
+        <translation>重新整理</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="295"/>
+        <source>Read-only. Activate and deactivate on the first tab.</source>
+        <translation>唯讀。可從第一個索引標籤啟用和停用。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <source>Integrated</source>
+        <translation>內建</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <source>External</source>
+        <translation>外部</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <source>Closed</source>
+        <translation>已關閉</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <source>Open</source>
+        <translation>已開啟</translation>
     </message>
 </context>
 <context>
@@ -13408,110 +13442,109 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">無法從 GpgConf 取得資訊</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="548"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="553"/>
         <source>Basic Path Initiation Failed</source>
         <translation>基礎路徑初始化失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="580"/>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="651"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="585"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="659"/>
         <source>No Supported OpenPGP Engine Detected</source>
         <translation>未偵測到支援的 OpenPGP 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="623"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="631"/>
         <source>No valid Key Database</source>
         <translation>沒有有效的金鑰資料庫</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="686"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="694"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>GpgME 預設上下文初始化失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="708"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="716"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Gpg 預設金鑰資料庫初始化失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="72"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="73"/>
         <source>Starting up...</source>
         <translation>正在啟動...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="74"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="75"/>
         <source>Checking the GnuPG environment...</source>
         <translation>正在檢查 GnuPG 環境...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="76"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="77"/>
         <source>Checking the rPGP engine...</source>
         <translation>正在檢查 rPGP 引擎...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="78"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="79"/>
         <source>Resolving GnuPG paths...</source>
         <translation>正在解析 GnuPG 路徑...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="80"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="81"/>
         <source>Preparing the OpenPGP backend engine...</source>
         <translation>正在準備 OpenPGP 後端引擎...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="82"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="83"/>
         <source>Building the default engine context...</source>
         <translation>正在建立預設引擎上下文...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="85"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
         <source>Loading key databases...</source>
         <translation>正在載入金鑰資料庫...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="87"/>
         <source>Loading key database &quot;%1&quot;...</source>
         <translation>正在載入金鑰資料庫 &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="89"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="90"/>
         <source>Scanning modules...</source>
         <translation>正在掃描模組...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="91"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="92"/>
         <source>Verifying modules...</source>
         <translation>正在驗證模組...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="94"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
         <source>Loading modules...</source>
         <translation>正在載入模組...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="96"/>
         <source>Loading module &quot;%1&quot;...</source>
         <translation>正在載入模組 &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="98"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="99"/>
         <source>Ready.</source>
         <translation>就緒。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="123"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="174"/>
         <source>Starting GpgFrontend</source>
         <translation>正在啟動 GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="163"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="134"/>
         <source>Preparing OpenPGP Environment</source>
         <translation>正在準備 OpenPGP 環境</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="164"/>
         <source>Loading...</source>
-        <translation>正在載入...</translation>
+        <translation type="vanished">正在載入...</translation>
     </message>
     <message>
         <source>Loading essential information</source>
@@ -13526,7 +13559,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">初始化執行期間，請保持此視窗開啟。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="151"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="233"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -15065,32 +15098,32 @@ The link has been copied to your clipboard:
         <translation>這些來自檔案未加密的標頭，任何持有該檔案的人都可以變更。</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="204"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="205"/>
         <source>The module claims the ID %1, which belongs to a module that comes with GpgFrontend.</source>
         <translation>此模組宣稱 ID %1，但該 ID 屬於 GpgFrontend 隨附的模組。</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="235"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="236"/>
         <source>External modules are not supported on macOS: the system only loads code signed with this application&apos;s own Team ID.</source>
         <translation>macOS 不支援外部模組：系統只會載入以這個應用程式自身 Team ID 簽署的程式碼。</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="250"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="251"/>
         <source>Waiting for you to trust the publisher key that signed it.</source>
         <translation>等待您信任簽署該項目的發布者金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="253"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="254"/>
         <source>Waiting for you to enable it.</source>
         <translation>等待您啟用它。</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="280"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="281"/>
         <source>The module declares the ID %1 but is in a directory named %2 instead of %3.</source>
         <translation>此模組宣告 ID 為 %1，但所在的目錄名稱為 %2，而非 %3。</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="354"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="355"/>
         <source>This is not a module package.</source>
         <translation>這不是模組套件。</translation>
     </message>

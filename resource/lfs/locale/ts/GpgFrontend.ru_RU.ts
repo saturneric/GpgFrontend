@@ -8455,7 +8455,7 @@ Right-click a key in another tab and use Category to file it here.</source>
 <context>
     <name>GpgFrontend::UI::Lua::NativeSettingsPage</name>
     <message>
-        <location filename="../../../../src/ui/lua/LuaMounts.cpp" line="196"/>
+        <location filename="../../../../src/ui/lua/LuaMounts.cpp" line="192"/>
         <source>The module that provided this page is no longer active.</source>
         <translation>Модуль, предоставивший эту страницу, больше не активен.</translation>
     </message>
@@ -10023,6 +10023,39 @@ Would you like to fetch these keys from the key server?</source>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
+        <source>Clear Log</source>
+        <translation>Очистить журнал</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
+        <source>Filter commands...</source>
+        <translation>Фильтровать команды...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="355"/>
+        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
+        <translation>Аргументы в виде одного JSON-объекта; пусто, если их нет. Блобы здесь указывать нельзя.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="359"/>
+        <source>Invoke as Host</source>
+        <translation>Вызвать как хост</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="361"/>
+        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
+        <translation>Выполняет команду с собственными полномочиями хоста, которых нет ни у одного модуля: проверки разрешений не применяются.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="448"/>
+        <source>Arguments refused, %1</source>
+        <translation>Аргументы отклонены, %1</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::ModuleControllerDialog</name>
     <message>
         <source>Module Information</source>
@@ -10033,17 +10066,17 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Действия</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="127"/>
         <source>Show Modules Folder</source>
         <translation>Показать каталог модулей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="95"/>
         <source>Registered Modules</source>
         <translation>Зарегистрированные модули</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="92"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
         <source>Global Register Table</source>
         <translation>Глобальная таблица регистрации</translation>
     </message>
@@ -10056,7 +10089,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Подсказка: имя модуля с «*» означает встроенный модуль.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="93"/>
         <source>Module Controller</source>
         <translation>Контроллер модулей</translation>
     </message>
@@ -10077,37 +10110,37 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Версия</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
         <source>Search modules...</source>
         <translation>Поиск модулей...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="105"/>
         <source>All</source>
         <translation>Все</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="109"/>
         <source>Inactive</source>
         <translation>Неактивные</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="111"/>
         <source>Integrated</source>
         <translation>Встроенные</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="113"/>
         <source>External</source>
         <translation>Внешние</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="115"/>
         <source>Not Loaded</source>
         <translation>Не загруженные</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="119"/>
         <source>Select a module to see its details.</source>
         <translation>Выберите модуль для просмотра его сведений.</translation>
     </message>
@@ -10128,38 +10161,38 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Путь</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="112"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
         <source>Listening Events</source>
         <translation>Прослушиваемые события</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
         <source>Activate on Start</source>
         <translation>Активировать при запуске</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="125"/>
         <source>Activate this module automatically when GpgFrontend starts.</source>
         <translation>Автоматически активировать этот модуль при запуске GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="117"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
         <source>Refresh</source>
         <translation>Обновить</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="129"/>
         <source>Search keys and values...</source>
         <translation>Поиск ключей и значений...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="130"/>
         <source>Expand All</source>
         <translation>Развернуть всё</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="122"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="131"/>
         <source>Collapse All</source>
         <translation>Свернуть все</translation>
     </message>
@@ -10176,7 +10209,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Модули: %1 · Активно: %2</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="141"/>
         <source>%n module(s)</source>
         <translation>
             <numerusform>%n модуль
@@ -10187,7 +10220,7 @@ Would you like to fetch these keys from the key server?</source>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="143"/>
         <source>%n active</source>
         <translation>
             <numerusform>Активно: %n</numerusform>
@@ -10212,135 +10245,135 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Значение</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="208"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="217"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Загрузка модулей отключена. Включите её в настройках &gt; Общие, чтобы использовать модули.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="213"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="222"/>
         <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Загружены только встроенные модули. Чтобы загрузить внешние модули из каталога mods, измените политику загрузки модулей в настройках &gt; Общие.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="237"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="386"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="395"/>
         <source>Trust This Publisher Key...</source>
         <translation>Доверять ключу издателя...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="247"/>
         <source>Enable This Module</source>
         <translation>Включить этот модуль</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="266"/>
         <source>Trust This Publisher Key?</source>
         <translation>Довериться этому ключу издателя?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="267"/>
         <source>&lt;p&gt;Modules signed by this publisher key will be offered for you to enable, one at a time. Trusting it does not enable anything by itself.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Publisher key fingerprint&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;The key is the publisher&apos;s identity. Any name or website a module shows is only its own claim. A module signed with a different key will ask you again.&lt;/p&gt;&lt;p&gt;Only continue if you obtained this fingerprint from the module&apos;s author through a channel you trust.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Модули, подписанные ключом этого издателя, будут предлагаться вам для включения по одному. Доверие к нему само по себе ничего не включает.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Отпечаток ключа издателя&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;Ключ — это личность издателя. Любое имя или веб-сайт, указанные модулем, — лишь его собственное заявление. Модуль, подписанный другим ключом, запросит подтверждение снова.&lt;/p&gt;&lt;p&gt;Продолжайте, только если вы получили этот отпечаток от автора модуля по каналу, которому доверяете.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="271"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
         <source>&lt;p&gt;A module you enable runs inside GpgFrontend and can do anything GpgFrontend can. The capabilities it lists are what it asked for, not a limit.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Модуль, который вы включаете, работает внутри GpgFrontend и может делать всё, что умеет GpgFrontend. Перечисленные возможности — это то, что он запросил, а не ограничение.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="279"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="296"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="305"/>
         <source>Not Saved</source>
         <translation>Не сохранено</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="289"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
         <source>That decision could not be saved, so nothing has changed.</source>
         <translation>Не удалось сохранить это решение, поэтому ничего не изменилось.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="314"/>
         <source>Enabled</source>
         <translation>Включён</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="315"/>
         <source>This module will be loaded the next time GpgFrontend starts.</source>
         <translation>Модуль будет загружен при следующем запуске GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
         <source>Needs Approval</source>
         <translation>Требует одобрения</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
         <source>Refused</source>
         <translation>Отклонено</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="357"/>
         <source>Status</source>
         <translation>Статус</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="358"/>
         <source>Waiting for you</source>
         <translation>Ожидает вашего решения</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="359"/>
         <source>Not loaded</source>
         <translation>Не загружен</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="362"/>
         <source>Identifier</source>
         <translation>Идентификатор</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="364"/>
         <source>Descriptor</source>
         <translation>Дескриптор</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="363"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="372"/>
         <source>Publisher key</source>
         <translation>Ключ издателя</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="374"/>
         <source>You have trusted this publisher key.</source>
         <translation>Вы доверяете этому ключу издателя.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="375"/>
         <source>You have not trusted this publisher key. Before trusting it, compare its fingerprint with the one the publisher published.</source>
         <translation>Вы не доверяете этому ключу издателя. Прежде чем довериться ему, сравните его отпечаток с тем, который опубликовал издатель.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="394"/>
         <source>Publisher Key Trusted</source>
         <translation>Доверенный ключ издателя</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
         <source>● Active</source>
         <translation>● Активный</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
         <source>○ Inactive</source>
         <translation>○ Неактивный</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="453"/>
         <source>Auto Start</source>
         <translation>Автозапуск</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="458"/>
         <source>by %1</source>
         <translation>от %1</translation>
     </message>
@@ -10357,7 +10390,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Нажмите, чтобы открыть папку</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="476"/>
         <source>Listening Events (%1)</source>
         <translation>Прослушиваемые события (%1)</translation>
     </message>
@@ -10374,7 +10407,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Нет</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="107"/>
         <source>Active</source>
         <translation>Активен</translation>
     </message>
@@ -10387,12 +10420,12 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Прослушиваемое событие</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="469"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="478"/>
         <source>Deactivate</source>
         <translation>Деактивировать</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="479"/>
         <source>Activate</source>
         <translation>Активировать</translation>
     </message>
@@ -10401,84 +10434,70 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">Отключить автоактивацию</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
         <source>Events</source>
         <translation>События</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
         <source>Commands</source>
         <translation>Команды</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
         <source>Module Status</source>
         <translation>Состояние модулей</translation>
     </message>
 </context>
 <context>
-    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
-    <message>
-        <source>Clear Log</source>
-        <translation>Очистить журнал</translation>
-    </message>
-    <message>
-        <source>Filter commands...</source>
-        <translation>Фильтровать команды...</translation>
-    </message>
-    <message>
-        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
-        <translation>Аргументы в виде одного JSON-объекта; пусто, если их нет. Блобы здесь указывать нельзя.</translation>
-    </message>
-    <message>
-        <source>Invoke as Host</source>
-        <translation>Вызвать как хост</translation>
-    </message>
-    <message>
-        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
-        <translation>Выполняет команду с собственными полномочиями хоста, которых нет ни у одного модуля: проверки разрешений не применяются.</translation>
-    </message>
-    <message>
-        <source>Arguments refused, %1</source>
-        <translation>Аргументы отклонены, %1</translation>
-    </message>
-</context>
-<context>
     <name>GpgFrontend::UI::ModuleEventsPanel</name>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="189"/>
         <source>One key=value per line</source>
         <translation>Одна пара ключ=значение в строке</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="192"/>
         <source>Fire</source>
         <translation>Отправить</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="196"/>
         <source>Clear Log</source>
         <translation>Очистить журнал</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="199"/>
         <source>Event</source>
         <translation>Событие</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="201"/>
         <source>Listeners</source>
         <translation>Слушатели</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="202"/>
         <source>Parameters</source>
         <translation>Параметры</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="235"/>
         <source>Not an event this build fires.</source>
         <translation>Это не событие, отправляемое этой сборкой.</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="248"/>
         <source>No active module listens to it.</source>
         <translation>Ни один активный модуль не прослушивает его.</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="257"/>
         <source>Parameters refused, %1</source>
         <translation>Параметры отклонены, %1</translation>
     </message>
     <message numerus="yes">
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="262"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>Событие %1 отправлено %n слушателю
@@ -10487,69 +10506,6 @@ Would you like to fetch these keys from the key server?</source>
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
-    </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::ModuleStatusPanel</name>
-    <message>
-        <source>Commands</source>
-        <translation>Команды</translation>
-    </message>
-    <message>
-        <source>Module</source>
-        <translation>Модуль</translation>
-    </message>
-    <message>
-        <source>State</source>
-        <translation>Состояние</translation>
-    </message>
-    <message>
-        <source>Origin</source>
-        <translation>Источник</translation>
-    </message>
-    <message>
-        <source>Entry Gate</source>
-        <translation>Входной шлюз</translation>
-    </message>
-    <message>
-        <source>Listening</source>
-        <translation>Прослушивание</translation>
-    </message>
-    <message>
-        <source>Answers Owed</source>
-        <translation>Ожидается ответов</translation>
-    </message>
-    <message>
-        <source>Calls</source>
-        <translation>Вызовы</translation>
-    </message>
-    <message>
-        <source>Widgets</source>
-        <translation>Виджеты</translation>
-    </message>
-    <message>
-        <source>Refresh</source>
-        <translation>Обновить</translation>
-    </message>
-    <message>
-        <source>Read-only. Activate and deactivate on the first tab.</source>
-        <translation>Только для чтения. Активировать и деактивировать на первой вкладке.</translation>
-    </message>
-    <message>
-        <source>Integrated</source>
-        <translation>Интегрированный</translation>
-    </message>
-    <message>
-        <source>External</source>
-        <translation>Внешний</translation>
-    </message>
-    <message>
-        <source>Closed</source>
-        <translation>Закрыто</translation>
-    </message>
-    <message>
-        <source>Open</source>
-        <translation>Открыто</translation>
     </message>
 </context>
 <context>
@@ -10588,6 +10544,84 @@ Would you like to fetch these keys from the key server?</source>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="203"/>
         <source>Auto</source>
         <translation>Авто</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleStatusPanel</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Commands</source>
+        <translation>Команды</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Module</source>
+        <translation>Модуль</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>State</source>
+        <translation>Состояние</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Origin</source>
+        <translation>Источник</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Entry Gate</source>
+        <translation>Входной шлюз</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Listening</source>
+        <translation>Прослушивание</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Answers Owed</source>
+        <translation>Ожидается ответов</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Calls</source>
+        <translation>Вызовы</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="286"/>
+        <source>Widgets</source>
+        <translation>Виджеты</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="292"/>
+        <source>Refresh</source>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="295"/>
+        <source>Read-only. Activate and deactivate on the first tab.</source>
+        <translation>Только для чтения. Активировать и деактивировать на первой вкладке.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <source>Integrated</source>
+        <translation>Интегрированный</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <source>External</source>
+        <translation>Внешний</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <source>Closed</source>
+        <translation>Закрыто</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <source>Open</source>
+        <translation>Открыто</translation>
     </message>
 </context>
 <context>
@@ -13443,110 +13477,109 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">Не удалось получить информацию из GpgConf</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="548"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="553"/>
         <source>Basic Path Initiation Failed</source>
         <translation>Не удалось инициализировать базовые пути</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="580"/>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="651"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="585"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="659"/>
         <source>No Supported OpenPGP Engine Detected</source>
         <translation>Не обнаружено поддерживаемого движка OpenPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="623"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="631"/>
         <source>No valid Key Database</source>
         <translation>Нет допустимой базы данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="686"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="694"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>Не удалось инициализировать контекст GpgME по умолчанию</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="708"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="716"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Не удалось инициализировать базу данных ключей GPG по умолчанию</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="72"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="73"/>
         <source>Starting up...</source>
         <translation>Запуск...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="74"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="75"/>
         <source>Checking the GnuPG environment...</source>
         <translation>Проверка среды GnuPG...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="76"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="77"/>
         <source>Checking the rPGP engine...</source>
         <translation>Проверка движка rPGP...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="78"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="79"/>
         <source>Resolving GnuPG paths...</source>
         <translation>Определение путей GnuPG...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="80"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="81"/>
         <source>Preparing the OpenPGP backend engine...</source>
         <translation>Подготовка внутреннего движка OpenPGP...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="82"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="83"/>
         <source>Building the default engine context...</source>
         <translation>Создание контекста движка по умолчанию...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="85"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
         <source>Loading key databases...</source>
         <translation>Загрузка баз данных ключей...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="87"/>
         <source>Loading key database &quot;%1&quot;...</source>
         <translation>Загрузка базы данных ключей «%1»...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="89"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="90"/>
         <source>Scanning modules...</source>
         <translation>Сканирование модулей...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="91"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="92"/>
         <source>Verifying modules...</source>
         <translation>Проверка модулей...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="94"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
         <source>Loading modules...</source>
         <translation>Загрузка модулей...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="96"/>
         <source>Loading module &quot;%1&quot;...</source>
         <translation>Загрузка модуля «%1»...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="98"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="99"/>
         <source>Ready.</source>
         <translation>Готово.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="123"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="174"/>
         <source>Starting GpgFrontend</source>
         <translation>Запуск GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="163"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="134"/>
         <source>Preparing OpenPGP Environment</source>
         <translation>Подготовка среды OpenPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="164"/>
         <source>Loading...</source>
-        <translation>Загрузка...</translation>
+        <translation type="vanished">Загрузка...</translation>
     </message>
     <message>
         <source>Loading essential information</source>
@@ -13561,7 +13594,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">Пожалуйста, не закрывайте это окно во время инициализации.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="151"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="233"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
@@ -15100,32 +15133,32 @@ The link has been copied to your clipboard:
         <translation>Эти данные берутся из незашифрованного заголовка файла, который может изменить любой, у кого есть файл.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="204"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="205"/>
         <source>The module claims the ID %1, which belongs to a module that comes with GpgFrontend.</source>
         <translation>Модуль заявляет ID %1, который принадлежит модулю, поставляемому с GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="235"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="236"/>
         <source>External modules are not supported on macOS: the system only loads code signed with this application&apos;s own Team ID.</source>
         <translation>Внешние модули не поддерживаются в macOS: система загружает только код, подписанный собственным Team ID этого приложения.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="250"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="251"/>
         <source>Waiting for you to trust the publisher key that signed it.</source>
         <translation>Ожидается, что вы доверитесь ключу издателя, подписавшему его.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="253"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="254"/>
         <source>Waiting for you to enable it.</source>
         <translation>Ожидается, что вы включите его.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="280"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="281"/>
         <source>The module declares the ID %1 but is in a directory named %2 instead of %3.</source>
         <translation>Модуль объявляет ID %1, но находится в каталоге %2, а не %3.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="354"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="355"/>
         <source>This is not a module package.</source>
         <translation>Это не пакет модуля.</translation>
     </message>

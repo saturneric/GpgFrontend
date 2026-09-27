@@ -8450,7 +8450,7 @@ Fai clic destro su una chiave in un&apos;altra scheda e usa Categoria per archiv
 <context>
     <name>GpgFrontend::UI::Lua::NativeSettingsPage</name>
     <message>
-        <location filename="../../../../src/ui/lua/LuaMounts.cpp" line="196"/>
+        <location filename="../../../../src/ui/lua/LuaMounts.cpp" line="192"/>
         <source>The module that provided this page is no longer active.</source>
         <translation>Il modulo che forniva questa pagina non è più attivo.</translation>
     </message>
@@ -10017,6 +10017,39 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
+        <source>Clear Log</source>
+        <translation>Pulisci registro</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
+        <source>Filter commands...</source>
+        <translation>Filtra comandi...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="355"/>
+        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
+        <translation>Argomenti come un unico oggetto JSON; vuoto se nessuno. I blob non possono essere forniti qui.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="359"/>
+        <source>Invoke as Host</source>
+        <translation>Invoca come Host</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="361"/>
+        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
+        <translation>Esegue il comando con l&apos;autorità dell&apos;Host, che nessun modulo possiede: i controlli di capacità non si applicano.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="448"/>
+        <source>Arguments refused, %1</source>
+        <translation>Argomenti rifiutati, %1</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::ModuleControllerDialog</name>
     <message>
         <source>Module Information</source>
@@ -10027,17 +10060,17 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Azioni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="127"/>
         <source>Show Modules Folder</source>
         <translation>Mstra Cartella Mods</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="95"/>
         <source>Registered Modules</source>
         <translation>Moduli registrati</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="92"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
         <source>Global Register Table</source>
         <translation>Tabella dei registri globali</translation>
     </message>
@@ -10050,7 +10083,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Suggerimenti: il nome del modulo preceduto da &quot;*&quot; sta per modulo integrato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="93"/>
         <source>Module Controller</source>
         <translation>Controller Modulo</translation>
     </message>
@@ -10071,37 +10104,37 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Versione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
         <source>Search modules...</source>
         <translation>Cerca moduli...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="105"/>
         <source>All</source>
         <translation>Tutti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="109"/>
         <source>Inactive</source>
         <translation>Inattivi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="111"/>
         <source>Integrated</source>
         <translation>Integrati</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="113"/>
         <source>External</source>
         <translation>Esterni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="115"/>
         <source>Not Loaded</source>
         <translation>Non caricati</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="119"/>
         <source>Select a module to see its details.</source>
         <translation>Seleziona un modulo per visualizzarne i dettagli.</translation>
     </message>
@@ -10122,38 +10155,38 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Percorso</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="112"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
         <source>Listening Events</source>
         <translation>Eventi in ascolto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
         <source>Activate on Start</source>
         <translation>Attiva all&apos;avvio</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="125"/>
         <source>Activate this module automatically when GpgFrontend starts.</source>
         <translation>Attiva automaticamente questo modulo all&apos;avvio di GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="117"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
         <source>Refresh</source>
         <translation>Aggiorna</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="129"/>
         <source>Search keys and values...</source>
         <translation>Cerca chiavi e valori...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="130"/>
         <source>Expand All</source>
         <translation>Espandi tutto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="122"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="131"/>
         <source>Collapse All</source>
         <translation>Comprimi tutto</translation>
     </message>
@@ -10170,7 +10203,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">%1 moduli · %2 attivi</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="141"/>
         <source>%n module(s)</source>
         <translation>
             <numerusform>%n modulo
@@ -10179,7 +10212,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="143"/>
         <source>%n active</source>
         <translation>
             <numerusform>%n attivo
@@ -10204,135 +10237,135 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Valore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="208"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="217"/>
         <source>Modules are disabled. Change Module Discovery in Settings &gt; General to use them.</source>
         <translation>Il caricamento dei moduli è disabilitato. Abilitarlo in Impostazioni &gt; Generale per usare i moduli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="213"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="222"/>
         <source>Only integrated modules are loaded. To also load modules you have added, change Module Discovery in Settings &gt; General.</source>
         <translation>Vengono caricati solo moduli integrati. Per caricare moduli esterni dalla directory mods, modificare la politica di caricamento moduli in Impostazioni &gt; Generale.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="237"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="386"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="395"/>
         <source>Trust This Publisher Key...</source>
         <translation>Considera attendibile questa chiave dell&apos;editore...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="247"/>
         <source>Enable This Module</source>
         <translation>Abilita questo modulo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="266"/>
         <source>Trust This Publisher Key?</source>
         <translation>Fidarsi di questa chiave dell&apos;editore?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="267"/>
         <source>&lt;p&gt;Modules signed by this publisher key will be offered for you to enable, one at a time. Trusting it does not enable anything by itself.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Publisher key fingerprint&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;The key is the publisher&apos;s identity. Any name or website a module shows is only its own claim. A module signed with a different key will ask you again.&lt;/p&gt;&lt;p&gt;Only continue if you obtained this fingerprint from the module&apos;s author through a channel you trust.&lt;/p&gt;</source>
         <translation>&lt;p&gt;I moduli firmati con questa chiave dell&apos;editore verranno proposti per l&apos;abilitazione, uno alla volta. Considerarla attendibile non abilita nulla di per sé.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Impronta digitale della chiave dell&apos;editore&lt;/b&gt;&lt;br/&gt;&lt;code&gt;%1&lt;/code&gt;&lt;/p&gt;&lt;p&gt;La chiave è l&apos;identità dell&apos;editore. Qualsiasi nome o sito web mostrato da un modulo è solo una sua affermazione. Un modulo firmato con una chiave diversa ti chiederà di nuovo.&lt;/p&gt;&lt;p&gt;Procedi solo se hai ottenuto questa impronta digitale dall&apos;autore del modulo tramite un canale di cui ti fidi.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="271"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
         <source>&lt;p&gt;A module you enable runs inside GpgFrontend and can do anything GpgFrontend can. The capabilities it lists are what it asked for, not a limit.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Un modulo che abiliti viene eseguito all&apos;interno di GpgFrontend e può fare qualsiasi cosa possa fare GpgFrontend. Le capacità che elenca sono quelle che ha richiesto, non un limite.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="279"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="296"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="305"/>
         <source>Not Saved</source>
         <translation>Non salvato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="289"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
         <source>That decision could not be saved, so nothing has changed.</source>
         <translation>Non è stato possibile salvare la decisione, quindi non è cambiato nulla.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="314"/>
         <source>Enabled</source>
         <translation>Abilitato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="315"/>
         <source>This module will be loaded the next time GpgFrontend starts.</source>
         <translation>Questo modulo verrà caricato al prossimo avvio di GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
         <source>Needs Approval</source>
         <translation>Richiede approvazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
         <source>Refused</source>
         <translation>Rifiutato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="357"/>
         <source>Status</source>
         <translation>Stato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="358"/>
         <source>Waiting for you</source>
         <translation>In attesa di te</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="359"/>
         <source>Not loaded</source>
         <translation>Non caricato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="362"/>
         <source>Identifier</source>
         <translation>Identificatore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="364"/>
         <source>Descriptor</source>
         <translation>Descrittore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="363"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="372"/>
         <source>Publisher key</source>
         <translation>Chiave dell&apos;editore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="374"/>
         <source>You have trusted this publisher key.</source>
         <translation>Hai accordato fiducia a questa chiave dell&apos;editore.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="375"/>
         <source>You have not trusted this publisher key. Before trusting it, compare its fingerprint with the one the publisher published.</source>
         <translation>Non hai accordato fiducia a questa chiave dell&apos;editore. Prima di farlo, confronta la sua impronta digitale con quella pubblicata dall&apos;editore.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="394"/>
         <source>Publisher Key Trusted</source>
         <translation>Chiave dell&apos;editore attendibile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
         <source>● Active</source>
         <translation>● Attivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
         <source>○ Inactive</source>
         <translation>○ Inattivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="453"/>
         <source>Auto Start</source>
         <translation>Avvio automatico</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="449"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="458"/>
         <source>by %1</source>
         <translation>da %1</translation>
     </message>
@@ -10349,7 +10382,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Fai clic per aprire la cartella</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="476"/>
         <source>Listening Events (%1)</source>
         <translation>Eventi in ascolto (%1)</translation>
     </message>
@@ -10366,7 +10399,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Falso</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="107"/>
         <source>Active</source>
         <translation>Attivo</translation>
     </message>
@@ -10379,12 +10412,12 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Evento di ascolto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="469"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="478"/>
         <source>Deactivate</source>
         <translation>Disattiva</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="479"/>
         <source>Activate</source>
         <translation>Attiva</translation>
     </message>
@@ -10393,153 +10426,76 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation type="vanished">Disabilita l&apos;attivazione automatica</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
         <source>Events</source>
         <translation>Eventi</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="102"/>
         <source>Commands</source>
         <translation>Comandi</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
         <source>Module Status</source>
         <translation>Stato dei moduli</translation>
     </message>
 </context>
 <context>
-    <name>GpgFrontend::UI::ModuleCommandsPanel</name>
-    <message>
-        <source>Clear Log</source>
-        <translation>Pulisci registro</translation>
-    </message>
-    <message>
-        <source>Filter commands...</source>
-        <translation>Filtra comandi...</translation>
-    </message>
-    <message>
-        <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
-        <translation>Argomenti come un unico oggetto JSON; vuoto se nessuno. I blob non possono essere forniti qui.</translation>
-    </message>
-    <message>
-        <source>Invoke as Host</source>
-        <translation>Invoca come Host</translation>
-    </message>
-    <message>
-        <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
-        <translation>Esegue il comando con l&apos;autorità dell&apos;Host, che nessun modulo possiede: i controlli di capacità non si applicano.</translation>
-    </message>
-    <message>
-        <source>Arguments refused, %1</source>
-        <translation>Argomenti rifiutati, %1</translation>
-    </message>
-</context>
-<context>
     <name>GpgFrontend::UI::ModuleEventsPanel</name>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="189"/>
         <source>One key=value per line</source>
         <translation>Una chiave=valore per riga</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="192"/>
         <source>Fire</source>
         <translation>Esegui</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="196"/>
         <source>Clear Log</source>
         <translation>Pulisci registro</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="199"/>
         <source>Event</source>
         <translation>Evento</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="201"/>
         <source>Listeners</source>
         <translation>Listener</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="202"/>
         <source>Parameters</source>
         <translation>Parametri</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="235"/>
         <source>Not an event this build fires.</source>
         <translation>Non è un evento che questa build emette.</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="248"/>
         <source>No active module listens to it.</source>
         <translation>Nessun modulo attivo lo ascolta.</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="257"/>
         <source>Parameters refused, %1</source>
         <translation>Parametri rifiutati, %1</translation>
     </message>
     <message numerus="yes">
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="262"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>Inviato %1 a %n ascoltatore
 Inviato %1 a %n ascoltatori</numerusform>
             <numerusform></numerusform>
         </translation>
-    </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::ModuleStatusPanel</name>
-    <message>
-        <source>Commands</source>
-        <translation>Comandi</translation>
-    </message>
-    <message>
-        <source>Module</source>
-        <translation>Modulo</translation>
-    </message>
-    <message>
-        <source>State</source>
-        <translation>Stato</translation>
-    </message>
-    <message>
-        <source>Origin</source>
-        <translation>Origine</translation>
-    </message>
-    <message>
-        <source>Entry Gate</source>
-        <translation>Porta d&apos;ingresso</translation>
-    </message>
-    <message>
-        <source>Listening</source>
-        <translation>In ascolto</translation>
-    </message>
-    <message>
-        <source>Answers Owed</source>
-        <translation>Risposte dovute</translation>
-    </message>
-    <message>
-        <source>Calls</source>
-        <translation>Chiamate</translation>
-    </message>
-    <message>
-        <source>Widgets</source>
-        <translation>Widget</translation>
-    </message>
-    <message>
-        <source>Refresh</source>
-        <translation>Aggiorna</translation>
-    </message>
-    <message>
-        <source>Read-only. Activate and deactivate on the first tab.</source>
-        <translation>Sola lettura. Attivare e disattivare nella prima scheda.</translation>
-    </message>
-    <message>
-        <source>Integrated</source>
-        <translation>Integrato</translation>
-    </message>
-    <message>
-        <source>External</source>
-        <translation>Esterno</translation>
-    </message>
-    <message>
-        <source>Closed</source>
-        <translation>Chiuso</translation>
-    </message>
-    <message>
-        <source>Open</source>
-        <translation>Aperto</translation>
     </message>
 </context>
 <context>
@@ -10578,6 +10534,84 @@ Inviato %1 a %n ascoltatori</numerusform>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="203"/>
         <source>Auto</source>
         <translation>Automatico</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ModuleStatusPanel</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Commands</source>
+        <translation>Comandi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Module</source>
+        <translation>Modulo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>State</source>
+        <translation>Stato</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Origin</source>
+        <translation>Origine</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <source>Entry Gate</source>
+        <translation>Porta d&apos;ingresso</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Listening</source>
+        <translation>In ascolto</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Answers Owed</source>
+        <translation>Risposte dovute</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <source>Calls</source>
+        <translation>Chiamate</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="286"/>
+        <source>Widgets</source>
+        <translation>Widget</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="292"/>
+        <source>Refresh</source>
+        <translation>Aggiorna</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="295"/>
+        <source>Read-only. Activate and deactivate on the first tab.</source>
+        <translation>Sola lettura. Attivare e disattivare nella prima scheda.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <source>Integrated</source>
+        <translation>Integrato</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <source>External</source>
+        <translation>Esterno</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <source>Closed</source>
+        <translation>Chiuso</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <source>Open</source>
+        <translation>Aperto</translation>
     </message>
 </context>
 <context>
@@ -13431,110 +13465,109 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
         <translation type="vanished">Impossibile ottenere informazioni da GpgConf</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="548"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="553"/>
         <source>Basic Path Initiation Failed</source>
         <translation>Avvio del percorso di base non riuscito</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="580"/>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="651"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="585"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="659"/>
         <source>No Supported OpenPGP Engine Detected</source>
         <translation>Nessun motore OpenPGP supportato rilevato</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="623"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="631"/>
         <source>No valid Key Database</source>
         <translation>Nessun database di chiavi valido</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="686"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="694"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>Errore nell&apos;avvio del contesto predefinito di GpgME</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="708"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="716"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Errore nell&apos;avvio del database delle chiavi predefinite Gpg</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="72"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="73"/>
         <source>Starting up...</source>
         <translation>Avvio in corso...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="74"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="75"/>
         <source>Checking the GnuPG environment...</source>
         <translation>Verifica dell&apos;ambiente GnuPG...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="76"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="77"/>
         <source>Checking the rPGP engine...</source>
         <translation>Verifica del motore rPGP...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="78"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="79"/>
         <source>Resolving GnuPG paths...</source>
         <translation>Risoluzione dei percorsi GnuPG...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="80"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="81"/>
         <source>Preparing the OpenPGP backend engine...</source>
         <translation>Preparazione del motore di backend OpenPGP...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="82"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="83"/>
         <source>Building the default engine context...</source>
         <translation>Creazione del contesto del motore predefinito...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="85"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
         <source>Loading key databases...</source>
         <translation>Caricamento dei database delle chiavi...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="86"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="87"/>
         <source>Loading key database &quot;%1&quot;...</source>
         <translation>Caricamento del database delle chiavi &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="89"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="90"/>
         <source>Scanning modules...</source>
         <translation>Scansione dei moduli...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="91"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="92"/>
         <source>Verifying modules...</source>
         <translation>Verifica dei moduli...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="94"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
         <source>Loading modules...</source>
         <translation>Caricamento dei moduli...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="95"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="96"/>
         <source>Loading module &quot;%1&quot;...</source>
         <translation>Caricamento del modulo &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="98"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="99"/>
         <source>Ready.</source>
         <translation>Pronto.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="123"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="174"/>
         <source>Starting GpgFrontend</source>
         <translation>Avvio di GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="163"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="134"/>
         <source>Preparing OpenPGP Environment</source>
         <translation>Preparazione dell&apos;ambiente OpenPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="164"/>
         <source>Loading...</source>
-        <translation>Caricamento...</translation>
+        <translation type="vanished">Caricamento...</translation>
     </message>
     <message>
         <source>Loading essential information</source>
@@ -13549,7 +13582,7 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
         <translation type="vanished">Si prega di tenere aperta questa finestra durante l&apos;inizializzazione.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="151"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="233"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
@@ -15088,32 +15121,32 @@ Il collegamento è stato copiato negli appunti:
         <translation>Questi provengono dall&apos;intestazione non cifrata del file, che chiunque possieda il file può modificare.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="204"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="205"/>
         <source>The module claims the ID %1, which belongs to a module that comes with GpgFrontend.</source>
         <translation>Il modulo dichiara l&apos;ID %1, che appartiene a un modulo fornito con GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="235"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="236"/>
         <source>External modules are not supported on macOS: the system only loads code signed with this application&apos;s own Team ID.</source>
         <translation>I moduli esterni non sono supportati su macOS: il sistema carica solo codice firmato con il Team ID dell&apos;applicazione stessa.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="250"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="251"/>
         <source>Waiting for you to trust the publisher key that signed it.</source>
         <translation>In attesa che tu consideri attendibile la chiave dell&apos;editore che lo ha firmato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="253"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="254"/>
         <source>Waiting for you to enable it.</source>
         <translation>In attesa che tu lo abiliti.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="280"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="281"/>
         <source>The module declares the ID %1 but is in a directory named %2 instead of %3.</source>
         <translation>Il modulo dichiara l&apos;ID %1 ma si trova in una directory chiamata %2 invece di %3.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="354"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="355"/>
         <source>This is not a module package.</source>
         <translation>Questo non è un pacchetto di moduli.</translation>
     </message>
