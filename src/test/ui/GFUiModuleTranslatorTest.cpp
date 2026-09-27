@@ -28,9 +28,17 @@
 
 #include <gtest/gtest.h>
 
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <array>
+
 #include "GpgFrontendTest.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UIModuleManager.h"
+#include "ui/command/CommandRegistry.h"
+#include "ui/lua/NativeWidgetRegistry.h"
 
 namespace GpgFrontend::Test {
 
@@ -45,10 +53,10 @@ namespace GpgFrontend::Test {
 
 namespace {
 
-// A string the key server sync module translates in its own "GTrC" context, so
-// the answer can only come from a module translator, never from the
-// application's own.
-constexpr auto kProbeContext = "GTrC";
+// A string the key server sync module translates in its own context, so the
+// answer can only come from a module translator, never from the application's
+// own.
+constexpr auto kProbeContext = "ModuleKeyServerSync";
 constexpr auto kProbeSource = "Public Key Upload Successful";
 
 struct Round {
@@ -153,6 +161,123 @@ TEST(ModuleTranslatorTest, RepeatedReinstallKeepsTranslationsResolving) {
   for (int i = 0; i < 3; i++) {
     EXPECT_EQ(Reinstall().probe, first.probe);
   }
+}
+
+namespace {
+
+struct ModuleText {
+  const char* module_id;
+  const char* context;
+  const char* source;
+};
+
+// What the Settings sidebar and the menus show. Each was once marked where
+// lupdate could not see it (a GC_TR macro, a local Tr() wrapper), so none of
+// it reached a .ts file and all of it shipped in English.
+constexpr std::array<ModuleText, 6> kModuleUiText = {{
+    {"com.bktus.gpgfrontend.module.email", "ModuleEMail", "Mail Accounts"},
+    {"com.bktus.gpgfrontend.module.email", "ModuleEMail", "Mail Editor"},
+    {"com.bktus.gpgfrontend.module.im", "ModuleIM", "Instant Messaging"},
+    {"com.bktus.gpgfrontend.module.im", "ModuleIM", "IM Encrypt"},
+    {"com.bktus.gpgfrontend.module.key_server_sync", "ModuleKeyServerSync",
+     "Key Servers"},
+    {"com.bktus.gpgfrontend.module.version_checking", "ModuleVersionChecking",
+     "Updates"},
+}};
+
+constexpr auto kStranger = "com.example.translator.stranger";
+
+}  // namespace
+
+TEST(ModuleTranslatorTest, ModuleUiTextTranslatesInItsOwnContext) {
+  ASSERT_TRUE(WaitForModules());
+  const ScopedTranslatedLocale locale;
+
+  if (Reinstall().installed.isEmpty()) {
+    GTEST_SKIP() << "no module registered a translator data reader here";
+  }
+
+  auto& modules = Module::ModuleManager::GetInstance();
+  int checked = 0;
+  for (const auto& t : kModuleUiText) {
+    const auto context = modules.GetModuleTranslationContext(t.module_id);
+    if (context.isEmpty()) continue;  // not loaded in this build
+    EXPECT_EQ(context, t.context) << t.module_id;
+    EXPECT_NE(QCoreApplication::translate(t.context, t.source),
+              QString(t.source))
+        << t.context << ": " << t.source;
+    checked++;
+  }
+  EXPECT_GT(checked, 0) << "a translator is installed, so some module is";
+}
+
+// Every module's strings sit under its own translation_context. A bare "GTrC"
+// context is what lupdate writes when it cannot resolve the generated
+// GFModuleTr.h, and nothing translates in it any more.
+TEST(ModuleTranslatorTest, EveryModuleFilesItsStringsUnderItsOwnContext) {
+  const QDir root(QString(GF_TEST_SOURCE_DIR) + "/modules/src");
+  ASSERT_TRUE(root.exists());
+
+  int checked = 0;
+  for (const auto& dir : root.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+    QFile manifest(root.filePath(dir + "/module.json"));
+    const QDir ts(root.filePath(dir + "/ts"));
+    if (!ts.exists() || !manifest.open(QIODevice::ReadOnly)) continue;
+    const auto context = QJsonDocument::fromJson(manifest.readAll())
+                             .object()
+                             .value("translation_context")
+                             .toString();
+    ASSERT_FALSE(context.isEmpty()) << dir.toStdString();
+
+    for (const auto& name : ts.entryList({"*.ts"}, QDir::Files)) {
+      QFile f(ts.filePath(name));
+      ASSERT_TRUE(f.open(QIODevice::ReadOnly)) << name.toStdString();
+      const auto text = QString::fromUtf8(f.readAll());
+      EXPECT_FALSE(text.contains("<name>GTrC</name>")) << name.toStdString();
+      EXPECT_TRUE(text.contains("<name>" + context + "</name>"))
+          << name.toStdString() << " has nothing in " << context.toStdString();
+      checked++;
+    }
+  }
+  EXPECT_GT(checked, 0);
+}
+
+// The context is the Host's to decide, from the owner's signed manifest: a
+// module that names another module's context gets none, not that one.
+TEST(ModuleTranslatorTest, HostDecidesWhichContextModuleTextIsIn) {
+  UI::NativeWidgetEntry entry;
+  entry.owner = kStranger;
+  entry.id = QString(kStranger) + ".borrower";
+  entry.kind = UI::NativeWidgetKind::kDIALOG;
+  entry.create = [](quint64, const QCborMap&) -> QWidget* { return nullptr; };
+  entry.tr_context = "ModuleEMail";
+  entry.title = "Mail Accounts";
+  ASSERT_TRUE(UI::NativeWidgetRegistry::Instance().Register(entry));
+  const auto found = UI::NativeWidgetRegistry::Instance().Find(entry.id);
+  ASSERT_TRUE(found.has_value());
+  EXPECT_TRUE(found->tr_context.isEmpty());
+  EXPECT_EQ(found->Translate(found->title), QString("Mail Accounts"));
+  EXPECT_TRUE(
+      UI::NativeWidgetRegistry::Instance().Unregister(kStranger, entry.id));
+
+  UI::CommandProvider command;
+  command.id = QString(kStranger) + ".borrower";
+  command.owner = kStranger;
+  command.descriptor = QCborMap{{QStringLiteral("title"), "Mail Accounts"},
+                                {QStringLiteral("tr_context"), "ModuleEMail"}};
+  command.run = [](const gf::cmd::CommandContext&, QCborMap,
+                   std::vector<gf::cmd::Blob>, gf::cmd::Completer done) {
+    done({GF_CMD_OK, 0, {}, {}, {}});
+  };
+  auto& commands = UI::CommandRegistry::Instance();
+  ASSERT_EQ(commands.Register(std::move(command)), GF_CMD_OK);
+  const auto described = commands.Describe(QString(kStranger) + ".borrower");
+  ASSERT_TRUE(described.has_value());
+  EXPECT_TRUE(
+      described->value(QStringLiteral("tr_context")).toString().isEmpty());
+  EXPECT_EQ(UI::CommandTitle(*described), QString("Mail Accounts"));
+  EXPECT_EQ(commands.Unregister(QString(kStranger) + ".borrower", kStranger),
+            GF_CMD_OK);
 }
 
 }  // namespace GpgFrontend::Test
