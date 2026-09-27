@@ -133,6 +133,13 @@ jobs:
     # the release, which is what a release missing a platform should do.
     permissions:
       contents: read
+    env:
+      # Lets ccache cache every translation unit that force-includes the CMake
+      # PCH, and the .gch itself. Without these they were all "uncacheable"
+      # -- 493 of 824 compiler calls on Linux -- so even a warm cache rebuilt
+      # core, ui and test in full. Only timestamp and __DATE__-style checks
+      # are relaxed; what is hashed into an object is unchanged.
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
     steps:
       - name: Set git to use LF line endings (Windows)
         run: |
@@ -250,22 +257,19 @@ jobs:
         run: python3 -m unittest discover -s scripts/tests
         if: runner.os == 'Linux'
 
+      # One compiler cache per runner, shared by both flavours: the portable
+      # flag reaches a single translation unit (BuildInfoUtils.cpp), not the
+      # PCH, so the two builds are otherwise object-for-object identical. The
+      # installed leg is the only writer and names the entry; the portable
+      # leg only reads it. Nothing is saved from pull requests, so a cache
+      # main restores can only have been written by a push to it. Compiler
+      # identity is ccache's own concern (compiler_check), not the key's.
       - name: ccache
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
-          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.flavor }}-${{ env.BUILD_TYPE }}
-
-      # CI-perf trial (stage A), one leg only. Every TU that force-includes
-      # the CMake PCH was "uncacheable" -- 493 of 824 calls -- so a warm cache
-      # still recompiled core, ui and test. ccache caches PCH users and the
-      # .gch itself only under these sloppiness flags; the objects are the
-      # same, the checks relaxed are about timestamps and __DATE__ defines.
-      - name: Allow ccache To Cache PCH Users (trial)
-        run: |
-          ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
-          ccache --set-config=max_size=2G
-          ccache -p | grep -E 'sloppiness|max_size'
-        if: matrix.os == 'ubuntu-22.04' && matrix.flavor == 'installed'
+          key: ${{ github.job }}-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
+          max-size: 1500M
+          save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
 
       - name: Install Dependence (Linux)
         run: |
@@ -322,6 +326,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Install Rust
+        id: rust
         # Pinned to a SHA, so the @stable ref name no longer selects the
         # toolchain; say it explicitly instead.
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
@@ -329,39 +334,39 @@ jobs:
           toolchain: stable
         if: runner.os == 'Linux'
 
-      # The Rust crate does not see the portable flag, so both flavours produce
-      # the same cargo output and deliberately share one cache entry.
-      - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-        with:
-          workspaces: |
-            rust -> build/cargo
-          shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
-          cache-on-failure: true
-        if: runner.os == 'Linux'
-
-      # CI-perf trial (stage A): every leg compiled all ~196 crates despite
-      # an exact rust-cache hit. Show what the restore actually put back.
-      - name: Show Restored Cargo Target (trial)
+      # Windows builds with msys2's own rustc, which moves with the msys2
+      # package set rather than with rustup.
+      - name: Rust Toolchain Key (Windows)
+        id: rustwin
+        shell: msys2 {0}
         run: |
-          du -sh build/cargo 2>/dev/null || echo "build/cargo was not restored"
-          find build/cargo -maxdepth 4 -type d 2>/dev/null | head -40 || true
-        if: matrix.os == 'ubuntu-22.04' && matrix.flavor == 'installed'
+          KEY="$(rustc -vV | sha256sum | cut -c1-12)"
+          echo "cachekey=$KEY" >> "$GITHUB_OUTPUT"
+        if: runner.os == 'Windows'
 
-      # rust-cache cannot locate the msys2/mingw cargo, so cache the registry and
-      # Corrosion's target dir directly for the Windows build.
-      - name: Cache Cargo (Windows)
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # Corrosion's target dir, restored whole. rust-cache is not used: cargo
+      # builds with --target <triple>, and rust-cache's cleaner took
+      # <target-dir>/<triple> for a profile directory and deleted release/
+      # inside it, so every leg compiled all ~196 crates from nothing while
+      # reporting an exact cache hit.
+      #
+      # The key is everything that decides the dependency artifacts: the
+      # runner, the exact rustc, the profile and Cargo.lock. The workspace
+      # crate inside is simply rebuilt by cargo when its sources change. Both
+      # flavours share it -- the crate never sees the portable flag -- and
+      # the installed leg alone saves it, after a successful build.
+      - name: Restore Cargo Cache
+        id: cargo-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
             ${{github.workspace}}/build/cargo
-          key: cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+          key: cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: |
-            cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-
-        if: runner.os == 'Windows'
+            cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}${{ steps.rustwin.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -386,7 +391,7 @@ jobs:
           --enable-w32-glib
           make -j$(nproc)
           make install
-          ccache -s
+          ccache -s -v
         if: runner.os == 'Windows'
 
       - name: Cache googletest (Linux)
@@ -416,9 +421,6 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Linux)
-        env:
-          # CI-perf trial (stage A): cargo names why each crate is dirty.
-          CARGO_LOG: ${{ (matrix.os == 'ubuntu-22.04' && matrix.flavor == 'installed') && 'cargo::core::compiler::fingerprint=info' || '' }}
         run: |
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           # Native binding is REQUIRED here and OFF by default, which is the
@@ -706,8 +708,23 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
-          ccache -s
+          ccache -s -v
         if: runner.os == 'Windows'
+
+      # After the compile, before anything else can fail the job: the target
+      # dir is complete here on both runners, and nothing later touches it.
+      - name: Save Cargo Cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{github.workspace}}/build/cargo
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+        if: >-
+          github.event_name == 'push' && matrix.flavor == 'installed' &&
+          steps.cargo-cache.outputs.cache-hit != 'true'
 
       - name: Download GnuPG Binary Release (Windows)
         shell: msys2 {0}
@@ -1116,6 +1133,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
+    env:
+      # The build job's PCH flags, plus what Xcode adds to every compile
+      # line: an index-store path, a VFS stat cache and module flags.
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime,clang_index_store,ivfsoverlay,modules
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -1171,21 +1192,14 @@ jobs:
           echo "Build mode: ${BUILD_MODE}"
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
 
+      # Saved only from pushes, like the build job's, so no pull request can
+      # seed an object file into what a signed bundle is built from.
       - name: ccache
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
-
-      # CI-perf trial (stage A), one leg only. See "Build GpgFrontend": the
-      # Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER, so until now
-      # only GpgME ever went through ccache here. clang_index_store and
-      # ivfsoverlay cover flags Xcode adds to every compile line.
-      - name: Allow ccache To Cache Xcode Compiles (trial)
-        run: |
-          ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime,clang_index_store,ivfsoverlay,modules
-          ccache --set-config=max_size=2G
-          ccache -p | grep -E 'sloppiness|max_size'
-        if: matrix.os == 'macos-15-intel'
+          max-size: 1500M
+          save: ${{ github.event_name == 'push' }}
 
       - name: Install Qt6
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
@@ -1198,26 +1212,27 @@ jobs:
           brew install --formula automake texinfo libarchive googletest libsodium openssl@3
 
       - name: Install Rust
+        id: rust
         # Pinned to a SHA, so the @stable ref name no longer selects the
         # toolchain; say it explicitly instead.
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
         with:
           toolchain: stable
 
-      - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      # Corrosion's target dir, restored whole; see "Restore Cargo Cache" in
+      # the build job for why this is not rust-cache.
+      - name: Restore Cargo Cache
+        id: cargo-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          workspaces: |
-            rust -> build/cargo
-          shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
-          cache-on-failure: true
-
-      # CI-perf trial (stage A): see the same step in the build job.
-      - name: Show Restored Cargo Target (trial)
-        run: |
-          du -sh build/cargo 2>/dev/null || echo "build/cargo was not restored"
-          find build/cargo -maxdepth 4 -type d 2>/dev/null | head -40 || true
-        if: matrix.os == 'macos-15-intel'
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{github.workspace}}/build/cargo
+          key: cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
 
       - name: Build GpgME
         run: |
@@ -1237,7 +1252,7 @@ jobs:
           --disable-g13-test
           make -j"$(sysctl -n hw.logicalcpu)"
           sudo make install
-          ccache -s
+          ccache -s -v
 
       # Before anything is built: the entitlements the signing job will apply
       # must match the ones committed here, and must not have regained an
@@ -1247,10 +1262,6 @@ jobs:
         run: ${{github.workspace}}/scripts/check_entitlements_sync.sh
 
       - name: Build GpgFrontend
-        env:
-          # CI-perf trial (stage A): cargo names why each crate is dirty.
-          CARGO_LOG: ${{ matrix.os == 'macos-15-intel' && 'cargo::core::compiler::fingerprint=info' || '' }}
-          CCACHE_XCODE_TRIAL: ${{ matrix.os == 'macos-15-intel' && '1' || '' }}
         run: |
           MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
           MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
@@ -1297,20 +1308,16 @@ jobs:
           # header itself, and a .pch restored from the cache would otherwise
           # be refused against this checkout's header mtimes. The index store
           # is an IDE feature and only adds an uncacheable output.
-          XCODE_CCACHE=()
-          if [[ -n "${CCACHE_XCODE_TRIAL:-}" ]]; then
-            WRAP="$RUNNER_TEMP/ccache-xcode"
-            mkdir -p "$WRAP"
-            REAL_CC="$(xcrun -f clang)"
-            REAL_CXX="$(xcrun -f clang++)"
-            printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CC" > "$WRAP/clang"
-            printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CXX" > "$WRAP/clang++"
-            chmod +x "$WRAP/clang" "$WRAP/clang++"
-            XCODE_CCACHE=(CC="$WRAP/clang" CXX="$WRAP/clang++" \
-              LD="$REAL_CC" LDPLUSPLUS="$REAL_CXX" \
-              COMPILER_INDEX_STORE_ENABLE=NO)
-            ccache -z
-          fi
+          WRAP="$RUNNER_TEMP/ccache-xcode"
+          mkdir -p "$WRAP"
+          REAL_CC="$(xcrun -f clang)"
+          REAL_CXX="$(xcrun -f clang++)"
+          printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CC" > "$WRAP/clang"
+          printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CXX" > "$WRAP/clang++"
+          chmod +x "$WRAP/clang" "$WRAP/clang++"
+          # Counted from here, so the report below is this build's and not
+          # GpgME's as well.
+          ccache -z
 
           cd ${{github.workspace}}/build/
           xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
@@ -1323,11 +1330,12 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
-            ${XCODE_CCACHE[@]+"${XCODE_CCACHE[@]}"}
-
-          if [[ -n "${CCACHE_XCODE_TRIAL:-}" ]]; then
-            ccache -s -v
-          fi
+            CC="$WRAP/clang" \
+            CXX="$WRAP/clang++" \
+            LD="$REAL_CC" \
+            LDPLUSPLUS="$REAL_CXX" \
+            COMPILER_INDEX_STORE_ENABLE=NO
+          ccache -s -v
 
           # Skip -exportArchive: the generated ExportOptions.plist is
           # method=developer-id with signingStyle=manual, so exporting demands a
@@ -1336,6 +1344,17 @@ jobs:
           mkdir -p ${{github.workspace}}/build/package
           cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
             ${{github.workspace}}/build/package/
+      - name: Save Cargo Cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{github.workspace}}/build/cargo
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
+        if: github.event_name == 'push' && steps.cargo-cache.outputs.cache-hit != 'true'
+
       # The modules come from an install tree, like every other platform.
       #
       # This replaces a step that existed only to undo Xcode: `xcodebuild

@@ -79,6 +79,9 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: codeql-${{ github.job }}-${{ runner.os }}
+          # Shares the 10 GB repository cache with the release build; a pull
+          # request's entry is only ever readable by that pull request.
+          save: ${{ github.event_name == 'push' }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -90,6 +93,7 @@ jobs:
             rust -> build/cargo
           shared-key: rust-${{ runner.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
+          save-if: ${{ github.event_name == 'push' }}
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
