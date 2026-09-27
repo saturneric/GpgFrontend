@@ -38,10 +38,6 @@ namespace GpgFrontend::UI::Lua {
 
 namespace {
 
-auto Translate(const QString& source) -> QString {
-  return QCoreApplication::translate("GTrC", source.toUtf8().constData());
-}
-
 /// Open dialogs, by module and mount id: one each. The mount id alone is only
 /// unique within its module.
 auto OpenDialogs() -> QHash<QString, QPointer<NativeDialog>>& {
@@ -73,7 +69,7 @@ NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
 
   const auto entry = NativeInstances::Instance().Entry(instance_);
   if (entry.has_value()) {
-    setWindowTitle(Translate(entry->title));
+    setWindowTitle(entry->Translate(entry->title));
   }
   // A module may build its widget as a QDialog; inside the Host's frame it
   // is an ordinary child, not a second window.
@@ -242,11 +238,17 @@ auto BuildNativeSettingsPages() -> QList<NativeSettingsPageInfo> {
       continue;
     }
     page->Load();
+    // Marked as one comma-separated string, so translated as one: a piece
+    // on its own is not in any .ts. A translation may use a full-width comma.
     QStringList keywords;
-    for (const auto& k : entry->keywords.split(',', Qt::SkipEmptyParts)) {
-      keywords << Translate(k.trimmed());
+    for (const auto& k :
+         entry->Translate(entry->keywords)
+             .split(QRegularExpression(QStringLiteral("[,\\x{FF0C}]")),
+                    Qt::SkipEmptyParts)) {
+      keywords << k.trimmed();
     }
-    pages.append({page, Translate(entry->title), m.info.section, keywords});
+    pages.append(
+        {page, entry->Translate(entry->title), m.info.section, keywords});
   }
   return pages;
 }

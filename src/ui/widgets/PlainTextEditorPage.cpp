@@ -752,7 +752,7 @@ auto PlainTextEditorPage::PrimaryViewFileTypeFilter() const -> QString {
   if (primary_view_.isNull()) return {};
   const auto e = NativeInstances::Instance().Entry(native_instance_);
   if (!e.has_value() || e->filter.isEmpty()) return {};
-  return QCoreApplication::translate("GTrC", e->filter.toUtf8().constData());
+  return e->Translate(e->filter);
 }
 
 auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {

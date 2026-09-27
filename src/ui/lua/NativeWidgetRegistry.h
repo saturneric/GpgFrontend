@@ -84,7 +84,9 @@ struct GF_UI_EXPORT NativeWidgetEntry {
   NativeWidgetKind kind = NativeWidgetKind::kDIALOG;
   bool multi_instance = false;  ///< a factory: one widget per mount instance
 
-  // Presentation, untranslated, in the module's "GTrC" context.
+  // Presentation, untranslated: marked with GTrC::Noop in the owner's
+  // translation context, which Register() fills in as tr_context.
+  QString tr_context;
   QString title;
   QString keywords;
   QString suffix;
@@ -103,6 +105,10 @@ struct GF_UI_EXPORT NativeWidgetEntry {
   NativeDocumentOps document;
   NativeSettingsOps settings;
   NativeDialogOps dialog;
+
+  /// @p source, one of the presentation strings above, in the user's
+  /// language: looked up in the owner's context, when it is shown.
+  [[nodiscard]] auto Translate(const QString& source) const -> QString;
 };
 
 class GF_UI_EXPORT NativeWidgetRegistry {

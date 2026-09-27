@@ -100,9 +100,10 @@ auto GF_UI_EXPORT BlobToGFBuffer(const gf::cmd::Blob& blob) -> GFBuffer;
  * @brief A command's title, in the user's language.
  *
  * A descriptor carries its title untranslated, with the translation context
- * it was marked in -- "GTrC" for a module's, the Host's own class context
- * for the Host's -- so it is translated when shown, by whichever translators
- * are installed then, and never frozen at registration.
+ * it was marked in -- the owning module's translation context for a
+ * module's, the Host's own class context for the Host's -- so it is
+ * translated when shown, by whichever translators are installed then, and
+ * never frozen at registration.
  */
 auto GF_UI_EXPORT CommandTitle(const QCborMap& descriptor) -> QString;
 auto GF_UI_EXPORT CommandDescription(const QCborMap& descriptor) -> QString;

@@ -141,8 +141,8 @@ namespace {
 auto Translated(const QCborMap& d, const char* key) -> QString {
   const auto text = d.value(QString::fromLatin1(key)).toString();
   if (text.isEmpty()) return text;
-  auto context = d.value(QStringLiteral("tr_context")).toString();
-  if (context.isEmpty()) context = QStringLiteral("GTrC");
+  const auto context = d.value(QStringLiteral("tr_context")).toString();
+  if (context.isEmpty()) return text;
   return QCoreApplication::translate(context.toUtf8().constData(),
                                      text.toUtf8().constData());
 }
@@ -235,6 +235,12 @@ auto CommandRegistry::Register(CommandProvider provider,
       return GF_CMD_E_DENIED;
     }
     if ((provider.flags & gf::cmd::kHostOnly) != 0) return GF_CMD_E_DENIED;
+    // The owner's own context, whatever the descriptor claimed: its text was
+    // marked with GTrC::Noop, which lupdate filed there.
+    provider.descriptor.insert(
+        QStringLiteral("tr_context"),
+        Module::ModuleManager::GetInstance().GetModuleTranslationContext(
+            provider.owner));
   }
 
   if (const auto why = CodecRefusal(provider); !why.isEmpty()) {

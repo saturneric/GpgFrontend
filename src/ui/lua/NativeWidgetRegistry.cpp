@@ -28,9 +28,16 @@
 
 #include "NativeWidgetRegistry.h"
 
+#include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
 
 namespace GpgFrontend::UI {
+
+auto NativeWidgetEntry::Translate(const QString& source) const -> QString {
+  if (source.isEmpty() || tr_context.isEmpty()) return source;
+  return QCoreApplication::translate(tr_context.toUtf8().constData(),
+                                     source.toUtf8().constData());
+}
 
 auto NativeWidgetRegistry::Instance() -> NativeWidgetRegistry& {
   static NativeWidgetRegistry registry;
@@ -41,6 +48,11 @@ auto NativeWidgetRegistry::Register(NativeWidgetEntry entry) -> bool {
   if (!Module::IsOwnedName(entry.owner, entry.id) || !entry.create) {
     return false;
   }
+  // The owner's own context, whatever the entry claimed: its presentation
+  // was marked with GTrC::Noop, which lupdate filed there.
+  entry.tr_context =
+      Module::ModuleManager::GetInstance().GetModuleTranslationContext(
+          entry.owner);
   QMutexLocker locker(&mutex_);
   if (entries_.contains(entry.id)) return false;
   const auto id = entry.id;
