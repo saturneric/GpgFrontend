@@ -954,6 +954,11 @@ jobs:
 
           Remove-Item -Recurse -Force $scratch
           Remove-Item -Force ("Cert:\CurrentUser\My\" + $cert.Thumbprint)
+
+          # The runner ends a pwsh step with `exit $LASTEXITCODE`, which still
+          # holds the refusal the gate just demanded -- so a passing gate
+          # failed the step. Every real failure above has already thrown.
+          exit 0
         if: runner.os == 'Windows'
 
       - name: Smoke Test The AppImage (Linux)
