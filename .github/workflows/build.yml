@@ -1126,6 +1126,9 @@ jobs:
   # unsigned and is signed by sign-macos below.
   build-macos:
     strategy:
+      # As in the build job: one leg failing cancelled the other three, which
+      # hid whether they would have failed too. The release still needs all.
+      fail-fast: false
       matrix:
         # macOS ships only the installed flavour: the app is a notarized bundle
         # in /Applications, so a portable layout has no meaning there.
@@ -1308,6 +1311,14 @@ jobs:
           # header itself, and a .pch restored from the cache would otherwise
           # be refused against this checkout's header mtimes. The index store
           # is an IDE feature and only adds an uncacheable output.
+          #
+          # The *_DEPLOYMENT_TARGET settings below are blanked for Xcode 26:
+          # with these compiler overrides it exported every platform's default
+          # deployment target into script phases, and AUTOMOC's moc_predefs
+          # step -- the real clang++ -dM -E, no -target -- then dies with
+          # "conflicting deployment targets ... present in environment".
+          # Clang treats an empty value as unset. This app is macOS only;
+          # MACOSX_DEPLOYMENT_TARGET is untouched and still comes from CMake.
           WRAP="$RUNNER_TEMP/ccache-xcode"
           mkdir -p "$WRAP"
           REAL_CC="$(xcrun -f clang)"
@@ -1334,7 +1345,12 @@ jobs:
             CXX="$WRAP/clang++" \
             LD="$REAL_CC" \
             LDPLUSPLUS="$REAL_CXX" \
-            COMPILER_INDEX_STORE_ENABLE=NO
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            IPHONEOS_DEPLOYMENT_TARGET= \
+            TVOS_DEPLOYMENT_TARGET= \
+            WATCHOS_DEPLOYMENT_TARGET= \
+            XROS_DEPLOYMENT_TARGET= \
+            DRIVERKIT_DEPLOYMENT_TARGET=
           ccache -s -v
 
           # Skip -exportArchive: the generated ExportOptions.plist is
