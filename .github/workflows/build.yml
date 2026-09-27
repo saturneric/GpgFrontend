@@ -127,13 +127,10 @@ jobs:
     # No continue-on-error.
     #
     # It let a leg fail while the release still assembled, which meant `needs:`
-    # could not notice a missing platform -- so completeness had to be proven
-    # afterwards, by a build-record set checked against a second declaration
-    # of this very matrix, and 24 tests guarding that check. Job dependencies
-    # already express "all of these
-    # must succeed"; reimplementing it was the expensive way to get a weaker
-    # version of it. A failing leg now blocks the release, which is what a
-    # release missing a platform should do.
+    # could not notice a missing platform, and completeness had to be proven
+    # afterwards by a second declaration of this very matrix. Job dependencies
+    # already express "all of these must succeed". A failing leg now blocks
+    # the release, which is what a release missing a platform should do.
     permissions:
       contents: read
     steps:
@@ -244,6 +241,13 @@ jobs:
       # shape of thing a check catches and a reader does not.
       - name: Check Workflow Steps Define What They Read
         run: python3 scripts/check_workflow_steps.py
+        if: runner.os == 'Linux'
+
+      # The release-candidate rules, and the workflow structure they rely on.
+      # Here so a pull request runs them: provenance and release only run on
+      # main, where a failure costs a nightly.
+      - name: Test Release Candidate Rules
+        run: python3 -m unittest discover -s scripts/tests
         if: runner.os == 'Linux'
 
       - name: ccache
@@ -1047,7 +1051,7 @@ jobs:
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}
           path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
           if-no-files-found: error
         if: runner.os == 'Linux'
@@ -1055,7 +1059,7 @@ jobs:
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}
           path: ${{github.workspace}}/build/upload-artifact/*
           if-no-files-found: error
         if: runner.os == 'Windows'
@@ -1063,10 +1067,12 @@ jobs:
       # A separate artifact, as build-macos does, and for a reason of its own
       # here: the deliverable artifact must stay flat. Listing build-info.json
       # as a second path rooted the Linux artifact at their common parent, so
-      # the AppImage arrived as upload-artifact/GpgFrontend-... -- skipped by
-      # the build records and a directory under `sha256sum artifacts/*` in the
-      # release. Windows never carried it at all, so provenance had no build
-      # info for that leg and failed.
+      # the AppImage arrived as upload-artifact/GpgFrontend-... inside a
+      # directory.
+      #
+      # Every leg uploads exactly `gpgfrontend-<leg>` and `buildinfo-<leg>`,
+      # with the same <leg>. That exact name is how provenance pairs them, so
+      # a new leg needs nothing else from the release path.
       - name: Upload Build Info
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -1477,8 +1483,9 @@ jobs:
       - name: Upload Build Info
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: buildinfo-${{ matrix.os }}
+          name: buildinfo-${{ matrix.os }}-installed
           path: ${{github.workspace}}/build/artifacts/build-info.json
+          if-no-files-found: error
   sign-macos:
     needs: build-macos
     # Two independent gates on which refs may ever request the signing key: this
@@ -2031,7 +2038,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-${{ matrix.os }}-installed-${{ steps.meta.outputs.build_type_lower }}-${{ steps.meta.outputs.short_sha }}
+          name: gpgfrontend-${{ matrix.os }}-installed
           path: ${{ runner.temp }}/upload-artifact/*
 
       - name: Clean Up Signing Material
@@ -2084,15 +2091,14 @@ jobs:
       - name: Download Build Info
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: buildinfo-${{ matrix.os }}
+          name: buildinfo-${{ matrix.os }}-installed
           path: buildinfo/
 
       - name: Download Signed Artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: gpgfrontend-${{ matrix.os }}-installed
           path: signed/
-          pattern: gpgfrontend-${{ matrix.os }}-installed-*
-          merge-multiple: true
 
       - name: Mount The Disk Image
         run: |
@@ -2212,8 +2218,14 @@ jobs:
 
           test "$rc" -eq 0 || { echo "the app exited $rc" >&2; exit 1; }
 
+
   # Public build provenance, and the ONLY job in this workflow with
   # `id-token: write`.
+  #
+  # It turns the final, verified artifacts of every leg into the release
+  # candidate: the deliverables, `build-records.json`, and `SHA256SUMS.txt`,
+  # the canonical list of what the release is. It signs that one manifest and
+  # nothing else; the signature covers every file the manifest hashes.
   #
   # Keyless Sigstore: Fulcio issues a short-lived certificate bound to this
   # job's OIDC identity, the signature and certificate go into the public Rekor
@@ -2233,16 +2245,23 @@ jobs:
   #               this: a user with no network still gets every guarantee the
   #               Host makes about its modules.
   #
+  # It needs macos-smoke, not only sign-macos: nothing is signed before every
+  # platform check has passed on the bytes being signed.
+  #
+  # Nothing in here knows a platform. Legs are paired by artifact name
+  # (`gpgfrontend-<leg>` with `buildinfo-<leg>`), so adding a leg changes
+  # nothing below.
+  #
   # Least privilege is the reason this is a separate job rather than a step in
   # `release`: `release` needs `contents: write` to publish, and nothing should
   # hold both the ability to mint an identity token and the ability to rewrite
   # the repository.
   provenance:
-    needs: [build, sign-macos]
+    needs: [build, sign-macos, macos-smoke]
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-      needs.sign-macos.result == 'success'
+    # No status function, so success() is implied: every job in `needs` must
+    # have succeeded, not merely finished.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       # The identity token Fulcio exchanges for a certificate. Nothing else.
       id-token: write
@@ -2252,206 +2271,106 @@ jobs:
         with:
           lfs: "false"
 
+      - name: Test Release Candidate Rules
+        run: python3 -m unittest discover -s scripts/tests
+
+      # Not merged: one directory per artifact, so the leg that produced each
+      # file is known and two legs shipping the same file name is an error
+      # instead of a silent overwrite.
       - name: Download Artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          path: artifacts/
+          path: in/
           pattern: gpgfrontend-*
 
       - name: Download Build Info
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          path: buildinfo/
+          path: in/
           pattern: buildinfo-*
 
-      # Records are written HERE, over the files that are actually going to be
-      # published, and nowhere else.
-      #
-      # They used to be written by each build and signing job, which put the
-      # release attestation machinery inside the build and package path: five
-      # steps across three jobs, a two-stage unsigned/signed protocol, and a
-      # smoke test that took its module count from a provenance record because
-      # that was the only file it had. None of it was needed to build or
-      # package GpgFrontend, and a downstream packager had to understand it
-      # anyway.
-      #
-      # The two-stage protocol goes with it. It existed because a record
-      # written before signing describes bytes signing then changed; a record
-      # written over the final artifact cannot have that problem.
-      - name: Write Build Records
+      - name: Stage Release Candidate
         run: |
           set -euo pipefail
-          python3 ./scripts/write_build_records.py \
-            --artifacts artifacts/ \
-            --build-info buildinfo/ \
-            --out records/
+          python3 ./scripts/release_candidate.py stage \
+            --artifacts in/ \
+            --out candidate/
 
       - name: Install cosign
         uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
 
-      - name: Sign Deliverables
+      - name: Sign Manifest
         run: |
           set -euo pipefail
-          mkdir -p provenance
+          COSIGN_EXPERIMENTAL=1 cosign sign-blob \
+            --yes \
+            --bundle candidate/SHA256SUMS.txt.sigstore.json \
+            candidate/SHA256SUMS.txt
 
-          # Every deliverable, plus the record that describes it. The record is
-          # signed too: an attestation over the binaries that said nothing
-          # about which build produced them would leave the interesting
-          # question unanswered.
-          COUNT=0
-          while read -r artifact; do
-            name="$(basename "$artifact")"
-            leg="$(basename "$(dirname "$artifact")")"
-            bundle="provenance/${leg}--${name}.sigstore.json"
-
-            COSIGN_EXPERIMENTAL=1 cosign sign-blob \
-              --yes \
-              --bundle "$bundle" \
-              "$artifact"
-
-            echo "signed ${leg}/${name}"
-            COUNT=$((COUNT + 1))
-          done < <(find artifacts/ records/ -type f \
-                     \( -name 'GpgFrontend-*' -o -name 'build-record-*.json' \) \
-                     | sort)
-
-          test "$COUNT" -gt 0 || { echo "nothing was signed"; exit 1; }
-          echo "$COUNT blob(s) signed"
-
-      - name: Upload Build Records
+      # The immutability boundary. Nothing writes to candidate/ after the
+      # signature, and the artifact is uploaded once: upload-artifact refuses a
+      # second artifact of the same name in a run unless told to overwrite,
+      # which this never is.
+      - name: Upload Release Candidate
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: provenance-build-records
-          path: records/*
+          name: release-candidate
+          path: candidate/*
+          if-no-files-found: error
 
-      - name: Upload Provenance Bundles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: provenance-bundles
-          path: provenance/*
-
+  # Verify-only publication. This job builds nothing, hashes nothing new and
+  # signs nothing: it downloads the release candidate, proves it is exactly
+  # what provenance signed, and publishes the files that proof listed.
+  #
+  # Only pushes to main publish the rolling nightly. Stable releases (version
+  # tags) are packaged manually/offline.
   release:
-    needs: [build, sign-macos, macos-smoke, provenance]
+    needs: [provenance]
     runs-on: ubuntu-latest
-    # Only publish the rolling nightly release from pushes to the main branch.
-    # Stable releases (version tags) are packaged manually/offline.
-    #
-    # sign-macos runs on every non-PR event whose ref is main or a v* tag, so it
-    # is never skipped in a run where this job is eligible -- adding it to
-    # `needs` propagates no skip. The explicit result check states the intent
-    # anyway: a nightly is never published off a signing job that failed, was
-    # cancelled, or did not run.
-    #
-    # macos-smoke is in the same position and matters for a different reason:
-    # it is the only thing in this workflow that answers whether the macOS app
-    # RUNS. A dmg that is signed, notarized, stapled and unable to load its
-    # modules passes every other gate here, and did once.
-    if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-      needs.sign-macos.result == 'success' &&
-      needs.macos-smoke.result == 'success' &&
-      needs.provenance.result == 'success'
+    # provenance already needs every build, signing and smoke job, so this
+    # inherits all of them. success() is implied, as above.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: nightly-release-approval
     permissions:
       # Deletes and re-creates the nightly tag and its release.
       contents: write
     steps:
+      # For the verifier, the release notes and the tag. No submodules.
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
-          submodules: recursive
 
-      # Deliberately two downloads. merge-multiple flattens everything into
-      # one directory, which is what the deliverables want and what the
-      # provenance bundles must not have: they are matched to artifacts by
-      # name, so they need a directory of their own to be told apart from what
-      # they cover.
-      - name: Download Artifacts
+      - name: Download Release Candidate
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          path: artifacts/
-          pattern: gpgfrontend-*
-          merge-multiple: true
-
-      - name: Download Build Records
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: provenance-build-records
-          path: artifacts/
-
-      - name: Download Provenance Bundles
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: provenance-bundles
-          path: artifacts/provenance/
+          name: release-candidate
+          path: candidate/
 
       - name: Install cosign
         uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
 
-      # Verified here as well as produced there. The provenance job could sign
-      # a bundle this job then fails to attach, or attach one that covers
-      # different bytes -- and a broken attestation is worse than none, because
-      # it invites a user to check something that cannot succeed.
-      #
-      # The identity is pinned to this workflow in this repository: a valid
-      # Sigstore signature made by some other workflow is not evidence about
-      # this release.
-      - name: Verify Provenance Bundles
+      # The whole publication gate, in order: the Sigstore identity (exactly
+      # this workflow file at this ref, at this commit, from GitHub's issuer),
+      # the manifest, exact set equality between the manifest and the
+      # directory, every hash, and the build records. A valid signature made
+      # by some other workflow is not evidence about this release.
+      - name: Verify Release Candidate
+        id: verify
         run: |
           set -euo pipefail
-          test -d artifacts/provenance || {
-            echo "no provenance bundles were attached"; exit 1; }
-
-          COUNT=0
-          while read -r bundle; do
-            # "<leg>--<filename>.sigstore.json" -> the file it covers
-            base="$(basename "$bundle" .sigstore.json)"
-            name="${base#*--}"
-            artifact="$(find artifacts/ -type f -name "$name" \
-                          -not -path 'artifacts/provenance/*' | head -1)"
-            test -n "$artifact" || {
-              echo "bundle $base covers nothing that was downloaded"; exit 1; }
-
-            cosign verify-blob \
-              --bundle "$bundle" \
-              --certificate-identity-regexp \
-                "^https://github.com/${{ github.repository }}/" \
-              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-              "$artifact"
-
-            echo "verified $name"
-            COUNT=$((COUNT + 1))
-          done < <(find artifacts/provenance -type f -name '*.sigstore.json' | sort)
-
-          test "$COUNT" -gt 0 || { echo "no bundles verified"; exit 1; }
-          echo "$COUNT provenance bundle(s) verified"
-
-      # No `.pkg` deletion. download-artifact only sees this run, and the only
-      # .pkg this project builds comes from mas-sandbox.yml, a different
-      # workflow whose artifacts this job can never download -- so the find
-      # matched nothing, every run, since it was written.
-      - name: Flatten Provenance Bundles
-        run: |
-          # Both halves ship: the deliverables and, beside them, the bundles
-          # and build records that say where they came from. A provenance
-          # bundle nobody can download is a provenance bundle nobody can check.
-          if [ -d artifacts/provenance ]; then
-            mv artifacts/provenance/* artifacts/ 2>/dev/null || true
-            rmdir artifacts/provenance 2>/dev/null || true
-          fi
-
-      - name: Generate SHA256 checksums
-        run: |
-          sha256sum artifacts/* > artifacts/SHA256SUMS.txt
-          cat artifacts/SHA256SUMS.txt
+          python3 ./scripts/release_candidate.py verify \
+            --dir candidate/ \
+            --identity "https://github.com/${{ github.workflow_ref }}" \
+            --sha "${{ github.sha }}" \
+            --github-output "$GITHUB_OUTPUT"
 
       - name: Generate Nightly Release Title
         id: release_title
         run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-      # Last, not first: deleting the release before the downloads, the
-      # provenance check and the checksums meant any failure among them left
-      # the project with no nightly at all and a tag already moved.
+      # Last, not first: deleting the release before the download and the
+      # verification meant any failure among them left the project with no
+      # nightly at all and a tag already moved.
       - name: Re-create nightly tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -2461,6 +2380,7 @@ jobs:
           git tag -f nightly $GITHUB_SHA
           git push origin nightly --force
 
+      # Exactly the verified list, not a glob over a directory.
       - name: Update Nightly Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
@@ -2469,5 +2389,4 @@ jobs:
           draft: false
           prerelease: true
           body_path: ${{ github.workspace }}/.github/NIGHTLY_RELEASE.md
-          files: |
-            artifacts/*
+          files: ${{ steps.verify.outputs.files }}
