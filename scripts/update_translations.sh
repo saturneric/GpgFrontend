@@ -253,6 +253,8 @@ warn_unexpected_ts() {
 
 # --- run lupdate per target ------------------------------------------------
 fail=0
+TR_TMP="$(mktemp -d)"
+trap 'rm -rf "${TR_TMP}"' EXIT
 for i in "${!T_NAMES[@]}"; do
   name="${T_NAMES[$i]}"
   base="${T_BASES[$i]}"
@@ -286,17 +288,33 @@ for i in "${!T_NAMES[@]}"; do
   #
   # The -I roots let lupdate resolve #include directives; for the app we hand
   # it the source roots, for a module its own dir.
-  declare -a include_args=()
+  #
+  # A module also gets its GFModuleTr.h, rendered here the way gf_add_module()
+  # renders it: lupdate reads GTrC's context from its Q_DECLARE_TR_FUNCTIONS,
+  # and files every GTrC::tr()/GTrC::Noop() under a bare "GTrC" without it.
+  declare -a include_args=() extra_args=()
   if [[ "$kind" == "app" ]]; then
     for root in "${APP_SRC_ROOTS[@]}" "${REPO_ROOT}/src"; do include_args+=(-I "$root"); done
   else
-    include_args+=(-I "$src_dir")
+    tr_dir="${TR_TMP}/${name}"
+    mkdir -p "$tr_dir"
+    sed "s/@GF_MODULE_TRANSLATION_CONTEXT@/${base}/g" \
+      "${REPO_ROOT}/cmake/GFModuleTr.h.in" > "${tr_dir}/GFModuleTr.h"
+    include_args+=(-I "$src_dir" -I "$tr_dir")
+    extra_args+=(-tr-function-alias "QT_TR_NOOP+=Noop")
   fi
 
   if ! "${LUPDATE_BIN}" -locations absolute ${NO_OBSOLETE} \
-        "${include_args[@]}" \
+        "${extra_args[@]}" "${include_args[@]}" \
         "${sources[@]}" -ts "${ts_files[@]}"; then
     echo "error: lupdate failed for ${name}" >&2
+    fail=1
+  fi
+
+  # The silent failure mode: GTrC unresolved, strings filed under "GTrC",
+  # which no module translates in any more.
+  if [[ "$kind" == "module" ]] && grep -l '<name>GTrC</name>' "${ts_files[@]}" 2>/dev/null; then
+    echo "error: ${name}: strings landed in a bare \"GTrC\" context, not ${base}" >&2
     fail=1
   fi
 done
