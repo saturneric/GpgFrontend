@@ -255,6 +255,18 @@ jobs:
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.flavor }}-${{ env.BUILD_TYPE }}
 
+      # CI-perf trial (stage A), one leg only. Every TU that force-includes
+      # the CMake PCH was "uncacheable" -- 493 of 824 calls -- so a warm cache
+      # still recompiled core, ui and test. ccache caches PCH users and the
+      # .gch itself only under these sloppiness flags; the objects are the
+      # same, the checks relaxed are about timestamps and __DATE__ defines.
+      - name: Allow ccache To Cache PCH Users (trial)
+        run: |
+          ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
+          ccache --set-config=max_size=2G
+          ccache -p | grep -E 'sloppiness|max_size'
+        if: matrix.os == 'ubuntu-22.04' && matrix.flavor == 'installed'
+
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
@@ -328,6 +340,14 @@ jobs:
           cache-on-failure: true
         if: runner.os == 'Linux'
 
+      # CI-perf trial (stage A): every leg compiled all ~196 crates despite
+      # an exact rust-cache hit. Show what the restore actually put back.
+      - name: Show Restored Cargo Target (trial)
+        run: |
+          du -sh build/cargo 2>/dev/null || echo "build/cargo was not restored"
+          find build/cargo -maxdepth 4 -type d 2>/dev/null | head -40 || true
+        if: matrix.os == 'ubuntu-22.04' && matrix.flavor == 'installed'
+
       # rust-cache cannot locate the msys2/mingw cargo, so cache the registry and
       # Corrosion's target dir directly for the Windows build.
       - name: Cache Cargo (Windows)
@@ -396,6 +416,9 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Linux)
+        env:
+          # CI-perf trial (stage A): cargo names why each crate is dirty.
+          CARGO_LOG: ${{ (matrix.os == 'ubuntu-22.04' && matrix.flavor == 'installed') && 'cargo::core::compiler::fingerprint=info' || '' }}
         run: |
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           # Native binding is REQUIRED here and OFF by default, which is the
@@ -430,7 +453,7 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
-          ccache -s
+          ccache -s -v 2>/dev/null || ccache -s
         if: runner.os == 'Linux'
 
       # The AppDir is an ordinary install tree.
@@ -1153,6 +1176,17 @@ jobs:
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
 
+      # CI-perf trial (stage A), one leg only. See "Build GpgFrontend": the
+      # Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER, so until now
+      # only GpgME ever went through ccache here. clang_index_store and
+      # ivfsoverlay cover flags Xcode adds to every compile line.
+      - name: Allow ccache To Cache Xcode Compiles (trial)
+        run: |
+          ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime,clang_index_store,ivfsoverlay,modules
+          ccache --set-config=max_size=2G
+          ccache -p | grep -E 'sloppiness|max_size'
+        if: matrix.os == 'macos-15-intel'
+
       - name: Install Qt6
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
@@ -1177,6 +1211,13 @@ jobs:
             rust -> build/cargo
           shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
+
+      # CI-perf trial (stage A): see the same step in the build job.
+      - name: Show Restored Cargo Target (trial)
+        run: |
+          du -sh build/cargo 2>/dev/null || echo "build/cargo was not restored"
+          find build/cargo -maxdepth 4 -type d 2>/dev/null | head -40 || true
+        if: matrix.os == 'macos-15-intel'
 
       - name: Build GpgME
         run: |
@@ -1206,6 +1247,10 @@ jobs:
         run: ${{github.workspace}}/scripts/check_entitlements_sync.sh
 
       - name: Build GpgFrontend
+        env:
+          # CI-perf trial (stage A): cargo names why each crate is dirty.
+          CARGO_LOG: ${{ matrix.os == 'macos-15-intel' && 'cargo::core::compiler::fingerprint=info' || '' }}
+          CCACHE_XCODE_TRIAL: ${{ matrix.os == 'macos-15-intel' && '1' || '' }}
         run: |
           MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
           MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
@@ -1244,6 +1289,29 @@ jobs:
           # well as the identity: src/CMakeLists.txt bakes a profile specifier
           # into the project, and Xcode would otherwise try to resolve a profile
           # this job has no business holding.
+          #
+          # ccache, as xcodebuild build settings rather than a CMake launcher,
+          # which the Xcode generator ignores. CC/CXX go through a wrapper;
+          # LD/LDPLUSPLUS stay the plain driver so links never see a
+          # compile-only flag. -fno-pch-timestamp: Xcode precompiles the prefix
+          # header itself, and a .pch restored from the cache would otherwise
+          # be refused against this checkout's header mtimes. The index store
+          # is an IDE feature and only adds an uncacheable output.
+          XCODE_CCACHE=()
+          if [[ -n "${CCACHE_XCODE_TRIAL:-}" ]]; then
+            WRAP="$RUNNER_TEMP/ccache-xcode"
+            mkdir -p "$WRAP"
+            REAL_CC="$(xcrun -f clang)"
+            REAL_CXX="$(xcrun -f clang++)"
+            printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CC" > "$WRAP/clang"
+            printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CXX" > "$WRAP/clang++"
+            chmod +x "$WRAP/clang" "$WRAP/clang++"
+            XCODE_CCACHE=(CC="$WRAP/clang" CXX="$WRAP/clang++" \
+              LD="$REAL_CC" LDPLUSPLUS="$REAL_CXX" \
+              COMPILER_INDEX_STORE_ENABLE=NO)
+            ccache -z
+          fi
+
           cd ${{github.workspace}}/build/
           xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
             -scheme GpgFrontend \
@@ -1254,7 +1322,12 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER=""
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            ${XCODE_CCACHE[@]+"${XCODE_CCACHE[@]}"}
+
+          if [[ -n "${CCACHE_XCODE_TRIAL:-}" ]]; then
+            ccache -s -v
+          fi
 
           # Skip -exportArchive: the generated ExportOptions.plist is
           # method=developer-id with signingStyle=manual, so exporting demands a
