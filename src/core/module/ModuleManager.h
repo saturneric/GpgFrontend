@@ -306,6 +306,17 @@ class GF_CORE_EXPORT ModuleManager
   auto GetModuleProvenance(ModuleIdentifier module_id) -> ModuleProvenance;
 
   /**
+   * @brief The Qt translation context a module's own strings are marked in.
+   *
+   * Its signed manifest's translation_context, which is also what the
+   * module's generated GTrC declares, so text a module registers untranslated
+   * is looked up where lupdate filed it.
+   *
+   * @return the context, or empty if there is no such module or manifest
+   */
+  auto GetModuleTranslationContext(ModuleIdentifier module_id) -> QString;
+
+  /**
    * @brief Subscribe a module to an event.
    *
    * Refused unless the host fires such an event, the module's signed manifest

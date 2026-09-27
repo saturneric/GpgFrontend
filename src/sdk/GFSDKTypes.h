@@ -241,8 +241,9 @@ typedef enum GFUIColorRole {
  * an append here instead of a new entry point.
  *
  * @ref title and @ref keywords must be UNTRANSLATED source strings; the host
- * translates them in the "GTrC" context each time the dialog is built, so a
- * language change is picked up without re-registering.
+ * translates them in the registering module's translation context each time
+ * the dialog is built, so a language change is picked up without
+ * re-registering.
  */
 typedef struct GFUISettingsPageSpec {
   size_t struct_size;
@@ -440,7 +441,8 @@ typedef struct GFNativeWidgetSpec {
   int kind;          /**< GFNativeWidgetKind */
   int multi_instance; /**< 1: a factory, one widget per mount instance */
 
-  /* presentation, untranslated source strings in the "GTrC" context */
+  /* presentation, untranslated source strings (GTrC::Noop), which the host
+     translates in the registering module's translation context */
   const char* title;
   const char* keywords; /**< comma-separated */
   const char* suffix;   /**< documents: default file suffix, no dot */

@@ -1236,6 +1236,14 @@ auto ModuleManager::IsIntegratedModule(ModuleIdentifier id) -> bool {
   return p_->IsIntegratedModule(id);
 }
 
+auto ModuleManager::GetModuleTranslationContext(ModuleIdentifier id)
+    -> QString {
+  auto module = p_->SearchModule(id);
+  if (module == nullptr) return {};
+  const auto manifest = module->GetModuleManifest();
+  return manifest.has_value() ? manifest->translation_context : QString{};
+}
+
 auto ModuleManager::GetModuleProvenance(ModuleIdentifier id)
     -> ModuleProvenance {
   ModuleProvenance p;

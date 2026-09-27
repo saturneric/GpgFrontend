@@ -46,7 +46,10 @@ function(module_add_translations target)
       RESOURCE_PREFIX "/i18n"
       TS_FILES ${MAT_TS_FILES}
       SOURCES ${MAT_SOURCES}
-      INCLUDE_DIRECTORIES ${MAT_INCLUDE_DIRECTORIES})
+      INCLUDE_DIRECTORIES ${MAT_INCLUDE_DIRECTORIES}
+      # GTrC::Noop() marks a string the way QT_TR_NOOP does; see
+      # GFModuleTr.h.in.
+      LUPDATE_OPTIONS -tr-function-alias QT_TR_NOOP+=Noop)
   else()
     set(i18n_target "${target}_i18n")
     add_custom_target(${i18n_target} ALL)
@@ -780,6 +783,13 @@ function(gf_add_module)
     "${GF_MODULE_REGISTRY_DIR}/GFModuleIdentity.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/GFModuleIdentity.h"
     @ONLY)
+  # GTrC, declared in this module's own translation context. Beside the
+  # identity header, so a module test compiling a module source reaches both
+  # through the one include directory.
+  configure_file(
+    "${GF_MODULE_REGISTRY_DIR}/GFModuleTr.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/GFModuleTr.h"
+    @ONLY)
   target_include_directories(${target_name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
   # ---- translations, context from the manifest ----------------------------
@@ -789,7 +799,9 @@ function(gf_add_module)
   module_add_translations(${target_name}
     TS_FILES ${ts_files}
     SOURCES ${module_sources}
-    INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
+    # The binary dir holds GFModuleTr.h: without it lupdate cannot resolve
+    # GTrC and files every string under a bare "GTrC" context instead.
+    INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
   # ---- the signed package, which is what ships ----------------------------
 

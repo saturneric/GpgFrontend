@@ -162,7 +162,8 @@ class DialogWidget : public NativeWidgetBase {
   void CloseDialog();
 };
 
-/// Presentation, as untranslated source strings in the "GTrC" context.
+/// Presentation, as untranslated source strings (GTrC::Noop). The Host
+/// translates them in the registering module's translation context.
 struct NativeWidgetMeta {
   const char* title = "";
   const char* keywords = "";  ///< comma-separated, for the Settings search

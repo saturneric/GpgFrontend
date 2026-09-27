@@ -214,9 +214,10 @@ and result.
 ```cpp
 struct PublishKey {
   static constexpr gf::cmd::Meta kMeta{
-      GF_MODULE_ID ".publish_key", GC_TR("Publish Public Key"),
-      GC_TR("Upload this key to the key server"),
-      GC_TR("Key Server Operations"), GF_HOST_CAP_GPG, gf::cmd::kLongRunning};
+      GF_MODULE_ID ".publish_key", GTrC::Noop("Publish Public Key"),
+      GTrC::Noop("Upload this key to the key server"),
+      GTrC::Noop("Key Server Operations"), GF_HOST_CAP_GPG,
+      gf::cmd::kLongRunning};
   struct Args {
     gf::cmd::KeyRef key;
     static constexpr auto Fields() {
@@ -311,7 +312,7 @@ command. `args` may be omitted and reads as an empty table.
 **Attention is the command's.** A command whose `State()` reports
 `GF_CMD_STATE_ATTENTION` gets a small badge on every visible entry placed for
 it, plus a tooltip. The tooltip says the command's `kAttention` text when it
-declares one (`static constexpr const char* kAttention = GC_TR("...")`), and
+declares one (`static constexpr const char* kAttention = GTrC::Noop("...")`), and
 its description otherwise. Nothing opens or takes focus. Entries pick it up
 when their menu is next shown. `update(ctx)` cannot raise it: an `attention`
 field is an unknown field. The badged entry shows its icon even though the
@@ -426,7 +427,7 @@ class InspectorWidget : public QWidget, public gf::ui::DialogWidget { ... };
 
 auto OnActivate() -> GFResult {
   gf::ui::RegisterNativeWidget<InspectorWidget>(
-      "inspector", {GC_TR("OpenPGP Inspector")},
+      "inspector", {GTrC::Noop("OpenPGP Inspector")},
       [](const QCborMap&) { return new InspectorWidget(); });
   return GFResult::Ok();
 }

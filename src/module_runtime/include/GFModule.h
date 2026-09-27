@@ -75,10 +75,12 @@
  *
  *     #include <GFModule.h>
  *     #include "GFModuleIdentity.h"
+ *     #include "GFModuleTr.h"
  *
  *     struct ShowAbout {                       // a command: what it does
  *       static constexpr gf::cmd::Meta kMeta{GF_MODULE_ID ".show_about",
- *           GC_TR("About My Module"), "", "", 0, gf::cmd::kNeedsGuiThread};
+ *           GTrC::Noop("About My Module"), "", "", 0,
+ *           gf::cmd::kNeedsGuiThread};
  *       using Args = gf::cmd::Unit;
  *       using Result = gf::cmd::Unit;
  *     };
@@ -116,19 +118,11 @@
  * after the module is linked.
  */
 
-/// The Qt translation context every module's GC_TR() and tr() land in.
-///
-/// One class, declared once. Note this is the *context* -- the name Qt matches
-/// against -- and is unrelated to a module's translation_context, which names
-/// the .qm file and may carry many contexts.
-class GTrC {
-  Q_DECLARE_TR_FUNCTIONS(GTrC)
-};
-
-/// Mark a string for extraction without translating it yet. For text that is
-/// registered before the module translators are installed, which would
-/// otherwise be frozen at its source form for the whole session.
-#define GC_TR(text) QT_TRANSLATE_NOOP("GTrC", text)
+// Translation: GTrC, from the generated GFModuleTr.h, is this module's own
+// context (module.json's translation_context). GTrC::tr() translates now;
+// GTrC::Noop() marks text the Host translates when it shows it, in the
+// context of the module that registered it. Not included here: this header
+// is also compiled into the runtime, which belongs to no single module.
 
 /// Why a lifecycle hook finished the way it did.
 enum class GFStatus { kOK, kFAILED, kUNAVAILABLE };
