@@ -35,6 +35,7 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
@@ -102,9 +103,59 @@ auto DescribeCoreInitStep(CoreInitStep step, const QString& subject)
 
 /// The startup dialog's width, and what the layout leaves inside its margins.
 constexpr int kStartupDialogWidth = 460;
-constexpr int kStartupDialogMargin = 24;
+constexpr int kStartupDialogMargin = 28;
 constexpr int kStartupDialogContentWidth =
     kStartupDialogWidth - 2 * kStartupDialogMargin;
+/// The badge beside the heading.
+constexpr int kStartupLogoSize = 48;
+/// The progress track: a slim rounded line rather than the platform's slab.
+constexpr int kStartupProgressHeight = 6;
+/// Space between the step line and the percentage beside it.
+constexpr int kStartupStatusSpacing = 12;
+
+/**
+ * @brief The logo, heading and version line that open the startup dialog.
+ *
+ * Built here rather than with CreateDialogHeader(): that one ends in a rule
+ * and suits a dialog that asks something, where this one only reports, and a
+ * rule across a window this small cuts it in half.
+ */
+auto CreateStartupHeader(QWidget* parent) -> QLayout* {
+  auto* logo_label = new QLabel(parent);
+  const auto dpr = parent->devicePixelRatioF();
+  auto logo = QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
+                  .scaled(QSize(kStartupLogoSize, kStartupLogoSize) * dpr,
+                          Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  logo.setDevicePixelRatio(dpr);
+  logo_label->setPixmap(logo);
+  logo_label->setFixedSize(kStartupLogoSize, kStartupLogoSize);
+
+  auto* title_label =
+      new QLabel(QCoreApplication::tr("Preparing OpenPGP Environment"), parent);
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_font.setPointSizeF(title_font.pointSizeF() * 1.3);
+  title_label->setFont(title_font);
+
+  auto* version_label = new QLabel(
+      QStringLiteral("%1 %2").arg(GetProjectName(), GetProjectVersion()),
+      parent);
+  version_label->setTextFormat(Qt::PlainText);
+  SetLabelTextColor(version_label, MutedTextColor(version_label->palette()));
+
+  auto* text_column = new QVBoxLayout();
+  text_column->setSpacing(2);
+  text_column->addStretch();
+  text_column->addWidget(title_label);
+  text_column->addWidget(version_label);
+  text_column->addStretch();
+
+  auto* header = new QHBoxLayout();
+  header->setSpacing(16);
+  header->addWidget(logo_label, 0, Qt::AlignVCenter);
+  header->addLayout(text_column, 1);
+  return header;
+}
 
 void WaitEnvCheckingProcess() {
   FLOG_D() << "we need to wait for env checking process";
@@ -125,11 +176,31 @@ void WaitEnvCheckingProcess() {
   dialog->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
   dialog->setWindowFlag(Qt::MSWindowsFixedSizeDialogHint, true);
 
+  // A slim rounded line in the palette's own highlight, the same on every
+  // platform. The percentage is its own label beside the step line: a number
+  // painted inside a 6px track cannot be read, and one hung off its end by the
+  // style floats free of everything else.
   auto* progress_bar = new QProgressBar;
   progress_bar->setRange(0, 100);
   progress_bar->setValue(0);
-  progress_bar->setTextVisible(true);
-  progress_bar->setFormat(QStringLiteral("%p%"));
+  progress_bar->setTextVisible(false);
+  progress_bar->setFixedHeight(kStartupProgressHeight);
+  const auto radius = kStartupProgressHeight / 2;
+  progress_bar->setStyleSheet(
+      QStringLiteral("QProgressBar { border: none; border-radius: %1px;"
+                     " background: %2; }"
+                     "QProgressBar::chunk { border-radius: %1px;"
+                     " background: %3; }")
+          .arg(radius)
+          .arg(BorderColor(progress_bar->palette()).name(),
+               progress_bar->palette().color(QPalette::Highlight).name()));
+
+  // Reports arrive in jumps -- a whole key database or module at a time -- so
+  // the bar glides to each new value instead of snapping to it.
+  auto* progress_animation =
+      new QPropertyAnimation(progress_bar, QByteArrayLiteral("value"), dialog);
+  progress_animation->setDuration(250);
+  progress_animation->setEasingCurve(QEasingCurve::OutCubic);
 
   // The one line that says what is actually happening. Elided rather than
   // wrapped: a key database is a filesystem path, and letting one wrap would
@@ -137,16 +208,27 @@ void WaitEnvCheckingProcess() {
   auto* detail_label = new QLabel;
   detail_label->setWordWrap(false);
   detail_label->setTextFormat(Qt::PlainText);
-  auto detail_palette = detail_label->palette();
-  detail_palette.setColor(
-      detail_label->foregroundRole(),
-      detail_palette.color(QPalette::Disabled, QPalette::WindowText));
-  detail_label->setPalette(detail_palette);
+  SetLabelTextColor(detail_label, MutedTextColor(detail_label->palette()));
 
-#if defined(Q_OS_MACOS)
-  progress_bar->setFixedHeight(14);
-  progress_bar->setMinimumWidth(360);
-#endif
+  // Wide enough for "100%" from the start, so the step line beside it never
+  // shifts as the number grows a digit.
+  auto* percent_label = new QLabel(QStringLiteral("0%"));
+  percent_label->setTextFormat(Qt::PlainText);
+  percent_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  percent_label->setFixedWidth(
+      percent_label->fontMetrics().horizontalAdvance(QStringLiteral("100%")));
+  SetLabelTextColor(percent_label, MutedTextColor(percent_label->palette()));
+  // Follows the bar rather than the report, so the number counts up with the
+  // glide instead of racing ahead of it.
+  QObject::connect(progress_bar, &QProgressBar::valueChanged, percent_label,
+                   [percent_label](int value) {
+                     percent_label->setText(QStringLiteral("%1%").arg(value));
+                   });
+
+  auto* status_layout = new QHBoxLayout;
+  status_layout->setSpacing(kStartupStatusSpacing);
+  status_layout->addWidget(detail_label, 1);
+  status_layout->addWidget(percent_label);
 
   auto* cancel_button = new QPushButton(QCoreApplication::tr("Cancel"));
 
@@ -155,42 +237,55 @@ void WaitEnvCheckingProcess() {
   button_layout->addWidget(cancel_button);
 
   auto* layout = new QVBoxLayout(dialog);
-  layout->setContentsMargins(kStartupDialogMargin, 20, kStartupDialogMargin,
+  layout->setContentsMargins(kStartupDialogMargin, 24, kStartupDialogMargin,
                              20);
-  layout->setSpacing(12);
-  layout->addLayout(
-      CreateDialogHeader(QStringLiteral(":/icons/gpgfrontend_logo.png"),
-                         QCoreApplication::tr("Preparing OpenPGP Environment"),
-                         QCoreApplication::tr("Loading..."), dialog));
-  layout->addSpacing(4);
+  layout->setSpacing(0);
+  layout->addLayout(CreateStartupHeader(dialog));
+  layout->addSpacing(22);
   layout->addWidget(progress_bar);
-  layout->addWidget(detail_label);
-  layout->addSpacing(4);
+  layout->addSpacing(8);
+  layout->addLayout(status_layout);
+  layout->addSpacing(18);
   layout->addLayout(button_layout);
-
-  dialog->resize(kStartupDialogWidth, dialog->sizeHint().height());
 
   QEventLoop looper;
 
-  const auto apply_progress = [progress_bar, detail_label](
-                                  int percent, CoreInitStep step,
-                                  const QString& subject) {
-    progress_bar->setValue(percent);
+  const auto apply_progress = [progress_bar, progress_animation, detail_label,
+                               percent_label](int percent, CoreInitStep step,
+                                              const QString& subject) {
+    // Glide forward; a report that goes back (a restarted phase) is shown as
+    // it is rather than animated in reverse.
+    progress_animation->stop();
+    if (percent > progress_bar->value()) {
+      progress_animation->setStartValue(progress_bar->value());
+      progress_animation->setEndValue(percent);
+      progress_animation->start();
+    } else {
+      progress_bar->setValue(percent);
+    }
+
     const auto text = DescribeCoreInitStep(step, subject);
 
     // Reports can arrive before the dialog is mapped, when the label has no
     // width yet and eliding against it would leave nothing but the ellipsis.
     // Fall back to what the layout will give it: the dialog's width less its
-    // horizontal margins.
+    // horizontal margins and the percentage beside it.
     auto available = detail_label->width();
-    if (available < kStartupDialogContentWidth) {
-      available = kStartupDialogContentWidth;
-    }
+    const auto fallback = kStartupDialogContentWidth - kStartupStatusSpacing -
+                          percent_label->width();
+    if (available < fallback) available = fallback;
 
     detail_label->setText(detail_label->fontMetrics().elidedText(
         text, Qt::ElideMiddle, available));
     detail_label->setToolTip(text);
   };
+
+  // Something true on the line before the first report arrives.
+  apply_progress(0, CoreInitStep::kSTARTING_UP, {});
+
+  // Fixed, not merely resized: the step line changes several times a second
+  // and nothing it says should be able to move the window.
+  dialog->setFixedSize(kStartupDialogWidth, dialog->sizeHint().height());
 
   QApplication::connect(
       CoreSignalStation::GetInstance(),
