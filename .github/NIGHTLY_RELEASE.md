@@ -1,38 +1,40 @@
 This is a **nightly build** of GpgFrontend: the latest code, built automatically.
-It is newer than the official releases, and less tested. Use it at your own risk,
-and not for anything you can't afford to lose.
-
-#### Why nightly builds?
-
-They let you try new features and fixes right away, often within days of a
-request or bug report, instead of waiting for the next official release.
+It is less tested than official releases, so don't use it for anything you
+can't afford to lose.
 
 #### Which file do I download?
 
-There are two kinds (macOS has **installed** only):
+- **installed**: the normal choice. Keys and settings go in the usual place.
+- **portable**: everything stays next to the app, e.g. on a USB stick. Anyone
+  holding the stick has your keys. (Not available for macOS.)
 
-- **installed**: the normal choice. Your keys and settings are stored in the
-  usual place for your system.
-- **portable**: everything is stored next to the application, so it can run
-  from a USB stick. Anyone holding that stick has your keys, so keep it safe.
-
-The two do not share data. Switching from one to the other looks like starting
-from scratch.
+The two do not share data.
 
 #### Good to know
 
-- Things may change or break between nightly builds, without warning.
-- Nightly downloads are much larger than official releases. They carry extra
-  debugging information, so crash reports are useful. The program itself runs
-  just as fast.
-- Please test it and tell us what you find: bug reports and ideas go to GitHub
-  Issues, or write to the maintainer directly.
+- Things may change or break between nightly builds.
+- Downloads are larger because they include debugging information. The app
+  runs just as fast.
+- Please report bugs and ideas on GitHub Issues.
 
-#### Signatures and checksums
+#### Checking your download
 
-Nightly builds are made automatically, and the private signing key is never
-uploaded to GitHub. So **these files are not GPG-signed**. Use the SHA256
-checksums to check that your download is intact. If you want a signed build,
-please wait for the next official release.
+These files are not GPG-signed; for that, wait for an official release.
+`SHA256SUMS.txt` lists every file with its checksum. To check a download,
+keep it in the same folder as `SHA256SUMS.txt` and run:
+
+```sh
+sha256sum -c --ignore-missing SHA256SUMS.txt       # Linux
+shasum -a 256 -c --ignore-missing SHA256SUMS.txt   # macOS
+```
+
+To also confirm it was built by this project on GitHub, first run
+[cosign](https://docs.sigstore.dev/cosign/system_config/installation/):
+
+```sh
+cosign verify-blob SHA256SUMS.txt --bundle SHA256SUMS.txt.sigstore.json \
+  --certificate-identity https://github.com/saturneric/GpgFrontend/.github/workflows/build.yml@refs/heads/main \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
 
 Thank you for supporting GpgFrontend!
