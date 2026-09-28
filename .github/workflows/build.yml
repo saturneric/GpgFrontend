@@ -737,9 +737,23 @@ jobs:
       # hit 97%; ccache's own log says why. The artifact is named so that
       # provenance and release, which take gpgfrontend-* and buildinfo-*,
       # never see it.
+      - name: Upload ccache Log (diagnosis)
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: diag-ccache-${{ matrix.os }}
+          path: ${{ runner.temp }}/ccache-diag.log
+          if-no-files-found: ignore
+          retention-days: 3
+        if: ${{ matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022') }}
+
       - name: Summarize ccache Misses (diagnosis)
         shell: bash
+        # Diagnosis must never fail a build: with shell: bash the runner sets
+        # pipefail, and `head` closing a pipe early turned SIGPIPE into exit 2.
+        continue-on-error: true
         run: |
+          set +o pipefail
           LOG="$RUNNER_TEMP/ccache-diag.log"
           if [ ! -f "$LOG" ]; then echo "no ccache log"; exit 0; fi
           echo "--- results ---"
@@ -748,19 +762,12 @@ jobs:
           awk '/Source file:/ {src[$2] = $NF} /Result: .*miss/ {print src[$2]}' "$LOG" \
             | sed -E 's#^.*/GpgFrontend/GpgFrontend/##' \
             | awk -F/ '{print $1 "/" $2 "/" $3}' | sort | uniq -c | sort -rn | head -25
+          echo "--- evictions ---"
+          grep -cE 'Evicting|cleanup|Cleaning|Removing' "$LOG" || true
           echo "--- pch-related lines ---"
           grep -iE 'too new|precompiled|\.gch|pch|disabling direct' "$LOG" \
             | sed -E 's/^\[[^]]*\] //' | sed -E 's#/[^ ]*/GpgFrontend/GpgFrontend/#./#g' \
             | sort | uniq -c | sort -rn | head -30
-        if: ${{ matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022') }}
-
-      - name: Upload ccache Log (diagnosis)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: diag-ccache-${{ matrix.os }}
-          path: ${{ runner.temp }}/ccache-diag.log
-          if-no-files-found: ignore
-          retention-days: 3
         if: ${{ matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022') }}
 
       - name: Download GnuPG Binary Release (Windows)
