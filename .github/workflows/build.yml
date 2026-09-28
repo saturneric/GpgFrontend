@@ -710,6 +710,12 @@ jobs:
 
       - name: Build GpgFrontend (Windows)
         shell: msys2 {0}
+        env:
+          # ccache takes MinGW's `c++.exe` for an unknown compiler and then
+          # applies clang's PCH rule: refuse a cached .gch whose headers have
+          # a new mtime. CMake rewrites cmake_pch.hxx at every configure, so
+          # every PCH and its ~480 users missed on every run. It is gcc.
+          CCACHE_COMPILERTYPE: gcc
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           cmake -G "Ninja" -S . -B build \
