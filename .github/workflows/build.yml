@@ -268,8 +268,19 @@ jobs:
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: ${{ github.job }}-${{ matrix.os }}-installed-${{ env.BUILD_TYPE }}
-          max-size: 1500M
+          # A limit, not a size: see "Mark ccache Epoch". ccache caps each of
+          # its 16 subdirectories at 1/16 of this, and a compressed .gch runs
+          # past 100 MB -- at 1500M every PCH result was evicted as it was
+          # stored, so the PCH and all ~480 of its users missed on every run.
+          max-size: 4G
           save: ${{ github.event_name == 'push' && matrix.flavor == 'installed' }}
+
+      # Everything this job compiles from here on touches the cache entries it
+      # uses, so "older than this mark" is exactly "not used by this build".
+      # The build step evicts those before the post step saves the cache.
+      - name: Mark ccache Epoch
+        shell: bash
+        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
 
       - name: Install Dependence (Linux)
         run: |
@@ -421,9 +432,6 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Linux)
-        env:
-          # CI-perf diagnosis, temporary: why PCH users miss on gcc x86/MinGW.
-          CCACHE_LOGFILE: ${{ (matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022')) && format('{0}/ccache-diag.log', runner.temp) || '' }}
         run: |
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           # Native binding is REQUIRED here and OFF by default, which is the
@@ -459,6 +467,10 @@ jobs:
             --parallel \
             --verbose
           ccache -s -v 2>/dev/null || ccache -s
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
         if: runner.os == 'Linux'
 
       # The AppDir is an ordinary install tree.
@@ -697,9 +709,6 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Windows)
-        env:
-          # CI-perf diagnosis, temporary: why PCH users miss on gcc x86/MinGW.
-          CCACHE_LOGFILE: ${{ (matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022')) && format('{0}/ccache-diag.log', runner.temp) || '' }}
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
@@ -715,6 +724,10 @@ jobs:
             --parallel \
             --verbose
           ccache -s -v
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
         if: runner.os == 'Windows'
 
       # After the compile, before anything else can fail the job: the target
@@ -731,44 +744,6 @@ jobs:
         if: >-
           github.event_name == 'push' && matrix.flavor == 'installed' &&
           steps.cargo-cache.outputs.cache-hit != 'true'
-
-      # CI-perf diagnosis, temporary. Warm runs still missed on every PCH user
-      # on these two runners (identical counts run after run) while arm64
-      # hit 97%; ccache's own log says why. The artifact is named so that
-      # provenance and release, which take gpgfrontend-* and buildinfo-*,
-      # never see it.
-      - name: Upload ccache Log (diagnosis)
-        continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: diag-ccache-${{ matrix.os }}
-          path: ${{ runner.temp }}/ccache-diag.log
-          if-no-files-found: ignore
-          retention-days: 3
-        if: ${{ matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022') }}
-
-      - name: Summarize ccache Misses (diagnosis)
-        shell: bash
-        # Diagnosis must never fail a build: with shell: bash the runner sets
-        # pipefail, and `head` closing a pipe early turned SIGPIPE into exit 2.
-        continue-on-error: true
-        run: |
-          set +o pipefail
-          LOG="$RUNNER_TEMP/ccache-diag.log"
-          if [ ! -f "$LOG" ]; then echo "no ccache log"; exit 0; fi
-          echo "--- results ---"
-          grep -oE 'Result: .*' "$LOG" | sort | uniq -c | sort -rn
-          echo "--- missed sources, by directory ---"
-          awk '/Source file:/ {src[$2] = $NF} /Result: .*miss/ {print src[$2]}' "$LOG" \
-            | sed -E 's#^.*/GpgFrontend/GpgFrontend/##' \
-            | awk -F/ '{print $1 "/" $2 "/" $3}' | sort | uniq -c | sort -rn | head -25
-          echo "--- evictions ---"
-          grep -cE 'Evicting|cleanup|Cleaning|Removing' "$LOG" || true
-          echo "--- pch-related lines ---"
-          grep -iE 'too new|precompiled|\.gch|pch|disabling direct' "$LOG" \
-            | sed -E 's/^\[[^]]*\] //' | sed -E 's#/[^ ]*/GpgFrontend/GpgFrontend/#./#g' \
-            | sort | uniq -c | sort -rn | head -30
-        if: ${{ matrix.flavor == 'installed' && (matrix.os == 'ubuntu-22.04' || matrix.os == 'windows-2022') }}
 
       - name: Download GnuPG Binary Release (Windows)
         shell: msys2 {0}
@@ -1071,38 +1046,6 @@ jobs:
         # An MSI installs into Program Files and keeps its data in the user
         # profile, so it is only ever built from the installed flavour.
         if: runner.os == 'Windows' && matrix.flavor == 'installed'
-
-      # CI-perf measurement, temporary and never shipped: the same package at
-      # CompressionLevel="mszip", built from a copy of the wxs beside the
-      # original (so its relative references hold) into RUNNER_TEMP, which
-      # nothing uploads. Reports time and size against the shipped "high"
-      # build above; the decision is the maintainer's.
-      - name: Measure MSI Compression (diagnosis)
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          $info = Get-Content "${{github.workspace}}/build/artifacts/build-info.json" -Raw | ConvertFrom-Json
-          $version = $info.project_version
-          $wixVersion = '5.0.2'
-          $wxs = "resource/wix/Package.mszip-diag.wxs"
-          (Get-Content resource/wix/Package.wxs -Raw) -replace 'CompressionLevel="high"', 'CompressionLevel="mszip"' |
-            Set-Content $wxs
-          $out = Join-Path $env:RUNNER_TEMP "msi-diag/mszip.msi"
-          $sw = [Diagnostics.Stopwatch]::StartNew()
-          wix build -arch x64 `
-            -ext WixToolset.UI.wixext/$wixVersion `
-            -ext WixToolset.Util.wixext/$wixVersion `
-            -d PayloadDir="${{github.workspace}}/build/artifacts" `
-            -d ProductVersion="$version" `
-            -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
-            -d BrandingDir="${{github.workspace}}/resource/wix" `
-            -o $out $wxs
-          $sw.Stop()
-          Remove-Item -Force $wxs
-          $shipped = Get-ChildItem "${{github.workspace}}/build/upload-artifact/*.msi" | Select-Object -First 1
-          Write-Host ("mszip: {0:N0} s, {1:N1} MB" -f $sw.Elapsed.TotalSeconds, ((Get-Item $out).Length / 1MB))
-          Write-Host ("high (shipped): {0:N1} MB" -f ($shipped.Length / 1MB))
-        if: runner.os == 'Windows' && matrix.flavor == 'installed'
       - name: Smoke Test The Portable Archive (Windows)
         shell: msys2 {0}
         run: |
@@ -1277,8 +1220,16 @@ jobs:
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
-          max-size: 1500M
+          # See the build job: large enough per subdirectory for a PCH.
+          max-size: 4G
           save: ${{ github.event_name == 'push' }}
+
+      # Everything this job compiles from here on touches the cache entries it
+      # uses, so "older than this mark" is exactly "not used by this build".
+      # The build step evicts those before the post step saves the cache.
+      - name: Mark ccache Epoch
+        shell: bash
+        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
 
       - name: Install Qt6
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
@@ -1431,6 +1382,10 @@ jobs:
             XROS_DEPLOYMENT_TARGET= \
             DRIVERKIT_DEPLOYMENT_TARGET=
           ccache -s -v
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
 
           # Skip -exportArchive: the generated ExportOptions.plist is
           # method=developer-id with signingStyle=manual, so exporting demands a
