@@ -1223,7 +1223,10 @@ jobs:
           toolchain: stable
 
       # Corrosion's target dir, restored whole; see "Restore Cargo Cache" in
-      # the build job for why this is not rust-cache.
+      # the build job for why this is not rust-cache. Under a multi-config
+      # generator Corrosion puts it one level down, in <build>/<config>/cargo,
+      # which is why the key differs from the build job's too: an entry
+      # saved from the wrong path held only the registry.
       - name: Restore Cargo Cache
         id: cargo-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -1232,10 +1235,10 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            ${{github.workspace}}/build/cargo
-          key: cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+            ${{github.workspace}}/build/${{ env.BUILD_TYPE }}/cargo
+          key: cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: |
-            cargo-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
+            cargo-xcode-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ env.BUILD_TYPE }}-
 
       - name: Build GpgME
         run: |
@@ -1367,7 +1370,7 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            ${{github.workspace}}/build/cargo
+            ${{github.workspace}}/build/${{ env.BUILD_TYPE }}/cargo
           key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
         if: github.event_name == 'push' && steps.cargo-cache.outputs.cache-hit != 'true'
 
