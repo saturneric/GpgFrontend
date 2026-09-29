@@ -402,6 +402,35 @@ TEST_F(LuaApiTest, CapabilitiesAreTheModulesAndNoMore) {
   EXPECT_EQ(custom->Mounts().size(), 2);
 }
 
+TEST_F(LuaApiTest, EditorCompactStatusIsAnExplicitBoolean) {
+  const auto mount = [this](const char* extra) {
+    auto rt = Make();
+    const auto code = QString(
+                          "ui.mount{ id='e', anchor=ui.anchor.editor{"
+                          "document_type='x', extensions={'eml'}%1}, "
+                          "widget=native.factory('editor') }")
+                          .arg(QString::fromLatin1(extra))
+                          .toUtf8();
+    const bool ok = Load(*rt, code.constData());
+    return std::pair{ok, ok ? rt->Mounts().value(0) : UI::Lua::MountInfo{}};
+  };
+
+  const auto [absent_ok, absent] = mount("");
+  ASSERT_TRUE(absent_ok);
+  EXPECT_FALSE(absent.compact_status) << "off unless asked for";
+
+  const auto [on_ok, on] = mount(", compact_status=true");
+  ASSERT_TRUE(on_ok);
+  EXPECT_TRUE(on.compact_status);
+
+  const auto [off_ok, off] = mount(", compact_status=false");
+  ASSERT_TRUE(off_ok);
+  EXPECT_FALSE(off.compact_status);
+
+  EXPECT_FALSE(mount(", compact_status='yes'").first);
+  EXPECT_FALSE(mount(", compact_status=1").first);
+}
+
 // ------------------------------------------------------------ evaluation
 
 TEST_F(LuaApiTest, UpdateComputesStateAndTypedArguments) {
