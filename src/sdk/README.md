@@ -346,7 +346,8 @@ Command:enabled() Command:visible() Command:checked() Command.id
 Call:cancel() -> bool
 
 ui.anchor(id) -> Anchor                           menu and button anchors
-ui.anchor.settings{section} ui.anchor.editor{document_type, extensions}
+ui.anchor.settings{section}
+ui.anchor.editor{document_type, extensions, compact_status?}
 ui.anchor.dialog{} -> Anchor                      mount anchors
 ui.action{id, anchor, command, order?, icon?, shortcut?, update?}
                                                   while loading; shortcut:
