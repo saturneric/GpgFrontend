@@ -235,6 +235,15 @@ class TextEditTabWidget : public QTabWidget {
   /// Emitted when the CURRENT tab's view changed which operations apply.
   void SignalCryptoOperationsChanged();
 
+  /**
+   * @brief Emitted when a module view was mounted on the CURRENT tab.
+   *
+   * A restored tab becomes current before its view is mounted, so what the
+   * page asks of the rest of the window (a compact Status Panel, say) is only
+   * known after currentChanged has already been and gone.
+   */
+  void SignalCurrentPageViewMounted();
+
  private:
   int count_page_ = 0;
   int text_page_data_modified_count_ = 0;

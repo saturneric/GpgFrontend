@@ -507,7 +507,10 @@ void TextEditTabWidget::mount_module_view(PlainTextEditorPage* page,
     if (!page->MountNativeView(m.info.widget)) {
       LOG_W() << "the native view for document type" << type
               << "could not be mounted";
+      return;
     }
+    page->SetPrefersCompactStatusDock(m.info.compact_status);
+    if (page == currentWidget()) emit SignalCurrentPageViewMounted();
     return;
   }
 

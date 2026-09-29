@@ -101,6 +101,11 @@ void PlainTextEditorPage::init_editor_style() {
   ui_->textPage->setObjectName(QStringLiteral("PlainTextEditor"));
   ui_->textPage->setAcceptDrops(false);
   ui_->textPage->setLineWrapMode(QPlainTextEdit::WidgetWidth);
+  // Lines wrap at the viewport's width, so a scrollbar that comes and goes
+  // with the height -- the Status Panel expanding under the editor, say --
+  // would reflow every line sideways. Its gutter is always reserved instead;
+  // with nothing to scroll the style draws it inactive.
+  ui_->textPage->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   ui_->textPage->setUndoRedoEnabled(true);
   ui_->textPage->setCursorWidth(2);
 

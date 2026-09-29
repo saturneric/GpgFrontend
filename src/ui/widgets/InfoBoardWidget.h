@@ -53,7 +53,7 @@ enum InfoBoardStatus : uint8_t {
   kINFO_ERROR_NEUTRAL = 3,
 };
 
-class InfoBoardWidget : public QWidget {
+class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   Q_OBJECT
 
  public:
@@ -79,6 +79,20 @@ class InfoBoardWidget : public QWidget {
 
   void InitUI();
   void UpdateActionButtons();
+
+  /**
+   * @brief Adds a flat, labelled button for @p action at the end of the tool
+   *        strip, after anything a module put there.
+   */
+  void AddBarAction(QAction* action);
+
+  /// The status the indicator shows right now (neutral after a reset).
+  [[nodiscard]] auto CurrentStatus() const -> InfoBoardStatus {
+    return current_status_;
+  }
+
+  /// The indicator's colour for @p status; neutral is an "off" grey.
+  [[nodiscard]] auto IndicatorColor(InfoBoardStatus status) const -> QColor;
 
   /**
    * @brief Re-read the appearance settings and restyle the board's text.
@@ -109,6 +123,25 @@ class InfoBoardWidget : public QWidget {
                             const QString& details_title,
                             const QStringList& details_items);
 
+ signals:
+  /**
+   * @brief A new, non-empty result was just posted to the board.
+   *
+   * Emitted once per posting call, after the board shows it; never by a reset
+   * or by an update carrying nothing (see IsMeaningfulInfoBoardResult). This
+   * is an event, not a state: content that is merely still there never
+   * re-emits it, which is what lets a host reveal itself on news without
+   * overriding a user who closed it afterwards.
+   */
+  void SignalResultPosted(InfoBoardStatus status);
+
+  /**
+   * @brief The indicator changed to @p status: a result, a reset, a restyle.
+   *
+   * State, not news: for anything that mirrors the indicator elsewhere.
+   */
+  void SignalStatusStyleChanged(InfoBoardStatus status);
+
  private slots:
   void slot_copy();
   void slot_save();
@@ -128,6 +161,8 @@ class InfoBoardWidget : public QWidget {
   };
 
   QSharedPointer<Ui_InfoBoard> ui_;
+
+  InfoBoardStatus current_status_{kINFO_ERROR_NEUTRAL};
 
   /// Message body last shown in the raw text pane, without the status prefix.
   QString info_board_body_;
@@ -230,6 +265,13 @@ class InfoBoardWidget : public QWidget {
   void export_doc_as_png(const QString& file_path);
 
   void set_info_board_text(const QString& text, InfoBoardStatus status);
+
+  /// Shows @p text as the board's content without announcing it; every public
+  /// posting call builds on this and announces exactly once when it is done.
+  void apply_info_board(const QString& text, InfoBoardStatus status,
+                        const QString& content_hash);
+  void announce_result(const QString& text, InfoBoardStatus status,
+                       qsizetype structured_items);
   auto create_card(QWidget* parent, InfoBoardStatus status) const -> QFrame*;
   void add_card_header(QVBoxLayout* card_layout, QWidget* parent,
                        InfoBoardStatus status, const QString& title) const;
@@ -250,5 +292,25 @@ struct InfoBoardCard {
   InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
   QContainer<QPair<QString, QString>> fields;
 };
+
+/**
+ * @brief Whether a posting carries anything for a reader.
+ *
+ * @param text the posted raw text; whitespace alone is nothing
+ * @param structured_items number of cards, results or op-info records posted
+ */
+auto GF_UI_EXPORT IsMeaningfulInfoBoardResult(const QString& text,
+                                              qsizetype structured_items)
+    -> bool;
+
+/**
+ * @brief Shows @p host when @p board posts a new result while @p host is
+ *        hidden, and leaves it alone otherwise.
+ *
+ * Only the posting event reveals: a reset never hides @p host, and content
+ * that is still on the board never re-shows a @p host the user closed. The
+ * host's own close button / toggle action stays the user's control.
+ */
+void GF_UI_EXPORT RevealOnNewResult(InfoBoardWidget* board, QWidget* host);
 
 }  // namespace GpgFrontend::UI

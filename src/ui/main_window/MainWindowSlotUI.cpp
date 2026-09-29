@@ -53,6 +53,7 @@
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/PlainTextEditorPage.h"
+#include "ui/widgets/StatusDockPresenter.h"
 #include "ui/widgets/StatusIndicatorBar.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -369,6 +370,14 @@ void MainWindow::slot_export_profile() {
       });
 }
 
+void MainWindow::sync_status_dock_context() {
+  // Opted into by the page's document view, never inferred from having one.
+  if (status_dock_presenter_ == nullptr) return;
+  const auto* text_page = edit_->CurPageTextEdit();
+  status_dock_presenter_->SetCompactContext(
+      text_page != nullptr && text_page->PrefersCompactStatusDock());
+}
+
 void MainWindow::slot_switch_menu_control_mode(int index) {
   auto disable = false;
   if (index == -1) disable = true;
@@ -405,6 +414,8 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
 
 
   sync_text_direction_action();
+
+  sync_status_dock_context();
 
   if (edit_->CurFilePage() != nullptr) {
     // A file page describes its own capabilities completely, through the mask

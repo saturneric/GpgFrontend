@@ -321,8 +321,11 @@ void InfoBoardWidget::populate_details_section_generic(
 void InfoBoardWidget::SetInfoBoardWithOpInfo(
     const QString& text, InfoBoardStatus status,
     const GpgFrontend::GpgOpResultInfo& info) {
-  SetInfoBoard(text, status, info.inputHash);
-  if (doc_frame_ == nullptr) return;
+  apply_info_board(text, status, info.inputHash);
+  if (doc_frame_ == nullptr) {
+    announce_result(text, status, 1);
+    return;
+  }
 
   update_doc_header(status, info.operation, info.engine, {});
   populate_details_section(info, status);
@@ -361,6 +364,9 @@ void InfoBoardWidget::SetInfoBoardWithOpInfo(
     }
     current_copy_text_ = lines.join(QLatin1Char('\n'));
   }
+
+  // An op-info record is itself a result, whatever the text says.
+  announce_result(text, status, 1);
 }
 
 void InfoBoardWidget::SetInfoBoardFromResults(
@@ -371,10 +377,11 @@ void InfoBoardWidget::SetInfoBoardFromResults(
   if (!results.isEmpty()) {
     content_hash = results.first().op_info.inputHash;
   }
-  SetInfoBoard(text, overall_status, content_hash);
+  apply_info_board(text, overall_status, content_hash);
   if (doc_frame_ != nullptr && !results.isEmpty()) {
     update_status_page_from_results(overall_status, results);
   }
+  announce_result(text, overall_status, results.size());
 }
 
 void InfoBoardWidget::update_status_page_from_results(

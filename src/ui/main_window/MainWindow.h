@@ -48,6 +48,7 @@ namespace GpgFrontend::UI {
 class KeyList;
 class TextEdit;
 class InfoBoardWidget;
+class StatusDockPresenter;
 class SettingsDialog;
 class StatusIndicatorBar;
 struct GpgOperaContext;
@@ -470,6 +471,9 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void sync_text_direction_action();
 
+  /// Tells the Status Panel whether the current tab asked for it compact.
+  void sync_status_dock_context();
+
   /**
    * @details
    */
@@ -682,6 +686,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QDockWidget* key_list_dock_{};     ///<  Encrypt Dock
   QDockWidget* attachment_dock_{};   ///<  Attachment Dock
   QDockWidget* info_board_dock_{};
+  StatusDockPresenter* status_dock_presenter_{};  ///< Expanded / Collapsed
 
   QAction* new_tab_act_{};               ///<  Action to create new tab
   QAction* switch_tab_up_act_{};         ///<  Action to switch tab up

@@ -433,11 +433,7 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
   pal.setColor(QPalette::Text, text_color);
   ui_->infoBoard->setPalette(pal);
 
-  // The idle dot uses a real grey rather than the palette text color: as body
-  // text neutral should stay high-contrast, but as a traffic light it has to
-  // read as "off", and the tooltip legend calls it grey.
-  const QColor indicator_color =
-      status == kINFO_ERROR_NEUTRAL ? QColor(117, 117, 117) : text_color;
+  const QColor indicator_color = IndicatorColor(status);
 
   // Scope the rule to the label itself: an unscoped rule would also repaint
   // this widget's tooltip in the status color, and the tooltip should keep
@@ -447,10 +443,22 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
                      "border-radius: 7px; }")
           .arg(indicator_color.name()));
   ui_->statusIndicatorLabel->setToolTip(StatusIndicatorToolTip(status));
+
+  current_status_ = status;
+  emit SignalStatusStyleChanged(status);
 }
 
-void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,
-                                   const QString& content_hash) {
+auto InfoBoardWidget::IndicatorColor(InfoBoardStatus status) const -> QColor {
+  // The idle dot uses a real grey rather than the palette text color: as body
+  // text neutral should stay high-contrast, but as a traffic light it has to
+  // read as "off", and the tooltip legend calls it grey.
+  return status == kINFO_ERROR_NEUTRAL ? QColor(117, 117, 117)
+                                       : StatusColor(status);
+}
+
+void InfoBoardWidget::apply_info_board(const QString& text,
+                                       InfoBoardStatus status,
+                                       const QString& content_hash) {
   set_info_board_text(text, status);
 
   if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
@@ -458,6 +466,20 @@ void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,
   }
 
   UpdateActionButtons();
+}
+
+void InfoBoardWidget::announce_result(const QString& text,
+                                      InfoBoardStatus status,
+                                      qsizetype structured_items) {
+  if (IsMeaningfulInfoBoardResult(text, structured_items)) {
+    emit SignalResultPosted(status);
+  }
+}
+
+void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,
+                                   const QString& content_hash) {
+  apply_info_board(text, status, content_hash);
+  announce_result(text, status, 0);
 }
 
 void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
@@ -478,6 +500,7 @@ void InfoBoardWidget::SetInfoBoardCards(
   }
 
   UpdateActionButtons();
+  announce_result(text, status, cards.size());
 }
 
 void InfoBoardWidget::SlotRefreshWithCards(
@@ -494,6 +517,10 @@ void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
   text_page_ = nullptr;
   tab_widget_ = tab;
   connect(tab, &QTabWidget::tabBarClicked, this, &InfoBoardWidget::SlotReset);
+  // Not only a click: a new tab, a shortcut or a module opening a document
+  // also makes another tab current, and the last tab's result does not
+  // describe it.
+  connect(tab, &QTabWidget::currentChanged, this, &InfoBoardWidget::SlotReset);
   connect(tab, &QTabWidget::tabCloseRequested, this,
           &InfoBoardWidget::SlotReset);
   SlotReset();
@@ -568,6 +595,33 @@ void InfoBoardWidget::SlotReset() {
 
   reset_document_view();
   clear_document_fields();
+}
+
+void InfoBoardWidget::AddBarAction(QAction* action) {
+  // The strip's own look: flat, sized like its tool buttons, but labelled.
+  auto* button = new QToolButton(this);
+  button->setDefaultAction(action);
+  button->setAutoRaise(true);
+  button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+  button->setIconSize(
+      QSize(StyleConstants::kToolIconSize, StyleConstants::kToolIconSize));
+  button->setMinimumHeight(StyleConstants::kToolButtonSide);
+  button->setFocusPolicy(Qt::NoFocus);
+  ui_->horizontalLayout_4->addWidget(button);
+}
+
+auto IsMeaningfulInfoBoardResult(const QString& text,
+                                 qsizetype structured_items) -> bool {
+  return structured_items > 0 || !text.trimmed().isEmpty();
+}
+
+void RevealOnNewResult(InfoBoardWidget* board, QWidget* host) {
+  // isHidden(), not isVisible(): a host inside a minimized or not yet shown
+  // window is not visible either, but it is not closed, and must stay as is.
+  QObject::connect(board, &InfoBoardWidget::SignalResultPosted, host,
+                   [host](InfoBoardStatus) {
+                     if (host->isHidden()) host->show();
+                   });
 }
 
 }  // namespace GpgFrontend::UI

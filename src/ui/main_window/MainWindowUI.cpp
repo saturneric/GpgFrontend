@@ -47,6 +47,7 @@
 #include "ui/lua/LuaPlacements.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/widgets/StatusDockPresenter.h"
 #include "ui/widgets/StatusIndicatorBar.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -791,6 +792,15 @@ void MainWindow::create_dock_windows() {
 
   addDockWidget(Qt::BottomDockWidgetArea, info_board_dock_);
   info_board_dock_->setWidget(info_board_);
+  // A closed panel comes back for a new result only; everything else about
+  // its visibility is the user's, through its close button and the View menu.
+  RevealOnNewResult(info_board_, info_board_dock_);
+  // Expanded / Collapsed is a presentation of a visible panel, never a
+  // stand-in for hiding it.
+  status_dock_presenter_ =
+      new StatusDockPresenter(this, info_board_dock_, info_board_,
+                              QStringLiteral("status_dock_state"));
+  info_board_->AddBarAction(status_dock_presenter_->ToggleAction());
 
   if (info_board_dock_->widget() != nullptr &&
       info_board_dock_->widget()->layout() != nullptr) {
@@ -873,10 +883,9 @@ void MainWindow::apply_default_layout() {
         ClampInt(static_cast<int>(target_height * kInfoBoardRatio),
                  info_min_height, info_max_height);
 
-    info_board_dock_->setMinimumHeight(info_min_height);
-    info_board_dock_->setMaximumHeight(QWIDGETSIZE_MAX);
-
-    resizeDocks({info_board_dock_}, {info_height}, Qt::Vertical);
+    // Through the presenter: a panel that is collapsed right now keeps its
+    // bar, and gets this geometry when it is expanded.
+    status_dock_presenter_->SetExpandedGeometry(info_min_height, info_height);
   }
 
   QRect target_rect = frameGeometry();

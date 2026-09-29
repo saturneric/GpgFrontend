@@ -179,6 +179,19 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] auto PrimaryView() const -> QWidget*;
 
   /**
+   * @brief Whether this tab asks for a compact Status Panel while current.
+   *
+   * False unless the document view mounted on it opted in explicitly (the
+   * editor anchor's compact_status); having a view at all is not enough.
+   */
+  [[nodiscard]] auto PrefersCompactStatusDock() const -> bool {
+    return prefers_compact_status_dock_;
+  }
+  void SetPrefersCompactStatusDock(bool prefers) {
+    prefers_compact_status_dock_ = prefers;
+  }
+
+  /**
    * @brief Asks the primary view to reserialize itself into the document.
    *
    * A no-op when there is no primary view, or when it does not declare
@@ -460,6 +473,7 @@ class PlainTextEditorPage : public QWidget {
   QLabel* source_notice_ = nullptr;
   QToolButton* source_unlock_ = nullptr;
   bool source_unlocked_ = false;
+  bool prefers_compact_status_dock_ = false;
   void refresh_source_lock();
 
   /**

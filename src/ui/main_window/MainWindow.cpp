@@ -44,6 +44,7 @@
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/widgets/StatusDockPresenter.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
@@ -111,6 +112,8 @@ void MainWindow::Init() noexcept {
 
     connect(edit_->TabWidget(), &TextEditTabWidget::currentChanged, this,
             &MainWindow::slot_switch_menu_control_mode);
+    connect(edit_->TabWidget(), &TextEditTabWidget::SignalCurrentPageViewMounted,
+            this, &MainWindow::sync_status_dock_context);
     // A mode picked from the editor's own context menu has to move the check
     // mark in the View menu too.
     connect(edit_->TabWidget(),
@@ -352,6 +355,9 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   edit_->WipeAllTabs();
   info_board_->SlotReset();
 
+  // A collapsed panel is saved at its expanded height; see the guard.
+  const StatusDockPresenter::ExpandedForSaveGuard expanded_for_save(
+      status_dock_presenter_);
   GeneralMainWindow::closeEvent(event);
 }
 

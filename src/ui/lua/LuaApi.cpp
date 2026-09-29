@@ -632,7 +632,7 @@ void LuaApi::UiAnchor(lua_State* L, BindingOutcome& out) {
     LOG_W() << "module" << rt->Module() << "uses deprecated anchor" << *name;
   }
   const auto h = rt->NextId();
-  rt->anchors_.insert(h, LuaModuleRuntime::AnchorRef{spec, {}, {}, {}});
+  rt->anchors_.insert(h, LuaModuleRuntime::AnchorRef{spec, {}, {}, {}, false});
   ReturnHandle(L, out, HandleKind::kANCHOR, rt->state_tag_, h, 0);
 }
 
@@ -646,7 +646,7 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
   LuaTree tree;
   if (!Flatten(L, 2, &tree, out)) return;
   const auto fields = FieldsOf(tree);
-  LuaModuleRuntime::AnchorRef ref{spec, {}, {}, {}};
+  LuaModuleRuntime::AnchorRef ref{spec, {}, {}, {}, false};
 
   const auto text = [&](const char* key) -> QString {
     const auto it = fields.constFind(QLatin1String(key));
@@ -664,7 +664,7 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
       return FailWith(out, "ui.anchor.settings{section = \"...\"}");
     }
   } else if (spec->kind == AnchorKind::kEDITOR) {
-    known = {"document_type", "extensions"};
+    known = {"document_type", "extensions", "compact_status"};
     ref.document_type = text("document_type");
     if (!IdIsValid(ref.document_type)) {
       return FailWith(out, "ui.anchor.editor{document_type = \"...\"}");
@@ -681,6 +681,16 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
         }
         ref.extensions.append(ext);
       }
+    }
+    // A layout hint for the host, off unless asked for: a document view with
+    // its own chrome would rather keep the Status Panel as a bar.
+    if (const auto c = fields.constFind(QStringLiteral("compact_status"));
+        c != fields.constEnd()) {
+      const auto& n = tree[static_cast<size_t>(*c)];
+      if (n.type != LuaNode::Type::kBOOL) {
+        return FailWith(out, "compact_status is a boolean");
+      }
+      ref.compact_status = n.boolean;
     }
   }
   const auto unknown = UnknownField(fields, known);
@@ -922,6 +932,7 @@ void LuaApi::UiMount(lua_State* L, BindingOutcome& out) {
   m.section = aref.section;
   m.document_type = aref.document_type;
   m.extensions = aref.extensions;
+  m.compact_status = aref.compact_status;
   m.order = order;
   m.chunk = rt->chunk_;
   rt->mounts_.append(m);
@@ -1317,7 +1328,8 @@ Command:enabled() Command:visible() Command:checked() Command.id
 Call:cancel() -> bool
 
 ui.anchor(id) -> Anchor                           menu and button anchors
-ui.anchor.settings{section} ui.anchor.editor{document_type, extensions}
+ui.anchor.settings{section}
+ui.anchor.editor{document_type, extensions, compact_status?}
 ui.anchor.dialog{} -> Anchor                      mount anchors
 ui.action{id, anchor, command, order?, icon?, shortcut?, update?}
                                                   while loading; shortcut:

@@ -33,7 +33,7 @@
 
 namespace GpgFrontend::UI {
 
-struct GpgOperaResult {
+struct GF_UI_EXPORT GpgOperaResult {
   QString tag;  ///< Display tag (e.g., filename for file operations)
   GFBuffer o_buffer;  ///< Output buffer (for message operations)
   GpgFrontend::GpgOpResultInfo op_info;  ///< Structured operation result info
