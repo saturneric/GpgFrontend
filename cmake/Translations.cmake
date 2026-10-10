@@ -39,6 +39,7 @@ set(GPGFRONTEND_SUPPORTED_LOCALES
   zh_TW
   ru_RU
   pl_PL
+  tr_TR
   CACHE INTERNAL "UI locales supported by GpgFrontend and its modules")
 
 # gpgfrontend_collect_ts_files(<out_var> <base_name> <ts_dir>)
