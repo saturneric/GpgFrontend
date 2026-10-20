@@ -37,6 +37,8 @@
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -374,6 +376,113 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
             key->Fingerprint().toUpper());
 
   DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Decrypt & Verify when the signer's public key is not in the keyring.
+//
+// Regression: the missing signing key used to be analysed as a failure, so the
+// UI discarded the perfectly good plaintext (text) or deleted the decrypted
+// output (file). It must decrypt and only warn that the signature could not be
+// verified.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+void ExpectMissingSignerIsOnlyAWarning(int channel, GpgError err,
+                                       const GpgDecryptResult& decrypt_result,
+                                       const GpgVerifyResult& verify_result) {
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(verify_result.GetSignature().empty());
+  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
+            GPG_ERR_NO_PUBKEY);
+
+  GpgDecryptResultAnalyse decrypt_analyse{channel, err, decrypt_result};
+  decrypt_analyse.Analyse();
+  EXPECT_GT(decrypt_analyse.GetStatus(), 0);
+
+  GpgVerifyResultAnalyse verify_analyse{channel, err, verify_result};
+  verify_analyse.Analyse();
+  EXPECT_EQ(verify_analyse.GetStatus(), 0);
+  EXPECT_FALSE(verify_analyse.GetUnknownSignatures().isEmpty());
+
+  auto info = decrypt_analyse.GetOpInfo();
+  info.Merge(verify_analyse.GetOpInfo());
+  EXPECT_GE(info.status, 0);
+}
+
+}  // namespace
+
+TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
+  auto recipient = GenerateFullKey("missing-signer-rcpt");
+  ASSERT_TRUE(recipient != nullptr);
+  auto signer = GenerateFullKey("missing-signer-sign");
+  ASSERT_TRUE(signer != nullptr);
+
+  auto plain = GFBuffer(QString("Signed by a key the recipient does not have"));
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
+          {recipient}, {signer}, plain, true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(
+      (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
+  auto cipher = ExtractParams<GFBuffer>(data_object, 2);
+
+  DeleteKey(signer);
+  GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(cipher);
+  ASSERT_TRUE(
+      (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
+  ExpectMissingSignerIsOnlyAWarning(
+      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0),
+      ExtractParams<GpgVerifyResult>(data_object_0, 1));
+  EXPECT_EQ(ExtractParams<GFBuffer>(data_object_0, 2), plain);
+
+  DeleteKey(recipient);
+}
+
+TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingSignerKey) {
+  auto recipient = GenerateFullKey("missing-signer-file-rcpt");
+  ASSERT_TRUE(recipient != nullptr);
+  auto signer = GenerateFullKey("missing-signer-file-sign");
+  ASSERT_TRUE(signer != nullptr);
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto in_path = dir.filePath("plain.txt");
+  const auto cipher_path = dir.filePath("plain.txt.gpg");
+  const auto out_path = dir.filePath("plain.out.txt");
+  const QByteArray plain("file signed by a key the recipient does not have");
+  {
+    QFile f(in_path);
+    ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+    f.write(plain);
+  }
+
+  auto [err, data_object] =
+      FileCryptoOperation::GetInstance(Channel()).EncryptSignFileSync(
+          {recipient}, {signer}, in_path, false, cipher_path);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  DeleteKey(signer);
+  GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance(Channel()).DecryptVerifyFileSync(
+          cipher_path, out_path);
+  ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
+  ExpectMissingSignerIsOnlyAWarning(
+      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0),
+      ExtractParams<GpgVerifyResult>(data_object_0, 1));
+
+  QFile out(out_path);
+  ASSERT_TRUE(out.open(QIODevice::ReadOnly));
+  EXPECT_EQ(out.readAll(), plain);
+
+  DeleteKey(recipient);
 }
 
 // ---------------------------------------------------------------------------

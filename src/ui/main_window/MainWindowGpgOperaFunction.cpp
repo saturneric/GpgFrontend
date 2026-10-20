@@ -71,7 +71,7 @@ auto IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results) -> bool {
 
   return std::all_of(results.cbegin(), results.cend(),
                      [](const GpgOperaResult& result) -> bool {
-                       return result.op_info.status > 0;
+                       return result.op_info.status >= 0;
                      });
 }
 

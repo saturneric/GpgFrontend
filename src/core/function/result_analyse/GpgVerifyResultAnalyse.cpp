@@ -134,7 +134,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
                     << Qt::endl;
           }
 
-          if ((sign.GetStatus() & GPGME_SIGSUM_KEY_MISSING) == 0U) {
+          if ((sign.GetSummary() & GPGME_SIGSUM_KEY_MISSING) == 0U) {
             if (!print_signer(stream_, GpgSignature(sign))) setStatus(0);
           } else {
             stream_ << "  - " << tr("Key ID") << ": 0x" << sign.GetFingerprint()
@@ -150,7 +150,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
                   << tr("The public key needed to verify this signature is not "
                         "available")
                   << Qt::endl;
-          setStatus(-2);
+          setStatus(0);  /// < key missing: unverified, not a failure
           print_signer_without_key(stream_, GpgSignature(sign));
           unknown_signer_fpr_list_.push_back(
               GpgSignature(sign).GetFingerprint());

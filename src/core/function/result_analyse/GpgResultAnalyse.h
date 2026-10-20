@@ -39,9 +39,9 @@ namespace GpgFrontend {
  * Subclasses implement doAnalyse() to write Markdown-formatted text into
  * stream_, which is backed by buffer_. The accumulated report is retrieved via
  * GetResultReport(). An integer status tracks the worst-case outcome seen so
- * far: 1 = success, 0 = warning or partial success, -1 = failure, -2 = cannot
- * verify (e.g. key missing). Analyse() is idempotent; doAnalyse() is called at
- * most once.
+ * far: 1 = success, 0 = warning or partial success (e.g. a signature that
+ * cannot be verified because the signer's key is missing), -1 = failure.
+ * Analyse() is idempotent; doAnalyse() is called at most once.
  */
 class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
   Q_OBJECT
@@ -67,9 +67,9 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
   /**
    * @brief Return the accumulated worst-case status code.
    *
-   * Status values: 1 = success, 0 = warning/partial, -1 = failure,
-   * -2 = cannot verify (key missing). The value only decreases; it is never
-   * raised by setStatus().
+   * Status values: 1 = success, 0 = warning/partial (including a signature
+   * whose signing key is missing), -1 = failure. The value only decreases; it
+   * is never raised by setStatus().
    *
    * @return current status code
    */
