@@ -337,6 +337,21 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
       goto end;
     }
 
+    // RFC 9580 §13.7: a failed MDC/AEAD check must read as an integrity
+    // problem, not as a generic failure. No output was kept by the engine.
+    if (err == Rust::GfrStatus::ErrorDataCorrupted) {
+      LOG_E() << "Decryption failed: the message failed its integrity check.";
+      gf_err = GPG_ERR_BAD_DATA;
+      goto end;
+    }
+
+    if (err == Rust::GfrStatus::ErrorIo) {
+      LOG_E() << "Decryption failed: I/O error reading the input or writing "
+                 "the output.";
+      gf_err = GPG_ERR_EIO;
+      goto end;
+    }
+
     if (err == Rust::GfrStatus::ErrorNoKey) {
       LOG_E() << "Decryption failed: Incorrect passphrase or bad key.";
 
