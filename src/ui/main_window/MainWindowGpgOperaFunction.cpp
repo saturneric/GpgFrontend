@@ -40,6 +40,7 @@
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/main_window/EncryptBlockReason.h"
+#include "ui/main_window/FileOperaOutcome.h"
 #include "ui/main_window/RecipientConfirm.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -64,15 +65,6 @@ void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
       QFile::remove(output.temp_path);
     }
   }
-}
-
-auto IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results) -> bool {
-  if (results.empty()) return false;
-
-  return std::all_of(results.cbegin(), results.cend(),
-                     [](const GpgOperaResult& result) -> bool {
-                       return result.op_info.status >= 0;
-                     });
 }
 
 auto PrepareSafeOutputPath(const QString& final_path,
