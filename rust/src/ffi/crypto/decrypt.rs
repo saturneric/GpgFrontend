@@ -32,7 +32,6 @@ use crate::types::{
     GfrDecryptAndVerifyResultC, GfrDecryptResultC, GfrPasswordFetchCb, GfrRecipientResultC,
     GfrSecretKeyFetchCb, GfrSignatureResultC, GfrStatus,
 };
-use std::fs::File;
 use std::slice;
 use std::{
     ffi::{CStr, CString, c_char},
@@ -157,21 +156,12 @@ pub extern "C" fn gfr_crypto_decrypt_file(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        // 3. Open input and output files
-        let in_file = File::open(in_path_str).map_err(|e| {
-            log::error!("Failed to open input file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
-
-        let out_file = File::create(out_path_str).map_err(|e| {
-            log::error!("Failed to create output file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
-
-        let stream_result = crypto::decrypt_and_verify_stream_internal(
+        // 3. Decrypt into a staging file that is renamed to `out_path_str`
+        // only on success, so a failed integrity check leaves no output.
+        let stream_result = crypto::decrypt_and_verify_file_internal(
             channel,
-            in_file,
-            out_file,
+            in_path_str,
+            out_path_str,
             ascii,
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
@@ -448,24 +438,15 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        // 3. Open input and output files for streaming
-        let in_file = std::fs::File::open(in_path_str).map_err(|e| {
-            log::error!("Failed to open input file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
-
-        let out_file = std::fs::File::create(out_path_str).map_err(|e| {
-            log::error!("Failed to create output file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
-
-        // 4. Execute stream logic
+        // 3-4. Execute stream logic
         // This will read the encrypted file in chunks, decrypt it, decompress it,
-        // verify inline signatures, and write the plaintext straight to out_file.
-        let stream_result = crate::crypto::decrypt_and_verify_stream_internal(
+        // and verify inline signatures. Plaintext goes to a staging file that is
+        // renamed to out_file_path only on success, so a failed integrity check
+        // leaves no output behind.
+        let stream_result = crate::crypto::decrypt_and_verify_file_internal(
             channel,
-            in_file,
-            out_file,
+            in_path_str,
+            out_path_str,
             ascii,
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
@@ -961,6 +942,113 @@ mod ffi_decrypt_tests {
             std::fs::read(&out_path).expect("read"),
             b"file round trip via ffi"
         );
+    }
+
+    /// Run all four file/archive FFI entry points on `data` as `key`, each
+    /// into a fresh output path; return their statuses and whether any left
+    /// an output (or a stage) behind.
+    fn file_entry_points(data: &[u8], key: &keys::Fixture) -> Vec<(GfrStatus, bool)> {
+        let mut results = Vec::new();
+        for entry in 0..4 {
+            let dir = tempfile::tempdir().expect("tempdir");
+            let in_path = dir.path().join("in.pgp");
+            std::fs::write(&in_path, data).unwrap();
+            let in_c = CString::new(in_path.to_string_lossy().as_ref()).unwrap();
+            let out_c = CString::new(dir.path().join("out").to_string_lossy().as_ref()).unwrap();
+            cb::set_seckey_answer(&key.secret_armored);
+            let status = match entry {
+                0 | 1 => {
+                    let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+                    let f = if entry == 0 {
+                        gfr_crypto_decrypt_file
+                    } else {
+                        gfr_crypto_decrypt_archive
+                    };
+                    let st = f(
+                        0,
+                        in_c.as_ptr(),
+                        out_c.as_ptr(),
+                        false,
+                        cb::seckey_fetch,
+                        cb::pwd_correct,
+                        std::ptr::null_mut(),
+                        out.as_mut_ptr(),
+                    );
+                    if st == GfrStatus::Success {
+                        crate::ffi::mem::gfr_crypto_free_decrypt_result(&mut unsafe {
+                            out.assume_init()
+                        });
+                    }
+                    st
+                }
+                _ => {
+                    let mut out = MaybeUninit::<GfrDecryptAndVerifyResultC>::zeroed();
+                    let f = if entry == 2 {
+                        gfr_crypto_decrypt_and_verify_file
+                    } else {
+                        gfr_crypto_decrypt_and_verify_archive
+                    };
+                    let st = f(
+                        0,
+                        in_c.as_ptr(),
+                        out_c.as_ptr(),
+                        false,
+                        cb::seckey_fetch,
+                        cb::pwd_correct,
+                        cb::pubkey_none,
+                        std::ptr::null_mut(),
+                        out.as_mut_ptr(),
+                    );
+                    if st == GfrStatus::Success {
+                        crate::ffi::mem::gfr_crypto_free_decrypt_and_verify_result(&mut unsafe {
+                            out.assume_init()
+                        });
+                    }
+                    st
+                }
+            };
+            let leftovers = std::fs::read_dir(dir.path()).unwrap().count() > 1;
+            results.push((status, leftovers));
+        }
+        results
+    }
+
+    #[test]
+    fn every_file_entry_point_refuses_a_tampered_seipd_v1_file_and_commits_nothing() {
+        let data = crate::testutil::seipd::message(
+            &keys::V4_SIGN.public_armored,
+            &crate::testutil::seipd::bytes(64 * 1024, 7),
+            None,
+        );
+        let tampered = crate::testutil::seipd::flipped(&data, -1);
+        for (i, (status, leftovers)) in file_entry_points(&tampered, &keys::V4_SIGN)
+            .into_iter()
+            .enumerate()
+        {
+            assert_eq!(status, GfrStatus::ErrorDataCorrupted, "entry point {i}");
+            assert!(!leftovers, "entry point {i} left output behind");
+        }
+    }
+
+    #[test]
+    fn every_file_entry_point_streams_a_legacy_seipd_v1_file_for_a_pq_key() {
+        // The original report: a post-quantum key and a SEIPD v1 file. A tar
+        // payload so the two archive entry points can extract it too.
+        let mut tar = tar::Builder::new(Vec::new());
+        let body = crate::testutil::seipd::bytes(64 * 1024, 9);
+        let mut header = tar::Header::new_gnu();
+        header.set_size(body.len() as u64);
+        header.set_mode(0o600);
+        header.set_cksum();
+        tar.append_data(&mut header, "payload.bin", &body[..])
+            .unwrap();
+        let tar = tar.into_inner().unwrap();
+        let key = &*keys::V6_PQ;
+        let data = crate::testutil::seipd::legacy_v1_message(key, std::io::Cursor::new(tar));
+        for (i, (status, leftovers)) in file_entry_points(&data, key).into_iter().enumerate() {
+            assert_eq!(status, GfrStatus::Success, "entry point {i}");
+            assert!(leftovers, "entry point {i} produced no output");
+        }
     }
 
     #[test]
