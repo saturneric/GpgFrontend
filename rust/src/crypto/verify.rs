@@ -787,6 +787,69 @@ mod verify_tests {
     }
 
     #[test]
+    fn a_v6_signature_we_produce_verifies_in_every_mode() {
+        // RFC 9580 §5.2.3: a v6 salt length MUST match the hash algorithm
+        // (Table 23). Ed25519's default hash is SHA2-256 (16-octet salt); the
+        // SHA2-512 signature GF emits needs 32.
+        let key = &keys::V6_SIGN;
+        for mode in [
+            GfrSignMode::ClearText,
+            GfrSignMode::Inline,
+            GfrSignMode::Detached,
+        ] {
+            let signed = crate::crypto::sign_internal(
+                0,
+                "",
+                b"a line of text\n",
+                &[&key.secret_armored],
+                None,
+                mode,
+                true,
+            )
+            .expect("sign");
+
+            let res = verify_mode(
+                if mode == GfrSignMode::Detached {
+                    b"a line of text\n"
+                } else {
+                    &[]
+                },
+                &signed.data,
+                mode,
+                Some(&key.public_armored),
+            )
+            .expect("verify");
+            assert!(res.is_verified, "{mode:?} v6 signature does not verify");
+        }
+    }
+
+    #[test]
+    fn a_cleartext_signature_over_trailing_whitespace_verifies() {
+        // RFC 9580 §7.1: trailing whitespace is removed before signing *and*
+        // verifying, so a signer that hashes it makes an unverifiable signature.
+        let key = &keys::V4_SIGN;
+        let signed = crate::crypto::sign_internal(
+            0,
+            "",
+            b"trailing spaces   \ntrailing tab\t\nplain\n",
+            &[&key.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .expect("sign");
+
+        let res = verify_mode(
+            &[],
+            &signed.data,
+            GfrSignMode::ClearText,
+            Some(&key.public_armored),
+        )
+        .expect("verify");
+        assert!(res.is_verified);
+    }
+
+    #[test]
     fn an_inline_signature_we_produce_verifies() {
         let key = &keys::V4_SIGN;
         let signed = crate::crypto::sign_internal(
