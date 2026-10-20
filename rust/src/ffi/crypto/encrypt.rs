@@ -83,6 +83,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // Null pointer checks
         if name.is_null() || in_data.is_null() || pub_keys.is_null() || out_result.is_null() {
@@ -173,6 +174,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check null pointers
         if in_file_path.is_null()
@@ -284,6 +286,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check null pointers
         if in_dir_path.is_null()
@@ -382,6 +385,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
     out_result: *mut GfrEncryptAndSignResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if name.is_null()
             || in_data.is_null()
@@ -506,6 +510,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
     out_result: *mut GfrEncryptAndSignResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check for null pointers
         if in_file_path.is_null()
@@ -656,6 +661,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
     out_result: *mut GfrEncryptAndSignResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
         if in_dir_path.is_null()
             || out_file_path.is_null()
@@ -779,6 +785,7 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if name.is_null() || in_data.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -842,6 +849,7 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Null pointer checks
         if in_file_path.is_null() || out_file_path.is_null() || out_result.is_null() {
@@ -922,6 +930,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if in_dir_path.is_null() || out_file_path.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);

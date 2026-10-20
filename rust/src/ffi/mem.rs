@@ -794,3 +794,350 @@ mod mem_tests {
         unsafe { gfr_free_metadata_array(ptr, 0) };
     }
 }
+
+#[cfg(test)]
+mod out_result_contract_tests {
+    //! The other half of the contract: C++ frees the result struct after
+    //! **every** call, whatever the status, so each crypto entry point must
+    //! leave `out_result` in a freeable (all-null) state even when it fails
+    //! before producing anything. The struct starts poisoned here, as an
+    //! uninitialised C++ stack variable would be.
+
+    use std::ffi::CString;
+    use std::mem::MaybeUninit;
+
+    use crate::ffi::crypto::decrypt::*;
+    use crate::ffi::crypto::encrypt::*;
+    use crate::ffi::crypto::sign::*;
+    use crate::testutil::cb;
+    use crate::types::{GfrBuffer, GfrSignMode, GfrStatus};
+
+    fn poisoned<T>() -> MaybeUninit<T> {
+        let mut out = MaybeUninit::<T>::uninit();
+        unsafe { std::ptr::write_bytes(out.as_mut_ptr(), 0xA5, 1) };
+        out
+    }
+
+    fn assert_zeroed<T>(out: &MaybeUninit<T>) {
+        let bytes = unsafe {
+            std::slice::from_raw_parts(out.as_ptr().cast::<u8>(), std::mem::size_of::<T>())
+        };
+        assert!(
+            bytes.iter().all(|b| *b == 0),
+            "out_result left uninitialised on a failure path"
+        );
+    }
+
+    /// A key buffer that is not UTF-8, so parsing fails before any output.
+    fn bad_key() -> [GfrBuffer; 1] {
+        static BAD: [u8; 1] = [0xFF];
+        [GfrBuffer {
+            data: BAD.as_ptr(),
+            len: 1,
+        }]
+    }
+
+    fn missing() -> CString {
+        CString::new("/nonexistent/gf-out-result-contract/input").unwrap()
+    }
+
+    fn out_path() -> CString {
+        CString::new("/nonexistent/gf-out-result-contract/output").unwrap()
+    }
+
+    #[test]
+    fn encrypt_entry_points_zero_out_result_on_failure() {
+        let name = CString::new("").unwrap();
+        let (keys, data) = (bad_key(), b"x");
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_data(
+            0,
+            name.as_ptr(),
+            data.as_ptr(),
+            1,
+            keys.as_ptr(),
+            1,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_file(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            keys.as_ptr(),
+            1,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_directory(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            keys.as_ptr(),
+            1,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_file_symmetric(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            true,
+            cb::pwd_correct,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_directory_symmetric(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            true,
+            cb::pwd_correct,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_data_symmetric(
+            0,
+            name.as_ptr(),
+            data.as_ptr(),
+            1,
+            true,
+            cb::pwd_cancelled,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+    }
+
+    #[test]
+    fn encrypt_and_sign_entry_points_zero_out_result_on_failure() {
+        let name = CString::new("").unwrap();
+        let (keys, data) = (bad_key(), b"x");
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_and_sign_data(
+            0,
+            name.as_ptr(),
+            data.as_ptr(),
+            1,
+            keys.as_ptr(),
+            1,
+            keys.as_ptr(),
+            1,
+            cb::pwd_correct,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_and_sign_file(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            keys.as_ptr(),
+            1,
+            keys.as_ptr(),
+            1,
+            cb::pwd_correct,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_encrypt_and_sign_directory(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            keys.as_ptr(),
+            1,
+            keys.as_ptr(),
+            1,
+            cb::pwd_correct,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+    }
+
+    #[test]
+    fn decrypt_entry_points_zero_out_result_on_failure() {
+        let garbage = b"not an openpgp message";
+        let ud = std::ptr::null_mut();
+
+        let mut out = poisoned();
+        let st = gfr_crypto_decrypt_data(
+            0,
+            garbage.as_ptr(),
+            garbage.len(),
+            cb::seckey_none,
+            cb::pwd_correct,
+            ud,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_decrypt_file(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            false,
+            cb::seckey_none,
+            cb::pwd_correct,
+            ud,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_decrypt_archive(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            false,
+            cb::seckey_none,
+            cb::pwd_correct,
+            ud,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_decrypt_and_verify_data(
+            0,
+            garbage.as_ptr(),
+            garbage.len(),
+            cb::seckey_none,
+            cb::pwd_correct,
+            cb::pubkey_none,
+            ud,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_decrypt_and_verify_file(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            false,
+            cb::seckey_none,
+            cb::pwd_correct,
+            cb::pubkey_none,
+            ud,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_decrypt_and_verify_archive(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            false,
+            cb::seckey_none,
+            cb::pwd_correct,
+            cb::pubkey_none,
+            ud,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+    }
+
+    #[test]
+    fn sign_and_verify_entry_points_zero_out_result_on_failure() {
+        let name = CString::new("").unwrap();
+        let (keys, data) = (bad_key(), b"x");
+        let ud = std::ptr::null_mut();
+
+        let mut out = poisoned();
+        let st = gfr_crypto_sign_data(
+            0,
+            name.as_ptr(),
+            data.as_ptr(),
+            1,
+            keys.as_ptr(),
+            1,
+            cb::pwd_correct,
+            GfrSignMode::Detached,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_sign_file(
+            0,
+            missing().as_ptr(),
+            out_path().as_ptr(),
+            keys.as_ptr(),
+            1,
+            cb::pwd_correct,
+            GfrSignMode::Detached,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let garbage = b"not a signature";
+        let mut out = poisoned();
+        let st = gfr_crypto_verify_data(
+            data.as_ptr(),
+            1,
+            garbage.as_ptr(),
+            garbage.len(),
+            cb::pubkey_none,
+            ud,
+            GfrSignMode::Detached,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+
+        let mut out = poisoned();
+        let st = gfr_crypto_verify_file(
+            0,
+            missing().as_ptr(),
+            missing().as_ptr(),
+            std::ptr::null(),
+            cb::pubkey_none,
+            ud,
+            GfrSignMode::Detached,
+            out.as_mut_ptr(),
+        );
+        assert_ne!(st, GfrStatus::Success);
+        assert_zeroed(&out);
+    }
+}

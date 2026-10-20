@@ -57,6 +57,7 @@ pub extern "C" fn gfr_crypto_decrypt_data(
     out_result: *mut GfrDecryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if in_data.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -141,6 +142,7 @@ pub extern "C" fn gfr_crypto_decrypt_file(
     out_result: *mut GfrDecryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check null pointers
         if in_file_path.is_null() || out_file_path.is_null() || out_result.is_null() {
@@ -228,6 +230,7 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
     out_result: *mut GfrDecryptResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check null pointers
         if in_file_path.is_null() || out_file_path.is_null() || out_result.is_null() {
@@ -314,6 +317,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
         if in_data.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -423,6 +427,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check for null pointers
         if in_file_path.is_null() || out_file_path.is_null() || out_result.is_null() {
@@ -546,6 +551,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
     clear_last_error();
+    super::reset_out_result(out_result);
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
         if in_file_path.is_null() || out_dir_path.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);

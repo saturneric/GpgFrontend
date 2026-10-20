@@ -30,3 +30,24 @@
 pub mod decrypt;
 pub mod encrypt;
 pub mod sign;
+
+/// Result structs that are valid when every byte is zero: only pointers,
+/// lengths and flags, so all-zero means "empty, nothing to free".
+pub(crate) trait ZeroableResult {}
+
+impl ZeroableResult for crate::types::GfrEncryptResultC {}
+impl ZeroableResult for crate::types::GfrDecryptResultC {}
+impl ZeroableResult for crate::types::GfrSignResultC {}
+impl ZeroableResult for crate::types::GfrVerifyResultC {}
+impl ZeroableResult for crate::types::GfrEncryptAndSignResultC {}
+impl ZeroableResult for crate::types::GfrDecryptAndVerifyResultC {}
+
+/// Empty `out_result` before any fallible work. C++ calls the matching
+/// `gfr_crypto_free_*` after every call whatever the status, so an entry
+/// point that fails early must not leave the caller's struct uninitialised.
+pub(crate) fn reset_out_result<T: ZeroableResult>(out_result: *mut T) {
+    if !out_result.is_null() {
+        // SAFETY: non-null, caller-owned, and all-zero is a valid `T`.
+        unsafe { std::ptr::write_bytes(out_result, 0, 1) };
+    }
+}
