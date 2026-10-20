@@ -27,6 +27,7 @@
  */
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QTemporaryDir>
 #include <algorithm>
@@ -389,6 +390,27 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
 
 namespace {
 
+auto AnalyseDecrypt(int channel, GpgError err, const GpgDecryptResult& result)
+    -> GpgOpResultInfo {
+  GpgDecryptResultAnalyse analyse{channel, err, result};
+  analyse.Analyse();
+  return analyse.GetOpInfo();
+}
+
+auto AnalyseVerify(int channel, GpgError err, const GpgVerifyResult& result)
+    -> GpgOpResultInfo {
+  GpgVerifyResultAnalyse analyse{channel, err, result};
+  analyse.Analyse();
+  return analyse.GetOpInfo();
+}
+
+// Common warning semantics: the output is valid and kept, only a warning was
+// raised. Status 0 is neither a success (> 0) nor a failure (< 0), which
+// would suppress the output.
+void ExpectValidOutputWithWarning(const GpgOpResultInfo& info) {
+  EXPECT_EQ(info.status, 0);
+}
+
 void ExpectMissingSignerIsOnlyAWarning(int channel, GpgError err,
                                        const GpgDecryptResult& decrypt_result,
                                        const GpgVerifyResult& verify_result) {
@@ -397,18 +419,16 @@ void ExpectMissingSignerIsOnlyAWarning(int channel, GpgError err,
   EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
             GPG_ERR_NO_PUBKEY);
 
-  GpgDecryptResultAnalyse decrypt_analyse{channel, err, decrypt_result};
-  decrypt_analyse.Analyse();
-  EXPECT_GT(decrypt_analyse.GetStatus(), 0);
+  auto info = AnalyseDecrypt(channel, err, decrypt_result);
+  EXPECT_GT(info.status, 0);
 
   GpgVerifyResultAnalyse verify_analyse{channel, err, verify_result};
   verify_analyse.Analyse();
   EXPECT_EQ(verify_analyse.GetStatus(), 0);
   EXPECT_FALSE(verify_analyse.GetUnknownSignatures().isEmpty());
 
-  auto info = decrypt_analyse.GetOpInfo();
   info.Merge(verify_analyse.GetOpInfo());
-  EXPECT_GE(info.status, 0);
+  ExpectValidOutputWithWarning(info);
 }
 
 }  // namespace
@@ -483,6 +503,285 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingSignerKey) {
   EXPECT_EQ(out.readAll(), plain);
 
   DeleteKey(recipient);
+}
+
+// ---------------------------------------------------------------------------
+// Decrypting a file encrypted to several recipients when the other recipients'
+// public keys are not in the keyring.
+//
+// Regression: the unknown recipient is only a warning (status 0), but the file
+// path discarded the decrypted output for anything short of full success, while
+// the same message decrypted as text was shown. Every output path must keep
+// its output and report exactly the missing recipient.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// The ID a recipient record carries: the encryption subkey's, not the
+// primary's. SubKeys() surfaces the primary as [0], so prefer a real subkey.
+auto EncryptionKeyId(const GpgKeyPtr& key) -> QString {
+  const auto subkeys = key->SubKeys();
+  for (qsizetype i = 1; i < subkeys.size(); i++) {
+    if (subkeys[i].IsHasEncrCap()) return subkeys[i].ID().toUpper();
+  }
+  return key->ID().toUpper();
+}
+
+void ExpectKeyUnavailable(int channel, const QString& fpr) {
+  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
+  EXPECT_TRUE(GpgKeyRepository::GetInstance(channel).GetKeyPtr(fpr) == nullptr)
+      << "the deleted key is still in the keyring: " << fpr.toStdString();
+}
+
+void ExpectSecretKeyUsable(int channel, const QString& fpr) {
+  auto key = GpgKeyRepository::GetInstance(channel).GetKeyPtr(fpr);
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_TRUE(key->IsPrivateKey());
+}
+
+// Recipient-specific metadata: exactly the deleted key reads as unknown, and
+// the key that did the decryption is still recognised.
+void ExpectOnlyRecipientUnknown(const GpgOpResultInfo& info,
+                                const QString& deleted_key_id,
+                                const QString& own_key_id) {
+  ASSERT_FALSE(info.recipients.isEmpty());
+
+  int unknown = 0;
+  bool own_found = false;
+  for (const auto& r : info.recipients) {
+    const auto id = r.keyId.toUpper();
+    if (!r.keyFound) {
+      unknown++;
+      if (!id.isEmpty()) EXPECT_EQ(id, deleted_key_id);
+    }
+    if (id == own_key_id) own_found = r.keyFound;
+  }
+  EXPECT_EQ(unknown, 1);
+  EXPECT_TRUE(own_found) << "own recipient " << own_key_id.toStdString()
+                         << " not reported as found";
+}
+
+auto ReadAll(const QString& path) -> QByteArray {
+  QFile f(path);
+  if (!f.open(QIODevice::ReadOnly)) return {};
+  return f.readAll();
+}
+
+auto WriteAll(const QString& path, const QByteArray& content) -> bool {
+  QFile f(path);
+  return f.open(QIODevice::WriteOnly) && f.write(content) == content.size();
+}
+
+// Every regular file under `root`, by path relative to it, with its content.
+auto ReadTree(const QString& root) -> QMap<QString, QByteArray> {
+  QMap<QString, QByteArray> tree;
+  const QDir base(root);
+  QDirIterator it(root, QDir::Files | QDir::Hidden,
+                  QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    const auto path = it.next();
+    tree.insert(base.relativeFilePath(path), ReadAll(path));
+  }
+  return tree;
+}
+
+}  // namespace
+
+TEST_P(GpgCoreEngineTest, DecryptFileWithMissingOtherRecipientKey) {
+  auto me = GenerateFullKey("missing-rcpt-file-me");
+  ASSERT_TRUE(me != nullptr);
+  auto other = GenerateFullKey("missing-rcpt-file-other");
+  ASSERT_TRUE(other != nullptr);
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto in_path = dir.filePath("plain.txt");
+  const auto cipher_path = dir.filePath("plain.txt.gpg");
+  const auto out_path = dir.filePath("plain.out.txt");
+  const QByteArray plain("a file for me and for someone I do not know");
+  ASSERT_TRUE(WriteAll(in_path, plain));
+
+  auto [err, data_object] =
+      FileCryptoOperation::GetInstance(Channel()).EncryptFileSync(
+          {me, other}, in_path, false, cipher_path);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  const auto other_fpr = other->Fingerprint().toUpper();
+  const auto other_id = EncryptionKeyId(other);
+  DeleteKey(other);
+  ExpectKeyUnavailable(Channel(), other_fpr);
+  ExpectSecretKeyUsable(Channel(), me->Fingerprint().toUpper());
+
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance(Channel()).DecryptFileSync(cipher_path,
+                                                                  out_path);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
+  const auto info = AnalyseDecrypt(
+      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0));
+  ExpectValidOutputWithWarning(info);
+  ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
+  EXPECT_EQ(ReadAll(out_path), plain);
+
+  DeleteKey(me);
+}
+
+TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingOtherRecipientKey) {
+  auto me = GenerateFullKey("missing-rcpt-dv-me");
+  ASSERT_TRUE(me != nullptr);
+  auto other = GenerateFullKey("missing-rcpt-dv-other");
+  ASSERT_TRUE(other != nullptr);
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto in_path = dir.filePath("plain.txt");
+  const auto cipher_path = dir.filePath("plain.txt.gpg");
+  const auto out_path = dir.filePath("plain.out.txt");
+  const QByteArray plain("signed by me, for me and for someone I do not know");
+  ASSERT_TRUE(WriteAll(in_path, plain));
+
+  auto [err, data_object] =
+      FileCryptoOperation::GetInstance(Channel()).EncryptSignFileSync(
+          {me, other}, {me}, in_path, false, cipher_path);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  const auto other_fpr = other->Fingerprint().toUpper();
+  const auto other_id = EncryptionKeyId(other);
+  DeleteKey(other);
+  ExpectKeyUnavailable(Channel(), other_fpr);
+  ExpectSecretKeyUsable(Channel(), me->Fingerprint().toUpper());
+
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance(Channel()).DecryptVerifyFileSync(
+          cipher_path, out_path);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
+  auto info = AnalyseDecrypt(Channel(), err_0,
+                             ExtractParams<GpgDecryptResult>(data_object_0, 0));
+  ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
+
+  // The signer is present, so the signature itself is not the warning.
+  const auto verify_info = AnalyseVerify(
+      Channel(), err_0, ExtractParams<GpgVerifyResult>(data_object_0, 1));
+  EXPECT_GT(verify_info.status, 0);
+
+  info.Merge(verify_info);
+  ExpectValidOutputWithWarning(info);
+  EXPECT_EQ(ReadAll(out_path), plain);
+
+  DeleteKey(me);
+}
+
+TEST_P(GpgCoreEngineTest, DecryptArchiveWithMissingOtherRecipientKey) {
+  auto me = GenerateFullKey("missing-rcpt-dir-me");
+  ASSERT_TRUE(me != nullptr);
+  auto other = GenerateFullKey("missing-rcpt-dir-other");
+  ASSERT_TRUE(other != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const QString src_dir = work_dir.path() + "/src";
+
+  const QMap<QString, QByteArray> files = {
+      {"top.txt", "top level"},
+      {"sub/b.bin", QByteArray(4096, '\x07')},
+      {"sub/deeper/c.txt", "nested two levels down"},
+      {"sub/deeper/d.txt", "a sibling"},
+  };
+  for (auto it = files.cbegin(); it != files.cend(); ++it) {
+    const auto path = src_dir + "/" + it.key();
+    ASSERT_TRUE(QDir().mkpath(QFileInfo(path).absolutePath()));
+    ASSERT_TRUE(WriteAll(path, it.value()));
+  }
+
+  const QString archive_path = work_dir.path() + "/src.tar.gpg";
+  bool encrypt_done = false;
+  GpgError encrypt_err = GPG_ERR_GENERAL;
+  FileCryptoOperation::GetInstance(Channel()).EncryptDirectory(
+      {me, other}, src_dir, false, archive_path,
+      [&](GpgError err, const DataObjectPtr&) {
+        encrypt_err = err;
+        encrypt_done = true;
+      });
+  WAIT_FOR_TRUE(encrypt_done, 10000);
+  ASSERT_EQ(CheckGpgError(encrypt_err), GPG_ERR_NO_ERROR);
+
+  const auto other_fpr = other->Fingerprint().toUpper();
+  const auto other_id = EncryptionKeyId(other);
+  DeleteKey(other);
+  ExpectKeyUnavailable(Channel(), other_fpr);
+  ExpectSecretKeyUsable(Channel(), me->Fingerprint().toUpper());
+
+  const QString out_dir = work_dir.path() + "/out";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+
+  bool decrypt_done = false;
+  GpgError decrypt_err = GPG_ERR_GENERAL;
+  DataObjectPtr decrypt_object;
+  FileCryptoOperation::GetInstance(Channel()).DecryptArchive(
+      archive_path, out_dir, [&](GpgError err, const DataObjectPtr& obj) {
+        decrypt_err = err;
+        decrypt_object = obj;
+        decrypt_done = true;
+      });
+  WAIT_FOR_TRUE(decrypt_done, 10000);
+  ASSERT_EQ(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(decrypt_object != nullptr);
+  ASSERT_TRUE((decrypt_object->Check<GpgDecryptResult>()));
+
+  const auto info =
+      AnalyseDecrypt(Channel(), decrypt_err,
+                     ExtractParams<GpgDecryptResult>(decrypt_object, 0));
+  ExpectValidOutputWithWarning(info);
+  ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
+
+  // The complete tree, nothing missing and nothing extra.
+  EXPECT_EQ(ReadTree(out_dir), files);
+
+  DeleteKey(me);
+}
+
+// A real decryption whose payload is not an archive: the archive path must
+// report a failure (so the UI discards the staged directory) and must not
+// leave files behind, on every engine.
+TEST_P(GpgCoreEngineTest, DecryptArchiveOfNonArchiveFails) {
+  auto key = GenerateFullKey("non-archive");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const auto in_path = work_dir.filePath("plain.txt");
+  const auto cipher_path = work_dir.filePath("plain.txt.gpg");
+  ASSERT_TRUE(WriteAll(in_path, QByteArray(8192, 'x')));
+
+  auto [err, data_object] =
+      FileCryptoOperation::GetInstance(Channel()).EncryptFileSync(
+          {key}, in_path, false, cipher_path);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  const QString out_dir = work_dir.path() + "/out";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+
+  bool decrypt_done = false;
+  GpgError decrypt_err = GPG_ERR_NO_ERROR;
+  DataObjectPtr decrypt_object;
+  FileCryptoOperation::GetInstance(Channel()).DecryptArchive(
+      cipher_path, out_dir, [&](GpgError err, const DataObjectPtr& obj) {
+        decrypt_err = err;
+        decrypt_object = obj;
+        decrypt_done = true;
+      });
+  WAIT_FOR_TRUE(decrypt_done, 10000);
+  EXPECT_NE(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+
+  GpgDecryptResult decrypt_result;
+  if (decrypt_object != nullptr && decrypt_object->Check<GpgDecryptResult>()) {
+    decrypt_result = ExtractParams<GpgDecryptResult>(decrypt_object, 0);
+  }
+  EXPECT_LT(AnalyseDecrypt(Channel(), decrypt_err, decrypt_result).status, 0);
+  EXPECT_TRUE(ReadTree(out_dir).isEmpty());
+
+  DeleteKey(key);
 }
 
 // ---------------------------------------------------------------------------

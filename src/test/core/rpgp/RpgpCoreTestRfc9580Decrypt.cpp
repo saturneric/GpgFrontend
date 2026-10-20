@@ -39,6 +39,7 @@
 
 #include "RpgpCoreTestRfc9580.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/utils/GpgUtils.h"
 
@@ -225,6 +226,11 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedReportsErrorDetail) {
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   // The user must learn why the message was refused.
   EXPECT_FALSE(r.ErrorDetail().isEmpty());
+
+  // And the result is a failure, so no caller releases output for it.
+  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, err, r};
+  analyse.Analyse();
+  EXPECT_LT(analyse.GetStatus(), 0);
 }
 
 // --- Determinism / stability ------------------------------------------------
