@@ -30,7 +30,7 @@ use crate::utils::{armor_opts, password_from_zeroizing_bytes};
 
 use pgp::{
     packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData},
-    types::{KeyVersion, Timestamp},
+    types::{KeyDetails, KeyVersion, SigningKey, Timestamp},
 };
 
 use super::*;
@@ -199,6 +199,7 @@ where
             let record_sig_fn = &mut record_sig;
             let fetch_pwd = &fetch_pwd_for_key;
 
+            let text_str = &trim_trailing_whitespace(text_str);
             let msg = CleartextSignedMessage::new_many(text_str, |normalized_text| -> pgp::errors::Result<Vec<pgp::packet::Signature>> {
                 let mut sigs = Vec::new();
 
@@ -224,14 +225,13 @@ where
                                     ))
                                     .map_err(|_| GfrStatus::ErrorInternal)?,
                                 ];
-                                let mut config = SignatureConfig::from_key(
+                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
+                                // truthful and never a weak digest (RFC 9580 §9.5).
+                                let mut config = sha512_signature_config(
                                     &mut rng, k, SignatureType::Text,
                                 )
                                 .map_err(|_| GfrStatus::ErrorInternal)?;
                                 config.hashed_subpackets = hashed_subpackets;
-                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
-                                // truthful and never a weak digest (RFC 9580 §9.5).
-                                config.hash_alg = HashAlgorithm::Sha512;
                                 if k.version() <= KeyVersion::V4 {
                                     config.unhashed_subpackets = vec![Subpacket::regular(
                                         SubpacketData::IssuerKeyId(k.legacy_key_id()),
@@ -256,14 +256,13 @@ where
                                     ))
                                     .map_err(|_| GfrStatus::ErrorInternal)?,
                                 ];
-                                let mut config = SignatureConfig::from_key(
+                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
+                                // truthful and never a weak digest (RFC 9580 §9.5).
+                                let mut config = sha512_signature_config(
                                     &mut rng, k, SignatureType::Text,
                                 )
                                 .map_err(|_| GfrStatus::ErrorInternal)?;
                                 config.hashed_subpackets = hashed_subpackets;
-                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
-                                // truthful and never a weak digest (RFC 9580 §9.5).
-                                config.hash_alg = HashAlgorithm::Sha512;
                                 if k.version() <= KeyVersion::V4 {
                                     config.unhashed_subpackets = vec![Subpacket::regular(
                                         SubpacketData::IssuerKeyId(k.legacy_key_id()),
@@ -387,6 +386,38 @@ where
             })
         }
     }
+}
+
+/// A SHA-512 signature config for `key`. The hash is chosen before the config
+/// is built because a v6 salt is sized for it (RFC 9580 §5.2.3, Table 23):
+/// overriding `hash_alg` afterwards would keep the salt of the key's default
+/// hash and produce a malformed signature.
+fn sha512_signature_config<R: rand::CryptoRng + rand::Rng>(
+    rng: R,
+    key: &impl SigningKey,
+    typ: SignatureType,
+) -> pgp::errors::Result<SignatureConfig> {
+    match key.version() {
+        KeyVersion::V6 => SignatureConfig::v6(rng, typ, key.algorithm(), HashAlgorithm::Sha512),
+        _ => Ok(SignatureConfig::v4(
+            typ,
+            key.algorithm(),
+            HashAlgorithm::Sha512,
+        )),
+    }
+}
+
+/// Strip spaces and tabs from the end of every line (RFC 9580 §7.1). A
+/// verifier hashes the trimmed text, but rPGP's signer hashes it verbatim, so
+/// untrimmed input would yield a signature nobody can verify.
+fn trim_trailing_whitespace(text: &str) -> String {
+    text.split_inclusive('\n')
+        .map(|line| {
+            let body = line.trim_end_matches(['\r', '\n']);
+            let end = &line[body.len()..];
+            format!("{}{}", body.trim_end_matches([' ', '\t']), end)
+        })
+        .collect()
 }
 
 /// Sign an in-memory buffer with one or more secret keys.
