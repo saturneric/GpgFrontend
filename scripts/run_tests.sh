@@ -37,6 +37,13 @@
 #                          configured without GPGFRONTEND_MODULES_BUILD_TESTS
 #                          reports green having run nothing.
 #       --rust-slow-only   Run only the ignored/slow Rust tests
+#       --large-file-only  Run only the large-file tier: real SEIPD v1/v2 files
+#                          over the former 1 GiB limit (multi-GB, GnuPG output
+#                          over 4 GiB), each Rust test in its own process with a
+#                          peak-memory assertion, plus the C++ *LargeFile* tests.
+#                          Needs ~15 GiB free in GF_LARGE_FILE_DIR (default: the
+#                          temp dir), gpg and sq; GF_LARGE_FILE_GIB sizes the
+#                          multi-GB case (default 5).
 #       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
 #   -f, --filter PATTERN   Run a single GTEST_FILTER and nothing else
@@ -144,6 +151,7 @@ while [[ $# -gt 0 ]]; do
     --rust-only)      MODE="rust" ;;
     --modules-only)   MODE="modules" ;;
     --rust-slow-only) MODE="rust-slow" ;;
+    --large-file-only) MODE="large-file" ;;
     --no-rust)        RUN_RUST="no" ;;
     --require-modules) REQUIRE_MODULES="yes" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; STRESS_ITER_SET="yes"; shift ;;
@@ -746,8 +754,25 @@ run_rust_slow_phase() {
     return 0
   fi
 
-  ( cd "$RUST_DIR" && cargo test -- --ignored --skip deferred_ --test-threads=2 ) 2>&1 | tee "$log"
+  ( cd "$RUST_DIR" && cargo test -- --ignored --skip deferred_ --skip large_file_ --test-threads=2 ) 2>&1 | tee "$log"
   return "${PIPESTATUS[0]}"
+}
+
+# --- rust-large phase runner -----------------------------------------------
+# The large-file tier (see scripts/run_large_file_tests.sh, shared with CI):
+# real multi-GB SEIPD v1/v2 files, each test in its own process with a
+# peak-memory assertion. A missing cargo or an empty test list fails.
+run_rust_large_phase() {
+  local log="$RESULTS_DIR/rust-large.log"
+
+  echo
+  echo "============================================================"
+  echo "  Phase: rust-large"
+  echo "  Runner: scripts/run_large_file_tests.sh"
+  echo "  GF_LARGE_FILE_DIR: ${GF_LARGE_FILE_DIR:-<temp dir>}"
+  echo "============================================================"
+
+  "$REPO_ROOT/scripts/run_large_file_tests.sh" "$log"
 }
 
 # --- modules phase runner --------------------------------------------------
@@ -881,6 +906,18 @@ case "$MODE" in
     run_rust_slow_phase || overall_rc=1
     phases+=("rust-slow")
     ;;
+  large-file)
+    run_rust_large_phase || overall_rc=1
+    phases+=("rust-large")
+    export GF_RUN_LARGE_FILE_TESTS=1
+    run_gtest_phase "large" '*LargeFile*' "$STRESS_ITER" || overall_rc=1
+    phases+=("large")
+    # A skipped or filtered-out test must not read as a pass.
+    if ! grep -qE '\[ +OK +\] [A-Za-z]+\.LargeFile' "$RESULTS_DIR/large.log"; then
+      echo "error: no C++ LargeFile test ran to completion" >&2
+      overall_rc=1
+    fi
+    ;;
   all)
     if [[ "$RUN_RUST" != "no" ]]; then
       run_rust_phase || overall_rc=1
@@ -908,7 +945,7 @@ echo "  Summary"
 echo "============================================================"
 for p in "${phases[@]}"; do
   log="$RESULTS_DIR/${p}.log"
-  if [[ "$p" == "rust" || "$p" == "rust-slow" ]]; then
+  if [[ "$p" == "rust" || "$p" == "rust-slow" || "$p" == "rust-large" ]]; then
     # cargo emits one "test result: ok. N passed; M failed; K ignored; ..."
     # line per test binary (lib, integration, doc); sum across all of them.
     passed="$(grep -oE '[0-9]+ passed' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"

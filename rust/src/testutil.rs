@@ -698,6 +698,21 @@ pub mod keys {
         fixture_from(reparse(&out.secret))
     });
 
+    /// v6 Ed25519 primary + ML-KEM-768+X25519 encryption subkey: the
+    /// post-quantum shape of the original 4.86 GB SEIPD v1 report.
+    pub static V6_PQ: Lazy<Fixture> = Lazy::new(|| {
+        fixture_from(generate(
+            "V6 PQ Fixture <v6-pq@example.test>",
+            &cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6),
+            &[cfg(
+                GfrKeyAlgo::KYBER768X25519,
+                false,
+                true,
+                GfrOpenPGPKeyVersion::V6,
+            )],
+        ))
+    });
+
     /// [`V4_SIGN`]'s shape with the primary key revoked (§5.2.1.11), produced
     /// the way a user would: generate a revocation certificate, then import it.
     pub static V4_REVOKED_PRIMARY: Lazy<Fixture> = Lazy::new(|| {
@@ -1261,6 +1276,623 @@ pub mod assert {
 }
 
 // ---------------------------------------------------------------------------
+// SEIPD fixtures
+// ---------------------------------------------------------------------------
+
+/// Deterministic, reusable SEIPD v1 / v2 regression fixtures.
+///
+/// Payloads come from a seeded generator and are streamed, never held in
+/// memory, so the same helpers serve a 1 KiB unit test and a 5 GiB large-file
+/// test. A decrypted file is checked against the generator byte for byte.
+pub mod seipd {
+    use std::io::Read;
+    use std::path::Path;
+
+    use super::keys;
+
+    /// A deterministic pseudo-random byte stream of exactly `len` bytes. The
+    /// bytes depend only on `(len, seed)`, never on how the reader is called.
+    pub struct Payload {
+        remaining: u64,
+        state: u64,
+        word: [u8; 8],
+        /// How many bytes of `word` are already handed out (8 = none left).
+        used: usize,
+    }
+
+    impl Payload {
+        pub fn new(len: u64, seed: u64) -> Self {
+            Payload {
+                remaining: len,
+                // xorshift must not start at zero.
+                state: seed ^ 0x9E37_79B9_7F4A_7C15,
+                word: [0; 8],
+                used: 8,
+            }
+        }
+    }
+
+    impl Read for Payload {
+        fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            let n = buf
+                .len()
+                .min(self.remaining.min(usize::MAX as u64) as usize);
+            for out in &mut buf[..n] {
+                if self.used == 8 {
+                    self.state ^= self.state << 13;
+                    self.state ^= self.state >> 7;
+                    self.state ^= self.state << 17;
+                    self.word = self.state.to_le_bytes();
+                    self.used = 0;
+                }
+                *out = self.word[self.used];
+                self.used += 1;
+            }
+            self.remaining -= n as u64;
+            Ok(n)
+        }
+    }
+
+    /// `len` payload bytes in memory, for small tests.
+    pub fn bytes(len: usize, seed: u64) -> Vec<u8> {
+        let mut out = Vec::with_capacity(len);
+        Payload::new(len as u64, seed)
+            .read_to_end(&mut out)
+            .expect("generator");
+        out
+    }
+
+    /// Assert the file at `path` holds exactly the payload `(len, seed)`,
+    /// streaming both sides.
+    pub fn assert_file_is_payload(path: &Path, len: u64, seed: u64) {
+        let mut file = std::io::BufReader::with_capacity(
+            1 << 20,
+            std::fs::File::open(path).expect("open decrypted output"),
+        );
+        let mut want = Payload::new(len, seed);
+        let mut a = vec![0u8; 1 << 20];
+        let mut b = vec![0u8; 1 << 20];
+        let mut offset = 0u64;
+        loop {
+            let n = want.read(&mut a).unwrap();
+            file.read_exact(&mut b[..n])
+                .unwrap_or_else(|e| panic!("output is short at offset {offset}: {e}"));
+            assert!(
+                a[..n] == b[..n],
+                "output differs within 1 MiB of offset {offset}"
+            );
+            offset += n as u64;
+            if n == 0 {
+                break;
+            }
+        }
+        let mut rest = [0u8; 1];
+        assert_eq!(
+            file.read(&mut rest).unwrap(),
+            0,
+            "output is longer than {len} bytes"
+        );
+    }
+
+    /// Encrypt the payload `(len, seed)` to `recipient` into `path`, streaming,
+    /// optionally signed by the secret key `signer`. Our engine chooses the
+    /// container from the recipient (see `encrypt::select_container`).
+    pub fn encrypt_payload_to_file(
+        path: &Path,
+        recipient: &keys::Fixture,
+        len: u64,
+        seed: u64,
+        signer: Option<&keys::Fixture>,
+    ) {
+        let out = std::io::BufWriter::new(std::fs::File::create(path).expect("create ciphertext"));
+        let signers: Vec<&str> = signer.iter().map(|k| k.secret_armored.as_str()).collect();
+        crate::crypto::encrypt_and_sign_stream_internal(
+            0,
+            "",
+            Payload::new(len, seed),
+            out,
+            &[&recipient.public_armored],
+            &signers,
+            None,
+            false,
+        )
+        .expect("encrypt payload");
+    }
+
+    /// The SEIPD container version of a binary message, read from its packet
+    /// headers only: ESK packets are skipped by length and the SEIPD body is
+    /// never loaded, so this is cheap on a multi-GB file.
+    pub fn seipd_version_of_file(path: &Path) -> u32 {
+        let mut r = std::io::BufReader::new(std::fs::File::open(path).expect("open"));
+        let mut byte = || {
+            let mut b = [0u8; 1];
+            r.read_exact(&mut b).expect("truncated packet header");
+            b[0]
+        };
+        loop {
+            let ctb = byte();
+            assert!(ctb & 0x80 != 0, "not a binary OpenPGP packet stream");
+            let (tag, len) = if ctb & 0x40 != 0 {
+                // RFC 9580 §4.2.1 OpenPGP format.
+                let o1 = byte() as u64;
+                let len = match o1 {
+                    0..=191 => o1,
+                    192..=223 => ((o1 - 192) << 8) + byte() as u64 + 192,
+                    255 => (0..4).fold(0u64, |acc, _| (acc << 8) | byte() as u64),
+                    _ => 0, // partial length: only the SEIPD body uses it
+                };
+                (ctb & 0x3F, len)
+            } else {
+                // §4.2.2 legacy format.
+                let octets = [1usize, 2, 4, 0][(ctb & 0x03) as usize];
+                let len = (0..octets).fold(0u64, |acc, _| (acc << 8) | byte() as u64);
+                ((ctb >> 2) & 0x0F, len)
+            };
+            match tag {
+                18 => return byte() as u32,
+                1 | 3 => {
+                    for _ in 0..len {
+                        byte();
+                    }
+                }
+                other => panic!("unexpected packet (tag {other}) before the SEIPD"),
+            }
+        }
+    }
+
+    /// A message in the format every GpgFrontend rPGP release before 0.3.2
+    /// wrote to *any* recipient, v6 and post-quantum keys included: SEIPD v1
+    /// with AES-256, v3 PKESKs and 512 KiB partial chunks. Today's engine only
+    /// writes v1 when a recipient needs it, so legacy files are rebuilt here
+    /// to keep their decryption under test.
+    pub fn legacy_v1_message(
+        recipient: &keys::Fixture,
+        payload: impl Read + Send + Sync,
+    ) -> Vec<u8> {
+        let mut out = Vec::new();
+        write_legacy_v1(recipient, payload, &mut out);
+        out
+    }
+
+    /// [`legacy_v1_message`], streamed into `out` (for multi-GB files).
+    pub fn write_legacy_v1(
+        recipient: &keys::Fixture,
+        payload: impl Read + Send + Sync,
+        out: impl std::io::Write,
+    ) {
+        use pgp::composed::{Deserializable, MessageBuilder, SignedPublicKey};
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        use pgp::types::KeyDetails;
+        let cert = SignedPublicKey::from_string(&recipient.public_armored)
+            .expect("parses")
+            .0;
+        let subkey = cert
+            .public_subkeys
+            .iter()
+            .find(|s| s.key.algorithm().can_encrypt())
+            .expect("an encryption subkey");
+        let mut rng = rand::thread_rng();
+        let mut builder = MessageBuilder::from_reader("", payload);
+        builder.partial_chunk_size(512 * 1024).expect("chunk size");
+        let mut builder = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
+        builder.encrypt_to_key(&mut rng, subkey).expect("v3 PKESK");
+        builder.to_writer(&mut rng, out).expect("write");
+    }
+
+    /// The message (in memory) encrypted to the certificate `recipient`.
+    pub fn message(recipient: &str, payload: &[u8], signer: Option<&keys::Fixture>) -> Vec<u8> {
+        let signers: Vec<&str> = signer.iter().map(|k| k.secret_armored.as_str()).collect();
+        let mut out = Vec::new();
+        crate::crypto::encrypt_and_sign_stream_internal(
+            0,
+            "",
+            payload,
+            &mut out,
+            &[recipient],
+            &signers,
+            None,
+            false,
+        )
+        .expect("encrypt");
+        out
+    }
+
+    /// Flip every bit of the byte at `index` (negative counts from the end).
+    pub fn flipped(data: &[u8], index: isize) -> Vec<u8> {
+        let mut out = data.to_vec();
+        let i = if index < 0 {
+            (out.len() as isize + index) as usize
+        } else {
+            index as usize
+        };
+        out[i] ^= 0xFF;
+        out
+    }
+
+    /// Flip the byte at `offset_from_end` of the file at `path` in place.
+    pub fn flip_in_file(path: &Path, offset_from_end: u64) {
+        use std::io::{Seek, SeekFrom, Write};
+        let mut f = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(path)
+            .expect("open");
+        let len = f.metadata().unwrap().len();
+        let pos = len - offset_from_end;
+        f.seek(SeekFrom::Start(pos)).unwrap();
+        let mut byte = [0u8; 1];
+        f.read_exact(&mut byte).unwrap();
+        f.seek(SeekFrom::Start(pos)).unwrap();
+        f.write_all(&[byte[0] ^ 0xFF]).unwrap();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// External OpenPGP implementations
+// ---------------------------------------------------------------------------
+
+/// Drivers for GnuPG (`gpg`) and Sequoia (`sq`), for interop tests.
+///
+/// These checks are security relevant, so a missing tool is a **failure**, not
+/// a silent skip. Set `GF_ALLOW_MISSING_INTEROP_TOOLS=1` to downgrade it to a
+/// loudly logged skip on a machine that genuinely lacks one.
+pub mod interop {
+    use std::ffi::OsStr;
+    use std::io::Write;
+    use std::path::{Path, PathBuf};
+    use std::process::{Command, Output, Stdio};
+
+    pub const ALLOW_MISSING: &str = "GF_ALLOW_MISSING_INTEROP_TOOLS";
+
+    /// Whether `tool` can be spawned. Only spawning is checked: `sq` has no
+    /// `--version` flag and exits non-zero on it.
+    fn spawnable(tool: &str) -> bool {
+        Command::new(tool)
+            .arg("--help")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .is_ok()
+    }
+
+    /// `true` if `tool` is available. Panics if it is not, unless
+    /// [`ALLOW_MISSING`] is set, in which case it logs the skip and returns
+    /// `false`.
+    pub fn require(tool: &str) -> bool {
+        if spawnable(tool) {
+            return true;
+        }
+        if std::env::var(ALLOW_MISSING).as_deref() == Ok("1") {
+            eprintln!("SKIPPED interop check: `{tool}` is not installed ({ALLOW_MISSING}=1)");
+            return false;
+        }
+        panic!(
+            "interop test needs `{tool}`, which is not installed; install it, or set \
+             {ALLOW_MISSING}=1 to skip explicitly"
+        );
+    }
+
+    fn check(out: Output, what: &str) -> Vec<u8> {
+        assert!(
+            out.status.success(),
+            "{what} failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        out.stdout
+    }
+
+    /// A throwaway GnuPG home with a freshly generated, unprotected default
+    /// key (so its certificate is one GnuPG itself made).
+    pub struct Gnupg {
+        home: tempfile::TempDir,
+        /// The generated key's public certificate, armored.
+        pub cert: String,
+        /// The generated key's fingerprint.
+        pub fpr: String,
+    }
+
+    impl Gnupg {
+        /// `None` only when `gpg` is missing and that was explicitly allowed.
+        pub fn new() -> Option<Self> {
+            if !require("gpg") {
+                return None;
+            }
+            // A short path: gpg-agent's socket must fit in sun_path.
+            let home = tempfile::Builder::new()
+                .prefix("gf")
+                .tempdir_in("/tmp")
+                .or_else(|_| tempfile::tempdir())
+                .expect("tempdir");
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ =
+                    std::fs::set_permissions(home.path(), std::fs::Permissions::from_mode(0o700));
+            }
+            let mut this = Gnupg {
+                home,
+                cert: String::new(),
+                fpr: String::new(),
+            };
+            check(
+                this.gpg([
+                    "--passphrase",
+                    "",
+                    "--quick-gen-key",
+                    "GF Interop <gf-interop@example.test>",
+                    "default",
+                    "default",
+                    "never",
+                ]),
+                "gpg --quick-gen-key",
+            );
+            this.cert = String::from_utf8(check(this.gpg(["--armor", "--export"]), "gpg --export"))
+                .expect("armored");
+            let listing = String::from_utf8(check(
+                this.gpg(["--with-colons", "--list-secret-keys"]),
+                "gpg --list-secret-keys",
+            ))
+            .unwrap();
+            this.fpr = listing
+                .lines()
+                .find(|l| l.starts_with("fpr:"))
+                .and_then(|l| l.split(':').nth(9))
+                .expect("a fingerprint")
+                .to_string();
+            Some(this)
+        }
+
+        fn command(&self) -> Command {
+            let mut cmd = Command::new("gpg");
+            cmd.arg("--homedir").arg(self.home.path()).args([
+                "--batch",
+                "--yes",
+                "--pinentry-mode",
+                "loopback",
+            ]);
+            cmd
+        }
+
+        pub fn gpg<I, S>(&self, args: I) -> Output
+        where
+            I: IntoIterator<Item = S>,
+            S: AsRef<OsStr>,
+        {
+            self.command().args(args).output().expect("run gpg")
+        }
+
+        /// Import a public certificate so it can be encrypted to.
+        pub fn import(&self, armored_cert: &str) {
+            let path = self.home.path().join("import.asc");
+            std::fs::write(&path, armored_cert).unwrap();
+            check(
+                self.gpg([OsStr::new("--import"), path.as_os_str()]),
+                "gpg --import",
+            );
+        }
+
+        /// Encrypt `input` (streamed into gpg's stdin) to `recipient_fpr` into
+        /// `out`. `compress` is a `--compress-algo` value; `sign` also signs
+        /// with this home's own key.
+        pub fn encrypt_stream(
+            &self,
+            recipient_fpr: &str,
+            mut input: impl std::io::Read + Send + 'static,
+            out: &Path,
+            compress: &str,
+            sign: bool,
+        ) {
+            let mut cmd = self.command();
+            cmd.args(["--trust-model", "always", "--compress-algo", compress])
+                .args(["--recipient", recipient_fpr, "--output"])
+                .arg(out);
+            if sign {
+                cmd.args(["--passphrase", "", "--local-user", &self.fpr, "--sign"]);
+            }
+            let mut child = cmd
+                .arg("--encrypt")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::null())
+                .stderr(Stdio::piped())
+                .spawn()
+                .expect("spawn gpg");
+            let mut stdin = child.stdin.take().unwrap();
+            let feeder = std::thread::spawn(move || {
+                std::io::copy(&mut input, &mut stdin).expect("feed gpg");
+                stdin.flush().unwrap();
+            });
+            let output = child.wait_with_output().expect("gpg");
+            feeder.join().unwrap();
+            check(output, "gpg --encrypt");
+        }
+
+        /// Encrypt `data` in memory; see [`Self::encrypt_stream`].
+        pub fn encrypt(
+            &self,
+            recipient_fpr: &str,
+            data: &[u8],
+            compress: &str,
+            sign: bool,
+        ) -> Vec<u8> {
+            let out = self.home.path().join("msg.pgp");
+            self.encrypt_stream(
+                recipient_fpr,
+                std::io::Cursor::new(data.to_vec()),
+                &out,
+                compress,
+                sign,
+            );
+            std::fs::read(&out).unwrap()
+        }
+
+        /// Decrypt `data` with this home's key.
+        pub fn decrypt(&self, data: &[u8]) -> Vec<u8> {
+            let msg = self.home.path().join("in.pgp");
+            std::fs::write(&msg, data).unwrap();
+            check(
+                self.gpg([OsStr::new("--decrypt"), msg.as_os_str()]),
+                "gpg --decrypt",
+            )
+        }
+    }
+
+    impl Drop for Gnupg {
+        fn drop(&mut self) {
+            let _ = Command::new("gpgconf")
+                .arg("--homedir")
+                .arg(self.home.path())
+                .args(["--kill", "gpg-agent"])
+                .output();
+        }
+    }
+
+    /// Sequoia's `sq`, stateless (no cert or key store).
+    pub struct Sq {
+        dir: tempfile::TempDir,
+    }
+
+    impl Sq {
+        /// `None` only when `sq` is missing and that was explicitly allowed.
+        pub fn new() -> Option<Self> {
+            require("sq").then(|| Sq {
+                dir: tempfile::tempdir().expect("tempdir"),
+            })
+        }
+
+        fn file(&self, name: &str, contents: &[u8]) -> PathBuf {
+            let path = self.dir.path().join(name);
+            std::fs::write(&path, contents).unwrap();
+            path
+        }
+
+        fn sq<I, S>(&self, args: I) -> Output
+        where
+            I: IntoIterator<Item = S>,
+            S: AsRef<OsStr>,
+        {
+            Command::new("sq")
+                .args(["--batch", "--cert-store=none", "--key-store=none"])
+                .args(args)
+                .output()
+                .expect("run sq")
+        }
+
+        /// Encrypt `data` to the certificate `cert`; sq picks the container
+        /// from the certificate's features. `signer` (secret key, armored, with
+        /// `password`) also signs.
+        pub fn encrypt(&self, cert: &str, data: &[u8], signer: Option<(&str, &[u8])>) -> Vec<u8> {
+            let cert = self.file("cert.asc", cert.as_bytes());
+            let input = self.file("plain.bin", data);
+            let mut args: Vec<std::ffi::OsString> =
+                vec!["encrypt".into(), "--for-file".into(), cert.into()];
+            match signer {
+                Some((key, password)) => {
+                    args.push("--signer-file".into());
+                    args.push(self.file("signer.asc", key.as_bytes()).into());
+                    args.push("--password-file".into());
+                    args.push(self.file("signer.pw", password).into());
+                }
+                None => args.push("--without-signature".into()),
+            }
+            args.push("--binary".into());
+            args.push(input.into());
+            check(self.sq(args), "sq encrypt")
+        }
+
+        /// Decrypt `data` with the secret key `key` (armored) and `password`.
+        pub fn decrypt(&self, key: &str, password: &[u8], data: &[u8]) -> Vec<u8> {
+            let key = self.file("key.asc", key.as_bytes());
+            let pw = self.file("key.pw", password);
+            let msg = self.file("msg.pgp", data);
+            check(
+                self.sq([
+                    OsStr::new("decrypt"),
+                    OsStr::new("--recipient-file"),
+                    key.as_os_str(),
+                    OsStr::new("--password-file"),
+                    pw.as_os_str(),
+                    msg.as_os_str(),
+                ]),
+                "sq decrypt",
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Memory measurement
+// ---------------------------------------------------------------------------
+
+/// Peak resident memory of this process, for the large-file tier's
+/// bounded-memory assertions. Linux only: elsewhere [`PeakRss::start`] panics
+/// rather than let a memory assertion pass vacuously.
+pub mod memory {
+    /// Bytes of a `/proc/self/status` field reported in kB.
+    #[cfg(target_os = "linux")]
+    fn status_kib(field: &str) -> u64 {
+        let status = std::fs::read_to_string("/proc/self/status").expect("/proc/self/status");
+        status
+            .lines()
+            .find_map(|l| l.strip_prefix(field))
+            .and_then(|v| v.trim().trim_end_matches("kB").trim().parse().ok())
+            .unwrap_or_else(|| panic!("no {field} in /proc/self/status"))
+    }
+
+    /// Measures how far peak RSS rose after [`start`](Self::start).
+    pub struct PeakRss {
+        #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+        baseline_kib: u64,
+    }
+
+    impl PeakRss {
+        #[cfg(target_os = "linux")]
+        pub fn start() -> Self {
+            // Writing "5" to clear_refs resets VmHWM to the current RSS, so the
+            // measurement is not polluted by whatever ran before.
+            let _ = std::fs::write("/proc/self/clear_refs", "5");
+            PeakRss {
+                baseline_kib: status_kib("VmRSS:"),
+            }
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        pub fn start() -> Self {
+            panic!(
+                "the bounded-memory assertion needs Linux /proc; run the large-file tier on Linux"
+            );
+        }
+
+        /// Peak RSS growth since `start`, in bytes.
+        pub fn growth_bytes(&self) -> u64 {
+            #[cfg(target_os = "linux")]
+            {
+                status_kib("VmHWM:").saturating_sub(self.baseline_kib) * 1024
+            }
+            #[cfg(not(target_os = "linux"))]
+            unreachable!()
+        }
+
+        /// Assert peak RSS grew by less than `limit` bytes while handling a
+        /// `handled`-byte file.
+        pub fn assert_below(&self, limit: u64, handled: u64) {
+            let growth = self.growth_bytes();
+            eprintln!(
+                "peak RSS growth: {} MiB while handling {} MiB",
+                growth >> 20,
+                handled >> 20
+            );
+            assert!(
+                growth < limit,
+                "peak RSS grew by {} MiB (limit {} MiB) while handling {} MiB: memory is not bounded",
+                growth >> 20,
+                limit >> 20,
+                handled >> 20
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Self-tests
 // ---------------------------------------------------------------------------
 
@@ -1270,6 +1902,45 @@ mod selftest {
     //! get their own tests. A broken fixture would otherwise surface as a
     //! confusing failure somewhere else entirely.
     use super::*;
+
+    /// The bounded-memory assertion must be able to fail: a real 300 MiB
+    /// allocation has to register, or a "0 MiB" reading proves nothing.
+    #[cfg(target_os = "linux")]
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_memory_probe_detects_a_real_allocation() {
+        let peak = memory::PeakRss::start();
+        let mut big = vec![0u8; 300 << 20];
+        for page in big.chunks_mut(4096) {
+            page[0] = 1;
+        }
+        std::hint::black_box(&big);
+        let growth = peak.growth_bytes();
+        drop(big);
+        assert!(
+            growth >= 290 << 20,
+            "probe saw only {} MiB of a 300 MiB allocation",
+            growth >> 20
+        );
+    }
+
+    #[test]
+    fn the_payload_generator_ignores_read_sizes() {
+        use std::io::Read;
+        let whole = seipd::bytes(10_007, 3);
+        let mut pieces = Vec::new();
+        let mut p = seipd::Payload::new(10_007, 3);
+        for size in [1usize, 3, 7, 8, 9, 1000, 4096].iter().cycle() {
+            let mut buf = vec![0u8; *size];
+            let n = p.read(&mut buf).unwrap();
+            if n == 0 {
+                break;
+            }
+            pieces.extend_from_slice(&buf[..n]);
+        }
+        assert_eq!(pieces, whole);
+        assert_ne!(seipd::bytes(64, 3), seipd::bytes(64, 4), "the seed matters");
+    }
 
     #[test]
     fn corpus_files_are_embedded_and_non_empty() {
