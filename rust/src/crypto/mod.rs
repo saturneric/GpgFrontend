@@ -71,6 +71,7 @@ pub(crate) use std::{
 };
 
 mod decrypt;
+mod staging;
 mod encrypt;
 mod sign;
 mod verify;

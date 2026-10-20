@@ -28,6 +28,10 @@
 
 use std::ffi::c_char;
 
+use pgp::{
+    composed::{DecryptionOptions, TheRing},
+    types::Seipdv1ReadMode,
+};
 use zeroize::Zeroizing;
 
 use crate::{host::gfc_secure_free_cstr, utils::password_from_zeroizing_bytes};
@@ -41,6 +45,85 @@ use super::*;
 /// decompressed *output* size is bounded separately by
 /// [`MAX_DECOMPRESSED_OUTPUT_BYTES`].
 const MAX_COMPRESSION_LAYERS: u8 = 16;
+
+/// The largest SEIPD v1 payload an in-memory decryption accepts: rPGP's own
+/// `CheckFirst` default, which buffers the whole payload to authenticate it
+/// before releasing a byte. File and archive decryption never use this limit.
+pub(crate) const IN_MEMORY_SEIPDV1_LIMIT: usize = 1024 * 1024 * 1024;
+
+/// For staged (file/archive) output, how many bytes of decompressed plaintext
+/// one byte of ciphertext may expand to before the stream is treated as a
+/// compression bomb. Real data, even all-zero disk images under ZLIB (~1032:1),
+/// stays far below it; a bomb is stopped long before it fills a disk.
+const STAGED_DECOMPRESSION_RATIO: u64 = 4096;
+
+/// Where decrypted plaintext goes. Callers choose this, never a raw rPGP read
+/// mode, so SEIPD v1 `Streaming` (plaintext released before the MDC check) can
+/// only be selected together with a stage that is discarded on error.
+enum Sink {
+    /// Collected in memory and returned only on success. SEIPD v1 is read in
+    /// `CheckFirst` mode, authenticated before any plaintext is released, up
+    /// to `seipdv1_limit` bytes.
+    Memory { seipdv1_limit: usize },
+    /// Written to a stage ([`StagedFile`] or an anonymous temp file) that the
+    /// caller commits only on `Ok`. SEIPD v1 is streamed with no size limit;
+    /// decompressed output is bounded by [`STAGED_DECOMPRESSION_RATIO`] times
+    /// the ciphertext length, but never below [`MAX_DECOMPRESSED_OUTPUT_BYTES`].
+    Staged { ciphertext_len: u64 },
+}
+
+impl Sink {
+    fn seipdv1_mode(&self) -> Seipdv1ReadMode {
+        match self {
+            Sink::Memory { seipdv1_limit } => Seipdv1ReadMode::CheckFirst {
+                max_message_size: *seipdv1_limit,
+            },
+            Sink::Staged { .. } => Seipdv1ReadMode::Streaming,
+        }
+    }
+
+    fn decompression_cap(&self) -> u64 {
+        match self {
+            Sink::Memory { .. } => MAX_DECOMPRESSED_OUTPUT_BYTES,
+            Sink::Staged { ciphertext_len } => MAX_DECOMPRESSED_OUTPUT_BYTES
+                .max(ciphertext_len.saturating_mul(STAGED_DECOMPRESSION_RATIO)),
+        }
+    }
+}
+
+/// The in-memory sink every buffer API uses.
+const MEMORY_SINK: Sink = Sink::Memory {
+    seipdv1_limit: IN_MEMORY_SEIPDV1_LIMIT,
+};
+
+/// Records whether a write failed, so a full disk is reported as an output
+/// error rather than as a corrupt message.
+struct TrackedWriter<W> {
+    inner: W,
+    failed: bool,
+}
+
+impl<W: Write> Write for TrackedWriter<W> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.inner.write(buf).inspect_err(|_| self.failed = true)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner.flush().inspect_err(|_| self.failed = true)
+    }
+}
+
+/// Whether a streaming read failed because the message is not authentic: a
+/// SEIPD v1 MDC mismatch or a SEIPD v2 AEAD tag failure.
+fn is_integrity_failure(err: &std::io::Error) -> bool {
+    err.get_ref()
+        .and_then(|inner| inner.downcast_ref::<pgp::errors::Error>())
+        .is_some_and(|e| {
+            crate::err::is_mdc_failure(e) || matches!(e, pgp::errors::Error::Aead { .. })
+        })
+}
+
+use crate::err::INTEGRITY_FAILURE_MESSAGE;
 
 /// Inspect the ESK (Encrypted Session Key) packets of a parsed message.
 ///
@@ -120,6 +203,7 @@ fn decrypt_message_with_password(
     channel: i32,
     parsed_message: Message,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    seipdv1_mode: Seipdv1ReadMode,
 ) -> Result<Message, GfrStatus> {
     let password = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
@@ -141,9 +225,17 @@ fn decrypt_message_with_password(
 
     let msg_pw = password_from_zeroizing_bytes(password);
 
-    parsed_message
-        .decrypt_with_password(&msg_pw)
-        .record_err(GfrStatus::ErrorDecryptionFailed)
+    let ring = TheRing {
+        message_password: vec![&msg_pw],
+        decrypt_options: DecryptionOptions::new().set_seipdv1_read_mode(seipdv1_mode),
+        ..Default::default()
+    };
+    match parsed_message.decrypt_the_ring(ring, true) {
+        Ok((msg, _)) => Ok(msg),
+        // A tampered payload is not a wrong passphrase.
+        Err(e) if crate::err::is_mdc_failure(&e) => Err(e).into_gfr(),
+        Err(e) => Err(e).record_err(GfrStatus::ErrorDecryptionFailed),
+    }
 }
 
 /// Decrypt and optionally verify a stream in a single pipeline.
@@ -155,20 +247,28 @@ fn decrypt_message_with_password(
 ///
 /// Anonymous recipients (`key_id = "0000000000000000"`) are accepted — the
 /// message was encrypted without embedding recipient key IDs (hidden recipients).
-pub fn decrypt_and_verify_stream_internal<R, W>(
+///
+/// `sink` decides how a SEIPD v1 payload is read and how far decompressed
+/// output may grow (see [`Sink`]). Private on purpose: the public entry points
+/// fix the sink, so streaming can only be paired with a stage.
+#[allow(clippy::too_many_arguments)]
+fn decrypt_message_stream<R, W>(
     channel: i32,
     input_stream: R,
-    mut output_stream: W,
+    output_stream: W,
     ascii_armor: bool,
     fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
     user_data: *mut c_void,
+    sink: Sink,
 ) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus>
 where
     R: Read + Send + Sync + fmt::Debug,
     W: Write + Send + Sync,
 {
+    let seipdv1_mode = sink.seipdv1_mode();
+
     // Wrap the source so a user cancel request aborts the streaming read.
     let buf_input = BufReader::new(crate::cancel::CancellableReader::new(channel, input_stream));
 
@@ -200,7 +300,8 @@ where
     let mut decrypted: Message;
     if has_skesk {
         debug!("Message is encrypted with a passphrase. Attempting password-based decryption.");
-        decrypted = decrypt_message_with_password(channel, parsed_message, fetch_pwd_cb)?;
+        decrypted =
+            decrypt_message_with_password(channel, parsed_message, fetch_pwd_cb, seipdv1_mode)?;
     } else {
         // 3. Request Secret Key from C++
         let mut target_skey: Option<SignedSecretKey> = None;
@@ -285,8 +386,15 @@ where
 
         // 5. Initialize streaming decryption
         let pwd_fn = password_from_zeroizing_bytes(password);
+        let ring = TheRing {
+            secret_keys: vec![&skey],
+            key_passwords: vec![&pwd_fn],
+            decrypt_options: DecryptionOptions::new().set_seipdv1_read_mode(seipdv1_mode),
+            ..Default::default()
+        };
         decrypted = parsed_message
-            .decrypt(&pwd_fn, &skey)
+            .decrypt_the_ring(ring, true)
+            .map(|(msg, _)| msg)
             .inspect_err(|_| {
                 if needs_password {
                     log::warn!(
@@ -348,21 +456,40 @@ where
     // compressed payloads are copied unbounded (their size equals the ciphertext,
     // which rPGP already bounds), so legitimate large files are unaffected.
     //
-    // NOTE: the withhold-plaintext-until-integrity guarantee relies on rPGP's
-    // default `Seipdv1ReadMode::CheckFirst` (v4/MDC) and per-chunk AEAD auth (v2);
-    // do not switch `decrypt`/`decrypt_with_password` to a streaming read mode
-    // without re-checking that plaintext is never released before authentication.
-    let copy_result = if was_compressed {
-        let mut limited = LimitedReader::new(&mut decrypted, MAX_DECOMPRESSED_OUTPUT_BYTES);
-        std::io::copy(&mut limited, &mut output_stream)
-    } else {
-        std::io::copy(&mut decrypted, &mut output_stream)
+    // NOTE: with a `Sink::Memory` a v1/MDC payload is authenticated before any
+    // plaintext is released. With a `Sink::Staged` (v1 `Streaming`), and with
+    // SEIPD v2 (per-chunk AEAD) in either sink, plaintext reaches
+    // `output_stream` before the final check, so the caller discards it unless
+    // this function returns `Ok`.
+    //
+    // A failure here is classified by where it came from: a cancel request, the
+    // output (a full disk), a failed MDC/AEAD check, or anything else.
+    let mut output = TrackedWriter {
+        inner: output_stream,
+        failed: false,
     };
-    if copy_result.is_err() && crate::cancel::is_cancelled(channel) {
-        return Err(GfrStatus::ErrorCanceled);
+    let copy_result = if was_compressed {
+        let mut limited = LimitedReader::new(&mut decrypted, sink.decompression_cap());
+        std::io::copy(&mut limited, &mut output)
+    } else {
+        std::io::copy(&mut decrypted, &mut output)
     }
-    copy_result.into_gfr()?;
-    output_stream.flush().into_gfr()?;
+    .and_then(|_| output.flush());
+    if let Err(err) = copy_result {
+        if crate::cancel::is_cancelled(channel) {
+            return Err(GfrStatus::ErrorCanceled);
+        }
+        if output.failed {
+            set_last_error(&format!("cannot write the decrypted output: {err}"));
+            return Err(GfrStatus::ErrorIo);
+        }
+        if is_integrity_failure(&err) {
+            log::error!("Decrypted data failed authentication: {}", err);
+            set_last_error(INTEGRITY_FAILURE_MESSAGE);
+            return Err(GfrStatus::ErrorDataCorrupted);
+        }
+        return Err(err).into_gfr();
+    }
 
     // ==========================================
     // OPTIONAL: VERIFICATION PHASE
@@ -396,11 +523,41 @@ where
     })
 }
 
+/// Wraps the stage a file or archive decryption writes into. Production passes
+/// [`plain_stage_writer`]; tests inject faults (a full disk, a cancel request)
+/// here to exercise the cleanup paths.
+type StageWriter = for<'a> fn(&'a mut File) -> Box<dyn Write + Send + Sync + 'a>;
+
+fn plain_stage_writer(file: &mut File) -> Box<dyn Write + Send + Sync + '_> {
+    Box::new(file)
+}
+
+/// Open the ciphertext and report its length, for [`Sink::Staged`].
+fn open_ciphertext(in_file_path: &str) -> Result<(File, u64), GfrStatus> {
+    let in_file = File::open(in_file_path).map_err(|e| {
+        log::error!("Failed to open encrypted input file: {}", e);
+        set_last_error(&format!("cannot open encrypted input file: {}", e));
+        GfrStatus::ErrorInvalidInput
+    })?;
+    let len = in_file.metadata().map(|m| m.len()).unwrap_or(0);
+    Ok((in_file, len))
+}
+
+fn stage_error(what: &str, e: std::io::Error) -> GfrStatus {
+    log::error!("{}: {}", what, e);
+    set_last_error(&format!("{what}: {e}"));
+    GfrStatus::ErrorIo
+}
+
 /// Decrypt an encrypted archive and unpack its tar contents to a directory.
 ///
-/// Decrypts into an anonymous temporary file (never touches disk as named data)
-/// then unpacks the tar in a second pass. The temp file is dropped automatically
-/// after extraction completes.
+/// Transactional: the payload is decrypted (SEIPD v1 streamed, any size) into
+/// an anonymous temp file in `out_dir_path`'s parent directory, so a multi-GB
+/// archive never lands in a RAM-backed `/tmp`. Only after decryption and
+/// integrity checking succeed is the tar extracted, into a [`StagedDir`] that
+/// replaces or merges into `out_dir_path` once extraction has completed. Any
+/// failure leaves `out_dir_path` exactly as it was (it is not even created).
+#[allow(clippy::too_many_arguments)]
 pub fn decrypt_and_verify_archive_internal(
     channel: i32,
     in_file_path: &str,
@@ -411,65 +568,80 @@ pub fn decrypt_and_verify_archive_internal(
     fetch_pubkey_cb: Option<crate::types::GfrPublicKeyFetchCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<DecryptAndVerifyResultInternal, crate::types::GfrStatus> {
-    let out_dir = Path::new(out_dir_path);
-
-    // 1. Ensure the target extraction directory exists
-    if !out_dir.exists() {
-        std::fs::create_dir_all(out_dir).map_err(|e| {
-            log::error!("Failed to create output directory: {}", e);
-            set_last_error(&e.to_string());
-            crate::types::GfrStatus::ErrorIo
-        })?;
-    }
-
-    // 2. Open the encrypted input file
-    let in_file = File::open(in_file_path).map_err(|e| {
-        log::error!("Failed to open encrypted input file: {}", e);
-        set_last_error(&format!("cannot open encrypted input file: {}", e));
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // 3. Create an anonymous temporary file as a secure buffer for decrypted data
-    let mut temp_archive = tempfile::tempfile().map_err(|e| {
-        log::error!("Failed to create temp file for decryption: {}", e);
-        set_last_error(&format!(
-            "cannot create temporary file for decryption: {}",
-            e
-        ));
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // 4. Perform stream decryption and signature verification
-    log::info!("Decrypting file into temporary archive...");
-    let stream_result = decrypt_and_verify_stream_internal(
+    decrypt_archive_staged(
         channel,
-        in_file,
-        &mut temp_archive,
+        in_file_path,
+        out_dir_path,
         ascii_armor,
         fetch_seckey_cb,
         fetch_pwd_cb,
         fetch_pubkey_cb,
         user_data,
+        plain_stage_writer,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn decrypt_archive_staged(
+    channel: i32,
+    in_file_path: &str,
+    out_dir_path: &str,
+    ascii_armor: bool,
+    fetch_seckey_cb: Option<crate::types::GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<crate::types::GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<crate::types::GfrPublicKeyFetchCb>,
+    user_data: *mut std::ffi::c_void,
+    stage_writer: StageWriter,
+) -> Result<DecryptAndVerifyResultInternal, crate::types::GfrStatus> {
+    let out_dir = Path::new(out_dir_path);
+    let (in_file, ciphertext_len) = open_ciphertext(in_file_path)?;
+
+    // 1. Stage the extraction next to the destination (same filesystem).
+    let stage = super::staging::StagedDir::new(out_dir)
+        .map_err(|e| stage_error("cannot create the extraction staging directory", e))?;
+
+    // 2. Decrypt into an anonymous temp file beside the stage. It has no name,
+    // so it disappears on every exit path, including a crash.
+    let mut temp_archive = tempfile::tempfile_in(stage.work())
+        .map_err(|e| stage_error("cannot create a temporary file for decryption", e))?;
+
+    log::info!("Decrypting file into temporary archive...");
+    let stream_result = decrypt_message_stream(
+        channel,
+        in_file,
+        stage_writer(&mut temp_archive),
+        ascii_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        user_data,
+        // Safe: nothing is extracted unless this returns `Ok`.
+        Sink::Staged { ciphertext_len },
     )?;
 
-    // 5. Move the temporary file cursor back to the beginning, preparing for extraction
+    // 3. Extract the authenticated tar into the stage.
     temp_archive
         .seek(SeekFrom::Start(0))
         .record_err(crate::types::GfrStatus::ErrorIo)?;
-
-    // 6. Perform Tar extraction operation
+    let extract_dir = stage.tree();
     log::info!(
-        "Unpacking tar archive to target directory: {}",
+        "Unpacking tar archive to staging directory for: {}",
         out_dir_path
     );
     let mut archive = tar::Archive::new(temp_archive);
-    archive.unpack(out_dir).map_err(|e| {
+    archive.unpack(&extract_dir).map_err(|e| {
         log::error!("Failed to unpack tar archive: {}", e);
         set_last_error(&format!("decrypted data is not a valid archive: {}", e));
         crate::types::GfrStatus::ErrorInvalidData // Extraction failure may indicate the content is not a valid tar archive
     })?;
+    drop(archive);
 
-    // 7. Assemble the return result (pure file stream operation, so payload data is empty)
+    // 4. Commit the extracted tree.
+    stage
+        .commit()
+        .map_err(|e| stage_error("cannot move the extracted files into place", e))?;
+
+    // 5. Assemble the return result (pure file stream operation, so payload data is empty)
     Ok(DecryptAndVerifyResultInternal {
         data: Vec::new(),
         filename: stream_result.filename,
@@ -479,7 +651,77 @@ pub fn decrypt_and_verify_archive_internal(
     })
 }
 
-/// Decrypt an in-memory buffer, auto-detecting ASCII armor.
+/// Decrypt (and optionally verify) a file into `out_file_path`.
+///
+/// SEIPD v1 payloads are streamed, so files of any size decrypt in bounded
+/// memory (rPGP's default `CheckFirst` mode rejects messages over 1 GiB).
+/// Because streaming releases plaintext before the integrity check, the output
+/// is written to a [`StagedFile`] next to the destination and committed (fsync,
+/// then an atomic rename) only after decryption, integrity checking and every
+/// write have succeeded. On any error, including cancellation, the stage is
+/// deleted and an existing `out_file_path` is left untouched.
+#[allow(clippy::too_many_arguments)]
+pub fn decrypt_and_verify_file_internal(
+    channel: i32,
+    in_file_path: &str,
+    out_file_path: &str,
+    ascii_armor: bool,
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut c_void,
+) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus> {
+    decrypt_file_staged(
+        channel,
+        in_file_path,
+        out_file_path,
+        ascii_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        user_data,
+        plain_stage_writer,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn decrypt_file_staged(
+    channel: i32,
+    in_file_path: &str,
+    out_file_path: &str,
+    ascii_armor: bool,
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut c_void,
+    stage_writer: StageWriter,
+) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus> {
+    let (in_file, ciphertext_len) = open_ciphertext(in_file_path)?;
+    let mut stage = super::staging::StagedFile::new(Path::new(out_file_path))
+        .map_err(|e| stage_error("cannot create the output file", e))?;
+
+    let stream_result = decrypt_message_stream(
+        channel,
+        in_file,
+        stage_writer(stage.file_mut()),
+        ascii_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        user_data,
+        // Safe: `stage` is deleted unless this returns `Ok`.
+        Sink::Staged { ciphertext_len },
+    )?;
+
+    stage
+        .commit()
+        .map_err(|e| stage_error("cannot move the decrypted output into place", e))?;
+
+    Ok(stream_result)
+}
+
+/// Decrypt an in-memory buffer, auto-detecting ASCII armor. SEIPD v1 is
+/// authenticated before release (`CheckFirst`, up to [`IN_MEMORY_SEIPDV1_LIMIT`]).
 ///
 /// Checks for the `-----BEGIN PGP MESSAGE-----` header to decide the format;
 /// no `ascii_armor` parameter is needed on this variant.
@@ -502,7 +744,7 @@ pub fn decrypt_internal(
     let input_cursor = Cursor::new(encrypted_data);
 
     // Delegate all the heavy lifting to the stream implementation
-    let stream_result = decrypt_and_verify_stream_internal(
+    let stream_result = decrypt_message_stream(
         channel,
         input_cursor,
         &mut output_data, // Passes as Write stream
@@ -511,6 +753,7 @@ pub fn decrypt_internal(
         fetch_pwd_cb,
         None, // fetch_pubkey_cb is not needed for decryption-only
         user_data,
+        MEMORY_SINK,
     )?;
 
     Ok(DecryptResultInternal {
@@ -537,7 +780,7 @@ pub fn decrypt_and_verify_internal(
 
     let input_cursor = Cursor::new(encrypted_data);
 
-    let stream_result = decrypt_and_verify_stream_internal(
+    let stream_result = decrypt_message_stream(
         channel,
         input_cursor,
         &mut output_data,
@@ -546,6 +789,7 @@ pub fn decrypt_and_verify_internal(
         fetch_pwd_cb,
         fetch_pubkey_cb,
         user_data,
+        MEMORY_SINK,
     )?;
 
     Ok(DecryptAndVerifyResultInternal {
@@ -1067,6 +1311,175 @@ mod decrypt_tests {
         assert_eq!(res.data, payload);
     }
 
+    // -- SEIPD v1 read mode and the file paths -----------------------------------
+
+    /// A binary v1 SEIPD message (v4 recipient) carrying `len` bytes.
+    fn v1_message(len: usize) -> (Vec<u8>, Vec<u8>) {
+        let payload: Vec<u8> = (0..=255u8).cycle().take(len).collect();
+        let out = crate::crypto::encrypt_internal(
+            0,
+            "",
+            &payload,
+            &[&keys::V4_SIGN.public_armored],
+            false,
+        )
+        .expect("encrypt");
+        (payload, out.data)
+    }
+
+    fn stream_decrypt(data: &[u8], sink: Sink) -> Result<Vec<u8>, GfrStatus> {
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        let mut out = Vec::new();
+        decrypt_message_stream(
+            0,
+            Cursor::new(data),
+            &mut out,
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            None,
+            std::ptr::null_mut(),
+            sink,
+        )
+        .map(|_| out)
+    }
+
+    const STAGED: Sink = Sink::Staged { ciphertext_len: 0 };
+
+    /// Flip a byte inside the trailing MDC packet of a binary v1 message.
+    fn tamper_mdc(data: &mut [u8]) {
+        let last = data.len() - 8;
+        data[last] ^= 0xFF;
+    }
+
+    #[test]
+    fn check_first_mode_refuses_a_v1_message_over_its_cap() {
+        // Pins the upstream trigger of the "Input stream too long for
+        // ProtectedCheckFirst mode" report: rPGP buffers a v1 payload in full
+        // and rejects it past `max_message_size` (1 GiB by default).
+        let (_, data) = v1_message(64 * 1024);
+        let sink = Sink::Memory {
+            seipdv1_limit: 1024,
+        };
+        assert!(stream_decrypt(&data, sink).is_err());
+    }
+
+    #[test]
+    fn streaming_mode_decrypts_a_v1_message_over_the_check_first_cap() {
+        let (payload, data) = v1_message(64 * 1024);
+        assert_eq!(stream_decrypt(&data, STAGED).expect("decrypt"), payload);
+    }
+
+    #[test]
+    fn streaming_mode_still_detects_a_tampered_mdc() {
+        let (_, mut data) = v1_message(64 * 1024);
+        tamper_mdc(&mut data);
+        assert!(stream_decrypt(&data, STAGED).is_err());
+    }
+
+    fn decrypt_file(in_path: &Path, out_path: &Path) -> Result<(), GfrStatus> {
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        decrypt_and_verify_file_internal(
+            0,
+            in_path.to_str().unwrap(),
+            out_path.to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            None,
+            std::ptr::null_mut(),
+        )
+        .map(|_| ())
+    }
+
+    fn dir_entries(dir: &Path) -> Vec<std::path::PathBuf> {
+        let mut entries: Vec<_> = std::fs::read_dir(dir)
+            .expect("read_dir")
+            .map(|e| e.expect("entry").path())
+            .collect();
+        entries.sort();
+        entries
+    }
+
+    #[test]
+    fn a_v1_file_decrypts_to_the_output_path() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let (payload, data) = v1_message(64 * 1024);
+        let in_path = dir.path().join("in.gpg");
+        let out_path = dir.path().join("out.bin");
+        std::fs::write(&in_path, &data).expect("write");
+
+        decrypt_file(&in_path, &out_path).expect("decrypt");
+        assert_eq!(std::fs::read(&out_path).expect("read"), payload);
+        assert_eq!(dir_entries(dir.path()), vec![in_path, out_path]);
+    }
+
+    #[test]
+    fn a_tampered_v1_file_leaves_no_output_behind() {
+        // Streaming releases plaintext before the MDC is checked, so the file
+        // path must stage it and never leave it under the output name.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let (_, mut data) = v1_message(64 * 1024);
+        tamper_mdc(&mut data);
+        let in_path = dir.path().join("in.gpg");
+        let out_path = dir.path().join("out.bin");
+        std::fs::write(&in_path, &data).expect("write");
+
+        assert!(decrypt_file(&in_path, &out_path).is_err());
+        assert!(!out_path.exists(), "no plaintext may reach the output path");
+        assert_eq!(
+            dir_entries(dir.path()),
+            vec![in_path],
+            "the staging file must be removed"
+        );
+    }
+
+    #[test]
+    fn a_failed_file_decrypt_keeps_an_existing_output_file() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let (_, mut data) = v1_message(1024);
+        tamper_mdc(&mut data);
+        let in_path = dir.path().join("in.gpg");
+        let out_path = dir.path().join("out.bin");
+        std::fs::write(&in_path, &data).expect("write");
+        std::fs::write(&out_path, b"previous").expect("write");
+
+        assert!(decrypt_file(&in_path, &out_path).is_err());
+        assert_eq!(std::fs::read(&out_path).expect("read"), b"previous");
+    }
+
+    #[test]
+    fn a_tampered_v1_archive_extracts_nothing() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let (_, mut data) = v1_message(64 * 1024);
+        tamper_mdc(&mut data);
+        let in_path = dir.path().join("in.gpg");
+        let out_dir = dir.path().join("out");
+        std::fs::write(&in_path, &data).expect("write");
+
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        let res = decrypt_and_verify_archive_internal(
+            0,
+            in_path.to_str().unwrap(),
+            out_dir.to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            None,
+            std::ptr::null_mut(),
+        );
+        assert!(res.is_err());
+        assert!(
+            !out_dir.exists(),
+            "a failed archive decrypt creates nothing"
+        );
+        assert_eq!(
+            dir_entries(dir.path()),
+            vec![in_path],
+            "the stage is removed"
+        );
+    }
+
     #[test]
     fn the_filename_hint_is_not_written_into_the_literal_packet() {
         // KNOWN GAP (upstream): `MessageBuilder::from_reader(file_name, ..)` in
@@ -1197,5 +1610,1200 @@ mod decrypt_tests {
 
         assert_eq!(res.data, b"payload");
         assert!(!res.is_verified);
+    }
+}
+
+#[cfg(test)]
+mod seipd_file_tests {
+    //! SEIPD v1 / v2 file and archive decryption: the bounded-memory streaming
+    //! path, its integrity guarantee (no unauthenticated plaintext is ever
+    //! committed), and its interop with other implementations.
+    //!
+    //! Everything here is fast. Real files over the former 1 GiB `CheckFirst`
+    //! limit live in `large_file_tests` (the dedicated large-file tier).
+
+    use super::*;
+    use crate::testutil::{cb, corpus, interop, keys, seipd};
+
+    const SEED: u64 = 0x5E1D_0001;
+    const PAYLOAD: usize = 256 * 1024;
+
+    // -- helpers ---------------------------------------------------------------
+
+    fn names(dir: &Path) -> Vec<String> {
+        let mut names: Vec<String> = std::fs::read_dir(dir)
+            .expect("read_dir")
+            .map(|e| e.expect("entry").file_name().to_string_lossy().into_owned())
+            .collect();
+        names.sort();
+        names
+    }
+
+    /// Decrypt `data` through the file path into `dir/out.bin`, as `key`,
+    /// verifying against `signer_cert` when given.
+    fn decrypt_file_as(
+        dir: &Path,
+        data: &[u8],
+        key: &str,
+        signer_cert: Option<&str>,
+        stage_writer: StageWriter,
+    ) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus> {
+        let in_path = dir.join("in.pgp");
+        std::fs::write(&in_path, data).unwrap();
+        cb::set_seckey_answer(key);
+        if let Some(cert) = signer_cert {
+            cb::set_pubkey_answer(cert);
+        }
+        decrypt_file_staged(
+            0,
+            in_path.to_str().unwrap(),
+            dir.join("out.bin").to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            Some(cb::pwd_corpus),
+            Some(if signer_cert.is_some() {
+                cb::pubkey_fetch
+            } else {
+                cb::pubkey_none
+            }),
+            std::ptr::null_mut(),
+            stage_writer,
+        )
+    }
+
+    /// Assert a failed file decryption committed nothing: only the input is
+    /// left (no output, no stage), or `out.bin` still holds `previous`.
+    fn assert_nothing_committed(dir: &Path, previous: Option<&[u8]>) {
+        match previous {
+            None => assert_eq!(
+                names(dir),
+                vec!["in.pgp"],
+                "no output and no stage may remain"
+            ),
+            Some(bytes) => {
+                assert_eq!(names(dir), vec!["in.pgp", "out.bin"], "no stage may remain");
+                assert_eq!(std::fs::read(dir.join("out.bin")).unwrap(), bytes);
+            }
+        }
+    }
+
+    fn memory_decrypt(data: &[u8], key: &str, limit: usize) -> Result<Vec<u8>, GfrStatus> {
+        cb::set_seckey_answer(key);
+        let mut out = Vec::new();
+        decrypt_message_stream(
+            0,
+            Cursor::new(data),
+            &mut out,
+            false,
+            Some(cb::seckey_fetch),
+            Some(cb::pwd_corpus),
+            None,
+            std::ptr::null_mut(),
+            Sink::Memory {
+                seipdv1_limit: limit,
+            },
+        )
+        .map(|_| out)
+    }
+
+    fn v1(len: usize) -> (Vec<u8>, Vec<u8>) {
+        let payload = seipd::bytes(len, SEED);
+        let data = seipd::message(&keys::V4_SIGN.public_armored, &payload, None);
+        assert_eq!(
+            crate::inspect::inspect(&data).blocks[0]
+                .packets
+                .last()
+                .unwrap()
+                .version,
+            Some(1)
+        );
+        (payload, data)
+    }
+
+    /// The smallest `CheckFirst` limit that accepts `data`.
+    fn check_first_threshold(data: &[u8]) -> usize {
+        let key = &keys::V4_SIGN.secret_armored;
+        let (mut lo, mut hi) = (1usize, data.len() * 2);
+        assert!(memory_decrypt(data, key, hi).is_ok());
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if memory_decrypt(data, key, mid).is_ok() {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+        lo
+    }
+
+    // -- the read mode is fixed by the sink --------------------------------------
+
+    #[test]
+    fn only_the_staged_sink_streams_seipd_v1() {
+        assert_eq!(
+            MEMORY_SINK.seipdv1_mode(),
+            Seipdv1ReadMode::CheckFirst {
+                max_message_size: IN_MEMORY_SEIPDV1_LIMIT
+            }
+        );
+        assert_eq!(IN_MEMORY_SEIPDV1_LIMIT, 1 << 30);
+        assert_eq!(
+            Sink::Staged { ciphertext_len: 0 }.seipdv1_mode(),
+            Seipdv1ReadMode::Streaming
+        );
+    }
+
+    #[test]
+    fn the_staged_decompression_cap_scales_with_the_ciphertext() {
+        assert_eq!(
+            MEMORY_SINK.decompression_cap(),
+            MAX_DECOMPRESSED_OUTPUT_BYTES
+        );
+        // A 4.25 GiB GnuPG file must not hit the in-memory 4 GiB cap.
+        let big = 4 * (1u64 << 30) + (1 << 28);
+        assert!(
+            Sink::Staged {
+                ciphertext_len: big
+            }
+            .decompression_cap()
+                >= big
+        );
+        // A tiny bomb is still stopped.
+        assert_eq!(
+            Sink::Staged {
+                ciphertext_len: 1024
+            }
+            .decompression_cap(),
+            MAX_DECOMPRESSED_OUTPUT_BYTES
+        );
+    }
+
+    #[test]
+    fn check_first_accepts_exactly_up_to_its_limit_and_the_file_path_ignores_it() {
+        // Below, at and above a reduced CheckFirst limit, with the exact
+        // threshold measured rather than guessed. The file path decrypts all
+        // three, because it never uses CheckFirst.
+        let (_, probe) = v1(16 * 1024);
+        let overhead = check_first_threshold(&probe) - 16 * 1024;
+        let limit = 64 * 1024;
+        let at = limit - overhead;
+        let key = &keys::V4_SIGN.secret_armored;
+
+        for (len, memory_ok) in [(at / 2, true), (at, true), (at + 1, false), (at * 4, false)] {
+            let (payload, data) = v1(len);
+            if len == at {
+                assert_eq!(
+                    check_first_threshold(&data),
+                    limit,
+                    "payload {len} sits exactly at the limit"
+                );
+            }
+            assert_eq!(
+                memory_decrypt(&data, key, limit).is_ok(),
+                memory_ok,
+                "CheckFirst({limit}) on a {len}-byte payload"
+            );
+
+            let dir = tempfile::tempdir().unwrap();
+            decrypt_file_as(dir.path(), &data, key, None, plain_stage_writer)
+                .unwrap_or_else(|e| panic!("file path on a {len}-byte payload: {e:?}"));
+            assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+        }
+    }
+
+    #[test]
+    fn an_armored_file_decrypts_through_the_binary_file_path() {
+        // The C++ layer always passes ascii=false; rPGP sniffs the armor.
+        let payload = seipd::bytes(PAYLOAD, SEED);
+        let armored = crate::crypto::encrypt_internal(
+            0,
+            "",
+            &payload,
+            &[&keys::V4_SIGN.public_armored],
+            true,
+        )
+        .expect("encrypt")
+        .data;
+        let dir = tempfile::tempdir().unwrap();
+        decrypt_file_as(
+            dir.path(),
+            &armored,
+            &keys::V4_SIGN.secret_armored,
+            None,
+            plain_stage_writer,
+        )
+        .expect("decrypt");
+        assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+    }
+
+    // -- integrity: corruption never yields committed output -----------------------
+
+    #[test]
+    fn every_byte_of_the_final_mdc_is_checked() {
+        // The 22 trailing ciphertext bytes encrypt the MDC packet (tag, length,
+        // SHA-1). Flipping any of them must fail as corrupted data, with
+        // nothing committed, through both the file and the memory path.
+        let (_, data) = v1(PAYLOAD);
+        let key = &keys::V4_SIGN.secret_armored;
+        for back in 1..=22isize {
+            let tampered = seipd::flipped(&data, -back);
+            let dir = tempfile::tempdir().unwrap();
+            assert_eq!(
+                decrypt_file_as(dir.path(), &tampered, key, None, plain_stage_writer).err(),
+                Some(GfrStatus::ErrorDataCorrupted),
+                "byte -{back}"
+            );
+            assert_nothing_committed(dir.path(), None);
+            assert_eq!(
+                memory_decrypt(&tampered, key, IN_MEMORY_SEIPDV1_LIMIT).err(),
+                Some(GfrStatus::ErrorDataCorrupted),
+                "memory path, byte -{back}"
+            );
+        }
+        assert!(crate::err::last_error().contains("integrity check failed"));
+    }
+
+    #[test]
+    fn tampering_anywhere_in_the_payload_commits_nothing() {
+        let (_, data) = v1(PAYLOAD);
+        let key = &keys::V4_SIGN.secret_armored;
+        let len = data.len() as isize;
+        for at in [-(len / 2), -(len / 3), -1024, -23] {
+            let dir = tempfile::tempdir().unwrap();
+            assert!(
+                decrypt_file_as(
+                    dir.path(),
+                    &seipd::flipped(&data, at),
+                    key,
+                    None,
+                    plain_stage_writer
+                )
+                .is_err(),
+                "tamper at {at}"
+            );
+            assert_nothing_committed(dir.path(), None);
+        }
+    }
+
+    #[test]
+    fn truncated_ciphertext_commits_nothing() {
+        let (_, data) = v1(PAYLOAD);
+        let key = &keys::V4_SIGN.secret_armored;
+        for cut in [1usize, 21, 22, 23, 4096, data.len() / 2, data.len() - 200] {
+            let dir = tempfile::tempdir().unwrap();
+            let short = &data[..data.len() - cut];
+            assert!(
+                decrypt_file_as(dir.path(), short, key, None, plain_stage_writer).is_err(),
+                "truncated by {cut}"
+            );
+            assert_nothing_committed(dir.path(), None);
+        }
+    }
+
+    #[test]
+    fn malformed_ciphertext_commits_nothing() {
+        let key = &keys::V4_SIGN.secret_armored;
+        for data in [
+            &b""[..],
+            b"garbage",
+            corpus::GARBAGE,
+            corpus::PKESK_NO_SEIPD,
+        ] {
+            let dir = tempfile::tempdir().unwrap();
+            assert!(decrypt_file_as(dir.path(), data, key, None, plain_stage_writer).is_err());
+            assert_nothing_committed(dir.path(), None);
+        }
+    }
+
+    #[test]
+    fn a_failed_decryption_preserves_an_existing_output_file() {
+        let (_, data) = v1(PAYLOAD);
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("out.bin"), b"previous").unwrap();
+        assert!(
+            decrypt_file_as(
+                dir.path(),
+                &seipd::flipped(&data, -1),
+                &keys::V4_SIGN.secret_armored,
+                None,
+                plain_stage_writer
+            )
+            .is_err()
+        );
+        assert_nothing_committed(dir.path(), Some(b"previous"));
+    }
+
+    #[test]
+    fn a_successful_decryption_replaces_an_existing_output_file() {
+        let (payload, data) = v1(PAYLOAD);
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("out.bin"), b"previous").unwrap();
+        decrypt_file_as(
+            dir.path(),
+            &data,
+            &keys::V4_SIGN.secret_armored,
+            None,
+            plain_stage_writer,
+        )
+        .expect("decrypt");
+        assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+        assert_eq!(names(dir.path()), vec!["in.pgp", "out.bin"]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn output_permissions_are_private_for_new_files_and_kept_for_replaced_ones() {
+        use std::os::unix::fs::PermissionsExt;
+        let (_, data) = v1(1024);
+        let key = &keys::V4_SIGN.secret_armored;
+        let dir = tempfile::tempdir().unwrap();
+        let out = dir.path().join("out.bin");
+        decrypt_file_as(dir.path(), &data, key, None, plain_stage_writer).expect("decrypt");
+        assert_eq!(
+            std::fs::metadata(&out).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        std::fs::set_permissions(&out, std::fs::Permissions::from_mode(0o644)).unwrap();
+        decrypt_file_as(dir.path(), &data, key, None, plain_stage_writer).expect("decrypt");
+        assert_eq!(
+            std::fs::metadata(&out).unwrap().permissions().mode() & 0o777,
+            0o644
+        );
+    }
+
+    // -- fault injection -------------------------------------------------------------
+
+    /// A stage that runs out of space after 64 KiB.
+    struct FullDisk<'a> {
+        file: &'a mut File,
+        left: usize,
+    }
+
+    impl Write for FullDisk<'_> {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            if self.left == 0 {
+                return Err(std::io::Error::from(std::io::ErrorKind::StorageFull));
+            }
+            let n = buf.len().min(self.left);
+            self.left -= n;
+            self.file.write(&buf[..n])
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            self.file.flush()
+        }
+    }
+
+    fn full_disk_writer(file: &mut File) -> Box<dyn Write + Send + Sync + '_> {
+        Box::new(FullDisk {
+            file,
+            left: 64 * 1024,
+        })
+    }
+
+    const CANCEL_CHANNEL: i32 = 0x5E1D;
+
+    /// A stage that requests cancellation of [`CANCEL_CHANNEL`] after its
+    /// first write, i.e. in the middle of the stream.
+    struct CancelAfterFirstWrite<'a>(&'a mut File);
+
+    impl Write for CancelAfterFirstWrite<'_> {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            let n = self.0.write(buf)?;
+            crate::cancel::set_cancelled(CANCEL_CHANNEL, true);
+            Ok(n)
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            self.0.flush()
+        }
+    }
+
+    fn cancelling_writer(file: &mut File) -> Box<dyn Write + Send + Sync + '_> {
+        Box::new(CancelAfterFirstWrite(file))
+    }
+
+    #[test]
+    fn a_full_disk_is_an_output_error_and_commits_nothing() {
+        let (_, data) = v1(PAYLOAD);
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("out.bin"), b"previous").unwrap();
+        assert_eq!(
+            decrypt_file_as(
+                dir.path(),
+                &data,
+                &keys::V4_SIGN.secret_armored,
+                None,
+                full_disk_writer
+            )
+            .err(),
+            Some(GfrStatus::ErrorIo)
+        );
+        assert!(crate::err::last_error().contains("cannot write the decrypted output"));
+        assert_nothing_committed(dir.path(), Some(b"previous"));
+    }
+
+    #[test]
+    fn cancelling_mid_stream_commits_nothing() {
+        let (_, data) = v1(PAYLOAD);
+        let dir = tempfile::tempdir().unwrap();
+        let in_path = dir.path().join("in.pgp");
+        std::fs::write(&in_path, &data).unwrap();
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        crate::cancel::set_cancelled(CANCEL_CHANNEL, false);
+        let res = decrypt_file_staged(
+            CANCEL_CHANNEL,
+            in_path.to_str().unwrap(),
+            dir.path().join("out.bin").to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            None,
+            std::ptr::null_mut(),
+            cancelling_writer,
+        );
+        crate::cancel::set_cancelled(CANCEL_CHANNEL, false);
+        assert_eq!(res.err(), Some(GfrStatus::ErrorCanceled));
+        assert_nothing_committed(dir.path(), None);
+    }
+
+    #[test]
+    fn a_failed_commit_keeps_the_destination_and_removes_the_stage() {
+        // The destination is a directory, which a file cannot replace.
+        let (_, data) = v1(PAYLOAD);
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir(dir.path().join("out.bin")).unwrap();
+        assert_eq!(
+            decrypt_file_as(
+                dir.path(),
+                &data,
+                &keys::V4_SIGN.secret_armored,
+                None,
+                plain_stage_writer
+            )
+            .err(),
+            Some(GfrStatus::ErrorIo)
+        );
+        assert_eq!(names(dir.path()), vec!["in.pgp", "out.bin"]);
+        assert!(dir.path().join("out.bin").is_dir());
+    }
+
+    #[test]
+    fn a_missing_output_directory_or_input_creates_nothing() {
+        let (_, data) = v1(1024);
+        let dir = tempfile::tempdir().unwrap();
+        let in_path = dir.path().join("in.pgp");
+        std::fs::write(&in_path, &data).unwrap();
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        let run = |input: &Path, output: &Path| {
+            decrypt_and_verify_file_internal(
+                0,
+                input.to_str().unwrap(),
+                output.to_str().unwrap(),
+                false,
+                Some(cb::seckey_fetch),
+                None,
+                None,
+                std::ptr::null_mut(),
+            )
+            .err()
+        };
+        assert_eq!(
+            run(&in_path, &dir.path().join("missing/out.bin")),
+            Some(GfrStatus::ErrorIo)
+        );
+        assert_eq!(
+            run(&dir.path().join("absent.pgp"), &dir.path().join("out.bin")),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+        assert_eq!(names(dir.path()), vec!["in.pgp"]);
+    }
+
+    // -- signatures are reported separately from integrity -----------------------------
+
+    #[test]
+    fn a_signed_message_reports_mdc_and_signature_results_separately() {
+        let payload = seipd::bytes(PAYLOAD, SEED);
+        let key = &*keys::V4_SIGN;
+        let data = seipd::message(&key.public_armored, &payload, Some(key));
+
+        // Authentic, signer known: plaintext committed and verified.
+        let dir = tempfile::tempdir().unwrap();
+        let res = decrypt_file_as(
+            dir.path(),
+            &data,
+            &key.secret_armored,
+            Some(&key.public_armored),
+            plain_stage_writer,
+        )
+        .expect("decrypt");
+        assert!(res.is_verified);
+        assert!(
+            res.signatures
+                .iter()
+                .all(|s| s.status == GfrSignatureStatus::Valid)
+        );
+        assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+
+        // Authentic, signer unknown: integrity holds, so the plaintext is
+        // committed, but the signature is not reported valid.
+        let dir = tempfile::tempdir().unwrap();
+        let res = decrypt_file_as(
+            dir.path(),
+            &data,
+            &key.secret_armored,
+            None,
+            plain_stage_writer,
+        )
+        .expect("an unverifiable signature does not make the data unauthentic");
+        assert!(!res.is_verified);
+        assert!(!res.signatures.is_empty());
+        assert!(
+            res.signatures
+                .iter()
+                .all(|s| s.status != GfrSignatureStatus::Valid)
+        );
+        assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+
+        // MDC broken: an integrity failure, never a signature result.
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(
+            decrypt_file_as(
+                dir.path(),
+                &seipd::flipped(&data, -1),
+                &key.secret_armored,
+                Some(&key.public_armored),
+                plain_stage_writer
+            )
+            .err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        assert_nothing_committed(dir.path(), None);
+    }
+
+    // -- formats: legacy rPGP output, post-quantum keys, SEIPD v2 ------------------------
+
+    #[test]
+    fn legacy_rpgp_v1_output_to_v4_v6_and_pq_keys_still_decrypts() {
+        // What GpgFrontend wrote before format selection existed, including
+        // the original report's post-quantum (ML-KEM) key.
+        let payload = seipd::bytes(PAYLOAD, SEED);
+        for key in [&*keys::V4_SIGN, &*keys::V6_SIGN, &*keys::V6_PQ] {
+            let data = seipd::legacy_v1_message(key, Cursor::new(payload.clone()));
+            let dir = tempfile::tempdir().unwrap();
+            decrypt_file_as(
+                dir.path(),
+                &data,
+                &key.secret_armored,
+                None,
+                plain_stage_writer,
+            )
+            .expect("legacy v1 file");
+            assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+
+            let dir = tempfile::tempdir().unwrap();
+            assert_eq!(
+                decrypt_file_as(
+                    dir.path(),
+                    &seipd::flipped(&data, -1),
+                    &key.secret_armored,
+                    None,
+                    plain_stage_writer
+                )
+                .err(),
+                Some(GfrStatus::ErrorDataCorrupted)
+            );
+            assert_nothing_committed(dir.path(), None);
+        }
+    }
+
+    #[test]
+    fn seipd_v2_files_get_the_same_transactional_guarantee() {
+        let payload = seipd::bytes(PAYLOAD, SEED);
+        for key in [&*keys::V6_SIGN, &*keys::V6_PQ] {
+            let data = seipd::message(&key.public_armored, &payload, None);
+            assert_eq!(
+                crate::inspect::inspect(&data).blocks[0]
+                    .packets
+                    .last()
+                    .unwrap()
+                    .version,
+                Some(2)
+            );
+            let dir = tempfile::tempdir().unwrap();
+            decrypt_file_as(
+                dir.path(),
+                &data,
+                &key.secret_armored,
+                None,
+                plain_stage_writer,
+            )
+            .expect("v2");
+            assert_eq!(std::fs::read(dir.path().join("out.bin")).unwrap(), payload);
+
+            for back in [1isize, 16, 17, 4096] {
+                let dir = tempfile::tempdir().unwrap();
+                assert!(
+                    decrypt_file_as(
+                        dir.path(),
+                        &seipd::flipped(&data, -back),
+                        &key.secret_armored,
+                        None,
+                        plain_stage_writer
+                    )
+                    .is_err(),
+                    "v2 tamper at -{back}"
+                );
+                assert_nothing_committed(dir.path(), None);
+            }
+        }
+    }
+
+    // -- archives ------------------------------------------------------------------------
+
+    fn sample_tree(root: &Path) {
+        std::fs::create_dir_all(root.join("sub")).unwrap();
+        std::fs::write(root.join("a.bin"), seipd::bytes(PAYLOAD, SEED)).unwrap();
+        std::fs::write(root.join("sub/b.txt"), b"nested").unwrap();
+    }
+
+    fn encrypt_tree(src: &Path, out: &Path, key: &keys::Fixture) {
+        crate::crypto::encrypt_directory_internal(
+            0,
+            src.to_str().unwrap(),
+            out.to_str().unwrap(),
+            &[&key.public_armored],
+            false,
+        )
+        .expect("encrypt directory");
+    }
+
+    fn decrypt_archive(
+        input: &Path,
+        out_dir: &Path,
+        key: &str,
+        writer: StageWriter,
+    ) -> Result<(), GfrStatus> {
+        cb::set_seckey_answer(key);
+        decrypt_archive_staged(
+            0,
+            input.to_str().unwrap(),
+            out_dir.to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            None,
+            std::ptr::null_mut(),
+            writer,
+        )
+        .map(|_| ())
+    }
+
+    #[test]
+    fn an_archive_round_trips_into_a_new_and_an_existing_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("src");
+        sample_tree(&src);
+        let enc = dir.path().join("tree.tar.gpg");
+        encrypt_tree(&src, &enc, &keys::V4_SIGN);
+        let key = &keys::V4_SIGN.secret_armored;
+
+        let fresh = dir.path().join("fresh");
+        decrypt_archive(&enc, &fresh, key, plain_stage_writer).expect("decrypt");
+        // The archive holds the directory's contents at its top level.
+        assert_eq!(names(&fresh), vec!["a.bin", "sub"]);
+        assert_eq!(std::fs::read(fresh.join("sub/b.txt")).unwrap(), b"nested");
+        assert_eq!(
+            std::fs::read(fresh.join("a.bin")).unwrap(),
+            seipd::bytes(PAYLOAD, SEED)
+        );
+
+        let existing = dir.path().join("existing");
+        std::fs::create_dir(&existing).unwrap();
+        std::fs::write(existing.join("keep.txt"), b"keep").unwrap();
+        decrypt_archive(&enc, &existing, key, plain_stage_writer).expect("decrypt");
+        assert_eq!(std::fs::read(existing.join("keep.txt")).unwrap(), b"keep");
+        assert_eq!(
+            names(&existing),
+            vec!["a.bin", "keep.txt", "sub"],
+            "merged into"
+        );
+        assert!(
+            names(dir.path()).iter().all(|n| !n.starts_with(".gf-")),
+            "no stage may remain"
+        );
+    }
+
+    #[test]
+    fn a_failed_archive_decryption_leaves_the_destination_untouched() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("src");
+        sample_tree(&src);
+        let enc = dir.path().join("tree.tar.gpg");
+        encrypt_tree(&src, &enc, &keys::V4_SIGN);
+        let key = &keys::V4_SIGN.secret_armored;
+        let good = std::fs::read(&enc).unwrap();
+
+        let existing = dir.path().join("existing");
+        std::fs::create_dir(&existing).unwrap();
+        std::fs::write(existing.join("keep.txt"), b"keep").unwrap();
+        let tampered = dir.path().join("tampered.tar.gpg");
+        std::fs::write(&tampered, seipd::flipped(&good, -1)).unwrap();
+        let not_tar = dir.path().join("not-a-tar.gpg");
+        std::fs::write(
+            &not_tar,
+            seipd::message(&keys::V4_SIGN.public_armored, &[0xAB; 4096], None),
+        )
+        .unwrap();
+
+        let cases: [(&Path, StageWriter, GfrStatus); 3] = [
+            (&tampered, plain_stage_writer, GfrStatus::ErrorDataCorrupted),
+            (&enc, full_disk_writer, GfrStatus::ErrorIo),
+            (&not_tar, plain_stage_writer, GfrStatus::ErrorInvalidData),
+        ];
+        for (input, writer, want) in cases {
+            let fresh = dir.path().join("fresh");
+            assert_eq!(
+                decrypt_archive(input, &fresh, key, writer).err(),
+                Some(want),
+                "{input:?}"
+            );
+            assert!(
+                !fresh.exists(),
+                "a failed archive decryption creates nothing"
+            );
+            assert_eq!(
+                decrypt_archive(input, &existing, key, writer).err(),
+                Some(want)
+            );
+            assert_eq!(names(&existing), vec!["keep.txt"]);
+        }
+        assert!(
+            names(dir.path()).iter().all(|n| !n.starts_with(".gf-")),
+            "no stage may remain"
+        );
+    }
+
+    // -- interop matrix ------------------------------------------------------------------
+
+    /// SEIPD v1 messages from GnuPG, every compression it offers, signed and
+    /// not: each decrypts and verifies, and each fails as corrupted with
+    /// nothing committed when its MDC is broken. GnuPG compresses by default,
+    /// which exercises the MDC check after a decompressor reached its end.
+    #[test]
+    fn gnupg_seipd_v1_matrix() {
+        let Some(gnupg) = interop::Gnupg::new() else {
+            return;
+        };
+        // GnuPG 2.4 implements neither RFC 9580's native Ed25519/X25519
+        // (algorithms 27/25) nor v6 keys, so it encrypts to a P-256 v4 key.
+        let key = &*keys::V4_NISTP256;
+        gnupg.import(&key.public_armored);
+        let payload = seipd::bytes(PAYLOAD, SEED);
+
+        for compress in ["zlib", "zip", "bzip2", "none"] {
+            for sign in [false, true] {
+                let case = format!("gpg compress={compress} sign={sign}");
+                let data = gnupg.encrypt(&key.primary_fpr, &payload, compress, sign);
+                let nodes = crate::inspect::inspect(&data).blocks[0].packets.clone();
+                let seipd = nodes
+                    .iter()
+                    .find(|n| n.tag == 18)
+                    .unwrap_or_else(|| panic!("{case}: no SEIPD"));
+                assert_eq!(seipd.version, Some(1), "{case}");
+
+                let dir = tempfile::tempdir().unwrap();
+                let cert = sign.then_some(gnupg.cert.as_str());
+                let res = decrypt_file_as(
+                    dir.path(),
+                    &data,
+                    &key.secret_armored,
+                    cert,
+                    plain_stage_writer,
+                )
+                .unwrap_or_else(|e| panic!("{case}: {e:?}"));
+                assert_eq!(
+                    std::fs::read(dir.path().join("out.bin")).unwrap(),
+                    payload,
+                    "{case}"
+                );
+                assert_eq!(res.is_verified, sign, "{case}");
+                assert_eq!(
+                    memory_decrypt(&data, &key.secret_armored, IN_MEMORY_SEIPDV1_LIMIT)
+                        .expect("memory"),
+                    payload,
+                    "{case}"
+                );
+
+                for back in [1isize, 10, 22] {
+                    let dir = tempfile::tempdir().unwrap();
+                    assert_eq!(
+                        decrypt_file_as(
+                            dir.path(),
+                            &seipd::flipped(&data, -back),
+                            &key.secret_armored,
+                            cert,
+                            plain_stage_writer
+                        )
+                        .err(),
+                        Some(GfrStatus::ErrorDataCorrupted),
+                        "{case}, MDC byte -{back}"
+                    );
+                    assert_nothing_committed(dir.path(), None);
+                }
+                let dir = tempfile::tempdir().unwrap();
+                assert!(
+                    decrypt_file_as(
+                        dir.path(),
+                        &seipd::flipped(&data, -(data.len() as isize / 2)),
+                        &key.secret_armored,
+                        cert,
+                        plain_stage_writer
+                    )
+                    .is_err(),
+                    "{case}, mid-stream tamper"
+                );
+                assert_nothing_committed(dir.path(), None);
+            }
+        }
+
+        // And the reverse direction: GnuPG reads the v1 output we send its key,
+        // plain and signed.
+        for signer in [None, Some(&*keys::V4_NISTP256)] {
+            let ours = seipd::message(&gnupg.cert, &payload, signer);
+            assert_eq!(
+                gnupg.decrypt(&ours),
+                payload,
+                "gnupg reads ours, signed={}",
+                signer.is_some()
+            );
+        }
+    }
+
+    /// SEIPD v1 and v2 messages from Sequoia, signed and not.
+    #[test]
+    fn sequoia_seipd_v1_and_v2_matrix() {
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        let payload = seipd::bytes(PAYLOAD, SEED);
+        let signer_cert = SignedPublicKey::from(corpus::AUX_V6_KEY.clone())
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+        for (key, want_version) in [(&*keys::V4_SIGN, 1), (&*keys::V6_SIGN, 2)] {
+            for sign in [false, true] {
+                let case = format!("sq v{want_version} sign={sign}");
+                let signer = sign.then_some((corpus::AUX_V6_SECRET, corpus::CORPUS_PASSPHRASE));
+                let data = sq.encrypt(&key.public_armored, &payload, signer);
+                let nodes = crate::inspect::inspect(&data).blocks[0].packets.clone();
+                assert_eq!(
+                    nodes.iter().find(|n| n.tag == 18).and_then(|n| n.version),
+                    Some(want_version),
+                    "{case}"
+                );
+
+                let dir = tempfile::tempdir().unwrap();
+                let cert = sign.then_some(signer_cert.as_str());
+                let res = decrypt_file_as(
+                    dir.path(),
+                    &data,
+                    &key.secret_armored,
+                    cert,
+                    plain_stage_writer,
+                )
+                .unwrap_or_else(|e| panic!("{case}: {e:?}"));
+                assert_eq!(
+                    std::fs::read(dir.path().join("out.bin")).unwrap(),
+                    payload,
+                    "{case}"
+                );
+                assert_eq!(res.is_verified, sign, "{case}");
+
+                let dir = tempfile::tempdir().unwrap();
+                assert!(
+                    decrypt_file_as(
+                        dir.path(),
+                        &seipd::flipped(&data, -1),
+                        &key.secret_armored,
+                        cert,
+                        plain_stage_writer
+                    )
+                    .is_err(),
+                    "{case}, tampered"
+                );
+                assert_nothing_committed(dir.path(), None);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod large_file_tests {
+    //! The large-file tier: real SEIPD v1 and v2 files below, at and above the
+    //! former 1 GiB `CheckFirst` limit, multi-GB files, and GnuPG output above
+    //! the 4 GiB in-memory decompression cap. Every test checks byte-for-byte
+    //! recovery, complete integrity checking and bounded peak memory, and that
+    //! a failure commits nothing.
+    //!
+    //! `#[ignore]`d so the regular suite stays fast; run them, each in its own
+    //! process so the peak-RSS measurement is clean, with
+    //! `scripts/run_tests.sh --large-file-only`. Inputs are generated at run
+    //! time (nothing large is committed). Knobs:
+    //!   GF_LARGE_FILE_DIR  where to put the files (default: the temp dir)
+    //!   GF_LARGE_FILE_GIB  size of the multi-gigabyte case (default 5)
+
+    use super::*;
+    use crate::testutil::{cb, interop, keys, memory::PeakRss, seipd};
+
+    const GIB: u64 = 1 << 30;
+    const MIB: u64 = 1 << 20;
+    const SEED: u64 = 0x1A26_E000;
+    /// Peak RSS growth allowed while handling a multi-GB file. CheckFirst
+    /// would need the whole payload; streaming needs a few buffers.
+    const MEMORY_LIMIT: u64 = 256 * MIB;
+
+    fn workdir() -> tempfile::TempDir {
+        match std::env::var_os("GF_LARGE_FILE_DIR") {
+            Some(dir) => tempfile::tempdir_in(dir),
+            None => tempfile::tempdir(),
+        }
+        .expect("large-file work dir")
+    }
+
+    fn names(dir: &Path) -> Vec<String> {
+        let mut names: Vec<String> = std::fs::read_dir(dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        names.sort();
+        names
+    }
+
+    /// Decrypt `input` into `output` through the public file API, measuring
+    /// peak memory, with `signer_cert` answering signature lookups.
+    fn decrypt_measured(
+        input: &Path,
+        output: &Path,
+        key: &keys::Fixture,
+        signer_cert: Option<&str>,
+    ) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus> {
+        cb::set_seckey_answer(&key.secret_armored);
+        if let Some(cert) = signer_cert {
+            cb::set_pubkey_answer(cert);
+        }
+        let size = std::fs::metadata(input).unwrap().len();
+        let peak = PeakRss::start();
+        let res = decrypt_and_verify_file_internal(
+            0,
+            input.to_str().unwrap(),
+            output.to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            Some(if signer_cert.is_some() {
+                cb::pubkey_fetch
+            } else {
+                cb::pubkey_none
+            }),
+            std::ptr::null_mut(),
+        );
+        peak.assert_below(MEMORY_LIMIT, size);
+        res
+    }
+
+    /// Encrypt `len` bytes to `key` with our engine, decrypt through the file
+    /// path, and check the result; then break the final MDC/tag byte and check
+    /// that nothing is committed.
+    fn round_trip(key: &keys::Fixture, len: u64, want_version: u32, signed: bool) {
+        let dir = workdir();
+        let input = dir.path().join("in.pgp");
+        let output = dir.path().join("out.bin");
+        let signer = signed.then_some(key);
+
+        let peak = PeakRss::start();
+        seipd::encrypt_payload_to_file(&input, key, len, SEED, signer);
+        peak.assert_below(MEMORY_LIMIT, len);
+        assert_eq!(seipd::seipd_version_of_file(&input), want_version);
+
+        let cert = signed.then_some(key.public_armored.as_str());
+        let res = decrypt_measured(&input, &output, key, cert).expect("decrypt the large file");
+        assert_eq!(res.is_verified, signed);
+        seipd::assert_file_is_payload(&output, len, SEED);
+        std::fs::remove_file(&output).unwrap();
+
+        seipd::flip_in_file(&input, 1);
+        let res = decrypt_measured(&input, &output, key, cert);
+        assert!(res.is_err(), "a tampered large file must fail");
+        if want_version == 1 {
+            assert_eq!(res.err(), Some(GfrStatus::ErrorDataCorrupted));
+        }
+        assert_eq!(
+            names(dir.path()),
+            vec!["in.pgp"],
+            "nothing committed, no stage left"
+        );
+    }
+
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_seipd_v1_below_the_former_limit() {
+        round_trip(&keys::V4_SIGN, GIB - MIB, 1, false);
+    }
+
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_seipd_v1_at_the_former_limit() {
+        round_trip(&keys::V4_SIGN, GIB, 1, false);
+    }
+
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_seipd_v1_above_the_former_limit() {
+        round_trip(&keys::V4_SIGN, GIB + MIB, 1, false);
+    }
+
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_seipd_v1_signed_above_the_former_limit() {
+        round_trip(&keys::V4_SIGN, GIB + MIB, 1, true);
+    }
+
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_seipd_v2_above_the_former_limit() {
+        round_trip(&keys::V6_SIGN, GIB + MIB, 2, false);
+    }
+
+    /// The original report: a multi-GB SEIPD v1 file (legacy rPGP format) for
+    /// a post-quantum key.
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_legacy_seipd_v1_multi_gigabyte_for_a_pq_key() {
+        let gib: f64 = std::env::var("GF_LARGE_FILE_GIB")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(5.0);
+        let len = (gib * GIB as f64) as u64;
+        assert!(
+            len > GIB,
+            "the multi-gigabyte case must exceed the former limit"
+        );
+        let key = &*keys::V6_PQ;
+        let dir = workdir();
+        let input = dir.path().join("in.pgp");
+        let output = dir.path().join("out.bin");
+
+        let file = std::io::BufWriter::new(File::create(&input).unwrap());
+        seipd::write_legacy_v1(key, seipd::Payload::new(len, SEED), file);
+        assert_eq!(seipd::seipd_version_of_file(&input), 1);
+
+        decrypt_measured(&input, &output, key, None).expect("decrypt the multi-GB file");
+        seipd::assert_file_is_payload(&output, len, SEED);
+        std::fs::remove_file(&output).unwrap();
+
+        seipd::flip_in_file(&input, 10);
+        assert_eq!(
+            decrypt_measured(&input, &output, key, None).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        assert_eq!(names(dir.path()), vec!["in.pgp"]);
+    }
+
+    /// GnuPG compresses by default; a compressed file over 4 GiB used to hit
+    /// the in-memory decompression cap even on the file path.
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_gnupg_compressed_seipd_v1_above_4_gib() {
+        let Some(gnupg) = interop::Gnupg::new() else {
+            return;
+        };
+        let key = &*keys::V4_NISTP256;
+        gnupg.import(&key.public_armored);
+        let len = 4 * GIB + 256 * MIB;
+        let dir = workdir();
+        let input = dir.path().join("in.pgp");
+        let output = dir.path().join("out.bin");
+        gnupg.encrypt_stream(
+            &key.primary_fpr,
+            seipd::Payload::new(len, SEED),
+            &input,
+            "zlib",
+            true,
+        );
+        assert_eq!(seipd::seipd_version_of_file(&input), 1);
+
+        let res = decrypt_measured(&input, &output, key, Some(&gnupg.cert)).expect("decrypt");
+        assert!(res.is_verified, "GnuPG's signature verifies");
+        seipd::assert_file_is_payload(&output, len, SEED);
+        std::fs::remove_file(&output).unwrap();
+
+        seipd::flip_in_file(&input, 1);
+        assert_eq!(
+            decrypt_measured(&input, &output, key, Some(&gnupg.cert)).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        assert_eq!(names(dir.path()), vec!["in.pgp"]);
+    }
+
+    #[test]
+    #[ignore = "large-file tier: run with scripts/run_tests.sh --large-file-only"]
+    fn large_file_archive_above_the_former_limit() {
+        let dir = workdir();
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        let len = GIB + MIB;
+        std::io::copy(
+            &mut seipd::Payload::new(len, SEED),
+            &mut std::io::BufWriter::new(File::create(src.join("big.bin")).unwrap()),
+        )
+        .unwrap();
+        let enc = dir.path().join("src.tar.gpg");
+        crate::crypto::encrypt_directory_internal(
+            0,
+            src.to_str().unwrap(),
+            enc.to_str().unwrap(),
+            &[&keys::V4_SIGN.public_armored],
+            false,
+        )
+        .expect("encrypt directory");
+        std::fs::remove_dir_all(&src).unwrap();
+        assert_eq!(seipd::seipd_version_of_file(&enc), 1);
+
+        let out = dir.path().join("out");
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        let peak = PeakRss::start();
+        decrypt_and_verify_archive_internal(
+            0,
+            enc.to_str().unwrap(),
+            out.to_str().unwrap(),
+            false,
+            Some(cb::seckey_fetch),
+            None,
+            None,
+            std::ptr::null_mut(),
+        )
+        .expect("decrypt archive");
+        peak.assert_below(MEMORY_LIMIT, len);
+        seipd::assert_file_is_payload(&out.join("big.bin"), len, SEED);
+        std::fs::remove_dir_all(&out).unwrap();
+
+        seipd::flip_in_file(&enc, 1);
+        assert_eq!(
+            decrypt_and_verify_archive_internal(
+                0,
+                enc.to_str().unwrap(),
+                out.to_str().unwrap(),
+                false,
+                Some(cb::seckey_fetch),
+                None,
+                None,
+                std::ptr::null_mut(),
+            )
+            .err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        assert_eq!(
+            names(dir.path()),
+            vec!["src.tar.gpg"],
+            "nothing extracted, no stage left"
+        );
     }
 }
