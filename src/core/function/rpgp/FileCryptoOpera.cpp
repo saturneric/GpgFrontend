@@ -305,6 +305,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
   Rust::GfrStatus err;
   QString name;
   Rust::GfrEncryptAndSignResultC encrypt_sign_result;
+  memset(&encrypt_sign_result, 0, sizeof(encrypt_sign_result));
 
   bool is_directory = QFileInfo(in_path).isDir();
   if (is_directory) {

@@ -577,6 +577,44 @@ TEST_F(RpgpCoreTest, CoreSignCancelTest) {
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
 }
 
+// A cancelled encrypt-and-sign must report the cancellation, not success with
+// an empty ciphertext.
+TEST_F(RpgpCoreTest, CoreEncryptSignCancelReportsCanceledTest) {
+  auto encrypt_key =
+      GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+          .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(encrypt_key != nullptr);
+  auto sign_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                      .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(sign_key != nullptr);
+
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+  RequestCancelGpgOperation(kRpgpChannelForUnitTest);
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSignSync({encrypt_key}, {sign_key},
+                           GFBuffer(QString("Hello RPGP Cancel!")), true);
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_CANCELED);
+}
+
+// A cancelled symmetric encryption must report the cancellation, not a
+// generic failure.
+TEST_F(RpgpCoreTest, CoreEncryptSymmetricCancelReportsCanceledTest) {
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+  RequestCancelGpgOperation(kRpgpChannelForUnitTest);
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSymmetricSync(GFBuffer(QString("Hello RPGP Cancel!")),
+                                true);
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_CANCELED);
+}
+
 // A cancel pending on a channel aborts an rPGP decryption on that channel.
 TEST_F(RpgpCoreTest, CoreDecryptCancelTest) {
   auto encrypt_key =
