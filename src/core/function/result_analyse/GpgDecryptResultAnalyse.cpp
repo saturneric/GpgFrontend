@@ -61,6 +61,17 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 
   stream_ << Qt::endl;
 
+  // Without integrity protection a tampered message decrypts to altered
+  // plaintext that nothing can detect, so the output is withheld (status -1)
+  // rather than released with a warning. This holds for symmetric messages
+  // too, which carry no recipients.
+  bool unprotected = false;
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR && result_.IsGood()) {
+    op_info_.messageIntegrityProtected = result_.MessageIntegrityProtected();
+    unprotected = !op_info_.messageIntegrityProtected;
+    if (unprotected) setStatus(-1);
+  }
+
   if (!recipients.empty()) {
     stream_ << Qt::endl;
 
@@ -68,7 +79,6 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 
     op_info_.filename = result_.Filename();
     op_info_.mimeEncoded = result_.MIME();
-    op_info_.messageIntegrityProtected = result_.MessageIntegrityProtected();
     op_info_.symmetricAlgo = result_.SymmetricEncryptionAlgorithm();
 
     if (!result_.Filename().isEmpty()) {
@@ -81,9 +91,6 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     stream_ << "- " << tr("Message Integrity Protection") << ": "
             << (result_.MessageIntegrityProtected() ? tr("true") : tr("false"))
             << Qt::endl;
-    if (!result_.MessageIntegrityProtected()) {
-      setStatus(0);  /// < unsafe situation
-    }
 
     if (!result_.SymmetricEncryptionAlgorithm().isEmpty()) {
       stream_ << "- " << tr("Symmetric Encryption Algorithm") << ": "
@@ -122,22 +129,21 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
           "The message has been decrypted successfully and is now readable.");
     }
   } else if (status_ == 0) {
-    if (!op_info_.messageIntegrityProtected) {
-      op_info_.description =
-          tr("Decrypted, but message integrity protection is absent. This "
-             "may be a legacy message that cannot detect tampering.");
-    } else {
-      int unknown = 0;
-      for (const auto& r : op_info_.recipients) {
-        if (!r.keyFound) unknown++;
-      }
-      op_info_.description =
-          unknown > 0
-              ? tr("Decrypted, but %n recipient key(s) could not be found in "
-                   "your keyring.",
-                   "", unknown)
-              : tr("Decrypted with warnings. Please review the details.");
+    int unknown = 0;
+    for (const auto& r : op_info_.recipients) {
+      if (!r.keyFound) unknown++;
     }
+    op_info_.description =
+        unknown > 0
+            ? tr("Decrypted, but %n recipient key(s) could not be found in "
+                 "your keyring.",
+                 "", unknown)
+            : tr("Decrypted with warnings. Please review the details.");
+  } else if (unprotected) {
+    op_info_.description =
+        tr("The output was withheld: this message has no integrity "
+           "protection, so tampering with it cannot be detected. It may be a "
+           "legacy message.");
   } else {
     const auto detail = result_.ErrorDetail();
     op_info_.description =

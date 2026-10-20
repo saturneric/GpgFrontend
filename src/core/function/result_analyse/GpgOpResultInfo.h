@@ -142,7 +142,9 @@ struct GF_CORE_EXPORT GpgRecipientInfo {
 struct GF_CORE_EXPORT GpgOpResultInfo {
   // --- common ----------------------------------------------------------------
 
-  int status = 1;  ///< Operation status: >0 success, 0 warning, <0 error
+  /// Operation status: >0 success, 0 valid output with non-fatal warnings
+  /// (kept), <0 failure (output suppressed). See GpgResultAnalyse.
+  int status = 1;
   QString report;  ///< Formatted text report for display
 
   QString operation;    ///< Human-readable operation name, e.g. "Sign", "Verify"
