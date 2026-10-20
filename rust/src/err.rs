@@ -60,6 +60,12 @@ pub fn clear_last_error() {
     });
 }
 
+/// The current thread's pending error message, for tests.
+#[cfg(test)]
+pub(crate) fn last_error() -> String {
+    LAST_ERROR.with(|e| e.borrow().clone())
+}
+
 /// Return the last error message for the current thread as a heap-allocated C string.
 ///
 /// Returns null when no error is pending. Reading **consumes** the message: the
@@ -120,10 +126,38 @@ impl<T, E: std::fmt::Display> RecordErr<T> for Result<T, E> {
     }
 }
 
+/// The message reported when a message fails authentication (RFC 9580 §13.7:
+/// "MUST generate a clear error message that indicates the integrity of the
+/// message is suspect").
+pub(crate) const INTEGRITY_FAILURE_MESSAGE: &str = "integrity check failed: the encrypted \
+    message was modified or corrupted (SEIPD MDC/AEAD authentication failed); no decrypted \
+    output was kept";
+
+/// Whether `err`, or an error it wraps, is a SEIPD v1 MDC mismatch.
+pub(crate) fn is_mdc_failure(err: &pgp::errors::Error) -> bool {
+    match err {
+        pgp::errors::Error::MdcError => true,
+        pgp::errors::Error::IO { source, .. } => source
+            .get_ref()
+            .and_then(|e| e.downcast_ref::<pgp::errors::Error>())
+            .is_some_and(is_mdc_failure),
+        _ => false,
+    }
+}
+
 impl<T> IntoGfrResult<T> for Result<T, pgp::errors::Error> {
     fn into_gfr(self) -> Result<T, GfrStatus> {
         match self {
             Ok(val) => Ok(val),
+            // rPGP wraps errors raised inside its readers as `IO { source }`,
+            // and a `CheckFirst` MDC mismatch surfaces that way while the
+            // decrypted message is being opened. Only that case is unwrapped;
+            // other wrapped errors keep their established I/O mapping.
+            Err(err) if is_mdc_failure(&err) => {
+                log::error!("rPGP Error: MDC mismatch");
+                set_last_error(INTEGRITY_FAILURE_MESSAGE);
+                Err(GfrStatus::ErrorDataCorrupted)
+            }
             Err(err) => {
                 // Note: cancellation is detected at the streaming call sites
                 // (which know their channel) before calling `into_gfr`, since
@@ -179,6 +213,19 @@ impl<T> IntoGfrResult<T> for Result<T, std::io::Error> {
     fn into_gfr(self) -> Result<T, GfrStatus> {
         match self {
             Ok(val) => Ok(val),
+            // rPGP's streaming readers report an MDC mismatch as an
+            // `io::Error` wrapping `pgp::errors::Error::MdcError`. A tampered
+            // message is corrupted data (RFC 9580 §13.7), not an I/O failure.
+            Err(err)
+                if err
+                    .get_ref()
+                    .and_then(|e| e.downcast_ref::<pgp::errors::Error>())
+                    .is_some_and(is_mdc_failure) =>
+            {
+                log::error!("rPGP Error: MDC mismatch");
+                set_last_error(INTEGRITY_FAILURE_MESSAGE);
+                Err(GfrStatus::ErrorDataCorrupted)
+            }
             Err(err) => {
                 let err_str = err.to_string();
                 log::error!("IO Error: {}", err_str);
