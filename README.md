@@ -74,6 +74,7 @@ GpgFrontend currently supports an array of languages including:
 - Spanish
 - Russian
 - Polish
+- Turkish
 
 And these translations are contributed by our community: [SHOW](TRANSLATORS)
 
