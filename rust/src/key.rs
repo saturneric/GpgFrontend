@@ -185,6 +185,70 @@ fn verified_subkey_self_sigs<'a>(
         .collect()
 }
 
+/// The newest of `sigs` by creation time.
+fn newest_sig<'a, I>(sigs: I) -> Option<&'a Signature>
+where
+    I: IntoIterator<Item = &'a Signature>,
+{
+    sigs.into_iter()
+        .max_by_key(|sig| sig.created().map(|t| t.as_secs()).unwrap_or(0))
+}
+
+/// The cryptographically valid self-signature whose subpackets (Features,
+/// preferred algorithms, Key Flags) speak for `cert`'s primary key, or `None`
+/// if the certificate carries no valid one and so must not be used.
+///
+/// * v6: the newest valid Direct Key signature (0x1F). RFC 9580 §5.2.3.10: "An
+///   implementation MUST ensure that a valid Direct Key signature is present
+///   before using a version 6 key."
+/// * v4: the newest valid self-certification of the primary User ID, else of
+///   any non-revoked User ID, else a Direct Key signature (§5.2.3.10: interpret
+///   preferences as narrowly as possible, the primary User ID speaks for a key
+///   found by Key ID).
+pub(crate) fn preference_self_signature(cert: &SignedPublicKey) -> Option<&Signature> {
+    let primary = &cert.primary_key;
+    let direct = newest_sig(
+        verified_primary_self_sigs(primary, &cert.details.direct_signatures)
+            .into_iter()
+            .filter(|sig| matches!(sig.typ(), Some(SignatureType::Key))),
+    );
+    if primary.version() == KeyVersion::V6 {
+        return direct;
+    }
+
+    let uid_sigs: Vec<&Signature> = cert
+        .details
+        .users
+        .iter()
+        .filter(|user| !is_user_id_revoked(primary, user))
+        .filter_map(|user| {
+            newest_sig(
+                verified_uid_self_sigs(primary, user)
+                    .into_iter()
+                    .filter(|sig| !matches!(sig.typ(), Some(SignatureType::CertRevocation))),
+            )
+        })
+        .collect();
+
+    newest_sig(uid_sigs.iter().copied().filter(|sig| sig.is_primary()))
+        .or_else(|| newest_sig(uid_sigs.iter().copied()))
+        .or(direct)
+}
+
+/// The newest cryptographically valid binding signature (0x18) of `subkey`,
+/// or `None` if the subkey is not validly bound to `primary`.
+pub(crate) fn subkey_binding_signature<'a>(
+    primary: &PublicKey,
+    subkey: &PublicSubkey,
+    signatures: &'a [Signature],
+) -> Option<&'a Signature> {
+    newest_sig(
+        verified_subkey_self_sigs(primary, subkey, signatures)
+            .into_iter()
+            .filter(|sig| matches!(sig.typ(), Some(SignatureType::SubkeyBinding))),
+    )
+}
+
 fn extract_capabilities<'a, I>(signatures: I) -> (bool, bool, bool, bool)
 where
     I: IntoIterator<Item = &'a Signature>,
