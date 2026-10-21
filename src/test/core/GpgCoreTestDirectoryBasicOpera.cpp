@@ -30,6 +30,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTemporaryDir>
+#include <cstring>
 
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -109,6 +110,69 @@ TEST_F(GpgCoreTest, CoreDirectoryEncryptDecryptRoundTrip) {
         << "content mismatch for file: " << name.toStdString();
     f.close();
   }
+}
+
+// A hostile archive inside a perfectly valid gpg message: gpg succeeds, the
+// extractor refuses the escaping entry, and that refusal has to reach the
+// caller instead of being reported as a successful decryption.
+TEST_F(GpgCoreTest, CoreDecryptArchiveReportsRefusedEntries) {
+  auto key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+
+  // one ustar entry named "../escape.txt" with a 5 byte body
+  QByteArray header(512, '\0');
+  const QByteArray name("../escape.txt");
+  memcpy(header.data(), name.constData(), name.size());
+  memcpy(header.data() + 100, "0000644", 7);
+  memcpy(header.data() + 108, "0000000", 7);
+  memcpy(header.data() + 116, "0000000", 7);
+  memcpy(header.data() + 124, "00000000005", 11);
+  memcpy(header.data() + 136, "00000000000", 11);
+  memset(header.data() + 148, ' ', 8);
+  header[156] = '0';
+  memcpy(header.data() + 257, "ustar", 5);
+  memcpy(header.data() + 263, "00", 2);
+  unsigned sum = 0;
+  for (const auto c : header) sum += static_cast<unsigned char>(c);
+  const auto checksum = QByteArray::number(sum, 8).rightJustified(6, '0');
+  memcpy(header.data() + 148, checksum.constData(), 6);
+  header[154] = '\0';
+
+  QByteArray tar = header;
+  QByteArray body("owned");
+  body.append(512 - body.size(), '\0');
+  tar.append(body);
+  tar.append(QByteArray(1024, '\0'));
+
+  const QString tar_path = work_dir.path() + "/evil.tar";
+  {
+    QFile f(tar_path);
+    ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+    ASSERT_EQ(f.write(tar), tar.size());
+  }
+
+  const QString archive_path = work_dir.path() + "/evil.tar.gpg";
+  auto [encrypt_err, encrypt_obj] = GpgFileOpera::GetInstance().EncryptFileSync(
+      {key}, tar_path, false, archive_path);
+  ASSERT_EQ(CheckGpgError(encrypt_err), GPG_ERR_NO_ERROR);
+
+  const QString out_dir = work_dir.path() + "/out/inner";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+
+  bool decrypt_done = false;
+  GpgError decrypt_err = GPG_ERR_NO_ERROR;
+  GpgFileOpera::GetInstance().DecryptArchive(
+      archive_path, out_dir, [&](GpgError err, const DataObjectPtr&) {
+        decrypt_err = err;
+        decrypt_done = true;
+      });
+  WAIT_FOR_TRUE(decrypt_done, 10000);
+  EXPECT_NE(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(QFileInfo::exists(work_dir.path() + "/out/escape.txt"));
 }
 
 }  // namespace GpgFrontend::Test
