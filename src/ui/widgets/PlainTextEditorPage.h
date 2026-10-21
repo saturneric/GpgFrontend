@@ -75,6 +75,25 @@ class PlainTextEditorPage : public QWidget {
   auto GetPlainText() -> QString;
 
   /**
+   * @brief The document's text, in the line-ending convention it came with.
+   *
+   * GetPlainText() returns what QPlainTextEdit stores, which is always bare
+   * LF. This restores CRLF for a document that was loaded as CRLF, so callers
+   * that write the document out, or hand it to something that reads exact
+   * bytes, see the file rather than the editor's internal form.
+   */
+  [[nodiscard]] auto DocumentBytes() const -> QByteArray;
+
+  /**
+   * @brief Fills the document from raw file bytes, keeping their line endings.
+   *
+   * QPlainTextEdit always stores line breaks as bare LF, so the convention the
+   * bytes arrived with is recorded here rather than lost. DocumentBytes() and
+   * saving then reproduce it.
+   */
+  void SetContentFromBytes(const QByteArray& bytes);
+
+  /**
    * @brief Shows an additional notification widget below the editor.
    *
    * The widget is assigned a dynamic property named by @p className, so it can

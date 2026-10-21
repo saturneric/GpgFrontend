@@ -271,6 +271,33 @@ auto PlainTextEditorPage::GetPlainText() -> QString {
   return ui_->textPage->toPlainText();
 }
 
+void PlainTextEditorPage::SetContentFromBytes(const QByteArray &bytes) {
+  // Recorded before the text goes in, because once it is in the document the
+  // evidence is gone: the editor stores bare LF either way.
+  is_crlf_ = bytes.contains("\r\n");
+
+  ui_->textPage->setPlainText(QString::fromUtf8(bytes));
+  ui_->textPage->document()->setModified(false);
+
+  read_done_ = true;
+  read_bytes_ = static_cast<size_t>(bytes.size());
+
+  update_status_bar();
+}
+
+auto PlainTextEditorPage::DocumentBytes() const -> QByteArray {
+  // QPlainTextEdit stores line breaks as paragraph separators, so whatever
+  // the document was loaded from, toPlainText() hands back bare LF. Writing
+  // that out silently rewrites every line ending in the file.
+  //
+  // For prose that is merely untidy. For a signed message it is fatal: the
+  // signature covers exact octets, so a document that came in as CRLF must go
+  // back out as CRLF or nothing it carries can ever verify again.
+  auto bytes = ui_->textPage->toPlainText().toUtf8();
+  if (is_crlf_) bytes.replace('\n', "\r\n");
+  return bytes;
+}
+
 void PlainTextEditorPage::NotifyFileSaved() {
   ui_->textPage->document()->setModified(false);
   set_editor_modified(false);
