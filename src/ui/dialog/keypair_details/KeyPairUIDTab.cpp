@@ -327,8 +327,11 @@ void KeyPairUIDTab::slot_del_uid() {
           nullptr, tr("Operation Failed"),
           tr("An error occurred during the delete %1 operation.")
               .arg(target_uid.GetUID().toHtmlEscaped()));
+    } else {
+      QMessageBox::information(nullptr, tr("Successful Operation"),
+                              tr("Successfully deleted the UID."));
+      emit SignalUpdateUIDInfo();
     }
-    emit SignalUpdateUIDInfo();
   }
 }
 
@@ -358,6 +361,8 @@ void KeyPairUIDTab::slot_set_primary_uid() {
     QMessageBox::critical(nullptr, tr("Operation Failed"),
                           tr("An error occurred during the operation."));
   } else {
+    QMessageBox::information(nullptr, tr("Successful Operation"),
+                            tr("Successfully set the Primary UID."));
     emit SignalUpdateUIDInfo();
   }
 }
