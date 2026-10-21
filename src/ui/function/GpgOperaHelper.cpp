@@ -762,9 +762,10 @@ void GpgOperaHelper::WaitForMultipleOperas(
   }
   const BatchInProgressMarker marker;
 
-  // Clear any leftover cancellation request for this channel before starting
-  // the batch. Only cancelable operations carry a channel to reset.
-  if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
+  // A cancel affects this batch only: clear any leftover request for the
+  // channel now, and one made during the batch once it is over, so it cannot
+  // skip later work on the channel. Only cancelable batches carry a channel.
+  const GpgOperationCancelScope cancel_scope(cancel_channel);
 
   // A cancelable dialog cannot be closed by the user: Escape and the window's
   // close only request cancellation, and the dialog finishes once every
@@ -895,9 +896,10 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
 void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
                                   const OperaWaitingCb& opera,
                                   int cancel_channel) {
-  // Clear any leftover cancellation request for this channel before starting
-  // the operation. Only cancelable operations carry a channel to reset.
-  if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
+  // A cancel affects this operation only: clear any leftover request for the
+  // channel now, and one made while it runs once it is over, so it cannot skip
+  // later work on the channel. Only cancelable operations carry a channel.
+  const GpgOperationCancelScope cancel_scope(cancel_channel);
 
   // A cancelable dialog cannot be closed by the user: Escape and the window's
   // close only request cancellation, and the dialog finishes once the

@@ -106,7 +106,7 @@ void ImportKeyFromFile(QWidget* parent, int channel) {
 void ImportKeyFromClipboard(QWidget* parent, int channel) {
   QClipboard* cb = QApplication::clipboard();
   ImportKeys(parent, channel,
-             GFBuffer{cb->text(QClipboard::Clipboard).toLatin1()});
+             GFBuffer{cb->text(QClipboard::Clipboard).toUtf8()});
 }
 
 }  // namespace GpgFrontend::UI

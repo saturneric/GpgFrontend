@@ -1546,6 +1546,9 @@ auto KeyGenerateDialog::do_generate() -> bool {
 void KeyGenerateDialog::create_sync_gen_subkey_info(bool sync_from_ui) {
   if (gen_subkey_info_ == nullptr) {
     gen_subkey_info_ = SecureCreateSharedObject<KeyGenerateInfo>(true);
+    // One "no passphrase" choice covers key and subkey; the checkbox only
+    // updates a subkey that already exists, so a new one inherits it here.
+    gen_subkey_info_->SetNonPassPhrase(gen_key_info_->IsNoPassPhrase());
   }
 
   if (sync_from_ui) {

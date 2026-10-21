@@ -101,6 +101,17 @@ class PlainTextEditor : public QPlainTextEdit {
    */
   void contextMenuEvent(QContextMenuEvent* event) override;
 
+  /**
+   * @brief Makes Shift+Enter (QKeySequence::InsertLineSeparator) an ordinary
+   * line break.
+   *
+   * Qt inserts U+2028 for it, which looks like any other line break but is a
+   * different character in what an operation signs or encrypts.
+   *
+   * @param event
+   */
+  void keyPressEvent(QKeyEvent* event) override;
+
  private slots:
   /**
    * @brief

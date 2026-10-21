@@ -1277,7 +1277,7 @@ void KeyMgmt::dropEvent(QDropEvent* event) {
   }
 
   if (mime->hasText()) {
-    ImportKeys(this, channel, GFBuffer(mime->text().toLatin1()));
+    ImportKeys(this, channel, GFBuffer(mime->text().toUtf8()));
     event->acceptProposedAction();
   }
 }

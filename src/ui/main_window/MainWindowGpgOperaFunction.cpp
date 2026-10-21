@@ -353,6 +353,33 @@ auto MainWindow::confirm_recipients_helper(const GpgAbstractKeyPtrList& keys)
   return box.clickedButton() == encrypt;
 }
 
+auto MainWindow::confirm_recipient_mix_helper(const GpgAbstractKeyPtrList& keys)
+    -> bool {
+  if (!RecipientsMixPostQuantumAndClassical(keys)) return true;
+
+  // Allowed, never silently: every recipient can unwrap the same session key,
+  // so the message is only as strong as its weakest recipient.
+  QMessageBox box(this);
+  box.setIcon(QMessageBox::Warning);
+  box.setWindowTitle(tr("Mixed Recipient Types"));
+  box.setText(
+      tr("Some recipients use post-quantum encryption and others do "
+         "not."));
+  box.setInformativeText(
+      tr("The message key is encrypted to every recipient, so anyone able "
+         "to break the classical recipients' encryption can read the whole "
+         "message: the post-quantum protection does not hold for it. To keep "
+         "that protection, encrypt separately for the post-quantum "
+         "recipients."));
+  auto* encrypt = box.addButton(tr("Encrypt Anyway"), QMessageBox::AcceptRole);
+  auto* cancel = box.addButton(QMessageBox::Cancel);
+  box.setDefaultButton(cancel);
+  box.setEscapeButton(cancel);
+
+  box.exec();
+  return box.clickedButton() == encrypt;
+}
+
 auto MainWindow::resolve_encrypt_recipients_helper(
     const GpgAbstractKeyPtrList& keys, bool& canceled)
     -> GpgAbstractKeyPtrList {
@@ -364,12 +391,19 @@ auto MainWindow::resolve_encrypt_recipients_helper(
     return {};
   }
 
+  // Judged on the final list, after any subkey the user pinned below.
+  const auto confirmed_mix = [&](const GpgAbstractKeyPtrList& resolved) {
+    if (confirm_recipient_mix_helper(resolved)) return resolved;
+    canceled = true;
+    return GpgAbstractKeyPtrList{};
+  };
+
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
   // Per-recipient encryption subkey selection is an rPGP-engine feature; the
   // GnuPG engine picks a valid, non-revoked encryption subkey internally.
   if (OpenPGPContext::GetInstance(channel).Engine() != OpenPGPEngine::kRPGP) {
-    return keys;
+    return confirmed_mix(keys);
   }
 
   // Only prompt when a recipient exposes more than one usable (non-revoked)
@@ -392,7 +426,7 @@ auto MainWindow::resolve_encrypt_recipients_helper(
     }
   }
 
-  if (!ambiguous) return keys;
+  if (!ambiguous) return confirmed_mix(keys);
 
   auto picker = QSharedPointer<EncryptionKeysPicker>(
       new EncryptionKeysPicker(channel, keys, this),
@@ -402,7 +436,7 @@ auto MainWindow::resolve_encrypt_recipients_helper(
     canceled = true;
     return {};
   }
-  return picker->GetEncryptionKeys();
+  return confirmed_mix(picker->GetEncryptionKeys());
 }
 
 void MainWindow::SlotEncrypt() {
@@ -414,12 +448,14 @@ void MainWindow::SlotEncrypt() {
 
   if (!encrypt_operation_key_validate(contexts.Base())) return;
 
-  auto plain_text = edit_->CurPlainText();
-  if (plain_text.isEmpty()) return;
+  // The document's own bytes, line endings included: what Save would write,
+  // not a copy rewritten to LF.
+  auto plain_bytes = edit_->CurDocumentBytesForOperation();
+  if (plain_bytes.isEmpty()) return;
 
-  GFBuffer secure_plain_text(plain_text);
+  GFBuffer secure_plain_text(plain_bytes);
 
-  WipeString(plain_text);
+  WipeByteArray(plain_bytes);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
@@ -547,12 +583,14 @@ void MainWindow::SlotEncryptSign() {
 
   if (!sign_operation_key_validate(contexts.Base())) return;
 
-  auto plain_text = edit_->CurPlainText();
-  if (plain_text.isEmpty()) return;
+  // The document's own bytes, line endings included: what Save would write,
+  // not a copy rewritten to LF.
+  auto plain_bytes = edit_->CurDocumentBytesForOperation();
+  if (plain_bytes.isEmpty()) return;
 
-  GFBuffer secure_plain_text(plain_text);
+  GFBuffer secure_plain_text(plain_bytes);
 
-  WipeString(plain_text);
+  WipeByteArray(plain_bytes);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
@@ -632,10 +670,10 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
     if (!encrypt_operation_key_validate(contexts.Base())) return;
   }
 
-  auto plain_text = edit_->CurPlainText();
-  if (plain_text.isEmpty()) return;
-  GFBuffer secure_plain_text(plain_text);
-  WipeString(plain_text);
+  auto plain_bytes = edit_->CurDocumentBytesForOperation();
+  if (plain_bytes.isEmpty()) return;
+  GFBuffer secure_plain_text(plain_bytes);
+  WipeByteArray(plain_bytes);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
@@ -960,7 +998,14 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
 
       if (!ok) return;
 
-      data_file_path = text.isEmpty() ? data_file_path : text;
+      if (text.isEmpty()) {
+        // Combined: the file holds both the data and its signature, verified
+        // like a .gpg/.pgp file, with no separate signature.
+        data_file_path = sign_file_path;
+        sign_file_path.clear();
+      } else {
+        data_file_path = text;
+      }
       data_file_info = QFileInfo(data_file_path);
     }
 

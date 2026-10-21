@@ -505,6 +505,7 @@ class PlainTextEditorPage : public QWidget {
   bool is_crlf_ = false;    ///< Whether CRLF line endings were detected.
   bool last_insert_has_partial_cr_ =
       false;                        ///< Whether previous chunk ended with '\r'.
+  QByteArray partial_utf8_;  ///< A UTF-8 sequence cut off by the last chunk.
   QTimer* sha256_timer_ = nullptr;  ///< Debounce timer for SHA-256 updates.
   TextDirectionMode text_direction_mode_ =
       kTEXT_DIRECTION_AUTO;               ///< Configured direction mode.

@@ -59,4 +59,18 @@ auto GF_UI_EXPORT IsOperationUndoEnabled() -> bool;
 void GF_UI_EXPORT ReplaceDocumentText(QTextDocument* doc, const QString& text,
                                       bool undoable);
 
+/**
+ * @brief The text of @p doc exactly as it holds it.
+ *
+ * Unlike QTextDocument::toPlainText(), which turns a no-break space into a
+ * space and U+2028 into a newline, every character is kept; only the
+ * paragraph breaks the document stores lines as become "\n". This is what an
+ * operation signs, encrypts or verifies, and no OpenPGP rule asks for either
+ * of those characters to be rewritten.
+ *
+ * @param doc the document, may be null
+ * @return QString
+ */
+auto GF_UI_EXPORT DocumentText(const QTextDocument* doc) -> QString;
+
 }  // namespace GpgFrontend::UI

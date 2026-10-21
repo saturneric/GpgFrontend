@@ -247,7 +247,7 @@ void MainWindow::slot_refresh_current_file_view() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
-  auto plain_text = edit_->CurPlainText().toLatin1();
+  auto plain_text = edit_->CurPlainText().toUtf8();
   ImportKeys(this, m_key_list_->GetCurrentGpgContextChannel(),
              GFBuffer(plain_text));
 
@@ -627,6 +627,7 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
   }
 
   if (!confirm_recipients_helper(keys)) return;
+  if (!confirm_recipient_mix_helper(keys)) return;
 
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
@@ -767,6 +768,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
   }
 
   if (!confirm_recipients_helper(keys)) return;
+  if (!confirm_recipient_mix_helper(keys)) return;
 
   auto picker = QSharedPointer<SigningKeysPicker>(
       new SigningKeysPicker(m_key_list_->GetCurrentGpgContextChannel(), this),

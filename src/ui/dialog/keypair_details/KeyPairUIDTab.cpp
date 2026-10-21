@@ -294,6 +294,20 @@ void KeyPairUIDTab::slot_del_uid() {
   keynames.append(target_uid.GetUID().toHtmlEscaped());
   keynames.append("<br/>");
 
+  // GpgFrontend policy, not an OpenPGP rule: a version 4 key keeps its usage,
+  // expiry and preferences in its UID self-signatures, so without any UID it
+  // could no longer be used here. The engine refuses it as well.
+  if (buffered_uids_.size() <= 1 && m_key_->KeyVersion() == 4) {
+    QMessageBox::information(
+        this, tr("Invalid Operation"),
+        tr("This is the only UID of a version 4 key. OpenPGP allows a key "
+           "without UIDs, but a version 4 key keeps its usage, expiry and "
+           "preferences in its UID self-signatures, so GpgFrontend could no "
+           "longer use this key to sign or encrypt. Add another UID first if "
+           "you want to replace this one."));
+    return;
+  }
+
   if (target_uid.GetUID() == buffered_uids_.front().GetUID()) {
     QMessageBox::information(this, tr("Invalid Operation"),
                              tr("Cannot delete the Primary UID."));

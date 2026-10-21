@@ -261,7 +261,7 @@ auto PlainTextEditorPage::GetTextPage() -> QPlainTextEdit * {
 }
 
 auto PlainTextEditorPage::GetPlainText() -> QString {
-  return ui_->textPage->toPlainText();
+  return DocumentText(ui_->textPage->document());
 }
 
 void PlainTextEditorPage::load_bytes_into_editor(const QByteArray &bytes) {
@@ -317,7 +317,7 @@ auto PlainTextEditorPage::DocumentBytes() const -> QByteArray {
   // signature covers exact octets in canonical CRLF form, so a document that
   // came in as CRLF must go back out as CRLF or nothing it carries can ever
   // verify again.
-  auto bytes = ui_->textPage->toPlainText().toUtf8();
+  auto bytes = DocumentText(ui_->textPage->document()).toUtf8();
   if (is_crlf_) bytes.replace('\n', "\r\n");
   return bytes;
 }
@@ -390,8 +390,10 @@ void PlainTextEditorPage::slot_update_sha256() {
   if (!primary_view_.isNull()) return;
 
   const auto *doc = ui_->textPage->document();
+  // The hash of what Save writes (DocumentBytes()), line endings included.
+  const QByteArray line_end = is_crlf_ ? "\r\n" : "\n";
   const auto result = GFBufferFactory::ToSha256(
-      [doc](const GFBufferFactory::Sha256Chunk &update) -> void {
+      [doc, &line_end](const GFBufferFactory::Sha256Chunk &update) -> void {
         auto block = doc->begin();
         while (block != doc->end()) {
           // Wiped rather than dropped: this runs on a debounce timer while
@@ -402,8 +404,7 @@ void PlainTextEditorPage::slot_update_sha256() {
           WipeByteArray(utf8);
           block = block.next();
           if (block != doc->end()) {
-            const char nl = '\n';
-            update(&nl, 1);
+            update(line_end.constData(), static_cast<size_t>(line_end.size()));
           }
         }
       });
@@ -416,10 +417,31 @@ void PlainTextEditorPage::slot_update_sha256() {
   ui_->sha256Label->setToolTip(QStringLiteral("SHA256: %1").arg(QString(hex)));
 }
 
+namespace {
+
+/// How many bytes at the end of @p bytes start a UTF-8 sequence that the
+/// bytes do not finish.
+auto IncompleteUtf8TailLength(const QByteArray &bytes) -> qsizetype {
+  const auto size = bytes.size();
+  for (qsizetype back = 1; back <= 3 && back <= size; ++back) {
+    const auto byte = static_cast<unsigned char>(bytes.at(size - back));
+    if ((byte & 0xC0) == 0x80) continue;  // continuation byte, keep looking
+    qsizetype needed = 1;
+    if ((byte & 0xE0) == 0xC0) needed = 2;
+    if ((byte & 0xF0) == 0xE0) needed = 3;
+    if ((byte & 0xF8) == 0xF0) needed = 4;
+    return back < needed ? back : 0;
+  }
+  return 0;
+}
+
+}  // namespace
+
 void PlainTextEditorPage::ReadFile() {
   read_done_ = false;
   read_bytes_ = 0;
   last_insert_has_partial_cr_ = false;
+  partial_utf8_.clear();
   sign_marked_ = false;
   is_crlf_ = false;
 
@@ -451,6 +473,18 @@ void PlainTextEditorPage::ReadFile() {
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     FLOG_D("file read done");
 
+    // The file ended in a lone CR held back for a following LF, or in a
+    // truncated UTF-8 sequence: both are still part of the file.
+    QString tail = QString::fromUtf8(partial_utf8_);
+    read_bytes_ += static_cast<size_t>(partial_utf8_.size());
+    if (last_insert_has_partial_cr_) {
+      tail += QLatin1Char('\r');
+      read_bytes_ += 1;
+    }
+    partial_utf8_.clear();
+    last_insert_has_partial_cr_ = false;
+    if (!tail.isEmpty()) text_page->insertPlainText(tail);
+
     this->read_done_ = true;
 
     text_page->blockSignals(false);
@@ -472,10 +506,8 @@ void PlainTextEditorPage::ReadFile() {
 }
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
-  if (last_insert_has_partial_cr_ && !bytes_data.isEmpty() &&
-      bytes_data.startsWith('\n')) {
-    bytes_data.prepend('\r');
-  }
+  // The CR held back from the last chunk, whether or not an LF follows it.
+  if (last_insert_has_partial_cr_) bytes_data.prepend('\r');
 
   if (!bytes_data.isEmpty() && bytes_data.endsWith('\r')) {
     last_insert_has_partial_cr_ = true;
@@ -487,6 +519,12 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   if (!is_crlf_ && bytes_data.contains("\r\n")) {
     is_crlf_ = true;
   }
+
+  // A UTF-8 sequence cut by the chunk boundary waits for the rest of it in
+  // the next chunk instead of becoming replacement characters.
+  bytes_data.prepend(partial_utf8_);
+  partial_utf8_ = bytes_data.right(IncompleteUtf8TailLength(bytes_data));
+  bytes_data.chop(partial_utf8_.size());
 
   read_bytes_ += static_cast<size_t>(bytes_data.size());
 

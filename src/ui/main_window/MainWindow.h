@@ -872,6 +872,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief Warn before encrypting to a mix of post-quantum and classical
+   * recipients. Allowed, but the post-quantum protection does not hold for
+   * such a message.
+   *
+   * @param keys the checked recipients
+   * @return false if the user cancelled
+   */
+  auto confirm_recipient_mix_helper(const GpgAbstractKeyPtrList& keys) -> bool;
+
+  /**
    * @brief For the rPGP engine, let the user pin a specific encryption subkey
    * per recipient when a recipient exposes more than one usable (non-revoked)
    * encryption subkey. Mirrors the signing-key picker ambiguity gate.

@@ -113,6 +113,8 @@ auto sig_validity_to_text(GpgSigValidity validity) -> QString {
       return QObject::tr("Key Expired");
     case GpgSigValidity::kERROR:
       return QObject::tr("Verification Error");
+    case GpgSigValidity::kKEY_NOT_AUTHORIZED:
+      return QObject::tr("Key Not Authorized");
     default:
       return QObject::tr("Unknown");
   }

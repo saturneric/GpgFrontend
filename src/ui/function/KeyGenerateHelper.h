@@ -123,15 +123,17 @@ auto FirstSelectableComboIndex(const QComboBox* combo_box) -> int;
  * @brief Get the Algo By Id And Type object
  *
  * If type is empty, this function falls back to id-only matching for backward
- * compatibility.
+ * compatibility. So does a type no algorithm with that id has, when the id
+ * names exactly one algorithm: a saved profile keeps working after an
+ * algorithm's type label is corrected (secp256k1 was "EdDSA", is "ECDSA").
  *
  * @param id
  * @param type
  * @param algos
  * @return std::tuple<bool, KeyAlgo>
  */
-auto GetAlgoByIdType(const QString& id, const QString& type,
-                     const QContainer<KeyAlgo>& algos)
+auto GF_UI_EXPORT GetAlgoByIdType(const QString& id, const QString& type,
+                                  const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
 /**

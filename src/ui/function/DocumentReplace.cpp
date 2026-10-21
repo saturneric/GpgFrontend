@@ -58,4 +58,11 @@ void ReplaceDocumentText(QTextDocument* doc, const QString& text,
   doc->setUndoRedoEnabled(undo_was_enabled);
 }
 
+auto DocumentText(const QTextDocument* doc) -> QString {
+  if (doc == nullptr) return {};
+  auto text = doc->toRawText();
+  text.replace(QChar::ParagraphSeparator, QLatin1Char('\n'));
+  return text;
+}
+
 }  // namespace GpgFrontend::UI

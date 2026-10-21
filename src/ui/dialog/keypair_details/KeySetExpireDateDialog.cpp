@@ -325,10 +325,15 @@ void KeySetExpireDateDialog::slot_confirm() {
     emit SignalKeyExpireDateUpdated();
 
     this->close();
+  } else if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+    // The user dismissed the passphrase prompt: nothing failed, and the
+    // dialog stays open for another try.
+    return;
   } else {
     QMessageBox::critical(
         this, tr("Failure"),
-        tr("Failed to update the expire date of the key pair."));
+        tr("Failed to update the expire date of the key pair.") + "\n\n" +
+            DescribeGpgErrCode(err).second);
   }
 }
 

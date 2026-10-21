@@ -26,14 +26,16 @@
  *
  */
 
-#include "ui/lua/LuaPlacements.h"
-#include "ui/widgets/PlainTextEditorPage.h"
 #include "PlainTextEditor.h"
 
 #include <QContextMenuEvent>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QPainter>
 #include <QTextBlock>
+
+#include "ui/lua/LuaPlacements.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 
 namespace GpgFrontend::UI {
 
@@ -118,6 +120,18 @@ void PlainTextEditor::changeEvent(QEvent* event) {
     update_line_number_area_geometry();
     line_number_area_->update();
   }
+}
+
+void PlainTextEditor::keyPressEvent(QKeyEvent* event) {
+  // Every binding Qt maps to U+2028 (Shift+Enter; on macOS also
+  // Control+Return and Control+O), not only Shift+Enter.
+  if (event->matches(QKeySequence::InsertLineSeparator) && !isReadOnly()) {
+    textCursor().insertBlock();
+    ensureCursorVisible();
+    event->accept();
+    return;
+  }
+  QPlainTextEdit::keyPressEvent(event);
 }
 
 void PlainTextEditor::contextMenuEvent(QContextMenuEvent* event) {
