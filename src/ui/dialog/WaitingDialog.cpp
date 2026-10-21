@@ -54,7 +54,14 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
 
   this->movePosition2CenterOfParent();
 
-  this->show();
+  // Note: the dialog is intentionally not shown here. Callers decide when to
+  // present it (e.g. only after a crypto operation has run long enough to be
+  // worth a dialog), so the show/raise/activate logic lives in showEvent().
+}
+
+void WaitingDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+  this->movePosition2CenterOfParent();
   this->raise();
   this->activateWindow();
 }

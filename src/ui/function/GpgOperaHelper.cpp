@@ -42,6 +42,60 @@
 
 namespace {
 
+// Crypto operations that complete quickly should not flash a waiting dialog.
+// Defer presenting the dialog until the operation has been running this long.
+constexpr int kWaitingDialogShowDelayMs = 200;  // 200 ms
+
+// When the dialog is due but another application currently holds focus, poll at
+// this interval until focus returns before presenting it (see below).
+constexpr int kWaitingDialogFocusRecheckMs = 150;  // 150 ms
+
+// True when a modal dialog other than `dialog` (and other than the context the
+// waiting dialog is meant to cover) is currently on top. The waiting dialog's
+// parent window, and any ancestor of it, are the expected modal context the
+// progress window should appear over; a *different* modal dialog is something
+// the operation popped up mid-flight that needs the user's input. Presenting
+// the (also modal) waiting window now would stack above it and block its
+// input.
+auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog)
+    -> bool {
+  auto* active_modal = QApplication::activeModalWidget();
+  if (active_modal == nullptr || active_modal == dialog) return false;
+
+  auto* parent = dialog->parentWidget();
+  if (parent == nullptr) return true;
+
+  return active_modal != parent->window() &&
+         !active_modal->isAncestorOf(parent);
+}
+
+// Create a single-shot timer (owned by the dialog) that shows the dialog only
+// after kWaitingDialogShowDelayMs has elapsed. If the operation finishes first,
+// the caller stops the timer and the dialog is never shown.
+//
+// Two conditions defer the show (re-checked shortly after):
+//   1. Another application holds focus: mapping the modal waiting window then
+//      makes the window manager switch focus to GpgFrontend, interrupting
+//      passphrase entry in GnuPG's external pinentry (a separate process).
+//      QApplication::activeWindow() is null exactly when no GpgFrontend window
+//      is active, i.e. another app (pinentry) owns focus.
+//   2. A foreign modal dialog is up: the waiting window would stack above it
+//      and block its input. See ForeignModalDialogIsActive().
+auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
+  auto* timer = new QTimer(dialog);
+  timer->setSingleShot(true);
+  QObject::connect(timer, &QTimer::timeout, dialog, [dialog, timer]() {
+    if (QApplication::activeWindow() == nullptr ||
+        ForeignModalDialogIsActive(dialog)) {
+      timer->start(kWaitingDialogFocusRecheckMs);
+      return;
+    }
+    dialog->show();
+  });
+  timer->start(kWaitingDialogShowDelayMs);
+  return timer;
+}
+
 // Progress state of a running batch. Heap-owned and shared with every
 // completion handler on purpose: the waiting dialog can be closed, so
 // WaitForMultipleOperas can return while operations are still queued, and those
@@ -506,7 +560,9 @@ void GpgOperaHelper::WaitForMultipleOperas(
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, operas.size() > 1, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
-  dialog->show();
+
+  // Only present the dialog if the batch runs longer than the threshold.
+  QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
 
   auto progress = QSharedPointer<BatchProgress>::create(operas.size());
 
@@ -516,7 +572,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
         [=]() {
           if (progress->abandoned) return;
 
-          opera([dialog, progress]() {
+          opera([dialog, show_timer, progress]() {
             if (progress->remaining <= 0) return;
 
             const auto done = progress->total - --progress->remaining;
@@ -533,6 +589,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
             // stack.
             if (progress->remaining > 0) return;
 
+            if (show_timer) show_timer->stop();
             if (dialog != nullptr) {
               dialog->close();
               dialog->accept();
@@ -625,12 +682,15 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
       new WaitingDialog(title, false, parent);
 
   QObject::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
-  dialog->show();
+
+  // Only present the dialog if the operation runs longer than the threshold.
+  QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
 
   QMetaObject::invokeMethod(
       parent,
       [=]() {
-        opera([dialog]() {
+        opera([dialog, show_timer]() {
+          if (show_timer) show_timer->stop();
           if (dialog) {
             dialog->close();
             dialog->accept();

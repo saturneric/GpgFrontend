@@ -67,6 +67,12 @@ class WaitingDialog : public GeneralDialog {
 
  protected:
   /**
+   * @brief Center, raise and activate the dialog whenever it is presented.
+   *
+   */
+  void showEvent(QShowEvent* event) override;
+
+  /**
    * @brief Ignore Esc.
    *
    * The operations behind this dialog cannot be cancelled on this release
