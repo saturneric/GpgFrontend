@@ -41,6 +41,9 @@ class SubKeyPicker : public GeneralDialog {
 
   [[nodiscard]] auto GetSelectedKeyWithFlags() const -> GpgAbstractKeyPtrList;
 
+ private slots:
+  void update_confirm_button_state();
+
  private:
   int channel_;
   KeyTreeView* tree_view_;
