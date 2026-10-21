@@ -181,6 +181,9 @@ enum class GFSignatureStatus : uint8_t {
   kBAD_SIGNATURE = 1,
   kNO_KEY = 2,
   kUNKNOWN_ERROR = 3,
+  kKEY_REVOKED = 4,         ///< valid, but the key was revoked as of it
+  kKEY_EXPIRED = 5,         ///< valid, but made after the key expired
+  kKEY_NOT_AUTHORIZED = 6,  ///< valid, but the key may not sign
 };
 
 struct GFSignature {
@@ -216,6 +219,7 @@ struct GFEncryptResult {
 struct GFDecryptResult {
   GFBuffer data;
   QString filename;
+  QString symkey_algo;  ///< Cipher and mode, as gpgme's (e.g. "AES256.OCB").
   QContainer<GFRecipient> recipients;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
