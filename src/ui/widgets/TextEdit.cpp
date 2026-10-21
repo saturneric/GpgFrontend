@@ -319,7 +319,7 @@ auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
           tr("The document \"%1\" has been modified. Do you want to "
              "save your changes?")
                   .arg(doc_name) +
-              "<br/><b>" + tr("Note:") + "</b>" +
+              "<br/><b>" + tr("Note:") + "</b> " +
               tr("If you don't save these files, all changes are "
                  "lost.") +
               "<br/>",
@@ -607,17 +607,18 @@ void TextEdit::SlotPrint() {
   if (CurTextPage() != nullptr) {
     document = CurTextPage()->GetTextPage()->document();
   }
-  QPrinter printer;
 
-  auto* dlg = new QPrintDialog(&printer, this);
-  if (dlg->exec() != QDialog::Accepted) {
+  // say so before asking for a printer, not after the user has picked one
+  if (document == nullptr) {
+    QMessageBox::warning(this, tr("Warning"), tr("No document to print"));
     return;
   }
-  if (document != nullptr) {
-    document->print(&printer);
-  } else {
-    QMessageBox::warning(this, tr("Warning"), tr("No document to print"));
-  }
+
+  QPrinter printer;
+  QPrintDialog dlg(&printer, this);
+  if (dlg.exec() != QDialog::Accepted) return;
+
+  document->print(&printer);
 
   // statusBar()->showMessage(tr("Ready"), 2000);
 #endif
