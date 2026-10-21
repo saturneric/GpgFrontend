@@ -144,12 +144,13 @@ auto GF_CORE_EXPORT GetFullExtension(QString path) -> QString;
 /**
  * @brief Return a staging path for an output that will end up at @p final_path.
  *
- * The staged file is placed in a per-process work directory next to the final
- * file, not beside it. The directory an operation writes into is often the one
- * the user is browsing, and that directory is watched: writing every temporary
- * output there makes the file browser react to each one while the operation is
- * still running. Staying on the same volume keeps the later commit a plain
- * rename.
+ * The staged file is placed in a fresh work directory next to the final file,
+ * not beside it. The directory is private (0700) and its name unpredictable,
+ * so nothing can be planted where the output is staged. The directory an
+ * operation writes into is often the one the user is browsing, and that
+ * directory is watched: writing every temporary output there makes the file
+ * browser react to each one while the operation is still running. Staying on
+ * the same volume keeps the later commit a plain rename.
  *
  * The work directory is created as a side effect. If it cannot be created, a
  * path beside @p final_path is returned instead, so an unwritable work
@@ -173,6 +174,18 @@ auto GF_CORE_EXPORT MakeSafeOutputTempPath(const QString& final_path)
  */
 auto GF_CORE_EXPORT CommitSafeOutputFile(const QString& temp_path,
                                          const QString& final_path) -> bool;
+
+/**
+ * @brief Remove a staged output that will not be committed.
+ *
+ * Removes a staged file, or a staged directory (an archive extraction) with
+ * everything in it, so a failed or cancelled operation leaves no plaintext
+ * behind. A symlink is removed, never followed.
+ *
+ * @param temp_path staged output produced by MakeSafeOutputTempPath()
+ * @return true if nothing remains at @p temp_path
+ */
+auto GF_CORE_EXPORT DiscardSafeOutput(const QString& temp_path) -> bool;
 
 /**
  * @brief Remove the staging directory holding @p temp_path.
