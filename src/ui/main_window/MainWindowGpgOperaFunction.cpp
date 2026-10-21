@@ -29,6 +29,7 @@
 #include "MainWindow.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/SubKeyPicker.h"
@@ -335,8 +336,7 @@ void MainWindow::SlotEncrypt() {
 
   GFBuffer secure_plain_text(plain_text);
 
-  plain_text.fill(QLatin1Char('X'));
-  plain_text.clear();
+  WipeString(plain_text);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
@@ -426,8 +426,7 @@ void MainWindow::SlotEncryptSign() {
 
   GFBuffer secure_plain_text(plain_text);
 
-  plain_text.fill(QLatin1Char('X'));
-  plain_text.clear();
+  WipeString(plain_text);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 

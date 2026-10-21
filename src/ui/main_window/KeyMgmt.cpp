@@ -37,6 +37,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "function/SetOwnerTrustLevel.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -415,8 +416,11 @@ void KeyMgmt::SlotExportKeyToClipboard() {
                   }
 
                   auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-                  QApplication::clipboard()->setText(
-                      gf_buffer.ConvertToQByteArray());
+                  auto key_text = gf_buffer.ConvertToQByteArray();
+                  QApplication::clipboard()->setText(key_text);
+                  // The clipboard copy is what the user asked for; this only
+                  // drops the intermediate we made on the way there.
+                  WipeByteArray(key_text);
                 });
       });
 }
@@ -568,8 +572,7 @@ void KeyMgmt::SlotImportKeyPackage() {
   if (!ok || pin.isEmpty()) return;
 
   GFBuffer buf(pin);
-  pin.fill('X');
-  pin.clear();
+  WipeString(pin);
 
   QPointer<KeyMgmt> self = this;
 

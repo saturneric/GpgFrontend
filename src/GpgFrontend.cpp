@@ -39,6 +39,7 @@
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
 #include "Security.h"
+#include "core/utils/MemoryUtils.h"
 
 /**
  *
@@ -125,8 +126,7 @@ auto main(int argc, char* argv[]) -> int {
     if (!ok || pin.isEmpty()) return 1;
 
     buf = GpgFrontend::GFBuffer(pin);
-    pin.fill('X');
-    pin.clear();
+    GpgFrontend::WipeString(pin);
   }
 
   if (!GpgFrontend::InitAppSecureKey(buf)) return 1;

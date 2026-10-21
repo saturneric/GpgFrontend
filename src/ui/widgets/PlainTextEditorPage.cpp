@@ -31,6 +31,8 @@
 #include "core/model/SettingsObject.h"
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/MemoryUtils.h"
+#include "ui/function/SecureWipe.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 
@@ -253,7 +255,9 @@ void PlainTextEditorPage::set_editor_modified(bool modified) {
 }
 
 void PlainTextEditorPage::closeEvent(QCloseEvent *event) {
-  if (ui_ && (ui_->textPage != nullptr)) Clear();
+  // A backstop for close routes other than the tab bar; the tab close and the
+  // window close both call WipeContent() directly.
+  WipeContent();
   QWidget::closeEvent(event);
 }
 
@@ -415,24 +419,13 @@ auto PlainTextEditorPage::ReadDone() const -> bool { return this->read_done_; }
 void PlainTextEditorPage::Clear() {
   if (ui_ == nullptr || ui_->textPage == nullptr) return;
 
-  auto *editor = ui_->textPage;
-
-  editor->setUndoRedoEnabled(false);
-
-  const auto char_count = editor->document()->characterCount();
-  if (char_count > 1) {
-    editor->selectAll();
-    editor->insertPlainText(QString(char_count - 1, QChar(0x2022)));
-  }
-
-  editor->clear();
-  editor->document()->clearUndoRedoStacks();
-  editor->document()->setModified(false);
-  editor->setUndoRedoEnabled(true);
+  WipeTextDocument(ui_->textPage->document());
 
   update_status_bar();
   set_editor_modified(false);
 }
+
+void PlainTextEditorPage::WipeContent() { Clear(); }
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));

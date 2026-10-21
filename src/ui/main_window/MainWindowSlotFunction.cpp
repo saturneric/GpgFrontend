@@ -39,6 +39,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
@@ -78,7 +79,9 @@ void MainWindow::slot_append_selected_keys() {
     return;
   }
 
-  edit_->SlotAppendText2CurTextPage(gf_buffer.ConvertToQByteArray());
+  auto key_text = gf_buffer.ConvertToQByteArray();
+  edit_->SlotAppendText2CurTextPage(key_text);
+  WipeByteArray(key_text);
 }
 
 void MainWindow::slot_append_keys_create_datetime() {
@@ -201,8 +204,7 @@ void MainWindow::slot_import_key_from_edit() {
   CommonUtils::GetInstance()->SlotImportKeys(
       this, m_key_list_->GetCurrentGpgContextChannel(), GFBuffer(plain_text));
 
-  plain_text.fill('X');
-  plain_text.clear();
+  WipeByteArray(plain_text);
 }
 
 void MainWindow::slot_import_keys_from_key_server(const QStringList& fprs) {
@@ -518,8 +520,7 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
   auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
-  buffer.fill('X');
-  buffer.clear();
+  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
@@ -594,8 +595,7 @@ void MainWindow::SlotCustomSign(const QString& type) {
   auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
-  buffer.fill('X');
-  buffer.clear();
+  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Signing"),
@@ -689,8 +689,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
   auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
-  buffer.fill('X');
-  buffer.clear();
+  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
@@ -751,8 +750,7 @@ void MainWindow::SlotCustomDecryptVerify(const QString& type) {
   auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
-  buffer.fill('X');
-  buffer.clear();
+  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),

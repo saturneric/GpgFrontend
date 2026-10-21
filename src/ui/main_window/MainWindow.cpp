@@ -271,6 +271,12 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     event->ignore();
     return;
   }
+
+  // Only now that the close is certain: wipe what the editor pages and the
+  // info board are holding before anything is torn down.
+  edit_->WipeAllTabs();
+  info_board_->SlotReset();
+
   GeneralMainWindow::closeEvent(event);
 }
 
