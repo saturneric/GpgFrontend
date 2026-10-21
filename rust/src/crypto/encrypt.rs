@@ -39,7 +39,7 @@ use pgp::{
 };
 use zeroize::Zeroizing;
 
-use crate::utils::{armor_opts, password_from_zeroizing_bytes};
+use crate::utils::{armor_opts, armor_opts_for, password_from_zeroizing_bytes};
 
 use super::*;
 
@@ -86,9 +86,9 @@ pub fn validate_argon2_s2k_params(t: u8, p: u8, m_enc: u8) -> bool {
         return false;
     }
 
-    // RFC 9580 §3.7.1.4: the encoded memory size must leave at least 8*p
-    // blocks, i.e. m_enc >= ceil(log_2(p)).
-    let min_m_enc = (p as f32).log2().ceil() as u8;
+    // RFC 9580 §3.7.1.4: "The encoded memory size MUST be a value from
+    // 3+ceil(log_2(p)) to 31" (2^m_enc KiB of at least 8*p KiB).
+    let min_m_enc = 3 + (p as f32).log2().ceil() as u8;
     m_enc >= min_m_enc && m_enc <= 21
 }
 
@@ -229,6 +229,9 @@ fn encryption_subkey_problem(
     if !subkey.key.algorithm().can_encrypt() {
         return Some("not encryption-capable");
     }
+    if crate::key::rsa_key_too_small(subkey.key.public_params()) {
+        return Some("an RSA key under 2048 bits (RFC 9580 §12.4)");
+    }
     if crate::key::is_subkey_revoked(primary, &subkey.key, &subkey.signatures) {
         return Some("revoked");
     }
@@ -254,6 +257,9 @@ fn encryption_subkey_problem(
 fn encryption_primary_problem(cert: &SignedPublicKey, pref: &Signature) -> Option<&'static str> {
     if !cert.primary_key.algorithm().can_encrypt() {
         return Some("not encryption-capable");
+    }
+    if crate::key::rsa_key_too_small(cert.primary_key.public_params()) {
+        return Some("an RSA key under 2048 bits (RFC 9580 §12.4)");
     }
     if !flags_allow_encryption(pref) {
         return Some("not flagged for encryption");
@@ -466,9 +472,22 @@ impl RecipientCaps {
     fn of(cert: &SignedPublicKey, target: &EncryptionTarget) -> Self {
         let pref = crate::key::preference_self_signature(cert);
 
+        // RFC 9980 §7.1: a certificate with a post-quantum key implicitly
+        // lists AES-256 (and AES-256 with OCB) after its explicit
+        // preferences; "if AES-128 is also implicitly added ..., it is added
+        // after AES-256".
+        let has_pq_key = cert.primary_key.algorithm().is_pqc()
+            || cert
+                .public_subkeys
+                .iter()
+                .any(|sk| sk.key.algorithm().is_pqc());
+
         let mut symmetric = pref
             .map(|sig| sig.preferred_symmetric_algs().to_vec())
             .unwrap_or_default();
+        if has_pq_key && !symmetric.contains(&SymmetricKeyAlgorithm::AES256) {
+            symmetric.push(SymmetricKeyAlgorithm::AES256);
+        }
         if !symmetric.contains(&SymmetricKeyAlgorithm::AES128) {
             symmetric.push(SymmetricKeyAlgorithm::AES128);
         }
@@ -476,6 +495,10 @@ impl RecipientCaps {
         let mut aead = pref
             .map(|sig| sig.preferred_aead_algs().to_vec())
             .unwrap_or_default();
+        let pq_implied = (SymmetricKeyAlgorithm::AES256, AeadAlgorithm::Ocb);
+        if has_pq_key && !aead.contains(&pq_implied) {
+            aead.push(pq_implied);
+        }
         let mandatory = (SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Ocb);
         if !aead.contains(&mandatory) {
             aead.push(mandatory);
@@ -685,7 +708,7 @@ where
     // The v1 and v2 builders are distinct types with inherent `encrypt_to_key`
     // methods, so the recipient loop and the write are shared through a macro.
     macro_rules! encrypt_to_targets_and_write {
-        ($enc_builder:ident, $pkesk_version:literal) => {{
+        ($enc_builder:ident, $pkesk_version:literal, $v4_only:expr) => {{
             let pkesk_version = $pkesk_version;
             for (cert, target) in &targets {
                 // Record the component actually used so callers can show the
@@ -728,7 +751,13 @@ where
             }
 
             if ascii_armor {
-                $enc_builder.to_armored_writer(&mut rng, armor_opts(), &mut output_stream)
+                // RFC 9580 §6.1: a CRC24 footer only for a v1 SEIPD message
+                // (GnuPG interoperability), never one ending in a v2 SEIPD.
+                $enc_builder.to_armored_writer(
+                    &mut rng,
+                    armor_opts_for($v4_only),
+                    &mut output_stream,
+                )
             } else {
                 $enc_builder.to_writer(&mut rng, &mut output_stream)
             }
@@ -738,11 +767,11 @@ where
     let result = match container {
         Container::SeipdV2(sym, aead) => {
             let mut enc_builder = builder.seipd_v2(&mut rng, sym, aead, ChunkSize::default());
-            encrypt_to_targets_and_write!(enc_builder, "v6")
+            encrypt_to_targets_and_write!(enc_builder, "v6", false)
         }
         Container::SeipdV1(sym) => {
             let mut enc_builder = builder.seipd_v1(&mut rng, sym);
-            encrypt_to_targets_and_write!(enc_builder, "v3")
+            encrypt_to_targets_and_write!(enc_builder, "v3", true)
         }
     };
 
@@ -960,16 +989,20 @@ mod encrypt_tests {
     //! a change is deliberate.
 
     use super::*;
-    use crate::testutil::{cb, corpus, keys, packets};
+    use crate::testutil::{cb, corpus, interop, keys, packets};
 
     // RFC 9580 3.7.1.4 requires m_enc to leave at least 8*p blocks.
     // parameters_rpgp_would_reject_are_refused covers the reject side of that
     // bound; this pins the accept side, so tightening the rule is caught too.
     #[test]
     fn the_smallest_memory_size_each_parallelism_allows_is_accepted() {
-        assert!(validate_argon2_s2k_params(1, 4, 2), "p=4 at its minimum");
-        assert!(!validate_argon2_s2k_params(1, 4, 1), "p=4 one below");
-        assert!(validate_argon2_s2k_params(1, 1, 0), "p=1 demands nothing");
+        // RFC 9580 §3.7.1.4: "The encoded memory size MUST be a value from
+        // 3+ceil(log_2(p)) to 31, such that the decoded memory size m is a
+        // value from 8*p to 2**31."
+        assert!(validate_argon2_s2k_params(1, 4, 5), "p=4 at its minimum");
+        assert!(!validate_argon2_s2k_params(1, 4, 4), "p=4 one below");
+        assert!(validate_argon2_s2k_params(1, 1, 3), "p=1 at its minimum");
+        assert!(!validate_argon2_s2k_params(1, 1, 2), "p=1 one below");
     }
 
     fn cert_of(fixture: &keys::Fixture) -> SignedPublicKey {
@@ -1021,6 +1054,20 @@ mod encrypt_tests {
         // The only encryption subkey is revoked and the primary is Ed25519,
         // so there is nothing left to encrypt to.
         assert!(target_of(&cert, None).is_err());
+    }
+
+    #[test]
+    fn an_rsa_key_under_2048_bits_is_never_an_encryption_target() {
+        // RFC 9580 §12.4: "MUST NOT encrypt ... using RSA keys of a size less
+        // than 2048 bits."
+        let cert = cert_of(&keys::V4_RSA1024);
+        assert!(target_of(&cert, None).is_err());
+        // RSA can sign, so the fixture lists its only subkey as a signing one.
+        let pinned = keys::V4_RSA1024.secret.secret_subkeys[0]
+            .key
+            .fingerprint()
+            .to_string();
+        assert!(target_of(&cert, Some(&pinned)).is_err());
     }
 
     #[test]
@@ -1113,9 +1160,11 @@ mod encrypt_tests {
     }
 
     #[test]
-    fn armored_output_carries_no_crc24_footer() {
+    fn armored_v1_output_carries_a_crc24_footer() {
+        // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
+        // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
         let out = encrypt_to(&keys::V4_SIGN, b"payload");
-        crate::testutil::assert::armor_has_no_crc24(&String::from_utf8_lossy(&out.data));
+        crate::testutil::assert::armor_has_crc24(&String::from_utf8_lossy(&out.data));
     }
 
     #[test]
@@ -1305,6 +1354,98 @@ mod encrypt_tests {
             })
             .collect();
         select_container(&caps)
+    }
+
+    /// `fixture`'s certificate re-signed with a Direct Key signature whose
+    /// preferences name only AES-128 (and AES-128/OCB).
+    fn aes128_only_cert(fixture: &keys::Fixture) -> Recipient {
+        use pgp::packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData};
+        let mut sk = fixture.secret.clone();
+        let primary = sk.primary_key.clone();
+        let old = sk
+            .details
+            .direct_signatures
+            .iter()
+            .find(|sig| matches!(sig.typ(), Some(SignatureType::Key)))
+            .expect("a direct key signature")
+            .clone();
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), &primary, SignatureType::Key).unwrap();
+        cfg.hashed_subpackets = old
+            .config()
+            .unwrap()
+            .hashed_subpackets
+            .iter()
+            .filter(|sp| {
+                !matches!(
+                    sp.data,
+                    SubpacketData::PreferredSymmetricAlgorithms(_)
+                        | SubpacketData::PreferredAeadAlgorithms(_)
+                        | SubpacketData::SignatureCreationTime(_)
+                )
+            })
+            .cloned()
+            .collect();
+        cfg.hashed_subpackets.extend([
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                pgp::types::Timestamp::from_secs(pgp::types::Timestamp::now().as_secs() + 1),
+            ))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::PreferredSymmetricAlgorithms(
+                [SymmetricKeyAlgorithm::AES128].into_iter().collect(),
+            ))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::PreferredAeadAlgorithms(
+                [(SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Ocb)]
+                    .into_iter()
+                    .collect(),
+            ))
+            .unwrap(),
+        ]);
+        let sig = cfg
+            .sign_key(
+                &primary,
+                &pgp::types::Password::empty(),
+                primary.public_key(),
+            )
+            .unwrap();
+        sk.details.direct_signatures = vec![sig];
+        (
+            SignedPublicKey::from(sk.clone())
+                .to_armored_string(crate::utils::armor_opts())
+                .unwrap(),
+            sk.to_armored_string(crate::utils::armor_opts()).unwrap(),
+        )
+    }
+
+    #[test]
+    fn a_pq_certificate_implies_aes256_after_its_explicit_preferences() {
+        // RFC 9980 §7.1: "If AES-256 is not explicitly in the list ... and if
+        // the certificate contains a PQ(/T) key, it is implicitly at the end
+        // of the list"; "An implementation SHOULD use AES-256 ... if all
+        // recipient certificates indicate support for it (explicitly or
+        // implicitly)." The same holds for AES-256 with OCB.
+        let pq = aes128_only_cert(&keys::V6_PQ);
+        assert_eq!(
+            container_for(&[&pq]),
+            Ok(Container::SeipdV2(
+                SymmetricKeyAlgorithm::AES256,
+                AeadAlgorithm::Ocb
+            ))
+        );
+    }
+
+    #[test]
+    fn a_classical_certificate_gets_no_implicit_aes256() {
+        // Without a PQ key only AES-128 is implied (RFC 9580 §5.2.3.14-15).
+        let classical = aes128_only_cert(&keys::V6_SIGN);
+        assert_eq!(
+            container_for(&[&classical]),
+            Ok(Container::SeipdV2(
+                SymmetricKeyAlgorithm::AES128,
+                AeadAlgorithm::Ocb
+            ))
+        );
     }
 
     /// Encrypt `data` (binary) to `recipients`.
@@ -1686,135 +1827,9 @@ mod encrypt_tests {
             .expect("armor")
     }
 
-    /// Whether `tool` can be spawned. Only spawning is checked: `sq` has no
-    /// `--version` flag and exits non-zero on it.
-    fn on_path(tool: &str) -> bool {
-        std::process::Command::new(tool)
-            .arg("--help")
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .status()
-            .is_ok()
-    }
-
-    /// Decrypt `data` with Sequoia's `sq`, or `None` if `sq` is not installed.
-    fn sq_decrypt(secret: &str, data: &[u8]) -> Option<Vec<u8>> {
-        if !on_path("sq") {
-            eprintln!("sq not installed; skipping the Sequoia interop check");
-            return None;
-        }
-        let dir = tempfile::tempdir().expect("tempdir");
-        let key = dir.path().join("key.asc");
-        let pw = dir.path().join("pw.txt");
-        let msg = dir.path().join("msg.pgp");
-        std::fs::write(&key, secret).unwrap();
-        std::fs::write(&pw, std::str::from_utf8(corpus::CORPUS_PASSPHRASE).unwrap()).unwrap();
-        std::fs::write(&msg, data).unwrap();
-        let out = std::process::Command::new("sq")
-            .args([
-                "--batch",
-                "--cert-store=none",
-                "--key-store=none",
-                "decrypt",
-            ])
-            .arg("--recipient-file")
-            .arg(&key)
-            .arg("--password-file")
-            .arg(&pw)
-            .arg(&msg)
-            .output()
-            .expect("run sq");
-        assert!(
-            out.status.success(),
-            "sq decrypt failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-        Some(out.stdout)
-    }
-
-    /// A throwaway GnuPG home holding a freshly generated default key, so the
-    /// interop check runs against a certificate GnuPG itself made. `None` if
-    /// `gpg` is not installed.
-    struct GnupgHome {
-        home: tempfile::TempDir,
-        /// The key's public certificate, as GnuPG exports it.
-        cert: String,
-    }
-
-    impl GnupgHome {
-        fn new() -> Option<Self> {
-            if !on_path("gpg") {
-                eprintln!("gpg not installed; skipping the GnuPG interop check");
-                return None;
-            }
-            // A short path: gpg-agent's socket must fit in sun_path.
-            let home = tempfile::Builder::new()
-                .prefix("gf")
-                .tempdir_in("/tmp")
-                .or_else(|_| tempfile::tempdir())
-                .expect("tempdir");
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                let _ =
-                    std::fs::set_permissions(home.path(), std::fs::Permissions::from_mode(0o700));
-            }
-            let mut this = GnupgHome {
-                home,
-                cert: String::new(),
-            };
-            let generated = this.gpg(&[
-                "--passphrase",
-                "",
-                "--quick-gen-key",
-                "GF Interop <gf-interop@example.test>",
-                "default",
-                "default",
-                "never",
-            ]);
-            assert!(generated.status.success(), "{}", lossy(&generated.stderr));
-            let exported = this.gpg(&["--armor", "--export"]);
-            assert!(exported.status.success(), "{}", lossy(&exported.stderr));
-            this.cert = String::from_utf8(exported.stdout).expect("armored");
-            Some(this)
-        }
-
-        fn gpg(&self, args: &[&str]) -> std::process::Output {
-            std::process::Command::new("gpg")
-                .arg("--homedir")
-                .arg(self.home.path())
-                .args(["--batch", "--yes", "--pinentry-mode", "loopback"])
-                .args(args)
-                .output()
-                .expect("run gpg")
-        }
-
-        fn decrypt(&self, data: &[u8]) -> Vec<u8> {
-            let msg = self.home.path().join("msg.pgp");
-            std::fs::write(&msg, data).unwrap();
-            let out = self.gpg(&["--decrypt", msg.to_str().unwrap()]);
-            assert!(
-                out.status.success(),
-                "gpg decrypt failed: {}",
-                lossy(&out.stderr)
-            );
-            out.stdout
-        }
-    }
-
-    impl Drop for GnupgHome {
-        fn drop(&mut self) {
-            let _ = std::process::Command::new("gpgconf")
-                .arg("--homedir")
-                .arg(self.home.path())
-                .args(["--kill", "gpg-agent"])
-                .output();
-        }
-    }
-
-    fn lossy(bytes: &[u8]) -> std::borrow::Cow<'_, str> {
-        String::from_utf8_lossy(bytes)
-    }
+    // These use `testutil::interop`, so a missing `gpg` or `sq` fails the
+    // test rather than skipping it silently (set GF_ALLOW_MISSING_INTEROP_TOOLS=1
+    // to skip it explicitly).
 
     #[test]
     fn sequoia_decrypts_the_v2_message_we_send_to_its_v6_key() {
@@ -1828,14 +1843,18 @@ mod encrypt_tests {
         .expect("encrypt")
         .data;
         assert_eq!(assert_esk_versions_match(&data), 2);
-        if let Some(plain) = sq_decrypt(corpus::AUX_V6_SECRET, &data) {
-            assert_eq!(plain, b"interop v2");
-        }
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        assert_eq!(
+            sq.decrypt(corpus::AUX_V6_SECRET, corpus::CORPUS_PASSPHRASE, &data),
+            b"interop v2"
+        );
     }
 
     #[test]
     fn gnupg_decrypts_the_v1_message_we_send_to_its_key() {
-        let Some(gnupg) = GnupgHome::new() else {
+        let Some(gnupg) = interop::Gnupg::new() else {
             return;
         };
         // GnuPG does not implement RFC 9580's SEIPD v2, and its certificates do
@@ -1851,24 +1870,43 @@ mod encrypt_tests {
 
     #[test]
     fn a_mixed_sequoia_and_gnupg_recipient_set_is_readable_by_both() {
+        let (Some(gnupg), Some(sq)) = (interop::Gnupg::new(), interop::Sq::new()) else {
+            return;
+        };
         let sq_cert = public_armored(&corpus::AUX_V6_KEY);
-        let gnupg = GnupgHome::new();
-        let mut blocks = vec![sq_cert.as_str()];
-        if let Some(g) = &gnupg {
-            blocks.push(&g.cert);
-        } else {
-            blocks.push(&keys::V4_SIGN.public_armored);
-        }
-        let data = encrypt_internal(0, "", b"interop mixed", &blocks, false)
+        let data = encrypt_internal(0, "", b"interop mixed", &[&sq_cert, &gnupg.cert], false)
             .expect("encrypt")
             .data;
         assert_eq!(assert_esk_versions_match(&data), 1);
-        if let Some(plain) = sq_decrypt(corpus::AUX_V6_SECRET, &data) {
-            assert_eq!(plain, b"interop mixed");
-        }
-        if let Some(g) = &gnupg {
-            assert_eq!(g.decrypt(&data), b"interop mixed");
-        }
+        assert_eq!(
+            sq.decrypt(corpus::AUX_V6_SECRET, corpus::CORPUS_PASSPHRASE, &data),
+            b"interop mixed"
+        );
+        assert_eq!(gnupg.decrypt(&data), b"interop mixed");
+    }
+
+    #[test]
+    fn sequoia_decrypts_our_password_encrypted_message() {
+        // §10.3.2.1: v6 SKESK + v2 SEIPD (Argon2, AES-256/OCB). GnuPG 2.4
+        // cannot read this format; that is a product-policy limitation
+        // recorded in the audit's interop matrix, not tested here.
+        let mut out = Vec::new();
+        encrypt_stream_with_password_internal(
+            0,
+            "",
+            &b"interop password"[..],
+            &mut out,
+            Some(cb::pwd_correct),
+            false,
+        )
+        .expect("encrypt");
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        assert_eq!(
+            sq.decrypt_with_password(cb::CORRECT_PASSPHRASE, &out),
+            b"interop password"
+        );
     }
 
     #[test]

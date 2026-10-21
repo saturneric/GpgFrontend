@@ -26,7 +26,7 @@
  *
  */
 
-use crate::utils::{armor_opts, password_from_zeroizing_bytes};
+use crate::utils::{armor_opts_for, is_v4_era, password_from_zeroizing_bytes};
 
 use pgp::{
     packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData},
@@ -152,9 +152,13 @@ where
                 return Err(GfrStatus::ErrorInvalidInput);
             }
 
-            // Execute the pipeline: read from input, sign chunks, write to output
+            // Execute the pipeline: read from input, sign chunks, write to output.
+            // RFC 9580 §6.1: a CRC24 footer only when every signer is v4.
+            let v4_only = parsed_keys
+                .iter()
+                .all(|(skey, _)| is_v4_era(skey.primary_key.version()));
             let result = if ascii_armor {
-                builder.to_armored_writer(&mut rng, armor_opts(), &mut output_stream)
+                builder.to_armored_writer(&mut rng, armor_opts_for(v4_only), &mut output_stream)
             } else {
                 builder.to_writer(&mut rng, &mut output_stream)
             };
@@ -289,10 +293,24 @@ where
             })
             .map_err(|_| GfrStatus::ErrorInternal)?;
 
-            let out = msg
-                .to_armored_string(armor_opts())
-                .map_err(|_| GfrStatus::ErrorArmorFailed)?
-                .into_bytes();
+            // RFC 9580 §6.1: a CRC24 footer only when every signature is v4.
+            let v4_only = msg
+                .signatures()
+                .iter()
+                .all(|sig| sig.version() == pgp::packet::SignatureVersion::V4);
+            let armored = msg
+                .to_armored_string(armor_opts_for(v4_only))
+                .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+            let all_v6 = msg
+                .signatures()
+                .iter()
+                .all(|sig| sig.version() == pgp::packet::SignatureVersion::V6);
+            let out = if all_v6 {
+                strip_cleartext_hash_headers(&armored)
+            } else {
+                armored
+            }
+            .into_bytes();
 
             output_stream.write_all(&out).map_err(|_| {
                 crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
@@ -319,7 +337,7 @@ where
                 return Err(GfrStatus::ErrorInvalidInput);
             }
 
-            let mut all_out = Vec::new();
+            let mut all_sigs = Vec::new();
             let mut at_least_one_signer = false;
 
             for (skey, target) in &parsed_keys {
@@ -349,13 +367,7 @@ where
                     match sig_res {
                         Ok(sig) => {
                             record_sig(fpr, algo_str);
-                            let out = if ascii_armor {
-                                sig.to_armored_bytes(armor_opts())
-                                    .record_err(GfrStatus::ErrorArmorFailed)?
-                            } else {
-                                sig.to_bytes().record_err(GfrStatus::ErrorInternal)?
-                            };
-                            return Ok(out);
+                            return Ok(sig);
                         }
                         Err(e) => {
                             log::warn!("Signing failed for {}. Evicting bad password.", fpr);
@@ -366,13 +378,37 @@ where
                     }
                 })?;
 
-                all_out.extend_from_slice(&res);
+                all_sigs.push(res);
                 at_least_one_signer = true;
             }
 
             if !at_least_one_signer {
                 return Err(GfrStatus::ErrorInvalidInput);
             }
+
+            // One detached signature is "one or more Signature packets" (RFC
+            // 9580 §10.4): armored, all of them go into a single block.
+            let all_out = if ascii_armor {
+                // RFC 9580 §6.1: a CRC24 footer only when every signature
+                // is v4, never for v6 signatures.
+                let opts = armor_opts_for(
+                    all_sigs
+                        .iter()
+                        .all(|sig| sig.signature.version() == pgp::packet::SignatureVersion::V4),
+                );
+                let mut armored = Vec::new();
+                pgp::armor::write(
+                    &all_sigs,
+                    pgp::armor::BlockType::Signature,
+                    &mut armored,
+                    opts.headers,
+                    opts.include_checksum,
+                )
+                .record_err(GfrStatus::ErrorArmorFailed)?;
+                armored
+            } else {
+                all_sigs.to_bytes().record_err(GfrStatus::ErrorInternal)?
+            };
 
             output_stream.write_all(&all_out).map_err(|_| {
                 crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
@@ -405,6 +441,30 @@ fn sha512_signature_config<R: rand::CryptoRng + rand::Rng>(
             HashAlgorithm::Sha512,
         )),
     }
+}
+
+/// Drop the `Hash:` armor headers of a cleartext signed message. rPGP always
+/// writes them, but RFC 9580 §6.2.2.3 says they "SHOULD NOT be emitted
+/// unless ... the cleartext signed message contains a version 4 signature
+/// made using a SHA2-based digest" (for legacy verifiers).
+fn strip_cleartext_hash_headers(armored: &str) -> String {
+    let mut lines = armored.split_inclusive('\n');
+    let mut out = String::with_capacity(armored.len());
+    if let Some(begin) = lines.next() {
+        out.push_str(begin);
+    }
+    let mut in_headers = true;
+    for line in lines {
+        if in_headers {
+            if line.trim_end_matches(['\r', '\n']).is_empty() {
+                in_headers = false;
+            } else if line.starts_with("Hash: ") {
+                continue;
+            }
+        }
+        out.push_str(line);
+    }
+    out
 }
 
 /// Strip spaces and tabs from the end of every line (RFC 9580 §7.1). A
@@ -530,15 +590,16 @@ mod sign_tests {
     }
 
     #[test]
-    fn armored_output_carries_no_crc24_footer() {
-        // §6.1: generating the footer is discouraged and forbidden for v6.
+    fn armored_v4_output_carries_a_crc24_footer() {
+        // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
+        // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
         for mode in [
             GfrSignMode::Detached,
             GfrSignMode::Inline,
             GfrSignMode::ClearText,
         ] {
             let out = sign(b"payload", &keys::V4_SIGN.secret_armored, mode, true);
-            crate::testutil::assert::armor_has_no_crc24(&String::from_utf8_lossy(&out.data));
+            crate::testutil::assert::armor_has_crc24(&String::from_utf8_lossy(&out.data));
         }
     }
 
@@ -774,6 +835,78 @@ mod sign_tests {
     }
 
     #[test]
+    fn an_armored_two_signer_detached_signature_is_one_block_with_both_packets() {
+        // RFC 9580 §10.4: a detached signature is "one or more Signature
+        // packets"; armored, that is one block carrying all of them.
+        let out = sign_internal(
+            0,
+            "",
+            b"payload",
+            &[&keys::V4_SIGN.secret_armored, &keys::V6_SIGN.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            true,
+        )
+        .expect("sign");
+        let text = String::from_utf8(out.data.clone()).expect("armor is text");
+        assert_eq!(text.matches("-----BEGIN PGP SIGNATURE-----").count(), 1);
+        assert_eq!(
+            crate::crypto::parse_all_signature_packets(&out.data).len(),
+            2
+        );
+    }
+
+    fn cleartext_headers(signed: &[u8]) -> Vec<String> {
+        let text = String::from_utf8(signed.to_vec()).expect("cleartext is text");
+        text.lines()
+            .skip(1)
+            .take_while(|line| !line.is_empty())
+            .map(str::to_string)
+            .collect()
+    }
+
+    #[test]
+    fn a_v6_cleartext_signature_carries_no_hash_header() {
+        // RFC 9580 §6.2.2.3: Hash headers "SHOULD NOT be emitted unless ...
+        // the cleartext signed message contains a version 4 signature made
+        // using a SHA2-based digest".
+        let out = sign_internal(
+            0,
+            "",
+            b"text\n",
+            &[&keys::V6_SIGN.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .expect("sign");
+        assert!(
+            cleartext_headers(&out.data).is_empty(),
+            "{:?}",
+            cleartext_headers(&out.data)
+        );
+    }
+
+    #[test]
+    fn a_v4_cleartext_signature_keeps_its_hash_header() {
+        // The legacy-verifier exception of §6.2.2.3.
+        let out = sign_internal(
+            0,
+            "",
+            b"text\n",
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .expect("sign");
+        assert_eq!(
+            cleartext_headers(&out.data),
+            vec!["Hash: SHA512".to_string()]
+        );
+    }
+
+    #[test]
     fn two_signers_are_reported_with_distinct_issuers() {
         let out = sign_internal(
             0,
@@ -985,5 +1118,113 @@ mod sign_tests {
         );
         crate::cancel::set_cancelled(CH, false);
         assert!(res.is_err(), "a cancelled signing operation must abort");
+    }
+}
+
+#[cfg(test)]
+mod sign_interop_tests {
+    //! Signatures GF produces, consumed by GnuPG and Sequoia. Each case
+    //! names the RFC 9580 rule the produced object follows; an interop pass
+    //! alone does not prove conformance, the packet checks in `sign_tests` do.
+
+    use super::*;
+    use crate::testutil::{interop, keys};
+    use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+
+    const TEXT: &[u8] = b"interop text   \nwith a trailing tab\t\n- dash line\n";
+
+    fn sign(signers: &[&str], mode: GfrSignMode, data: &[u8]) -> Vec<u8> {
+        sign_internal(0, "", data, signers, None, mode, true)
+            .expect("sign")
+            .data
+    }
+
+    #[test]
+    fn gnupg_verifies_our_armored_two_signer_detached_signature() {
+        // §10.4: one detached signature object, one armor block, both packets.
+        let Some(gpg) = interop::Gnupg::new() else {
+            return;
+        };
+        let second = keys::generate(
+            "P256 Second <p256-second@example.test>",
+            &keys::cfg(GfrKeyAlgo::NISTP256, true, false, GfrOpenPGPKeyVersion::V4),
+            &[],
+        );
+        let second_secret = second
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+        let second_public = SignedPublicKey::from(second)
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+        gpg.import(&keys::V4_NISTP256.public_armored);
+        gpg.import(&second_public);
+
+        let sig = sign(
+            &[&keys::V4_NISTP256.secret_armored, &second_secret],
+            GfrSignMode::Detached,
+            TEXT,
+        );
+        let out = gpg.verify(&sig, Some(TEXT));
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(out.status.success(), "{stderr}");
+        assert_eq!(stderr.matches("Good signature").count(), 2, "{stderr}");
+    }
+
+    #[test]
+    fn gnupg_and_sequoia_verify_our_v4_cleartext_signature_over_trailing_whitespace() {
+        // §7.1: trailing whitespace is not part of the signed text.
+        let (Some(gpg), Some(sq)) = (interop::Gnupg::new(), interop::Sq::new()) else {
+            return;
+        };
+        let signed = sign(
+            &[&keys::V4_NISTP256.secret_armored],
+            GfrSignMode::ClearText,
+            TEXT,
+        );
+        gpg.import(&keys::V4_NISTP256.public_armored);
+        let out = gpg.verify(&signed, None);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let out = sq.verify(&keys::V4_NISTP256.public_armored, &signed, None);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    #[test]
+    fn sequoia_verifies_our_v6_cleartext_and_detached_signatures() {
+        // §5.2.3: the v6 salt matches SHA2-512; §6.2.2.3: no Hash header.
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        let cert = &keys::V6_SIGN.public_armored;
+        let signed = sign(
+            &[&keys::V6_SIGN.secret_armored],
+            GfrSignMode::ClearText,
+            TEXT,
+        );
+        let out = sq.verify(cert, &signed, None);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+
+        let sig = sign(
+            &[&keys::V6_SIGN.secret_armored],
+            GfrSignMode::Detached,
+            TEXT,
+        );
+        let out = sq.verify(cert, &sig, Some(TEXT));
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
     }
 }

@@ -29,22 +29,15 @@
 use std::ffi::c_char;
 
 use pgp::{
-    composed::{DecryptionOptions, TheRing},
-    types::Seipdv1ReadMode,
+    composed::{DecryptionOptions, PlainSessionKey, TheRing, decrypt_session_key_with_password},
+    crypto::sym::SymmetricKeyAlgorithm,
+    types::{DecryptionKey, EskType, PkeskVersion, Seipdv1ReadMode, SkeskVersion},
 };
 use zeroize::Zeroizing;
 
 use crate::{host::gfc_secure_free_cstr, utils::password_from_zeroizing_bytes};
 
 use super::*;
-
-/// Upper bound on how many nested compression layers a message may carry before
-/// decryption is aborted. A doubly-compressed message is legitimate and must be
-/// peeled fully (see step 6), but an unbounded chain of compression packets is a
-/// cheap denial-of-service, so the depth is capped (RFC 9580 §13.14). The
-/// decompressed *output* size is bounded separately by
-/// [`MAX_DECOMPRESSED_OUTPUT_BYTES`].
-const MAX_COMPRESSION_LAYERS: u8 = 16;
 
 /// The largest SEIPD v1 payload an in-memory decryption accepts: rPGP's own
 /// `CheckFirst` default, which buffers the whole payload to authenticate it
@@ -113,17 +106,7 @@ impl<W: Write> Write for TrackedWriter<W> {
     }
 }
 
-/// Whether a streaming read failed because the message is not authentic: a
-/// SEIPD v1 MDC mismatch or a SEIPD v2 AEAD tag failure.
-fn is_integrity_failure(err: &std::io::Error) -> bool {
-    err.get_ref()
-        .and_then(|inner| inner.downcast_ref::<pgp::errors::Error>())
-        .is_some_and(|e| {
-            crate::err::is_mdc_failure(e) || matches!(e, pgp::errors::Error::Aead { .. })
-        })
-}
-
-use crate::err::INTEGRITY_FAILURE_MESSAGE;
+use crate::err::{IntegrityFailure, io_payload_failure, payload_failure};
 
 /// Inspect the ESK (Encrypted Session Key) packets of a parsed message.
 ///
@@ -194,17 +177,17 @@ fn analyze_encrypted_envelope(
     Err(GfrStatus::ErrorInvalidData)
 }
 
-/// Decrypt a symmetrically-encrypted message using a user-supplied passphrase.
+/// Recover the session key from the password-protected session-key packets
+/// (SKESK) with a passphrase from the user.
 ///
 /// Always bypasses the password cache and always asks for a new password
 /// (`ask_for_new: true`) because symmetric encryption has no fingerprint to
 /// key the cache on, so a stale cache entry would silently fail.
-fn decrypt_message_with_password(
+fn skesk_session_key(
     channel: i32,
-    parsed_message: Message,
+    esks: &[Esk],
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    seipdv1_mode: Seipdv1ReadMode,
-) -> Result<Message, GfrStatus> {
+) -> Result<PlainSessionKey, GfrStatus> {
     let password = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
@@ -225,17 +208,211 @@ fn decrypt_message_with_password(
 
     let msg_pw = password_from_zeroizing_bytes(password);
 
-    let ring = TheRing {
-        message_password: vec![&msg_pw],
-        decrypt_options: DecryptionOptions::new().set_seipdv1_read_mode(seipdv1_mode),
-        ..Default::default()
-    };
-    match parsed_message.decrypt_the_ring(ring, true) {
-        Ok((msg, _)) => Ok(msg),
-        // A tampered payload is not a wrong passphrase.
-        Err(e) if crate::err::is_mdc_failure(&e) => Err(e).into_gfr(),
-        Err(e) => Err(e).record_err(GfrStatus::ErrorDecryptionFailed),
+    let mut last_err = None;
+    for esk in esks {
+        let Esk::SymKeyEncryptedSessionKey(skesk) = esk else {
+            continue;
+        };
+        // v5 is GnuPG's pre-standard AEAD draft, which rPGP only reads on
+        // request; a plaintext "session key" is forbidden outright.
+        if skesk.version() == SkeskVersion::V5
+            || !matches!(skesk.sym_algorithm(), Some(alg) if alg != SymmetricKeyAlgorithm::Plaintext)
+        {
+            continue;
+        }
+        match decrypt_session_key_with_password(skesk, &msg_pw) {
+            Ok(key) => return Ok(key),
+            Err(e) => last_err = Some(e),
+        }
     }
+    match last_err {
+        Some(e) => Err(e).record_err(GfrStatus::ErrorDecryptionFailed),
+        None => {
+            set_last_error("the message has no usable password-protected session-key packet");
+            Err(GfrStatus::ErrorDecryptionFailed)
+        }
+    }
+}
+
+/// Recover the session key from the public-key session-key packets (PKESK)
+/// with the secret key the host holds for one of `recipients`, prompting for
+/// that key's passphrase when it is locked. Returns the session key and the
+/// recipient identifier it matched.
+fn pkesk_session_key(
+    channel: i32,
+    esks: &[Esk],
+    recipients: &[RecipientResultInternal],
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    user_data: *mut c_void,
+) -> Result<(PlainSessionKey, String), GfrStatus> {
+    // Request the secret key from C++.
+    let mut target_skey: Option<SignedSecretKey> = None;
+    let mut matched_recipient_id = String::new();
+
+    if let Some(cb) = fetch_seckey_cb {
+        for rec in recipients {
+            let c_key_id = CString::new(rec.key_id.clone()).unwrap_or_default();
+            let c_key_block = cb(c_key_id.as_ptr(), user_data);
+
+            if !c_key_block.is_null() {
+                if let Ok(key_str) = unsafe { CStr::from_ptr(c_key_block) }.to_str() {
+                    if let Ok((cert, _)) = SignedSecretKey::from_string(key_str) {
+                        target_skey = Some(cert);
+                        matched_recipient_id = rec.key_id.clone();
+                    }
+                }
+                unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
+
+                if target_skey.is_some() {
+                    break;
+                }
+            }
+        }
+    }
+
+    let skey = target_skey.ok_or_else(|| {
+        set_last_error("no available secret key matches any recipient of this message");
+        GfrStatus::ErrorNoKey
+    })?;
+
+    // Check if unlocking is needed.
+    let mut needs_password = false;
+    let primary_id = skey.primary_key.legacy_key_id().to_string();
+    let primary_fpr = skey.primary_key.fingerprint().to_string();
+    // A recipient identifier matches a component by either its 8-byte key ID
+    // (v3 PKESK) or its full fingerprint (v6 PKESK); the wildcard matches all.
+    let id_matches = |rec: &str, key_id: &str, fpr: &str| {
+        is_anonymous(rec) || rec.eq_ignore_ascii_case(key_id) || rec.eq_ignore_ascii_case(fpr)
+    };
+    let mut target_fpr_for_pwd = primary_fpr.clone();
+
+    if id_matches(&matched_recipient_id, &primary_id, &primary_fpr)
+        && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
+    {
+        needs_password = true;
+    }
+
+    if !needs_password {
+        for subkey in &skey.secret_subkeys {
+            let subkey_id = subkey.key.legacy_key_id().to_string();
+            let subkey_fpr = subkey.key.fingerprint().to_string();
+            if id_matches(&matched_recipient_id, &subkey_id, &subkey_fpr)
+                && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
+            {
+                needs_password = true;
+                target_fpr_for_pwd = subkey_fpr;
+                break;
+            }
+        }
+    }
+
+    let mut password = Zeroizing::new(Vec::<u8>::new());
+    if needs_password {
+        password = fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            PassphraseStateInternal {
+                fpr: target_fpr_for_pwd.clone(),
+                info: "Decryption".to_string(),
+                retry: false,
+                ask_for_new: false,
+                should_confirm: false,
+            },
+            fetch_pwd_cb,
+        )?;
+    } else {
+        debug!("Target secret key is unlocked. Bypassing password callback.");
+    }
+    let pwd = password_from_zeroizing_bytes(password);
+
+    // Try every PKESK addressed to a component of the key, as rPGP's own ring
+    // would. The outer `Result` of `DecryptionKey::decrypt` is the unlock, the
+    // inner one the session-key decryption.
+    let mut last_err = None;
+    for esk in esks {
+        let Esk::PublicKeyEncryptedSessionKey(pkesk) = esk else {
+            continue;
+        };
+        let typ = match pkesk.version() {
+            PkeskVersion::V3 => EskType::V3_4,
+            PkeskVersion::V6 => EskType::V6,
+            _ => continue,
+        };
+        let Ok(values) = pkesk.values() else {
+            continue;
+        };
+        let mut candidates: Vec<&dyn DecryptionKey> = Vec::new();
+        if pkesk.match_identity(skey.primary_key.public_key()) {
+            candidates.push(&skey.primary_key);
+        }
+        for subkey in &skey.secret_subkeys {
+            if pkesk.match_identity(subkey.public_key()) {
+                candidates.push(&subkey.key);
+            }
+        }
+        for key in candidates {
+            match key.decrypt(&pwd, values, typ) {
+                Ok(Ok(session_key)) => return Ok((session_key, matched_recipient_id)),
+                Ok(Err(e)) => last_err = Some(e),
+                Err(e) => {
+                    if needs_password {
+                        log::warn!(
+                            "Unlocking failed. Evicting bad password for FPR: {}",
+                            target_fpr_for_pwd
+                        );
+                        PASSWORD_CACHE.remove_by_fpr(&target_fpr_for_pwd);
+                    }
+                    set_last_error(&format!(
+                        "the passphrase does not unlock the secret key: {e}"
+                    ));
+                    return Err(GfrStatus::ErrorBadPassphrase);
+                }
+            }
+        }
+    }
+
+    match last_err {
+        Some(e) => Err(e).record_err(GfrStatus::ErrorDecryptionFailed),
+        None => {
+            set_last_error("the secret key does not match any session-key packet of this message");
+            Err(GfrStatus::ErrorNoKey)
+        }
+    }
+}
+
+/// The cipher and mode protecting `parsed`'s payload, in gpgme's
+/// `symkey_algo` form: "AES256.OCB" for a SEIPD v2, "AES256.CFB" for a
+/// SEIPD v1 (whose cipher only the session key names). Empty if unknown.
+fn container_description(parsed: &Message, session_key: &PlainSessionKey) -> String {
+    use pgp::composed::Edata;
+    use pgp::packet::{ProtectedDataConfig, SymEncryptedProtectedDataConfig};
+    let Message::Encrypted {
+        edata: Edata::SymEncryptedProtectedData { reader },
+        ..
+    } = parsed
+    else {
+        return String::new();
+    };
+    let name = |alg: &SymmetricKeyAlgorithm| format!("{alg:?}").to_uppercase();
+    match (reader.config(), session_key) {
+        (
+            ProtectedDataConfig::Seipd(SymEncryptedProtectedDataConfig::V2 {
+                sym_alg, aead, ..
+            }),
+            _,
+        ) => format!("{}.{}", name(&sym_alg), format!("{aead:?}").to_uppercase()),
+        (
+            ProtectedDataConfig::Seipd(SymEncryptedProtectedDataConfig::V1),
+            PlainSessionKey::V3_4 { sym_alg, .. },
+        ) => format!("{}.CFB", name(&sym_alg)),
+        _ => String::new(),
+    }
+}
+
+fn is_anonymous(id: &str) -> bool {
+    id == "0000000000000000"
 }
 
 /// Decrypt and optionally verify a stream in a single pipeline.
@@ -245,8 +422,11 @@ fn decrypt_message_with_password(
 /// `fetch_pubkey_cb` is `Some` and the decrypted payload contains signatures;
 /// passing `None` skips verification entirely without error.
 ///
-/// Anonymous recipients (`key_id = "0000000000000000"`) are accepted — the
-/// message was encrypted without embedding recipient key IDs (hidden recipients).
+/// Anonymous recipients are not supported (RFC 9580 §5.1.8 leaves trying
+/// every private key a MAY): a v3 wildcard key ID ("0000000000000000") is
+/// handed to the host's key lookup, which matches no key, and a v6 wildcard
+/// PKESK names no recipient at all, so either ends in `ErrorNoKey` unless the
+/// message also has a password packet.
 ///
 /// `sink` decides how a SEIPD v1 payload is read and how far decompressed
 /// output may grow (see [`Sink`]). Private on purpose: the public entry points
@@ -272,19 +452,26 @@ where
     // Wrap the source so a user cancel request aborts the streaming read.
     let buf_input = BufReader::new(crate::cancel::CancellableReader::new(channel, input_stream));
 
-    // 1. Parse PGP outer envelope (consumes headers only)
-    let parsed_message = if ascii_armor {
-        Message::from_armor(buf_input)
-            .record_err_with(|| {
-                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
-            })?
-            .0
+    // 1. Parse PGP outer envelope (consumes headers only). Input that ends
+    //    inside a packet is a truncated message, whose integrity is suspect
+    //    (RFC 9580 §13.7), not merely invalid input.
+    let parsed = if ascii_armor {
+        Message::from_armor(buf_input).map(|(msg, _)| msg)
     } else {
-        Message::from_reader(buf_input)
-            .record_err_with(|| {
+        Message::from_reader(buf_input).map(|(msg, _)| msg)
+    };
+    let parsed_message = match parsed {
+        Ok(msg) => msg,
+        Err(e) => {
+            if let Some(kind) =
+                payload_failure(&e).filter(|_| !crate::cancel::is_cancelled(channel))
+            {
+                return Err(kind.report());
+            }
+            return Err(e).record_err_with(|| {
                 crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
-            })?
-            .0
+            });
+        }
     };
 
     let (has_pkesk, has_skesk, mut recipients) = analyze_encrypted_envelope(&parsed_message)?;
@@ -297,121 +484,84 @@ where
         return Err(GfrStatus::ErrorInvalidData);
     }
 
-    let mut decrypted: Message;
-    if has_skesk {
-        debug!("Message is encrypted with a passphrase. Attempting password-based decryption.");
-        decrypted =
-            decrypt_message_with_password(channel, parsed_message, fetch_pwd_cb, seipdv1_mode)?;
-    } else {
-        // 3. Request Secret Key from C++
-        let mut target_skey: Option<SignedSecretKey> = None;
-        let mut matched_recipient_id = String::new();
+    // 2. Recover the session key from the ESK packets before touching the
+    //    payload. A mixed message "can be decrypted with either a passphrase
+    //    or a public key pair" (RFC 9580 §3.7.2.2): the private key is tried
+    //    first and the message password only if it does not yield the
+    //    session key. A cancelled prompt aborts; when both fail, one uniform
+    //    error is reported so the failure does not reveal which mechanism
+    //    came closer.
+    let esks: &[Esk] = match &parsed_message {
+        Message::Encrypted { esk, .. } => esk,
+        _ => &[],
+    };
 
-        if let Some(cb) = fetch_seckey_cb {
-            for rec in &recipients {
-                let c_key_id = CString::new(rec.key_id.clone()).unwrap_or_default();
-                let c_key_block = cb(c_key_id.as_ptr(), user_data);
-
-                if !c_key_block.is_null() {
-                    if let Ok(key_str) = unsafe { CStr::from_ptr(c_key_block) }.to_str() {
-                        if let Ok((cert, _)) = SignedSecretKey::from_string(key_str) {
-                            target_skey = Some(cert);
-                            matched_recipient_id = rec.key_id.clone();
-                        }
+    let mut session_key = None;
+    let mut key_failure = None;
+    if has_pkesk {
+        match pkesk_session_key(
+            channel,
+            esks,
+            &recipients,
+            fetch_seckey_cb,
+            fetch_pwd_cb,
+            user_data,
+        ) {
+            Ok((key, matched_recipient_id)) => {
+                session_key = Some(key);
+                for rec in &mut recipients {
+                    if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
+                        rec.status = GfrRecipientStatus::Success;
                     }
-                    unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
-
-                    if target_skey.is_some() {
-                        break;
-                    }
                 }
             }
-        }
-
-        let skey = target_skey.ok_or_else(|| {
-            set_last_error("no available secret key matches any recipient of this message");
-            GfrStatus::ErrorNoKey
-        })?;
-
-        // 4. Check if unlocking is needed
-        let mut needs_password = false;
-        let primary_id = skey.primary_key.legacy_key_id().to_string();
-        let primary_fpr = skey.primary_key.fingerprint().to_string();
-        let is_anonymous = |id: &str| id == "0000000000000000";
-        // A recipient identifier matches a component by either its 8-byte key ID
-        // (v3 PKESK) or its full fingerprint (v6 PKESK); the wildcard matches all.
-        let id_matches = |rec: &str, key_id: &str, fpr: &str| {
-            is_anonymous(rec) || rec.eq_ignore_ascii_case(key_id) || rec.eq_ignore_ascii_case(fpr)
-        };
-        let mut target_fpr_for_pwd = primary_fpr.clone();
-
-        if id_matches(&matched_recipient_id, &primary_id, &primary_fpr)
-            && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
-        {
-            needs_password = true;
-        }
-
-        if !needs_password {
-            for subkey in &skey.secret_subkeys {
-                let subkey_id = subkey.key.legacy_key_id().to_string();
-                let subkey_fpr = subkey.key.fingerprint().to_string();
-                if id_matches(&matched_recipient_id, &subkey_id, &subkey_fpr)
-                    && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
-                {
-                    needs_password = true;
-                    target_fpr_for_pwd = subkey_fpr;
-                    break;
-                }
-            }
-        }
-
-        let mut password = Zeroizing::new(Vec::<u8>::new());
-        if needs_password {
-            password = fetch_password_with_cache(
-                Some(&PASSWORD_CACHE),
-                PasswordCachePolicy::Default,
-                channel,
-                PassphraseStateInternal {
-                    fpr: target_fpr_for_pwd.clone(),
-                    info: "Decryption".to_string(),
-                    retry: false,
-                    ask_for_new: false,
-                    should_confirm: false,
-                },
-                fetch_pwd_cb,
-            )?;
-        } else {
-            debug!("Target secret key is unlocked. Bypassing password callback.");
-        }
-
-        // 5. Initialize streaming decryption
-        let pwd_fn = password_from_zeroizing_bytes(password);
-        let ring = TheRing {
-            secret_keys: vec![&skey],
-            key_passwords: vec![&pwd_fn],
-            decrypt_options: DecryptionOptions::new().set_seipdv1_read_mode(seipdv1_mode),
-            ..Default::default()
-        };
-        decrypted = parsed_message
-            .decrypt_the_ring(ring, true)
-            .map(|(msg, _)| msg)
-            .inspect_err(|_| {
-                if needs_password {
-                    log::warn!(
-                        "Asymmetric decryption failed. Evicting bad password for FPR: {}",
-                        target_fpr_for_pwd
-                    );
-                    PASSWORD_CACHE.remove_by_fpr(&target_fpr_for_pwd);
-                }
-            })
-            .into_gfr()?;
-
-        for rec in &mut recipients {
-            if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
-                rec.status = GfrRecipientStatus::Success;
-            }
+            Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
+            Err(status) => key_failure = Some(status),
         }
     }
+    if session_key.is_none() && has_skesk {
+        debug!("Attempting password-based decryption.");
+        match skesk_session_key(channel, esks, fetch_pwd_cb) {
+            Ok(key) => session_key = Some(key),
+            Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
+            Err(_) if has_pkesk => {
+                set_last_error("no usable private key or password opens this message");
+                return Err(GfrStatus::ErrorDecryptionFailed);
+            }
+            Err(status) => return Err(status),
+        }
+    }
+    let Some(session_key) = session_key else {
+        return Err(key_failure.unwrap_or(GfrStatus::ErrorNoKey));
+    };
+
+    let sym_algo = container_description(&parsed_message, &session_key);
+
+    // 5. Initialize streaming decryption with the recovered session key.
+    let ring = TheRing {
+        session_keys: vec![session_key],
+        decrypt_options: DecryptionOptions::new().set_seipdv1_read_mode(seipdv1_mode),
+        ..Default::default()
+    };
+    let decrypted = parsed_message
+        .decrypt_the_ring(ring, true)
+        .map(|(msg, _)| msg)
+        .or_else(|e| {
+            if crate::cancel::is_cancelled(channel) {
+                return Err(GfrStatus::ErrorCanceled);
+            }
+            match payload_failure(&e) {
+                Some(kind) => Err(kind.report()),
+                // The session key is known, so anything else rPGP refuses
+                // here is the decrypted content itself, e.g. an unknown
+                // critical packet (RFC 9580 §4.3): an invalid message, not an
+                // internal error.
+                None => match Err::<(), _>(e).into_gfr().unwrap_err() {
+                    GfrStatus::ErrorInternal => Err(GfrStatus::ErrorInvalidData),
+                    status => Err(status),
+                },
+            }
+        })?;
 
     // 6. Mount decompression pipeline
     //
@@ -421,20 +571,17 @@ where
     // denial-of-service, and the decompressed output is bounded by the size
     // limiter in step 8 so a single high-ratio "compression bomb" cannot exhaust
     // memory/disk (RFC 9580 §13.14).
-    let mut was_compressed = false;
-    let mut layers: u8 = 0;
-    while decrypted.is_compressed() {
-        layers += 1;
-        if layers > MAX_COMPRESSION_LAYERS {
-            set_last_error(
-                "refusing to decompress: too many nested compression layers (possible \
-                 compression bomb, RFC 9580 §13.14)",
-            );
-            return Err(GfrStatus::ErrorInvalidData);
+    //
+    // §13.7 lists a decompression failure inside an encrypted container among
+    // the malleability indicators: the integrity is suspect.
+    let (mut decrypted, was_compressed) = peel_compression(decrypted, |e| {
+        if crate::cancel::is_cancelled(channel) {
+            return GfrStatus::ErrorCanceled;
         }
-        decrypted = decrypted.decompress().into_gfr()?;
-        was_compressed = true;
-    }
+        payload_failure(&e)
+            .unwrap_or_else(|| IntegrityFailure::Malformed(format!("decompression failed: {e}")))
+            .report()
+    })?;
 
     // 7. Extract filename
     let mut filename = String::new();
@@ -483,10 +630,8 @@ where
             set_last_error(&format!("cannot write the decrypted output: {err}"));
             return Err(GfrStatus::ErrorIo);
         }
-        if is_integrity_failure(&err) {
-            log::error!("Decrypted data failed authentication: {}", err);
-            set_last_error(INTEGRITY_FAILURE_MESSAGE);
-            return Err(GfrStatus::ErrorDataCorrupted);
+        if let Some(kind) = io_payload_failure(&err) {
+            return Err(kind.report());
         }
         return Err(err).into_gfr();
     }
@@ -510,13 +655,14 @@ where
         // dropping distinct or legacy-key-id signatures the standalone verifier keeps.
         signatures = signature_entries_from_message(&decrypted);
         let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
-        attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
-            verify_index_under_usable_key(&decrypted, i, cert)
+        attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert, t| {
+            message_index_verdict(&decrypted, i, cert, t)
         });
     }
 
     Ok(DecryptAndVerifyStreamResultInternal {
         filename,
+        sym_algo,
         recipients,
         is_verified,
         signatures,
@@ -645,6 +791,7 @@ fn decrypt_archive_staged(
     Ok(DecryptAndVerifyResultInternal {
         data: Vec::new(),
         filename: stream_result.filename,
+        sym_algo: stream_result.sym_algo,
         recipients: stream_result.recipients,
         is_verified: stream_result.is_verified,
         signatures: stream_result.signatures,
@@ -759,6 +906,7 @@ pub fn decrypt_internal(
     Ok(DecryptResultInternal {
         data: output_data,
         filename: stream_result.filename,
+        sym_algo: stream_result.sym_algo,
         recipients: stream_result.recipients,
     })
 }
@@ -795,6 +943,7 @@ pub fn decrypt_and_verify_internal(
     Ok(DecryptAndVerifyResultInternal {
         data: output_data,
         filename: stream_result.filename,
+        sym_algo: stream_result.sym_algo,
         recipients: stream_result.recipients,
         is_verified: stream_result.is_verified,
         signatures: stream_result.signatures,
@@ -980,6 +1129,8 @@ mod decrypt_tests {
         let res = decrypt_with_password(rfc9580::A9_EAX_SKESK.as_bytes(), pw_password)
             .expect("A.9 must decrypt");
         assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+        // The container is reported in gpgme's `symkey_algo` form.
+        assert_eq!(res.sym_algo, "AES128.EAX");
     }
 
     #[test]
@@ -1254,23 +1405,6 @@ mod decrypt_tests {
     #[test]
     fn the_compression_nesting_cap_is_sixteen_layers() {
         assert_eq!(MAX_COMPRESSION_LAYERS, 16);
-    }
-
-    #[test]
-    fn a_deeply_nested_compressed_payload_is_refused() {
-        // §13.14: "An OpenPGP implementation SHOULD limit the number of layers
-        // of compression it is willing to decompress in a single message."
-        // 32 layers is twice the cap.
-        let key = &keys::V4_SIGN;
-        let nested = packets::nested_compressed(32, &packets::literal(b'b', b"", 0, b"deep"));
-        let encrypted =
-            crate::crypto::encrypt_internal(0, "", &nested, &[&key.public_armored], false)
-                .expect("encrypt");
-
-        let outcome = std::panic::catch_unwind(|| {
-            decrypt_with_key(&encrypted.data, &key.secret_armored, None).is_ok()
-        });
-        assert!(outcome.is_ok(), "the nesting cap must error, never panic");
     }
 
     // -- round-trips against our own encryptor ---------------------------------
@@ -2805,5 +2939,289 @@ mod large_file_tests {
             vec!["src.tar.gpg"],
             "nothing extracted, no stage left"
         );
+    }
+}
+
+#[cfg(test)]
+mod esk_and_integrity_tests {
+    //! Messages carrying both a password (SKESK) and public-key (PKESK)
+    //! session-key packets, and how a failed authentication is reported.
+    //!
+    //! Mixed messages follow the product decision in key-validity.md: a
+    //! matching private key is tried first, the message password second; a
+    //! cancelled prompt aborts; when both fail one uniform error is reported.
+
+    use super::*;
+    use crate::testutil::{cb, keys, packets, seipd};
+
+    const PAYLOAD: &[u8] = b"mixed session keys\n";
+
+    fn decrypt(
+        data: &[u8],
+        seckey: Option<&str>,
+        pwd: GfrPasswordFetchCb,
+    ) -> Result<DecryptResultInternal, GfrStatus> {
+        match seckey {
+            Some(block) => cb::set_seckey_answer(block),
+            None => cb::clear_seckey_answer(),
+        }
+        decrypt_internal(
+            0,
+            data,
+            Some(cb::seckey_fetch),
+            Some(pwd),
+            std::ptr::null_mut(),
+        )
+    }
+
+    fn failure(result: Result<DecryptResultInternal, GfrStatus>, what: &str) -> GfrStatus {
+        match result {
+            Ok(_) => panic!("{what}: must not decrypt"),
+            Err(status) => status,
+        }
+    }
+
+    // -- mixed SKESK + PKESK ------------------------------------------------
+
+    #[test]
+    fn a_mixed_message_opens_with_the_private_key_without_asking_for_the_password() {
+        for (fixture, v2) in [(&*keys::V4_SIGN, false), (&*keys::V6_SIGN, true)] {
+            let msg = seipd::mixed_message(fixture, "message password", PAYLOAD, v2);
+            cb::reset_prompt_count();
+            let out = decrypt(&msg, Some(&fixture.secret_armored), cb::pwd_failed)
+                .unwrap_or_else(|e| panic!("v2={v2}: {e:?}"));
+            assert_eq!(out.data, PAYLOAD);
+            assert_eq!(
+                cb::prompt_count(),
+                0,
+                "v2={v2}: no prompt for an unlocked key"
+            );
+        }
+    }
+
+    #[test]
+    fn a_mixed_message_falls_back_to_the_password_without_a_matching_key() {
+        for (fixture, v2) in [(&*keys::V4_SIGN, false), (&*keys::V6_SIGN, true)] {
+            let msg = seipd::mixed_message(fixture, cb::CORRECT_PASSPHRASE, PAYLOAD, v2);
+            let out =
+                decrypt(&msg, None, cb::pwd_correct).unwrap_or_else(|e| panic!("v2={v2}: {e:?}"));
+            assert_eq!(out.data, PAYLOAD);
+        }
+    }
+
+    #[test]
+    fn a_mixed_message_falls_back_to_the_password_when_the_key_does_not_fit() {
+        // The fetch callback hands back a key that does not decrypt the
+        // session key (it answers for any recipient).
+        let msg = seipd::mixed_message(&keys::V4_SIGN, cb::CORRECT_PASSPHRASE, PAYLOAD, false);
+        let out = decrypt(
+            &msg,
+            Some(&keys::V4_NISTP256.secret_armored),
+            cb::pwd_correct,
+        )
+        .expect("the password still opens it");
+        assert_eq!(out.data, PAYLOAD);
+    }
+
+    #[test]
+    fn a_cancelled_password_prompt_on_a_mixed_message_aborts() {
+        let msg = seipd::mixed_message(&keys::V4_SIGN, "message password", PAYLOAD, false);
+        assert_eq!(
+            decrypt(&msg, None, cb::pwd_cancelled).err(),
+            Some(GfrStatus::ErrorCanceled)
+        );
+    }
+
+    #[test]
+    fn a_mixed_message_neither_mechanism_opens_reports_one_uniform_error() {
+        let msg = seipd::mixed_message(&keys::V4_SIGN, "message password", PAYLOAD, false);
+        let err = failure(
+            decrypt(&msg, Some(&keys::V4_NISTP256.secret_armored), cb::pwd_wrong),
+            "nothing opens it",
+        );
+        assert_eq!(err, GfrStatus::ErrorDecryptionFailed);
+        assert!(
+            crate::err::last_error().contains("no usable private key or password"),
+            "{}",
+            crate::err::last_error()
+        );
+    }
+
+    #[test]
+    fn the_container_cipher_and_mode_are_reported() {
+        // What the GUI shows next to "Symmetric algorithm" for GnuPG.
+        let v2 = seipd::message(&keys::V6_SIGN.public_armored, PAYLOAD, None);
+        let out = decrypt(&v2, Some(&keys::V6_SIGN.secret_armored), cb::pwd_failed)
+            .unwrap_or_else(|e| panic!("{e:?}"));
+        assert_eq!(out.sym_algo, "AES256.OCB");
+
+        let v1 = seipd::message(&keys::V4_SIGN.public_armored, PAYLOAD, None);
+        let out = decrypt(&v1, Some(&keys::V4_SIGN.secret_armored), cb::pwd_failed)
+            .unwrap_or_else(|e| panic!("{e:?}"));
+        assert_eq!(out.sym_algo, "AES256.CFB");
+    }
+
+    // -- integrity failures (RFC 9580 §13.7) ---------------------------------
+
+    /// A SEIPD v2 (AES-256/OCB, 4 KiB chunks) message of several chunks.
+    fn v2_message() -> (Vec<u8>, Vec<u8>) {
+        let payload = seipd::bytes(5 * 4096 + 17, 7);
+        let msg = seipd::message(&keys::V6_SIGN.public_armored, &payload, None);
+        (msg, payload)
+    }
+
+    fn assert_integrity_failure(data: &[u8], fixture: &keys::Fixture, what: &str) {
+        let err = failure(
+            decrypt(data, Some(&fixture.secret_armored), cb::pwd_failed),
+            what,
+        );
+        assert_eq!(err, GfrStatus::ErrorDataCorrupted, "{what}");
+        assert!(
+            crate::err::last_error().contains("integrity check failed"),
+            "{what}: {}",
+            crate::err::last_error()
+        );
+    }
+
+    #[test]
+    fn an_aead_tag_failure_in_any_chunk_is_an_integrity_failure() {
+        // "If the authentication tag fails to verify, the implementation MUST
+        // NOT attempt to parse nor release decrypted data ... and it MUST halt
+        // with an error." The failure is about the message, never a password.
+        let (msg, _) = v2_message();
+        let n = msg.len() as isize;
+        for (what, at) in [
+            ("first chunk", n - (5 * 4096 + 17) - 16 * 7 + 10),
+            ("middle chunk", n / 2),
+            ("last data chunk", n - 40),
+            ("final tag", n - 1),
+        ] {
+            assert_integrity_failure(&seipd::flipped(&msg, at), &keys::V6_SIGN, what);
+        }
+    }
+
+    #[test]
+    fn a_truncated_aead_message_is_an_integrity_failure() {
+        let (msg, _) = v2_message();
+        for cut in [msg.len() - 1, msg.len() - 16, msg.len() / 2] {
+            assert_integrity_failure(&msg[..cut], &keys::V6_SIGN, &format!("cut at {cut}"));
+        }
+    }
+
+    #[test]
+    fn an_unknown_critical_packet_in_a_decrypted_message_is_invalid_data() {
+        // RFC 9580 §4.3: an unknown critical packet (Type ID 0-39) means "it
+        // MUST reject the whole packet sequence". Not an integrity failure
+        // (§13.7 does not list it): an invalid message.
+        let mut inner = packets::unknown_packet(30, b"unknown");
+        inner.extend(packets::literal(b'b', b"", 0, PAYLOAD));
+        let msg = seipd::v1_with_inner(&keys::V4_SIGN, &inner);
+        let err = failure(
+            decrypt(&msg, Some(&keys::V4_SIGN.secret_armored), cb::pwd_failed),
+            "an unknown critical packet",
+        );
+        assert_eq!(err, GfrStatus::ErrorInvalidData);
+    }
+
+    #[test]
+    fn an_unknown_non_critical_packet_in_a_decrypted_message_is_ignored() {
+        // RFC 9580 §4.3: "an unknown non-critical packet MUST be ignored".
+        let mut inner = packets::unknown_packet(60, b"private use");
+        inner.extend(packets::literal(b'b', b"", 0, PAYLOAD));
+        let msg = seipd::v1_with_inner(&keys::V4_SIGN, &inner);
+        let out = decrypt(&msg, Some(&keys::V4_SIGN.secret_armored), cb::pwd_failed)
+            .unwrap_or_else(|e| panic!("{e:?}"));
+        assert_eq!(out.data, PAYLOAD);
+    }
+
+    #[test]
+    fn a_deeply_nested_compressed_message_is_refused_inside_the_container() {
+        // §13.14 (SHOULD limit the layers): 32 layers is twice the cap. The
+        // layers sit inside the SEIPD, where the cap actually applies.
+        let inner = packets::nested_compressed(32, &packets::literal(b'b', b"", 0, PAYLOAD));
+        let msg = seipd::v1_with_inner(&keys::V4_SIGN, &inner);
+        let err = failure(
+            decrypt(&msg, Some(&keys::V4_SIGN.secret_armored), cb::pwd_failed),
+            "32 compression layers",
+        );
+        assert_eq!(err, GfrStatus::ErrorInvalidData);
+        assert!(crate::err::last_error().contains("too many nested compression layers"));
+    }
+
+    #[test]
+    fn a_decompression_failure_inside_an_encrypted_message_is_reported_as_integrity_suspect() {
+        // §13.7 lists "any Compressed Data packet where there is a
+        // decompression failure" among the malleability indicators that MUST
+        // produce a clear integrity-suspect error.
+        let inner = packets::packet(8, &[2, 0xde, 0xad, 0xbe, 0xef, 0x00, 0x11]);
+        let msg = seipd::v1_with_inner(&keys::V4_SIGN, &inner);
+        let err = failure(
+            decrypt(&msg, Some(&keys::V4_SIGN.secret_armored), cb::pwd_failed),
+            "a malformed compressed packet",
+        );
+        assert_eq!(err, GfrStatus::ErrorDataCorrupted);
+        assert!(
+            crate::err::last_error().contains("integrity"),
+            "{}",
+            crate::err::last_error()
+        );
+    }
+}
+
+#[cfg(test)]
+mod mixed_esk_interop_tests {
+    //! Messages carrying both a PKESK and an SKESK, produced by GnuPG and
+    //! Sequoia, opened by GF either way (RFC 9580 §3.7.2.2).
+
+    use super::*;
+    use crate::testutil::{cb, interop, keys};
+
+    const PAYLOAD: &[u8] = b"mixed from another implementation\n";
+
+    fn decrypt(data: &[u8], seckey: Option<&str>, pwd: GfrPasswordFetchCb) -> Vec<u8> {
+        match seckey {
+            Some(block) => cb::set_seckey_answer(block),
+            None => cb::clear_seckey_answer(),
+        }
+        match decrypt_internal(
+            0,
+            data,
+            Some(cb::seckey_fetch),
+            Some(pwd),
+            std::ptr::null_mut(),
+        ) {
+            Ok(out) => out.data,
+            Err(e) => panic!("decrypt: {e:?} ({})", crate::err::last_error()),
+        }
+    }
+
+    #[test]
+    fn we_open_a_sequoia_mixed_message_with_either_mechanism() {
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        for fixture in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            let msg = sq.encrypt_mixed(&fixture.public_armored, cb::CORRECT_PASSPHRASE, PAYLOAD);
+            assert_eq!(
+                decrypt(&msg, Some(&fixture.secret_armored), cb::pwd_failed),
+                PAYLOAD
+            );
+            assert_eq!(decrypt(&msg, None, cb::pwd_correct), PAYLOAD);
+        }
+    }
+
+    #[test]
+    fn we_open_a_gnupg_mixed_message_with_either_mechanism() {
+        let Some(gpg) = interop::Gnupg::new() else {
+            return;
+        };
+        let fixture = &keys::V4_NISTP256;
+        gpg.import(&fixture.public_armored);
+        let msg = gpg.encrypt_mixed(&fixture.primary_fpr, cb::CORRECT_PASSPHRASE, PAYLOAD);
+        assert_eq!(
+            decrypt(&msg, Some(&fixture.secret_armored), cb::pwd_failed),
+            PAYLOAD
+        );
+        assert_eq!(decrypt(&msg, None, cb::pwd_correct), PAYLOAD);
     }
 }

@@ -27,7 +27,6 @@
  */
 
 use super::*;
-use crate::utils::armor_opts;
 
 /// Verify a detached signature against a data stream.
 ///
@@ -77,14 +76,14 @@ where
 
     // 4. Attribute each packet per index through the shared driver. Hashing the
     //    seekable stream is the long-running part;
-    //    `signature_verifies_under_usable_key_stream` rewinds before every attempt
+    //    `signature_verdict_stream` rewinds before every attempt
     //    and hashes through a `CancellableReader` that aborts mid-hash once the
     //    user cancels. `verify` only reports success/failure, so afterwards we
     //    consult the cancel flag directly and surface `ErrorCanceled` rather than
     //    a spurious "not verified" result.
     let mut is_verified = false;
-    attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
-        signature_verifies_under_usable_key_stream(cert, &sig_packets[i], &mut data_stream, channel)
+    attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert, t| {
+        signature_verdict_stream(cert, &sig_packets[i], &mut data_stream, channel, t)
     });
 
     if crate::cancel::is_cancelled(channel) {
@@ -128,8 +127,10 @@ pub fn verify_internal(
             // guard the decrypt path applies) — then count and verify. Reading
             // num_signatures() before this yields 0 and silently downgrades every
             // genuine inline signature to BadSignature.
-            let clear_data = if msg.is_compressed() {
-                msg = msg.decompress().into_gfr()?;
+            let (peeled, was_compressed) =
+                peel_compression(msg, |e| Err::<(), _>(e).into_gfr().unwrap_err())?;
+            msg = peeled;
+            let clear_data = if was_compressed {
                 read_to_end_capped(&mut msg)?
             } else {
                 msg.as_data_vec().into_gfr()?
@@ -147,8 +148,8 @@ pub fn verify_internal(
 
             // verify() only checks signature at index 0; attribute each index to
             // the exact issuer that made it (per-index attribution).
-            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
-                verify_index_under_usable_key(&msg, i, cert)
+            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert, t| {
+                message_index_verdict(&msg, i, cert, t)
             });
 
             Ok(VerifyResultInternal {
@@ -181,11 +182,12 @@ pub fn verify_internal(
             let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
-            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
-                signature_verifies_under_usable_key(cert, &sig_packets[i], signed_text.as_bytes())
+            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert, t| {
+                signature_verdict(cert, &sig_packets[i], signed_text.as_bytes(), t)
             });
 
-            let clear_data = msg.to_armored_bytes(armor_opts()).unwrap_or_default();
+            // What was signed, not the re-armored message (RFC 9580 §7.1).
+            let clear_data = signed_text.into_bytes();
             Ok(VerifyResultInternal {
                 data: clear_data,
                 is_verified,
@@ -217,8 +219,8 @@ pub fn verify_internal(
             let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
-            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
-                signature_verifies_under_usable_key(cert, &sig_packets[i], data)
+            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert, t| {
+                signature_verdict(cert, &sig_packets[i], data, t)
             });
 
             Ok(VerifyResultInternal {
@@ -246,7 +248,7 @@ mod verify_tests {
     //! revoked or expired key is deliberately *not* valid.
 
     use super::*;
-    use crate::testutil::{assert as ta, cb, corpus, keys, rfc9580};
+    use crate::testutil::{assert as ta, cb, corpus, keys, packets, rfc9580};
 
     fn verify_detached(data: &[u8], sig: &[u8], cert: Option<&str>) -> VerifyResultInternal {
         match cert {
@@ -337,7 +339,14 @@ mod verify_tests {
             Some(corpus::AUX_GOOD),
         )
         .expect("verify");
-        assert!(!res.data.is_empty(), "the cleartext body must be returned");
+        // The signed text itself (RFC 9580 §7.1: dash-unescaped, trailing
+        // whitespace removed, CRLF line endings), not the re-armored message.
+        let text = String::from_utf8(res.data).expect("text");
+        assert!(!text.contains("-----BEGIN PGP"), "{text}");
+        assert_eq!(
+            text.replace("\r\n", "\n").trim_end(),
+            String::from_utf8_lossy(corpus::PAYLOAD).trim_end()
+        );
     }
 
     #[test]
@@ -374,17 +383,19 @@ mod verify_tests {
     // -- the four verify gaps ------------------------------------------------
 
     #[test]
-    fn gap3_a_signature_from_an_expired_key_is_not_valid() {
-        // §5.2.3.13: the signing key's validity period has passed. The
-        // signature itself is cryptographically sound -- it was made while the
-        // key was live -- which is exactly why the key-expiry gate is needed.
+    fn gap3_a_signature_made_while_the_key_was_live_stays_valid_after_it_expires() {
+        // §5.2.3.13 / product decision (key-validity.md): key expiry is judged
+        // at the signature's creation time. The vector was made 2020-03-01 by a
+        // key that expired 2020-06-01, so it is Valid, as GnuPG and Sequoia
+        // report it. A signature made *after* expiry is the negative case,
+        // `a_signature_made_after_the_key_expired_is_key_expired`.
         let res = verify_detached(
             corpus::PAYLOAD,
             corpus::SIG_EXPIRED,
             Some(corpus::AUX_EXPIRED),
         );
-        assert!(!res.is_verified);
-        ta::none_valid(&res.signatures);
+        assert!(res.is_verified);
+        ta::exactly_one_valid(&res.signatures);
     }
 
     #[test]
@@ -1012,6 +1023,441 @@ mod verify_tests {
                 sig.hash_algo
             );
         }
+    }
+
+    // -- compressed inline signatures (RFC 9580 §10.3, §13.14) -----------------
+
+    const INLINE_DATA: &[u8] = b"compressed and signed\n";
+
+    /// An uncompressed inline-signed message (OPS, Literal, Signature).
+    fn inline_signed() -> Vec<u8> {
+        crate::crypto::sign_internal(
+            0,
+            "",
+            INLINE_DATA,
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            GfrSignMode::Inline,
+            false,
+        )
+        .expect("sign")
+        .data
+    }
+
+    fn verify_inline(message: &[u8]) -> Result<VerifyResultInternal, GfrStatus> {
+        verify_mode(
+            &[],
+            message,
+            GfrSignMode::Inline,
+            Some(&keys::V4_SIGN.public_armored),
+        )
+    }
+
+    #[test]
+    fn a_doubly_compressed_inline_signature_verifies() {
+        // The grammar is recursive: a Compressed Message may hold another.
+        let message = packets::nested_compressed(2, &inline_signed());
+        let res = verify_inline(&message).expect("verify");
+        assert!(res.is_verified);
+        assert_eq!(res.data, INLINE_DATA);
+    }
+
+    #[test]
+    #[ignore = "DEFERRED: rPGP 0.21 loses the trailing Signature packet once the \
+                compressed body of a one-pass-signed message is decompressed \
+                (\"missing signature packet\"); upstream. GF now refuses such input \
+                instead of returning the raw compressed body as plaintext."]
+    fn deferred_an_inline_signature_over_a_compressed_body_verifies() {
+        // One-Pass Signed Message := OPS, OpenPGP Message, Signature, where
+        // the OpenPGP Message may itself be compressed.
+        let signed = inline_signed();
+        let mut parts: Vec<Vec<u8>> = Vec::new();
+        for packet in pgp::packet::PacketParser::new(std::io::Cursor::new(&signed)) {
+            let packet = packet.expect("our own output parses");
+            parts.push(pgp::ser::Serialize::to_bytes(&packet).expect("serializes"));
+        }
+        assert_eq!(parts.len(), 3, "OPS, Literal, Signature");
+        let mut message = parts[0].clone();
+        message.extend(packets::compressed_zlib(&parts[1]));
+        message.extend(&parts[2]);
+
+        let res = verify_inline(&message).expect("verify");
+        assert!(res.is_verified);
+        assert_eq!(res.data, INLINE_DATA);
+    }
+
+    #[test]
+    fn a_compressed_signed_body_is_never_returned_as_plaintext() {
+        // Until the deferred case above verifies, such a message must fail
+        // rather than hand back the raw compressed bytes as the signed data.
+        let signed = inline_signed();
+        let mut parts: Vec<Vec<u8>> = Vec::new();
+        for packet in pgp::packet::PacketParser::new(std::io::Cursor::new(&signed)) {
+            parts.push(pgp::ser::Serialize::to_bytes(&packet.expect("parses")).expect("bytes"));
+        }
+        let mut message = parts[0].clone();
+        message.extend(packets::compressed_zlib(&parts[1]));
+        message.extend(&parts[2]);
+
+        if let Ok(res) = verify_inline(&message) {
+            assert_eq!(
+                res.data, INLINE_DATA,
+                "the body must come back decompressed"
+            );
+        }
+    }
+
+    #[test]
+    fn too_many_compression_layers_are_refused() {
+        // §13.14: "SHOULD limit the number of layers of compression".
+        let message = packets::nested_compressed(20, &inline_signed());
+        assert_eq!(
+            verify_inline(&message).err(),
+            Some(GfrStatus::ErrorInvalidData)
+        );
+    }
+
+    // -- subkey authorization (RFC 9580 §5.2.1.8, §5.2.3.10, §10.1.5) ---------
+    //
+    // Each case signs with a subkey whose signature is *mathematically* valid
+    // (checked directly with rPGP) but which the certificate does not
+    // authorize to sign. Cryptographic validity and certificate authorization
+    // are separate layers: such a signature is never `Valid`.
+
+    use pgp::composed::SignedPublicKey;
+    use pgp::packet::{
+        KeyFlags, Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData,
+    };
+    use pgp::types::{Password, Timestamp};
+
+    const AUTHZ_DATA: &[u8] = b"authorization matters\n";
+
+    /// Detached-sign `AUTHZ_DATA` with `fixture`'s first signing subkey and
+    /// check it verifies mathematically under that subkey.
+    fn sign_with_subkey(fixture: &keys::Fixture) -> (Vec<u8>, Signature) {
+        let pinned = format!("{}!\n{}", fixture.sign_subkey_fpr(), fixture.secret_armored);
+        let signed = crate::crypto::sign_internal(
+            0,
+            "",
+            AUTHZ_DATA,
+            &[&pinned],
+            None,
+            GfrSignMode::Detached,
+            false,
+        )
+        .expect("sign");
+        let sig = crate::crypto::parse_all_signature_packets(&signed.data)
+            .pop()
+            .expect("one signature");
+        let subkey = fixture
+            .secret
+            .secret_subkeys
+            .iter()
+            .find(|s| s.key.fingerprint().to_string().to_uppercase() == fixture.sign_subkey_fpr())
+            .expect("signing subkey");
+        assert!(
+            sig.verify(subkey.key.public_key(), AUTHZ_DATA).is_ok(),
+            "precondition: the signature is mathematically valid"
+        );
+        (signed.data, sig)
+    }
+
+    /// `fixture`'s public certificate with its signing subkey's bindings
+    /// replaced by one fresh 0x18 carrying `flags`, with or without the
+    /// embedded 0x19 back-signature.
+    fn rebound_cert(fixture: &keys::Fixture, flags: KeyFlags, backsig: bool) -> String {
+        let mut sk = fixture.secret.clone();
+        let pw = Password::empty();
+        let primary = sk.primary_key.clone();
+        let sub = sk
+            .secret_subkeys
+            .iter_mut()
+            .find(|s| s.key.fingerprint().to_string().to_uppercase() == fixture.sign_subkey_fpr())
+            .expect("signing subkey");
+
+        let mut hashed = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+            Subpacket::regular(SubpacketData::KeyFlags(flags)).unwrap(),
+        ];
+        if backsig {
+            let mut cfg =
+                SignatureConfig::from_key(rand::thread_rng(), &sub.key, SignatureType::KeyBinding)
+                    .unwrap();
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(sub.key.fingerprint()))
+                    .unwrap(),
+            ];
+            let back = cfg
+                .sign_primary_key_binding(&sub.key, sub.key.public_key(), &pw, primary.public_key())
+                .unwrap();
+            hashed.push(
+                Subpacket::regular(SubpacketData::EmbeddedSignature(Box::new(back))).unwrap(),
+            );
+        }
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), &primary, SignatureType::SubkeyBinding)
+                .unwrap();
+        cfg.hashed_subpackets = hashed;
+        let binding = cfg
+            .sign_subkey_binding(&primary, primary.public_key(), &pw, sub.key.public_key())
+            .unwrap();
+        sub.signatures = vec![binding];
+
+        SignedPublicKey::from(sk)
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap()
+    }
+
+    fn sign_flags() -> KeyFlags {
+        let mut f = KeyFlags::default();
+        f.set_sign(true);
+        f
+    }
+
+    /// A detached signature by `fixture`'s primary key over `AUTHZ_DATA`,
+    /// claiming creation time `created`.
+    fn primary_detached_at(fixture: &keys::Fixture, created: u32) -> Vec<u8> {
+        let primary = &fixture.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::Binary).unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                created,
+            )))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+        ];
+        let sig = cfg.sign(primary, &Password::empty(), AUTHZ_DATA).unwrap();
+        pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(sig)).unwrap()
+    }
+
+    /// `fixture`'s public certificate with a primary-key revocation of
+    /// `reason`, created at `created`.
+    fn revoked_cert(
+        fixture: &keys::Fixture,
+        reason: pgp::packet::RevocationCode,
+        created: u32,
+    ) -> String {
+        let primary = &fixture.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::KeyRevocation)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                created,
+            )))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+            Subpacket::regular(SubpacketData::RevocationReason(reason, "test".into())).unwrap(),
+        ];
+        let rev = cfg
+            .sign_key(primary, &Password::empty(), primary.public_key())
+            .unwrap();
+        let mut cert = SignedPublicKey::from(fixture.secret.clone());
+        cert.details.revocation_signatures.push(rev);
+        cert.to_armored_string(crate::utils::armor_opts()).unwrap()
+    }
+
+    fn now_secs() -> u32 {
+        Timestamp::now().as_secs()
+    }
+
+    #[test]
+    fn a_signature_made_after_the_key_expired_is_key_expired() {
+        // V4_SHORT_EXPIRY expires one second after creation; date the
+        // signature well past that, as "now" may still be the creation second.
+        let fixture = &keys::V4_SHORT_EXPIRY;
+        let sig = primary_detached_at(fixture, now_secs() + 10);
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&fixture.public_armored));
+        assert!(!res.is_verified);
+        assert_eq!(res.signatures[0].status, GfrSignatureStatus::KeyExpired);
+    }
+
+    #[test]
+    fn a_signature_made_before_a_superseded_revocation_stays_valid() {
+        // §5.2.3.31: "if it was merely superseded or retired, old signatures
+        // are still valid."
+        let fixture = &keys::V4_SIGN;
+        let now = now_secs();
+        let cert = revoked_cert(
+            fixture,
+            pgp::packet::RevocationCode::KeySuperseded,
+            now + 100,
+        );
+        let res = verify_detached(AUTHZ_DATA, &primary_detached_at(fixture, now), Some(&cert));
+        assert!(res.is_verified);
+    }
+
+    #[test]
+    fn a_signature_made_after_a_retired_revocation_is_key_revoked() {
+        let fixture = &keys::V4_SIGN;
+        let now = now_secs();
+        let cert = revoked_cert(fixture, pgp::packet::RevocationCode::KeyRetired, now + 100);
+        let sig = primary_detached_at(fixture, now + 200);
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&cert));
+        assert!(!res.is_verified);
+        assert_eq!(res.signatures[0].status, GfrSignatureStatus::KeyRevoked);
+    }
+
+    #[test]
+    fn a_compromised_revocation_invalidates_even_older_signatures() {
+        // §5.2.3.31: "If a key has been revoked because of a compromise, all
+        // signatures created by that key are suspect."
+        let fixture = &keys::V4_SIGN;
+        let now = now_secs();
+        let cert = revoked_cert(
+            fixture,
+            pgp::packet::RevocationCode::KeyCompromised,
+            now + 100,
+        );
+        let res = verify_detached(AUTHZ_DATA, &primary_detached_at(fixture, now), Some(&cert));
+        assert!(!res.is_verified);
+        assert_eq!(res.signatures[0].status, GfrSignatureStatus::KeyRevoked);
+    }
+
+    #[test]
+    fn a_revocation_without_a_reason_is_treated_as_hard() {
+        let fixture = &keys::V4_SIGN;
+        let now = now_secs();
+        let cert = revoked_cert(fixture, pgp::packet::RevocationCode::NoReason, now + 100);
+        let res = verify_detached(AUTHZ_DATA, &primary_detached_at(fixture, now), Some(&cert));
+        assert_eq!(res.signatures[0].status, GfrSignatureStatus::KeyRevoked);
+    }
+
+    #[test]
+    fn a_signature_claiming_to_predate_its_key_is_not_authorized() {
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let sig = primary_detached_at(fixture, created - 1);
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&fixture.public_armored));
+        assert_eq!(
+            res.signatures[0].status,
+            GfrSignatureStatus::KeyNotAuthorized
+        );
+    }
+
+    #[test]
+    fn a_signature_from_an_rsa_key_under_2048_bits_is_not_authorized() {
+        // RFC 9580 §12.4: "MUST NOT ... verify using RSA keys of a size less
+        // than 2048 bits."
+        let fixture = &keys::V4_RSA1024;
+        let sig = primary_detached_at(fixture, now_secs());
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&fixture.public_armored));
+        assert!(!res.is_verified);
+        assert_eq!(
+            res.signatures[0].status,
+            GfrSignatureStatus::KeyNotAuthorized
+        );
+    }
+
+    #[test]
+    fn an_rsa_key_under_2048_bits_may_not_sign() {
+        let res = crate::crypto::sign_internal(
+            0,
+            "",
+            AUTHZ_DATA,
+            &[&keys::V4_RSA1024.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            false,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnusableKey));
+    }
+
+    #[test]
+    fn a_correctly_rebound_signing_subkey_still_verifies() {
+        // Control for the helpers below: binding + sign flag + back-signature.
+        let fixture = &keys::V4_SIGN;
+        let (sig, _) = sign_with_subkey(fixture);
+        let cert = rebound_cert(fixture, sign_flags(), true);
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&cert));
+        assert!(res.is_verified);
+    }
+
+    #[test]
+    fn a_signing_subkey_without_a_back_signature_is_not_authorized() {
+        let fixture = &keys::V4_SIGN;
+        let (sig, _) = sign_with_subkey(fixture);
+        let cert = rebound_cert(fixture, sign_flags(), false);
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&cert));
+        assert!(!res.is_verified);
+        assert_eq!(
+            res.signatures[0].status,
+            GfrSignatureStatus::KeyNotAuthorized
+        );
+    }
+
+    #[test]
+    fn a_subkey_bound_without_the_sign_flag_is_not_authorized() {
+        let fixture = &keys::V4_SIGN;
+        let (sig, _) = sign_with_subkey(fixture);
+        let mut flags = KeyFlags::default();
+        flags.set_encrypt_comms(true);
+        let cert = rebound_cert(fixture, flags, true);
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&cert));
+        assert!(!res.is_verified);
+        assert_eq!(
+            res.signatures[0].status,
+            GfrSignatureStatus::KeyNotAuthorized
+        );
+    }
+
+    #[test]
+    fn a_foreign_subkey_grafted_onto_a_cert_is_not_authorized() {
+        // An attacker appends their own signing subkey (with its original,
+        // foreign binding) to a victim's certificate.
+        let attacker = &keys::V4_SIGN;
+        let (sig, _) = sign_with_subkey(attacker);
+
+        let mut victim = SignedPublicKey::from_string(&keys::V4_PRIMARY_ONLY.public_armored)
+            .unwrap()
+            .0;
+        let stolen = SignedPublicKey::from_string(&attacker.public_armored)
+            .unwrap()
+            .0
+            .public_subkeys
+            .into_iter()
+            .find(|s| s.key.fingerprint().to_string().to_uppercase() == attacker.sign_subkey_fpr())
+            .unwrap();
+        victim.public_subkeys.push(stolen);
+        let victim = victim
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&victim));
+        assert!(!res.is_verified);
+        assert_eq!(
+            res.signatures[0].status,
+            GfrSignatureStatus::KeyNotAuthorized
+        );
+    }
+
+    #[test]
+    fn a_grafted_subkey_with_no_binding_at_all_is_not_authorized() {
+        let attacker = &keys::V4_SIGN;
+        let (sig, _) = sign_with_subkey(attacker);
+
+        let mut victim = SignedPublicKey::from_string(&keys::V4_PRIMARY_ONLY.public_armored)
+            .unwrap()
+            .0;
+        let mut stolen = SignedPublicKey::from_string(&attacker.public_armored)
+            .unwrap()
+            .0
+            .public_subkeys
+            .into_iter()
+            .find(|s| s.key.fingerprint().to_string().to_uppercase() == attacker.sign_subkey_fpr())
+            .unwrap();
+        stolen.signatures.clear();
+        victim.public_subkeys.push(stolen);
+        let victim = victim
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&victim));
+        assert!(!res.is_verified);
+        ta::is_not_valid(&res.signatures[0]);
     }
 
     // -- documented gaps -------------------------------------------------------

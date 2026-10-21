@@ -39,6 +39,7 @@
 //! `ffi::crypto` converts them into the `GfrXxxResultC` structs expected by C++.
 
 use crate::host::gfc_secure_free_cstr;
+pub(crate) use crate::key::KeyVerdict;
 pub(crate) use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::{IntoGfrResult, RecordErr, set_last_error},
@@ -108,6 +109,9 @@ pub struct DecryptResultInternal {
     pub data: Vec<u8>,
     /// Filename from the OpenPGP literal data packet (may be empty).
     pub filename: String,
+    /// Cipher and mode protecting the payload, in gpgme's `symkey_algo` form
+    /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or empty if unknown.
+    pub sym_algo: String,
     pub recipients: Vec<RecipientResultInternal>,
 }
 
@@ -154,6 +158,9 @@ pub struct EncryptAndSignResultInternal {
 pub struct DecryptAndVerifyResultInternal {
     pub data: Vec<u8>,
     pub filename: String,
+    /// Cipher and mode protecting the payload, in gpgme's `symkey_algo` form
+    /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or empty if unknown.
+    pub sym_algo: String,
     pub recipients: Vec<RecipientResultInternal>,
     pub is_verified: bool,
     pub signatures: Vec<SignatureResultInternal>,
@@ -224,6 +231,9 @@ pub struct EncryptAndSignStreamResultInternal {
 pub struct DecryptAndVerifyStreamResultInternal {
     /// Filename embedded in the OpenPGP literal data packet (may be empty).
     pub filename: String,
+    /// Cipher and mode protecting the payload, in gpgme's `symkey_algo` form
+    /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or empty if unknown.
+    pub sym_algo: String,
     pub recipients: Vec<RecipientResultInternal>,
     /// True if at least one embedded signature verified successfully.
     pub is_verified: bool,
@@ -295,6 +305,11 @@ fn key_identifier_matches(fpr: &str, key_id: &str, target: &str) -> bool {
 /// specified target (if any), and execute the provided action with that key if
 /// found.
 ///
+/// Only a key the certificate authorizes to sign *now* is ever used (RFC 9580
+/// §5.2.1.8, §5.2.3.29, §5.2.3.31, §12.4): the primary must be neither revoked
+/// nor expired, and a subkey additionally needs a binding with the signing flag
+/// and a valid back-signature, and must itself be neither revoked nor expired.
+///
 /// Core routing mechanism for exact target matching (!) or automatic fallback.
 pub fn with_signing_key<'a, F, R>(
     skey: &'a SignedSecretKey,
@@ -304,6 +319,19 @@ pub fn with_signing_key<'a, F, R>(
 where
     F: FnMut(SelectedKey<'a>) -> Result<R, crate::types::GfrStatus>,
 {
+    let now = now_unix_secs() as u32;
+    let primary = skey.primary_key.public_key();
+    let subkey_verdict = |subkey: &pgp::composed::SignedSecretSubKey| {
+        crate::key::subkey_signing_verdict(
+            primary,
+            &skey.details,
+            subkey.key.public_key(),
+            &subkey.signatures,
+            now,
+        )
+    };
+    let primary_verdict = crate::key::primary_signing_verdict(primary, &skey.details, now);
+
     // ==========================================
     // EXACT MATCH MODE (!)
     // ==========================================
@@ -320,31 +348,12 @@ where
             let fpr = subkey.key.fingerprint().to_string();
             let kid = subkey.key.legacy_key_id().to_string();
 
-            log::info!(
-                "Available signing subkey: fpr={}, keyid={}, algo={:?}, can_sign_algo={}",
-                fpr,
-                kid,
-                subkey.key.algorithm(),
-                subkey.key.algorithm().can_sign(),
-            );
-
             if key_identifier_matches(&fpr, &kid, &target) {
-                if crate::key::is_subkey_revoked(
-                    skey.primary_key.public_key(),
-                    subkey.key.public_key(),
-                    &subkey.signatures,
-                ) {
-                    log::error!("Requested signing subkey is revoked: fpr={}", fpr);
-                    return Err(crate::types::GfrStatus::ErrorInvalidInput);
-                }
-                if !subkey.key.algorithm().can_sign() {
-                    log::error!(
-                        "Requested subkey is not signing-capable: fpr={}, keyid={}, algo={:?}",
-                        fpr,
-                        kid,
-                        subkey.key.algorithm(),
-                    );
-                    return Err(crate::types::GfrStatus::ErrorInvalidInput);
+                let verdict = subkey_verdict(subkey);
+                if verdict != KeyVerdict::Authorized {
+                    log::error!("Requested signing subkey may not sign ({verdict:?}): fpr={fpr}");
+                    set_last_error(&format!("signing subkey {fpr} may not sign: {verdict:?}"));
+                    return Err(crate::types::GfrStatus::ErrorUnusableKey);
                 }
 
                 log::info!("Selected marked signing subkey: fpr={}, keyid={}", fpr, kid,);
@@ -357,14 +366,14 @@ where
         let primary_kid = skey.primary_key.legacy_key_id().to_string();
 
         if key_identifier_matches(&primary_fpr, &primary_kid, &target) {
-            if !skey.primary_key.algorithm().can_sign() {
+            if primary_verdict != KeyVerdict::Authorized {
                 log::error!(
-                    "Requested primary key is not signing-capable: fpr={}, keyid={}, algo={:?}",
-                    primary_fpr,
-                    primary_kid,
-                    skey.primary_key.algorithm(),
+                    "Requested primary key may not sign ({primary_verdict:?}): fpr={primary_fpr}"
                 );
-                return Err(crate::types::GfrStatus::ErrorInvalidInput);
+                set_last_error(&format!(
+                    "primary key {primary_fpr} may not sign: {primary_verdict:?}"
+                ));
+                return Err(crate::types::GfrStatus::ErrorUnusableKey);
             }
 
             log::info!(
@@ -381,30 +390,19 @@ where
     }
 
     // ==========================================
-    // NORMAL MODE (Auto Fallback) — skip revoked
+    // NORMAL MODE (Auto Fallback) — authorized keys only
     // ==========================================
     for subkey in &skey.secret_subkeys {
-        if crate::key::is_subkey_revoked(
-            skey.primary_key.public_key(),
-            subkey.key.public_key(),
-            &subkey.signatures,
-        ) {
+        if subkey_verdict(subkey) == KeyVerdict::Authorized {
             log::info!(
-                "Skipping revoked signing subkey: fpr={}",
-                subkey.key.fingerprint(),
-            );
-            continue;
-        }
-        if subkey.key.algorithm().can_sign() {
-            log::info!(
-                "No target specified. Selected first signing-capable subkey: fpr={}",
+                "No target specified. Selected first authorized signing subkey: fpr={}",
                 subkey.key.fingerprint(),
             );
             return action(SelectedKey::Sub(&subkey.key));
         }
     }
 
-    if skey.primary_key.algorithm().can_sign() {
+    if primary_verdict == KeyVerdict::Authorized {
         log::info!(
             "No target specified. Selected primary signing key: fpr={}",
             skey.primary_key.fingerprint(),
@@ -412,7 +410,11 @@ where
         return action(SelectedKey::Primary(&skey.primary_key));
     }
 
-    Err(crate::types::GfrStatus::ErrorInvalidInput)
+    set_last_error(&format!(
+        "no key of {} may sign now (primary: {primary_verdict:?})",
+        skey.primary_key.fingerprint()
+    ));
+    Err(crate::types::GfrStatus::ErrorUnusableKey)
 }
 
 /// Return true if `cert`'s primary key or any subkey matches `issuer_hex`.
@@ -544,7 +546,12 @@ mod rfc9580_policy_tests {
         sig.hash_algo = hash.to_string();
         sig.status = GfrSignatureStatus::NoKey;
         let mut is_verified = false;
-        apply_signature_gate(&mut sig, verified, &mut is_verified);
+        let verdict = if verified {
+            KeyVerdict::Authorized
+        } else {
+            KeyVerdict::NoMatch
+        };
+        apply_signature_gate(&mut sig, verdict, &mut is_verified);
         (sig.status, is_verified)
     }
 
@@ -659,6 +666,33 @@ mod rfc9580_policy_tests {
     }
 
     #[test]
+    fn get_signature_issuers_names_v6_signers_by_fingerprint() {
+        // A v6 signature carries no Issuer Key ID (RFC 9580 §5.2.3.12), only
+        // an Issuer Fingerprint (§5.2.3.35): the signer must still be named,
+        // or the host never fetches the key needed to verify it.
+        let fixture = &crate::testutil::keys::V6_SIGN;
+        for mode in [GfrSignMode::Detached, GfrSignMode::ClearText] {
+            let signed = crate::crypto::sign_internal(
+                0,
+                "",
+                b"text\n",
+                &[&fixture.secret_armored],
+                None,
+                mode,
+                true,
+            )
+            .expect("sign");
+            let (_, issuers) = get_signature_issuers_internal(&signed.data).expect("issuers");
+            assert!(
+                issuers
+                    .split(',')
+                    .any(|i| i.eq_ignore_ascii_case(fixture.sign_subkey_fpr())),
+                "{mode:?}: {issuers}"
+            );
+        }
+    }
+
+    #[test]
     fn get_signature_issuers_from_good_detached_signature() {
         let res = get_signature_issuers_internal(SIG_GOOD);
         assert!(res.is_ok());
@@ -727,7 +761,13 @@ mod rfc9580_policy_tests {
             AUX_GOOD_CERT
                 .public_subkeys
                 .iter()
-                .any(|sk| subkey_usable_for_verify(&AUX_GOOD_CERT, sk))
+                .any(|sk| crate::key::subkey_signing_verdict(
+                    &AUX_GOOD_CERT.primary_key,
+                    &AUX_GOOD_CERT.details,
+                    &sk.key,
+                    &sk.signatures,
+                    now_unix_secs() as u32,
+                ) == KeyVerdict::Authorized)
         );
     }
 }
@@ -742,51 +782,47 @@ fn now_unix_secs() -> u64 {
 }
 
 /// True if the certificate's primary key carries a valid self-revocation
-/// (RFC 9580 §5.2.1.11). A signature that only verifies under a revoked primary
-/// key MUST NOT be reported as valid.
+/// (RFC 9580 §5.2.1.11), whatever its reason.
+#[cfg(test)]
 pub fn cert_primary_revoked(cert: &SignedPublicKey) -> bool {
-    crate::key::is_primary_key_revoked(&cert.primary_key, &cert.details.revocation_signatures)
-        || crate::key::is_primary_key_revoked(&cert.primary_key, &cert.details.direct_signatures)
+    crate::key::primary_revocation_state(&cert.primary_key, &cert.details)
+        != crate::key::RevocationState::NotRevoked
 }
 
-/// True if the certificate's primary key has passed its own expiration time
-/// (RFC 9580 §5.2.3.13). A signature that only verifies under an expired primary
-/// key MUST NOT be reported as valid — an expired primary invalidates the whole
-/// certificate, including every subkey bound to it.
-pub fn cert_primary_expired(cert: &SignedPublicKey) -> bool {
-    let expires = crate::key::primary_key_expires_at(cert);
-    expires != 0 && u64::from(expires) < now_unix_secs()
-}
-
-/// True if `subkey` has passed its own binding-signature expiration time
-/// (RFC 9580 §5.2.3.13).
-pub fn subkey_expired(cert: &SignedPublicKey, subkey: &pgp::composed::SignedPublicSubKey) -> bool {
-    let expires = crate::key::subkey_expires_at(&cert.primary_key, &subkey.key, &subkey.signatures);
-    expires != 0 && u64::from(expires) < now_unix_secs()
-}
-
-/// True if the certificate's primary key may currently be used to verify a
-/// signature: it must be neither revoked ([`cert_primary_revoked`], §5.2.1.11)
-/// nor expired ([`cert_primary_expired`], §5.2.3.13). This is the primary-key
-/// gate every verification path shares.
-pub fn cert_primary_usable(cert: &SignedPublicKey) -> bool {
-    !cert_primary_revoked(cert) && !cert_primary_expired(cert)
-}
-
-/// True if `subkey` may be used to verify a signature: it must be signing-capable
-/// and not revoked (RFC 9580 §5.2.1.12 / Key Flags §5.2.3.29), its owning primary
-/// must itself be usable ([`cert_primary_usable`] — a revoked or expired primary
-/// invalidates all its subkeys), and the subkey must not have expired. Verifying
-/// under a revoked, expired, or encryption-only subkey — or any subkey of a
-/// revoked/expired primary — MUST NOT be reported as a valid signature.
-pub fn subkey_usable_for_verify(
-    cert: &SignedPublicKey,
-    subkey: &pgp::composed::SignedPublicSubKey,
-) -> bool {
-    subkey.key.algorithm().can_sign()
-        && !crate::key::is_subkey_revoked(&cert.primary_key, &subkey.key, &subkey.signatures)
-        && !subkey_expired(cert, subkey)
-        && cert_primary_usable(cert)
+/// `cert`'s verdict on a signature made at `t`: the best [`KeyVerdict`]
+/// among its keys under which `verifies` reports the signature
+/// cryptographically valid (`None` asks about the primary, `Some` about a
+/// subkey). Cryptographic validity and certificate authorization stay
+/// separate: a key that verifies the signature but that the certificate does
+/// not authorize at `t` yields `NotAuthorized`, `Expired` or `Revoked`, never
+/// `Authorized` (RFC 9580 §5.2.1.8, §5.2.3.10, §5.2.3.13, §5.2.3.31).
+pub(crate) fn cert_verdict<F>(cert: &SignedPublicKey, t: u32, mut verifies: F) -> KeyVerdict
+where
+    F: FnMut(Option<&pgp::composed::SignedPublicSubKey>) -> bool,
+{
+    let mut best = KeyVerdict::NoMatch;
+    if verifies(None) {
+        best = best.max(crate::key::primary_signing_verdict(
+            &cert.primary_key,
+            &cert.details,
+            t,
+        ));
+    }
+    for sk in &cert.public_subkeys {
+        if best == KeyVerdict::Authorized {
+            break;
+        }
+        if verifies(Some(sk)) {
+            best = best.max(crate::key::subkey_signing_verdict(
+                &cert.primary_key,
+                &cert.details,
+                &sk.key,
+                &sk.signatures,
+                t,
+            ));
+        }
+    }
+    best
 }
 
 /// The single per-index signature-attribution driver, shared by every
@@ -797,12 +833,12 @@ pub fn subkey_usable_for_verify(
 /// issuer ([`cert_contains_issuer`], fingerprint *or* key id) are considered; an
 /// entry with no matching cert keeps its `NoKey` status (an unknown signer must
 /// never be downgraded to `BadSignature`). When a matching cert exists, the
-/// caller-supplied `verifies` closure decides whether the signature *at that
-/// entry's index* cryptographically verifies under a *usable* key of the cert —
+/// caller-supplied `verdict` closure returns the [`KeyVerdict`] of the cert on
+/// the signature *at that entry's index*, made at the entry's creation time —
 /// the substrate differs per path (a parsed one-pass [`Message`] index via
-/// [`verify_index_under_usable_key`], or a standalone packet over a data buffer
-/// / seekable stream via [`signature_verifies_under_usable_key`] /
-/// [`signature_verifies_under_usable_key_stream`]). The result is then run
+/// [`message_index_verdict`], or a standalone packet over a data buffer /
+/// seekable stream via [`signature_verdict`] / [`signature_verdict_stream`]).
+/// The result is then run
 /// through [`apply_signature_gate`], which layers the shared signature-level RFC
 /// 9580 gates (§9.5 weak hash, §5.2.3.18 signature expiration).
 ///
@@ -815,9 +851,9 @@ pub(crate) fn attribute_entries<F>(
     entries: &mut [SignatureResultInternal],
     certs: &[SignedPublicKey],
     is_verified: &mut bool,
-    mut verifies: F,
+    mut verdict: F,
 ) where
-    F: FnMut(usize, &SignedPublicKey) -> bool,
+    F: FnMut(usize, &SignedPublicKey, u32) -> KeyVerdict,
 {
     for (i, entry) in entries.iter_mut().enumerate() {
         let matching: Vec<&SignedPublicKey> = certs
@@ -828,25 +864,30 @@ pub(crate) fn attribute_entries<F>(
             // No key for this issuer: leave the entry as NoKey (unknown signer).
             continue;
         }
-        let verified = matching.iter().any(|cert| verifies(i, cert));
-        apply_signature_gate(entry, verified, is_verified);
+        let created_at = entry.created_at;
+        let best = matching
+            .iter()
+            .map(|cert| verdict(i, cert, created_at))
+            .max()
+            .unwrap_or(KeyVerdict::NoMatch);
+        apply_signature_gate(entry, best, is_verified);
     }
 }
 
-/// The *message* verification substrate: true if signature `index` of a parsed
-/// one-pass [`Message`] verifies under a usable key of `cert` — the primary if
-/// it is usable ([`cert_primary_usable`], §5.2.1.11 / §5.2.3.13) or any subkey
-/// that passes [`subkey_usable_for_verify`] (§5.2.1.12). Used by the inline and
-/// decrypt-and-verify paths via [`attribute_entries`].
-pub(crate) fn verify_index_under_usable_key(
+/// The *message* verification substrate: the [`KeyVerdict`] of `cert` on
+/// signature `index` of a parsed one-pass [`Message`], made at `created_at`
+/// (see [`cert_verdict`]). Used by the inline and decrypt-and-verify paths via
+/// [`attribute_entries`].
+pub(crate) fn message_index_verdict(
     msg: &Message,
     index: usize,
     cert: &SignedPublicKey,
-) -> bool {
-    (cert_primary_usable(cert) && msg.verify_nested_explicit(index, cert).is_ok())
-        || cert.public_subkeys.iter().any(|sk| {
-            subkey_usable_for_verify(cert, sk) && msg.verify_nested_explicit(index, sk).is_ok()
-        })
+    created_at: u32,
+) -> KeyVerdict {
+    cert_verdict(cert, created_at, |key| match key {
+        None => msg.verify_nested_explicit(index, cert).is_ok(),
+        Some(sk) => msg.verify_nested_explicit(index, sk).is_ok(),
+    })
 }
 
 /// Build one `NoKey` result entry per signature packet carried by a parsed
@@ -875,14 +916,23 @@ pub(crate) fn signature_entries_from_message(msg: &Message) -> Vec<SignatureResu
 /// gate lives in exactly one place.
 pub(crate) fn apply_signature_gate(
     sig: &mut SignatureResultInternal,
-    verified: bool,
+    verdict: KeyVerdict,
     is_verified: &mut bool,
 ) {
-    if verified && !sig_hash_algo_is_weak(&sig.hash_algo) && !signature_result_expired(sig) {
-        sig.status = GfrSignatureStatus::Valid;
-        *is_verified = true;
-    } else if sig.status == GfrSignatureStatus::NoKey {
-        sig.status = GfrSignatureStatus::BadSignature;
+    match verdict {
+        KeyVerdict::Authorized
+            if !sig_hash_algo_is_weak(&sig.hash_algo) && !signature_result_expired(sig) =>
+        {
+            sig.status = GfrSignatureStatus::Valid;
+            *is_verified = true;
+        }
+        KeyVerdict::Revoked => sig.status = GfrSignatureStatus::KeyRevoked,
+        KeyVerdict::Expired => sig.status = GfrSignatureStatus::KeyExpired,
+        KeyVerdict::NotAuthorized => sig.status = GfrSignatureStatus::KeyNotAuthorized,
+        _ if sig.status == GfrSignatureStatus::NoKey => {
+            sig.status = GfrSignatureStatus::BadSignature;
+        }
+        _ => {}
     }
 }
 
@@ -977,58 +1027,88 @@ pub(crate) fn parse_all_signature_packets(data: &[u8]) -> Vec<pgp::packet::Signa
         .collect()
 }
 
-/// True if signature packet `sig` verifies over `data` under some *usable* key of
-/// `cert` — the primary if it is usable ([`cert_primary_usable`], §5.2.1.11 /
-/// §5.2.3.13) or any subkey that passes [`subkey_usable_for_verify`].
-///
-/// [`pgp::packet::Signature::verify`] already enforces issuer matching, weak-hash
-/// rejection (§9.5), and text-mode line normalization; this layers on the
-/// key-usability gates so a signature under a revoked or expired key is never
-/// counted as verified. Used by [`attribute_entries`] for per-index attribution
-/// on the cleartext and detached in-memory paths, the packet-over-buffer
-/// analogue of [`verify_index_under_usable_key`] for the message paths.
-pub(crate) fn signature_verifies_under_usable_key(
+/// The [`KeyVerdict`] of `cert` on signature packet `sig` over `data`, made at
+/// `created_at` (see [`cert_verdict`]). [`pgp::packet::Signature::verify`]
+/// checks issuer matching and text-mode line normalization; the §9.5 weak-hash
+/// and §5.2.3.18 expiry gates are applied afterwards by
+/// [`apply_signature_gate`]. The packet-over-buffer analogue of
+/// [`message_index_verdict`], used on the cleartext and detached in-memory
+/// paths.
+pub(crate) fn signature_verdict(
     cert: &SignedPublicKey,
     sig: &pgp::packet::Signature,
     data: &[u8],
-) -> bool {
-    if cert_primary_usable(cert) && sig.verify(&cert.primary_key, data).is_ok() {
-        return true;
-    }
-    cert.public_subkeys
-        .iter()
-        .any(|sk| subkey_usable_for_verify(cert, sk) && sig.verify(&sk.key, data).is_ok())
+    created_at: u32,
+) -> KeyVerdict {
+    cert_verdict(cert, created_at, |key| match key {
+        None => sig.verify(&cert.primary_key, data).is_ok(),
+        Some(sk) => sig.verify(&sk.key, data).is_ok(),
+    })
 }
 
-/// Seekable-stream analogue of [`signature_verifies_under_usable_key`] for the
-/// detached-*stream* path (large files verified without buffering the whole
-/// payload). Rewinds `stream` before each attempt and hashes it through a
+/// Seekable-stream analogue of [`signature_verdict`] for the detached-*stream*
+/// path (large files verified without buffering the whole payload). Rewinds
+/// `stream` before each attempt and hashes it through a
 /// [`crate::cancel::CancellableReader`] so a mid-hash cancel aborts promptly.
-/// Returns `true` if `sig` verifies over the stream under a usable primary
-/// ([`cert_primary_usable`]) or subkey ([`subkey_usable_for_verify`]); the same
-/// key-usability gates as the in-memory form, so a signature under a revoked or
-/// expired key is never counted as verified.
-pub(crate) fn signature_verifies_under_usable_key_stream<R: Read + Seek>(
+pub(crate) fn signature_verdict_stream<R: Read + Seek>(
     cert: &SignedPublicKey,
     sig: &pgp::packet::Signature,
     stream: &mut R,
     channel: i32,
-) -> bool {
-    if cert_primary_usable(cert) && stream.seek(SeekFrom::Start(0)).is_ok() {
+    created_at: u32,
+) -> KeyVerdict {
+    cert_verdict(cert, created_at, |key| {
+        if stream.seek(SeekFrom::Start(0)).is_err() {
+            return false;
+        }
         let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut *stream);
-        if sig.verify(&cert.primary_key, &mut cancellable).is_ok() {
-            return true;
+        match key {
+            None => sig.verify(&cert.primary_key, &mut cancellable).is_ok(),
+            Some(sk) => sig.verify(&sk.key, &mut cancellable).is_ok(),
         }
+    })
+}
+
+/// Upper bound on how many nested compression layers a message may carry before
+/// it is refused. A doubly-compressed message is legitimate and must be peeled
+/// fully, but an unbounded chain of compression packets is a cheap
+/// denial-of-service, so the depth is capped (RFC 9580 §13.14). The
+/// decompressed *output* size is bounded separately by
+/// [`MAX_DECOMPRESSED_OUTPUT_BYTES`].
+pub(crate) const MAX_COMPRESSION_LAYERS: u8 = 16;
+
+/// Whether `msg` still has a compression layer to peel: at the top, or as the
+/// body of a signed message (One-Pass Signed Message := OPS, OpenPGP Message,
+/// Signature, where the OpenPGP Message may be compressed; RFC 9580 §10.3).
+fn has_compressed_layer(msg: &Message) -> bool {
+    match msg {
+        Message::Compressed { .. } => true,
+        Message::Signed { reader, .. } => reader.get_ref().is_compressed(),
+        _ => false,
     }
-    for sk in &cert.public_subkeys {
-        if subkey_usable_for_verify(cert, sk) && stream.seek(SeekFrom::Start(0)).is_ok() {
-            let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut *stream);
-            if sig.verify(&sk.key, &mut cancellable).is_ok() {
-                return true;
-            }
+}
+
+/// Peel every compression layer of `msg`, refusing more than
+/// [`MAX_COMPRESSION_LAYERS`]. Returns the message and whether any layer was
+/// peeled; `on_error` maps a failed decompression. Shared by the decrypt and
+/// inline-verify paths.
+pub(crate) fn peel_compression<'a>(
+    mut msg: Message<'a>,
+    mut on_error: impl FnMut(pgp::errors::Error) -> GfrStatus,
+) -> Result<(Message<'a>, bool), GfrStatus> {
+    let mut layers: u8 = 0;
+    while has_compressed_layer(&msg) {
+        layers += 1;
+        if layers > MAX_COMPRESSION_LAYERS {
+            set_last_error(
+                "refusing to decompress: too many nested compression layers (possible \
+                 compression bomb, RFC 9580 §13.14)",
+            );
+            return Err(GfrStatus::ErrorInvalidData);
         }
+        msg = msg.decompress().map_err(&mut on_error)?;
     }
-    false
+    Ok((msg, layers > 0))
 }
 
 /// Upper bound on the number of plaintext octets a *decompressed* message may
@@ -1113,6 +1193,25 @@ fn fetch_certs_for_signatures(
     certs
 }
 
+/// The identifiers naming the issuer of `sig`: its Issuer Fingerprints, or
+/// its Issuer Key IDs when it carries none. A v6 signature has only a
+/// fingerprint (RFC 9580 §5.2.3.12, §5.2.3.35); legacy v4 producers may emit
+/// only a key ID. Fingerprints are uppercase hex, like the v6 OPS ones.
+fn signature_issuer_ids(sig: &pgp::packet::Signature) -> Vec<String> {
+    let fprs: Vec<String> = sig
+        .issuer_fingerprint()
+        .into_iter()
+        .map(|fpr| fpr.to_string().to_uppercase())
+        .collect();
+    if !fprs.is_empty() {
+        return fprs;
+    }
+    sig.issuer_key_id()
+        .into_iter()
+        .map(|id| id.to_string())
+        .collect()
+}
+
 /// Extract comma-separated recipient key IDs and signer fingerprints from a
 /// signed or encrypted data buffer.
 ///
@@ -1126,9 +1225,7 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
     if let Ok(text_str) = std::str::from_utf8(data) {
         if let Ok((msg, _)) = CleartextSignedMessage::from_string(text_str) {
             for sig in msg.signatures().iter() {
-                for issuer in sig.issuer_key_id() {
-                    issuers.push(issuer.to_string());
-                }
+                issuers.extend(signature_issuer_ids(sig));
             }
             issuers.sort();
             issuers.dedup();
@@ -1170,11 +1267,7 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
                     _ => {}
                 }
             }
-            Packet::Signature(sig) => {
-                for issuer in sig.issuer_key_id() {
-                    issuers.push(issuer.to_string());
-                }
-            }
+            Packet::Signature(sig) => issuers.extend(signature_issuer_ids(&sig)),
             _ => {}
         }
     }
@@ -1566,29 +1659,25 @@ mod packet_syntax_tests {
     }
 
     #[test]
-    fn an_unknown_critical_packet_type_is_not_silently_accepted() {
-        // §4.3: "Packets with Type IDs from 0 to 39 are critical" -- an
-        // unknown one must invalidate the sequence rather than be skipped.
+    fn an_unknown_critical_packet_type_is_rejected() {
+        // §4.3: "Packets with Type IDs from 0 to 39 are critical" and an
+        // implementation "MUST reject the whole packet sequence" holding an
+        // unknown one. Delegated to rPGP; pinned here so an upgrade that
+        // starts skipping them fails loudly.
         let mut data = packets::unknown_packet(30, b"unknown critical");
         data.extend_from_slice(&packets::literal(b'b', b"", 0, b"payload"));
-        let outcome = std::panic::catch_unwind(|| {
-            Message::from_bytes(std::io::Cursor::new(data)).map(|_| ())
-        });
-        assert!(
-            outcome.is_ok(),
-            "an unknown packet must never panic the parser"
-        );
+        let read = Message::from_bytes(std::io::Cursor::new(data))
+            .and_then(|mut msg| msg.as_data_vec().map_err(Into::into));
+        assert!(read.is_err());
     }
 
     #[test]
-    fn an_unknown_non_critical_packet_type_does_not_panic() {
+    fn an_unknown_non_critical_packet_type_is_ignored() {
         // §4.3: "an unknown non-critical packet MUST be ignored".
         let mut data = packets::unknown_packet(60, b"private use");
         data.extend_from_slice(&packets::literal(b'b', b"", 0, b"payload"));
-        let outcome = std::panic::catch_unwind(|| {
-            Message::from_bytes(std::io::Cursor::new(data)).map(|_| ())
-        });
-        assert!(outcome.is_ok());
+        let mut msg = Message::from_bytes(std::io::Cursor::new(data)).expect("parses");
+        assert_eq!(msg.as_data_vec().expect("reads"), b"payload");
     }
 
     #[test]
@@ -2197,7 +2286,9 @@ mod attribution_tests {
                 .collect();
         let mut is_verified = false;
         // An empty certificate list means no key was found for any issuer.
-        attribute_entries(&mut entries, &[], &mut is_verified, |_, _| true);
+        attribute_entries(&mut entries, &[], &mut is_verified, |_, _, _| {
+            KeyVerdict::Authorized
+        });
         assert!(!is_verified);
         assert_eq!(entries[0].status, GfrSignatureStatus::NoKey);
     }
@@ -2216,7 +2307,13 @@ mod attribution_tests {
         let certs = vec![corpus::AUX_GOOD_CERT.clone()];
         let mut is_verified = false;
         // Claim only index 0 verifies.
-        attribute_entries(&mut entries, &certs, &mut is_verified, |i, _| i == 0);
+        attribute_entries(&mut entries, &certs, &mut is_verified, |i, _, _| {
+            if i == 0 {
+                KeyVerdict::Authorized
+            } else {
+                KeyVerdict::NoMatch
+            }
+        });
 
         assert_ne!(
             entries[1].status,
@@ -2238,7 +2335,9 @@ mod attribution_tests {
 
         let certs = vec![corpus::AUX_SHA1_CERT.clone()];
         let mut is_verified = false;
-        attribute_entries(&mut entries, &certs, &mut is_verified, |_, _| true);
+        attribute_entries(&mut entries, &certs, &mut is_verified, |_, _, _| {
+            KeyVerdict::Authorized
+        });
 
         assert_ne!(entries[0].status, GfrSignatureStatus::Valid);
         assert!(!is_verified);
@@ -2248,7 +2347,9 @@ mod attribution_tests {
     fn attribution_on_an_empty_entry_list_is_a_no_op() {
         let mut entries: Vec<SignatureResultInternal> = Vec::new();
         let mut is_verified = false;
-        attribute_entries(&mut entries, &[], &mut is_verified, |_, _| true);
+        attribute_entries(&mut entries, &[], &mut is_verified, |_, _, _| {
+            KeyVerdict::Authorized
+        });
         assert!(!is_verified);
     }
 
