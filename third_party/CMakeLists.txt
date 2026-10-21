@@ -206,6 +206,20 @@ add_subdirectory(corrosion)
 
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
 corrosion_import_crate(MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust/Cargo.toml)
+
+# On macOS Corrosion hard-codes the Command Line Tools SDK's usr/lib as a link
+# directory of every Rust library, so it reaches whatever links gf_rust and
+# -larchive, -lSystem and friends resolve there instead of in the SDK the
+# compiler was given. Once the CLT SDK is newer than the active Xcode, its
+# .tbd stubs name architectures that linker cannot parse ("unknown
+# architecture"). The -isysroot SDK already provides every one of them.
+if(APPLE)
+  foreach(_gf_rust_lib gf_rust-static gf_rust-shared)
+    if(TARGET ${_gf_rust_lib})
+      set_property(TARGET ${_gf_rust_lib} PROPERTY INTERFACE_LINK_DIRECTORIES "")
+    endif()
+  endforeach()
+endif()
 # ---------------------------------------------------------------------------
 # gf_lua -- the Lua interpreter behind module UI scripts. Host-only.
 # ---------------------------------------------------------------------------
