@@ -49,10 +49,12 @@ void RemoveSafeOutputWorkDirs(const QContainer<SafeOutputPath>& outputs) {
   }
 }
 
+// Discard every staged output, files and staged directories (an archive
+// extraction) alike, so a failed operation leaves no plaintext behind.
 void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
   for (const auto& output : outputs) {
-    if (!output.temp_path.isEmpty() && QFileInfo::exists(output.temp_path)) {
-      QFile::remove(output.temp_path);
+    if (!DiscardSafeOutput(output.temp_path)) {
+      LOG_E() << "cannot discard staged output:" << output.temp_path;
     }
   }
 }
