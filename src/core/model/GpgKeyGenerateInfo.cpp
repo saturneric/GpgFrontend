@@ -144,7 +144,10 @@ auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
   }
 
   std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
-    return a.Name() < b.Name() && a.KeyLength() < b.KeyLength();
+    if (a.Name() != b.Name()) return a.Name() < b.Name();
+    if (a.KeyLength() != b.KeyLength()) return a.KeyLength() < b.KeyLength();
+    if (a.Type() != b.Type()) return a.Type() < b.Type();
+    return a.Id() < b.Id();
   });
 
   return algos;
@@ -168,7 +171,10 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
   }
 
   std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
-    return a.Name() < b.Name() && a.KeyLength() < b.KeyLength();
+    if (a.Name() != b.Name()) return a.Name() < b.Name();
+    if (a.KeyLength() != b.KeyLength()) return a.KeyLength() < b.KeyLength();
+    if (a.Type() != b.Type()) return a.Type() < b.Type();
+    return a.Id() < b.Id();
   });
 
   return algos;
