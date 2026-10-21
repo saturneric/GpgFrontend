@@ -126,12 +126,86 @@ impl<T, E: std::fmt::Display> RecordErr<T> for Result<T, E> {
     }
 }
 
-/// The message reported when a message fails authentication (RFC 9580 §13.7:
-/// "MUST generate a clear error message that indicates the integrity of the
-/// message is suspect").
-pub(crate) const INTEGRITY_FAILURE_MESSAGE: &str = "integrity check failed: the encrypted \
-    message was modified or corrupted (SEIPD MDC/AEAD authentication failed); no decrypted \
-    output was kept";
+/// Why the decrypted payload of a SEIPD container could not be read to its
+/// end. Every kind is reported as `ErrorDataCorrupted` with a message saying
+/// the message's integrity is suspect (RFC 9580 §13.7: "MUST generate a clear
+/// error message that indicates the integrity of the message is suspect");
+/// the kind keeps the detail precise.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum IntegrityFailure {
+    /// SEIPD v1: the modification detection code does not match.
+    Mdc,
+    /// SEIPD v2: an AEAD chunk or the final authentication tag fails.
+    Aead,
+    /// The ciphertext is truncated, or the authenticated content is not a
+    /// valid message (e.g. a decompression failure, a §13.7 malleability
+    /// indicator).
+    Malformed(String),
+}
+
+impl IntegrityFailure {
+    pub(crate) fn message(&self) -> String {
+        match self {
+            IntegrityFailure::Mdc => "integrity check failed: the SEIPD v1 modification \
+                detection code (MDC) does not match; the message was modified or corrupted, \
+                no decrypted output was kept"
+                .to_string(),
+            IntegrityFailure::Aead => "integrity check failed: SEIPD v2 AEAD authentication \
+                failed; the message was modified or corrupted, no decrypted output was kept"
+                .to_string(),
+            IntegrityFailure::Malformed(detail) => format!(
+                "integrity check failed: the encrypted data is truncated or malformed \
+                 ({detail}); its integrity is suspect, no decrypted output was kept"
+            ),
+        }
+    }
+
+    /// Record the message and return the status every kind maps to.
+    pub(crate) fn report(&self) -> GfrStatus {
+        log::error!("Decrypted data failed authentication: {:?}", self);
+        set_last_error(&self.message());
+        GfrStatus::ErrorDataCorrupted
+    }
+}
+
+/// Classify an error raised while reading a SEIPD payload *after* its session
+/// key was recovered. rPGP reports failures from inside its readers as
+/// `IO { source }`, so the chain is walked. Returns `None` for a failure that
+/// is not about the message: an operating-system I/O error or anything that is
+/// not reader-wrapped (e.g. a bare `Aead` from unlocking an AEAD-protected
+/// secret key with the wrong passphrase).
+pub(crate) fn payload_failure(err: &pgp::errors::Error) -> Option<IntegrityFailure> {
+    match err {
+        pgp::errors::Error::MdcError => Some(IntegrityFailure::Mdc),
+        pgp::errors::Error::IO { source, .. } => io_payload_failure(source),
+        _ => None,
+    }
+}
+
+/// [`payload_failure`] for the `io::Error` a payload read returns.
+pub(crate) fn io_payload_failure(err: &std::io::Error) -> Option<IntegrityFailure> {
+    if err.raw_os_error().is_some() {
+        return None;
+    }
+    let Some(inner) = err.get_ref() else {
+        return Some(IntegrityFailure::Malformed(err.to_string()));
+    };
+    if let Some(e) = inner.downcast_ref::<pgp::errors::Error>() {
+        return match e {
+            pgp::errors::Error::MdcError => Some(IntegrityFailure::Mdc),
+            pgp::errors::Error::Aead { .. } => Some(IntegrityFailure::Aead),
+            pgp::errors::Error::IO { source, .. } => io_payload_failure(source),
+            other => Some(IntegrityFailure::Malformed(other.to_string())),
+        };
+    }
+    if inner.downcast_ref::<pgp::crypto::aead::Error>().is_some() {
+        return Some(IntegrityFailure::Aead);
+    }
+    if let Some(e) = inner.downcast_ref::<std::io::Error>() {
+        return io_payload_failure(e);
+    }
+    Some(IntegrityFailure::Malformed(err.to_string()))
+}
 
 /// Whether `err`, or an error it wraps, is a SEIPD v1 MDC mismatch.
 pub(crate) fn is_mdc_failure(err: &pgp::errors::Error) -> bool {
@@ -153,11 +227,7 @@ impl<T> IntoGfrResult<T> for Result<T, pgp::errors::Error> {
             // and a `CheckFirst` MDC mismatch surfaces that way while the
             // decrypted message is being opened. Only that case is unwrapped;
             // other wrapped errors keep their established I/O mapping.
-            Err(err) if is_mdc_failure(&err) => {
-                log::error!("rPGP Error: MDC mismatch");
-                set_last_error(INTEGRITY_FAILURE_MESSAGE);
-                Err(GfrStatus::ErrorDataCorrupted)
-            }
+            Err(err) if is_mdc_failure(&err) => Err(IntegrityFailure::Mdc.report()),
             Err(err) => {
                 // Note: cancellation is detected at the streaming call sites
                 // (which know their channel) before calling `into_gfr`, since
@@ -222,9 +292,7 @@ impl<T> IntoGfrResult<T> for Result<T, std::io::Error> {
                     .and_then(|e| e.downcast_ref::<pgp::errors::Error>())
                     .is_some_and(is_mdc_failure) =>
             {
-                log::error!("rPGP Error: MDC mismatch");
-                set_last_error(INTEGRITY_FAILURE_MESSAGE);
-                Err(GfrStatus::ErrorDataCorrupted)
+                Err(IntegrityFailure::Mdc.report())
             }
             Err(err) => {
                 let err_str = err.to_string();
@@ -495,18 +563,12 @@ mod err_tests {
     }
 
     #[test]
-    fn a_corrupt_crc24_footer_is_tolerated_or_reported_cleanly() {
+    fn a_corrupt_crc24_footer_is_not_a_reason_to_reject() {
         // RFC 9580 §6.1: "An implementation MUST NOT reject an OpenPGP object
         // when the CRC24 footer is present, missing, malformed, or disagrees
-        // with the computed CRC24 sum." Accepting is therefore correct; if the
-        // parser does reject, it must at least do so with a mapped status.
-        match parse_message(corpus::CORRUPT_CRC) {
-            Ok(()) => {}
-            Err(status) => assert!(
-                (status as i32) < 0,
-                "a rejection must still be a mapped status, got {status:?}"
-            ),
-        }
+        // with the computed CRC24 sum." GF never enables rPGP's CRC check.
+        let armored = pgp::composed::Message::from_armor(std::io::Cursor::new(corpus::CORRUPT_CRC));
+        assert!(armored.is_ok());
     }
 
     #[test]
