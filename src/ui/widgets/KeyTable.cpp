@@ -29,6 +29,7 @@
 #include "ui/widgets/KeyTable.h"
 
 #include "ui/UserInterfaceUtils.h"
+#include "ui/widgets/KeyTableEmptyState.h"
 
 namespace GpgFrontend::UI {
 
@@ -57,6 +58,17 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
       column_filter_(column_filter) {
   setModel(&proxy_model_);
   InitTableStyle();
+
+  // Repaint whenever the row count can have changed, so the empty-state
+  // message appears and disappears with the rows it explains.
+  for (const auto signal :
+       {&QAbstractItemModel::rowsInserted, &QAbstractItemModel::rowsRemoved}) {
+    connect(&proxy_model_, signal, this, [this]() { viewport()->update(); });
+  }
+  connect(&proxy_model_, &QAbstractItemModel::modelReset, this,
+          [this]() { viewport()->update(); });
+  connect(&proxy_model_, &QAbstractItemModel::layoutChanged, this,
+          [this]() { viewport()->update(); });
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
@@ -99,27 +111,124 @@ void KeyTable::InitTableStyle() {
   // table items not editable
   setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  setFocusPolicy(Qt::NoFocus);
+  // Focusable, so arrow keys move the selection and Enter reaches
+  // keyPressEvent(). This was Qt::NoFocus, which made the table unreachable
+  // from the keyboard entirely.
+  setFocusPolicy(Qt::StrongFocus);
   setAlternatingRowColors(true);
   setSortingEnabled(true);
 }
 
 void KeyTable::SetFilterKeyword(const QString& keyword) {
+  current_keyword_ = keyword;
   proxy_model_.SetSearchKeywords(keyword);
-  clearSelection();
+
+  // Deliberately not clearSelection(): the search box filters on a timer as the
+  // user types, and dropping the selection on every batch meant the key you had
+  // just picked was gone before you could act on it. The proxy keeps persistent
+  // indexes, so a row filtered out and matched again comes back selected.
   emit SignalKeyChecked();
+  viewport()->update();
+}
+
+auto KeyTable::selected_key_ids() const -> QStringList {
+  QStringList ids;
+  for (const auto& key : GetSelectedKeys()) {
+    if (key != nullptr) ids << key->ID();
+  }
+  return ids;
+}
+
+void KeyTable::restore_selection_by_ids(const QStringList& ids) {
+  if (ids.isEmpty()) return;
+
+  auto* selection = selectionModel();
+  if (selection == nullptr) return;
+
+  const auto rows = GetRowCount();
+  for (int row = 0; row < rows; ++row) {
+    auto key = GetKeyByIndex(model()->index(row, 0));
+    if (key == nullptr || !ids.contains(key->ID())) continue;
+
+    selection->select(model()->index(row, 0),
+                      QItemSelectionModel::Select | QItemSelectionModel::Rows);
+  }
 }
 
 void KeyTable::RefreshModel(QSharedPointer<GpgKeyTableModel> model) {
+  // A refresh fires on every keyring change, including ones the user did not
+  // ask for. Throwing away their sort order and their selection each time made
+  // the window feel like it was fighting them.
+  const auto sort_column = horizontalHeader()->sortIndicatorSection();
+  const auto sort_order = horizontalHeader()->sortIndicatorOrder();
+  const auto previous_ids = selected_key_ids();
+
   clearSelection();
 
   model_ = std::move(model);
   proxy_model_.ResetGpgKeyTableModel(model_);
 
-  sortByColumn(2, Qt::AscendingOrder);
+  if (sort_initialised_) {
+    sortByColumn(sort_column, sort_order);
+  } else {
+    sortByColumn(2, Qt::AscendingOrder);
+    sort_initialised_ = true;
+  }
+
+  restore_selection_by_ids(previous_ids);
   resizeColumnsToContents();
+  viewport()->update();
 
   emit SignalKeyChecked();
+}
+
+void KeyTable::contextMenuEvent(QContextMenuEvent* event) {
+  if (event == nullptr) return;
+
+  // Standard behaviour everywhere else: right-clicking a row you had not
+  // selected acts on that row, not on whatever was selected before.
+  const auto index = indexAt(event->pos());
+  if (index.isValid() && (selectionModel() == nullptr ||
+                          !selectionModel()->isRowSelected(index.row(), {}))) {
+    selectRow(index.row());
+  }
+
+  emit SignalRequestContextMenu(event);
+}
+
+void KeyTable::paintEvent(QPaintEvent* event) {
+  QTableView::paintEvent(event);
+
+  const auto reason =
+      ClassifyKeyTableEmptyState(model() != nullptr ? model()->rowCount() : 0,
+                                 model_ != nullptr ? model_->rowCount({}) : 0,
+                                 !current_keyword_.isEmpty());
+  if (reason == KeyTableEmptyReason::kNotEmpty) return;
+
+  QPainter painter(viewport());
+  painter.setPen(palette().color(QPalette::Disabled, QPalette::Text));
+  painter.drawText(viewport()->rect().adjusted(24, 24, -24, -24),
+                   Qt::AlignCenter | Qt::TextWordWrap,
+                   DescribeKeyTableEmptyState(reason, current_keyword_));
+}
+
+void KeyTable::keyPressEvent(QKeyEvent* event) {
+  if (event != nullptr &&
+      (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {
+    // Matches double-click, which has always opened the details dialog.
+    const auto row = GetRowSelected();
+    if (row >= 0) {
+      auto key = GetKeyByIndex(model()->index(row, 0));
+      if (key != nullptr) {
+        CommonUtils::OpenDetailsDialogByKey(
+            this, model_->GetGpgContextChannel(), key);
+      }
+      event->accept();
+      return;
+    }
+  }
+
+  QTableView::keyPressEvent(event);
 }
 
 auto KeyTable::IsRowChecked(int row) const -> bool {

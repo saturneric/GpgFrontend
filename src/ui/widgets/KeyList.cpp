@@ -125,6 +125,17 @@ void KeyList::init_ui_style() {
   ui_->searchBarEdit->setClearButtonEnabled(true);
   ui_->searchBarEdit->setMinimumHeight(30);
 
+  // The box outlines itself when the search matched nothing, so the answer is
+  // where the user is already looking rather than only in the status bar. The
+  // property is toggled in report_search_result(); this red sits on both the
+  // light and the dark palette.
+  ui_->searchBarEdit->setStyleSheet(R"(
+QLineEdit[gfNoMatch="true"] {
+  border: 1px solid #C0392B;
+  border-radius: 3px;
+}
+)");
+
   const auto setup_tool_button = [](QToolButton* button) {
     button->setMinimumHeight(28);
     button->setFocusPolicy(Qt::NoFocus);
@@ -296,6 +307,22 @@ void KeyList::init_signals() {
   connect(ui_->searchBarEdit, &QLineEdit::textChanged, this,
           [this]() { search_timer_->start(); });
 
+  // Escape is the way out of a search everywhere else, and without it the only
+  // way back to the full list is to select the text and delete it.
+  auto* clear_search =
+      new QShortcut(QKeySequence(Qt::Key_Escape), ui_->searchBarEdit);
+  clear_search->setContext(Qt::WidgetShortcut);
+  connect(clear_search, &QShortcut::activated, this, [this]() {
+    if (ui_->searchBarEdit->text().isEmpty()) return;
+    ui_->searchBarEdit->clear();
+    // Straight to the filter: waiting out the debounce here just looks laggy.
+    search_timer_->stop();
+    filter_by_keyword();
+    if (auto* page = ui_->keyGroupTab->currentWidget(); page != nullptr) {
+      page->setFocus();
+    }
+  });
+
   connect(search_timer_, &QTimer::timeout, this, &KeyList::filter_by_keyword);
 
   connect(this, &KeyList::SignalRefreshStatusBar,
@@ -389,6 +416,20 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
     if (sender() != ui_->keyGroupTab->currentWidget()) return;
     emit SignalKeyChecked();
   });
+
+  // Re-emitted with the table attached, so the host window's slot signature
+  // and its connection are unchanged by the move of ownership to KeyTable.
+  // The hosts only build a menu for a selected key, so right-clicking empty
+  // space still shows nothing.
+  connect(key_table, &KeyTable::SignalRequestContextMenu, this,
+          [=](QContextMenuEvent* event) {
+            auto* page = qobject_cast<KeyTable*>(sender());
+            if (page == nullptr || page != ui_->keyGroupTab->currentWidget()) {
+              return;
+            }
+            if (page->GetRowSelected() < 0) return;
+            emit SignalRequestContextMenu(event, page);
+          });
 
   UpdateKeyTableColumnType(global_column_filter_);
   return key_table;
@@ -486,21 +527,6 @@ void KeyList::SetColumnWidth(int row, int size) {
   if (key_table == nullptr) return;
 
   key_table->setColumnWidth(row, size);
-}
-
-void KeyList::contextMenuEvent(QContextMenuEvent* event) {
-  if (ui_->keyGroupTab->count() == 0) return;
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-
-  if (key_table == nullptr) {
-    FLOG_D("m_key_list_ is nullptr, key group tab number: %d",
-           ui_->keyGroupTab->count());
-    return;
-  }
-
-  if (key_table->GetRowSelected() >= 0) {
-    emit SignalRequestContextMenu(event, key_table);
-  }
 }
 
 void KeyList::dropEvent(QDropEvent* event) {
@@ -737,6 +763,30 @@ void KeyList::filter_by_keyword() {
   }
 
   SlotRefreshUI();
+  // after SlotRefreshUI(), whose own status message would replace this one
+  report_search_result(keyword);
+}
+
+void KeyList::report_search_result(const QString& keyword) {
+  auto* page = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  const int rows = page != nullptr ? page->GetRowCount() : 0;
+  const bool no_match = !keyword.isEmpty() && rows == 0;
+
+  if (!keyword.isEmpty()) {
+    // Without this a search that matches nothing looks exactly like a keyring
+    // that holds nothing, and the user has no way to tell which they are
+    // looking at.
+    emit SignalRefreshStatusBar(
+        no_match ? tr("No key matches \"%1\"").arg(keyword)
+                 : tr("%n key(s) match \"%1\"", "", rows).arg(keyword),
+        3000);
+  }
+
+  if (ui_->searchBarEdit->property("gfNoMatch").toBool() != no_match) {
+    ui_->searchBarEdit->setProperty("gfNoMatch", no_match);
+    ui_->searchBarEdit->style()->unpolish(ui_->searchBarEdit);
+    ui_->searchBarEdit->style()->polish(ui_->searchBarEdit);
+  }
 }
 
 void KeyList::uncheck_all() {

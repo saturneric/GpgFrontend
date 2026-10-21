@@ -288,13 +288,6 @@ class KeyList : public QWidget {
    *
    * @param event
    */
-  void contextMenuEvent(QContextMenuEvent* event) override;
-
-  /**
-   * @brief
-   *
-   * @param event
-   */
   void dragEnterEvent(QDragEnterEvent* event) override;
 
   /**
@@ -366,6 +359,17 @@ class KeyList : public QWidget {
    *
    */
   void filter_by_keyword();
+
+  /**
+   * @brief Tell the user how many keys the current search matched.
+   *
+   * A search that matches nothing looks exactly like an empty keyring, so the
+   * count goes to the status bar and the box itself turns red when nothing
+   * matched.
+   *
+   * @param keyword the keyword just applied, already trimmed and lower-cased
+   */
+  void report_search_result(const QString& keyword);
 
   /**
    * @brief

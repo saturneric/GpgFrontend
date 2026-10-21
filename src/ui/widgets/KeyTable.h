@@ -186,11 +186,53 @@ struct KeyTable : public QTableView {
    */
   void SignalKeyChecked();
 
+  /**
+   * @brief The user asked for the context menu, on a row or on empty space.
+   * A row under the cursor that was not selected has been selected first.
+   *
+   * @param event
+   */
+  void SignalRequestContextMenu(QContextMenuEvent* event);
+
+ protected:
+  /**
+   * @brief Select the row under the cursor, then ask for the context menu.
+   *
+   * @param event
+   */
+  void contextMenuEvent(QContextMenuEvent* event) override;
+
+  /**
+   * @brief Draw a message explaining why the table is empty.
+   *
+   * @param event
+   */
+  void paintEvent(QPaintEvent* event) override;
+
+  /**
+   * @brief Enter opens the details of the selected key.
+   *
+   * @param event
+   */
+  void keyPressEvent(QKeyEvent* event) override;
+
  private:
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableProxyModel proxy_model_;
   GpgKeyTableColumn column_filter_;
   bool bulk_checking_ = false;
+  bool sort_initialised_ = false;
+  QString current_keyword_;
+
+  /**
+   * @brief IDs of the selected keys, to restore them after a refresh.
+   */
+  [[nodiscard]] auto selected_key_ids() const -> QStringList;
+
+  /**
+   * @brief Select the rows of the given key IDs.
+   */
+  void restore_selection_by_ids(const QStringList& ids);
 };
 
 }  // namespace GpgFrontend::UI
