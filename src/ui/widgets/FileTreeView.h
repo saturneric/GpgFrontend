@@ -503,6 +503,11 @@ class FileTreeView : public QTreeView {
   void sync_selected_paths_from_selection();
 
   /**
+   * @brief Emits SignalSelectedChanged() with a copy of the cached selection.
+   */
+  void emit_selected_changed();
+
+  /**
    * @brief Refreshes the current directory and selects paths after the
    * QFileSystemModel has had time to update.
    *

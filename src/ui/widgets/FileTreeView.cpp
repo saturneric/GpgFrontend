@@ -1237,7 +1237,7 @@ void FileTreeView::sync_selected_paths_from_selection() {
   selected_paths_.clear();
 
   if (selectionModel() == nullptr || dir_model_ == nullptr) {
-    emit SignalSelectedChanged(selected_paths_);
+    emit_selected_changed();
     return;
   }
 
@@ -1253,7 +1253,16 @@ void FileTreeView::sync_selected_paths_from_selection() {
     selected_paths_.append(path);
   }
 
-  emit SignalSelectedChanged(selected_paths_);
+  emit_selected_changed();
+}
+
+void FileTreeView::emit_selected_changed() {
+  // A copy, not the member: the connection is direct, so receivers would
+  // otherwise hold a reference to selected_paths_ — the very list this function
+  // clears and refills. A re-entrant sync (the model is repopulated while a
+  // receiver iterates) would then pull the container out from under them.
+  const auto paths = selected_paths_;
+  emit SignalSelectedChanged(paths);
 }
 
 void FileTreeView::refresh_current_path_and_select_paths(
