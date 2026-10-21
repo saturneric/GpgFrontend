@@ -61,6 +61,10 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->fontSizeTextEditorLabel->setText(tr("Text Editor"));
   ui_->fontSizeInformationBoardLabel->setText(tr("Status Panel"));
 
+  ui_->textEditorBox->setTitle(tr("Text Editor"));
+  ui_->textEditorFontLabel->setText(tr("Font Family"));
+  ui_->textEditorTabSizeLabel->setText(tr("Tab Size"));
+
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);
   icon_size_group_->addButton(ui_->mediumRadioButton, 2);
@@ -123,6 +127,38 @@ void AppearanceTab::SetSettings() {
     text_editor_info_font_size = 10;
   }
   ui_->fontSizeTextEditorLabelSpinBox->setValue(text_editor_info_font_size);
+
+  // The first entry keeps the platform default, which the editor resolves to
+  // a well-known monospace font. The rest are the installed fixed-pitch fonts.
+  ui_->textEditorFontComboBox->clear();
+  ui_->textEditorFontComboBox->addItem(tr("System Default"), QString{});
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  for (const auto& family : QFontDatabase::families()) {
+    if (QFontDatabase::isFixedPitch(family)) {
+      ui_->textEditorFontComboBox->addItem(family, family);
+    }
+  }
+#else
+  {
+    QFontDatabase db;
+    for (const auto& family : db.families()) {
+      if (db.isFixedPitch(family)) {
+        ui_->textEditorFontComboBox->addItem(family, family);
+      }
+    }
+  }
+#endif
+
+  auto font_index =
+      ui_->textEditorFontComboBox->findData(appearance.text_editor_font_family);
+  ui_->textEditorFontComboBox->setCurrentIndex(font_index != -1 ? font_index
+                                                                : 0);
+
+  auto text_editor_tab_size = appearance.text_editor_tab_size;
+  if (text_editor_tab_size < 1 || text_editor_tab_size > 16) {
+    text_editor_tab_size = 4;
+  }
+  ui_->textEditorTabSizeSpinBox->setValue(text_editor_tab_size);
 
   // init available styles
   for (const auto& s : QStyleFactory::keys()) {
@@ -207,6 +243,9 @@ void AppearanceTab::ApplySettings() {
       ui_->fontSizeInformationBoardSpinBox->value();
   appearance.text_editor_font_size =
       ui_->fontSizeTextEditorLabelSpinBox->value();
+  appearance.text_editor_font_family =
+      ui_->textEditorFontComboBox->currentData().toString();
+  appearance.text_editor_tab_size = ui_->textEditorTabSizeSpinBox->value();
 
   appearance.tool_bar_crypto_operas_type = 0;
   appearance.tool_bar_crypto_operas_type |=

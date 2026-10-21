@@ -47,6 +47,48 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="textEditorBox">
+       <property name="title">
+        <string>Text Editor</string>
+       </property>
+       <layout class="QFormLayout" name="textEditorFormLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="textEditorFontLabel">
+          <property name="text">
+           <string>Font Family</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="textEditorFontComboBox"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="textEditorTabSizeLabel">
+          <property name="text">
+           <string>Tab Size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="textEditorTabSizeSpinBox">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>16</number>
+          </property>
+          <property name="value">
+           <number>4</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QGroupBox" name="fontSizeBox">
        <property name="title">
         <string>Font Size</string>

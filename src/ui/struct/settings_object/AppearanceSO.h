@@ -33,6 +33,8 @@
 namespace GpgFrontend::UI {
 
 struct AppearanceSO {
+  QString text_editor_font_family;
+  int text_editor_tab_size = 4;
   int text_editor_font_size = 12;
   int info_board_font_size = 12;
   int tool_bar_icon_width = 24;
@@ -45,6 +47,12 @@ struct AppearanceSO {
   bool save_window_state;
 
   explicit AppearanceSO(const QJsonObject& j) {
+    if (const auto v = j["text_editor_font_family"]; v.isString()) {
+      text_editor_font_family = v.toString();
+    }
+    if (const auto v = j["text_editor_tab_size"]; v.isDouble()) {
+      text_editor_tab_size = v.toInt();
+    }
     if (const auto v = j["text_editor_font_size"]; v.isDouble()) {
       text_editor_font_size = v.toInt();
     }
@@ -71,6 +79,8 @@ struct AppearanceSO {
 
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
+    j["text_editor_font_family"] = text_editor_font_family;
+    j["text_editor_tab_size"] = text_editor_tab_size;
     j["text_editor_font_size"] = text_editor_font_size;
     j["info_board_font_size"] = info_board_font_size;
     j["tool_bar_icon_width"] = tool_bar_icon_width;

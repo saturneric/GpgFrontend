@@ -90,6 +90,28 @@ auto PreferredMonospaceFont() -> QFont {
   return font;
 }
 
+/**
+ * @brief The editor font: the user's chosen family when it is installed,
+ * otherwise the preferred platform monospace font, at the configured size.
+ */
+auto EditorFont(const AppearanceSO &appearance) -> QFont {
+  QFont font = PreferredMonospaceFont();
+  if (!appearance.text_editor_font_family.isEmpty() &&
+      ContainsFontFamily(appearance.text_editor_font_family)) {
+    font.setFamily(appearance.text_editor_font_family);
+  }
+  font.setPointSize(appearance.text_editor_font_size);
+  font.setFixedPitch(true);
+  return font;
+}
+
+auto EditorTabStopDistance(const QFont &font, const AppearanceSO &appearance)
+    -> qreal {
+  auto tab_size = appearance.text_editor_tab_size;
+  if (tab_size < 1 || tab_size > 16) tab_size = 4;
+  return QFontMetricsF(font).horizontalAdvance(QLatin1Char(' ')) * tab_size;
+}
+
 }  // namespace
 
 PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
@@ -130,18 +152,15 @@ void PlainTextEditorPage::init_editor_style() {
   ui_->textPage->setObjectName(QStringLiteral("PlainTextEditor"));
   ui_->textPage->setAcceptDrops(false);
   ui_->textPage->setLineWrapMode(QPlainTextEdit::WidgetWidth);
-  ui_->textPage->setTabStopDistance(
-      QFontMetricsF(ui_->textPage->font()).horizontalAdvance(' ') * 4);
   ui_->textPage->setUndoRedoEnabled(true);
   ui_->textPage->setCursorWidth(2);
 
-  QFont editor_font = PreferredMonospaceFont();
-
   AppearanceSO appearance(SettingsObject("general_settings_state"));
-  editor_font.setPointSize(appearance.text_editor_font_size);
-  editor_font.setFixedPitch(true);
+  QFont editor_font = EditorFont(appearance);
 
   ui_->textPage->setFont(editor_font);
+  ui_->textPage->setTabStopDistance(
+      EditorTabStopDistance(editor_font, appearance));
 
   auto setup_status_label = [](QLabel *label, const QString &width_sample) {
     QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -457,13 +476,11 @@ void PlainTextEditorPage::WipeContent() { Clear(); }
 void PlainTextEditorPage::ApplyAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-  QFont editor_font = PreferredMonospaceFont();
-  editor_font.setPointSize(appearance.text_editor_font_size);
-  editor_font.setFixedPitch(true);
+  QFont editor_font = EditorFont(appearance);
 
   ui_->textPage->setFont(editor_font);
   ui_->textPage->setTabStopDistance(
-      QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) * 4);
+      EditorTabStopDistance(editor_font, appearance));
 }
 
 }  // namespace GpgFrontend::UI
