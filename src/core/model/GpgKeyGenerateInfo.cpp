@@ -215,7 +215,9 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos =
                     {"brainpoolp384r1", "BrainPooL", "ECDSA", 384, ecc_gnupg23},
                     {"brainpoolp512r1", "BrainPooL", "ECDSA", 512, ecc_gnupg23},
                     {"ed448", "ED448", "EdDSA", 448, ecc_gnupg23_rpgp},
-                    {"secp256k1", "SECP256K1", "EdDSA", 256, ecc_gnupg23_rpgp},
+                    // Not a curve RFC 9580 registers (§9.2): GnuPG only.
+                    // rPGP still imports and uses existing secp256k1 keys.
+                    {"secp256k1", "SECP256K1", "ECDSA", 256, ecc_gnupg23},
                 });
 
   algos += SlhDsaFamily(kSIGN | kAUTH);
@@ -430,6 +432,17 @@ auto KeyGenerateInfo::SearchSubKeyAlgo(const QString &algo_id)
   }
 
   return {false, KeyAlgo{}};
+}
+
+auto KeyGenerateInfo::SearchKeyAlgoByAlgoId(const QString &algo_id)
+    -> std::optional<KeyAlgo> {
+  for (const auto *algos : {&kPrimaryKeyAlgos, &kSubKeyAlgos,
+                            &kHybridPrimaryKeyAlgo, &kHybridSubKeyAlgos}) {
+    for (const auto &algo : *algos) {
+      if (algo.MatchesAlgoId(algo_id)) return algo;
+    }
+  }
+  return std::nullopt;
 }
 
 void KeyGenerateInfo::SetAlgo(const KeyAlgo &algo) {
@@ -761,6 +774,15 @@ auto KeyAlgo::CanCert() const -> bool { return cert_; }
 auto KeyAlgo::IsPostQuantum() const -> bool { return (traits_ & kPQC) != 0; }
 
 auto KeyAlgo::IsEcc() const -> bool { return (traits_ & kECC) != 0; }
+
+auto KeyAlgo::MatchesAlgoId(const QString &algo_id) const -> bool {
+  if (algo_id.isEmpty()) return false;
+  if (id_ == algo_id) return true;
+  return std::any_of(sub_algos_.cbegin(), sub_algos_.cend(),
+                     [&](const QPair<KeyAlgo, EngineSupportList> &sub) {
+                       return id_ + "_" + sub.first.Id() == algo_id;
+                     });
+}
 
 auto KeyAlgo::SupportedVersion() const -> QContainer<EngineSupportIf> {
   return support_ifs_;

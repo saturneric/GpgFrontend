@@ -84,6 +84,26 @@ auto GpgSubKey::Algo() const -> QString {
   return algo.toUpper();
 }
 
+auto GpgSubKey::AlgoId() const -> QString {
+  if (skm_ref_ != nullptr) {
+    return GfrKeyAlgo2KeyAlgoId(static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
+  }
+  auto* buffer = gpgme_pubkey_algo_string(s_key_ref_);
+  auto name = QString(buffer);
+  gpgme_free(buffer);
+  return AlgoIdFromGnuPGName(name);
+}
+
+auto GpgSubKey::AlgoIdFromGnuPGName(const QString& gnupg_name) -> QString {
+  auto id = gnupg_name.toLower();
+  if (id.startsWith("ky1024_")) id.replace(0, 6, "kyber1024");
+  if (id == "cv448" || id.endsWith("_cv448")) {
+    id.chop(5);
+    id += "x448";
+  }
+  return id;
+}
+
 auto GpgSubKey::KeyLength() const -> unsigned int {
   if (skm_ref_ != nullptr) {
     return skm_ref_->key_length;

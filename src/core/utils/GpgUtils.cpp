@@ -34,6 +34,7 @@
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/model/SettingsObject.h"
@@ -1397,4 +1398,47 @@ auto GetKeyStatus(const GpgAbstractKey* key) -> GpgKeyStatus {
   return ClassifyKeyStatus(key->IsRevoked(), key->IsDisabled(),
                            key->IsExpired(), IsKeyExpiringSoon(key));
 }
+auto MixesPostQuantumAndClassical(
+    const QContainer<QContainer<bool>>& recipients) -> bool {
+  bool any_pq = false;
+  bool any_classical = false;
+  for (const auto& subkeys : recipients) {
+    if (subkeys.isEmpty()) continue;
+    if (std::all_of(subkeys.cbegin(), subkeys.cend(),
+                    [](bool pq) { return pq; })) {
+      any_pq = true;
+    } else {
+      any_classical = true;
+    }
+  }
+  return any_pq && any_classical;
+}
+
+auto RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys)
+    -> bool {
+  QContainer<QContainer<bool>> recipients;
+  for (const auto& key : keys) {
+    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+      continue;
+    }
+    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+    if (gpg_key == nullptr) continue;
+
+    // A pinned subkey is the one used; otherwise any usable one may be.
+    QContainer<bool> usable;
+    QContainer<bool> pinned;
+    for (const auto& s_key : gpg_key->SubKeys()) {
+      if (!s_key.IsHasEncrCap() || s_key.IsRevoked() || s_key.IsExpired()) {
+        continue;
+      }
+      const auto algo = KeyGenerateInfo::SearchKeyAlgoByAlgoId(s_key.AlgoId());
+      const bool pq = algo.has_value() && algo->IsPostQuantum();
+      usable.append(pq);
+      if (s_key.IsMarked()) pinned.append(pq);
+    }
+    recipients.append(pinned.isEmpty() ? usable : pinned);
+  }
+  return MixesPostQuantumAndClassical(recipients);
+}
+
 }  // namespace GpgFrontend

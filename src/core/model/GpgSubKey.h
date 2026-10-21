@@ -161,6 +161,25 @@ class GF_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
   [[nodiscard]] auto Algo() const -> QString override;
 
   /**
+   * @brief The canonical KeyAlgo id of this key's algorithm, for either
+   * engine; KeyGenerateInfo::SearchKeyAlgoByAlgoId() turns it into the
+   * KeyAlgo and its metadata.
+   *
+   * @return the id, or an empty string when the algorithm is unknown
+   */
+  [[nodiscard]] auto AlgoId() const -> QString;
+
+  /**
+   * @brief GnuPG's name for an algorithm (gpgme_pubkey_algo_string) as a
+   * canonical KeyAlgo id: lower case, with GnuPG's "cv448" for X448 and
+   * "ky1024" for Kyber-1024 spelled as the KeyAlgo ids do.
+   *
+   * @param gnupg_name e.g. "ky1024_cv448", "brainpoolP256r1"
+   * @return QString
+   */
+  static auto AlgoIdFromGnuPGName(const QString &gnupg_name) -> QString;
+
+  /**
    * @brief
    *
    * @return unsigned int

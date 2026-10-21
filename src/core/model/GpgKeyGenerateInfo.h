@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgKey.h"
 #include "core/typedef/CoreTypedef.h"
@@ -95,6 +97,16 @@ class GF_CORE_EXPORT KeyAlgo {
    * @return true if the algorithm provides post-quantum resistance.
    */
   [[nodiscard]] auto IsPostQuantum() const -> bool;
+
+  /**
+   * @brief Whether @p algo_id names this algorithm: its own id, or for a
+   * hybrid its id joined to one of its component algorithms
+   * ("ky768_cv25519", "mldsa65_ed25519").
+   *
+   * @param algo_id canonical algorithm id, as GpgSubKey::AlgoId() gives it
+   * @return true if the id names this algorithm
+   */
+  [[nodiscard]] auto MatchesAlgoId(const QString &algo_id) const -> bool;
 
   /**
    * @brief Whether this algorithm belongs to the elliptic-curve family.
@@ -204,6 +216,21 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
    */
   static auto SearchSubKeyAlgo(const QString &algo_id)
       -> std::tuple<bool, KeyAlgo>;
+
+  /**
+   * @brief The algorithm an existing key component uses, by its canonical id
+   * (GpgSubKey::AlgoId()), across every algorithm either engine knows,
+   * hybrids included.
+   *
+   * Use it for what an algorithm IS (KeyAlgo::IsPostQuantum(), IsEcc()). An
+   * id shared by several types (nistp256 for ECDSA and ECDH) resolves to the
+   * first, so do not read the type or the operations from it.
+   *
+   * @param algo_id canonical algorithm id
+   * @return the algorithm, or nothing for an id no algorithm here has
+   */
+  static auto SearchKeyAlgoByAlgoId(const QString &algo_id)
+      -> std::optional<KeyAlgo>;
 
   /**
    * @brief

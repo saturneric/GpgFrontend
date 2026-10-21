@@ -995,4 +995,38 @@ auto GF_CORE_EXPORT AggregateOwnerTrustRank(const QContainer<int>& levels)
  */
 auto GF_CORE_EXPORT GetKeyStatus(const GpgAbstractKey* key) -> GpgKeyStatus;
 
+/**
+ * @brief Whether a message to these recipients mixes post-quantum and
+ * classical encryption.
+ *
+ * Each entry lists, for one recipient, whether each subkey the message may be
+ * encrypted to is post-quantum. A recipient counts as post-quantum only if
+ * all of them are: which usable subkey is chosen is up to the engine (GnuPG
+ * takes the newest, rPGP the first), so this may report a mix the engine
+ * would avoid, but never misses one. A recipient with no such subkey says
+ * nothing either way. The session key is wrapped for every recipient, so the
+ * message is only as resistant to a quantum attacker as its weakest one.
+ *
+ * Kept as a free function over plain bools so the rule is testable without
+ * keys.
+ *
+ * @param recipients per recipient, whether each candidate subkey is
+ * post-quantum
+ * @return bool
+ */
+auto GF_CORE_EXPORT MixesPostQuantumAndClassical(
+    const QContainer<QContainer<bool>>& recipients) -> bool;
+
+/**
+ * @brief MixesPostQuantumAndClassical() for recipient keys, judged by each
+ * encryption subkey's KeyAlgo (KeyAlgo::IsPostQuantum()). A pinned (marked)
+ * subkey stands alone; otherwise every usable encryption subkey counts. Key
+ * groups are not expanded and are left out.
+ *
+ * @param keys the recipients
+ * @return bool
+ */
+auto GF_CORE_EXPORT
+RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys) -> bool;
+
 }  // namespace GpgFrontend
