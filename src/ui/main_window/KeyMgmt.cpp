@@ -332,9 +332,11 @@ void KeyMgmt::delete_keys_with_warning(const GpgAbstractKeyPtrList& keys) {
   QString keynames;
   for (const auto& key : keys) {
     if (!key->IsGood()) continue;
-    keynames.append(key->Name());
+    // names and emails come from the key and are shown as rich text, so they
+    // must not be able to inject markup into the confirmation.
+    keynames.append(key->Name().toHtmlEscaped());
     keynames.append("<i> &lt;");
-    keynames.append(key->Email());
+    keynames.append(key->Email().toHtmlEscaped());
     keynames.append("&gt; </i><br/>");
   }
 
@@ -507,7 +509,8 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 
                   QString const file_name = QFileDialog::getSaveFileName(
                       this, tr("Export OpenSSH Key To File"), "authorized_keys",
-                      tr("OpenSSH Public Key Files") + "All Files (*)");
+                      tr("OpenSSH Public Key Files") +
+                          " (authorized_keys *.pub);;All Files (*)");
 
                   if (!file_name.isEmpty()) {
                     WriteFileGFBuffer(file_name, gf_buffer);
