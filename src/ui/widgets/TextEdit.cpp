@@ -541,7 +541,15 @@ void TextEdit::SlotQuote() const {
 }
 
 void TextEdit::SlotFillTextEditWithText(const QString& text) const {
-  auto* edit = this->CurTextPage()->GetTextPage();
+  // the operation may finish after its tab was closed, or after a file tab
+  // became the current one. Never dereference a page that is not there.
+  auto* page = this->CurTextPage();
+  if (page == nullptr || page->GetTextPage() == nullptr) {
+    LOG_W() << "no text page to fill, discarding the result";
+    return;
+  }
+
+  auto* edit = page->GetTextPage();
   edit->setUndoRedoEnabled(false);
   edit->setPlainText(text);
   edit->setUndoRedoEnabled(true);
@@ -549,7 +557,15 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
 }
 
 void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
-  auto* edit = this->CurTextPage()->GetTextPage();
+  // the operation may finish after its tab was closed, or after a file tab
+  // became the current one. Never dereference a page that is not there.
+  auto* page = this->CurTextPage();
+  if (page == nullptr || page->GetTextPage() == nullptr) {
+    LOG_W() << "no text page to fill, discarding the result";
+    return;
+  }
+
+  auto* edit = page->GetTextPage();
   edit->setUndoRedoEnabled(false);
   SetPlainTextFromBuffer(edit, buffer);
   edit->setUndoRedoEnabled(true);
