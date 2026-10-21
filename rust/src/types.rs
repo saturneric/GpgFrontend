@@ -399,6 +399,16 @@ pub enum GfrSignatureStatus {
     NoKey = 2,
     /// Another parsing or internal error occurred for this signature.
     UnknownError = 3,
+    /// The signature is mathematically valid, but the signing key was revoked
+    /// as of its creation (RFC 9580 §5.2.3.31).
+    KeyRevoked = 4,
+    /// The signature is mathematically valid, but the signing key had expired
+    /// when it was made (RFC 9580 §5.2.3.13).
+    KeyExpired = 5,
+    /// The signature is mathematically valid, but the certificate does not
+    /// authorize that key to sign: no valid binding, no signing flag, no
+    /// back-signature, a weak certification, or an RSA key under 2048 bits.
+    KeyNotAuthorized = 6,
 }
 
 /// Verification result for a single signature found in the message.
@@ -491,6 +501,10 @@ pub struct GfrDecryptMetadataC {
     /// Embedded filename from the OpenPGP literal data packet, or null.
     #[zeroize(skip)]
     pub filename: *mut c_char,
+    /// Cipher and mode protecting the payload, as gpgme's `symkey_algo`
+    /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or null.
+    #[zeroize(skip)]
+    pub sym_algo: *mut c_char,
     /// Array of recipient key information.
     #[zeroize(skip)]
     pub recipients: *mut GfrRecipientResultC,
@@ -1216,6 +1230,9 @@ mod abi_tests {
         assert_eq!(GfrSignatureStatus::BadSignature as i32, 1);
         assert_eq!(GfrSignatureStatus::NoKey as i32, 2);
         assert_eq!(GfrSignatureStatus::UnknownError as i32, 3);
+        assert_eq!(GfrSignatureStatus::KeyRevoked as i32, 4);
+        assert_eq!(GfrSignatureStatus::KeyExpired as i32, 5);
+        assert_eq!(GfrSignatureStatus::KeyNotAuthorized as i32, 6);
     }
 
     #[test]

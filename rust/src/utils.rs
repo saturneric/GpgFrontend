@@ -35,8 +35,12 @@ use pgp::{
     bytes::Bytes,
     composed::{ArmorOptions, KeyType},
     crypto::ecc_curve::ECCCurve,
-    packet::{RevocationCode, Signature, Subpacket, SubpacketData},
-    types::{Password, PublicParams, Timestamp},
+    crypto::hash::HashAlgorithm,
+    packet::{
+        RevocationCode, Signature, SignatureConfig, SignatureType, SignatureVersionSpecific,
+        Subpacket, SubpacketData,
+    },
+    types::{KeyVersion, Password, PublicParams, Timestamp},
 };
 use rsa::traits::PublicKeyParts;
 use zeroize::Zeroizing;
@@ -55,18 +59,41 @@ use std::{
     ptr::null_mut,
 };
 
-/// Armor options for all engine output: no headers and **no CRC24 footer**.
+/// Armor options for engine output that may hold v6 material: no headers and
+/// **no CRC24 footer**.
 ///
-/// RFC 9580 §6.1 discourages generating the CRC24 footer in general and forbids
-/// it outright for v6 keys, v6 signatures, and messages ending in a v2 SEIPD
-/// packet ("MUST NOT contain a CRC24 footer"). rPGP's `armor_opts()`
-/// enables the checksum with no version awareness, so every armored output goes
-/// through this helper instead to stay compliant across key/signature versions.
+/// RFC 9580 §6.1 forbids the CRC24 footer for v6 keys, v6 signatures, and
+/// messages ending in a v2 SEIPD packet ("MUST NOT contain a CRC24 footer").
+/// rPGP's own `armor_opts()` enables the checksum with no version awareness,
+/// so every armored output goes through this module instead. Output known to
+/// hold only v4-era material uses [`armor_opts_for`].
 pub fn armor_opts() -> ArmorOptions<'static> {
+    armor_opts_for(false)
+}
+
+/// Armor options for an object that holds only v4-era material (`v4_only`:
+/// no v6 key, v6 signature, v6 session-key packet or v2 SEIPD) or not.
+///
+/// RFC 9580 §6.1: the CRC24 footer "SHOULD NOT be generated, unless
+/// interoperability with implementations that require the CRC24 footer to be
+/// present is a concern". GnuPG 2.4 reports a failure on armor with neither a
+/// CRC24 footer nor base64 padding, so v4-only armor, which GnuPG can
+/// consume, carries the footer; anything holding v6 material never does.
+pub fn armor_opts_for(v4_only: bool) -> ArmorOptions<'static> {
     ArmorOptions {
         headers: None,
-        include_checksum: false,
+        include_checksum: v4_only,
     }
+}
+
+/// Whether a key or signature of `version` is v4-era material.
+pub fn is_v4_era(version: KeyVersion) -> bool {
+    matches!(version, KeyVersion::V2 | KeyVersion::V3 | KeyVersion::V4)
+}
+
+/// [`armor_opts_for`] a key block (or keyring) whose keys are of `version`.
+pub fn key_armor_opts(version: KeyVersion) -> ArmorOptions<'static> {
+    armor_opts_for(is_v4_era(version))
 }
 
 /// Describes the passphrase request context passed to the UI callback.
@@ -299,16 +326,15 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
             }
         }
 
-        // RFC 9580 §12.4: implementations MUST NOT generate RSA keys smaller than
-        // 2048 bits. RSA-1024 is rejected here (existing RSA-1024 keys can still be
-        // imported/displayed via `determine_algo`, which is unaffected).
-        GfrKeyAlgo::RSA1024 => {
+        // RFC 9580 §12.4: "An implementation MUST NOT generate RSA keys of a size
+        // less than 3072 bits." Existing smaller keys can still be imported and
+        // displayed via `determine_algo`, which is unaffected.
+        GfrKeyAlgo::RSA1024 | GfrKeyAlgo::RSA2048 => {
             set_last_error(
-                "RSA-1024 is too weak to generate; RFC 9580 §12.4 requires >= 2048 bits",
+                "RSA keys under 3072 bits are too weak to generate; RFC 9580 §12.4 requires >= 3072 bits",
             );
             Err(GfrStatus::ErrorUnsupportedAlgorithm)
         }
-        GfrKeyAlgo::RSA2048 => Ok(KeyType::Rsa(2048)),
         GfrKeyAlgo::RSA3072 => Ok(KeyType::Rsa(3072)),
         GfrKeyAlgo::RSA4096 => Ok(KeyType::Rsa(4096)),
 
@@ -512,22 +538,68 @@ fn sig_creation_time_value(sig: &Signature) -> u64 {
         .unwrap_or(0)
 }
 
+/// True for the self-signature types that carry a key's properties (User ID
+/// certifications 0x10-0x13, Subkey Binding 0x18, Direct Key 0x1F): the ones a
+/// re-issued self-signature replaces. Revocations (0x20, 0x28, 0x30) are not:
+/// re-issuing a self-signature must never drop one.
+pub fn is_property_self_sig(sig: &Signature) -> bool {
+    matches!(
+        sig.typ(),
+        Some(
+            SignatureType::CertGeneric
+                | SignatureType::CertPersona
+                | SignatureType::CertCasual
+                | SignatureType::CertPositive
+                | SignatureType::SubkeyBinding
+                | SignatureType::Key
+        )
+    )
+}
+
+/// Prepare a config cloned from an existing self-signature for re-issuing.
+///
+/// A template made with MD5, SHA-1 or RIPEMD-160 must not yield a new
+/// signature with that hash (RFC 9580 §9.5: "MUST NOT generate signatures
+/// with MD5, SHA-1, or RIPEMD-160"), so the key's `default_hash` replaces it.
+/// A v6 template's salt is never reused: the new signature gets a fresh one
+/// sized for its hash (§5.2.3 "a random value"; §13.2).
+pub fn refresh_reissued_config(
+    cfg: &mut SignatureConfig,
+    default_hash: HashAlgorithm,
+) -> Result<(), GfrStatus> {
+    if matches!(
+        cfg.hash_alg,
+        HashAlgorithm::Md5 | HashAlgorithm::Sha1 | HashAlgorithm::Ripemd160
+    ) {
+        cfg.hash_alg = default_hash;
+    }
+    let salt_len = cfg.hash_alg.salt_len();
+    if let SignatureVersionSpecific::V6 { salt } = &mut cfg.version_specific {
+        let mut fresh = vec![0u8; salt_len.ok_or(GfrStatus::ErrorInternal)?];
+        rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut fresh);
+        *salt = fresh;
+    }
+    Ok(())
+}
+
 /// Pick the best self-signature to use as a template when re-signing a user ID.
 ///
 /// Prefers the most-recent signature that carries a `KeyFlags` subpacket, so
 /// the re-generated signature preserves the original capability flags. Falls
 /// back to the most-recent signature without key flags when none have them.
 pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a Signature> {
-    self_sigs
-        .iter()
-        .copied()
+    // A revocation is never a template: cloning one would mint a new revocation.
+    let candidates = || {
+        self_sigs
+            .iter()
+            .copied()
+            .filter(|sig| is_property_self_sig(sig))
+    };
+    candidates()
         .filter(|sig| has_key_flags(sig))
         .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
         .or_else(|| {
-            self_sigs
-                .iter()
-                .copied()
-                .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
+            candidates().max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
         })
 }
 
@@ -760,16 +832,10 @@ mod utils_tests {
 
     #[test]
     fn armor_opts_disables_the_crc24_footer() {
-        // §6.1: generating the CRC24 footer is discouraged, and forbidden for
-        // v6 material. rPGP's own default enables it with no version
-        // awareness, which is exactly why this helper exists.
+        // §6.1: the default for anything that may hold v6 material, where
+        // the footer is forbidden. rPGP's own default enables it with no
+        // version awareness, which is exactly why this helper exists.
         assert!(!armor_opts().include_checksum);
-    }
-
-    #[test]
-    fn armored_output_really_has_no_equals_footer() {
-        let armored = &keys::V4_SIGN.public_armored;
-        crate::testutil::assert::armor_has_no_crc24(armored);
     }
 
     #[test]
@@ -929,12 +995,8 @@ mod utils_tests {
     }
 
     #[test]
-    fn resolve_accepts_rsa_2048_and_above() {
-        for (algo, bits) in [
-            (GfrKeyAlgo::RSA2048, 2048u32),
-            (GfrKeyAlgo::RSA3072, 3072),
-            (GfrKeyAlgo::RSA4096, 4096),
-        ] {
+    fn resolve_accepts_rsa_3072_and_above() {
+        for (algo, bits) in [(GfrKeyAlgo::RSA3072, 3072u32), (GfrKeyAlgo::RSA4096, 4096)] {
             match resolve_key_type(&algo, false).unwrap() {
                 KeyType::Rsa(n) => assert_eq!(n, bits, "{algo:?}"),
                 other => panic!("{algo:?} resolved to {other:?}"),
@@ -1693,5 +1755,134 @@ mod utils_tests {
             info: "SIGNING".to_string(),
         };
         assert!(cache.get(&other_info).is_none());
+    }
+}
+
+#[cfg(test)]
+mod crc24_policy_tests {
+    //! RFC 9580 §6.1: the CRC24 footer "SHOULD NOT be generated, unless
+    //! interoperability with implementations that require the CRC24 footer
+    //! to be present is a concern", and MUST NOT be generated for v6 keys, v6
+    //! signatures or a message ending in a v2 SEIPD. GnuPG 2.4 reports a
+    //! failure on armor with neither a CRC24 footer nor base64 padding, so
+    //! v4-only armor carries the footer (product decision, 2026-10-21) and
+    //! anything holding v6 material never does.
+
+    use crate::testutil::assert::{armor_has_crc24, armor_has_no_crc24};
+    use crate::testutil::{cb, keys};
+    use crate::types::{GfrRevocationCode, GfrSignMode};
+
+    fn text(bytes: &[u8]) -> String {
+        String::from_utf8_lossy(bytes).into_owned()
+    }
+
+    fn encrypt(recipients: &[&str]) -> String {
+        text(
+            &crate::crypto::encrypt_internal(0, "", b"crc", recipients, true)
+                .unwrap()
+                .data,
+        )
+    }
+
+    fn sign(signers: &[&str], mode: GfrSignMode) -> String {
+        text(
+            &crate::crypto::sign_internal(0, "", b"crc\n", signers, None, mode, true)
+                .unwrap()
+                .data,
+        )
+    }
+
+    #[test]
+    fn a_v1_seipd_message_carries_the_footer() {
+        armor_has_crc24(&encrypt(&[&keys::V4_SIGN.public_armored]));
+        // v4 + v6 recipients fall back to v1 SEIPD with v3 PKESKs.
+        armor_has_crc24(&encrypt(&[
+            &keys::V4_SIGN.public_armored,
+            &keys::V6_SIGN.public_armored,
+        ]));
+    }
+
+    #[test]
+    fn a_v2_seipd_message_never_does() {
+        armor_has_no_crc24(&encrypt(&[&keys::V6_SIGN.public_armored]));
+        let mut out = Vec::new();
+        crate::crypto::encrypt_stream_with_password_internal(
+            0,
+            "",
+            &b"crc"[..],
+            &mut out,
+            Some(cb::pwd_correct),
+            true,
+        )
+        .unwrap();
+        armor_has_no_crc24(&text(&out));
+    }
+
+    #[test]
+    fn v4_signatures_carry_the_footer_and_v6_ones_never_do() {
+        for mode in [
+            GfrSignMode::Detached,
+            GfrSignMode::Inline,
+            GfrSignMode::ClearText,
+        ] {
+            armor_has_crc24(&sign(&[&keys::V4_SIGN.secret_armored], mode));
+            armor_has_no_crc24(&sign(&[&keys::V6_SIGN.secret_armored], mode));
+            armor_has_no_crc24(&sign(
+                &[&keys::V4_SIGN.secret_armored, &keys::V6_SIGN.secret_armored],
+                mode,
+            ));
+        }
+    }
+
+    #[test]
+    fn v4_key_blocks_carry_the_footer_and_v6_ones_never_do() {
+        armor_has_crc24(
+            &crate::key::extract_public_key_internal(&keys::V4_SIGN.secret_armored).unwrap(),
+        );
+        armor_has_no_crc24(
+            &crate::key::extract_public_key_internal(&keys::V6_SIGN.secret_armored).unwrap(),
+        );
+        armor_has_crc24(
+            &crate::key::export_merged_public_keys(&[
+                &keys::V4_SIGN.public_armored,
+                &keys::V4_NISTP256.public_armored,
+            ])
+            .unwrap(),
+        );
+        armor_has_no_crc24(
+            &crate::key::export_merged_public_keys(&[
+                &keys::V4_SIGN.public_armored,
+                &keys::V6_SIGN.public_armored,
+            ])
+            .unwrap(),
+        );
+        armor_has_crc24(
+            &crate::key::export_merged_secret_keys(&[&keys::V4_SIGN.secret_armored]).unwrap(),
+        );
+        armor_has_no_crc24(
+            &crate::key::export_merged_secret_keys(&[&keys::V6_SIGN.secret_armored]).unwrap(),
+        );
+    }
+
+    #[test]
+    fn a_v4_revocation_certificate_carries_the_footer() {
+        let v4 = crate::key::generate_key_rev_cert_internal(
+            0,
+            &keys::V4_SIGN.secret_armored,
+            GfrRevocationCode::NoReason,
+            None,
+            None,
+        )
+        .unwrap();
+        armor_has_crc24(&v4);
+        let v6 = crate::key::generate_key_rev_cert_internal(
+            0,
+            &keys::V6_SIGN.secret_armored,
+            GfrRevocationCode::NoReason,
+            None,
+            None,
+        )
+        .unwrap();
+        armor_has_no_crc24(&v6);
     }
 }
