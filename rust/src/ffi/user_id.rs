@@ -355,8 +355,22 @@ mod ffi_user_id_tests {
     }
 
     #[test]
-    fn delete_user_id_removes_the_named_identity() {
+    fn delete_user_id_keeps_the_last_user_id_of_a_v4_key() {
+        // GF policy: a v4 key without a User ID could no longer be used here.
         let key = &keys::V4_SIGN;
+        let existing = first_uid(&key.secret_armored);
+        let uid = CString::new(existing.as_str()).expect("no NUL");
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_delete_user_id(buf(&key.secret_armored), uid.as_ptr(), &mut out),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert!(out.is_null());
+    }
+
+    #[test]
+    fn delete_user_id_removes_the_named_identity() {
+        let key = &keys::V6_SIGN;
         let existing = first_uid(&key.secret_armored);
         let uid = CString::new(existing.as_str()).expect("no NUL");
         let mut out = std::ptr::null_mut();

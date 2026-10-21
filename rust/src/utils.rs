@@ -492,17 +492,6 @@ pub fn check_if_should_use_key_ver_v6(
     false
 }
 
-/// Key Flags count only from the hashed area (§5.2.3.29 is signed data).
-fn has_key_flags(sig: &Signature) -> bool {
-    sig.config()
-        .map(|c| {
-            c.hashed_subpackets
-                .iter()
-                .any(|sp| matches!(sp.data, SubpacketData::KeyFlags(_)))
-        })
-        .unwrap_or(false)
-}
-
 fn sig_creation_time_value(sig: &Signature) -> u64 {
     sig.created().map(|ts| ts.as_secs() as u64).unwrap_or(0)
 }
@@ -552,7 +541,8 @@ pub fn is_property_self_sig(sig: &Signature) -> bool {
 /// signature with that hash (RFC 9580 §9.5: "MUST NOT generate signatures
 /// with MD5, SHA-1, or RIPEMD-160"), so the key's `default_hash` replaces it.
 /// A v6 template's salt is never reused: the new signature gets a fresh one
-/// sized for its hash (§5.2.3 "a random value"; §13.2).
+/// sized for its hash (§5.2.3 "a random value"; §13.2). A deprecated
+/// Revocation Key subpacket is dropped.
 pub fn refresh_reissued_config(
     cfg: &mut SignatureConfig,
     default_hash: HashAlgorithm,
@@ -563,6 +553,11 @@ pub fn refresh_reissued_config(
     ) {
         cfg.hash_alg = default_hash;
     }
+    // §5.2.3.23: the Revocation Key subpacket is deprecated and "Applications
+    // MUST NOT generate such a subpacket"; a re-issue generates a signature.
+    for area in [&mut cfg.hashed_subpackets, &mut cfg.unhashed_subpackets] {
+        area.retain(|sp| !matches!(sp.data, SubpacketData::RevocationKey(_)));
+    }
     let salt_len = cfg.hash_alg.salt_len();
     if let SignatureVersionSpecific::V6 { salt } = &mut cfg.version_specific {
         let mut fresh = vec![0u8; salt_len.ok_or(GfrStatus::ErrorInternal)?];
@@ -572,14 +567,14 @@ pub fn refresh_reissued_config(
     Ok(())
 }
 
-/// Pick the best self-signature to use as a template when re-signing a user ID.
+/// Pick the self-signature to use as a template when re-signing.
 ///
 /// `self_sigs` must already be verified self-signatures: the template's
-/// subpackets are signed anew by the keyholder.
-///
-/// Prefers the most-recent signature that carries a `KeyFlags` subpacket, so
-/// the re-generated signature preserves the original capability flags. Falls
-/// back to the most-recent signature without key flags when none have them.
+/// subpackets are signed anew by the keyholder. The newest property
+/// self-signature is the one in force (RFC 9580 §5.2.3.10: "the most recent
+/// valid self-signature"), so it is the template even when an older one
+/// carries Key Flags: preferring the older one would resurrect its expiry and
+/// preferences.
 pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a Signature> {
     // A revocation is never a template: cloning one would mint a new revocation.
     let candidates = || {
@@ -588,12 +583,85 @@ pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a S
             .copied()
             .filter(|sig| is_property_self_sig(sig))
     };
-    candidates()
-        .filter(|sig| has_key_flags(sig))
-        .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
-        .or_else(|| {
-            candidates().max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
-        })
+    candidates().max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
+}
+
+/// `text` with the spaces and tabs inside armored base64 bodies removed, and
+/// armor header lines trimmed. RFC 9580 §6: "When decoding base64, an
+/// OpenPGP implementation MUST ignore all whitespace"; rPGP skips only line
+/// breaks, so a key or signature pasted with indentation or trailing spaces
+/// would not decode. A cleartext-signed body is left verbatim: its whitespace
+/// is signed content. Unchanged input is returned as is.
+pub fn strip_armor_whitespace(text: &str) -> std::borrow::Cow<'_, str> {
+    #[derive(PartialEq)]
+    enum State {
+        Outside,
+        Headers,
+        Body,
+        Cleartext,
+    }
+    let mut state = State::Outside;
+    let mut out = String::with_capacity(text.len());
+    for line in text.split_inclusive('\n') {
+        let content = line.trim_end_matches(['\r', '\n']);
+        let ending = &line[content.len()..];
+        let trimmed = content.trim();
+        match state {
+            State::Cleartext if trimmed.starts_with("-----BEGIN PGP SIGNATURE-----") => {
+                state = State::Headers;
+                out.push_str(trimmed);
+            }
+            State::Cleartext => out.push_str(content),
+            State::Outside if trimmed.starts_with("-----BEGIN PGP SIGNED MESSAGE-----") => {
+                state = State::Cleartext;
+                out.push_str(trimmed);
+            }
+            State::Outside if trimmed.starts_with("-----BEGIN PGP ") => {
+                state = State::Headers;
+                out.push_str(trimmed);
+            }
+            State::Outside => out.push_str(content),
+            State::Headers if trimmed.is_empty() => state = State::Body,
+            State::Headers => out.push_str(trimmed),
+            State::Body if trimmed.starts_with("-----END PGP ") => {
+                state = State::Outside;
+                out.push_str(trimmed);
+            }
+            State::Body => out.extend(content.chars().filter(|c| *c != ' ' && *c != '\t')),
+        }
+        out.push_str(ending);
+    }
+    if out == text {
+        std::borrow::Cow::Borrowed(text)
+    } else {
+        std::borrow::Cow::Owned(out)
+    }
+}
+
+/// [`strip_armor_whitespace`] for an in-memory input of any kind: binary data
+/// (not UTF-8) is returned as is.
+pub fn normalized_armor(data: &[u8]) -> std::borrow::Cow<'_, [u8]> {
+    use std::borrow::Cow;
+    match std::str::from_utf8(data) {
+        Ok(text) => match strip_armor_whitespace(text) {
+            Cow::Borrowed(_) => Cow::Borrowed(data),
+            Cow::Owned(normalized) => Cow::Owned(normalized.into_bytes()),
+        },
+        Err(_) => Cow::Borrowed(data),
+    }
+}
+
+/// RFC 9580 §5.2.3.31: codes 1-3 (superseded, compromised, retired) are for
+/// Key Revocation signatures, code 32 ("User ID information is no longer
+/// valid") for Certification Revocation signatures; 0 fits both.
+pub fn revocation_reason_fits(code: GfrRevocationCode, for_user_id: bool) -> bool {
+    match code {
+        GfrRevocationCode::NoReason => true,
+        GfrRevocationCode::UserIdInvalid => for_user_id,
+        GfrRevocationCode::Superseded
+        | GfrRevocationCode::Compromised
+        | GfrRevocationCode::Retired => !for_user_id,
+    }
 }
 
 pub fn build_revocation_reason_subpacket(
@@ -1331,16 +1399,19 @@ mod utils_tests {
     }
 
     #[test]
-    fn choose_template_prefers_a_signature_carrying_key_flags() {
-        // Re-issuing a self-signature must not silently drop the capability
-        // flags, so the template is chosen from the signatures that have them.
+    fn choose_template_takes_the_newest_property_self_signature() {
+        // RFC 9580 §5.2.3.10: the most recent valid self-signature is in
+        // force; see `key_tests::a_re_issue_starts_from_the_self_signature_in_force`.
         let key = &keys::V4_SIGN.secret;
         let sigs: Vec<&Signature> = key.details.users[0].signatures.iter().collect();
         let chosen = choose_template_self_sig(&sigs).expect("a template");
-        assert!(
-            chosen.key_flags().certify() || chosen.key_flags().sign(),
-            "the chosen template should be the one carrying key flags"
-        );
+        let newest = sigs
+            .iter()
+            .filter(|s| is_property_self_sig(s))
+            .map(|s| s.created().map(|t| t.as_secs()))
+            .max()
+            .unwrap();
+        assert_eq!(chosen.created().map(|t| t.as_secs()), newest);
     }
 
     #[test]
@@ -1778,6 +1849,36 @@ mod crc24_policy_tests {
                 .unwrap()
                 .data,
         )
+    }
+
+    #[test]
+    fn an_encrypted_message_carrying_a_v6_signature_has_no_crc() {
+        // §6.1: no CRC24 footer where a v6 signature is involved, even inside
+        // a v1 SEIPD chosen for a v4 recipient (round four, path parity with
+        // inline signing).
+        let signed = crate::crypto::encrypt_and_sign_internal(
+            0,
+            "",
+            b"v6 signer, v4 recipient",
+            &[&keys::V4_SIGN.public_armored],
+            &[&keys::V6_SIGN.secret_armored],
+            None,
+            true,
+        )
+        .unwrap();
+        armor_has_no_crc24(std::str::from_utf8(&signed.data).unwrap());
+        let v4 = crate::crypto::encrypt_and_sign_internal(
+            0,
+            "",
+            b"v4 signer, v4 recipient",
+            &[&keys::V4_SIGN.public_armored],
+            &[&keys::V4_SIGN.secret_armored],
+            None,
+            true,
+        )
+        .unwrap();
+        // Control: v4 material only keeps the CRC.
+        armor_has_crc24(std::str::from_utf8(&v4.data).unwrap());
     }
 
     #[test]

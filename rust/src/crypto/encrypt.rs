@@ -170,17 +170,19 @@ pub fn encrypt_directory_internal(
     ascii_armor: bool,
 ) -> Result<EncryptStreamResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
-    let out_file = create_output_file(out_file_path)?;
+    let mut stage = stage_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
-    encrypt_stream_internal(
+    let result = encrypt_stream_internal(
         channel,
         &filename_hint,
         temp_archive,
-        out_file,
+        stage.file_mut(),
         public_key_blocks,
         ascii_armor,
-    )
+    )?;
+    commit_output(stage)?;
+    Ok(result)
 }
 
 /// Which key of a recipient certificate the session key is encrypted to.
@@ -218,6 +220,70 @@ fn flags_allow_encryption(sig: &Signature) -> bool {
     !has_flags || flags.encrypt_comms() || flags.encrypt_storage()
 }
 
+/// RFC 9580 §9.5: an implementation "MUST NOT use MD5, SHA-1, or RIPEMD-160
+/// as a hash function in an ECDH KDF". A v4 ECDH key announces its own KDF
+/// hash; rPGP refuses to build a session-key packet for these, which would
+/// fail the whole message rather than skip this one recipient.
+fn ecdh_kdf_hash_is_weak(params: &pgp::types::PublicParams) -> bool {
+    use pgp::crypto::hash::HashAlgorithm;
+    use pgp::types::{EcdhPublicParams, PublicParams};
+    let hash = match params {
+        PublicParams::ECDH(
+            EcdhPublicParams::Curve25519Legacy { hash, .. }
+            | EcdhPublicParams::P256 { hash, .. }
+            | EcdhPublicParams::P384 { hash, .. }
+            | EcdhPublicParams::P521 { hash, .. }
+            | EcdhPublicParams::Brainpool256 { hash, .. }
+            | EcdhPublicParams::Brainpool384 { hash, .. }
+            | EcdhPublicParams::Brainpool512 { hash, .. },
+        ) => hash,
+        _ => return false,
+    };
+    matches!(
+        hash,
+        HashAlgorithm::Md5 | HashAlgorithm::Sha1 | HashAlgorithm::Ripemd160
+    )
+}
+
+/// True if rPGP 0.21 can build a session-key packet for a key with `params`:
+/// RSA, ECDH over Curve25519Legacy and the NIST curves, X25519, X448 and the
+/// RFC 9980 ML-KEM composites. Others (ElGamal, ECDH over the Brainpool
+/// curves or secp256k1) would make the whole encryption fail, so such a key
+/// is an unusable recipient instead.
+pub(crate) fn engine_can_encrypt_to(params: &pgp::types::PublicParams) -> bool {
+    use pgp::types::{EcdhPublicParams, PublicParams};
+    match params {
+        PublicParams::RSA(_)
+        | PublicParams::X25519(_)
+        | PublicParams::X448(_)
+        | PublicParams::MlKem768X25519(_)
+        | PublicParams::MlKem1024X448(_) => true,
+        PublicParams::ECDH(ecdh) => matches!(
+            ecdh,
+            EcdhPublicParams::Curve25519Legacy { .. }
+                | EcdhPublicParams::P256 { .. }
+                | EcdhPublicParams::P384 { .. }
+                | EcdhPublicParams::P521 { .. }
+        ),
+        _ => false,
+    }
+}
+
+/// Why a key with `params` cannot receive a session key whatever its
+/// certificate says: the engine cannot encrypt to its algorithm, or its ECDH
+/// KDF is forbidden.
+fn encryption_algorithm_problem(params: &pgp::types::PublicParams) -> Option<&'static str> {
+    if !engine_can_encrypt_to(params) {
+        return Some(
+            "an algorithm this engine cannot encrypt to (ElGamal, or ECDH over a Brainpool or other unsupported curve)",
+        );
+    }
+    if ecdh_kdf_hash_is_weak(params) {
+        return Some("an ECDH key whose KDF uses MD5, SHA-1 or RIPEMD-160 (RFC 9580 §9.5)");
+    }
+    None
+}
+
 /// Why `subkey` cannot receive a session key: it must be encryption-capable,
 /// validly bound with flags allowing encryption, and neither revoked nor expired.
 fn encryption_subkey_problem(
@@ -231,6 +297,9 @@ fn encryption_subkey_problem(
     }
     if crate::key::rsa_key_too_small(subkey.key.public_params()) {
         return Some("an RSA key under 2048 bits (RFC 9580 §12.4)");
+    }
+    if let Some(problem) = encryption_algorithm_problem(subkey.key.public_params()) {
+        return Some(problem);
     }
     if crate::key::is_subkey_revoked(primary, &subkey.key, &subkey.signatures) {
         return Some("revoked");
@@ -260,6 +329,9 @@ fn encryption_primary_problem(cert: &SignedPublicKey, pref: &Signature) -> Optio
     }
     if crate::key::rsa_key_too_small(cert.primary_key.public_params()) {
         return Some("an RSA key under 2048 bits (RFC 9580 §12.4)");
+    }
+    if let Some(problem) = encryption_algorithm_problem(cert.primary_key.public_params()) {
+        return Some(problem);
     }
     if !flags_allow_encryption(pref) {
         return Some("not flagged for encryption");
@@ -358,6 +430,16 @@ fn validate_recipient(
     now: u32,
 ) -> Result<EncryptionTarget, GfrStatus> {
     let primary = &cert.primary_key;
+    // RFC 9580 §12.4/§12.5: a DSA or sub-2048-bit RSA primary may not be used
+    // to verify, and the certificate's bindings could only be checked with
+    // it (the same rule the signature verdicts apply, `key_forbidden`).
+    if crate::key::key_forbidden(primary.public_params()) {
+        log::error!(
+            "Recipient primary key is a DSA or sub-2048-bit RSA key: fpr={}",
+            primary.fingerprint()
+        );
+        return Err(GfrStatus::ErrorUnusableKey);
+    }
     let Some(pref) = crate::key::preference_self_signature(cert) else {
         log::error!(
             "Recipient has no valid self-signature: fpr={}",
@@ -451,6 +533,53 @@ const AEAD_RANKING: [(SymmetricKeyAlgorithm, AeadAlgorithm); 9] = [
     (SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Eax),
 ];
 
+/// The ciphers (for a v1 SEIPD) and ciphersuites (for a v2 SEIPD) `cert`'s
+/// holder accepts, in preference order, with the implicit entries the RFCs
+/// add: AES-128 and AES-128/OCB always (RFC 9580 §5.2.3.14-15), AES-256 and
+/// AES-256/OCB ahead of them for a certificate with a post-quantum key (RFC
+/// 9980 §7.1). Only a validly bound subkey is part of the certificate.
+pub(crate) fn accepted_ciphers(
+    cert: &SignedPublicKey,
+) -> (
+    Vec<SymmetricKeyAlgorithm>,
+    Vec<(SymmetricKeyAlgorithm, AeadAlgorithm)>,
+) {
+    let pref = crate::key::preference_self_signature(cert);
+
+    // RFC 9980 §7.1: a certificate with a post-quantum key implicitly lists
+    // AES-256 (and AES-256 with OCB) after its explicit preferences; "if
+    // AES-128 is also implicitly added ..., it is added after AES-256".
+    let has_pq_key = cert.primary_key.algorithm().is_pqc()
+        || cert.public_subkeys.iter().any(|sk| {
+            sk.key.algorithm().is_pqc()
+                && crate::key::subkey_binding_signature(&cert.primary_key, &sk.key, &sk.signatures)
+                    .is_some()
+        });
+
+    let mut symmetric = pref
+        .map(|sig| sig.preferred_symmetric_algs().to_vec())
+        .unwrap_or_default();
+    if has_pq_key && !symmetric.contains(&SymmetricKeyAlgorithm::AES256) {
+        symmetric.push(SymmetricKeyAlgorithm::AES256);
+    }
+    if !symmetric.contains(&SymmetricKeyAlgorithm::AES128) {
+        symmetric.push(SymmetricKeyAlgorithm::AES128);
+    }
+
+    let mut aead = pref
+        .map(|sig| sig.preferred_aead_algs().to_vec())
+        .unwrap_or_default();
+    let pq_implied = (SymmetricKeyAlgorithm::AES256, AeadAlgorithm::Ocb);
+    if has_pq_key && !aead.contains(&pq_implied) {
+        aead.push(pq_implied);
+    }
+    let mandatory = (SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Ocb);
+    if !aead.contains(&mandatory) {
+        aead.push(mandatory);
+    }
+    (symmetric, aead)
+}
+
 /// What one validated recipient can read, from its authenticated self-signature
 /// and the algorithm of the key the session key goes to.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -470,40 +599,7 @@ struct RecipientCaps {
 
 impl RecipientCaps {
     fn of(cert: &SignedPublicKey, target: &EncryptionTarget) -> Self {
-        let pref = crate::key::preference_self_signature(cert);
-
-        // RFC 9980 §7.1: a certificate with a post-quantum key implicitly
-        // lists AES-256 (and AES-256 with OCB) after its explicit
-        // preferences; "if AES-128 is also implicitly added ..., it is added
-        // after AES-256".
-        let has_pq_key = cert.primary_key.algorithm().is_pqc()
-            || cert
-                .public_subkeys
-                .iter()
-                .any(|sk| sk.key.algorithm().is_pqc());
-
-        let mut symmetric = pref
-            .map(|sig| sig.preferred_symmetric_algs().to_vec())
-            .unwrap_or_default();
-        if has_pq_key && !symmetric.contains(&SymmetricKeyAlgorithm::AES256) {
-            symmetric.push(SymmetricKeyAlgorithm::AES256);
-        }
-        if !symmetric.contains(&SymmetricKeyAlgorithm::AES128) {
-            symmetric.push(SymmetricKeyAlgorithm::AES128);
-        }
-
-        let mut aead = pref
-            .map(|sig| sig.preferred_aead_algs().to_vec())
-            .unwrap_or_default();
-        let pq_implied = (SymmetricKeyAlgorithm::AES256, AeadAlgorithm::Ocb);
-        if has_pq_key && !aead.contains(&pq_implied) {
-            aead.push(pq_implied);
-        }
-        let mandatory = (SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Ocb);
-        if !aead.contains(&mandatory) {
-            aead.push(mandatory);
-        }
-
+        let (symmetric, aead) = accepted_ciphers(cert);
         RecipientCaps {
             seipd_v1: cert_supports_seipd_v1(cert),
             seipd_v2: cert_supports_seipd_v2(cert)
@@ -524,6 +620,18 @@ enum Container {
     SeipdV1(SymmetricKeyAlgorithm),
     /// v2 SEIPD (AEAD) preceded by v6 PKESKs.
     SeipdV2(SymmetricKeyAlgorithm, AeadAlgorithm),
+}
+
+thread_local! {
+    /// Every recipient of the last encryption on this thread that found none
+    /// usable, so the FFI can return them with its `ErrorUnusableKey`.
+    static REJECTED_RECIPIENTS: std::cell::RefCell<Vec<InvalidRecipientInternal>> =
+        const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// Take the recipients the last failed encryption on this thread rejected.
+pub(crate) fn take_rejected_recipients() -> Vec<InvalidRecipientInternal> {
+    REJECTED_RECIPIENTS.with(|r| std::mem::take(&mut *r.borrow_mut()))
 }
 
 /// Pick the container every recipient can read (RFC 9580 §13.7): v2 SEIPD
@@ -615,6 +723,19 @@ where
         }
     }
 
+    // No usable recipient is a key failure, not invalid input: say which
+    // recipients were refused and why, each in its own entry.
+    take_rejected_recipients();
+    if targets.is_empty() && !invalid_recipients.is_empty() {
+        let reasons: Vec<String> = invalid_recipients
+            .iter()
+            .map(|r| format!("{} ({:?})", r.fpr, r.reason))
+            .collect();
+        set_last_error(&format!("no usable recipient: {}", reasons.join(", ")));
+        REJECTED_RECIPIENTS.with(|r| *r.borrow_mut() = invalid_recipients);
+        return Err(GfrStatus::ErrorUnusableKey);
+    }
+
     // 2. Pick the container from what every recipient can read (RFC 9580
     // §13.7). SEIPD v2 (AEAD) authenticates each chunk as it streams, so large
     // files decrypt with flat memory; SEIPD v1 is checked only at the very end.
@@ -676,6 +797,7 @@ where
                 let is_enc = selected_key.is_encrypted();
                 let algo_str = algo_to_string_simple(selected_key.algorithm());
                 let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
+                selected_key.check_passphrase(&pwd)?;
 
                 // rpgp's builder API will handle the streaming signing
                 // internally, we just need to call sign() for each key
@@ -764,6 +886,11 @@ where
         }};
     }
 
+    // RFC 9580 §6.1: a CRC24 footer only for v4-era content, which also
+    // means no v6 signature inside the v1 container.
+    let signers_v4_only = parsed_skeys
+        .iter()
+        .all(|(skey, _)| crate::utils::is_v4_era(skey.primary_key.version()));
     let result = match container {
         Container::SeipdV2(sym, aead) => {
             let mut enc_builder = builder.seipd_v2(&mut rng, sym, aead, ChunkSize::default());
@@ -771,7 +898,7 @@ where
         }
         Container::SeipdV1(sym) => {
             let mut enc_builder = builder.seipd_v1(&mut rng, sym);
-            encrypt_to_targets_and_write!(enc_builder, "v3", true)
+            encrypt_to_targets_and_write!(enc_builder, "v3", signers_v4_only)
         }
     };
 
@@ -798,20 +925,22 @@ pub fn encrypt_and_sign_directory_internal(
     fetch_pwd_cb: Option<crate::types::GfrPasswordFetchCb>,
     ascii_armor: bool,
 ) -> Result<EncryptAndSignResultInternal, crate::types::GfrStatus> {
+    require_signers(secret_key_blocks)?;
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
-    let out_file = create_output_file(out_file_path)?;
+    let mut stage = stage_output_file(out_file_path)?;
 
     log::info!("Encrypting and signing tar archive...");
     let stream_result = encrypt_and_sign_stream_internal(
         channel,
         &filename_hint,
         temp_archive,
-        out_file,
+        stage.file_mut(),
         public_key_blocks,
         secret_key_blocks,
         fetch_pwd_cb,
         ascii_armor,
     )?;
+    commit_output(stage)?;
 
     Ok(EncryptAndSignResultInternal {
         data: Vec::new(),
@@ -903,17 +1032,18 @@ pub fn encrypt_directory_with_password_internal(
     ascii_armor: bool,
 ) -> Result<SymmetricEncryptStreamResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
-    let out_file = create_output_file(out_file_path)?;
+    let mut stage = stage_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
     encrypt_stream_with_password_internal(
         channel,
         &filename_hint,
         temp_archive,
-        out_file,
+        stage.file_mut(),
         fetch_pwd_cb,
         ascii_armor,
     )?;
+    commit_output(stage)?;
 
     Ok(SymmetricEncryptStreamResultInternal {})
 }
@@ -944,6 +1074,16 @@ pub fn encrypt_internal(
     })
 }
 
+/// "Encrypt and sign" with no signer would quietly produce an unsigned
+/// message; signing alone refuses an empty signer list, and so does this.
+pub(crate) fn require_signers(secret_key_blocks: &[&str]) -> Result<(), GfrStatus> {
+    if secret_key_blocks.is_empty() {
+        set_last_error("encrypt and sign needs at least one signing key");
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+    Ok(())
+}
+
 /// Encrypt and sign an in-memory buffer in a single operation.
 pub fn encrypt_and_sign_internal(
     channel: i32,
@@ -954,6 +1094,7 @@ pub fn encrypt_and_sign_internal(
     fetch_cb: Option<GfrPasswordFetchCb>,
     ascii_armor: bool,
 ) -> Result<EncryptAndSignResultInternal, GfrStatus> {
+    require_signers(secret_key_blocks)?;
     let mut output_data = Vec::new();
     let input_cursor = Cursor::new(data);
 
@@ -1776,7 +1917,7 @@ mod encrypt_tests {
         let no_dks = strip(&keys::V6_SIGN, |c| c.details.direct_signatures.clear());
         assert_eq!(
             encrypt_internal(0, "", b"payload", &[&no_dks], false).err(),
-            Some(GfrStatus::ErrorInvalidInput)
+            Some(GfrStatus::ErrorUnusableKey)
         );
     }
 
@@ -1800,6 +1941,8 @@ mod encrypt_tests {
 
     #[test]
     fn a_set_of_only_invalid_recipients_is_rejected() {
+        // No usable recipient is an unusable-key failure, not invalid input,
+        // and every rejected recipient keeps its own reason for the caller.
         let res = encrypt_internal(
             0,
             "",
@@ -1811,7 +1954,23 @@ mod encrypt_tests {
             ],
             false,
         );
-        assert_eq!(res.err(), Some(GfrStatus::ErrorInvalidInput));
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnusableKey));
+        let rejected = take_rejected_recipients();
+        let reasons: Vec<GfrStatus> = rejected.iter().map(|r| r.reason).collect();
+        assert_eq!(
+            reasons,
+            vec![
+                GfrStatus::ErrorInvalidData,
+                GfrStatus::ErrorRevokedKey,
+                GfrStatus::ErrorExpiredKey
+            ]
+        );
+        assert!(
+            crate::err::last_error().contains("no usable recipient"),
+            "{}",
+            crate::err::last_error()
+        );
+        assert!(take_rejected_recipients().is_empty(), "taken once");
     }
 
     // -- cross-implementation interop -----------------------------------------------
@@ -2031,7 +2190,7 @@ mod encrypt_tests {
             &[&keys::V4_REVOKED_PRIMARY.public_armored],
             false,
         );
-        assert_eq!(alone.err(), Some(GfrStatus::ErrorInvalidInput));
+        assert_eq!(alone.err(), Some(GfrStatus::ErrorUnusableKey));
 
         let out = encrypt_internal(
             0,

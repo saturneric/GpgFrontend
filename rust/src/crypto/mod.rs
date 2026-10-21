@@ -112,6 +112,9 @@ pub struct DecryptResultInternal {
     /// Cipher and mode protecting the payload, in gpgme's `symkey_algo` form
     /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or empty if unknown.
     pub sym_algo: String,
+    /// Why the payload's cipher deserves a warning (RFC 9580 §9.3 deprecated
+    /// cipher, §12.2 cipher the decrypting key does not prefer), or empty.
+    pub cipher_warning: String,
     pub recipients: Vec<RecipientResultInternal>,
 }
 
@@ -161,6 +164,9 @@ pub struct DecryptAndVerifyResultInternal {
     /// Cipher and mode protecting the payload, in gpgme's `symkey_algo` form
     /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or empty if unknown.
     pub sym_algo: String,
+    /// Why the payload's cipher deserves a warning (RFC 9580 §9.3 deprecated
+    /// cipher, §12.2 cipher the decrypting key does not prefer), or empty.
+    pub cipher_warning: String,
     pub recipients: Vec<RecipientResultInternal>,
     pub is_verified: bool,
     pub signatures: Vec<SignatureResultInternal>,
@@ -195,6 +201,27 @@ impl<'a> SelectedKey<'a> {
             SelectedKey::Primary(k) => k.algorithm(),
             SelectedKey::Sub(k) => k.algorithm(),
         }
+    }
+
+    /// Check that `pwd` unlocks the key before signing with it. rPGP's
+    /// streaming builders unlock only while writing, where a wrong passphrase
+    /// surfaces as a generic failure; every signing path reports it here, as
+    /// ErrorBadPassphrase, and forgets the cached passphrase.
+    pub fn check_passphrase(&self, pwd: &pgp::types::Password) -> Result<(), GfrStatus> {
+        if !self.is_encrypted() {
+            return Ok(());
+        }
+        let unlocked = match self {
+            SelectedKey::Primary(k) => k.unlock(pwd, |_, _| Ok(())).is_ok_and(|r| r.is_ok()),
+            SelectedKey::Sub(k) => k.unlock(pwd, |_, _| Ok(())).is_ok_and(|r| r.is_ok()),
+        };
+        if unlocked {
+            return Ok(());
+        }
+        let fpr = self.fpr();
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&fpr);
+        set_last_error(&format!("the passphrase does not unlock signing key {fpr}"));
+        Err(GfrStatus::ErrorBadPassphrase)
     }
 }
 
@@ -234,6 +261,9 @@ pub struct DecryptAndVerifyStreamResultInternal {
     /// Cipher and mode protecting the payload, in gpgme's `symkey_algo` form
     /// ("AES256.OCB"; a SEIPD v1 is "<cipher>.CFB"), or empty if unknown.
     pub sym_algo: String,
+    /// Why the payload's cipher deserves a warning (RFC 9580 §9.3 deprecated
+    /// cipher, §12.2 cipher the decrypting key does not prefer), or empty.
+    pub cipher_warning: String,
     pub recipients: Vec<RecipientResultInternal>,
     /// True if at least one embedded signature verified successfully.
     pub is_verified: bool,
@@ -887,7 +917,7 @@ pub(crate) fn message_index_verdict(
 ) -> KeyVerdict {
     let is_document = match msg {
         Message::Signed { reader, .. } => {
-            reader.signature(index).is_some_and(is_document_signature)
+            reader.signature(index).is_some_and(signature_is_evaluable)
         }
         _ => false,
     };
@@ -905,6 +935,38 @@ pub(crate) fn message_index_verdict(
 /// type, and hashes a single octet of the data for standalone (0x02) and
 /// timestamp (0x40) signatures, so without this gate one such signature
 /// would vouch for every document starting with the same byte.
+pub(crate) fn signature_is_evaluable(sig: &pgp::packet::Signature) -> bool {
+    is_document_signature(sig) && !has_critical_unsupported_subpacket(sig)
+}
+
+/// RFC 9580 §5.2.3.7: "If a subpacket is encountered that is marked critical
+/// but is unknown to the evaluating implementation, the evaluator SHOULD
+/// consider the signature to be in error"; §5.2.3.24: for notations "the
+/// criticality applies to that specific notation". rPGP rejects only unknown
+/// subpacket *types*; GF also treats as unknown the ones it parses but does
+/// not act on for a document signature: notations, experimental subpackets,
+/// Policy URI, Regular Expression, Trust Signature and Signature Target. The
+/// Intended Recipient Fingerprint is left out: §5.2.3.36 asks for it to be
+/// critical in v6 signatures, so refusing it would refuse conforming
+/// signed-and-encrypted messages (checking it is recorded as future work).
+pub(crate) fn has_critical_unsupported_subpacket(sig: &pgp::packet::Signature) -> bool {
+    use pgp::packet::SubpacketData;
+    sig.config().is_some_and(|c| {
+        c.hashed_subpackets.iter().any(|sp| {
+            sp.is_critical
+                && matches!(
+                    sp.data,
+                    SubpacketData::Notation(_)
+                        | SubpacketData::Experimental(..)
+                        | SubpacketData::PolicyURI(_)
+                        | SubpacketData::RegularExpression(_)
+                        | SubpacketData::TrustSignature(..)
+                        | SubpacketData::SignatureTarget(..)
+                )
+        })
+    })
+}
+
 pub(crate) fn is_document_signature(sig: &pgp::packet::Signature) -> bool {
     use pgp::packet::SignatureType;
     matches!(sig.typ(), Some(SignatureType::Binary | SignatureType::Text))
@@ -1045,21 +1107,33 @@ pub(crate) fn parse_all_signature_packets(data: &[u8]) -> Vec<pgp::packet::Signa
 /// in input order, or `data` itself when it holds no decodable armor. A file
 /// may carry several blocks (concatenated .asc files, or one block per signer
 /// as GF wrote detached signatures before F-L19); a single `Dearmor` stops at
-/// the first footer. Cleartext-signed regions are left to their own parser.
+/// the first footer. Each block is parsed on its own and only its complete
+/// packets are kept, so a damaged block cannot swallow the next one.
+/// Cleartext-signed regions are left to their own parser.
 pub(crate) fn dearmor_all(data: &[u8]) -> std::borrow::Cow<'_, [u8]> {
     let text = String::from_utf8_lossy(data);
+    let text = crate::utils::strip_armor_whitespace(&text);
     let mut out = Vec::new();
+    let mut any_block = false;
     for region in crate::inspect::find_armor_regions(&text) {
         if region.cleartext {
             continue;
         }
+        any_block = true;
         let block = &text.as_bytes()[region.start..region.end];
-        let _ = Dearmor::new(Cursor::new(block)).read_to_end(&mut out);
+        // May hold unprotected secret key packets: wiped on drop.
+        let mut decoded = zeroize::Zeroizing::new(Vec::new());
+        let _ = Dearmor::new(Cursor::new(block)).read_to_end(&mut decoded);
+        // Only the packets that parse completely within this block: a
+        // damaged block must not lend a broken length to the next one.
+        for packet in PacketParser::new(Cursor::new(&decoded[..])).flatten() {
+            let _ = packet.to_writer(&mut out);
+        }
     }
-    if out.is_empty() {
-        std::borrow::Cow::Borrowed(data)
-    } else {
+    if any_block {
         std::borrow::Cow::Owned(out)
+    } else {
+        std::borrow::Cow::Borrowed(data)
     }
 }
 
@@ -1089,7 +1163,7 @@ pub(crate) fn signature_verdict(
     created_at: u32,
 ) -> KeyVerdict {
     cert_verdict(cert, created_at, |key| {
-        is_document_signature(sig)
+        signature_is_evaluable(sig)
             && match key {
                 None => sig.verify(&cert.primary_key, data).is_ok(),
                 Some(sk) => sig.verify(&sk.key, data).is_ok(),
@@ -1109,7 +1183,7 @@ pub(crate) fn signature_verdict_stream<R: Read + Seek>(
     created_at: u32,
 ) -> KeyVerdict {
     cert_verdict(cert, created_at, |key| {
-        if !is_document_signature(sig) || stream.seek(SeekFrom::Start(0)).is_err() {
+        if !signature_is_evaluable(sig) || stream.seek(SeekFrom::Start(0)).is_err() {
             return false;
         }
         let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut *stream);
@@ -1324,11 +1398,32 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
     Ok((recipients.join(","), issuers.join(",")))
 }
 
-pub(crate) fn create_output_file(out_file_path: &str) -> Result<File, GfrStatus> {
-    File::create(out_file_path).map_err(|e| {
+/// A stage for an encryption or signing output beside `out_file_path` (see
+/// [`staging::StagedFile`]): nothing is written under the destination name
+/// until [`commit_output`], so a failure, a cancel, or an output path equal
+/// to the input path never truncates or half-writes the destination.
+pub(crate) fn stage_output_file(out_file_path: &str) -> Result<staging::StagedFile, GfrStatus> {
+    staging::StagedFile::new_shareable(std::path::Path::new(out_file_path)).map_err(|e| {
         log::error!("Failed to create output file: {}", e);
-        set_last_error(&e.to_string());
+        set_last_error(&format!("cannot create the output file: {e}"));
         GfrStatus::ErrorIo
+    })
+}
+
+/// Move a finished output stage into place.
+pub(crate) fn commit_output(stage: staging::StagedFile) -> Result<(), GfrStatus> {
+    stage.commit().map_err(|e| {
+        set_last_error(&format!("cannot move the output into place: {e}"));
+        GfrStatus::ErrorIo
+    })
+}
+
+/// Open an input file, recording why it cannot be read.
+pub(crate) fn open_input_file(in_file_path: &str) -> Result<File, GfrStatus> {
+    File::open(in_file_path).map_err(|e| {
+        log::error!("Failed to open input file: {}", e);
+        set_last_error(&format!("cannot open the input file: {e}"));
+        GfrStatus::ErrorInvalidInput
     })
 }
 

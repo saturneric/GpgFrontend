@@ -135,6 +135,7 @@ where
                     let is_enc = selected_key.is_encrypted();
                     let algo_str = algo_to_string_simple(selected_key.algorithm());
                     let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
+                    selected_key.check_passphrase(&pwd)?;
 
                     // Apply the signature to the streaming pipeline
                     match selected_key {
@@ -204,94 +205,129 @@ where
             let fetch_pwd = &fetch_pwd_for_key;
 
             let text_str = &trim_trailing_whitespace(text_str);
-            let msg = CleartextSignedMessage::new_many(text_str, |normalized_text| -> pgp::errors::Result<Vec<pgp::packet::Signature>> {
-                let mut sigs = Vec::new();
+            // rPGP's callback can only return a message; keep the first real
+            // status (a cancel, a wrong passphrase, an unusable key) for the
+            // caller instead of flattening it to ErrorInternal.
+            let mut failure: Option<GfrStatus> = None;
+            let failure_ref = &mut failure;
+            let msg = CleartextSignedMessage::new_many(
+                text_str,
+                |normalized_text| -> pgp::errors::Result<Vec<pgp::packet::Signature>> {
+                    let mut sigs = Vec::new();
 
-                for (skey, target) in keys_ref.iter() {
-                    let sig_result = with_signing_key(skey, target.as_deref(), |selected_key| {
-                        let fpr = selected_key.fpr();
-                        let is_enc = selected_key.is_encrypted();
-                        let algo_str = algo_to_string_simple(selected_key.algorithm());
-                        let pwd = fetch_pwd(is_enc, &fpr)?;
+                    for (skey, target) in keys_ref.iter() {
+                        let sig_result =
+                            with_signing_key(skey, target.as_deref(), |selected_key| {
+                                let fpr = selected_key.fpr();
+                                let is_enc = selected_key.is_encrypted();
+                                let algo_str = algo_to_string_simple(selected_key.algorithm());
+                                let pwd = fetch_pwd(is_enc, &fpr)?;
+                                selected_key.check_passphrase(&pwd)?;
 
-                        let normalized_bytes = normalized_text.as_bytes();
-                        let cursor = Cursor::new(normalized_bytes);
+                                let normalized_bytes = normalized_text.as_bytes();
+                                let cursor = Cursor::new(normalized_bytes);
 
-                        let signature = match selected_key {
-                            SelectedKey::Primary(k) => {
-                                let hashed_subpackets = vec![
-                                    Subpacket::regular(SubpacketData::SignatureCreationTime(
-                                        Timestamp::now(),
-                                    ))
-                                    .map_err(|_| GfrStatus::ErrorInternal)?,
-                                    Subpacket::regular(SubpacketData::IssuerFingerprint(
-                                        k.fingerprint(),
-                                    ))
-                                    .map_err(|_| GfrStatus::ErrorInternal)?,
-                                ];
-                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
-                                // truthful and never a weak digest (RFC 9580 §9.5).
-                                let mut config = sha512_signature_config(
-                                    &mut rng, k, SignatureType::Text,
-                                )
-                                .map_err(|_| GfrStatus::ErrorInternal)?;
-                                config.hashed_subpackets = hashed_subpackets;
-                                if k.version() <= KeyVersion::V4 {
-                                    config.unhashed_subpackets = vec![Subpacket::regular(
-                                        SubpacketData::IssuerKeyId(k.legacy_key_id()),
-                                    )
-                                    .map_err(|_| GfrStatus::ErrorInternal)?];
-                                }
-                                config.sign(k, &pwd, cursor).map_err(|e| {
-                                    log::warn!("Cleartext signing failed for {}. Evicting bad password.", fpr);
-                                    PASSWORD_CACHE.remove_by_fpr(&fpr);
-                                    set_last_error(&format!("signing failed for key {}: {}", fpr, e));
-                                    GfrStatus::ErrorBadPassphrase
-                                })?
-                            }
-                            SelectedKey::Sub(k) => {
-                                let hashed_subpackets = vec![
-                                    Subpacket::regular(SubpacketData::SignatureCreationTime(
-                                        Timestamp::now(),
-                                    ))
-                                    .map_err(|_| GfrStatus::ErrorInternal)?,
-                                    Subpacket::regular(SubpacketData::IssuerFingerprint(
-                                        k.fingerprint(),
-                                    ))
-                                    .map_err(|_| GfrStatus::ErrorInternal)?,
-                                ];
-                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
-                                // truthful and never a weak digest (RFC 9580 §9.5).
-                                let mut config = sha512_signature_config(
-                                    &mut rng, k, SignatureType::Text,
-                                )
-                                .map_err(|_| GfrStatus::ErrorInternal)?;
-                                config.hashed_subpackets = hashed_subpackets;
-                                if k.version() <= KeyVersion::V4 {
-                                    config.unhashed_subpackets = vec![Subpacket::regular(
-                                        SubpacketData::IssuerKeyId(k.legacy_key_id()),
-                                    )
-                                    .map_err(|_| GfrStatus::ErrorInternal)?];
-                                }
-                                config.sign(k, &pwd, cursor).map_err(|e| {
-                                    log::warn!("Cleartext signing failed for {}. Evicting bad password.", fpr);
-                                    PASSWORD_CACHE.remove_by_fpr(&fpr);
-                                    set_last_error(&format!("signing failed for key {}: {}", fpr, e));
-                                    GfrStatus::ErrorBadPassphrase
-                                })?
-                            }
-                        };
+                                let signature = match selected_key {
+                                    SelectedKey::Primary(k) => {
+                                        let hashed_subpackets = vec![
+                                            Subpacket::regular(
+                                                SubpacketData::SignatureCreationTime(
+                                                    Timestamp::now(),
+                                                ),
+                                            )
+                                            .map_err(|_| GfrStatus::ErrorInternal)?,
+                                            Subpacket::regular(SubpacketData::IssuerFingerprint(
+                                                k.fingerprint(),
+                                            ))
+                                            .map_err(|_| GfrStatus::ErrorInternal)?,
+                                        ];
+                                        // Pin the cleartext signing hash to SHA-512 so the reported metadata is
+                                        // truthful and never a weak digest (RFC 9580 §9.5).
+                                        let mut config = sha512_signature_config(
+                                            &mut rng,
+                                            k,
+                                            SignatureType::Text,
+                                        )
+                                        .map_err(|_| GfrStatus::ErrorInternal)?;
+                                        config.hashed_subpackets = hashed_subpackets;
+                                        if k.version() <= KeyVersion::V4 {
+                                            config.unhashed_subpackets = vec![
+                                                Subpacket::regular(SubpacketData::IssuerKeyId(
+                                                    k.legacy_key_id(),
+                                                ))
+                                                .map_err(|_| GfrStatus::ErrorInternal)?,
+                                            ];
+                                        }
+                                        config.sign(k, &pwd, cursor).map_err(|e| {
+                                            // The passphrase was checked already
+                                            // (`check_passphrase`): this is not a
+                                            // passphrase problem, so it is not
+                                            // reported as one and nothing is evicted.
+                                            set_last_error(&format!(
+                                                "signing failed for key {}: {}",
+                                                fpr, e
+                                            ));
+                                            GfrStatus::ErrorInternal
+                                        })?
+                                    }
+                                    SelectedKey::Sub(k) => {
+                                        let hashed_subpackets = vec![
+                                            Subpacket::regular(
+                                                SubpacketData::SignatureCreationTime(
+                                                    Timestamp::now(),
+                                                ),
+                                            )
+                                            .map_err(|_| GfrStatus::ErrorInternal)?,
+                                            Subpacket::regular(SubpacketData::IssuerFingerprint(
+                                                k.fingerprint(),
+                                            ))
+                                            .map_err(|_| GfrStatus::ErrorInternal)?,
+                                        ];
+                                        // Pin the cleartext signing hash to SHA-512 so the reported metadata is
+                                        // truthful and never a weak digest (RFC 9580 §9.5).
+                                        let mut config = sha512_signature_config(
+                                            &mut rng,
+                                            k,
+                                            SignatureType::Text,
+                                        )
+                                        .map_err(|_| GfrStatus::ErrorInternal)?;
+                                        config.hashed_subpackets = hashed_subpackets;
+                                        if k.version() <= KeyVersion::V4 {
+                                            config.unhashed_subpackets = vec![
+                                                Subpacket::regular(SubpacketData::IssuerKeyId(
+                                                    k.legacy_key_id(),
+                                                ))
+                                                .map_err(|_| GfrStatus::ErrorInternal)?,
+                                            ];
+                                        }
+                                        config.sign(k, &pwd, cursor).map_err(|e| {
+                                            // The passphrase was checked already
+                                            // (`check_passphrase`): this is not a
+                                            // passphrase problem, so it is not
+                                            // reported as one and nothing is evicted.
+                                            set_last_error(&format!(
+                                                "signing failed for key {}: {}",
+                                                fpr, e
+                                            ));
+                                            GfrStatus::ErrorInternal
+                                        })?
+                                    }
+                                };
 
-                        record_sig_fn(fpr, algo_str);
-                        Ok(signature)
-                    });
+                                record_sig_fn(fpr, algo_str);
+                                Ok(signature)
+                            });
 
-                    sigs.push(sig_result.map_err(|e| e.to_string())?);
-                }
+                        sigs.push(sig_result.map_err(|e| {
+                            failure_ref.get_or_insert(e);
+                            e.to_string()
+                        })?);
+                    }
 
-                Ok(sigs)
-            })
-            .map_err(|_| GfrStatus::ErrorInternal)?;
+                    Ok(sigs)
+                },
+            )
+            .map_err(|_| failure.unwrap_or(GfrStatus::ErrorInternal))?;
 
             // RFC 9580 §6.1: a CRC24 footer only when every signature is v4.
             let v4_only = msg
@@ -305,6 +341,7 @@ where
                 .signatures()
                 .iter()
                 .all(|sig| sig.version() == pgp::packet::SignatureVersion::V6);
+            let armored = dash_escape_from_lines(&armored);
             let out = if all_v6 {
                 strip_cleartext_hash_headers(&armored)
             } else {
@@ -346,6 +383,7 @@ where
                     let is_enc = selected_key.is_encrypted();
                     let algo_str = algo_to_string_simple(selected_key.algorithm());
                     let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
+                    selected_key.check_passphrase(&pwd)?;
 
                     let sig_res = match selected_key {
                         SelectedKey::Primary(k) => DetachedSignature::sign_binary_data(
@@ -370,10 +408,10 @@ where
                             return Ok(sig);
                         }
                         Err(e) => {
-                            log::warn!("Signing failed for {}. Evicting bad password.", fpr);
-                            PASSWORD_CACHE.remove_by_fpr(&fpr);
+                            // The passphrase was checked already
+                            // (`check_passphrase`): not a passphrase problem.
                             set_last_error(&format!("signing failed for key {}: {}", fpr, e));
-                            Err(GfrStatus::ErrorBadPassphrase)
+                            Err(GfrStatus::ErrorInternal)
                         }
                     }
                 })?;
@@ -467,12 +505,39 @@ fn strip_cleartext_hash_headers(armored: &str) -> String {
     out
 }
 
+/// Dash-escape the cleartext lines that start with "From " (RFC 9580 §7.2:
+/// "the line SHOULD be dash-escaped"), which rPGP leaves alone: a mail
+/// transport may rewrite them to ">From " and break the signature. The
+/// escape is removed before hashing, so the signed text is unchanged.
+fn dash_escape_from_lines(armored: &str) -> String {
+    let mut out = String::with_capacity(armored.len());
+    // 0: BEGIN line and headers, 1: cleartext body, 2: the signature block.
+    let mut part = 0;
+    for line in armored.split_inclusive('\n') {
+        match part {
+            0 if line.trim_end_matches(['\r', '\n']).is_empty() => part = 1,
+            1 if line.starts_with("-----BEGIN PGP SIGNATURE-----") => part = 2,
+            1 if line.starts_with("From ") => out.push_str("- "),
+            _ => {}
+        }
+        out.push_str(line);
+    }
+    out
+}
+
 /// Strip spaces and tabs from the end of every line (RFC 9580 §7.1). A
 /// verifier hashes the trimmed text, but rPGP's signer hashes it verbatim, so
 /// untrimmed input would yield a signature nobody can verify.
+///
+/// A carriage return ending the unterminated last line goes too: the armor
+/// writer follows the text with a line break, so a reader sees that CR as
+/// part of a CRLF line ending, not as text, while the signer would hash it.
 fn trim_trailing_whitespace(text: &str) -> String {
     text.split_inclusive('\n')
         .map(|line| {
+            if !line.ends_with('\n') {
+                return line.trim_end_matches([' ', '\t', '\r']).to_string();
+            }
             let body = line.trim_end_matches(['\r', '\n']);
             let end = &line[body.len()..];
             format!("{}{}", body.trim_end_matches([' ', '\t']), end)
@@ -1127,6 +1192,87 @@ mod sign_tests {
 }
 
 #[cfg(test)]
+mod passphrase_parity_tests {
+    //! Path parity (round four): every signing path reports a passphrase
+    //! problem the same way, so the host can re-prompt, and none leaves a
+    //! wrong passphrase in the cache.
+
+    use super::*;
+    use crate::testutil::{cb, corpus, keys};
+
+    fn forget_key1_passphrase() {
+        crate::cache::PASSWORD_CACHE
+            .remove_by_fpr(&corpus::KEY1.primary_key.fingerprint().to_string());
+        for sub in &corpus::KEY1.secret_subkeys {
+            crate::cache::PASSWORD_CACHE.remove_by_fpr(&sub.key.fingerprint().to_string());
+        }
+    }
+
+    /// Sign `PAYLOAD` with corpus KEY1 (passphrase-protected) on `path`.
+    fn attempt(path: &str, pwd: GfrPasswordFetchCb) -> Result<(), GfrStatus> {
+        let key = corpus::KEY1_SECRET;
+        let payload = b"passphrase parity\n";
+        match path {
+            "inline" | "cleartext" | "detached" => {
+                let mode = match path {
+                    "inline" => GfrSignMode::Inline,
+                    "cleartext" => GfrSignMode::ClearText,
+                    _ => GfrSignMode::Detached,
+                };
+                sign_internal(0, "", payload, &[key], Some(pwd), mode, true).map(|_| ())
+            }
+            _ => crate::crypto::encrypt_and_sign_internal(
+                0,
+                "",
+                payload,
+                &[&keys::V4_SIGN.public_armored],
+                &[key],
+                Some(pwd),
+                true,
+            )
+            .map(|_| ()),
+        }
+    }
+
+    #[test]
+    fn encrypt_and_sign_without_a_signer_is_refused() {
+        // Path parity: signing refuses an empty signer list; "encrypt and
+        // sign" must not quietly produce an unsigned message instead.
+        let res = crate::crypto::encrypt_and_sign_internal(
+            0,
+            "",
+            b"unsigned?",
+            &[&keys::V4_SIGN.public_armored],
+            &[],
+            None,
+            true,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorInvalidInput));
+    }
+
+    #[test]
+    fn every_signing_path_reports_passphrase_problems_alike() {
+        for path in ["inline", "cleartext", "detached", "encrypt+sign"] {
+            forget_key1_passphrase();
+            assert_eq!(
+                attempt(path, cb::pwd_wrong).err(),
+                Some(GfrStatus::ErrorBadPassphrase),
+                "{path}: wrong passphrase"
+            );
+            // The wrong passphrase must not have been kept: the right one,
+            // asked for again, works.
+            assert_eq!(attempt(path, cb::pwd_corpus), Ok(()), "{path}: retry");
+            forget_key1_passphrase();
+            assert_eq!(
+                attempt(path, cb::pwd_cancelled).err(),
+                Some(GfrStatus::ErrorCanceled),
+                "{path}: cancel"
+            );
+        }
+    }
+}
+
+#[cfg(test)]
 mod sign_interop_tests {
     //! Signatures GF produces, consumed by GnuPG and Sequoia. Each case
     //! names the RFC 9580 rule the produced object follows; an interop pass
@@ -1173,6 +1319,64 @@ mod sign_interop_tests {
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(out.status.success(), "{stderr}");
         assert_eq!(stderr.matches("Good signature").count(), 2, "{stderr}");
+    }
+
+    #[test]
+    fn gnupg_and_sequoia_verify_our_cleartext_with_a_dash_escaped_from_line() {
+        // §7.2: a line starting with "From " is dash-escaped (round three);
+        // the escape is not part of the signed text for either verifier.
+        let (Some(gpg), Some(sq)) = (interop::Gnupg::new(), interop::Sq::new()) else {
+            return;
+        };
+        let text = b"From the top\nnot From here\n";
+        let signed = sign(
+            &[&keys::V4_NISTP256.secret_armored],
+            GfrSignMode::ClearText,
+            text,
+        );
+        assert!(String::from_utf8_lossy(&signed).contains("\n- From the top\n"));
+        gpg.import(&keys::V4_NISTP256.public_armored);
+        let out = gpg.verify(&signed, None);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let out = sq.verify(&keys::V4_NISTP256.public_armored, &signed, None);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    #[test]
+    fn sequoia_reads_our_v6_revocation_certificate_as_a_revoked_key() {
+        // RFC 9580 §10.1.2: a v6 revocation certificate is the primary key
+        // followed by its revocation signature (round three, R3-4).
+        let Some(sq) = interop::Sq::new() else {
+            return;
+        };
+        let rev = crate::key::generate_key_rev_cert_internal(
+            0,
+            &keys::V6_SIGN.secret_armored,
+            crate::types::GfrRevocationCode::Retired,
+            Some("interop"),
+            None,
+        )
+        .expect("revocation certificate");
+        let out = sq.inspect(rev.as_bytes());
+        let text = format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert!(out.status.success(), "{text}");
+        assert!(text.to_lowercase().contains("revoked"), "{text}");
+        assert!(
+            text.to_uppercase().contains(&keys::V6_SIGN.primary_fpr),
+            "{text}"
+        );
     }
 
     #[test]

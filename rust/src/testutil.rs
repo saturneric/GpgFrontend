@@ -748,6 +748,120 @@ pub mod keys {
     /// imported key that GF must refuse to use.
     pub static V4_RSA1024: Lazy<Fixture> = Lazy::new(|| fixture_from(reparse(RSA1024_SECRET)));
 
+    /// v4 RSA-2048 primary (sign, certify), generated once with GnuPG 2.4
+    /// (unprotected). The smallest RSA key GF may still use (RFC 9580 §12.4)
+    /// though it would not generate one; also the one fixture algorithm that
+    /// can carry a SHA-1 self-signature.
+    pub static V4_RSA2048: Lazy<Fixture> = Lazy::new(|| fixture_from(reparse(RSA2048_SECRET)));
+
+    const RSA2048_SECRET: &str = r"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQOYBGrYvAoBCADBgLoXib8v2DUUF00lenqt+Vd1qziqDZqHU+VLARfN3toWbH+R
+fd8LsF5iKUmaxi7469wOWup3Wg+/1XTdMJBEvFZ1yFsHoyLn64C5GtCP+G5Ajguw
+lkln2pQGEXcpfEFV0LAY4EwA++1+atBzuwLfZ0b1EvRrHjcPqqTMUkzElocZ+0qB
+0iwc9w8YSSoGWdE33mSpC81X0ctmF9zikXjbL7rEJVoyRHw/uGl4gGzdwpsPX0Ct
+VfZsZPAh77WXz0+EKUxu1AnRthLwVERk66O6bNB0sGCcdQes/AdjDOtx69C+lMxd
+UliFQYesG6/4qBC+SmKcLfc1p5Xyu+QL6daXABEBAAEAB/sGBRzFAAfZjImGpWBE
+08fCLdd1KtD0Qk7ApNSlkymTFyx1w+kGw0jWsrOHrH0oLDHMIn3nPG1MvGDF8fVx
+dfrf7B6+QuGsyLTx9wyQmT2hnQIZ+V+O1xNwOUBmjwpSPMB+RWsjUFG+yMJWhEdO
+lflK58L4Qq2XhqasxItrh+FFwNMmynlHzbMop7Cf5DCPHWXeumWorEw6Ym8VPhy5
+p66xiqzIslOAc3E/5zJ9Pu5Bmg7DkGuQSbHZcoD5wlKbrW8xD8caTCYL/4vOpRdK
+CAaqRc8VGHxHntzByJ9QWY8qD6uJsv+wud4Dz72Q5qQ5OckqC0klyevkRueEWACZ
+VyzRBADEF/PqQjZfAVYQhBFdLZi1i2n5/IIfekfJ8E9ZPfEGiA1Rl/JjskXm1cC7
+kWW/g0rd9YGTzNMm22gzs/9HbKUp4bO2iPsJm+fWxK9ivrW/Typ6rny46JVQnHL+
+LAE8o2vt4qGqmYx+HgWSBnDGxRr6zdKvNvPd9436F7+zAUun7QQA/J4ovNkV5AbR
+sKVNpYlZ1MJS/1cp1abLzziyB4JBl5ZmyREUGzuguzgwsH9wEE92fjOqgEjYevbB
+yDLuWO9r28WT5O87pYnXaUqynhHGTwzrR0NlZh6tsgRWHeE/zw2XtXx1NBpaK5w5
+BjlasPfBk3alrEj3tEvlLdlQyIwx4BMEAN7T/PvDoNHEEt5v66rxInjtV7uHm62h
+IXiOGoq/hqVQMPdzAhlPGDDf99qj7zRA8JsUCYnna/mFTwJEuhs2bZp4nbLb6tzI
+fEQcHwE00qSHftX4HYqm2sCN+gWcT9Sj1MLtfuI2ork9MJemi8vM4R4HdsiucjTr
+qChjBAUkeKAoTTK0JlJTQTIwNDggRml4dHVyZSA8cnNhMjA0OEBleGFtcGxlLnRl
+c3Q+iQFOBBMBCgA4FiEENCBJpe6EwrHehWUJUTz+uau+WjQFAmrYvAoCGwMFCwkI
+BwIGFQoJCAsCBBYCAwECHgECF4AACgkQUTz+uau+WjTW9Qf+OznDu2Ztj0zZYZG8
+ACypJDXOlXMomrWztYDAEkY5IklEKRf4YIzevTDidA5IgBild7s792Wp+97yDm4Y
+9Eq3nxGGNZW6Fgn55PXy8AV49EVYUEmhoQzUHzikH9296eaoUMRxmM6xjsyJ8UMf
+3qKK6Bgf7dxS6XH0MhC71ZCPhN+UfBZ4k9CZtpwY6jQqvu8FxSKqEFXA5a/2nVem
+yKK43oDat6HCHbxXkVWYxY3nTHV6Sm1dmt0El/Qmdnjg2YIoA/c789G6Ch1F+pMm
+hs7mfUNhyuty990EzqRdeh0Ez1Eu6GV3GGMniHTfsXrEIPtfgbxE+Xc4qeiX1GJq
+HnIi6g==
+=uDVC
+-----END PGP PRIVATE KEY BLOCK-----";
+
+    /// Public certificates GnuPG 2.4 made with an encryption subkey rPGP 0.21
+    /// cannot encrypt to: ElGamal (algorithm 16), and ECDH over
+    /// brainpoolP256r1. Each has a usable Ed25519 primary.
+    pub const ELGAMAL_SUBKEY_CERT: &str = r"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEati7MBYJKwYBBAHaRw8BAQdA5l4wYaiuVKIFP+YUsakWpCpz3n5UJ81X8OAJ
+Zj5adDG0HUxlZ2FjeSBlbGcgPGVsZ0BleGFtcGxlLnRlc3Q+iJAEExYKADgWIQRD
+cWqBcgA/GDOIXkR9B75O3xAFewUCati7MAIbAwULCQgHAgYVCgkICwIEFgIDAQIe
+AQIXgAAKCRB9B75O3xAFe6Z2AQC7mbnzg6zlOOBvQ/aUIgdYYeyGXYzoM/ohBUu2
+yu3eUAEAmziiNAij4m6hpQcdCnM5BxqJ48HgnTYLRmY3N5988gy5Ag0Eati7MBAI
+APndSPwdbjS8EGm7vstIK6EcxrL/kyCmD17/pZSJ/Dk6TzujXkNVeGy3s8vRPGF9
+U2j7GXJyC/L09jtYIq2NBGyvbefok7xziHy4S7QLYAP4i0nHVglaoYaPk/koOlmV
+AoKbplLHG9Ay6F81nppQ3WF8MrVgKKFTDB5pyPRuk2xmns0SGA1Z7Jflp7ToNTqt
+u+H0DniS3FvD3SE+0h2Az+KzvP4pBQnUvj8W11i22rgXp1n6+Tp0CF3WsUcqoEHc
+4NSu+ZWXXPt8vD19NcM4J9mXPXis8oYbtfQ0A5XBbIoMw6yEh3pCP2yNvbCX23l1
+akCE/2asERNse3XnMM1rdecAAwUH/ilQGqxGhoC0fgTKmGrOuqwr8bWnmN0b25G6
+pDJhfY19qS534k+D+l+o59fA3lkx6Ew7tzaury/SHEe96iuPF8MFX1GGkcnVf66r
+FlzGCfFXdYwIhBaRK+yL4Wt3LQhg/yLoD/xHyQevCGYWEAxls/Si0v8NLpL2FCCZ
+KUPXw11wGKxy4qiQV5Vhslm+U4hpkmL1xHBPY4XrJaUKyKlwPQhlWmKaiJOqKzWI
+sLj+1Ddku1lRAaeIvdI4cD5RwHH2A2JaCdN1ukIGTCGMn7jI72XQ2pjSHHfIBQ2b
+Uh5sIq3IjAl/dNB+SCV0jst5Vir70qZzcmBjphfUwJazE0RsZViIeAQYFgoAIBYh
+BENxaoFyAD8YM4heRH0Hvk7fEAV7BQJq2LswAhsMAAoJEH0Hvk7fEAV7mcsBALrv
+iaN+VF091bEPaXuVIPshceigV6VJXqWqeGpanslZAP9BuE5/YHaYwa2jE+JMfaCd
+g7BVNiKVd3rHvWBbvJ9DDQ==
+=Bw5N
+-----END PGP PUBLIC KEY BLOCK-----";
+
+    pub const BRAINPOOL_SUBKEY_CERT: &str = r"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEati7MBYJKwYBBAHaRw8BAQdAupk2O20ApKiqN4oaOUOowDyjAWxA+jdF9dNE
+5PD1ZcO0G0xlZ2FjeSBicCA8YnBAZXhhbXBsZS50ZXN0PoiQBBMWCgA4FiEEd0T3
+cwAahiMSCt93woHP5Ff6BDUFAmrYuzACGwMFCwkIBwIGFQoJCAsCBBYCAwECHgEC
+F4AACgkQwoHP5Ff6BDVorQEApau/1M+nk/ne5+wORTH1ZoLzc8076tlz20gi8C3T
+Q54BAPj20wzcrylGxrmWIlfLnKm1qlP2uptddDiQmtKkztEHuFcEati7MRIJKyQD
+AwIIAQEHAgMELu3064lyaK21FPYFcqN8caY76AWxY7S5+uy5V37NufodlZ+TH0X2
+3NqSxCaUhElRo6k7TE+HtRzPUgW8aTPm3AMBCAeIeAQYFgoAIBYhBHdE93MAGoYj
+Egrfd8KBz+RX+gQ1BQJq2LsxAhsMAAoJEMKBz+RX+gQ1nGMBANnyJJd6UH2+hmRJ
+C+T44fCznPD0inkVRckMMZKTe2X1AQD+saZPsBp+JXmsLKfoe9C7JzPXFV8YstWp
+uYmpmBORCA==
+=+OfU
+-----END PGP PUBLIC KEY BLOCK-----";
+
+    /// v4 DSA-2048 primary (sign, certify), generated once with GnuPG 2.4
+    /// (unprotected). RFC 9580 §12.5: "An implementation MUST NOT sign or
+    /// verify using DSA keys", so it stands in for an old imported key that GF
+    /// must refuse to use.
+    pub static V4_DSA2048: Lazy<Fixture> = Lazy::new(|| fixture_from(reparse(DSA2048_SECRET)));
+
+    const DSA2048_SECRET: &str = r"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQNTBGrYp2YRCACfWU+FqJE5Jb7UXH3JuDuZDjaPVrgXQQZJb8/OQem/hpWHsVJk
+H0eS4qI1lYk3s/NM9J2kRum1Kjv5CDyo6JxEgBH/Cams7MnddU0ArdTms4xGyct7
+kCYyWcnuaKxYRtymC+BGNW+H6o+PzrXn9657vRuP0aHs1bkO7Tokox3lnghi1w75
+NrDcPCcUq/vGCNHxFL1FMzU/V7+/dWpCdNCXyatO1RA/N0HYbvaQBdYPO01IYkCo
+a3dS7XDtkgnTMPI++1g1HESGT/+68Rl5Nqxwi51IkGNnMlMGHjhyc1JTQGbDpS1A
+iyf9Qq9UMesAqP7O1Eub/I0Yh89OWRjtrzmPAQDtt07ZzYJdnitd4cIjx76o2Nsy
+3GTc609dXM/mWHUSMQgAlqJWvo9TqUiTaQ7FSorLzE3YK6/YIMJyioBqQ0PugCSX
+AZKg/iVrOWSxVuaMYVM93GpwDSqDB2aBo+Brcz5E7la8wzuXlEBVkOVo9cz2mUMw
+HeCfBNe5VgnbL2NlPPMwzxuMnfW07wsB8bMScfNg8UyQ7tRk+Y0XAN4gBqVncY7n
+HquJJ1rSbSasdaR2yy0Ej4NLL4de3J8LIDBj8LsOsOTN6p4NXTyUZZs346dJkhRk
+zsaiKoU/r5tK9Xl8bel8IwRjvSHk02YkCGP8EhtJqgFFJFz/ihaoH372fzAuJz7t
+raOsJg1vq1mj9FxRToZ+xIfh7fSzZ/Q8amAz6XmkBggAgeNW2tqvHWev5c+3DgAZ
+lWWRLASNdlGW3nArsZbGcvRzRz0NeLNjUax/eanxY631RCPKdaC13HBr76VLty6I
+bk0fQgEZDuNY+LeWJZC4O+arPmZTl6L14NwVDpcFiuTGK3pB02MWJkC33jbZpySI
+WkpjNjIlKi/sNKGct2dNThp7JYTFfPC4YIDeIrp9p1uJ81HmdVQ7u4tgWRiXT7Bv
+2OHP4pIlYocsYd6gFdrLC4OqG+vMN0vSNmVfSspWOFIPIm5pkqxWLy6TRUeuUzLH
+mm/J/0rEUi/vUSH3uyMN0d3I71xlepQAnzmpAoCuv+i8LiaqDscKoGjBdb+3rbjn
+NgABAJ2zxfLgniTseu5dEGDeTRg6fF/7qLm25qzELZa0oJSkEtq0HkRTQSBGaXh0
+dXJlIDxkc2FAZXhhbXBsZS50ZXN0PoiQBBMRCAA4FiEEdhnc0C8kk1LhqaQhqDp/
+95KXqisFAmrYp2YCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgECF4AACgkQqDp/95KX
+qitsnAD/R67DLPbT16JeuFXpeC/+SLqIU+QH+jPpmyFsWMYX/SgBAOz6HjQsiPda
+6LHSH+VHrOlqoFIy+nqMQ7JTe/p1FPye
+=PGwK
+-----END PGP PRIVATE KEY BLOCK-----";
+
     const RSA1024_SECRET: &str = r"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQHYBGrX0zUBBADD3X9GN8IMYaJYs82kNaX/i09AInAqPcyGzmuWajHGFrQcrv9+
@@ -1640,8 +1754,23 @@ pub mod seipd {
     /// is exactly `inner`: arbitrary, possibly malformed, packets that only
     /// become visible after the integrity check passed.
     pub fn v1_with_inner(recipient: &keys::Fixture, inner: &[u8]) -> Vec<u8> {
+        v1_with_inner_cipher(
+            recipient,
+            inner,
+            pgp::crypto::sym::SymmetricKeyAlgorithm::AES256,
+        )
+    }
+
+    /// [`v1_with_inner`] with the session key for `alg`, whatever the
+    /// recipient's algorithm allows: rPGP's low-level PKESK builder does not
+    /// restrict the cipher, which lets a test produce what a non-conforming
+    /// sender would.
+    pub fn v1_with_inner_cipher(
+        recipient: &keys::Fixture,
+        inner: &[u8],
+        alg: pgp::crypto::sym::SymmetricKeyAlgorithm,
+    ) -> Vec<u8> {
         use pgp::composed::{Deserializable, SignedPublicKey};
-        use pgp::crypto::sym::SymmetricKeyAlgorithm;
         use pgp::packet::{Packet, PublicKeyEncryptedSessionKey, SymEncryptedProtectedData};
         use pgp::ser::Serialize;
         use pgp::types::KeyDetails;
@@ -1654,7 +1783,6 @@ pub mod seipd {
             .find(|s| s.key.algorithm().can_encrypt())
             .expect("an encryption subkey");
         let mut rng = rand::thread_rng();
-        let alg = SymmetricKeyAlgorithm::AES256;
         let session_key = alg.new_session_key(&mut rng);
         let pkesk =
             PublicKeyEncryptedSessionKey::from_session_key_v3(&mut rng, &session_key, alg, subkey)
@@ -2097,6 +2225,12 @@ pub mod interop {
                 }
             }
             self.sq(args)
+        }
+
+        /// `sq inspect` of the certificate (or certificate fragment) `data`.
+        pub fn inspect(&self, data: &[u8]) -> Output {
+            let file = self.file("inspect.asc", data);
+            self.sq([OsStr::new("inspect").to_os_string(), file.into_os_string()])
         }
 
         /// Decrypt `data` with the secret key `key` (armored) and `password`.

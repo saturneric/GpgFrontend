@@ -85,6 +85,18 @@ fn v6_algo_rejection_reason(algo: &GfrKeyAlgo) -> Option<&'static str> {
     }
 }
 
+/// GpgFrontend generation policy, any key version: no NEW key material on a
+/// curve RFC 9580 §9.2 does not register. Existing keys on such a curve are
+/// still imported, listed and used where the engine supports them.
+fn generation_policy_rejection_reason(algo: &GfrKeyAlgo) -> Option<&'static str> {
+    match algo {
+        GfrKeyAlgo::SECP256K1 => Some(
+            "GpgFrontend does not generate new secp256k1 keys: the curve is not registered by RFC 9580 (§9.2); existing secp256k1 keys can still be imported and used",
+        ),
+        _ => None,
+    }
+}
+
 /// For v6 keys, `ED25519`/`CV25519` used for encryption resolve to the deprecated
 /// Curve25519Legacy ECDH curve (RFC 9580 §9.2). Return the native `X25519`
 /// replacement when that is the case, otherwise `None` (no remap needed).
@@ -107,6 +119,11 @@ pub fn keygen_dynamic(
     key_config: &GfrKeyConfig,
     s_key_configs: &[GfrKeyConfig],
 ) -> anyhow::Result<SignedSecretKey> {
+    for algo in std::iter::once(&key_config.algo).chain(s_key_configs.iter().map(|c| &c.algo)) {
+        if let Some(reason) = generation_policy_rejection_reason(algo) {
+            anyhow::bail!(reason);
+        }
+    }
     let mut primary_type = resolve_key_type(&key_config.algo, false)?;
     let mut subkeys = Vec::new();
 
@@ -319,37 +336,36 @@ pub fn create_key_internal(
             .primary_key
             .set_password(thread_rng(), &primary_password)
             .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+    }
 
-        // Iterate through subkeys to set individual passwords
-        for (index, subkey) in secret_key.secret_subkeys.iter_mut().enumerate() {
-            // Determine if subkey needs a password based on your own configuration logic.
-            // For example, fetching a different password for each subkey:
-            let subkey_pwd_bytes = fetch_password_with_cache(
-                Some(&PASSWORD_CACHE),
-                PasswordCachePolicy::Refresh,
-                ((index + 1) as u32).try_into().unwrap(), // Use a different index for each subkey
-                PassphraseStateInternal {
-                    fpr: String::new(), // No fingerprint yet for a new key
-                    info: format!("Set password for Subkey {}", index + 1),
-                    retry: false,
-                    ask_for_new: true,
-                    should_confirm: false,
-                },
-                fetch_pwd_cb,
-            )?;
-
-            // If the subkey password is provided, apply it
-            if !subkey_pwd_bytes.is_empty() {
-                let sub_password = password_from_zeroizing_bytes(subkey_pwd_bytes);
-                subkey
-                    .key
-                    .set_password(thread_rng(), &sub_password)
-                    .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
-            } else {
-                // Handle missing subkey password according to your app logic
-                return Err(GfrStatus::ErrorFetchPasswordFailed);
-            }
+    // Each subkey is protected as its own configuration asks, independent of
+    // the primary (§3.7.2.1: protection is per secret key packet). Subkeys
+    // follow their configurations in order.
+    for (index, subkey) in secret_key.secret_subkeys.iter_mut().enumerate() {
+        if !s_key_configs.get(index).is_some_and(|c| c.has_passphrase) {
+            continue;
         }
+        let subkey_pwd_bytes = fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Refresh,
+            ((index + 1) as u32).try_into().unwrap(), // Use a different index for each subkey
+            PassphraseStateInternal {
+                fpr: String::new(), // No fingerprint yet for a new key
+                info: format!("Set password for Subkey {}", index + 1),
+                retry: false,
+                ask_for_new: true,
+                should_confirm: true,
+            },
+            fetch_pwd_cb,
+        )?;
+        if subkey_pwd_bytes.is_empty() {
+            return Err(GfrStatus::ErrorFetchPasswordFailed);
+        }
+        let sub_password = password_from_zeroizing_bytes(subkey_pwd_bytes);
+        subkey
+            .key
+            .set_password(thread_rng(), &sub_password)
+            .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
     }
 
     let fingerprint = secret_key.fingerprint().to_string();
@@ -385,6 +401,11 @@ pub fn add_subkey_internal(
         log::error!("Failed to parse existing key block: {}", e);
         GfrStatus::ErrorInvalidData
     })?;
+    crate::key::refuse_forbidden_signer(secret_key.primary_key.public_params())?;
+    if let Some(reason) = generation_policy_rejection_reason(&config.algo) {
+        set_last_error(reason);
+        return Err(GfrStatus::ErrorUnsupportedAlgorithm);
+    }
 
     let fingerprint_str = secret_key.fingerprint().to_string();
 
@@ -455,6 +476,20 @@ pub fn add_subkey_internal(
         if let Some(remapped) = v6_remap_encryption_curve(&config.algo, config.can_encrypt) {
             sub_k_type = remapped;
         }
+    }
+
+    // RFC 9580 §5.2.3.29: Key Flags must not advertise a capability the
+    // algorithm lacks. rPGP's key builder enforces this for key generation;
+    // the subkey added here is assembled by hand, so check it before paying
+    // for the generation.
+    let alg = sub_k_type.to_alg();
+    if (config.can_sign || config.can_auth) && !alg.can_sign() {
+        set_last_error(&format!("a {alg:?} key cannot sign or authenticate"));
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+    if config.can_encrypt && !alg.can_encrypt() {
+        set_last_error(&format!("a {alg:?} key cannot encrypt"));
+        return Err(GfrStatus::ErrorInvalidInput);
     }
 
     let mut rng = thread_rng();
@@ -657,6 +692,41 @@ mod rfc9580_tests {
         );
     }
 
+    #[test]
+    fn an_added_subkey_is_never_flagged_for_what_its_algorithm_cannot_do() {
+        // RFC 9580 §5.2.3.29 / §9.1: Key Flags describe what the key may be
+        // used for, so a flag the algorithm cannot honour (encryption on a
+        // signing-only algorithm, signing or authentication on a KEM)
+        // advertises an impossible capability. Key generation already refuses
+        // such combinations (rPGP's builder); add-subkey must too.
+        let base = &crate::testutil::keys::V6_SIGN;
+        let mut auth_kem = subkey_cfg(GfrKeyAlgo::KYBER768X25519, false, true);
+        auth_kem.can_auth = true;
+        let mut auth_encrypt = subkey_cfg(GfrKeyAlgo::ED25519, false, true);
+        auth_encrypt.can_auth = true;
+        for (what, cfg) in [
+            (
+                "ML-DSA flagged for encryption",
+                subkey_cfg(GfrKeyAlgo::MLDSA65ED25519, true, true),
+            ),
+            ("ML-KEM flagged for authentication", auth_kem),
+            ("X25519 flagged for authentication", auth_encrypt),
+        ] {
+            let res = add_subkey_internal(0, &base.secret_armored, &cfg, None);
+            assert_eq!(res.err(), Some(GfrStatus::ErrorInvalidInput), "{what}");
+        }
+        assert!(
+            add_subkey_internal(
+                0,
+                &base.secret_armored,
+                &subkey_cfg(GfrKeyAlgo::ED25519, false, true),
+                None
+            )
+            .is_ok(),
+            "control: an encryption-only X25519 subkey"
+        );
+    }
+
     /// RFC 9580 §12.4/§12.5: RSA < 3072 and DSA MUST NOT be generated.
     #[test]
     fn resolve_key_type_rejects_weak_generation() {
@@ -786,6 +856,28 @@ mod rfc9580_tests {
                 "{algo:?} should be allowed in a v6 key"
             );
         }
+    }
+
+    /// GF generation policy: no new key or subkey on secp256k1, a curve RFC
+    /// 9580 §9.2 does not register, whatever the key version. Existing
+    /// secp256k1 keys are still imported and used.
+    #[test]
+    fn no_new_key_or_subkey_is_generated_on_secp256k1() {
+        let v4 = cfg(GfrKeyAlgo::SECP256K1, true, false, GfrOpenPGPKeyVersion::V4);
+        let err = keygen_dynamic("policy <p@example.com>", &v4, &[]).unwrap_err();
+        assert!(err.to_string().contains("secp256k1"), "{err}");
+
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        assert!(keygen_dynamic("policy <p@example.com>", &primary, &[v4]).is_err());
+
+        let base = &crate::testutil::keys::V4_SIGN;
+        let res = add_subkey_internal(
+            0,
+            &base.secret_armored,
+            &subkey_cfg(GfrKeyAlgo::SECP256K1, true, false),
+            None,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnsupportedAlgorithm));
     }
 
     /// A v6 key generated with secp256k1 must be refused end-to-end.
@@ -1139,24 +1231,44 @@ mod keygen_more_tests {
 
     #[test]
     fn a_generated_key_advertises_preferred_compression_algorithms() {
-        // §5.2.3.17.
-        let key = gen_v4();
-        let sig = &key.details.users[0].signatures[0];
-        let _ = sig.preferred_compression_algs();
+        // §5.2.3.17, read from the self-signature in force.
+        use pgp::types::CompressionAlgorithm;
+        let cert = pgp::composed::SignedPublicKey::from(gen_v4());
+        let sig = crate::key::preference_self_signature(&cert).expect("a self-signature");
+        assert_eq!(
+            sig.preferred_compression_algs(),
+            &[
+                CompressionAlgorithm::ZLIB,
+                CompressionAlgorithm::ZIP,
+                CompressionAlgorithm::Uncompressed
+            ]
+        );
     }
 
     #[test]
     fn a_v6_key_advertises_preferred_aead_ciphersuites() {
         // §5.2.3.15: paired cipher/AEAD octets, only meaningful once v2 SEIPD
-        // is on the table.
+        // is on the table. On a v6 key they live on the Direct Key signature
+        // (§5.2.3.10), with the Key Flags (certify included) and Features.
+        use pgp::crypto::aead::AeadAlgorithm;
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
         let key = gen_v6();
-        let sig = key
-            .details
-            .users
-            .first()
-            .and_then(|u| u.signatures.first())
-            .expect("a self-signature");
-        let _ = sig.preferred_aead_algs();
+        let cert = pgp::composed::SignedPublicKey::from(key.clone());
+        let sig = crate::key::preference_self_signature(&cert).expect("a self-signature");
+        assert_eq!(
+            sig.typ(),
+            Some(pgp::packet::SignatureType::Key),
+            "the Direct Key signature"
+        );
+        assert_eq!(
+            sig.preferred_aead_algs(),
+            &[
+                (SymmetricKeyAlgorithm::AES256, AeadAlgorithm::Ocb),
+                (SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Ocb)
+            ]
+        );
+        assert!(sig.key_flags().certify(), "the v6 primary certifies");
+        assert!(sig.features().is_some_and(|f| f.seipd_v2()));
     }
 
     // -- §3.7.2.1 passphrase protection --------------------------------------
@@ -1168,6 +1280,56 @@ mod keygen_more_tests {
             key.primary_key.secret_params(),
             SecretParams::Plain(_)
         ));
+    }
+
+    #[test]
+    fn each_subkey_is_protected_as_its_own_configuration_asks() {
+        // §3.7.2.1 (round four): the passphrase choice is per component. A
+        // subkey asking for one gets one even under an unprotected primary;
+        // a subkey asking for none is left unprotected, without a prompt,
+        // under a protected primary.
+        use crate::testutil::{cb, keys::cfg};
+        use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+        let encryption_subkey = |protected: bool| {
+            let mut c = cfg(GfrKeyAlgo::ED25519, false, true, GfrOpenPGPKeyVersion::V4);
+            c.has_passphrase = protected;
+            c
+        };
+        let is_protected = |params: &SecretParams| matches!(params, SecretParams::Encrypted(_));
+
+        let mut primary = v4_primary();
+        primary.has_passphrase = false;
+        let out = create_key_internal(
+            "Sub locked <sub-locked@example.test>",
+            primary,
+            &[encryption_subkey(true)],
+            Some(cb::pwd_correct),
+        )
+        .expect("create");
+        let key = SignedSecretKey::from_string(&out.secret).unwrap().0;
+        assert!(!is_protected(key.primary_key.secret_params()));
+        assert!(
+            is_protected(key.secret_subkeys[0].key.secret_params()),
+            "subkey asked for one"
+        );
+
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+        cb::reset_prompt_count();
+        let out = create_key_internal(
+            "Primary locked <primary-locked@example.test>",
+            primary,
+            &[encryption_subkey(false)],
+            Some(cb::pwd_correct),
+        )
+        .expect("create");
+        let key = SignedSecretKey::from_string(&out.secret).unwrap().0;
+        assert!(is_protected(key.primary_key.secret_params()));
+        assert!(
+            !is_protected(key.secret_subkeys[0].key.secret_params()),
+            "subkey asked for none"
+        );
+        assert_eq!(cb::prompt_count(), 1, "only the primary was prompted for");
     }
 
     #[test]

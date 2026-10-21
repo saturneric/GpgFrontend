@@ -62,6 +62,26 @@ fn leak_recipients_c_array(
     (ptr, count)
 }
 
+/// The encryption metadata inside `out_result`, or null.
+fn out_meta(out_result: *mut GfrEncryptResultC) -> *mut crate::types::GfrEncryptMetadataC {
+    if out_result.is_null() {
+        return std::ptr::null_mut();
+    }
+    // SAFETY: non-null, caller-owned.
+    unsafe { &raw mut (*out_result).meta }
+}
+
+/// The encryption metadata inside an encrypt-and-sign `out_result`, or null.
+fn out_sign_meta(
+    out_result: *mut GfrEncryptAndSignResultC,
+) -> *mut crate::types::GfrEncryptMetadataC {
+    if out_result.is_null() {
+        return std::ptr::null_mut();
+    }
+    // SAFETY: non-null, caller-owned.
+    unsafe { &raw mut (*out_result).encrypt_meta }
+}
+
 /// Encrypt an in-memory buffer with the given public keys.
 ///
 /// `name` is embedded as the filename hint in the literal data packet.
@@ -151,7 +171,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
+        Ok(Err(e)) => super::report_rejected_recipients(e, out_meta(out_result)),
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
@@ -211,25 +231,19 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         }
 
         // 5. Open input and output files
-        let in_file = File::open(in_path_str).map_err(|e| {
-            log::error!("Failed to open input file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
-
-        let out_file = File::create(out_path_str).map_err(|e| {
-            log::error!("Failed to create output file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
+        let in_file = crypto::open_input_file(in_path_str)?;
+        let mut stage = crypto::stage_output_file(out_path_str)?;
 
         // 6. Perform the streaming encryption
         let stream_result = crypto::encrypt_stream_internal(
             channel,
             &filename_hint,
             in_file,
-            out_file,
+            stage.file_mut(),
             &key_blocks,
             ascii,
         )?;
+        crypto::commit_output(stage)?;
 
         // 7. Process invalid recipients array and leak it to C
         let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
@@ -263,7 +277,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
+        Ok(Err(e)) => super::report_rejected_recipients(e, out_meta(out_result)),
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
@@ -357,7 +371,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
+        Ok(Err(e)) => super::report_rejected_recipients(e, out_meta(out_result)),
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
@@ -484,7 +498,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
+        Ok(Err(e)) => super::report_rejected_recipients(e, out_sign_meta(out_result)),
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
@@ -555,28 +569,24 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
             }
         }
 
-        // 6. Open input and output files for streaming
-        let in_file = std::fs::File::open(in_path_str).map_err(|e| {
-            log::error!("Failed to open input file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
+        crate::crypto::require_signers(&skey_blocks)?;
 
-        let out_file = std::fs::File::create(out_path_str).map_err(|e| {
-            log::error!("Failed to create output file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
+        // 6. Open input and output files for streaming
+        let in_file = crate::crypto::open_input_file(in_path_str)?;
+        let mut stage = crate::crypto::stage_output_file(out_path_str)?;
 
         // 7. Execute core stream logic
         let stream_result = crate::crypto::encrypt_and_sign_stream_internal(
             channel,
             &filename_hint,
             in_file,
-            out_file,
+            stage.file_mut(),
             &pkey_blocks,
             &skey_blocks,
             Some(fetch_pwd_cb),
             ascii,
         )?;
+        crate::crypto::commit_output(stage)?;
 
         // 8. Process Signatures array and leak it to C
         let mut c_signatures = Vec::with_capacity(stream_result.signatures.len());
@@ -635,7 +645,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
+        Ok(Err(e)) => super::report_rejected_recipients(e, out_sign_meta(out_result)),
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
@@ -761,7 +771,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
+        Ok(Err(e)) => super::report_rejected_recipients(e, out_sign_meta(out_result)),
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
@@ -877,20 +887,18 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
             GfrStatus::ErrorInvalidInput
         })?;
 
-        let out_file = File::create(out_path_str).map_err(|e| {
-            log::error!("Failed to create output file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
+        let mut stage = crypto::stage_output_file(out_path_str)?;
 
         // 5. Execute streaming symmetric encryption
         crypto::encrypt_stream_with_password_internal(
             channel,
             &filename_hint,
             in_file,
-            out_file,
+            stage.file_mut(),
             Some(fetch_pwd_cb),
             ascii,
         )?;
+        crypto::commit_output(stage)?;
 
         // 6. Populate output metadata
         // Symmetric encryption has no recipients, so return empty metadata
@@ -1119,6 +1127,37 @@ mod ffi_encrypt_tests {
     }
 
     #[test]
+    fn encrypt_data_with_no_usable_recipient_names_each_one() {
+        let name = CString::new("").expect("no NUL");
+        let certs = [
+            kbuf(&keys::V4_REVOKED_PRIMARY.public_armored),
+            kbuf("not a certificate"),
+        ];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                certs.len(),
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorUnusableKey
+        );
+        let mut out = unsafe { out.assume_init() };
+        assert!(out.data.is_null());
+        assert_eq!(out.meta.invalid_recipient_count, 2);
+        let recs = unsafe { std::slice::from_raw_parts(out.meta.invalid_recipients, 2) };
+        assert_eq!(recs[0].reason, GfrStatus::ErrorRevokedKey);
+        assert_eq!(recs[1].reason, GfrStatus::ErrorInvalidData);
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut out);
+    }
+
+    #[test]
     fn encrypt_data_with_zero_certificates_fails() {
         let name = CString::new("").expect("no NUL");
         let certs = [kbuf(&keys::V4_SIGN.public_armored)];
@@ -1299,6 +1338,74 @@ mod ffi_encrypt_tests {
         assert!(out_path.exists());
         let mut result = unsafe { out.assume_init() };
         crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    fn encrypt_file_ffi(
+        in_path: &std::path::Path,
+        out_path: &std::path::Path,
+        cert: &str,
+    ) -> GfrStatus {
+        let in_c = CString::new(in_path.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = CString::new(out_path.to_string_lossy().as_ref()).expect("no NUL");
+        let certs = [kbuf(cert)];
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        let status = gfr_crypto_encrypt_file(
+            0,
+            in_c.as_ptr(),
+            out_c.as_ptr(),
+            certs.as_ptr(),
+            certs.len(),
+            false,
+            out.as_mut_ptr(),
+        );
+        let mut result = unsafe { out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+        status
+    }
+
+    #[test]
+    fn a_failed_file_encryption_leaves_an_existing_output_untouched() {
+        // Path parity with decryption (staged, commit-on-success): a failure
+        // must not truncate or half-write the destination.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_path = dir.path().join("plain.bin");
+        let out_path = dir.path().join("cipher.pgp");
+        std::fs::write(&in_path, b"file contents").unwrap();
+        std::fs::write(&out_path, b"keep me").unwrap();
+        let status = encrypt_file_ffi(
+            &in_path,
+            &out_path,
+            &keys::V4_REVOKED_PRIMARY.public_armored,
+        );
+        assert_ne!(
+            status,
+            GfrStatus::Success,
+            "precondition: no usable recipient"
+        );
+        assert_eq!(std::fs::read(&out_path).unwrap(), b"keep me");
+    }
+
+    #[test]
+    fn encrypting_a_file_onto_itself_never_destroys_it() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("both.bin");
+        std::fs::write(&path, b"precious contents").unwrap();
+        let status = encrypt_file_ffi(&path, &path, &keys::V4_SIGN.public_armored);
+        let now = std::fs::read(&path).unwrap();
+        if status == GfrStatus::Success {
+            cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+            let plain = crate::crypto::decrypt_internal(
+                0,
+                &now,
+                Some(cb::seckey_fetch),
+                None,
+                std::ptr::null_mut(),
+            )
+            .expect("the in-place output decrypts");
+            assert_eq!(plain.data, b"precious contents");
+        } else {
+            assert_eq!(now, b"precious contents");
+        }
     }
 
     #[test]

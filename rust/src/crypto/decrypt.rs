@@ -126,13 +126,14 @@ fn analyze_encrypted_envelope(
         // high-level `Message::decrypt` opts into legacy SED handling
         // (`DecryptionOptions::enable_legacy`), so we must reject it here —
         // before any decrypt call — to guarantee that unauthenticated plaintext
-        // is never released to the caller.
+        // is never released to the caller. A refusal by policy: the packet is
+        // well-formed, so it is neither invalid data nor a failed check.
         if edata.tag() == Tag::SymEncryptedData {
             set_last_error(
                 "refusing to decrypt a legacy Symmetrically Encrypted Data packet: it is not \
                  integrity-protected and is malleable (RFC 9580 §13.7)",
             );
-            return Err(GfrStatus::ErrorInvalidData);
+            return Err(GfrStatus::ErrorUnsupportedFeature);
         }
 
         for e in esk {
@@ -213,10 +214,19 @@ fn skesk_session_key(
     let msg_pw = password_from_zeroizing_bytes(password);
 
     let mut last_err = None;
+    let mut weak_s2k = false;
     for esk in esks {
         let Esk::SymKeyEncryptedSessionKey(skesk) = esk else {
             continue;
         };
+        // RFC 9580 §9.5: "MUST NOT decrypt a secret using MD5, SHA-1, or
+        // RIPEMD-160 as a hash function in an S2K KDF in a version 6 (or
+        // later) packet". rPGP refuses it too, but its error would read as a
+        // wrong password.
+        if skesk.version() == SkeskVersion::V6 && skesk.s2k().is_some_and(s2k_hash_is_weak) {
+            weak_s2k = true;
+            continue;
+        }
         // v5 is GnuPG's pre-standard AEAD draft, which rPGP only reads on
         // request; a plaintext "session key" is forbidden outright.
         if skesk.version() == SkeskVersion::V5
@@ -239,6 +249,12 @@ fn skesk_session_key(
             log::debug!("no password packet opened with this password: {e}");
             set_last_error("the password does not open this message");
             Err(GfrStatus::ErrorBadPassphrase)
+        }
+        None if weak_s2k => {
+            set_last_error(
+                "the password packet derives its key with MD5, SHA-1 or RIPEMD-160, which RFC 9580 §9.5 forbids in a version 6 packet",
+            );
+            Err(GfrStatus::ErrorDecryptionFailed)
         }
         None => {
             set_last_error("the message has no usable password-protected session-key packet");
@@ -263,7 +279,7 @@ fn pkesk_session_key(
     fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     user_data: *mut c_void,
-) -> Result<(PlainSessionKey, String), GfrStatus> {
+) -> Result<(PlainSessionKey, String, AcceptedCiphers), GfrStatus> {
     let mut tried: Vec<String> = Vec::new();
     let mut failure: Option<GfrStatus> = None;
 
@@ -290,19 +306,14 @@ fn pkesk_session_key(
             tried.push(fpr);
 
             match pkesk_session_key_with(channel, esks, &skey, &rec.key_id, fetch_pwd_cb) {
-                Ok(session_key) => return Ok((session_key, rec.key_id.clone())),
-                Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
-                // Keep the most telling failure: a passphrase problem over a
-                // packet that did not open, over "no packet for this key".
-                Err(status) => {
-                    failure = Some(match (failure, status) {
-                        (Some(GfrStatus::ErrorBadPassphrase), _) => GfrStatus::ErrorBadPassphrase,
-                        (Some(GfrStatus::ErrorDecryptionFailed), GfrStatus::ErrorNoKey) => {
-                            GfrStatus::ErrorDecryptionFailed
-                        }
-                        (_, status) => status,
-                    })
+                Ok(session_key) => {
+                    let accepted = crate::crypto::encrypt::accepted_ciphers(
+                        &pgp::composed::SignedPublicKey::from(skey.clone()),
+                    );
+                    return Ok((session_key, rec.key_id.clone(), accepted));
                 }
+                Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
+                Err(status) => failure = Some(more_telling_failure(failure, status)),
             }
         }
     }
@@ -311,6 +322,20 @@ fn pkesk_session_key(
         set_last_error("no available secret key matches any recipient of this message");
         GfrStatus::ErrorNoKey
     }))
+}
+
+/// Keep the most telling of two session-key failures: a passphrase problem
+/// over a packet that did not open or a session key that was refused, over
+/// "no packet for this key". The kept status matches the detail it set.
+fn more_telling_failure(kept: Option<GfrStatus>, next: GfrStatus) -> GfrStatus {
+    match (kept, next) {
+        (Some(GfrStatus::ErrorBadPassphrase), _) => GfrStatus::ErrorBadPassphrase,
+        (
+            Some(kept @ (GfrStatus::ErrorDecryptionFailed | GfrStatus::ErrorInvalidData)),
+            GfrStatus::ErrorNoKey,
+        ) => kept,
+        (_, next) => next,
+    }
 }
 
 /// [`pkesk_session_key`] for one secret key `skey`, found for the recipient
@@ -377,6 +402,7 @@ fn pkesk_session_key_with(
     // would. The outer `Result` of `DecryptionKey::decrypt` is the unlock, the
     // inner one the session-key decryption.
     let mut last_err = None;
+    let mut refused: Option<String> = None;
     for esk in esks {
         let Esk::PublicKeyEncryptedSessionKey(pkesk) = esk else {
             continue;
@@ -400,7 +426,10 @@ fn pkesk_session_key_with(
         }
         for key in candidates {
             match key.decrypt(&pwd, values, typ) {
-                Ok(Ok(session_key)) => return Ok(session_key),
+                Ok(Ok(session_key)) => match v3_session_key_problem(pkesk, &session_key) {
+                    None => return Ok(session_key),
+                    Some(problem) => refused = Some(problem),
+                },
                 Ok(Err(e)) => last_err = Some(e),
                 Err(e) => {
                     if needs_password {
@@ -419,6 +448,10 @@ fn pkesk_session_key_with(
         }
     }
 
+    if let Some(problem) = refused {
+        set_last_error(&problem);
+        return Err(GfrStatus::ErrorInvalidData);
+    }
     match last_err {
         Some(e) => Err(e).record_err(GfrStatus::ErrorDecryptionFailed),
         None => {
@@ -426,6 +459,131 @@ fn pkesk_session_key_with(
             Err(GfrStatus::ErrorNoKey)
         }
     }
+}
+
+/// Why the session key a v3 PKESK yielded must not be used, if it must not.
+///
+/// The cipher octet of a v3 PKESK is outside the key wrap for X25519, X448
+/// and ML-KEM, so it is the sender's (or an attacker's) unauthenticated
+/// choice: those packets "MUST" name AES-128, AES-192 or AES-256 (RFC 9580
+/// §5.1.6, §5.1.7; RFC 9980 §4.3.1). And "a receiving implementation MUST
+/// check if the length of the unwrapped symmetric key matches the symmetric
+/// algorithm ID and abort if this is not the case" (RFC 9980 §4.3.1), which
+/// holds for every v3 PKESK: ciphers such as Blowfish accept other lengths.
+fn v3_session_key_problem(
+    pkesk: &pgp::packet::PublicKeyEncryptedSessionKey,
+    session_key: &PlainSessionKey,
+) -> Option<String> {
+    use pgp::crypto::public_key::PublicKeyAlgorithm;
+    let PlainSessionKey::V3_4 { sym_alg, key } = session_key else {
+        return None;
+    };
+    let aes_only = matches!(
+        pkesk.algorithm(),
+        Ok(PublicKeyAlgorithm::X25519
+            | PublicKeyAlgorithm::X448
+            | PublicKeyAlgorithm::MlKem768X25519
+            | PublicKeyAlgorithm::MlKem1024X448)
+    );
+    let is_aes = matches!(
+        sym_alg,
+        SymmetricKeyAlgorithm::AES128
+            | SymmetricKeyAlgorithm::AES192
+            | SymmetricKeyAlgorithm::AES256
+    );
+    if aes_only && !is_aes {
+        return Some(format!(
+            "the session-key packet names {sym_alg:?}, but for this key type it must name AES"
+        ));
+    }
+    if key.len() != sym_alg.key_size() {
+        return Some(format!(
+            "the session key is {} bytes, but {sym_alg:?} takes {}",
+            key.len(),
+            sym_alg.key_size()
+        ));
+    }
+    None
+}
+
+/// The ciphers and ciphersuites a key accepts (see `accepted_ciphers`).
+type AcceptedCiphers = (
+    Vec<SymmetricKeyAlgorithm>,
+    Vec<(SymmetricKeyAlgorithm, pgp::crypto::aead::AeadAlgorithm)>,
+);
+
+/// The cipher protecting `parsed`'s payload and, for a v2 SEIPD, its AEAD
+/// mode. A v1 SEIPD names its cipher only in the session key.
+fn payload_cipher(
+    parsed: &Message,
+    session_key: &PlainSessionKey,
+) -> Option<(
+    SymmetricKeyAlgorithm,
+    Option<pgp::crypto::aead::AeadAlgorithm>,
+)> {
+    use pgp::composed::Edata;
+    use pgp::packet::{ProtectedDataConfig, SymEncryptedProtectedDataConfig};
+    let Message::Encrypted {
+        edata: Edata::SymEncryptedProtectedData { reader },
+        ..
+    } = parsed
+    else {
+        return None;
+    };
+    match (reader.config(), session_key) {
+        (
+            ProtectedDataConfig::Seipd(SymEncryptedProtectedDataConfig::V2 {
+                sym_alg, aead, ..
+            }),
+            _,
+        ) => Some((*sym_alg, Some(*aead))),
+        (
+            ProtectedDataConfig::Seipd(SymEncryptedProtectedDataConfig::V1),
+            PlainSessionKey::V3_4 { sym_alg, .. },
+        ) => Some((*sym_alg, None)),
+        _ => None,
+    }
+}
+
+/// Why the payload's cipher deserves a warning, or empty. RFC 9580 §9.3: a
+/// message in IDEA, TripleDES or CAST5 "SHOULD generate a deprecation
+/// warning"; §12.2: one in a cipher the decrypting key does not prefer is
+/// still decrypted, "but it MUST warn the keyholder". `accepted` is known
+/// only for public-key decryption.
+fn cipher_warnings(
+    cipher: Option<(
+        SymmetricKeyAlgorithm,
+        Option<pgp::crypto::aead::AeadAlgorithm>,
+    )>,
+    accepted: Option<&AcceptedCiphers>,
+) -> String {
+    let Some((sym, aead)) = cipher else {
+        return String::new();
+    };
+    let mut warnings = Vec::new();
+    if matches!(
+        sym,
+        SymmetricKeyAlgorithm::IDEA
+            | SymmetricKeyAlgorithm::TripleDES
+            | SymmetricKeyAlgorithm::CAST5
+    ) {
+        warnings.push(format!(
+            "the message is encrypted with {sym:?}, a deprecated cipher whose confidentiality is suspect (RFC 9580 §9.3)"
+        ));
+    }
+    if let Some((symmetric, suites)) = accepted {
+        let preferred = match aead {
+            Some(mode) => suites.contains(&(sym, mode)),
+            None => symmetric.contains(&sym),
+        };
+        if !preferred {
+            warnings.push(format!(
+                "the decrypting key does not list {sym:?}{} among its preferred ciphers (RFC 9580 §12.2)",
+                aead.map(|m| format!("/{m:?}")).unwrap_or_default()
+            ));
+        }
+    }
+    warnings.join("; ")
 }
 
 /// The cipher and mode protecting `parsed`'s payload, in gpgme's
@@ -454,6 +612,21 @@ fn container_description(parsed: &Message, session_key: &PlainSessionKey) -> Str
             PlainSessionKey::V3_4 { sym_alg, .. },
         ) => format!("{}.CFB", name(&sym_alg)),
         _ => String::new(),
+    }
+}
+
+/// True if `s2k` hashes with MD5, SHA-1 or RIPEMD-160 (RFC 9580 §9.5).
+fn s2k_hash_is_weak(s2k: &pgp::types::StringToKey) -> bool {
+    use pgp::crypto::hash::HashAlgorithm;
+    use pgp::types::StringToKey;
+    match s2k {
+        StringToKey::Simple { hash_alg }
+        | StringToKey::Salted { hash_alg, .. }
+        | StringToKey::IteratedAndSalted { hash_alg, .. } => matches!(
+            hash_alg,
+            HashAlgorithm::Md5 | HashAlgorithm::Sha1 | HashAlgorithm::Ripemd160
+        ),
+        _ => false,
     }
 }
 
@@ -586,6 +759,7 @@ where
     };
 
     let mut session_key = None;
+    let mut accepted_ciphers = None;
     let mut key_failure = None;
     if has_pkesk {
         match pkesk_session_key(
@@ -596,8 +770,9 @@ where
             fetch_pwd_cb,
             user_data,
         ) {
-            Ok((key, matched_recipient_id)) => {
+            Ok((key, matched_recipient_id, accepted)) => {
                 session_key = Some(key);
+                accepted_ciphers = Some(accepted);
                 for rec in &mut recipients {
                     if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
                         rec.status = GfrRecipientStatus::Success;
@@ -628,6 +803,10 @@ where
     };
 
     let sym_algo = container_description(&parsed_message, &session_key);
+    let cipher_warning = cipher_warnings(
+        payload_cipher(&parsed_message, &session_key),
+        accepted_ciphers.as_ref(),
+    );
 
     // 5. Initialize streaming decryption with the recovered session key.
     let ring = TheRing {
@@ -674,6 +853,18 @@ where
             .unwrap_or_else(|| IntegrityFailure::Malformed(format!("decompression failed: {e}")))
             .report()
     })?;
+
+    // RFC 9580 §10.3 allows an Encrypted Message to contain another one,
+    // directly or under a signature. GF does not decrypt nested layers, and
+    // rPGP would read the inner packet's body as if it were data: once
+    // compression is peeled the content must reach a Literal Data packet, or
+    // the "plaintext" would be ciphertext.
+    if decrypted.literal_data_header().is_none() {
+        set_last_error(
+            "the decrypted content is not literal data (a nested encrypted message is not supported)",
+        );
+        return Err(GfrStatus::ErrorUnsupportedFeature);
+    }
 
     // 7. Extract filename, from the Literal Data packet wherever it sits (it
     //    is under the signature layer of a signed message).
@@ -755,6 +946,7 @@ where
     Ok(DecryptAndVerifyStreamResultInternal {
         filename,
         sym_algo,
+        cipher_warning,
         recipients,
         is_verified,
         signatures,
@@ -888,6 +1080,7 @@ fn decrypt_archive_staged(
         data: Vec::new(),
         filename: stream_result.filename,
         sym_algo: stream_result.sym_algo,
+        cipher_warning: stream_result.cipher_warning,
         recipients: stream_result.recipients,
         is_verified: stream_result.is_verified,
         signatures: stream_result.signatures,
@@ -983,6 +1176,10 @@ pub fn decrypt_internal(
         .map(|s| s.trim_start().starts_with("-----BEGIN PGP MESSAGE-----"))
         .unwrap_or(false);
 
+    // RFC 9580 §6: whitespace inside the base64 is ignored.
+    let normalized = crate::utils::normalized_armor(encrypted_data);
+    let encrypted_data: &[u8] = &normalized;
+
     // Wrap the in-memory byte slice into a Read stream
     let input_cursor = Cursor::new(encrypted_data);
 
@@ -1003,6 +1200,7 @@ pub fn decrypt_internal(
         data: output_data,
         filename: stream_result.filename,
         sym_algo: stream_result.sym_algo,
+        cipher_warning: stream_result.cipher_warning,
         recipients: stream_result.recipients,
     })
 }
@@ -1016,6 +1214,9 @@ pub fn decrypt_and_verify_internal(
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<DecryptAndVerifyResultInternal, GfrStatus> {
+    // RFC 9580 §6: whitespace inside the base64 is ignored.
+    let normalized = crate::utils::normalized_armor(encrypted_data);
+    let encrypted_data: &[u8] = &normalized;
     let mut output_data = Vec::new();
 
     let is_armor = std::str::from_utf8(encrypted_data)
@@ -1040,6 +1241,7 @@ pub fn decrypt_and_verify_internal(
         data: output_data,
         filename: stream_result.filename,
         sym_algo: stream_result.sym_algo,
+        cipher_warning: stream_result.cipher_warning,
         recipients: stream_result.recipients,
         is_verified: stream_result.is_verified,
         signatures: stream_result.signatures,
@@ -1099,6 +1301,31 @@ mod rfc9580_envelope_tests {
         assert!(recipients.is_empty());
     }
 
+    /// A refused session key (wrong cipher octet or length) found for one key
+    /// is not hidden by a later key that simply had no packet: the status
+    /// keeps matching the detail it set.
+    #[test]
+    fn a_refused_session_key_outranks_a_later_missing_one() {
+        use GfrStatus::*;
+        assert_eq!(
+            more_telling_failure(Some(ErrorInvalidData), ErrorNoKey),
+            ErrorInvalidData
+        );
+        assert_eq!(
+            more_telling_failure(Some(ErrorDecryptionFailed), ErrorNoKey),
+            ErrorDecryptionFailed
+        );
+        assert_eq!(
+            more_telling_failure(Some(ErrorBadPassphrase), ErrorInvalidData),
+            ErrorBadPassphrase
+        );
+        assert_eq!(more_telling_failure(None, ErrorNoKey), ErrorNoKey);
+        assert_eq!(
+            more_telling_failure(Some(ErrorNoKey), ErrorInvalidData),
+            ErrorInvalidData
+        );
+    }
+
     /// RFC 9580 §13.7 / finding H2: a legacy Symmetrically Encrypted Data packet
     /// (Tag 9, no integrity protection) must be rejected before any decryption.
     #[test]
@@ -1106,7 +1333,7 @@ mod rfc9580_envelope_tests {
         let msg = parse(ENC_SED);
         assert_eq!(
             analyze_encrypted_envelope(&msg).err(),
-            Some(GfrStatus::ErrorInvalidData),
+            Some(GfrStatus::ErrorUnsupportedFeature),
             "legacy SED must be refused"
         );
     }
@@ -1288,6 +1515,47 @@ mod decrypt_tests {
     }
 
     #[test]
+    fn a_v6_password_packet_with_a_weak_s2k_hash_is_not_blamed_on_the_password() {
+        // RFC 9580 §9.5: an implementation "MUST NOT decrypt a secret using
+        // MD5, SHA-1, or RIPEMD-160 as a hash function in an S2K KDF in a
+        // version 6 (or later) packet". rPGP refuses it; GF must report that
+        // reason, not tell a user with the right password that it is wrong.
+        use pgp::composed::MessageBuilder;
+        use pgp::crypto::aead::{AeadAlgorithm, ChunkSize};
+        use pgp::crypto::hash::HashAlgorithm;
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        use pgp::types::{Password, StringToKey};
+        pw_cb!(pw_weak_s2k, b"weak-s2k-password");
+        let mut rng = rand::thread_rng();
+        let mut builder = MessageBuilder::from_bytes("", &b"weak s2k"[..]).seipd_v2(
+            &mut rng,
+            SymmetricKeyAlgorithm::AES256,
+            AeadAlgorithm::Ocb,
+            ChunkSize::default(),
+        );
+        // rPGP will not produce such a packet either: build it with SHA2-256
+        // and patch the S2K hash octet to SHA-1 (2). The receiver refuses
+        // before deriving any key, so the patch changes only that decision.
+        let s2k = StringToKey::new_iterated(&mut rng, HashAlgorithm::Sha256, 96);
+        builder
+            .encrypt_with_password(&mut rng, s2k, &Password::from("weak-s2k-password"))
+            .unwrap();
+        let mut msg = builder.to_vec(&mut rng).unwrap();
+        // New-format SKESK (tag 3), one-octet length; body: version 6, field
+        // count, cipher, AEAD, S2K length, S2K type 3, S2K hash, ...
+        assert_eq!(
+            (msg[0], msg[2], msg[7], msg[8]),
+            (0xC3, 6, 3, 8),
+            "SKESK layout"
+        );
+        msg[8] = 2;
+        let result = decrypt_with_password(&msg, pw_weak_s2k);
+        assert_eq!(result.err(), Some(GfrStatus::ErrorDecryptionFailed));
+        let detail = crate::err::last_error();
+        assert!(detail.contains("RFC 9580 §9.5"), "{detail}");
+    }
+
+    #[test]
     fn a_v6_skesk_message_refuses_the_wrong_passphrase() {
         // §5.3.2: a v6 SKESK wraps the session key with AEAD, so a wrong
         // passphrase fails the SKESK's own authentication tag. A.10's
@@ -1416,10 +1684,11 @@ mod decrypt_tests {
     fn a_legacy_sed_packet_is_refused() {
         // §13.7 / §5.7: "This packet is obsolete. An implementation MUST NOT
         // create this packet. An implementation SHOULD reject such a packet
-        // and stop processing the message."
+        // and stop processing the message." A refusal by policy, not
+        // malformed input: the packet itself is well-formed.
         assert_eq!(
             decrypt_with_key(corpus::ENC_SED_TAG9, corpus::KEY1_SECRET, Some(pw_corpus)).err(),
-            Some(GfrStatus::ErrorInvalidData),
+            Some(GfrStatus::ErrorUnsupportedFeature),
             "an unauthenticated SED payload must never be decrypted"
         );
         let detail = crate::err::last_error();
@@ -1884,6 +2153,174 @@ mod decrypt_tests {
         let out = decrypt_with_key(&msg, &key.secret_armored, None).expect("decrypt");
         assert_eq!(out.data, body);
         assert_eq!(out.filename, "report.txt");
+    }
+
+    #[test]
+    fn an_encrypted_message_inside_an_encrypted_message_is_never_output_as_plaintext() {
+        // RFC 9580 §10.3: an Encrypted Message may contain another OpenPGP
+        // Message, including an encrypted one. GF must either decrypt it too
+        // or refuse; it must never hand out the inner ciphertext as the
+        // decrypted plaintext.
+        let key = &keys::V4_SIGN;
+        let inner = crate::crypto::encrypt_internal(
+            0,
+            "",
+            b"the real payload",
+            &[&key.public_armored],
+            false,
+        )
+        .unwrap()
+        .data;
+        // Directly nested, and nested under a signature (RFC 9580 §10.3:
+        // "Signature Packet, OpenPGP Message").
+        let sig = crate::crypto::sign_internal(
+            0,
+            "",
+            &inner,
+            &[&key.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            false,
+        )
+        .unwrap()
+        .data;
+        let mut signed_inner = sig;
+        signed_inner.extend_from_slice(&inner);
+        for (layout, content) in [
+            ("direct", inner.clone()),
+            ("under a signature", signed_inner),
+        ] {
+            let outer = crate::testutil::seipd::v1_with_inner(key, &content);
+            match decrypt_with_key(&outer, &key.secret_armored, None) {
+                Ok(out) => assert_eq!(
+                    out.data, b"the real payload",
+                    "{layout}: inner ciphertext returned as plaintext"
+                ),
+                Err(status) => assert_eq!(status, GfrStatus::ErrorUnsupportedFeature, "{layout}"),
+            }
+        }
+    }
+
+    #[test]
+    fn a_v3_pkesk_to_x25519_must_name_an_aes_cipher() {
+        // RFC 9580 §5.1.6 (X25519), §5.1.7 (X448), RFC 9980 §4.3.1 (ML-KEM):
+        // with a v3 PKESK "the symmetric algorithm used MUST be AES-128,
+        // AES-192, or AES-256"; the cipher octet is not protected by the
+        // key wrap, so a receiver that honours another cipher lets the
+        // sender (or a man in the middle) pick a weak one.
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        use pgp::types::KeyDetails;
+        let key = &keys::V6_SIGN;
+        assert!(
+            key.secret
+                .secret_subkeys
+                .iter()
+                .any(|s| s.key.algorithm() == pgp::crypto::public_key::PublicKeyAlgorithm::X25519),
+            "precondition: the fixture encrypts to X25519"
+        );
+        let literal = packets::literal(b'b', b"", 0, b"cast5 payload");
+        let control = crate::testutil::seipd::v1_with_inner_cipher(
+            key,
+            &literal,
+            SymmetricKeyAlgorithm::AES128,
+        );
+        assert_eq!(
+            decrypt_with_key(&control, &key.secret_armored, None)
+                .unwrap()
+                .data,
+            b"cast5 payload",
+            "control: an AES v3 PKESK opens"
+        );
+        for alg in [SymmetricKeyAlgorithm::CAST5, SymmetricKeyAlgorithm::Twofish] {
+            let msg = crate::testutil::seipd::v1_with_inner_cipher(key, &literal, alg);
+            assert_eq!(
+                decrypt_with_key(&msg, &key.secret_armored, None).err(),
+                Some(GfrStatus::ErrorInvalidData),
+                "{alg:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_v3_session_key_whose_length_does_not_fit_its_cipher_is_refused() {
+        // RFC 9980 §4.3.1: "a receiving implementation MUST check if the
+        // length of the unwrapped symmetric key matches the symmetric
+        // algorithm ID and abort". rPGP checks this for RSA and ECDH but not
+        // for X25519, X448 and ML-KEM, whose cipher octet is outside the key
+        // wrap: a 32-byte key labelled AES-128 reaches the payload.
+        use pgp::composed::{Deserializable, SignedPublicKey};
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        use pgp::packet::{Packet, PublicKeyEncryptedSessionKey, SymEncryptedProtectedData};
+        use pgp::ser::Serialize;
+        use pgp::types::KeyDetails;
+        let key = &keys::V6_SIGN;
+        let cert = SignedPublicKey::from_string(&key.public_armored).unwrap().0;
+        let subkey = cert
+            .public_subkeys
+            .iter()
+            .find(|s| s.key.algorithm() == pgp::crypto::public_key::PublicKeyAlgorithm::X25519)
+            .expect("precondition: an X25519 subkey");
+        let mut rng = rand::thread_rng();
+        let long_key = SymmetricKeyAlgorithm::AES256.new_session_key(&mut rng);
+        let alg = SymmetricKeyAlgorithm::AES128;
+        let literal = packets::literal(b'b', b"", 0, b"mislabelled payload");
+        let pkesk =
+            PublicKeyEncryptedSessionKey::from_session_key_v3(&mut rng, &long_key, alg, subkey)
+                .expect("rPGP builds it");
+        let seipd = SymEncryptedProtectedData::encrypt_seipdv1(
+            &mut rng,
+            SymmetricKeyAlgorithm::AES256,
+            long_key.as_ref(),
+            &literal,
+        )
+        .unwrap();
+        let mut msg = Packet::from(pkesk).to_bytes().unwrap();
+        msg.extend(Packet::from(seipd).to_bytes().unwrap());
+        assert_eq!(
+            decrypt_with_key(&msg, &key.secret_armored, None).err(),
+            Some(GfrStatus::ErrorInvalidData)
+        );
+        assert!(
+            crate::err::last_error().contains("takes 16"),
+            "{}",
+            crate::err::last_error()
+        );
+    }
+
+    #[test]
+    fn a_deprecated_or_unpreferred_cipher_is_reported() {
+        // RFC 9580 §9.3: decrypting IDEA, TripleDES or CAST5 "SHOULD generate
+        // a deprecation warning ... confidentiality is suspect"; §12.2: a
+        // message in a cipher the keyholder does not prefer "SHOULD [be]
+        // decrypt[ed] ... but it MUST warn the keyholder". V4_SIGN's ECDH
+        // subkey may receive any cipher; its preferences are AES-256 and
+        // AES-128.
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        let key = &keys::V4_SIGN;
+        let literal = packets::literal(b'b', b"", 0, b"cipher check");
+        let open = |alg| {
+            let msg = crate::testutil::seipd::v1_with_inner_cipher(key, &literal, alg);
+            decrypt_with_key(&msg, &key.secret_armored, None).expect("decrypts")
+        };
+        let aes = open(SymmetricKeyAlgorithm::AES128);
+        assert_eq!(aes.cipher_warning, "", "AES-128 is always acceptable");
+        let cast5 = open(SymmetricKeyAlgorithm::CAST5);
+        assert_eq!(
+            cast5.data, b"cipher check",
+            "still decrypted (SHOULD decrypt)"
+        );
+        assert!(
+            cast5.cipher_warning.contains("deprecated"),
+            "{}",
+            cast5.cipher_warning
+        );
+        let twofish = open(SymmetricKeyAlgorithm::Twofish);
+        assert!(
+            twofish.cipher_warning.contains("does not list"),
+            "{}",
+            twofish.cipher_warning
+        );
+        assert!(!twofish.cipher_warning.contains("deprecated"));
     }
 
     #[test]

@@ -113,6 +113,9 @@ pub fn verify_internal(
         // MODE 0: INLINE SIGNATURE
         // ---------------------------------------------------------
         GfrSignMode::Inline => {
+            // RFC 9580 §6: whitespace inside the base64 is ignored.
+            let normalized = crate::utils::normalized_armor(data);
+            let data: &[u8] = &normalized;
             let mut msg = Message::from_armor(Cursor::new(data))
                 .map(|(m, _)| m)
                 .or_else(|_| Message::from_bytes(data))
@@ -127,9 +130,22 @@ pub fn verify_internal(
             // guard the decrypt path applies) — then count and verify. Reading
             // num_signatures() before this yields 0 and silently downgrades every
             // genuine inline signature to BadSignature.
+            if matches!(msg, Message::Encrypted { .. }) {
+                set_last_error("an encrypted message is not a signed message; decrypt it instead");
+                return Err(GfrStatus::ErrorUnsupportedFeature);
+            }
             let (peeled, was_compressed) =
                 peel_compression(msg, |e| Err::<(), _>(e).into_gfr().unwrap_err())?;
             msg = peeled;
+            // The signed content must reach a Literal Data packet: a signed
+            // (or bare) encrypted message would otherwise be read out as its
+            // ciphertext and presented as the signed data (RFC 9580 §10.3).
+            if msg.literal_data_header().is_none() {
+                set_last_error(
+                    "the message carries no literal data (an encrypted message is not signed content)",
+                );
+                return Err(GfrStatus::ErrorUnsupportedFeature);
+            }
             let clear_data = if was_compressed {
                 read_to_end_capped(&mut msg)?
             } else {
@@ -164,6 +180,13 @@ pub fn verify_internal(
         // ---------------------------------------------------------
         GfrSignMode::ClearText => {
             let text_str = std::str::from_utf8(data).record_err(GfrStatus::ErrorInvalidInput)?;
+            // The host selects this mode on whitespace-trimmed input, so blank
+            // lines before the BEGIN line are not message content; rPGP would
+            // refuse them as leading data.
+            let text_str = text_str.trim_start();
+            // RFC 9580 §6: whitespace inside the signature block's base64 is
+            // ignored; the signed body itself is left verbatim.
+            let text_str = &*crate::utils::strip_armor_whitespace(text_str);
             let (msg, _) = CleartextSignedMessage::from_string(text_str).into_gfr()?;
 
             // Build one entry per signature packet and verify each packet
@@ -868,6 +891,167 @@ mod verify_tests {
     }
 
     #[test]
+    fn inline_verification_never_returns_ciphertext_as_the_signed_data() {
+        // RFC 9580 §10.3: a signed message may wrap any OpenPGP Message,
+        // including an encrypted one. Inline verification only peels
+        // compression; returning an encrypted body as "the signed data" would
+        // present ciphertext as content.
+        let key = &keys::V4_SIGN;
+        let encrypted =
+            crate::crypto::encrypt_internal(0, "", b"payload", &[&key.public_armored], false)
+                .unwrap()
+                .data;
+        let sig = crate::crypto::sign_internal(
+            0,
+            "",
+            &encrypted,
+            &[&key.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            false,
+        )
+        .unwrap()
+        .data;
+        let mut signed_encrypted = sig;
+        signed_encrypted.extend_from_slice(&encrypted);
+        // rPGP already refuses both layouts while reading the message; GF's
+        // own literal-data check backs that up. Either way no layout may
+        // yield data.
+        for (layout, input) in [("bare", encrypted), ("signed", signed_encrypted)] {
+            let res = verify_mode(&input, &[], GfrSignMode::Inline, Some(&key.public_armored));
+            assert!(res.is_err(), "{layout}: {:?}", res.map(|r| r.data.len()));
+        }
+    }
+
+    #[test]
+    fn a_cleartext_line_starting_with_from_is_dash_escaped() {
+        // RFC 9580 §7.2: "the line SHOULD be dash-escaped" when it starts
+        // with "From ", so a mail transport that rewrites it to ">From"
+        // cannot break the signature. Dash-escaping does not change the
+        // signed text.
+        let key = &keys::V4_SIGN;
+        let signed = crate::crypto::sign_internal(
+            0,
+            "",
+            b"From the top\nnot From here\n",
+            &[&key.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .unwrap();
+        let text = String::from_utf8(signed.data.clone()).unwrap();
+        assert!(text.contains("\n- From the top\n"), "{text}");
+        assert!(
+            text.contains("\nnot From here\n"),
+            "only line starts are escaped"
+        );
+        let res = verify_mode(
+            &[],
+            &signed.data,
+            GfrSignMode::ClearText,
+            Some(&key.public_armored),
+        )
+        .unwrap();
+        ta::only_status(&res.signatures, GfrSignatureStatus::Valid);
+        // The signed text comes back canonicalized (CRLF), unescaped.
+        assert_eq!(res.data, b"From the top\r\nnot From here\r\n");
+    }
+
+    #[test]
+    fn whitespace_before_a_cleartext_message_is_not_a_reason_to_reject_it() {
+        // The host chooses cleartext verification after trimming leading
+        // whitespace (MessageCryptoOperation.cpp), so the engine must accept
+        // what it was handed: blank lines pasted above the BEGIN line are
+        // not message content. Leading *text* stays refused (R-ARM-005).
+        let key = &keys::V4_SIGN;
+        let signed = crate::crypto::sign_internal(
+            0,
+            "",
+            b"pasted with blank lines above\n",
+            &[&key.secret_armored],
+            None,
+            GfrSignMode::ClearText,
+            true,
+        )
+        .unwrap()
+        .data;
+        let mut padded = b"\n  \r\n\t\n".to_vec();
+        padded.extend_from_slice(&signed);
+        let res = verify_mode(
+            &[],
+            &padded,
+            GfrSignMode::ClearText,
+            Some(&key.public_armored),
+        )
+        .expect("leading whitespace is accepted");
+        ta::only_status(&res.signatures, GfrSignatureStatus::Valid);
+        let mut prefixed = b"look:\n".to_vec();
+        prefixed.extend_from_slice(&signed);
+        assert!(
+            verify_mode(
+                &[],
+                &prefixed,
+                GfrSignMode::ClearText,
+                Some(&key.public_armored)
+            )
+            .is_err(),
+            "leading text stays refused"
+        );
+    }
+
+    #[test]
+    fn every_cleartext_we_sign_verifies_whatever_its_line_endings() {
+        // RFC 9580 §7.1, §5.2.1.2: the signed text is canonicalized (CRLF,
+        // trailing whitespace removed) the same way on both sides, so any
+        // valid UTF-8 input GF accepts for cleartext signing must yield a
+        // signature that verifies, for v4 and v6 signers alike.
+        let inputs: [&[u8]; 10] = [
+            b"ends in a bare CR\r",
+            b"bare CR\rin the middle\n",
+            b"mixed\r\nline\nendings\r\n",
+            b"no final newline",
+            b"trailing tab on the last line\t",
+            b"empty last line\n\n",
+            b"\n\nleading blank lines\n",
+            b"From the start of a line\n",
+            b"- dash lines\n-x\n--\n",
+            b"",
+        ];
+        for key in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            for input in inputs {
+                let signed = crate::crypto::sign_internal(
+                    0,
+                    "",
+                    input,
+                    &[&key.secret_armored],
+                    None,
+                    GfrSignMode::ClearText,
+                    true,
+                );
+                let Ok(signed) = signed else {
+                    // An empty text is refused outright; that is not a
+                    // malformed signature.
+                    assert!(input.is_empty(), "{input:?}: {:?}", signed.err());
+                    continue;
+                };
+                let res = verify_mode(
+                    &[],
+                    &signed.data,
+                    GfrSignMode::ClearText,
+                    Some(&key.public_armored),
+                )
+                .unwrap_or_else(|e| panic!("{input:?}: verify failed with {e:?}"));
+                assert!(
+                    res.is_verified,
+                    "{input:?} ({:?}) does not verify",
+                    key.secret.primary_key.version()
+                );
+            }
+        }
+    }
+
+    #[test]
     fn an_inline_signature_we_produce_verifies() {
         let key = &keys::V4_SIGN;
         let signed = crate::crypto::sign_internal(
@@ -1325,6 +1509,117 @@ mod verify_tests {
     }
 
     #[test]
+    fn a_signature_with_a_critical_notation_it_does_not_understand_is_in_error() {
+        // RFC 9580 §5.2.3.7: a critical subpacket the evaluator does not
+        // understand means it "SHOULD consider the signature to be in
+        // error"; §5.2.3.24: for notations "the criticality applies to that
+        // specific notation". GF understands no notation, so any critical one
+        // puts the signature in error. A non-critical one changes nothing.
+        let fixture = &keys::V4_SIGN;
+        let primary = &fixture.secret.primary_key;
+        let sign_with = |critical: bool| {
+            let mut cfg =
+                SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::Binary)
+                    .unwrap();
+            let notation = SubpacketData::Notation(pgp::packet::Notation {
+                readable: true,
+                name: "must-understand@example.test".into(),
+                value: "1".into(),
+            });
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+                if critical {
+                    Subpacket::critical(notation).unwrap()
+                } else {
+                    Subpacket::regular(notation).unwrap()
+                },
+            ];
+            let sig = cfg.sign(primary, &Password::empty(), AUTHZ_DATA).unwrap();
+            pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(sig)).unwrap()
+        };
+        let plain = verify_detached(AUTHZ_DATA, &sign_with(false), Some(&fixture.public_armored));
+        ta::only_status(&plain.signatures, GfrSignatureStatus::Valid);
+        let critical = verify_detached(AUTHZ_DATA, &sign_with(true), Some(&fixture.public_armored));
+        assert!(!critical.is_verified);
+        ta::only_status(&critical.signatures, GfrSignatureStatus::BadSignature);
+
+        // Round four: the same holds for every other subpacket GF parses but
+        // does not act on for a document signature.
+        for (what, data) in [
+            (
+                "experimental 101",
+                SubpacketData::Experimental(101, vec![1u8].into()),
+            ),
+            (
+                "policy URI",
+                SubpacketData::PolicyURI("https://example.test/p".into()),
+            ),
+            (
+                "regular expression",
+                SubpacketData::RegularExpression("<[^>]+>".into()),
+            ),
+            ("trust signature", SubpacketData::TrustSignature(1, 120)),
+        ] {
+            let mut cfg =
+                SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::Binary)
+                    .unwrap();
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+                Subpacket::critical(data).unwrap(),
+            ];
+            let sig = cfg.sign(primary, &Password::empty(), AUTHZ_DATA).unwrap();
+            let bytes = pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(sig)).unwrap();
+            let res = verify_detached(AUTHZ_DATA, &bytes, Some(&fixture.public_armored));
+            assert!(!res.is_verified, "critical {what}");
+        }
+    }
+
+    #[test]
+    fn a_damaged_armor_block_does_not_hide_the_next_one() {
+        // INV-ALL: of several armor blocks, one that does not decode must not
+        // contribute partial bytes that swallow the valid block after it.
+        let fixture = &keys::V4_SIGN;
+        let sign = || {
+            crate::crypto::sign_internal(
+                0,
+                "",
+                AUTHZ_DATA,
+                &[&fixture.secret_armored],
+                None,
+                GfrSignMode::Detached,
+                true,
+            )
+            .unwrap()
+            .data
+        };
+        let damaged = String::from_utf8(sign()).unwrap();
+        let lines: Vec<&str> = damaged.lines().collect();
+        let body = lines
+            .iter()
+            .position(|l| l.is_empty())
+            .expect("a blank line before the base64")
+            + 1;
+        // Drop the second base64 line: the block still has BEGIN and END
+        // lines but no longer decodes to whole packets.
+        let mut cut: Vec<&str> = lines.clone();
+        cut.remove(body + 1);
+        let mut file = cut.join("\n").into_bytes();
+        file.extend_from_slice(b"\n");
+        file.extend_from_slice(&sign());
+        let res = verify_detached(AUTHZ_DATA, &file, Some(&fixture.public_armored));
+        assert!(res.is_verified, "the intact block's signature is lost");
+        assert!(
+            res.signatures
+                .iter()
+                .any(|s| s.status == GfrSignatureStatus::Valid)
+        );
+    }
+
+    #[test]
     fn a_certification_replayed_as_a_document_signature_is_never_valid() {
         // RFC 9580 §5.2.1: a document signature is type 0x00 or 0x01. A
         // genuine certification (0x13) presented as a detached signature over
@@ -1563,6 +1858,40 @@ mod verify_tests {
             res.signatures[0].status,
             GfrSignatureStatus::KeyNotAuthorized
         );
+    }
+
+    #[test]
+    fn a_signature_from_a_dsa_key_is_not_authorized() {
+        // RFC 9580 §12.5: "An implementation MUST NOT sign or verify using
+        // DSA keys."
+        let fixture = &keys::V4_DSA2048;
+        let sig = primary_detached_at(fixture, now_secs());
+        let packet = crate::crypto::parse_all_signature_packets(&sig)
+            .pop()
+            .unwrap();
+        assert!(
+            packet
+                .verify(fixture.secret.primary_key.public_key(), AUTHZ_DATA)
+                .is_ok(),
+            "precondition: the DSA signature is mathematically valid"
+        );
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&fixture.public_armored));
+        assert!(!res.is_verified);
+        ta::only_status(&res.signatures, GfrSignatureStatus::KeyNotAuthorized);
+    }
+
+    #[test]
+    fn a_dsa_key_may_not_sign() {
+        let res = crate::crypto::sign_internal(
+            0,
+            "",
+            AUTHZ_DATA,
+            &[&keys::V4_DSA2048.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            false,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnusableKey));
     }
 
     #[test]

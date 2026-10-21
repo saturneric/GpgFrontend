@@ -54,10 +54,29 @@ use crate::{
     },
 };
 
+/// GpgFrontend policy, not an RFC 9580 rule (§10.1.5 only RECOMMENDS a User
+/// ID): a v4 key keeps its Key Flags, expiry and preferences in its User ID
+/// self-signatures, and GF has no other source for them, so a v4 key left
+/// without any User ID could no longer be used here. v6 keys carry them in a
+/// Direct Key signature and are not affected.
+fn refuse_v4_without_user_ids(
+    version: KeyVersion,
+    remaining: &[SignedUser],
+) -> Result<(), GfrStatus> {
+    if version == KeyVersion::V4 && remaining.is_empty() {
+        crate::err::set_last_error(
+            "GpgFrontend does not delete the last User ID of a version 4 key: without one the key could no longer be used here",
+        );
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+    Ok(())
+}
+
 /// Remove the user ID matching `target_uid` from the key block.
 ///
 /// Works on both secret and public keys (tries secret first). Returns
-/// `ErrorInvalidInput` when the UID is not found.
+/// `ErrorInvalidInput` when the UID is not found, or when it is the last User
+/// ID of a v4 key (see [`refuse_v4_without_user_ids`]).
 pub fn delete_user_id_internal(
     key_block: &str,
     target_uid: &str,
@@ -71,6 +90,7 @@ pub fn delete_user_id_internal(
         if skey.details.users.len() == initial_len {
             return Err(GfrStatus::ErrorInvalidInput);
         }
+        refuse_v4_without_user_ids(skey.primary_key.version(), &skey.details.users)?;
         return skey
             .to_armored_string(key_armor_opts(skey.primary_key.version()))
             .into_gfr()
@@ -86,6 +106,7 @@ pub fn delete_user_id_internal(
         if pkey.details.users.len() == initial_len {
             return Err(GfrStatus::ErrorInvalidInput);
         }
+        refuse_v4_without_user_ids(pkey.primary_key.version(), &pkey.details.users)?;
         return pkey
             .to_armored_string(key_armor_opts(pkey.primary_key.version()))
             .into_gfr()
@@ -109,6 +130,7 @@ pub fn add_user_id_internal(
     fetch_cb: Option<GfrPasswordFetchCb>,
 ) -> Result<Zeroizing<String>, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
+    crate::key::refuse_forbidden_signer(skey.primary_key.public_params())?;
     let fpr = skey.primary_key.fingerprint().to_string();
 
     let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
@@ -241,6 +263,9 @@ fn build_updated_self_sig_config(
                     | SubpacketData::IssuerFingerprint(_)
                     | SubpacketData::IssuerKeyId(_)
                     | SubpacketData::IsPrimary(_)
+                    // §5.2.3.18: a copied self-signature expiry would end the
+                    // new certification at an offset nobody chose.
+                    | SubpacketData::SignatureExpirationTime(_)
             )
         });
     };
@@ -277,6 +302,7 @@ pub fn set_primary_user_id_internal(
     fetch_cb: Option<GfrPasswordFetchCb>,
 ) -> Result<Zeroizing<String>, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
+    crate::key::refuse_forbidden_signer(skey.primary_key.public_params())?;
 
     let target_idx = skey
         .details
@@ -385,6 +411,12 @@ pub fn revoke_user_id_internal(
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
 ) -> Result<Zeroizing<String>, GfrStatus> {
+    if !crate::utils::revocation_reason_fits(reason_code, true) {
+        crate::err::set_last_error(
+            "a User ID revocation can only give no reason or \"User ID no longer valid\"",
+        );
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
     let target_idx = skey
@@ -771,11 +803,19 @@ mod user_id_tests {
         uids_of(&base_key()).remove(0)
     }
 
+    /// [`base_key`] with a second User ID, so deleting [`base_uid`] does not
+    /// remove the last one.
+    fn two_uid_key() -> String {
+        add_user_id_internal(0, &base_key(), "Second <second@example.test>", None)
+            .expect("add a second user id")
+            .to_string()
+    }
+
     // -- delete_user_id_internal -------------------------------------------
 
     #[test]
     fn deleting_a_user_id_removes_it() {
-        let block = base_key();
+        let block = two_uid_key();
         let uid = base_uid();
         let out = delete_user_id_internal(&block, &uid).expect("delete");
         assert!(!uids_of(&out).contains(&uid));
@@ -805,7 +845,9 @@ mod user_id_tests {
     #[test]
     fn deleting_works_on_a_public_key_block() {
         // No signing is involved, so a public block is enough.
-        let block = keys::V4_SIGN.public_armored.clone();
+        let block = SignedPublicKey::from(parse(&two_uid_key()))
+            .to_armored_string(key_armor_opts(KeyVersion::V4))
+            .expect("armor");
         let uid = base_uid();
         let out = delete_user_id_internal(&block, &uid).expect("delete");
         assert!(out.contains("BEGIN PGP PUBLIC KEY BLOCK"));
@@ -828,19 +870,38 @@ mod user_id_tests {
     }
 
     #[test]
-    fn deleting_the_last_user_id_still_produces_a_parseable_key() {
-        // §10.1.5 only *recommends* at least one user ID; a key without one
-        // must still serialise and re-parse.
-        let block = base_key();
-        let uid = base_uid();
+    fn deleting_the_last_user_id_of_a_v6_key_still_produces_a_parseable_key() {
+        // §10.1.5 only *recommends* at least one user ID, and a v6 key keeps
+        // its properties in a Direct Key signature: a key without one must
+        // still serialise and re-parse.
+        let block = keys::V6_SIGN.secret_armored.clone();
+        let uid = uids_of(&block).remove(0);
         let out = delete_user_id_internal(&block, &uid).expect("delete");
         let key = parse(&out);
         assert!(key.details.users.is_empty());
     }
 
     #[test]
+    fn the_last_user_id_of_a_v4_key_is_not_deleted() {
+        // Not an RFC 9580 rule (§10.1.5 only recommends a User ID): GF
+        // policy. A v4 key carries its flags, expiry and preferences in its
+        // User ID self-signatures, and without one GF cannot use the key.
+        for block in [base_key(), keys::V4_SIGN.public_armored.clone()] {
+            assert_eq!(
+                delete_user_id_internal(&block, &base_uid()).err(),
+                Some(GfrStatus::ErrorInvalidInput)
+            );
+            assert!(
+                crate::err::last_error().contains("last User ID"),
+                "{}",
+                crate::err::last_error()
+            );
+        }
+    }
+
+    #[test]
     fn a_delete_preserves_the_primary_key_and_subkeys() {
-        let block = base_key();
+        let block = two_uid_key();
         let uid = base_uid();
         let out = delete_user_id_internal(&block, &uid).expect("delete");
         let key = parse(&out);
@@ -855,7 +916,7 @@ mod user_id_tests {
     fn a_delete_on_a_v4_key_emits_armor_with_a_crc24_footer() {
         // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
         // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
-        let block = base_key();
+        let block = two_uid_key();
         let uid = base_uid();
         let out = delete_user_id_internal(&block, &uid).expect("delete");
         crate::testutil::assert::armor_has_crc24(&out);
@@ -1021,7 +1082,7 @@ mod user_id_tests {
     fn adding_to_a_v4_key_emits_armor_with_a_crc24_footer() {
         // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
         // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
-        let block = base_key();
+        let block = two_uid_key();
         let out = add_user_id_internal(0, &block, "C <c@example.test>", None).expect("add");
         crate::testutil::assert::armor_has_crc24(&out);
     }

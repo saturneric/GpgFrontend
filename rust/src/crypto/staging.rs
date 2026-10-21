@@ -66,7 +66,8 @@ fn stage_dir_for(dest: &Path) -> &Path {
 
 /// A file being written that becomes `dest` only on [`commit`](Self::commit).
 ///
-/// The stage is created owner-only (0600 on Unix) next to `dest`.
+/// The stage is created next to `dest`, owner-only (0600 on Unix) unless it is
+/// [`shareable`](Self::new_shareable).
 pub(crate) struct StagedFile {
     tmp: NamedTempFile,
     dest: PathBuf,
@@ -84,6 +85,24 @@ impl StagedFile {
         })
     }
 
+    /// A stage for output meant to be passed on (ciphertext, signatures): a
+    /// new `dest` gets the permissions a plain create would give it (0666
+    /// less the umask on Unix), not the owner-only mode of [`new`](Self::new).
+    pub(crate) fn new_shareable(dest: &Path) -> io::Result<Self> {
+        let mut builder = tempfile::Builder::new();
+        builder.prefix(".gf-output-").suffix(".part");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            builder.permissions(fs::Permissions::from_mode(0o666));
+        }
+        let tmp = builder.tempfile_in(stage_dir_for(dest))?;
+        Ok(StagedFile {
+            tmp,
+            dest: dest.to_path_buf(),
+        })
+    }
+
     pub(crate) fn file_mut(&mut self) -> &mut fs::File {
         self.tmp.as_file_mut()
     }
@@ -95,8 +114,8 @@ impl StagedFile {
 
     /// Flush the stage to disk, then atomically replace `dest` with it.
     ///
-    /// An existing `dest` keeps its permission bits; a new one stays
-    /// owner-only, since it holds decrypted plaintext. A symlink at `dest` is
+    /// An existing `dest` keeps its permission bits; a new one keeps the
+    /// stage's: owner-only for decrypted plaintext. A symlink at `dest` is
     /// replaced by the file, not written through. On error the stage is
     /// deleted and `dest` is untouched.
     pub(crate) fn commit(self) -> io::Result<()> {
@@ -203,6 +222,35 @@ mod staging_tests {
             .collect();
         names.sort();
         names
+    }
+
+    /// Ciphertext and signatures are meant to be passed on: a new one gets
+    /// the permissions a plain create would give it, not the owner-only mode
+    /// that keeps decrypted plaintext private.
+    #[cfg(unix)]
+    #[test]
+    fn a_new_shareable_output_gets_the_usual_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+
+        let plain = dir.path().join("plain.txt");
+        StagedFile::new(&plain).unwrap().commit().unwrap();
+        assert_eq!(
+            fs::metadata(&plain).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+
+        let shared = dir.path().join("cipher.gpg");
+        StagedFile::new_shareable(&shared)
+            .unwrap()
+            .commit()
+            .unwrap();
+        let reference = dir.path().join("reference");
+        fs::File::create(&reference).unwrap();
+        assert_eq!(
+            fs::metadata(&shared).unwrap().permissions().mode() & 0o777,
+            fs::metadata(&reference).unwrap().permissions().mode() & 0o777
+        );
     }
 
     #[test]

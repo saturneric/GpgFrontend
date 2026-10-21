@@ -31,6 +31,8 @@ pub mod decrypt;
 pub mod encrypt;
 pub mod sign;
 
+use crate::types::GfrStatus;
+
 /// Result structs that are valid when every byte is zero: only pointers,
 /// lengths and flags, so all-zero means "empty, nothing to free".
 pub(crate) trait ZeroableResult {}
@@ -41,6 +43,36 @@ impl ZeroableResult for crate::types::GfrSignResultC {}
 impl ZeroableResult for crate::types::GfrVerifyResultC {}
 impl ZeroableResult for crate::types::GfrEncryptAndSignResultC {}
 impl ZeroableResult for crate::types::GfrDecryptAndVerifyResultC {}
+
+/// On `ErrorUnusableKey`, put the recipients the encryption rejected into
+/// `meta`'s invalid-recipient list, so the caller learns each one's reason
+/// even though no message was produced. Freed with the result as usual.
+pub(crate) fn report_rejected_recipients(
+    status: GfrStatus,
+    meta: *mut crate::types::GfrEncryptMetadataC,
+) -> GfrStatus {
+    let rejected = crate::crypto::take_rejected_recipients();
+    if status != GfrStatus::ErrorUnusableKey || meta.is_null() || rejected.is_empty() {
+        return status;
+    }
+    let recs: Box<[crate::types::GfrInvalidRecipientC]> = rejected
+        .into_iter()
+        .map(|rec| crate::types::GfrInvalidRecipientC {
+            fpr: std::ffi::CString::new(rec.fpr)
+                .unwrap_or_default()
+                .into_raw(),
+            reason: rec.reason,
+        })
+        .collect();
+    let count = recs.len();
+    let ptr = Box::into_raw(recs) as *mut crate::types::GfrInvalidRecipientC;
+    // SAFETY: non-null, caller-owned, zeroed by reset_out_result on entry.
+    unsafe {
+        (*meta).invalid_recipients = ptr;
+        (*meta).invalid_recipient_count = count;
+    }
+    status
+}
 
 /// Empty `out_result` before any fallible work. C++ calls the matching
 /// `gfr_crypto_free_*` after every call whatever the status, so an entry

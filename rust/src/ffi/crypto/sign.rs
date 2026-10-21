@@ -192,27 +192,21 @@ pub extern "C" fn gfr_crypto_sign_file(
         }
 
         // 5. Open input and output files
-        let in_file = File::open(in_path_str).map_err(|e| {
-            log::error!("Failed to open input file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
-
-        let out_file = File::create(out_path_str).map_err(|e| {
-            log::error!("Failed to create output file: {}", e);
-            GfrStatus::ErrorInvalidInput
-        })?;
+        let in_file = crate::crypto::open_input_file(in_path_str)?;
+        let mut stage = crate::crypto::stage_output_file(out_path_str)?;
 
         // 6. Perform the streaming signature
         let stream_result = crate::crypto::sign_stream_internal(
             channel,
             &filename_hint,
             in_file,
-            out_file,
+            stage.file_mut(),
             &skey_blocks,
             Some(fetch_pwd_cb),
             mode,
             ascii,
         )?;
+        crate::crypto::commit_output(stage)?;
 
         // 7. Process the signatures array
         let mut c_signatures = Vec::with_capacity(stream_result.signatures.len());
@@ -945,6 +939,37 @@ mod ffi_sign_tests {
             ),
             GfrStatus::ErrorInvalidInput
         );
+    }
+
+    #[test]
+    fn a_failed_file_signature_leaves_an_existing_output_untouched() {
+        // Path parity with decryption: outputs are staged and committed only
+        // on success (round four).
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_path = dir.path().join("payload.bin");
+        let out_path = dir.path().join("payload.sig");
+        std::fs::write(&in_path, b"file payload").unwrap();
+        std::fs::write(&out_path, b"keep me").unwrap();
+        let in_c = CString::new(in_path.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = CString::new(out_path.to_string_lossy().as_ref()).expect("no NUL");
+        // An RSA-1024 key may not sign (RFC 9580 §12.4).
+        let keys_arr = [kbuf(&keys::V4_RSA1024.secret_armored)];
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+        let status = gfr_crypto_sign_file(
+            0,
+            in_c.as_ptr(),
+            out_c.as_ptr(),
+            keys_arr.as_ptr(),
+            1,
+            cb::pwd_correct,
+            GfrSignMode::Detached,
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_eq!(status, GfrStatus::ErrorUnusableKey);
+        assert_eq!(std::fs::read(&out_path).unwrap(), b"keep me");
+        let mut result = unsafe { out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_sign_result(&mut result);
     }
 
     #[test]

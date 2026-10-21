@@ -73,10 +73,10 @@ pub extern "C" fn gfr_crypto_extract_metadata(
     }
 
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
-        let block_str = unsafe { key_block.as_str() }?;
+        let block_str = unsafe { key_block.as_key_input() }?;
 
         // Get the list of metadata from the internal function
-        let meta_list = crate::key::extract_metadata_many_internal(block_str)?;
+        let meta_list = crate::key::extract_metadata_many_internal(&block_str)?;
 
         // Prepare a vector to hold the C-compatible metadata structs
         let mut c_metadata_list = Vec::with_capacity(meta_list.len());
@@ -868,9 +868,9 @@ pub extern "C" fn gfr_crypto_import_rev_cert(
 
         let base_str = unsafe { base_key_block.as_str() }?;
 
-        let cert_str = unsafe { rev_cert_block.as_str() }?;
+        let cert_str = unsafe { rev_cert_block.as_key_input() }?;
 
-        let merged = import_rev_cert_internal(base_str, cert_str)?;
+        let merged = import_rev_cert_internal(base_str, &cert_str)?;
 
         if !merged.secret.is_empty() {
             let secret_cstr =
@@ -920,9 +920,9 @@ pub extern "C" fn gfr_crypto_extract_rev_cert_target_fpr(
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let cert_str = unsafe { rev_cert_block.as_str() }?;
+        let cert_str = unsafe { rev_cert_block.as_key_input() }?;
 
-        let fpr = extract_rev_cert_target_fpr_internal(cert_str)?;
+        let fpr = extract_rev_cert_target_fpr_internal(&cert_str)?;
 
         let fpr_cstr = CString::new(fpr).map_err(|_| GfrStatus::ErrorInternal)?;
         unsafe {

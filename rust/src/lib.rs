@@ -66,8 +66,8 @@ pub mod types;
 
 mod cancel;
 mod crypto;
-mod inspect;
 mod err;
+mod inspect;
 mod key;
 mod keygen;
 mod user_id;
@@ -76,6 +76,8 @@ mod utils;
 mod cache;
 mod tar;
 
+#[cfg(test)]
+mod conformance_tests;
 /// Shared unit-test scaffolding: the committed RFC 9580 corpus, the Appendix A
 /// known-answer vectors, lazily generated key fixtures, packet builders and the
 /// host-symbol stubs. Compiled only for `cargo test`; see `testutil.rs`.

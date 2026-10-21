@@ -91,6 +91,9 @@ pub extern "C" fn gfr_crypto_decrypt_data(
         let c_sym_algo = std::ffi::CString::new(internal_result.sym_algo)
             .unwrap_or_default()
             .into_raw();
+        let c_cipher_warning = std::ffi::CString::new(internal_result.cipher_warning)
+            .unwrap_or_default()
+            .into_raw();
 
         // 3. Process Recipients
         let mut c_recipients = Vec::with_capacity(internal_result.recipients.len());
@@ -113,6 +116,7 @@ pub extern "C" fn gfr_crypto_decrypt_data(
             (*out_result).data_len = data_len;
             (*out_result).meta.filename = c_filename;
             (*out_result).meta.sym_algo = c_sym_algo;
+            (*out_result).meta.cipher_warning = c_cipher_warning;
             (*out_result).meta.recipients = recs_ptr;
             (*out_result).meta.recipient_count = recs_count;
         }
@@ -182,6 +186,9 @@ pub extern "C" fn gfr_crypto_decrypt_file(
         let c_sym_algo = std::ffi::CString::new(stream_result.sym_algo)
             .unwrap_or_default()
             .into_raw();
+        let c_cipher_warning = std::ffi::CString::new(stream_result.cipher_warning)
+            .unwrap_or_default()
+            .into_raw();
 
         // 6. Process Recipients array and leak it to C
         let mut c_recipients = Vec::with_capacity(stream_result.recipients.len());
@@ -205,6 +212,7 @@ pub extern "C" fn gfr_crypto_decrypt_file(
             (*out_result).data_len = 0;
             (*out_result).meta.filename = c_filename;
             (*out_result).meta.sym_algo = c_sym_algo;
+            (*out_result).meta.cipher_warning = c_cipher_warning;
             (*out_result).meta.recipients = recs_ptr;
             (*out_result).meta.recipient_count = recs_count;
         }
@@ -272,6 +280,9 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
         let c_sym_algo = std::ffi::CString::new(stream_result.sym_algo)
             .unwrap_or_default()
             .into_raw();
+        let c_cipher_warning = std::ffi::CString::new(stream_result.cipher_warning)
+            .unwrap_or_default()
+            .into_raw();
 
         // 6. Process Recipients array and leak it to C
         let mut c_recipients = Vec::with_capacity(stream_result.recipients.len());
@@ -295,6 +306,7 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
             (*out_result).data_len = 0;
             (*out_result).meta.filename = c_filename;
             (*out_result).meta.sym_algo = c_sym_algo;
+            (*out_result).meta.cipher_warning = c_cipher_warning;
             (*out_result).meta.recipients = recs_ptr;
             (*out_result).meta.recipient_count = recs_count;
         }
@@ -361,6 +373,9 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
         let c_sym_algo = std::ffi::CString::new(internal_result.sym_algo)
             .unwrap_or_default()
             .into_raw();
+        let c_cipher_warning = std::ffi::CString::new(internal_result.cipher_warning)
+            .unwrap_or_default()
+            .into_raw();
 
         let mut c_recipients = Vec::with_capacity(internal_result.recipients.len());
         for rec in internal_result.recipients {
@@ -406,6 +421,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
             (*out_result).data_len = data_len;
             (*out_result).decrypt_meta.filename = c_filename;
             (*out_result).decrypt_meta.sym_algo = c_sym_algo;
+            (*out_result).decrypt_meta.cipher_warning = c_cipher_warning;
             (*out_result).decrypt_meta.recipients = recs_ptr;
             (*out_result).decrypt_meta.recipient_count = recs_count;
             (*out_result).verify_meta.is_verified = internal_result.is_verified;
@@ -482,6 +498,9 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
         let c_sym_algo = std::ffi::CString::new(stream_result.sym_algo)
             .unwrap_or_default()
             .into_raw();
+        let c_cipher_warning = std::ffi::CString::new(stream_result.cipher_warning)
+            .unwrap_or_default()
+            .into_raw();
 
         // 6. Process Decrypt Meta (Recipients array)
         let mut c_recipients = Vec::with_capacity(stream_result.recipients.len());
@@ -532,6 +551,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
             // Fill decryption metadata
             (*out_result).decrypt_meta.filename = c_filename;
             (*out_result).decrypt_meta.sym_algo = c_sym_algo;
+            (*out_result).decrypt_meta.cipher_warning = c_cipher_warning;
             (*out_result).decrypt_meta.recipients = recs_ptr;
             (*out_result).decrypt_meta.recipient_count = recs_count;
 
@@ -602,6 +622,9 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
         let c_sym_algo = std::ffi::CString::new(internal_result.sym_algo)
             .unwrap_or_default()
             .into_raw();
+        let c_cipher_warning = std::ffi::CString::new(internal_result.cipher_warning)
+            .unwrap_or_default()
+            .into_raw();
 
         let mut c_recipients = Vec::with_capacity(internal_result.recipients.len());
         for rec in internal_result.recipients {
@@ -648,6 +671,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
 
             (*out_result).decrypt_meta.filename = c_filename;
             (*out_result).decrypt_meta.sym_algo = c_sym_algo;
+            (*out_result).decrypt_meta.cipher_warning = c_cipher_warning;
             (*out_result).decrypt_meta.recipients = recs_ptr;
             (*out_result).decrypt_meta.recipient_count = recs_count;
 
@@ -796,7 +820,7 @@ mod ffi_decrypt_tests {
                 std::ptr::null_mut(),
                 out.as_mut_ptr(),
             ),
-            GfrStatus::ErrorInvalidData
+            GfrStatus::ErrorUnsupportedFeature
         );
         let detail = crate::err::last_error();
         assert!(detail.contains("Symmetrically Encrypted Data"), "{detail}");

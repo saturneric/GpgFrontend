@@ -206,8 +206,27 @@ fn verified_primary_self_sigs<'a>(
 ) -> Vec<&'a Signature> {
     signatures
         .iter()
-        .filter(|sig| sig.verify_key(primary).is_ok() && certification_hash_acceptable(sig))
+        .filter(|sig| {
+            sig.verify_key(primary).is_ok()
+                && certification_hash_acceptable(sig)
+                && evaluable_self_sig(sig)
+        })
         .collect()
+}
+
+/// RFC 9580 §5.2.3.7: a self-signature carrying a critical subpacket GF does
+/// not understand (see `crypto::has_critical_unsupported_subpacket`) is in
+/// error and speaks for nothing. Revocations are exempt: honouring one can
+/// only withdraw trust.
+fn evaluable_self_sig(sig: &Signature) -> bool {
+    matches!(
+        sig.typ(),
+        Some(
+            SignatureType::KeyRevocation
+                | SignatureType::SubkeyRevocation
+                | SignatureType::CertRevocation
+        )
+    ) || !crate::crypto::has_critical_unsupported_subpacket(sig)
 }
 
 /// Collect the cryptographically valid self-certifications (0x10–0x13) and
@@ -219,6 +238,7 @@ fn verified_uid_self_sigs<'a>(primary: &PublicKey, user: &'a SignedUser) -> Vec<
             sig.verify_certification(primary, Tag::UserId, &user.id)
                 .is_ok()
                 && certification_hash_acceptable(sig)
+                && evaluable_self_sig(sig)
         })
         .collect()
 }
@@ -235,6 +255,7 @@ fn verified_subkey_self_sigs<'a>(
         .filter(|sig| {
             sig.verify_subkey_binding(primary, subkey).is_ok()
                 && certification_hash_acceptable(sig)
+                && evaluable_self_sig(sig)
                 && !pq_binding_hash_forbidden(subkey, sig)
         })
         .collect()
@@ -279,6 +300,27 @@ pub(crate) fn certification_hash_acceptable(sig: &Signature) -> bool {
 /// size less than 2048 bits."
 pub(crate) fn rsa_key_too_small(params: &PublicParams) -> bool {
     matches!(params, PublicParams::RSA(_)) && extract_key_length(params).unwrap_or(0) < 2048
+}
+
+/// A key RFC 9580 forbids using at all: RSA under 2048 bits (§12.4) or DSA
+/// (§12.5: "MUST NOT sign or verify using DSA keys"). A primary key of
+/// either kind poisons its certificate, whose self-signatures could only be
+/// checked by verifying with it.
+pub(crate) fn key_forbidden(params: &PublicParams) -> bool {
+    rsa_key_too_small(params) || matches!(params, PublicParams::DSA(_))
+}
+
+/// Refuse an edit that would make `primary` sign a new self-signature when
+/// it is a forbidden key ([`key_forbidden`]). Revocations are not routed
+/// through this, so an old key can still be retired.
+pub(crate) fn refuse_forbidden_signer(params: &PublicParams) -> Result<(), GfrStatus> {
+    if key_forbidden(params) {
+        crate::err::set_last_error(
+            "a DSA or sub-2048-bit RSA primary key may not sign (RFC 9580 §12.4, §12.5); it can only be revoked",
+        );
+        return Err(GfrStatus::ErrorUnusableKey);
+    }
+    Ok(())
 }
 
 fn created_secs(sig: &Signature) -> u32 {
@@ -412,6 +454,30 @@ pub(crate) fn subkey_binding_signature<'a>(
     signatures: &'a [Signature],
 ) -> Option<&'a Signature> {
     subkey_binding_in_force(primary, subkey, signatures, None)
+}
+
+/// `caps` (sign, encrypt, auth, certify) from the Key Flags, narrowed to
+/// what the engine will actually do with a key of `params` in a certificate
+/// whose primary has `primary_params`: a forbidden key ([`key_forbidden`])
+/// neither signs nor authenticates, a forbidden primary poisons the whole
+/// certificate, and an algorithm the engine cannot encrypt to is not offered
+/// for encryption. The GUI offers keys by these flags.
+fn usable_capabilities(
+    caps: (bool, bool, bool, bool),
+    params: &PublicParams,
+    primary_params: &PublicParams,
+) -> (bool, bool, bool, bool) {
+    if key_forbidden(primary_params) {
+        return (false, false, false, false);
+    }
+    let (sign, encrypt, auth, certify) = caps;
+    let may_sign = !key_forbidden(params);
+    (
+        sign && may_sign,
+        encrypt && crate::crypto::engine_can_encrypt_to(params),
+        auth && may_sign,
+        certify && may_sign,
+    )
 }
 
 fn extract_capabilities<'a, I>(signatures: I) -> (bool, bool, bool, bool)
@@ -627,7 +693,7 @@ pub(crate) fn primary_signing_verdict(
 
 /// The primary-key conditions every key of the certificate inherits at `t`.
 fn primary_verdict(primary: &PublicKey, details: &SignedKeyDetails, t: u32) -> KeyVerdict {
-    if rsa_key_too_small(primary.public_params()) || t < primary.created_at().as_secs() {
+    if key_forbidden(primary.public_params()) || t < primary.created_at().as_secs() {
         return KeyVerdict::NotAuthorized;
     }
     if primary_revocation_state(primary, details).revoked_at(t) {
@@ -663,7 +729,7 @@ pub(crate) fn subkey_signing_verdict(
     if verdict != KeyVerdict::Authorized {
         return verdict;
     }
-    if rsa_key_too_small(subkey.public_params()) || t < subkey.created_at().as_secs() {
+    if key_forbidden(subkey.public_params()) || t < subkey.created_at().as_secs() {
         return KeyVerdict::NotAuthorized;
     }
     if subkey_revocation_state(primary, subkey, signatures).revoked_at(t) {
@@ -721,12 +787,24 @@ fn primary_user_index(primary: &PublicKey, details: &SignedKeyDetails) -> (usize
 // Helper: Extract metadata from a secret key
 fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let pk = SignedPublicKey::from(sk.clone());
-    let mut subs = Vec::new();
+    // Subkeys whose secret part lives elsewhere (a card, another machine),
+    // listed in packet order: they precede the secret subkeys.
+    let mut subs: Vec<ExtractedSubkey> = sk
+        .public_subkeys
+        .iter()
+        .map(|sub| public_subkey_metadata(&pk, sub))
+        .collect();
 
     for sub in &sk.secret_subkeys {
         let sub_pub = sub.key.public_key();
-        let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
-            subkey_binding_signature(&pk.primary_key, sub_pub, &sub.signatures),
+        let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
+            extract_capabilities(subkey_binding_signature(
+                &pk.primary_key,
+                sub_pub,
+                &sub.signatures,
+            )),
+            sub_pub.public_params(),
+            pk.primary_key.public_params(),
         );
         let key_length = extract_key_length(sub.key.public_params());
         let is_revoked = is_subkey_revoked(&pk.primary_key, sub_pub, &sub.signatures);
@@ -776,8 +854,11 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         user_ids.insert(0, primary_uid);
     }
 
-    let (can_sign, can_encrypt, can_auth, can_certify) =
-        extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None));
+    let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
+        extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None)),
+        pk.primary_key.public_params(),
+        pk.primary_key.public_params(),
+    );
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.primary_key, &pk.details.revocation_signatures)
         || is_primary_key_revoked(&pk.primary_key, &pk.details.direct_signatures);
@@ -810,34 +891,45 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     }
 }
 
+// Helper: metadata of a subkey whose secret part is not held
+fn public_subkey_metadata(pk: &SignedPublicKey, sub: &SignedPublicSubKey) -> ExtractedSubkey {
+    let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
+        extract_capabilities(subkey_binding_signature(
+            &pk.primary_key,
+            &sub.key,
+            &sub.signatures,
+        )),
+        sub.key.public_params(),
+        pk.primary_key.public_params(),
+    );
+    let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
+    let is_revoked = is_subkey_revoked(&pk.primary_key, &sub.key, &sub.signatures);
+    let created_at = sub.key.created_at().as_secs();
+    let expires_at = subkey_expires_at(&pk.primary_key, &sub.key, &sub.signatures);
+    ExtractedSubkey {
+        ver: sub.version().into(),
+        fpr: sub.key.fingerprint().to_string(),
+        key_id: sub.key.legacy_key_id().to_string(),
+        algo: determine_algo(sub.key.public_params()),
+        created_at,
+        expires_at,
+        has_secret: false,
+        can_sign,
+        can_encrypt,
+        can_auth,
+        can_certify,
+        key_length,
+        is_revoked,
+    }
+}
+
 // Helper: Extract metadata from a public key
 fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
-    let mut subs = Vec::new();
-
-    for sub in &pk.public_subkeys {
-        let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
-            subkey_binding_signature(&pk.primary_key, &sub.key, &sub.signatures),
-        );
-        let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
-        let is_revoked = is_subkey_revoked(&pk.primary_key, &sub.key, &sub.signatures);
-        let created_at = sub.key.created_at().as_secs();
-        let expires_at = subkey_expires_at(&pk.primary_key, &sub.key, &sub.signatures);
-        subs.push(ExtractedSubkey {
-            ver: sub.version().into(),
-            fpr: sub.key.fingerprint().to_string(),
-            key_id: sub.key.legacy_key_id().to_string(),
-            algo: determine_algo(sub.key.public_params()),
-            created_at,
-            expires_at,
-            has_secret: false,
-            can_sign,
-            can_encrypt,
-            can_auth,
-            can_certify,
-            key_length,
-            is_revoked,
-        });
-    }
+    let subs: Vec<ExtractedSubkey> = pk
+        .public_subkeys
+        .iter()
+        .map(|sub| public_subkey_metadata(pk, sub))
+        .collect();
 
     let users = &pk.details.users;
 
@@ -868,8 +960,11 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
 
     // use only cryptographically valid self-signatures of the primary key and its
     // primary User ID to determine capabilities / expiry / revocation.
-    let (can_sign, can_encrypt, can_auth, can_certify) =
-        extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None));
+    let (can_sign, can_encrypt, can_auth, can_certify) = usable_capabilities(
+        extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None)),
+        pk.primary_key.public_params(),
+        pk.primary_key.public_params(),
+    );
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.primary_key, &pk.details.revocation_signatures)
         || is_primary_key_revoked(&pk.primary_key, &pk.details.direct_signatures);
@@ -898,6 +993,94 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     }
 }
 
+/// `block` without Trust packets (RFC 9580 §5.10: "SHOULD be ignored on any
+/// input other than local keyring files"). rPGP's key parser stops collecting
+/// User IDs and subkeys at the first packet it does not expect, so a Trust
+/// packet from a GnuPG keyring export would silently cut the certificate
+/// short. A block without Trust packets is returned unchanged.
+fn without_trust_packets(block: &str) -> std::borrow::Cow<'_, str> {
+    use pgp::packet::PacketParser;
+    use std::borrow::Cow;
+    // May hold unprotected secret key packets: wiped on drop.
+    let bytes = Zeroizing::new(crate::crypto::dearmor_all(block.as_bytes()).into_owned());
+    let packets: Vec<Packet> = PacketParser::new(Cursor::new(&bytes[..]))
+        .flatten()
+        .collect();
+    if !packets.iter().any(|p| matches!(p, Packet::Trust(_))) {
+        return Cow::Borrowed(block);
+    }
+    let mut kept = Vec::new();
+    for packet in packets.iter().filter(|p| !matches!(p, Packet::Trust(_))) {
+        if packet.to_writer(&mut kept).is_err() {
+            return Cow::Borrowed(block);
+        }
+    }
+    let typ = if block.contains("PRIVATE KEY BLOCK") {
+        BlockType::PrivateKey
+    } else {
+        BlockType::PublicKey
+    };
+    let mut out = Vec::new();
+    match armor::write(
+        &MergedRawKeys { packet_bytes: kept },
+        typ,
+        &mut out,
+        None,
+        false,
+    ) {
+        Ok(()) => String::from_utf8(out).map_or(Cow::Borrowed(block), Cow::Owned),
+        Err(_) => Cow::Borrowed(block),
+    }
+}
+
+/// `data` as armored key text. Armor is only a transport encoding (RFC 9580
+/// §6), and GnuPG's default `--export` writes binary packets: binary input is
+/// re-armored (a secret key block if its first key packet is secret), armored
+/// input is returned as is.
+pub(crate) fn armored_key_input(data: &[u8]) -> Result<std::borrow::Cow<'_, str>, GfrStatus> {
+    use pgp::packet::PacketParser;
+    use std::borrow::Cow;
+    if let Ok(text) = std::str::from_utf8(data) {
+        if text.contains("-----BEGIN PGP") {
+            return Ok(Cow::Borrowed(text));
+        }
+    }
+    let packets: Vec<Packet> = PacketParser::new(Cursor::new(data)).flatten().collect();
+    let secret = match packets.first() {
+        Some(Packet::SecretKey(_)) => true,
+        Some(Packet::PublicKey(_)) | Some(Packet::Signature(_)) => false,
+        _ => {
+            crate::err::set_last_error(
+                "input is neither an armored nor a binary OpenPGP key block",
+            );
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+    };
+    let mut bytes = Vec::new();
+    for packet in &packets {
+        packet.to_writer(&mut bytes).into_gfr()?;
+    }
+    let typ = if secret {
+        BlockType::PrivateKey
+    } else {
+        BlockType::PublicKey
+    };
+    let mut out = Vec::new();
+    armor::write(
+        &MergedRawKeys {
+            packet_bytes: bytes,
+        },
+        typ,
+        &mut out,
+        None,
+        false,
+    )
+    .into_gfr()?;
+    String::from_utf8(out)
+        .map(Cow::Owned)
+        .map_err(|_| GfrStatus::ErrorArmorFailed)
+}
+
 fn split_pgp_blocks(input: &str) -> Vec<String> {
     let mut blocks = Vec::new();
     let mut current_block = String::new();
@@ -916,7 +1099,7 @@ fn split_pgp_blocks(input: &str) -> Vec<String> {
 
         if line.contains("-----END PGP") {
             in_block = false;
-            blocks.push(current_block.clone());
+            blocks.push(without_trust_packets(&current_block).into_owned());
         }
     }
 
@@ -933,7 +1116,8 @@ pub fn extract_metadata_many_internal(
 ) -> Result<Vec<ExtractedMetadata>, GfrStatus> {
     let mut results_map: HashMap<String, ExtractedMetadata> = HashMap::new();
 
-    let individual_blocks = split_pgp_blocks(key_blocks);
+    let key_blocks = crate::utils::strip_armor_whitespace(key_blocks);
+    let individual_blocks = split_pgp_blocks(&key_blocks);
 
     if individual_blocks.is_empty() {
         return Err(GfrStatus::ErrorInvalidInput);
@@ -1091,6 +1275,13 @@ struct MergedRawKeys {
 }
 
 // 2. Implement the Serialize trait so rpgp's armor::write can consume it.
+// The bytes may be unprotected secret key packets: wipe them when done.
+impl Drop for MergedRawKeys {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.packet_bytes);
+    }
+}
+
 impl Serialize for MergedRawKeys {
     fn to_writer<W: io::Write>(&self, writer: &mut W) -> pgp::errors::Result<()> {
         writer.write_all(&self.packet_bytes)?;
@@ -1708,6 +1899,27 @@ fn update_primary_expiration(
     }
 }
 
+/// The subkey `fpr` (uppercase) of a secret key, whether its secret is held
+/// here or not: its public key and its signatures. Editing a binding or a
+/// revocation needs only the primary's secret, so a public-only subkey (one
+/// on a card) is as editable as any other.
+fn subkey_entry_mut<'a>(
+    secret_subkeys: &'a mut [SignedSecretSubKey],
+    public_subkeys: &'a mut [SignedPublicSubKey],
+    fpr: &str,
+) -> Option<(pgp::packet::PublicSubkey, &'a mut Vec<Signature>)> {
+    if let Some(sub) = secret_subkeys
+        .iter_mut()
+        .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == fpr)
+    {
+        return Some((sub.key.public_key().clone(), &mut sub.signatures));
+    }
+    public_subkeys
+        .iter_mut()
+        .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == fpr)
+        .map(|sub| (sub.key.clone(), &mut sub.signatures))
+}
+
 /// Re-issue a single subkey's binding signature with a new expiration.
 ///
 /// The subkey binding signature (0x18) is rebuilt from the current verified
@@ -1719,34 +1931,30 @@ fn update_subkey_expiration(
     duration: Option<Duration>,
     pwd: &Password,
 ) -> Result<(), GfrStatus> {
-    let target_idx = secret_key
-        .secret_subkeys
-        .iter()
-        .position(|sub| sub.key.fingerprint().to_string().to_uppercase() == target_fpr)
-        .ok_or(GfrStatus::ErrorInvalidInput)?;
-
     let pk = secret_key.primary_key.public_key();
     let default_hash = pgp::types::SigningKey::hash_alg(&secret_key.primary_key);
 
-    let subkey = secret_key
-        .secret_subkeys
-        .get_mut(target_idx)
-        .ok_or(GfrStatus::ErrorInternal)?;
+    let (sub_key, signatures) = subkey_entry_mut(
+        &mut secret_key.secret_subkeys,
+        &mut secret_key.public_subkeys,
+        target_fpr,
+    )
+    .ok_or(GfrStatus::ErrorInvalidInput)?;
 
-    let template = binding_reissue_template(&pk, &subkey.key.public_key(), &subkey.signatures)
+    let template = binding_reissue_template(pk, &sub_key, signatures)
         .cloned()
         .ok_or(GfrStatus::ErrorInvalidData)?;
 
-    let cfg = build_expiration_sig_config(&template, &pk, default_hash, duration)?;
+    let cfg = build_expiration_sig_config(&template, pk, default_hash, duration)?;
     let new_sig = cfg
-        .sign_subkey_binding(&secret_key.primary_key, &pk, pwd, subkey.key.public_key())
+        .sign_subkey_binding(&secret_key.primary_key, pk, pwd, &sub_key)
         .into_gfr()?;
 
-    subkey.signatures.retain(|sig| {
-        !(names_primary_as_issuer(sig, &pk)
+    signatures.retain(|sig| {
+        !(names_primary_as_issuer(sig, pk)
             && matches!(sig.typ(), Some(SignatureType::SubkeyBinding)))
     });
-    subkey.signatures.push(new_sig);
+    signatures.push(new_sig);
 
     Ok(())
 }
@@ -1769,6 +1977,8 @@ pub fn update_key_expiration_internal(
         log::error!("Failed to parse secret key block: {}", e);
         GfrStatus::ErrorInvalidData
     })?;
+
+    refuse_forbidden_signer(secret_key.primary_key.public_params())?;
 
     let primary_fpr = secret_key
         .primary_key
@@ -1819,12 +2029,13 @@ pub fn update_key_expiration_internal(
         update_primary_expiration(&mut secret_key, duration, &pwd)?;
     } else {
         let target = normalized_target.as_deref().unwrap_or_default();
-        let created_at = secret_key
-            .secret_subkeys
-            .iter()
-            .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == target)
-            .map(|sub| sub.key.created_at().as_secs())
-            .ok_or(GfrStatus::ErrorInvalidInput)?;
+        let created_at = subkey_entry_mut(
+            &mut secret_key.secret_subkeys,
+            &mut secret_key.public_subkeys,
+            target,
+        )
+        .map(|(sub, _)| sub.created_at().as_secs())
+        .ok_or(GfrStatus::ErrorInvalidInput)?;
         let duration = expiration_duration(created_at, expiration_epoch_secs)?;
         update_subkey_expiration(&mut secret_key, target, duration, &pwd)?;
     }
@@ -1863,12 +2074,13 @@ pub(crate) fn apply_subkey_expiration(
     pwd: &Password,
 ) -> Result<(), GfrStatus> {
     let normalized = target_fpr.to_uppercase();
-    let created_at = secret_key
-        .secret_subkeys
-        .iter()
-        .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == normalized)
-        .map(|sub| sub.key.created_at().as_secs())
-        .ok_or(GfrStatus::ErrorInvalidInput)?;
+    let created_at = subkey_entry_mut(
+        &mut secret_key.secret_subkeys,
+        &mut secret_key.public_subkeys,
+        &normalized,
+    )
+    .map(|(sub, _)| sub.created_at().as_secs())
+    .ok_or(GfrStatus::ErrorInvalidInput)?;
     let duration = expiration_duration(created_at, expiration_epoch_secs)?;
     update_subkey_expiration(secret_key, &normalized, duration, pwd)
 }
@@ -1886,7 +2098,8 @@ pub fn delete_subkey_internal(
     })?;
 
     let fingerprint_str = secret_key.fingerprint().to_string().to_uppercase();
-    let initial_len = secret_key.secret_subkeys.len();
+    let subkey_count = |sk: &SignedSecretKey| sk.secret_subkeys.len() + sk.public_subkeys.len();
+    let initial_len = subkey_count(&secret_key);
 
     if secret_key
         .primary_key
@@ -1901,8 +2114,11 @@ pub fn delete_subkey_internal(
     secret_key
         .secret_subkeys
         .retain(|sub| sub.key.fingerprint().to_string().to_uppercase() != target_subkey_fpr);
+    secret_key
+        .public_subkeys
+        .retain(|sub| sub.key.fingerprint().to_string().to_uppercase() != target_subkey_fpr);
 
-    if secret_key.secret_subkeys.len() == initial_len {
+    if subkey_count(&secret_key) == initial_len {
         return Err(GfrStatus::ErrorInvalidInput);
     }
 
@@ -2000,15 +2216,24 @@ pub fn revoke_subkey_internal(
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
 ) -> Result<GeneratedKeys, GfrStatus> {
+    if !crate::utils::revocation_reason_fits(reason_code, false) {
+        crate::err::set_last_error(
+            "a subkey revocation cannot give \"User ID no longer valid\" as its reason",
+        );
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
     let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
-    let target_idx = secret_key
-        .secret_subkeys
-        .iter()
-        .position(|sub| {
-            sub.key.fingerprint().to_string().to_uppercase() == target_subkey_fpr.to_uppercase()
-        })
-        .ok_or(GfrStatus::ErrorInvalidInput)?;
+    let target_fpr = target_subkey_fpr.to_uppercase();
+    if subkey_entry_mut(
+        &mut secret_key.secret_subkeys,
+        &mut secret_key.public_subkeys,
+        &target_fpr,
+    )
+    .is_none()
+    {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
 
     if secret_key
         .primary_key
@@ -2047,15 +2272,17 @@ pub fn revoke_subkey_internal(
 
     let pk = secret_key.primary_key.public_key();
 
-    let subkey = secret_key
-        .secret_subkeys
-        .get_mut(target_idx)
-        .ok_or(GfrStatus::ErrorInternal)?;
+    let (sub_key, signatures) = subkey_entry_mut(
+        &mut secret_key.secret_subkeys,
+        &mut secret_key.public_subkeys,
+        &target_fpr,
+    )
+    .ok_or(GfrStatus::ErrorInternal)?;
 
     // Detect an existing revocation cryptographically, not merely by matching the
     // issuer subpacket: only a subkey-revocation whose signature actually verifies
     // under the primary counts as already-revoked (RFC 9580 §5.2.1.12).
-    let already_revoked = is_subkey_revoked(pk, subkey.key.public_key(), &subkey.signatures);
+    let already_revoked = is_subkey_revoked(pk, &sub_key, signatures);
 
     if already_revoked {
         return Err(GfrStatus::ErrorInvalidInput);
@@ -2086,10 +2313,10 @@ pub fn revoke_subkey_internal(
         .push(build_revocation_reason_subpacket(reason_code, reason_text)?);
 
     let revoke_sig = cfg
-        .sign_subkey_binding(&secret_key.primary_key, &pk, &pwd, subkey.key.public_key())
+        .sign_subkey_binding(&secret_key.primary_key, pk, &pwd, &sub_key)
         .into_gfr()?;
 
-    subkey.signatures.push(revoke_sig);
+    signatures.push(revoke_sig);
 
     let armored_s_key = secret_key
         .to_armored_string(key_armor_opts(secret_key.primary_key.version()))
@@ -2121,6 +2348,12 @@ pub fn generate_key_rev_cert_internal(
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
 ) -> Result<String, GfrStatus> {
+    if !crate::utils::revocation_reason_fits(reason_code, false) {
+        crate::err::set_last_error(
+            "a key revocation cannot give \"User ID no longer valid\" as its reason",
+        );
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
     use pgp::packet::Packet;
 
     let (skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
@@ -2180,6 +2413,14 @@ pub fn generate_key_rev_cert_internal(
 
     let mut out = Vec::new();
 
+    // RFC 9580 §10.1.3: "a version 6 revocation certificate MUST include the
+    // primary key packet" (§10.1.2: Primary Key, Revocation Signature). A v4
+    // one stays the bare signature, as GnuPG writes it.
+    if skey.primary_key.version() == KeyVersion::V6 {
+        Packet::PublicKey(pk.clone())
+            .to_writer(&mut out)
+            .into_gfr()?;
+    }
     Packet::Signature(revoke_sig)
         .to_writer(&mut out)
         .into_gfr()?;
@@ -2358,10 +2599,14 @@ pub fn merge_key_block_internal(
     base_block: &str,
     incoming_block: &str,
 ) -> Result<GeneratedKeys, GfrStatus> {
-    let base_sk = SignedSecretKey::from_string(base_block).ok();
-    let base_pk = SignedPublicKey::from_string(base_block).ok();
-    let inc_sk = SignedSecretKey::from_string(incoming_block).ok();
-    let inc_pk = SignedPublicKey::from_string(incoming_block).ok();
+    let base_block = crate::utils::strip_armor_whitespace(base_block);
+    let incoming_block = crate::utils::strip_armor_whitespace(incoming_block);
+    let base_block = without_trust_packets(&base_block);
+    let incoming_block = without_trust_packets(&incoming_block);
+    let base_sk = SignedSecretKey::from_string(&base_block).ok();
+    let base_pk = SignedPublicKey::from_string(&base_block).ok();
+    let inc_sk = SignedSecretKey::from_string(&incoming_block).ok();
+    let inc_pk = SignedPublicKey::from_string(&incoming_block).ok();
 
     match (base_sk, inc_sk) {
         (Some((mut target_sk, _)), Some((other_sk, _))) => {
@@ -2428,7 +2673,47 @@ fn merge_sk_into_sk(
     )?;
 
     merge_secret_subkeys(&mut target.secret_subkeys, &source.secret_subkeys)?;
+    // A subkey public-only on the target but secret in the source becomes
+    // secret; the secret copy now holds the merged signatures.
+    let mut demoted = Vec::new();
+    target.public_subkeys.retain(|p| {
+        let secret = target
+            .secret_subkeys
+            .iter()
+            .any(|s| s.key.fingerprint() == p.key.fingerprint());
+        if secret {
+            demoted.push(p.clone());
+        }
+        !secret
+    });
+    merge_subkeys_into_secret(target, &demoted)?;
+    merge_subkeys_into_secret(target, &source.public_subkeys)?;
 
+    Ok(())
+}
+
+/// Merge public subkeys into a secret key: signatures go onto the matching
+/// secret or public subkey, and a subkey the target lacks is kept as a
+/// public-only subkey (its secret part lives elsewhere, e.g. on a card).
+fn merge_subkeys_into_secret(
+    target: &mut SignedSecretKey,
+    incoming: &[SignedPublicSubKey],
+) -> Result<(), GfrStatus> {
+    for incoming_sub in incoming {
+        let incoming_fpr = incoming_sub.key.fingerprint();
+        if let Some(dst_sub) = target
+            .secret_subkeys
+            .iter_mut()
+            .find(|s| s.key.fingerprint() == incoming_fpr)
+        {
+            merge_signatures(&mut dst_sub.signatures, &incoming_sub.signatures)?;
+        } else {
+            merge_public_subkeys(
+                &mut target.public_subkeys,
+                std::slice::from_ref(incoming_sub),
+            )?;
+        }
+    }
     Ok(())
 }
 
@@ -2465,35 +2750,13 @@ fn merge_pk_into_sk(
         &source.details.users,
     )?;
 
-    for incoming_sub in &source.public_subkeys {
-        let incoming_fpr = incoming_sub.key.fingerprint().to_string();
-        if let Some(dst_sub) = target
-            .secret_subkeys
-            .iter_mut()
-            .find(|s| s.key.fingerprint().to_string() == incoming_fpr)
-        {
-            merge_signatures(&mut dst_sub.signatures, &incoming_sub.signatures)?;
-        }
-    }
-    Ok(())
+    merge_subkeys_into_secret(target, &source.public_subkeys)
 }
 
 fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus> {
-    let payload = crate::crypto::dearmor_all(block.as_bytes());
-    let mut buf_reader = BufReader::new(Cursor::new(&payload[..]));
-
-    let mut sigs = Vec::new();
-
-    while let Ok(packet_header) = PacketHeader::try_from_reader(&mut buf_reader) {
-        if let Ok(Packet::Signature(sig)) = Packet::from_reader(packet_header, &mut buf_reader) {
-            sigs.push(sig);
-        } else {
-            // If we encounter a non-signature packet, we can choose to ignore it or break.
-            // For now, let's just ignore it and continue parsing.
-            continue;
-        }
-    }
-
+    // Every Signature packet of every armor block; other packets (a v6
+    // revocation certificate's primary key, RFC 9580 §10.1.2) are skipped.
+    let sigs = crate::crypto::parse_all_signature_packets(block.as_bytes());
     if sigs.is_empty() {
         Err(GfrStatus::ErrorInvalidInput)
     } else {
@@ -3655,6 +3918,194 @@ mod key_tests {
     }
 
     #[test]
+    fn a_self_signature_with_a_critical_subpacket_gf_does_not_understand_is_ignored() {
+        // RFC 9580 §5.2.3.7 (round four, sibling of R3-11): a self-signature
+        // "in error" must not govern the key, here by imposing an expiry.
+        use pgp::types::{Duration, Password, Timestamp};
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let sk = with_uid_sigs(fixture, |sk| {
+            let primary = &sk.primary_key;
+            let mut cfg =
+                SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::CertPositive)
+                    .unwrap();
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                    created + 10,
+                )))
+                .unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+                Subpacket::regular(SubpacketData::KeyFlags(flags(true, false))).unwrap(),
+                Subpacket::regular(SubpacketData::KeyExpirationTime(Duration::from_secs(100)))
+                    .unwrap(),
+                Subpacket::critical(SubpacketData::Notation(pgp::packet::Notation {
+                    readable: true,
+                    name: "must-understand@example.test".into(),
+                    value: "1".into(),
+                }))
+                .unwrap(),
+            ];
+            let in_error = cfg
+                .sign_certification(
+                    primary,
+                    primary.public_key(),
+                    &Password::empty(),
+                    Tag::UserId,
+                    &sk.details.users[0].id,
+                )
+                .unwrap();
+            vec![uid_self_sig(sk, created, None, false), in_error]
+        });
+        let cert = SignedPublicKey::from(sk);
+        assert_eq!(
+            primary_key_expires_at(&cert),
+            0,
+            "the self-signature in error governed"
+        );
+    }
+
+    #[test]
+    fn a_forbidden_primary_never_signs_new_self_signatures() {
+        // RFC 9580 §12.5 "MUST NOT sign ... using DSA keys" (and §12.4 for
+        // RSA under 2048 bits). Editing such a key would generate new DSA
+        // signatures. Revoking it stays possible, so an old key can still be
+        // retired.
+        let dsa = &keys::V4_DSA2048;
+        let created = dsa.secret.primary_key.created_at().as_secs();
+        let uid = String::from_utf8_lossy(dsa.secret.details.users[0].id.id()).into_owned();
+        assert_eq!(
+            update_key_expiration_internal(
+                0,
+                &dsa.secret_armored,
+                None,
+                (created + 86_400) as u64,
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorUnusableKey),
+            "expiry change"
+        );
+        assert_eq!(
+            crate::user_id::add_user_id_internal(
+                0,
+                &dsa.secret_armored,
+                "New <n@example.test>",
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorUnusableKey),
+            "add User ID"
+        );
+        assert_eq!(
+            crate::user_id::set_primary_user_id_internal(0, &dsa.secret_armored, &uid, None).err(),
+            Some(GfrStatus::ErrorUnusableKey),
+            "set primary User ID"
+        );
+        assert_eq!(
+            crate::keygen::add_subkey_internal(
+                0,
+                &dsa.secret_armored,
+                &keys::cfg(
+                    crate::types::GfrKeyAlgo::ED25519,
+                    false,
+                    true,
+                    crate::types::GfrOpenPGPKeyVersion::V4
+                ),
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorUnusableKey),
+            "add subkey"
+        );
+        assert!(
+            generate_key_rev_cert_internal(
+                0,
+                &dsa.secret_armored,
+                GfrRevocationCode::Retired,
+                None,
+                None
+            )
+            .is_ok(),
+            "revoking remains possible"
+        );
+    }
+
+    #[test]
+    fn metadata_never_offers_what_the_engine_will_refuse() {
+        // Round four: the GUI offers keys by these flags. A DSA key may not
+        // sign (§12.5) and rPGP cannot encrypt to ElGamal or Brainpool ECDH,
+        // so none of them may be offered for that use.
+        let dsa = build_public_metadata(&SignedPublicKey::from(keys::V4_DSA2048.secret.clone()));
+        assert!(
+            !dsa.can_sign && !dsa.can_certify,
+            "DSA primary offered for signing"
+        );
+        for cert in [keys::ELGAMAL_SUBKEY_CERT, keys::BRAINPOOL_SUBKEY_CERT] {
+            let pk = SignedPublicKey::from_string(cert).unwrap().0;
+            let meta = build_public_metadata(&pk);
+            assert!(meta.can_sign, "control: the Ed25519 primary still signs");
+            assert!(
+                meta.subkeys.iter().all(|s| !s.can_encrypt),
+                "an unusable encryption subkey offered"
+            );
+        }
+    }
+
+    #[test]
+    fn a_new_user_id_never_inherits_a_self_signature_expiry() {
+        // RFC 9580 §5.2.3.18 (round four, sibling of R2-10): a Signature
+        // Expiration Time copied from the template would end the new User
+        // ID's certification at an offset the user never chose.
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let sk = with_uid_sigs(fixture, |sk| {
+            vec![uid_self_sig(sk, created, Some(3600), false)]
+        });
+        let block = sk.to_armored_string(armor_opts()).unwrap();
+        let out = crate::user_id::add_user_id_internal(0, &block, "New <new@example.test>", None)
+            .unwrap();
+        let after = SignedSecretKey::from_string(&out).unwrap().0;
+        let new_uid = after
+            .details
+            .users
+            .iter()
+            .find(|u| u.id.id() == b"New <new@example.test>")
+            .unwrap();
+        assert!(
+            new_uid
+                .signatures
+                .iter()
+                .all(|s| s.signature_expiration_time().is_none()),
+            "the new certification expires"
+        );
+    }
+
+    #[test]
+    fn a_binary_key_block_imports_like_its_armored_form() {
+        // RFC 9580 §6: armor is an optional transport encoding; GnuPG's
+        // default `--export` is binary packets (round four, C++ import from a
+        // .gpg file). Both a public and a secret block must be read.
+        for (block, secret) in [
+            (&keys::V4_SIGN.public_armored, false),
+            (&keys::V4_SIGN.secret_armored, true),
+        ] {
+            let binary = crate::crypto::dearmor_all(block.as_bytes()).into_owned();
+            assert!(std::str::from_utf8(&binary).is_err() || !binary.starts_with(b"-----"));
+            let text = armored_key_input(&binary).expect("binary input is accepted");
+            let meta = extract_metadata_many_internal(&text).expect("imports");
+            assert_eq!(meta.len(), 1);
+            assert!(meta[0].fpr.eq_ignore_ascii_case(&keys::V4_SIGN.primary_fpr));
+            assert_eq!(meta[0].secret_key_block.is_some(), secret);
+        }
+        // Armored input passes through unchanged.
+        assert_eq!(
+            armored_key_input(keys::V4_SIGN.public_armored.as_bytes()).unwrap(),
+            keys::V4_SIGN.public_armored.as_str()
+        );
+    }
+
+    #[test]
     fn a_v4_primary_with_no_valid_self_signature_is_never_authorized() {
         // RFC 9580 §5.2.3.10, §10.1: a key's usage comes from its valid
         // self-signatures. Filtering out an invalid, weak or revoked one must
@@ -3818,6 +4269,309 @@ mod key_tests {
     }
 
     #[test]
+    fn a_v6_revocation_certificate_carries_its_primary_key() {
+        // RFC 9580 §10.1.3: "a version 6 revocation certificate MUST include
+        // the primary key packet, as described in Section 10.1.2". A v4 one
+        // may stay the bare signature, as GnuPG writes it.
+        use pgp::packet::{Packet, PacketParser};
+        let packets_of = |armored: &str| -> Vec<Packet> {
+            let bytes = crate::crypto::dearmor_all(armored.as_bytes()).into_owned();
+            PacketParser::new(Cursor::new(bytes)).flatten().collect()
+        };
+        for (fixture, with_key) in [(&*keys::V6_SIGN, true), (&*keys::V4_SIGN, false)] {
+            let cert = generate_key_rev_cert_internal(
+                0,
+                &fixture.secret_armored,
+                GfrRevocationCode::NoReason,
+                None,
+                None,
+            )
+            .unwrap();
+            let packets = packets_of(&cert);
+            match (&packets[..], with_key) {
+                ([Packet::PublicKey(key), Packet::Signature(sig)], true) => {
+                    assert_eq!(
+                        key.fingerprint().to_string().to_uppercase(),
+                        fixture.primary_fpr
+                    );
+                    assert_eq!(sig.typ(), Some(SignatureType::KeyRevocation));
+                }
+                ([Packet::Signature(sig)], false) => {
+                    assert_eq!(sig.typ(), Some(SignatureType::KeyRevocation))
+                }
+                (other, _) => panic!("{}: {other:?}", fixture.primary_fpr),
+            }
+            let revoked = import_rev_cert_internal(&fixture.secret_armored, &cert)
+                .expect("the certificate imports");
+            let sk = SignedSecretKey::from_string(&revoked.secret).unwrap().0;
+            assert!(is_primary_key_revoked(
+                &sk.primary_key.public_key(),
+                &sk.details.revocation_signatures
+            ));
+        }
+    }
+
+    #[test]
+    fn trust_packets_in_an_imported_key_are_ignored() {
+        // RFC 9580 §5.10: Trust packets are implementation-local and
+        // "SHOULD be ignored on any input other than local keyring files";
+        // GnuPG keyring exports and backups carry them after keys, User IDs
+        // and signatures. They must not cut a certificate short.
+        use pgp::packet::{Packet, PacketParser};
+        use pgp::ser::Serialize;
+        let fixture = &keys::V4_SIGN;
+        let bytes = crate::crypto::dearmor_all(fixture.public_armored.as_bytes()).into_owned();
+        let trust = crate::testutil::packets::packet(12, &[0x00, 0x00]);
+        let mut with_trust = Vec::new();
+        for packet in PacketParser::new(Cursor::new(bytes)).flatten() {
+            with_trust.extend(packet.to_bytes().unwrap());
+            if !matches!(packet, Packet::PublicKey(_)) {
+                continue;
+            }
+            with_trust.extend_from_slice(&trust);
+        }
+        let mut armored = Vec::new();
+        pgp::armor::write(
+            &MergedRawKeys {
+                packet_bytes: with_trust,
+            },
+            BlockType::PublicKey,
+            &mut armored,
+            None,
+            true,
+        )
+        .unwrap();
+        let meta = extract_metadata_many_internal(&String::from_utf8(armored).unwrap())
+            .expect("the certificate imports");
+        assert_eq!(meta.len(), 1);
+        let reference = build_public_metadata(&SignedPublicKey::from(fixture.secret.clone()));
+        assert_eq!(
+            meta[0].user_ids.len(),
+            reference.user_ids.len(),
+            "User IDs kept"
+        );
+        assert_eq!(
+            meta[0].subkeys.len(),
+            reference.subkeys.len(),
+            "subkeys kept"
+        );
+    }
+
+    #[test]
+    fn a_re_issue_starts_from_the_self_signature_in_force() {
+        // RFC 9580 §5.2.3.10: the most recent valid self-signature governs.
+        // A re-issue must start from that one, not from an older signature
+        // that happens to carry Key Flags: that would resurrect the older
+        // signature's expiry and preferences.
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let mut sk = fixture.secret.clone();
+        let mut old = self_sig_with(
+            &sk,
+            0,
+            SignatureType::CertPositive,
+            created,
+            flags(true, false),
+            true,
+        );
+        // The older one also expired the key after a year.
+        {
+            use pgp::types::{Duration, Password, Timestamp};
+            let primary = &sk.primary_key;
+            let mut cfg = old.config().unwrap().clone();
+            cfg.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::KeyExpirationTime(Duration::from_secs(
+                    365 * 86_400,
+                )))
+                .unwrap(),
+            );
+            cfg.hashed_subpackets
+                .retain(|sp| !matches!(sp.data, SubpacketData::SignatureCreationTime(_)));
+            cfg.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                    created,
+                )))
+                .unwrap(),
+            );
+            old = cfg
+                .sign_certification(
+                    primary,
+                    primary.public_key(),
+                    &Password::empty(),
+                    Tag::UserId,
+                    &sk.details.users[0].id,
+                )
+                .unwrap();
+        }
+        // The newer one carries no Key Flags and no expiry.
+        let newer = {
+            use pgp::types::{Password, Timestamp};
+            let primary = &sk.primary_key;
+            let mut cfg =
+                SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::CertPositive)
+                    .unwrap();
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                    created + 10,
+                )))
+                .unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+                Subpacket::regular(SubpacketData::IsPrimary(true)).unwrap(),
+            ];
+            cfg.sign_certification(
+                primary,
+                primary.public_key(),
+                &Password::empty(),
+                Tag::UserId,
+                &sk.details.users[0].id,
+            )
+            .unwrap()
+        };
+        sk.details.users[0].signatures = vec![old, newer];
+        let block = sk.to_armored_string(armor_opts()).unwrap();
+        let before = SignedPublicKey::from(sk.clone());
+        assert_eq!(
+            primary_key_expires_at(&before),
+            0,
+            "precondition: never expires"
+        );
+
+        let uid = String::from_utf8_lossy(sk.details.users[0].id.id()).into_owned();
+        let out = crate::user_id::set_primary_user_id_internal(0, &block, &uid, None).unwrap();
+        let after = SignedPublicKey::from(SignedSecretKey::from_string(&out).unwrap().0);
+        assert_eq!(
+            primary_key_expires_at(&after),
+            0,
+            "the re-issue resurrected an old expiry"
+        );
+    }
+
+    #[test]
+    fn a_re_issued_self_signature_never_carries_a_revocation_key() {
+        // RFC 9580 §5.2.3.23: the Revocation Key subpacket is deprecated and
+        // "Applications MUST NOT generate such a subpacket". Re-issuing a
+        // self-signature that carries one (made by older software) generates
+        // a new signature, so the subpacket must not be copied over.
+        use pgp::types::{Password, RevocationKey, RevocationKeyClass, Timestamp};
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let mut sk = fixture.secret.clone();
+        let primary = &sk.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::CertPositive)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                created,
+            )))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+            Subpacket::regular(SubpacketData::KeyFlags(flags(true, false))).unwrap(),
+            Subpacket::regular(SubpacketData::RevocationKey(RevocationKey::new(
+                RevocationKeyClass::Default,
+                pgp::crypto::public_key::PublicKeyAlgorithm::EdDSALegacy,
+                &[0x11; 20],
+            )))
+            .unwrap(),
+        ];
+        let sig = cfg
+            .sign_certification(
+                primary,
+                primary.public_key(),
+                &Password::empty(),
+                Tag::UserId,
+                &sk.details.users[0].id,
+            )
+            .unwrap();
+        sk.details.users[0].signatures = vec![sig];
+        let block = sk.to_armored_string(armor_opts()).unwrap();
+        let out =
+            update_key_expiration_internal(0, &block, None, (created + 365 * 86_400) as u64, None)
+                .unwrap();
+        let after = SignedSecretKey::from_string(&out.secret).unwrap().0;
+        for sig in &after.details.users[0].signatures {
+            assert!(
+                sig.revocation_key().is_none(),
+                "a re-issued self-signature carries a Revocation Key"
+            );
+        }
+    }
+
+    #[test]
+    fn a_revocation_reason_must_fit_the_revocation_type() {
+        // RFC 9580 §5.2.3.31: codes 1-3 are for Key Revocation signatures,
+        // code 32 ("User ID information is no longer valid") for
+        // Certification Revocation signatures; 0 fits both.
+        let fixture = &keys::V4_SIGN;
+        let uid = String::from_utf8_lossy(fixture.secret.details.users[0].id.id()).into_owned();
+        assert_eq!(
+            generate_key_rev_cert_internal(
+                0,
+                &fixture.secret_armored,
+                GfrRevocationCode::UserIdInvalid,
+                None,
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+        assert_eq!(
+            revoke_subkey_internal(
+                0,
+                &fixture.secret_armored,
+                fixture.enc_subkey_fpr(),
+                GfrRevocationCode::UserIdInvalid,
+                None,
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+        for code in [
+            GfrRevocationCode::Superseded,
+            GfrRevocationCode::Compromised,
+            GfrRevocationCode::Retired,
+        ] {
+            assert_eq!(
+                crate::user_id::revoke_user_id_internal(
+                    0,
+                    &fixture.secret_armored,
+                    &uid,
+                    code,
+                    None,
+                    None
+                )
+                .err(),
+                Some(GfrStatus::ErrorInvalidInput),
+                "{code:?} on a User ID"
+            );
+        }
+        // Controls: each type with a reason that fits it.
+        assert!(
+            generate_key_rev_cert_internal(
+                0,
+                &fixture.secret_armored,
+                GfrRevocationCode::Retired,
+                None,
+                None
+            )
+            .is_ok()
+        );
+        assert!(
+            crate::user_id::revoke_user_id_internal(
+                0,
+                &fixture.secret_armored,
+                &uid,
+                GfrRevocationCode::UserIdInvalid,
+                None,
+                None
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
     fn a_weak_hash_binding_over_a_pq_subkey_never_counts() {
         // RFC 9980 §7.2: subkey binding signatures over its algorithms "MUST
         // NOT be made with MD5, SHA-1, or RIPEMD-160. A receiving
@@ -3959,7 +4713,7 @@ mod key_tests {
         // genuinely old key: a later one is not a valid self-signature at
         // all, so it could not be a template (round two, INV-REISSUE).
         use pgp::crypto::hash::HashAlgorithm;
-        let mut sk = keys::V4_RSA1024.secret.clone();
+        let mut sk = keys::V4_RSA2048.secret.clone();
         let primary = sk.primary_key.clone();
         let mut cfg = SignatureConfig::v4(
             SignatureType::CertPositive,
@@ -4387,6 +5141,138 @@ mod key_tests {
             merge_key_block_internal(&keys::V4_SIGN.secret_armored, &keys::V4_SIGN.public_armored)
                 .expect("merge");
         assert!(SignedSecretKey::from_string(&merged.secret).is_ok());
+    }
+
+    #[test]
+    fn merging_a_public_update_keeps_a_new_public_only_subkey() {
+        // The certificate gained a subkey whose secret part lives elsewhere
+        // (another machine, a card). Merging its public copy onto the local
+        // secret key must keep that subkey as a public subkey, not drop it.
+        let (mut local, _) =
+            SignedSecretKey::from_string(&keys::V4_SIGN.secret_armored).expect("parse");
+        let new_sub = local.secret_subkeys.pop().expect("a subkey");
+        let new_fpr = new_sub.key.fingerprint();
+        let local_block = export_secret_key(local).expect("export").secret;
+
+        let merged =
+            merge_key_block_internal(&local_block, &keys::V4_SIGN.public_armored).expect("merge");
+        let (merged_sk, _) = SignedSecretKey::from_string(&merged.secret).expect("secret kept");
+        assert!(
+            merged_sk
+                .public_subkeys
+                .iter()
+                .any(|s| s.key.fingerprint() == new_fpr),
+            "the new public-only subkey must survive the merge"
+        );
+        assert!(
+            merged_sk
+                .secret_subkeys
+                .iter()
+                .all(|s| s.key.fingerprint() != new_fpr)
+        );
+        let (merged_pk, _) = SignedPublicKey::from_string(&merged.public).expect("public");
+        assert_eq!(
+            merged_pk.public_subkeys.len(),
+            SignedPublicKey::from_string(&keys::V4_SIGN.public_armored)
+                .expect("parse")
+                .0
+                .public_subkeys
+                .len()
+        );
+    }
+
+    /// A subkey whose secret lives elsewhere (a card) is listed, so it must be
+    /// editable where only the primary's secret is needed: revoke it, change
+    /// its expiry, delete it.
+    #[test]
+    fn a_public_only_subkey_can_be_revoked_reexpired_and_deleted() {
+        let (mut sk, _) =
+            SignedSecretKey::from_string(&keys::V4_SIGN.secret_armored).expect("parse");
+        let sub = sk.secret_subkeys.pop().expect("a subkey");
+        let fpr = sub.key.fingerprint().to_string().to_uppercase();
+        sk.public_subkeys.push(sub.into());
+        let block = export_secret_key(sk).expect("export").secret;
+
+        let revoked =
+            revoke_subkey_internal(0, &block, &fpr, GfrRevocationCode::Retired, None, None)
+                .expect("revoke a public-only subkey");
+        let (revoked, _) = SignedSecretKey::from_string(&revoked.secret).expect("parse");
+        assert!(
+            revoked.public_subkeys[0]
+                .signatures
+                .iter()
+                .any(|s| matches!(s.typ(), Some(SignatureType::SubkeyRevocation)))
+        );
+
+        let expiry = pgp::types::Timestamp::now().as_secs() as u64 + 400 * 86_400;
+        let extended = update_key_expiration_internal(0, &block, Some(&fpr), expiry, None)
+            .expect("re-expire a public-only subkey");
+        let metas = extract_metadata_many_internal(&extended.secret).expect("meta");
+        let listed = metas[0]
+            .subkeys
+            .iter()
+            .find(|s| s.fpr.to_uppercase() == fpr)
+            .expect("listed");
+        assert!(listed.expires_at > 0);
+
+        let deleted = delete_subkey_internal(&block, &fpr).expect("delete");
+        let (deleted, _) = SignedSecretKey::from_string(&deleted.secret).expect("parse");
+        assert!(deleted.public_subkeys.is_empty());
+    }
+
+    #[test]
+    fn metadata_of_a_secret_key_lists_its_public_only_subkeys() {
+        // The key list must show a subkey the engine will encrypt to, and
+        // mark that its secret part is not held here.
+        let (mut sk, _) =
+            SignedSecretKey::from_string(&keys::V4_SIGN.secret_armored).expect("parse");
+        let sub = sk.secret_subkeys.pop().expect("a subkey");
+        let fpr = sub.key.fingerprint().to_string();
+        sk.public_subkeys.push(sub.into());
+        let block = export_secret_key(sk).expect("export").secret;
+
+        let metas = extract_metadata_many_internal(&block).expect("meta");
+        let meta = &metas[0];
+        assert!(meta.has_secret);
+        let listed = meta
+            .subkeys
+            .iter()
+            .find(|s| s.fpr == fpr)
+            .expect("the public-only subkey is listed");
+        assert!(!listed.has_secret);
+        assert_eq!(meta.subkeys.len(), 2);
+    }
+
+    #[test]
+    fn merging_secret_keys_keeps_public_only_subkeys_and_upgrades_them() {
+        // secret + secret: a public-only subkey of either side survives, and a
+        // subkey public-only on one side but secret on the other ends up secret.
+        let (mut with_public_sub, _) =
+            SignedSecretKey::from_string(&keys::V4_SIGN.secret_armored).expect("parse");
+        let sub = with_public_sub.secret_subkeys.pop().expect("a subkey");
+        let fpr = sub.key.fingerprint();
+        with_public_sub.public_subkeys.push(sub.into());
+        let with_public_sub = export_secret_key(with_public_sub).expect("export").secret;
+
+        let (mut without_sub, _) =
+            SignedSecretKey::from_string(&keys::V4_SIGN.secret_armored).expect("parse");
+        without_sub
+            .secret_subkeys
+            .retain(|s| s.key.fingerprint() != fpr);
+        let without_sub = export_secret_key(without_sub).expect("export").secret;
+
+        let merged = merge_key_block_internal(&without_sub, &with_public_sub).expect("merge");
+        let (sk, _) = SignedSecretKey::from_string(&merged.secret).expect("parse");
+        assert!(sk.public_subkeys.iter().any(|s| s.key.fingerprint() == fpr));
+
+        let merged = merge_key_block_internal(&with_public_sub, &keys::V4_SIGN.secret_armored)
+            .expect("merge");
+        let (sk, _) = SignedSecretKey::from_string(&merged.secret).expect("parse");
+        assert!(sk.secret_subkeys.iter().any(|s| s.key.fingerprint() == fpr));
+        assert!(
+            sk.public_subkeys.iter().all(|s| s.key.fingerprint() != fpr),
+            "the subkey must not be listed twice"
+        );
     }
 
     // -- ECDH KDF parameters -------------------------------------------------
