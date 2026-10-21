@@ -27,6 +27,7 @@
  */
 
 #include <cstddef>
+#include <cstring>
 
 #include "core/model/GFBuffer.h"
 
@@ -428,6 +429,54 @@ TEST(GFBufferTest, CombineSelfBuffer) {
   std::string result(static_cast<const char*>(combined.Data()),
                      combined.Size());
   EXPECT_EQ(result, "abcabc");
+}
+
+TEST(GFBufferTest, ResizeGrowPreservesExistingBytes) {
+  GFBuffer buf;
+  buf.Append("abc", 3);
+
+  buf.Resize(6);
+
+  ASSERT_EQ(buf.Size(), 6);
+  EXPECT_EQ(std::memcmp(buf.Data(), "abc", 3), 0);
+}
+
+TEST(GFBufferTest, ResizeShrinkKeepsTheLeadingBytes) {
+  GFBuffer buf;
+  buf.Append("abcdef", 6);
+
+  buf.Resize(3);
+
+  ASSERT_EQ(buf.Size(), 3);
+  EXPECT_EQ(std::memcmp(buf.Data(), "abc", 3), 0);
+}
+
+TEST(GFBufferTest, ResizeFromEmptyAllocates) {
+  GFBuffer buf;
+  buf.Resize(8);
+  EXPECT_EQ(buf.Size(), 8);
+}
+
+TEST(GFBufferTest, ResizeToZeroReleasesTheStorage) {
+  GFBuffer buf;
+  buf.Append("abc", 3);
+
+  buf.Resize(0);
+
+  EXPECT_EQ(buf.Size(), 0);
+  EXPECT_TRUE(buf.Empty());
+}
+
+TEST(GFBufferTest, ResizeDoesNotDisturbAnotherShare) {
+  GFBuffer buf;
+  buf.Append("abcdef", 6);
+
+  GFBuffer share = buf;  // copy-on-write share
+  buf.Resize(3);
+
+  // Resize() detaches first, so the other share keeps its own view intact.
+  ASSERT_EQ(share.Size(), 6);
+  EXPECT_EQ(std::memcmp(share.Data(), "abcdef", 6), 0);
 }
 
 }  // namespace GpgFrontend::Test
