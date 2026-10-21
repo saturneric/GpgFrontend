@@ -115,7 +115,7 @@ TEST_P(GpgCoreEngineTest, GenerateAllDeclaredPrimaryKeys) {
   }
 
   // Algorithms every engine must always be able to issue as a primary key.
-  static const QSet<QString> kCorePrimaryAlgos = {"rsa2048", "ed25519",
+  static const QSet<QString> kCorePrimaryAlgos = {"rsa3072", "ed25519",
                                                   "nistp256"};
 
   const auto algos = KeyGenerateInfo::GetSupportedKeyAlgo(Channel());
@@ -190,7 +190,7 @@ TEST_P(GpgCoreEngineTest, GenerateAllDeclaredSubkeys) {
   }
 
   // Subkey algorithms every engine must always be able to add to a key.
-  static const QSet<QString> kCoreSubkeyAlgos = {"rsa2048", "cv25519",
+  static const QSet<QString> kCoreSubkeyAlgos = {"rsa3072", "cv25519",
                                                  "ed25519"};
 
   // Use the engine's default key version (via the shared helper), so the

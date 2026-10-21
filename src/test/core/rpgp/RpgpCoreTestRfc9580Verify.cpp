@@ -178,17 +178,18 @@ TEST_F(RpgpCoreTest, Rfc9580VerifySha1DetachedIsNotValid) {
 
 // --- Negative: expired key --------------------------------------------------
 //
-// A detached signature made by an *expired* signing key must not be reported
-// Valid. cert_primary_usable() (mod.rs) now gates every verification path on
-// primary-key expiration (§5.2.3.13), and subkey_usable_for_verify() rejects an
-// expired signing subkey (or any subkey of an expired primary) as well, on top
-// of the signature's own Signature Expiration Time (§5.2.3.18).
+// A detached signature made on 2020-03-01 by a key that expired on 2020-06-01.
+// Key expiry is judged at the signature's creation time (key-validity
+// decision, matching GnuPG and Sequoia): the key was live when it signed, so
+// the signature is Valid. A signature made *after* expiry is reported as
+// GPG_ERR_KEY_EXPIRED; that case is covered on the Rust side
+// (a_signature_made_after_the_key_expired_is_key_expired).
 
-TEST_F(RpgpCoreTest, Rfc9580VerifyExpiredKeyIsNotValid) {
+TEST_F(RpgpCoreTest, Rfc9580VerifyKeyExpiredAfterSigningStaysValid) {
   ImportAuxKeys({"aux_expired.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_expired.sig"));
-  EXPECT_FALSE(AnyValid(out.sigs));
+  EXPECT_TRUE(AnyValid(out.sigs));
 }
 
 // --- Negative: revoked key --------------------------------------------------
@@ -203,6 +204,32 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyRevokedKeyIsNotValid) {
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_revokedkey.sig"));
   EXPECT_FALSE(AnyValid(out.sigs));
+  // The revocation carries no reason, so it is hard: reported as a revoked
+  // key, not as a bad signature.
+  ASSERT_FALSE(out.sigs.empty());
+  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_CERT_REVOKED);
+}
+
+// --- Status mapping: engine verdicts reach the GnuPG-shaped model -----------
+//
+// The rPGP engine distinguishes a forged signature from a mathematically
+// valid one under a key the certificate does not vouch for. Each verdict must
+// keep its meaning through the C++ model the GUI reads.
+
+TEST_F(RpgpCoreTest, Rfc9580VerifyKeyVerdictsMapToDistinctStatuses) {
+  const std::array<std::pair<GFSignatureStatus, gpg_err_code_t>, 4> cases = {{
+      {GFSignatureStatus::kBAD_SIGNATURE, GPG_ERR_BAD_SIGNATURE},
+      {GFSignatureStatus::kKEY_REVOKED, GPG_ERR_CERT_REVOKED},
+      {GFSignatureStatus::kKEY_EXPIRED, GPG_ERR_KEY_EXPIRED},
+      {GFSignatureStatus::kKEY_NOT_AUTHORIZED, GPG_ERR_WRONG_KEY_USAGE},
+  }};
+  for (const auto& [status, code] : cases) {
+    GFSignature gf_sig{};
+    gf_sig.status = status;
+    GpgSignature sig(gf_sig);
+    EXPECT_EQ(gpg_err_code(sig.GetStatus()), code);
+    EXPECT_EQ(sig.GetSummary() & GPGME_SIGSUM_VALID, 0U);
+  }
 }
 
 // --- Negative: byte-mutated (broken) signature ------------------------------

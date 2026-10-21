@@ -32,6 +32,7 @@
 #include "core/GFCoreRust.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -751,6 +752,62 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptResultAnalyseEngineAgnosticTest) {
   // A good decryption must never be reported as a failure (-1).
   EXPECT_GE(decr_analyse.GetStatus(), 0);
   EXPECT_FALSE(decr_analyse.GetResultReport().isEmpty());
+}
+
+// An RSA-1024 key, generated once with GnuPG 2.4 (unprotected). RFC 9580
+// §12.4: "MUST NOT encrypt, sign, or verify using RSA keys of a size less than
+// 2048 bits." The engine refuses to sign with it, and the GUI must learn why.
+constexpr const char* kRsa1024Secret = R"(-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQHYBGrX0zUBBADD3X9GN8IMYaJYs82kNaX/i09AInAqPcyGzmuWajHGFrQcrv9+
+QY1XVYJBywQmBMZfTyYQbKtLuF+Gd+2Cblr7W1pM4xqaCzSx3TeVkzCpWVeSj2gq
+X8n1YbrhqJqKRzEE5EY1Cht5hXlnSiWvY2beZWUkijkI6kU23ogR1R4aJwARAQAB
+AAP/VRR+GM5XqHEwyD8ycMYtGVg2ULGk73Rwx44bBfeTL2zlSCBsMzfeYbVvI41A
+fBNO6E/FRRUvQ3EPbaXiseml8w1w+bVpPFsj6QbBbQMAvlzLRKRw/CM76HTttHHa
+APX4ibwSdx50oUBazPhlqySyHma/PQ5Wo19fMfkPx/hjY8ECAMPtlr3WA3qqUt8P
+3hOJqSLjmC4kwgTgLrCQ9H4g3LN/i8FWr2AeQKt9tF3Ro7BJveP468Oe9N7u+hGy
+aA0IYukCAP/q+X8PHto0gjg5mJir/QiTjAajxEHOOcoJJSzva1HtHUyNJp9YHxaF
+ReeXrIBP/zmu8sN5p1w19crplNhryo8CAO6cIgZwvLbaEv9jiYMV9eTi+VF9+A7X
+WHMPhMx048TenPoeCn65tf9mxOL4n0lHsXsgGpJYD2paoezsCVe4+A6k+7QfUlNB
+IDEwMjQgPHJzYTEwMjRAdGVzdC5leGFtcGxlPojOBBMBCgA4FiEE3k5RkBwVhBtJ
+p57+cdGo3WXK0LoFAmrX0zUCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgECF4AACgkQ
+cdGo3WXK0LonVgQAv8cQl3rgP2ufnINqEqpUGzE0AGrRNDaTUfOvokKD3MNPGYol
+A3Ga3W3TSWMM3+iFUuw66/iXGKMpkDhpAi1htTwi31R7H3uCA0fK9CiyepKOzQya
+LIw1mWLtrArMB53aWTVLn0z0pQK4/kAQkFOkuJBjvut8ds/MLgX5qdnwR/ydAdgE
+atfTNQEEAJnicjBprzlo+YXYJoNojlvnKxuC2VEyq98QzrMzOtcAGVi7luYCf9IC
+7kwKPKgWSutxW17w3laP2X2nFzGygwTBZLENnBF1+OHQf8phV5jCYTeHUloxXcII
+gKrQcQrbIJsYVZ+eUuZktYCoHqNW0aIwMl2wNsgbTwkYgZ5e0SyJABEBAAEAA/0R
+nStf4kD1y8+/48Foyjd9SoUTJZOVaTzmEAjw1xzVjkPYdcRseH3D/qTjHErcHI0f
+zP5d7Cku9FE7Qjxz6lB3tezzDY+xXHmccB7veUFmNH0QI/toyMp0tgUpwxXidZ+K
+PJwoXVGdQkCvp6FL8IvIFF0ZNbUiJ9th7wOYFzJpzwIAwS5XrUM0VMzUhZ/RDI9k
+pWFOlh4drSqCPDvbgUNFwO5EugfXgsnfiropEg0o/Gtt19QW22zRWC/qIe3iwAFk
+ZwIAy+zOptgXDbiNwPlYAjegwkPisg0eSmG2Xw0bD8imzDezNFTy+KRBz0A6yin+
+1myqyxhziyY2aJDJU4UJsR7RjwIAhrKxzr+JUIRTh/8LV5j+aYfVvzoMpNioPq45
+b00ZSQpl5O7Yqc6Lo3puaCc/ExMATssxr486s4qsK5m/lNEszJ6YiLYEGAEKACAW
+IQTeTlGQHBWEG0mnnv5x0ajdZcrQugUCatfTNQIbDAAKCRBx0ajdZcrQuonoA/9Y
+xZ2RD21yzuAC5i2j+yyyqL/d1dwAAdbWXpha0dlPbvELHMUCZO9CXuku4kO+ye/L
+sXEz2yrRo+4pNpIx9aVIxpu+BoVtMweoFb6XOgQwhm1mCywXRuqUImYCRlrI0WYB
+kNl6eEN+fsTGbm+i2S1SGleCuh6yLEONt4TkhMjYIg==
+=u2L9
+-----END PGP PRIVATE KEY BLOCK-----)";
+constexpr const char* kRsa1024Fpr = "DE4E51901C15841B49A79EFE71D1A8DD65CAD0BA";
+
+TEST_F(RpgpCoreTest, CoreSignWithRsaUnder2048BitsIsUnusableTest) {
+  auto info = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .ImportKey(GFBuffer(QString::fromLatin1(kRsa1024Secret)));
+  ASSERT_TRUE(info != nullptr);
+  AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushCache();
+  AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest).Fetch();
+
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kRsa1024Fpr);
+  ASSERT_TRUE(key != nullptr);
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .SignSync({key}, GFBuffer(QString("rsa 1024")), GPGME_SIG_MODE_DETACH,
+                    true);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_SECKEY);
 }
 
 TEST_F(RpgpCoreTest, EngineBuildInfoTest) {

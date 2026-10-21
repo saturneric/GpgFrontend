@@ -119,11 +119,24 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptCiphertextWithoutSecretKeyFails) {
             GPG_ERR_NO_ERROR);
 }
 
+// RFC 9580 §13.7: a truncated or tampered AEAD message "MUST indicate a clear
+// error message" that the integrity is suspect: GPG_ERR_BAD_DATA, not an I/O
+// error or a passphrase problem. The PKESK takes the first 111 octets of the
+// 255-octet vector, so both cuts below land in the SEIPD v2 payload.
+
 TEST_F(RpgpCoreTest, Rfc9580DecryptTruncatedAeadFailsCleanly) {
   ImportAuxKeys({"aux_v6.asc"});
   auto full = LoadRfc9580Vector("enc_v2seipd_ocb.pgp");
   QByteArray cut(full.Data(), static_cast<int>(full.Size() / 2));
-  EXPECT_NE(CheckGpgError(Decrypt(GFBuffer(cut))), GPG_ERR_NO_ERROR);
+  EXPECT_EQ(CheckGpgError(Decrypt(GFBuffer(cut))), GPG_ERR_BAD_DATA);
+}
+
+TEST_F(RpgpCoreTest, Rfc9580DecryptTamperedAeadTagIsAnIntegrityFailure) {
+  ImportAuxKeys({"aux_v6.asc"});
+  auto full = LoadRfc9580Vector("enc_v2seipd_ocb.pgp");
+  QByteArray tampered(full.Data(), static_cast<int>(full.Size()));
+  tampered[tampered.size() - 1] = static_cast<char>(~tampered.back());
+  EXPECT_EQ(CheckGpgError(Decrypt(GFBuffer(tampered))), GPG_ERR_BAD_DATA);
 }
 
 // --- malformed verify inputs ------------------------------------------------

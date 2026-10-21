@@ -148,13 +148,13 @@ void GpgCoreEngineTest::TearDown() {}
 auto GpgCoreEngineTest::PickPrimaryAlgo() const -> KeyAlgo {
   auto algos = KeyGenerateInfo::GetSupportedKeyAlgo(Channel());
   EXPECT_FALSE(algos.empty());
-  return SelectAlgo(algos, {"ed25519", "nistp256", "rsa2048"});
+  return SelectAlgo(algos, {"ed25519", "nistp256", "rsa3072"});
 }
 
 auto GpgCoreEngineTest::PickEncryptionSubAlgo() const -> KeyAlgo {
   auto algos = KeyGenerateInfo::GetSupportedSubkeyAlgo(Channel());
   EXPECT_FALSE(algos.empty());
-  return SelectAlgo(algos, {"cv25519", "nistp256", "rsa2048"});
+  return SelectAlgo(algos, {"cv25519", "nistp256", "rsa3072"});
 }
 
 auto GpgCoreEngineTest::GenerateFullKey(const QString& uid_suffix,

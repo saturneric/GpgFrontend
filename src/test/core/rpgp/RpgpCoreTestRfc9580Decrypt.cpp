@@ -135,6 +135,18 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadWithoutKeyFails) {
 
 // --- Multi-recipient PKESK --------------------------------------------------
 
+// The cipher and mode reach the result model in gpgme's `symkey_algo` form, so
+// the GUI shows them for rPGP as it does for GnuPG.
+TEST_F(RpgpCoreTest, Rfc9580DecryptReportsTheContainerCipherAndMode) {
+  ImportAuxKeys({"aux_v6.asc"});
+  auto [err, dobj] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(LoadRfc9580Vector("enc_v2seipd_ocb.pgp"));
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
+  EXPECT_EQ(r.SymmetricEncryptionAlgorithm(), QString("AES256.OCB"));
+}
+
 TEST_F(RpgpCoreTest, Rfc9580DecryptMultiRecipientRecoversPlaintext) {
   // Encrypted to key1+key2+key3; the fixture holds key1's secret.
   GpgError err;
@@ -150,7 +162,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptMultiRecipientReportsRecipients) {
           .DecryptSync(ct);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
-  // The message advertises three PKESK packets.
+  // sq wrote one v3 PKESK per encryption subkey of the three certificates.
   EXPECT_GE(r.Recipients().size(), 1);
 }
 
@@ -164,7 +176,10 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV1RecoversPlaintext) {
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
-TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV2RecoversPlaintext) {
+// enc_symmetric_v2.pgp is sq's password encryption: despite its name it is a
+// v4 SKESK + v1 SEIPD/MDC (see MANIFEST.txt). It stands for an independently
+// produced password message, not for AEAD.
+TEST_F(RpgpCoreTest, Rfc9580DecryptSequoiaSymmetricRecoversPlaintext) {
   GpgError err;
   auto out = DecryptVector("enc_symmetric_v2.pgp", &err);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -182,7 +197,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV1ReportsNoRecipient) {
   EXPECT_TRUE(r.Recipients().empty());
 }
 
-TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV2ReportsIntegrityProtected) {
+TEST_F(RpgpCoreTest, Rfc9580DecryptSequoiaSymmetricReportsIntegrityProtected) {
   auto ct = LoadRfc9580Vector("enc_symmetric_v2.pgp");
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)

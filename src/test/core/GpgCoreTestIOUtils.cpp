@@ -204,6 +204,95 @@ TEST(IOUtilsSafeOutputTest, CommitOfAMissingStagedFileKeepsTheOriginal) {
   EXPECT_EQ(content, QByteArray("original"));
 }
 
+TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
+  // An archive decryption stages a directory. Replacing an existing output
+  // directory must not leave the old one behind as a hidden backup.
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/archive";
+  ASSERT_TRUE(QDir().mkpath(final_path));
+  ASSERT_TRUE(WriteFile(final_path + "/old.txt", QByteArray("older")));
+
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  ASSERT_TRUE(QDir().mkpath(staged));
+  ASSERT_TRUE(WriteFile(staged + "/new.txt", QByteArray("newer")));
+
+  EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
+  EXPECT_TRUE(QFileInfo::exists(final_path + "/new.txt"));
+  EXPECT_FALSE(QFileInfo::exists(final_path + "/old.txt"));
+
+  const auto leftovers =
+      QDir(temp_dir.path())
+          .entryList({"*gpgfrontend.backup*"},
+                     QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+  EXPECT_TRUE(leftovers.isEmpty()) << leftovers.join(", ").toStdString();
+}
+
+TEST(IOUtilsSafeOutputTest, WorkDirsArePrivateAndUnpredictable) {
+  // A predictable, world-readable work directory in a shared folder can be
+  // created in advance by someone else, who could then plant links in it.
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  const QString first = MakeSafeOutputTempPath(final_path);
+  const QString second = MakeSafeOutputTempPath(final_path);
+  const QString first_dir = QFileInfo(first).absolutePath();
+  const QString second_dir = QFileInfo(second).absolutePath();
+
+  EXPECT_NE(first_dir, second_dir);
+  EXPECT_EQ(QFileInfo(first_dir).permissions() &
+                (QFileDevice::ReadGroup | QFileDevice::WriteGroup |
+                 QFileDevice::ExeGroup | QFileDevice::ReadOther |
+                 QFileDevice::WriteOther | QFileDevice::ExeOther),
+            QFileDevice::Permissions{});
+}
+
+TEST(IOUtilsSafeOutputTest, DiscardRemovesAStagedDirectoryWithItsContents) {
+  // A failed batch must not leave an extracted plaintext tree behind.
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString staged = MakeSafeOutputTempPath(temp_dir.path() + "/archive");
+  ASSERT_TRUE(QDir().mkpath(staged + "/nested"));
+  ASSERT_TRUE(WriteFile(staged + "/nested/secret.txt", QByteArray("plain")));
+
+  EXPECT_TRUE(DiscardSafeOutput(staged));
+  EXPECT_FALSE(QFileInfo::exists(staged));
+
+  RemoveSafeOutputWorkDir(staged);
+  EXPECT_FALSE(QFileInfo::exists(QFileInfo(staged).absolutePath()));
+}
+
+TEST(IOUtilsSafeOutputTest, DiscardRemovesAStagedFileAndToleratesNone) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString staged = MakeSafeOutputTempPath(temp_dir.path() + "/out.txt");
+  EXPECT_TRUE(DiscardSafeOutput(staged));  // nothing written yet
+  ASSERT_TRUE(WriteFile(staged, QByteArray("plain")));
+  EXPECT_TRUE(DiscardSafeOutput(staged));
+  EXPECT_FALSE(QFileInfo::exists(staged));
+  EXPECT_TRUE(DiscardSafeOutput({}));
+}
+
+TEST(IOUtilsSafeOutputTest, DiscardRemovesALinkWithoutFollowingIt) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString victim = temp_dir.path() + "/victim";
+  ASSERT_TRUE(QDir().mkpath(victim));
+  ASSERT_TRUE(WriteFile(victim + "/keep.txt", QByteArray("keep")));
+
+  const QString staged = MakeSafeOutputTempPath(temp_dir.path() + "/out");
+  ASSERT_TRUE(QFile::link(victim, staged));
+
+  EXPECT_TRUE(DiscardSafeOutput(staged));
+  EXPECT_FALSE(QFileInfo(staged).isSymLink());
+  EXPECT_TRUE(QFileInfo::exists(victim + "/keep.txt"));
+}
+
 TEST(IOUtilsSafeOutputTest, WorkDirIsRemovedOnlyOnceItIsEmpty) {
   QTemporaryDir temp_dir;
   ASSERT_TRUE(temp_dir.isValid());

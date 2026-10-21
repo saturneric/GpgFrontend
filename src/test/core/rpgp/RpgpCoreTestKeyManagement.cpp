@@ -382,6 +382,24 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRejectsEmptyFprTest) {
 }
 
 namespace {
+// RFC 9580 §12.4: "MUST NOT generate RSA keys of a size less than 3072 bits."
+// The rPGP channel must not offer smaller RSA sizes for generation.
+TEST_F(RpgpCoreTest, RpgpOffersNoRsaBelow3072ForGeneration) {
+  bool offers_rsa3072 = false;
+  for (const auto& algo :
+       KeyGenerateInfo::GetSupportedKeyAlgo(kRpgpChannelForUnitTest)) {
+    if (algo.Type() != "RSA") continue;
+    EXPECT_GE(algo.KeyLength(), 3072) << algo.Id().toStdString();
+    offers_rsa3072 = offers_rsa3072 || algo.KeyLength() == 3072;
+  }
+  for (const auto& algo :
+       KeyGenerateInfo::GetSupportedSubkeyAlgo(kRpgpChannelForUnitTest)) {
+    if (algo.Type() != "RSA") continue;
+    EXPECT_GE(algo.KeyLength(), 3072) << algo.Id().toStdString();
+  }
+  EXPECT_TRUE(offers_rsa3072);
+}
+
 // Generate an Ed25519 primary key on the rPGP channel with the requested key
 // format version and return the imported key, or nullptr on failure.
 auto GenerateRpgpKeyWithVersion(int version, const QString& email)
