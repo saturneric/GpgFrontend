@@ -46,6 +46,10 @@ struct GpgOperaCategory {
 struct GpgOperaContext;
 
 struct GpgOperaContextBasement {
+  // Each opera captures the GpgOperaContext it was built from, and that context
+  // holds a strong reference back to this basement — so this container owns a
+  // cycle. Whoever runs the operas must clear it once they are done, or the
+  // basement (with its keys and buffers) is never released.
   QContainer<OperaWaitingCb> operas;
   QContainer<GpgOperaResult> opera_results;
   GpgAbstractKeyPtrList keys;
