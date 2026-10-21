@@ -69,6 +69,16 @@ class TextEditTabWidget : public QTabWidget {
    */
   [[nodiscard]] auto CurPage() -> QWidget*;
 
+  /**
+   * @brief Mark the recovery cache as shutting down.
+   *
+   * Called before the pages are wiped on the way out. From then on an empty
+   * sweep of the tabs means their content is gone, not that there is nothing
+   * worth keeping, so it must not clear the recovery cache written moments
+   * earlier.
+   */
+  void MarkRecoveryShuttingDown();
+
  public slots:
 
   /**
@@ -190,6 +200,10 @@ class TextEditTabWidget : public QTabWidget {
   QList<QPointer<PlainTextEditorPage>> recovery_dirty_pages_;
   QPointer<PlainTextEditorPage> last_current_text_page_;
   bool recovery_restoring_ = false;
+  /// Set once the application is quitting. From that point an empty sweep of
+  /// the tabs means they have been destroyed, not that there is nothing to
+  /// keep, so it must never clear the recovery cache.
+  bool recovery_shutting_down_ = false;
   /**
    * @brief
    *

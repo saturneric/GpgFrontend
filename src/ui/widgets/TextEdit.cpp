@@ -406,6 +406,10 @@ void SetPlainTextFromBuffer(QPlainTextEdit* edit, const GFBuffer& buffer) {
 }  // namespace
 
 void TextEdit::WipeAllTabs() {
+  // The recovery snapshot was written while the tabs still held their content;
+  // the wipe below must not be mistaken for "nothing left to recover".
+  tab_widget_->MarkRecoveryShuttingDown();
+
   for (int i = 0; i < tab_widget_->count(); ++i) {
     if (auto* page =
             qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i))) {
