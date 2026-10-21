@@ -30,6 +30,7 @@
 
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QThread>
 #include <optional>
 
 namespace GpgFrontend {
@@ -59,16 +60,51 @@ auto PrimaryKeyAsSubKey(const GFKeyMetadata& meta) -> GFSubKeyMetadata {
 }  // namespace
 
 GFKeyDatabase::~GFKeyDatabase() {
-  if (db_.isOpen()) {
-    db_.close();
-  }
+  // Closed and removed by the thread that opened it.
+  run_on_owner([this]() {
+    if (db_.isOpen()) {
+      db_.close();
+    }
 
-  if (!connection_name_.isEmpty()) {
-    const auto conn_name = connection_name_;
-    db_ = QSqlDatabase();
-    QSqlDatabase::removeDatabase(conn_name);
-    connection_name_.clear();
+    if (!connection_name_.isEmpty()) {
+      const auto conn_name = connection_name_;
+      db_ = QSqlDatabase();
+      QSqlDatabase::removeDatabase(conn_name);
+      connection_name_.clear();
+    }
+  });
+
+  if (owner_ != nullptr) {
+    owner_->quit();
+    owner_->wait();
+    delete owner_anchor_;
+    owner_anchor_ = nullptr;
   }
+}
+
+auto GFKeyDatabase::on_owner_thread() const -> bool {
+  return owner_ == nullptr || QThread::currentThread() == owner_.get();
+}
+
+template <typename F>
+auto GFKeyDatabase::run_on_owner(F&& work) -> std::invoke_result_t<F> {
+  using R = std::invoke_result_t<F>;
+  if (on_owner_thread()) return work();
+
+  if constexpr (std::is_void_v<R>) {
+    QMetaObject::invokeMethod(owner_anchor_, std::forward<F>(work),
+                              Qt::BlockingQueuedConnection);
+  } else {
+    R result{};
+    QMetaObject::invokeMethod(
+        owner_anchor_, [&result, &work]() { result = work(); },
+        Qt::BlockingQueuedConnection);
+    return result;
+  }
+}
+
+auto GFKeyDatabase::RunExclusive(const std::function<bool()>& unit) -> bool {
+  return run_on_owner([&unit]() { return unit(); });
 }
 
 auto GFKeyDatabase::connect_db(const QString& path) -> bool {
@@ -92,6 +128,9 @@ auto GFKeyDatabase::connect_db(const QString& path) -> bool {
 }
 
 auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
+  if (!on_owner_thread()) {
+    return run_on_owner([this]() { return GetMetadataList(); });
+  }
   QContainer<GFKeyMetadata> list;
   QSqlQuery query(db_);
 
@@ -143,6 +182,9 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
 
 auto GFKeyDatabase::GetKeyBlocks(const QString& identifier)
     -> std::optional<GFKeyBlocks> {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return GetKeyBlocks(identifier); });
+  }
   QString real_primary_fpr = ResolvePrimaryFpr(identifier);
 
   if (real_primary_fpr.isEmpty()) {
@@ -166,6 +208,9 @@ auto GFKeyDatabase::GetKeyBlocks(const QString& identifier)
 
 auto GFKeyDatabase::GetKeyByIdentifier(const QString& identifier)
     -> std::optional<GFKey> {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return GetKeyByIdentifier(identifier); });
+  }
   QString real_primary_fpr = ResolvePrimaryFpr(identifier);
   if (real_primary_fpr.isEmpty()) {
     return std::nullopt;
@@ -185,6 +230,17 @@ auto GFKeyDatabase::GetKeyByIdentifier(const QString& identifier)
 }
 
 auto GFKeyDatabase::Init(const QString& path) -> bool {
+  if (owner_ == nullptr) {
+    owner_ = std::make_unique<QThread>();
+    owner_->setObjectName(QStringLiteral("GFKeyDatabase"));
+    owner_anchor_ = new QObject();
+    owner_anchor_->moveToThread(owner_.get());
+    owner_->start();
+  }
+  if (!on_owner_thread()) {
+    return run_on_owner([this, path]() { return Init(path); });
+  }
+
   QFileInfo db_home_info(path);
   if (!db_home_info.exists()) {
     LOG_E() << "key database home does not exist at path: " << path;
@@ -257,6 +313,9 @@ void GFKeyDatabase::secure_storage_permissions(const QString& db_dir,
 
 auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
                             const GFKeyBlocks& blocks, bool update_ts) -> bool {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return SaveKey(meta, blocks, update_ts); });
+  }
   if (!db_.transaction()) {
     return false;
   }
@@ -381,6 +440,9 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
 
 auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     -> std::optional<GFKeyMetadata> {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return GetKeyMetadata(identifier); });
+  }
   // 1. Use the magic resolver to find the true primary fingerprint
   QString real_primary_fpr = ResolvePrimaryFpr(identifier);
 
@@ -562,6 +624,9 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
 }
 
 auto GFKeyDatabase::DeleteKey(const QString& fpr) -> bool {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return DeleteKey(fpr); });
+  }
   auto primary_fpr = ResolvePrimaryFpr(fpr);
   if (primary_fpr.isEmpty()) {
     LOG_W() << "Attempted to delete non-existent key with identifier: " << fpr;
@@ -576,6 +641,9 @@ auto GFKeyDatabase::DeleteKey(const QString& fpr) -> bool {
 }
 
 auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return ResolvePrimaryFpr(identifier); });
+  }
   // 1. Clean up the identifier (remove spaces and force uppercase)
   QString clean_id = identifier.simplified();
   clean_id.remove(' ');
@@ -607,6 +675,9 @@ auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
   return {};
 }
 auto GFKeyDatabase::GetSchemaVersion() -> int {
+  if (!on_owner_thread()) {
+    return run_on_owner([this]() { return GetSchemaVersion(); });
+  }
   QSqlQuery query(db_);
   if (!query.exec("PRAGMA user_version;")) {
     LOG_E() << "failed to read PRAGMA user_version:"
@@ -622,6 +693,9 @@ auto GFKeyDatabase::GetSchemaVersion() -> int {
   return query.value(0).toInt();
 }
 auto GFKeyDatabase::DisableKey(const QString& fpr) -> bool {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return DisableKey(fpr); });
+  }
   auto real_primary_fpr = ResolvePrimaryFpr(fpr);
   if (real_primary_fpr.isEmpty()) {
     LOG_W() << "Attempted to disable non-existent key with identifier: " << fpr;

@@ -146,34 +146,41 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
 
   for (const auto& pd_gf_key : pd_gf_keys) {
     std::optional<GFKey> final_gf_key;
-    auto db_gf_key = key_db->GetKeyByIdentifier(pd_gf_key.metadata.fpr);
-    // should do merge if the key already exists
-    if (db_gf_key) {
-      LOG_I() << "key with fpr: " << pd_gf_key.metadata.fpr
-              << " already exists in database, merging with the imported key";
-      final_gf_key = MergeGFKeyRpgpImpl(
-          {pd_gf_key, *db_gf_key},
-          pd_gf_key.metadata.has_secret || db_gf_key->metadata.has_secret);
-    } else {
-      final_gf_key = pd_gf_key;
-    }
+    // Read, merge and save as one unit: a concurrent import or edit of the
+    // same key between the read and the save would otherwise be lost.
+    const bool saved = key_db->RunExclusive([&]() -> bool {
+      auto db_gf_key = key_db->GetKeyByIdentifier(pd_gf_key.metadata.fpr);
+      // should do merge if the key already exists
+      if (db_gf_key) {
+        LOG_I() << "key with fpr: " << pd_gf_key.metadata.fpr
+                << " already exists in database, merging with the imported "
+                   "key";
+        final_gf_key = MergeGFKeyRpgpImpl(
+            {pd_gf_key, *db_gf_key},
+            pd_gf_key.metadata.has_secret || db_gf_key->metadata.has_secret);
+      } else {
+        final_gf_key = pd_gf_key;
+      }
 
-    if (!final_gf_key) {
-      LOG_E() << "failed to merge key with fpr: " << pd_gf_key.metadata.fpr;
-      continue;
-    }
+      if (!final_gf_key) {
+        LOG_E() << "failed to merge key with fpr: " << pd_gf_key.metadata.fpr;
+        return false;
+      }
+      return SaveGFKeyToDatabase(*key_db, *final_gf_key);
+    });
 
-    if (CreateOrUpdateGFKeyInDatabase(ctx.GetChannel(), *final_gf_key)) {
+    if (saved) {
       info->imported_keys.push_back(
           {final_gf_key->metadata.fpr.toUpper(), GPG_ERR_NO_ERROR});
       info->imported += 1;
       info->considered += 1;
-    } else {
+    } else if (final_gf_key) {
       LOG_E() << "failed to import key with fpr: "
               << final_gf_key->metadata.fpr;
     }
   }
 
+  GpgKeyRepository::GetInstance(ctx.GetChannel()).FlushKeyCache();
   return info;
 }
 

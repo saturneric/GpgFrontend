@@ -97,9 +97,11 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   LOG_D() << "Successfully added UID: " << uid << " to key: " << key;
 
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
-    LOG_E() << "Failed to import updated key block after adding UID: " << uid
+  // Replace, not merge: a merge with a key another edit changed meanwhile
+  // would bring back what that edit removed.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
+                                gf_key->blocks)) {
+    LOG_E() << "Failed to store updated key block after adding UID: " << uid
             << " to key: " << key->Fingerprint();
     return false;
   }
@@ -174,7 +176,8 @@ auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   // Replace (do not merge), merging would re-add the deleted UID from the
   // existing database entry.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
+                                gf_key->blocks)) {
     LOG_E() << "Failed to store updated key block after deleting UID: " << uid
             << " from key: " << key->Fingerprint();
     return false;
@@ -246,7 +249,8 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   // Replace (do not merge) — merging would keep the previous primary UID's
   // self-signature and defeat the change.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
+                                gf_key->blocks)) {
     LOG_E() << "Failed to store updated key block after setting primary UID: "
             << uid << " for key: " << key->Fingerprint();
     return false;
@@ -332,7 +336,8 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   // Replace (do not merge) so the revocation self-signature is stored as the
   // authoritative state of the key.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
+                                gf_key->blocks)) {
     LOG_E() << "Failed to store updated key block after revoking UID: " << uid
             << " for key: " << key->Fingerprint();
     return false;

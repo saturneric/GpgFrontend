@@ -91,8 +91,11 @@ class OpenPGPContext::Impl {
     key_db_path_ = db_path_info.absoluteFilePath();
     assert(!key_db_path_.isEmpty());
 
-    key_db_ = SecureCreateSharedObject<GFKeyDatabase>();
-    good = key_db_->Init(key_db_path_);
+    // Published only once Init() has started its owner thread, so no other
+    // thread sees the database half set up.
+    auto key_db = SecureCreateSharedObject<GFKeyDatabase>();
+    good = key_db->Init(key_db_path_);
+    key_db_ = key_db;
 
     if (!good) {
       LOG_E() << "OpenPGPContext common initialization failed, channel: "

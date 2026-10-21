@@ -128,13 +128,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
   return keys;
 }
 
-auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
-  auto key_db = OpenPGPContext::GetInstance(channel).KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "key database is not initialized";
-    return false;
-  }
-
+auto SaveGFKeyToDatabase(GFKeyDatabase& key_db, const GFKey& key) -> bool {
   if (key.metadata.fpr.isEmpty()) {
     LOG_E() << "key metadata must contain a valid fingerprint";
     return false;
@@ -156,17 +150,28 @@ auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
     return false;
   }
 
-  auto succ = key_db->SaveKey(key.metadata, key.blocks);
-  if (!succ) {
+  if (!key_db.SaveKey(key.metadata, key.blocks)) {
     LOG_E() << "failed to save key with fpr: " << key.metadata.fpr;
     return false;
   }
-
-  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
-  return succ;
+  return true;
 }
 
-auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer) -> bool {
+auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
+  auto key_db = OpenPGPContext::GetInstance(channel).KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
+  }
+
+  if (!SaveGFKeyToDatabase(*key_db, key)) return false;
+
+  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
+  return true;
+}
+
+auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer,
+                              const GFKeyBlocks& before) -> bool {
   if (in_buffer.Empty()) {
     LOG_E() << "cannot replace key with an empty key block";
     return false;
@@ -178,13 +183,35 @@ auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer) -> bool {
     return false;
   }
 
-  bool ok = true;
-  for (const auto& gf_key : gf_keys) {
-    if (!CreateOrUpdateGFKeyInDatabase(channel, gf_key)) {
-      LOG_E() << "failed to replace key with fpr: " << gf_key.metadata.fpr;
-      ok = false;
-    }
+  auto key_db = OpenPGPContext::GetInstance(channel).KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
   }
+
+  const bool ok = key_db->RunExclusive([&]() -> bool {
+    for (const auto& gf_key : gf_keys) {
+      const auto current = key_db->GetKeyBlocks(gf_key.metadata.fpr);
+      if (!current || current->public_key != before.public_key ||
+          current->secret_key != before.secret_key) {
+        LOG_E() << "key was changed by another operation since this edit "
+                   "read it, not overwriting it, fpr: "
+                << gf_key.metadata.fpr;
+        return false;
+      }
+    }
+
+    bool saved = true;
+    for (const auto& gf_key : gf_keys) {
+      if (!SaveGFKeyToDatabase(*key_db, gf_key)) {
+        LOG_E() << "failed to replace key with fpr: " << gf_key.metadata.fpr;
+        saved = false;
+      }
+    }
+    return saved;
+  });
+
+  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
   return ok;
 }
 
@@ -249,6 +276,25 @@ auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
   return result;
 }
 
+auto PinMarkedSubkey(const GpgKey& key, const GFBuffer& key_block) -> GFBuffer {
+  for (const auto& sub : key.SubKeys()) {
+    if (!sub.IsMarked()) continue;
+    LOG_D() << "Using marked subkey with fpr: " << sub.Fingerprint()
+            << " instead of auto-selecting for key with fpr: "
+            << key.Fingerprint();
+    GFBuffer data;
+    data.Combine({GFBuffer(sub.Fingerprint().toUtf8() + "!\n"), key_block});
+    return data;
+  }
+  return key_block;
+}
+
+auto PinMarkedSubkey(const GpgAbstractKey& key, const GFBuffer& key_block)
+    -> GFBuffer {
+  const auto* gpg_key = dynamic_cast<const GpgKey*>(&key);
+  return gpg_key != nullptr ? PinMarkedSubkey(*gpg_key, key_block) : key_block;
+}
+
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
                                         const GpgKeyList& keys)
     -> QContainer<GFBuffer> {
@@ -262,27 +308,8 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
       continue;
     }
 
-    auto pkey_data = key_block->public_key;
-    auto data = pkey_data;
-
-    // Honor a user-pinned encryption subkey: prefix the armored block with
-    // "<fpr>!" so the rPGP engine encrypts to that specific subkey instead of
-    // auto-selecting. Mirrors ExportKeyBlockForSigning on the signing side.
-    for (const auto& sub : key.SubKeys()) {
-      if (sub.IsMarked()) {
-        LOG_D()
-            << "Using marked subkey with fpr: " << sub.Fingerprint()
-            << " for encryption instead of auto-selecting for key with fpr: "
-            << key.Fingerprint();
-        auto prefix = sub.Fingerprint().toUtf8() + "!\n";
-        data = GFBuffer();
-        data.Combine({GFBuffer(prefix), pkey_data});
-        break;
-      }
-    }
-
-    // Keep the QByteArray alive by pushing it to the vector
-    result.push_back(data);
+    // Honor a user-pinned encryption subkey instead of auto-selecting.
+    result.push_back(PinMarkedSubkey(key, key_block->public_key));
   }
 
   return result;
@@ -301,8 +328,8 @@ auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
       continue;
     }
 
-    // Keep the QByteArray alive by pushing it to the vector
-    result.push_back(key_block->secret_key);
+    // Honor a user-pinned signing subkey instead of auto-selecting.
+    result.push_back(PinMarkedSubkey(*k, key_block->secret_key));
   }
 
   return result;
@@ -419,7 +446,8 @@ auto GetKeyPtrRpgpImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
 
     // mark the subkey metadata as marked if the key_id is a subkey id
     for (auto& sub : meta_list->subkeys) {
-      if ((sub.fpr == sub.key_id || sub.fpr.contains(real_key_id))) {
+      if (!real_key_id.isEmpty() &&
+          sub.fpr.contains(real_key_id, Qt::CaseInsensitive)) {
         LOG_D() << "mark subkey with key id: " << real_key_id << " as marked";
         sub.marked = true;
         break;
@@ -464,7 +492,10 @@ auto FlushKeyDatabaseRpgpImpl(OpenPGPContext& ctx) -> bool {
 
   auto key_meta_list = key_db->GetMetadataList();
   for (const auto& meta : key_meta_list) {
-    if (!RefreshKeyMetaInDatabase(*key_db, meta.fpr)) {
+    // Read, re-parse and save as one unit, so a concurrent edit of the same
+    // key is not overwritten with what was read before it.
+    if (!key_db->RunExclusive(
+            [&]() { return RefreshKeyMetaInDatabase(*key_db, meta.fpr); })) {
       LOG_W() << "refresh key meta in database failed, fpr: " << meta.fpr;
     }
   }

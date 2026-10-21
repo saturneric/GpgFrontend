@@ -68,11 +68,29 @@ auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool;
  * represents the complete, desired final state and a merge would resurrect
  * removed data.
  *
+ * The edit was computed from @p before. If the stored key no longer holds
+ * those blocks, another operation changed it in between, and overwriting it
+ * would silently undo that change: nothing is saved and false is returned.
+ * The check and the save run as one unit (GFKeyDatabase::RunExclusive()).
+ *
  * @param channel OpenPGP context channel
  * @param in_buffer armored key block to store
+ * @param before the stored blocks the edit started from
  * @return true if all parsed keys were saved successfully
  */
-auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer) -> bool;
+auto GF_CORE_EXPORT ReplaceKeyInDatabaseRpgp(int channel,
+                                             const GFBuffer& in_buffer,
+                                             const GFKeyBlocks& before) -> bool;
+
+/**
+ * @brief Save @p key to @p key_db after checking it is complete.
+ *
+ * CreateOrUpdateGFKeyInDatabase() without the key cache flush, for use
+ * inside GFKeyDatabase::RunExclusive(): the flush must run outside it.
+ *
+ * @return true if the key was saved
+ */
+auto SaveGFKeyToDatabase(GFKeyDatabase& key_db, const GFKey& key) -> bool;
 
 /**
  * @brief Get the Key By Key Ids For Decryption object
@@ -84,6 +102,30 @@ auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer) -> bool;
 auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
                                  const QStringList& key_ids)
     -> std::optional<GFKey>;
+
+/**
+ * @brief The key block of @p key, pinned to the subkey the user picked.
+ *
+ * When one of the key's subkeys is marked (picked with a "<fpr>!" id), the
+ * block is prefixed with "<fpr>!\n" so the rPGP engine uses exactly that
+ * subkey instead of auto-selecting one. Otherwise the block is returned as is.
+ *
+ * @param key key the block belongs to
+ * @param key_block armored public or secret key block
+ * @return GFBuffer
+ */
+auto PinMarkedSubkey(const GpgKey& key, const GFBuffer& key_block) -> GFBuffer;
+
+/**
+ * @brief PinMarkedSubkey() for an abstract key; only a primary key (not a
+ * subkey or group) can carry a marked subkey.
+ *
+ * @param key key the block belongs to
+ * @param key_block armored public or secret key block
+ * @return GFBuffer
+ */
+auto PinMarkedSubkey(const GpgAbstractKey& key, const GFBuffer& key_block)
+    -> GFBuffer;
 
 /**
  * @brief Get the Public Keys By Key Ids For Encryption object

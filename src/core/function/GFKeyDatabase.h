@@ -29,6 +29,8 @@
 #pragma once
 
 #include <QSqlDatabase>
+#include <functional>
+#include <memory>
 #include <optional>
 
 #include "core/typedef/GFTypedef.h"
@@ -43,6 +45,15 @@ namespace GpgFrontend {
  * is closed and removed from the Qt registry on destruction. Call Init() before
  * any other method; schema creation and migration to the current version are
  * performed automatically at that point.
+ *
+ * Thread ownership: Qt allows a connection to be used only by the thread that
+ * created it, and QSQLITE opens SQLite without its own mutex. The instance is
+ * shared by the GUI thread, the task runners and module threads, so Init()
+ * starts one owner thread that creates, uses and closes the connection; every
+ * public method called from another thread runs there and blocks until it is
+ * done. That also serializes all access. A sequence of calls that must not
+ * interleave with another thread's (read, compute, write) goes through
+ * RunExclusive().
  */
 class GF_CORE_EXPORT GFKeyDatabase {
  public:
@@ -156,8 +167,35 @@ class GF_CORE_EXPORT GFKeyDatabase {
    */
   auto DisableKey(const QString& fpr) -> bool;
 
+  /**
+   * @brief Run @p unit on the owner thread, with no other access in between.
+   *
+   * Calls the unit makes on this database run directly. The unit must not
+   * wait for another thread that may itself be waiting on this database, and
+   * must not prompt the user: everyone else is blocked until it returns.
+   *
+   * @param unit the sequence to run
+   * @return what @p unit returned
+   */
+  auto RunExclusive(const std::function<bool()>& unit) -> bool;
+
  private:
   QSqlDatabase db_;          ///< SQLite database connection
+  std::unique_ptr<QThread> owner_;   ///< The only thread that touches db_
+  QObject* owner_anchor_ = nullptr;  ///< Lives on owner_, receives the calls
+
+  /**
+   * @brief Whether the calling thread may use the connection directly.
+   *
+   * @return true on the owner thread, or before Init() has started one
+   */
+  [[nodiscard]] auto on_owner_thread() const -> bool;
+
+  /**
+   * @brief Run @p work on the owner thread and hand back its result.
+   */
+  template <typename F>
+  auto run_on_owner(F&& work) -> std::invoke_result_t<F>;
   QString connection_name_;  ///< Unique connection name used to remove the
                              ///< connection on destruction
 
