@@ -424,6 +424,22 @@ void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
   SetPlainTextFromBuffer(edit, buffer);
 }
 
+auto TextEdit::SetGFBuffer2Page(const QPointer<QWidget>& page,
+                                const GFBuffer& buffer) -> bool {
+  // QPointer, so a destroyed page reads as null rather than as a stale
+  // address. Still alive is not the same as still ours: a page removed from
+  // the tab widget but not yet deleted must not be written to either.
+  auto* text_page = qobject_cast<PlainTextEditorPage*>(page.data());
+  if (page.isNull() || tab_widget_->indexOf(page) < 0 ||
+      text_page == nullptr || text_page->GetTextPage() == nullptr) {
+    LOG_W() << "discarding an operation result, its page is gone";
+    return false;
+  }
+
+  SetPlainTextFromBuffer(text_page->GetTextPage(), buffer);
+  return true;
+}
+
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
   SlotAppendText2CurTextPage(text, false);
 }

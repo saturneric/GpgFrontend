@@ -390,7 +390,11 @@ void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
 }
 
 void MainWindow::SlotCustomDecrypt(const QString& type) {
-  auto* page = edit_->CurPage();
+  // A QPointer, not a raw address: the callback below arrives an unbounded
+  // time later, by which point this tab may have been switched away from or
+  // closed outright. Results are addressed to THIS page rather than to
+  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
+  const QPointer<QWidget> page = edit_->CurPage();
   if (edit_->TabCount() == 0 || page == nullptr) return;
 
   auto event_id = QString("EDIT_TAB_TYPE_%1_OP_DECRYPT").arg(type.toUpper());
@@ -410,36 +414,51 @@ void MainWindow::SlotCustomDecrypt(const QString& type) {
   auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
-  Module::TriggerEvent(
-      event_id,
-      {
-          {"data", *sec_buf_base64},
-          {"channel", GFBuffer{QString::number(
-                          m_key_list_->GetCurrentGpgContextChannel())}},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        LOG_D() << event_id << " callback: " << i << ei;
+  // Wrapped like every other long-running crypto operation. Decrypt was the
+  // one that never was, so it alone ran with the whole window live underneath
+  // it. The dialog is a courtesy, not the correctness mechanism: that is the
+  // page-addressed write below, which holds whether or not a modal is up.
+  GpgOperaHelper::WaitForOpera(
+      this, tr("Decrypting"),
+      [this, event_id, sec_buf_base64, page](const OperaWaitingHd& hd) {
+        Module::TriggerEvent(
+            event_id,
+            {
+                {"data", *sec_buf_base64},
+                {"channel", GFBuffer{QString::number(
+                                m_key_list_->GetCurrentGpgContextChannel())}},
+            },
+            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+                Module::Event::Params p) {
+              LOG_D() << event_id << " callback: " << i << ei;
 
-        // check if error occurred
-        if (handle_module_error(p)) return -1;
+              // end waiting dialog
+              hd();
 
-        if (p.contains("data")) {
-          edit_->SlotSetGFBuffer2CurTextPage(p["data"]);
-        }
+              // check if error occurred
+              if (handle_module_error(p)) return -1;
 
-        if (p.contains("result") && p.contains("result_status")) {
-          slot_refresh_info_board(
-              p.value("result_status").ConvertToQString().toInt(),
-              p.value("result").ConvertToQString());
-        }
+              if (p.contains("data")) {
+                edit_->SetGFBuffer2Page(page, p["data"]);
+              }
 
-        return 0;
+              if (p.contains("result") && p.contains("result_status")) {
+                slot_refresh_info_board(
+                    p.value("result_status").ConvertToQString().toInt(),
+                    p.value("result").ConvertToQString());
+              }
+
+              return 0;
+            });
       });
 }
 
 void MainWindow::SlotCustomVerify(const QString& type) {
-  auto* page = edit_->CurPage();
+  // A QPointer, not a raw address: the callback below arrives an unbounded
+  // time later, by which point this tab may have been switched away from or
+  // closed outright. Results are addressed to THIS page rather than to
+  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
+  const QPointer<QWidget> page = edit_->CurPage();
   if (edit_->TabCount() == 0 || page == nullptr) return;
 
   auto event_id = QString("EDIT_TAB_TYPE_%1_OP_VERIFY").arg(type.toUpper());
@@ -461,7 +480,7 @@ void MainWindow::SlotCustomVerify(const QString& type) {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Verifying"),
-      [this, event_id, sec_buf_base64](const OperaWaitingHd& hd) {
+      [this, event_id, sec_buf_base64, page](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             event_id,
             {
@@ -491,7 +510,11 @@ void MainWindow::SlotCustomVerify(const QString& type) {
 }
 
 void MainWindow::SlotCustomEncrypt(const QString& type) {
-  auto* page = edit_->CurPage();
+  // A QPointer, not a raw address: the callback below arrives an unbounded
+  // time later, by which point this tab may have been switched away from or
+  // closed outright. Results are addressed to THIS page rather than to
+  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
+  const QPointer<QWidget> page = edit_->CurPage();
   if (edit_->TabCount() == 0 || page == nullptr) return;
 
   auto event_id = QString("EDIT_TAB_TYPE_%1_OP_ENCRYPT").arg(type.toUpper());
@@ -524,7 +547,8 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
-      [this, event_id, sec_buf_base64, key_ids](const OperaWaitingHd& hd) {
+      [this, event_id, sec_buf_base64, key_ids,
+       page](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             event_id,
             {
@@ -545,7 +569,7 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
               if (handle_module_error(p)) return -1;
 
               if (!p["data"].Empty()) {
-                edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
+                edit_->SetGFBuffer2Page(page, p.value("data"));
               }
 
               if (p.contains("result") && p.contains("result_status")) {
@@ -560,7 +584,11 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
 }
 
 void MainWindow::SlotCustomSign(const QString& type) {
-  auto* page = edit_->CurPage();
+  // A QPointer, not a raw address: the callback below arrives an unbounded
+  // time later, by which point this tab may have been switched away from or
+  // closed outright. Results are addressed to THIS page rather than to
+  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
+  const QPointer<QWidget> page = edit_->CurPage();
   if (edit_->TabCount() == 0 || page == nullptr) return;
 
   auto event_id = QString("EDIT_TAB_TYPE_%1_OP_SIGN").arg(type.toUpper());
@@ -599,7 +627,8 @@ void MainWindow::SlotCustomSign(const QString& type) {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Signing"),
-      [this, event_id, sec_buf_base64, key_ids](const OperaWaitingHd& hd) {
+      [this, event_id, sec_buf_base64, key_ids,
+       page](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             event_id,
             {
@@ -619,7 +648,7 @@ void MainWindow::SlotCustomSign(const QString& type) {
               if (handle_module_error(p)) return -1;
 
               if (!p["data"].Empty()) {
-                edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
+                edit_->SetGFBuffer2Page(page, p.value("data"));
               }
 
               if (p.contains("result") && p.contains("result_status")) {
@@ -634,7 +663,11 @@ void MainWindow::SlotCustomSign(const QString& type) {
 }
 
 void MainWindow::SlotCustomEncryptSign(const QString& type) {
-  auto* page = edit_->CurPage();
+  // A QPointer, not a raw address: the callback below arrives an unbounded
+  // time later, by which point this tab may have been switched away from or
+  // closed outright. Results are addressed to THIS page rather than to
+  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
+  const QPointer<QWidget> page = edit_->CurPage();
   if (edit_->TabCount() == 0 || page == nullptr) return;
 
   auto event_id =
@@ -693,8 +726,8 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
-      [this, event_id, sec_buf_base64, key_ids,
-       signer_keys](const OperaWaitingHd& hd) {
+      [this, event_id, sec_buf_base64, key_ids, signer_keys,
+       page](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             event_id,
             {
@@ -715,7 +748,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
               if (handle_module_error(p)) return -1;
 
               if (!p["data"].Empty()) {
-                edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
+                edit_->SetGFBuffer2Page(page, p.value("data"));
               }
 
               if (p.contains("result") && p.contains("result_status")) {
@@ -730,7 +763,11 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
 }
 
 void MainWindow::SlotCustomDecryptVerify(const QString& type) {
-  auto* page = edit_->CurPage();
+  // A QPointer, not a raw address: the callback below arrives an unbounded
+  // time later, by which point this tab may have been switched away from or
+  // closed outright. Results are addressed to THIS page rather than to
+  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
+  const QPointer<QWidget> page = edit_->CurPage();
   if (edit_->TabCount() == 0 || page == nullptr) return;
 
   auto event_id =
@@ -754,7 +791,7 @@ void MainWindow::SlotCustomDecryptVerify(const QString& type) {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),
-      [this, event_id, sec_buf_base64](const OperaWaitingHd& hd) {
+      [this, event_id, sec_buf_base64, page](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             event_id,
             {
@@ -773,7 +810,7 @@ void MainWindow::SlotCustomDecryptVerify(const QString& type) {
               if (handle_module_error(p)) return -1;
 
               if (!p["data"].Empty()) {
-                edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
+                edit_->SetGFBuffer2Page(page, p.value("data"));
               }
 
               if (p.contains("result") && p.contains("result_status")) {

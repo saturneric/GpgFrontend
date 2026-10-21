@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <QPointer>
+
 #include "core/model/GFBuffer.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -398,6 +400,22 @@ class TextEdit : public QWidget {
    * @param buffer Buffer to convert and insert.
    */
   void SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer);
+
+  /**
+   * @brief Writes operation output back to the page that asked for it.
+   *
+   * A crypto operation runs on another thread and its callback arrives an
+   * unbounded time later. By then the user may have switched tabs, or closed
+   * the one the operation started from. Writing to whatever tab is current at
+   * that moment would put the result into an unrelated document.
+   *
+   * @param page the page that initiated the operation
+   * @param buffer the bytes to write
+   * @return true if the bytes were written; false if the page is gone or is
+   *         no longer a text page, in which case nothing is written anywhere
+   */
+  auto SetGFBuffer2Page(const QPointer<QWidget>& page, const GFBuffer& buffer)
+      -> bool;
 
   /**
    * @brief Returns the underlying tab widget.
