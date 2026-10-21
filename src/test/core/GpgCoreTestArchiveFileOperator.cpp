@@ -31,6 +31,7 @@
 #include <QFileInfo>
 #include <QSharedPointer>
 #include <QTemporaryDir>
+#include <atomic>
 #include <thread>
 
 #ifndef Q_OS_WINDOWS
@@ -549,6 +550,76 @@ TEST(ArchiveFileOperatorTest, StrictRefusesHardlink) {
   EXPECT_NE(ExtractSync(ExchangerWith(tar), temp_dir.path() + "/dest",
                         ArchiveExtractPolicy::Strict()),
             0);
+}
+
+// A hard link target is resolved by libarchive on its own, against the working
+// directory and not the destination. An archive linking to a file outside the
+// destination and then carrying a body must not reach that file.
+TEST(ArchiveFileOperatorTest, PermissiveRefusesHardlinkEscapingDestination) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto dest = temp_dir.path() + "/dest";
+  ASSERT_TRUE(QDir().mkpath(dest));
+
+  const auto victim = temp_dir.path() + "/victim.txt";
+  CreateTestFile(temp_dir.path(), "victim.txt", "original");
+
+  for (const auto& link_name :
+       {victim.toUtf8(), QByteArray("../victim.txt")}) {
+    QByteArray tar;
+    tar.append(TarHeader("b.txt", '1', 5, link_name));
+    tar.append(TarPad("owned"));
+    tar.append(TarEnd());
+
+    EXPECT_NE(ExtractSync(ExchangerWith(tar), dest,
+                          ArchiveExtractPolicy::Permissive()),
+              0)
+        << link_name.toStdString();
+
+    QFile f(victim);
+    ASSERT_TRUE(f.open(QIODevice::ReadOnly));
+    EXPECT_EQ(f.readAll(), QByteArray("original"));
+    EXPECT_FALSE(QFileInfo::exists(dest + "/b.txt"));
+  }
+}
+
+// When an entry is refused, the producer feeding the exchanger may still have
+// far more than the exchanger can buffer left to write. Extraction must release
+// it instead of leaving it blocked on a queue that nobody reads any more.
+TEST(ArchiveFileOperatorTest, ARefusedEntryReleasesTheProducer) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto dest = temp_dir.path() + "/dest";
+  ASSERT_TRUE(QDir().mkpath(dest));
+
+  QByteArray head;
+  head.append(TarHeader("../escape.txt", '0', 5));
+  head.append(TarPad("owned"));
+
+  auto ex = GpgFrontend::CreateStandardGFDataExchanger();
+  std::atomic_bool producer_done = false;
+  std::thread producer([&]() {
+    ex->Write(reinterpret_cast<const std::byte*>(head.constData()),
+              head.size());
+    const QByteArray chunk(64 * 1024, 'x');
+    for (int i = 0; i < 256; ++i) {  // 16 MB, well past the 4 MB queue
+      if (ex->Write(reinterpret_cast<const std::byte*>(chunk.constData()),
+                    chunk.size()) < 0) {
+        break;
+      }
+    }
+    ex->CloseWrite();
+    producer_done = true;
+  });
+
+  EXPECT_NE(ExtractSync(ex, dest, ArchiveExtractPolicy::Permissive()), 0);
+
+  WAIT_FOR_TRUE(producer_done, 5000);
+  const bool released = producer_done;
+  if (!released) ex->CloseWrite();  // do not hang the suite on failure
+  producer.join();
+  EXPECT_TRUE(released);
+  EXPECT_FALSE(QFileInfo::exists(temp_dir.path() + "/escape.txt"));
 }
 
 TEST(ArchiveFileOperatorTest, StrictRefusesDeviceAndFifoEntries) {

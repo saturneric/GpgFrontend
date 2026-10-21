@@ -424,12 +424,14 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           if (!QDir().mkpath(target_path)) {
             FLOG_W("cannot create extraction destination: %s",
                    qPrintable(target_path));
+            ex->CloseWrite();
             return -1;
           }
         } else if (!dir.isEmpty(QDir::AllEntries | QDir::NoDotAndDotDot |
                                 QDir::Hidden | QDir::System)) {
           FLOG_W("refusing to extract into a non-empty destination: %s",
                  qPrintable(target_path));
+          ex->CloseWrite();
           return -1;
         }
         may_remove_destination = true;
@@ -444,6 +446,10 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
       auto *ext = archive_write_disk_new();
 
       auto fail = [&](int code) -> GFError {
+        // Stop the producer as well: it is blocked writing the rest of the
+        // stream into a bounded exchanger nobody reads any more, and would
+        // otherwise wait forever once the queue is full.
+        ex->CloseWrite();
         archive_read_free(archive);
         archive_write_free(ext);
         if (may_remove_destination) QDir(target_path).removeRecursively();
@@ -546,6 +552,36 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
                  qPrintable(path_name));
           ret = -1;
           break;
+        }
+
+        // A hard link's target is a second pathname that libarchive resolves
+        // on its own, relative to the process working directory rather than
+        // the destination. Left as the archive wrote it, an entry linking to
+        // an absolute or `..` path (and then carrying a body) would write into
+        // a file outside the destination. Hold the target to the same rules as
+        // the entry name and anchor it under the destination.
+        if (is_hardlink) {
+          const auto link_name =
+              QString::fromUtf8(archive_entry_hardlink(entry));
+          QString link_relative_path;
+          const auto link_verdict =
+              ValidateArchiveEntryPath(link_name, policy, link_relative_path);
+          if (link_verdict != ArchiveEntryVerdict::kACCEPT) {
+            FLOG_W("refusing archive entry '%s': hard link target '%s': %s",
+                   qPrintable(path_name), qPrintable(link_name),
+                   ArchiveEntryVerdictToString(link_verdict));
+            ret = -1;
+            break;
+          }
+
+          const auto link_target = write_root + "/" + link_relative_path;
+#ifdef Q_OS_WINDOWS
+          auto link_target_utf16_wstr = std::wstring(
+              reinterpret_cast<const wchar_t *>(link_target.utf16()));
+          archive_entry_copy_hardlink_w(entry, link_target_utf16_wstr.c_str());
+#else
+          archive_entry_set_hardlink(entry, link_target.toUtf8());
+#endif
         }
 
         // a set-user-id bit inside an archive is never something the
