@@ -31,6 +31,7 @@
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
 
 //
@@ -109,18 +110,31 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
   }
 
   auto f = [=](const OperaWaitingHd& hd) {
-    auto [ret, err] = GpgSmartCardManager::GetInstance(channel_).GenerateKey(
+    auto [err, detail] = GpgSmartCardManager::GetInstance(channel_).GenerateKey(
         serial_number_, ui_->nameEdit->text(), ui_->emailEdit->text(),
         ui_->commentEdit->text(), ui_->dateEdit->dateTime(),
         ui_->nonExpireCheckBox->isChecked());
 
     hd();
 
+    if (err != GPG_ERR_NO_ERROR) {
+      // Report the failure on the still-open dialog so the user can adjust and
+      // retry; success is handled below.
+      CommonUtils::RaiseMessageBox(this, err);
+      return;
+    }
+
+    // Success: refresh the key database, then close the dialog and confirm to
+    // the user anchored to the parent window, so the success notice doesn't
+    // appear layered over a dialog that is about to disappear.
     connect(UISignalStation::GetInstance(),
-            &UISignalStation::SignalKeyDatabaseRefreshDone, this,
-            [=, ret = ret]() {
-              emit finished(ret == GPG_ERR_NO_ERROR ? 1 : -1);
+            &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
+              auto* notify_parent = this->parentWidget();
+              emit finished(1);
               this->close();
+              QMessageBox::information(
+                  notify_parent, tr("Success"),
+                  tr("Card key generation completed successfully."));
             });
 
     UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
