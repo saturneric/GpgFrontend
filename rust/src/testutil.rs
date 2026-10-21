@@ -742,6 +742,46 @@ pub mod keys {
     /// For already-expired behaviour use the committed
     /// [`crate::testutil::corpus::AUX_EXPIRED_CERT`], which was minted with a
     /// past expiry precisely for this purpose.
+    /// v4 RSA-1024 primary (sign, certify) + RSA-1024 encryption subkey,
+    /// generated once with GnuPG 2.4 (unprotected). Neither GF nor rPGP will
+    /// generate such a key (RFC 9580 §12.4), so it stands in for an old
+    /// imported key that GF must refuse to use.
+    pub static V4_RSA1024: Lazy<Fixture> = Lazy::new(|| fixture_from(reparse(RSA1024_SECRET)));
+
+    const RSA1024_SECRET: &str = r"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQHYBGrX0zUBBADD3X9GN8IMYaJYs82kNaX/i09AInAqPcyGzmuWajHGFrQcrv9+
+QY1XVYJBywQmBMZfTyYQbKtLuF+Gd+2Cblr7W1pM4xqaCzSx3TeVkzCpWVeSj2gq
+X8n1YbrhqJqKRzEE5EY1Cht5hXlnSiWvY2beZWUkijkI6kU23ogR1R4aJwARAQAB
+AAP/VRR+GM5XqHEwyD8ycMYtGVg2ULGk73Rwx44bBfeTL2zlSCBsMzfeYbVvI41A
+fBNO6E/FRRUvQ3EPbaXiseml8w1w+bVpPFsj6QbBbQMAvlzLRKRw/CM76HTttHHa
+APX4ibwSdx50oUBazPhlqySyHma/PQ5Wo19fMfkPx/hjY8ECAMPtlr3WA3qqUt8P
+3hOJqSLjmC4kwgTgLrCQ9H4g3LN/i8FWr2AeQKt9tF3Ro7BJveP468Oe9N7u+hGy
+aA0IYukCAP/q+X8PHto0gjg5mJir/QiTjAajxEHOOcoJJSzva1HtHUyNJp9YHxaF
+ReeXrIBP/zmu8sN5p1w19crplNhryo8CAO6cIgZwvLbaEv9jiYMV9eTi+VF9+A7X
+WHMPhMx048TenPoeCn65tf9mxOL4n0lHsXsgGpJYD2paoezsCVe4+A6k+7QfUlNB
+IDEwMjQgPHJzYTEwMjRAdGVzdC5leGFtcGxlPojOBBMBCgA4FiEE3k5RkBwVhBtJ
+p57+cdGo3WXK0LoFAmrX0zUCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgECF4AACgkQ
+cdGo3WXK0LonVgQAv8cQl3rgP2ufnINqEqpUGzE0AGrRNDaTUfOvokKD3MNPGYol
+A3Ga3W3TSWMM3+iFUuw66/iXGKMpkDhpAi1htTwi31R7H3uCA0fK9CiyepKOzQya
+LIw1mWLtrArMB53aWTVLn0z0pQK4/kAQkFOkuJBjvut8ds/MLgX5qdnwR/ydAdgE
+atfTNQEEAJnicjBprzlo+YXYJoNojlvnKxuC2VEyq98QzrMzOtcAGVi7luYCf9IC
+7kwKPKgWSutxW17w3laP2X2nFzGygwTBZLENnBF1+OHQf8phV5jCYTeHUloxXcII
+gKrQcQrbIJsYVZ+eUuZktYCoHqNW0aIwMl2wNsgbTwkYgZ5e0SyJABEBAAEAA/0R
+nStf4kD1y8+/48Foyjd9SoUTJZOVaTzmEAjw1xzVjkPYdcRseH3D/qTjHErcHI0f
+zP5d7Cku9FE7Qjxz6lB3tezzDY+xXHmccB7veUFmNH0QI/toyMp0tgUpwxXidZ+K
+PJwoXVGdQkCvp6FL8IvIFF0ZNbUiJ9th7wOYFzJpzwIAwS5XrUM0VMzUhZ/RDI9k
+pWFOlh4drSqCPDvbgUNFwO5EugfXgsnfiropEg0o/Gtt19QW22zRWC/qIe3iwAFk
+ZwIAy+zOptgXDbiNwPlYAjegwkPisg0eSmG2Xw0bD8imzDezNFTy+KRBz0A6yin+
+1myqyxhziyY2aJDJU4UJsR7RjwIAhrKxzr+JUIRTh/8LV5j+aYfVvzoMpNioPq45
+b00ZSQpl5O7Yqc6Lo3puaCc/ExMATssxr486s4qsK5m/lNEszJ6YiLYEGAEKACAW
+IQTeTlGQHBWEG0mnnv5x0ajdZcrQugUCatfTNQIbDAAKCRBx0ajdZcrQuonoA/9Y
+xZ2RD21yzuAC5i2j+yyyqL/d1dwAAdbWXpha0dlPbvELHMUCZO9CXuku4kO+ye/L
+sXEz2yrRo+4pNpIx9aVIxpu+BoVtMweoFb6XOgQwhm1mCywXRuqUImYCRlrI0WYB
+kNl6eEN+fsTGbm+i2S1SGleCuh6yLEONt4TkhMjYIg==
+=u2L9
+-----END PGP PRIVATE KEY BLOCK-----";
+
     pub static V4_SHORT_EXPIRY: Lazy<Fixture> = Lazy::new(|| {
         let base = &*V4_SIGN;
         let created = u64::from(base.secret.primary_key.created_at().as_secs());
@@ -1199,6 +1239,15 @@ pub mod assert {
 
     /// RFC 9580 §6.1: v6 material MUST NOT carry a CRC24 footer, and this
     /// engine never emits one at all (see [`crate::utils::armor_opts`]).
+    pub fn armor_has_crc24(armored: &str) {
+        assert!(
+            armored
+                .lines()
+                .any(|line| line.starts_with('=') && line.len() == 5),
+            "v4-only armor must carry a CRC24 footer:\n{armored}"
+        );
+    }
+
     pub fn armor_has_no_crc24(armored: &str) {
         for line in armored.lines() {
             assert!(
@@ -1479,6 +1528,85 @@ pub mod seipd {
         builder.to_writer(&mut rng, out).expect("write");
     }
 
+    /// A message encrypted both to `recipient`'s encryption subkey (PKESK) and
+    /// with `password` (SKESK), in a SEIPD v2 (AES-256/OCB) container when
+    /// `v2`, else SEIPD v1 (AES-256). GF never writes such messages; other
+    /// implementations do (RFC 9580 §3.7.2.2).
+    pub fn mixed_message(
+        recipient: &keys::Fixture,
+        password: &str,
+        payload: &[u8],
+        v2: bool,
+    ) -> Vec<u8> {
+        use pgp::composed::{Deserializable, MessageBuilder, SignedPublicKey};
+        use pgp::crypto::aead::{AeadAlgorithm, ChunkSize};
+        use pgp::crypto::hash::HashAlgorithm;
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        use pgp::types::{KeyDetails, Password, StringToKey};
+        let cert = SignedPublicKey::from_string(&recipient.public_armored)
+            .expect("parses")
+            .0;
+        let subkey = cert
+            .public_subkeys
+            .iter()
+            .find(|s| s.key.algorithm().can_encrypt())
+            .expect("an encryption subkey");
+        let pw = Password::from(password);
+        let mut rng = rand::thread_rng();
+        let builder = MessageBuilder::from_bytes("", payload.to_vec());
+        if v2 {
+            let mut b = builder.seipd_v2(
+                &mut rng,
+                SymmetricKeyAlgorithm::AES256,
+                AeadAlgorithm::Ocb,
+                ChunkSize::default(),
+            );
+            b.encrypt_to_key(&mut rng, subkey).expect("v6 PKESK");
+            // Cheap Argon2 (t=1, p=1, 2^8 KiB): tests, not storage.
+            let s2k = StringToKey::new_argon2(&mut rng, 1, 1, 8);
+            b.encrypt_with_password(&mut rng, s2k, &pw)
+                .expect("v6 SKESK");
+            b.to_vec(&mut rng).expect("write")
+        } else {
+            let mut b = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
+            b.encrypt_to_key(&mut rng, subkey).expect("v3 PKESK");
+            let s2k = StringToKey::new_iterated(&mut rng, HashAlgorithm::Sha256, 96);
+            b.encrypt_with_password(s2k, &pw).expect("v4 SKESK");
+            b.to_vec(&mut rng).expect("write")
+        }
+    }
+
+    /// A v3 PKESK to `recipient` followed by a SEIPD v1 whose decrypted body
+    /// is exactly `inner`: arbitrary, possibly malformed, packets that only
+    /// become visible after the integrity check passed.
+    pub fn v1_with_inner(recipient: &keys::Fixture, inner: &[u8]) -> Vec<u8> {
+        use pgp::composed::{Deserializable, SignedPublicKey};
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+        use pgp::packet::{Packet, PublicKeyEncryptedSessionKey, SymEncryptedProtectedData};
+        use pgp::ser::Serialize;
+        use pgp::types::KeyDetails;
+        let cert = SignedPublicKey::from_string(&recipient.public_armored)
+            .expect("parses")
+            .0;
+        let subkey = cert
+            .public_subkeys
+            .iter()
+            .find(|s| s.key.algorithm().can_encrypt())
+            .expect("an encryption subkey");
+        let mut rng = rand::thread_rng();
+        let alg = SymmetricKeyAlgorithm::AES256;
+        let session_key = alg.new_session_key(&mut rng);
+        let pkesk =
+            PublicKeyEncryptedSessionKey::from_session_key_v3(&mut rng, &session_key, alg, subkey)
+                .expect("v3 PKESK");
+        let seipd =
+            SymEncryptedProtectedData::encrypt_seipdv1(&mut rng, alg, session_key.as_ref(), inner)
+                .expect("SEIPD v1");
+        let mut out = Packet::from(pkesk).to_bytes().expect("PKESK bytes");
+        out.extend(Packet::from(seipd).to_bytes().expect("SEIPD bytes"));
+        out
+    }
+
     /// The message (in memory) encrypted to the certificate `recipient`.
     pub fn message(recipient: &str, payload: &[u8], signer: Option<&keys::Fixture>) -> Vec<u8> {
         let signers: Vec<&str> = signer.iter().map(|k| k.secret_armored.as_str()).collect();
@@ -1734,6 +1862,58 @@ pub mod interop {
                 "gpg --decrypt",
             )
         }
+
+        /// Run `gpg --decrypt` with `password` as the message passphrase,
+        /// returning the raw output so a refusal can be asserted too.
+        pub fn decrypt_with_password(&self, password: &str, data: &[u8]) -> Output {
+            let msg = self.home.path().join("in.pgp");
+            std::fs::write(&msg, data).unwrap();
+            self.gpg([
+                OsStr::new("--passphrase"),
+                OsStr::new(password),
+                OsStr::new("--decrypt"),
+                msg.as_os_str(),
+            ])
+        }
+
+        /// Encrypt `data` both to `recipient_fpr` (PKESK) and with `password`
+        /// (SKESK) in one message.
+        pub fn encrypt_mixed(&self, recipient_fpr: &str, password: &str, data: &[u8]) -> Vec<u8> {
+            let input = self.home.path().join("plain.bin");
+            let out = self.home.path().join("mixed.pgp");
+            std::fs::write(&input, data).unwrap();
+            check(
+                self.gpg([
+                    OsStr::new("--trust-model"),
+                    OsStr::new("always"),
+                    OsStr::new("--passphrase"),
+                    OsStr::new(password),
+                    OsStr::new("--recipient"),
+                    OsStr::new(recipient_fpr),
+                    OsStr::new("--output"),
+                    out.as_os_str(),
+                    OsStr::new("--symmetric"),
+                    OsStr::new("--encrypt"),
+                    input.as_os_str(),
+                ]),
+                "gpg --symmetric --encrypt",
+            );
+            std::fs::read(&out).unwrap()
+        }
+
+        /// `gpg --verify` of a detached signature (`Some(data)`) or of an
+        /// inline/cleartext message (`None`), against imported certificates.
+        pub fn verify(&self, signature: &[u8], data: Option<&[u8]>) -> Output {
+            let sig = self.home.path().join("sig.asc");
+            std::fs::write(&sig, signature).unwrap();
+            let mut args = vec![OsStr::new("--verify").to_os_string(), sig.into_os_string()];
+            if let Some(data) = data {
+                let path = self.home.path().join("signed.bin");
+                std::fs::write(&path, data).unwrap();
+                args.push(path.into_os_string());
+            }
+            self.gpg(args)
+        }
     }
 
     impl Drop for Gnupg {
@@ -1797,6 +1977,66 @@ pub mod interop {
             args.push("--binary".into());
             args.push(input.into());
             check(self.sq(args), "sq encrypt")
+        }
+
+        /// Encrypt `data` both to the certificate `cert` (PKESK) and with
+        /// `password` (SKESK) in one message.
+        pub fn encrypt_mixed(&self, cert: &str, password: &str, data: &[u8]) -> Vec<u8> {
+            let cert = self.file("cert.asc", cert.as_bytes());
+            let pw = self.file("msg.pw", password.as_bytes());
+            let input = self.file("plain.bin", data);
+            check(
+                self.sq([
+                    OsStr::new("encrypt"),
+                    OsStr::new("--for-file"),
+                    cert.as_os_str(),
+                    OsStr::new("--with-password-file"),
+                    pw.as_os_str(),
+                    OsStr::new("--without-signature"),
+                    OsStr::new("--binary"),
+                    input.as_os_str(),
+                ]),
+                "sq encrypt (mixed)",
+            )
+        }
+
+        /// Decrypt `data` with the message `password` only.
+        pub fn decrypt_with_password(&self, password: &str, data: &[u8]) -> Vec<u8> {
+            let pw = self.file("msg.pw", password.as_bytes());
+            let msg = self.file("msg.pgp", data);
+            check(
+                self.sq([
+                    OsStr::new("decrypt"),
+                    OsStr::new("--password-file"),
+                    pw.as_os_str(),
+                    msg.as_os_str(),
+                ]),
+                "sq decrypt (password)",
+            )
+        }
+
+        /// `sq verify` against `cert`: a detached `signature` over `data`
+        /// (`Some(data)`), or a cleartext signed message (`None`).
+        pub fn verify(&self, cert: &str, signature: &[u8], data: Option<&[u8]>) -> Output {
+            let cert = self.file("signer.cert", cert.as_bytes());
+            let sig = self.file("sig.asc", signature);
+            let mut args = vec![
+                OsStr::new("verify").to_os_string(),
+                OsStr::new("--signer-file").to_os_string(),
+                cert.into_os_string(),
+            ];
+            match data {
+                Some(data) => {
+                    args.push(OsStr::new("--signature-file").to_os_string());
+                    args.push(sig.into_os_string());
+                    args.push(self.file("signed.bin", data).into_os_string());
+                }
+                None => {
+                    args.push(OsStr::new("--cleartext").to_os_string());
+                    args.push(sig.into_os_string());
+                }
+            }
+            self.sq(args)
         }
 
         /// Decrypt `data` with the secret key `key` (armored) and `password`.

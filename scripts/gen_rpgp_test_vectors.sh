@@ -163,8 +163,8 @@ SQ encrypt --without-signature --for-file "$WORK/key1.cert" \
 SQ encrypt --without-signature --for-file "$WORK/aux_v6.cert" \
   --output "$VEC_DIR/enc_v2seipd_ocb.pgp" --binary "$PAYLOAD"
 
-# enc_multi_recipient.pgp: three PKESK packets (key1+key2+key3). Any one of the
-# fixture secrets decrypts it.
+# enc_multi_recipient.pgp: one v3 PKESK per encryption subkey of key1, key2 and
+# key3 (five in the committed vector). Any one of the fixture secrets decrypts it.
 SQ encrypt --without-signature \
   --for-file "$WORK/key1.cert" --for-file "$WORK/key2.cert" --for-file "$WORK/key3.cert" \
   --output "$VEC_DIR/enc_multi_recipient.pgp" --binary "$PAYLOAD"
@@ -174,7 +174,10 @@ printf '%s' "$PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
   --passphrase-fd 0 --cipher-algo AES256 --symmetric \
   --output "$VEC_DIR/enc_symmetric_v1.pgp" "$PAYLOAD" 2>/dev/null
 
-# enc_symmetric_v2.pgp: password-based + v2 SEIPD/AEAD (sq rfc9580 profile).
+# enc_symmetric_v2.pgp: password-based, produced by sq. Despite the name and the
+# rfc9580 profile, sq 1.3 writes a v4 SKESK (iterated+salted) + v1 SEIPD/MDC for
+# password-only encryption; v6 SKESK + v2 SEIPD with Argon2 is covered by the
+# RFC 9580 Appendix A.9-A.12 vectors in the Rust tests.
 SQ encrypt --profile rfc9580 --without-signature --with-password-file "$PW" \
   --output "$VEC_DIR/enc_symmetric_v2.pgp" --binary "$PAYLOAD"
 
@@ -445,9 +448,9 @@ Auxiliary signers (resource/lfs/test/rpgp_aux_keys/):
 Encryption vectors:
   enc_v1seipd_mdc.pgp    v3 PKESK + v1 SEIPD/MDC -> key1
   enc_v2seipd_ocb.pgp    v6 PKESK + v2 SEIPD/AEAD-OCB -> aux_v6
-  enc_multi_recipient.pgp  3x PKESK -> key1+key2+key3
+  enc_multi_recipient.pgp  5x v3 PKESK (every encryption subkey) -> key1+key2+key3
   enc_symmetric_v1.pgp   SKESK + v1 SEIPD/MDC (password)
-  enc_symmetric_v2.pgp   SKESK + v2 SEIPD/AEAD (password)
+  enc_symmetric_v2.pgp   v4 SKESK (iterated+salted) + v1 SEIPD/MDC (password, sq; not AEAD despite the name)
   enc_sed_tag9.pgp       LEGACY Tag-9 SED (no integrity) -- MUST be rejected
 
 Signature vectors (over payload.txt):

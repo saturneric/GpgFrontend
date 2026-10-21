@@ -17,9 +17,9 @@ Auxiliary signers (resource/lfs/test/rpgp_aux_keys/):
 Encryption vectors:
   enc_v1seipd_mdc.pgp    v3 PKESK + v1 SEIPD/MDC -> key1
   enc_v2seipd_ocb.pgp    v6 PKESK + v2 SEIPD/AEAD-OCB -> aux_v6
-  enc_multi_recipient.pgp  3x PKESK -> key1+key2+key3
+  enc_multi_recipient.pgp  5x v3 PKESK (every encryption subkey) -> key1+key2+key3
   enc_symmetric_v1.pgp   SKESK + v1 SEIPD/MDC (password)
-  enc_symmetric_v2.pgp   SKESK + v2 SEIPD/AEAD (password)
+  enc_symmetric_v2.pgp   v4 SKESK (iterated+salted) + v1 SEIPD/MDC (password, sq; not AEAD despite the name)
   enc_sed_tag9.pgp       LEGACY Tag-9 SED (no integrity) -- MUST be rejected
 
 Signature vectors (over payload.txt):
