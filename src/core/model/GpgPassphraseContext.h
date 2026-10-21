@@ -40,6 +40,8 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
 
   GpgPassphraseContext();
 
+  ~GpgPassphraseContext() override;
+
   void SetPassphrase(const QString& passphrase);
 
   [[nodiscard]] auto GetPassphrase() const -> QString;

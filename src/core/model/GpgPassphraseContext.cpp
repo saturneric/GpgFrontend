@@ -28,6 +28,8 @@
 
 #include "GpgPassphraseContext.h"
 
+#include "core/utils/MemoryUtils.h"
+
 namespace GpgFrontend {
 
 GpgPassphraseContext::GpgPassphraseContext(const QString& uids_info,
@@ -40,11 +42,17 @@ GpgPassphraseContext::GpgPassphraseContext(const QString& uids_info,
 
 GpgPassphraseContext::GpgPassphraseContext() = default;
 
+GpgPassphraseContext::~GpgPassphraseContext() {
+  WipeString(passphrase_);
+  WipeString(passphrase_info_);
+}
+
 auto GpgPassphraseContext::GetPassphrase() const -> QString {
   return passphrase_;
 }
 
 void GpgPassphraseContext::SetPassphrase(const QString& passphrase) {
+  WipeString(passphrase_);
   passphrase_ = passphrase;
 }
 
