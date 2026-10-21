@@ -185,6 +185,17 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
             setStatus(0);
           }
           break;
+        case GPG_ERR_WRONG_KEY_USAGE:
+          stream_ << tr("Signing Key Not Authorized") << Qt::endl;
+          stream_ << "  - "
+                  << tr("The signature is mathematically valid but the "
+                        "certificate does not authorize this key to sign")
+                  << Qt::endl;
+          if (!print_signer(stream_, GpgSignature(sign))) {
+            setStatus(0);
+          }
+          setStatus(-1);
+          break;
         case GPG_ERR_GENERAL:
           stream_ << tr("Verification Error") << Qt::endl;
           stream_ << "  - "
@@ -276,6 +287,12 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         break;
       case GPG_ERR_KEY_EXPIRED:
         sig_info.validity = GpgSigValidity::kKEY_EXPIRED;
+        break;
+      case GPG_ERR_WRONG_KEY_USAGE:
+        sig_info.validity = GpgSigValidity::kINVALID;
+        sig_info.warnings << tr(
+            "Signing key is not authorized by its "
+            "certificate");
         break;
       case GPG_ERR_GENERAL:
         sig_info.validity = GpgSigValidity::kERROR;

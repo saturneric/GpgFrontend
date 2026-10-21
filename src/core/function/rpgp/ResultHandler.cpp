@@ -63,6 +63,49 @@ void RecordEngineDetail(Rust::GfrStatus err, QString& detail_out,
     LOG_E() << op << "failed, engine detail:" << detail;
   }
 }
+/// The GnuPG error for an engine status any operation can report. Handlers
+/// map their operation-specific statuses first and fall back to this, so no
+/// known status reaches the GUI as GPG_ERR_GENERAL ("unknown error").
+auto CommonEngineError(Rust::GfrStatus err) -> GpgError {
+  switch (err) {
+    case Rust::GfrStatus::ErrorCanceled:
+      return GPG_ERR_CANCELED;
+    case Rust::GfrStatus::ErrorFetchPasswordFailed:
+      return GPG_ERR_NO_PASSPHRASE;
+    case Rust::GfrStatus::ErrorBadPassphrase:
+    case Rust::GfrStatus::ErrorWrongPassword:
+      return GPG_ERR_BAD_PASSPHRASE;
+    case Rust::GfrStatus::ErrorDataCorrupted:
+      return GPG_ERR_BAD_DATA;
+    case Rust::GfrStatus::ErrorIo:
+      return GPG_ERR_EIO;
+    case Rust::GfrStatus::ErrorInvalidInput:
+    case Rust::GfrStatus::ErrorInvalidData:
+      return GPG_ERR_INV_DATA;
+    case Rust::GfrStatus::ErrorArmorFailed:
+    case Rust::GfrStatus::ErrorBadArmor:
+      return GPG_ERR_INV_ARMOR;
+    case Rust::GfrStatus::ErrorUnsupportedAlgorithm:
+      return GPG_ERR_UNSUPPORTED_ALGORITHM;
+    case Rust::GfrStatus::ErrorUnsupportedFeature:
+      return GPG_ERR_NOT_SUPPORTED;
+    case Rust::GfrStatus::ErrorBadSignature:
+      return GPG_ERR_BAD_SIGNATURE;
+    case Rust::GfrStatus::ErrorNoPublicKey:
+      return GPG_ERR_NO_PUBKEY;
+    case Rust::GfrStatus::ErrorNoSecretKey:
+      return GPG_ERR_NO_SECKEY;
+    case Rust::GfrStatus::ErrorExpiredKey:
+      return GPG_ERR_KEY_EXPIRED;
+    case Rust::GfrStatus::ErrorRevokedKey:
+      return GPG_ERR_CERT_REVOKED;
+    case Rust::GfrStatus::ErrorDecryptionFailed:
+      return GPG_ERR_DECRYPT_FAILED;
+    default:
+      return GPG_ERR_GENERAL;
+  }
+}
+
 auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
     -> GFEncryptResult {
   GFEncryptResult result;
@@ -122,6 +165,15 @@ auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
       case Rust::GfrSignatureStatus::NoKey:
         sig_status = GFSignatureStatus::kNO_KEY;
         break;
+      case Rust::GfrSignatureStatus::KeyRevoked:
+        sig_status = GFSignatureStatus::kKEY_REVOKED;
+        break;
+      case Rust::GfrSignatureStatus::KeyExpired:
+        sig_status = GFSignatureStatus::kKEY_EXPIRED;
+        break;
+      case Rust::GfrSignatureStatus::KeyNotAuthorized:
+        sig_status = GFSignatureStatus::kKEY_NOT_AUTHORIZED;
+        break;
       default:
         sig_status = GFSignatureStatus::kUNKNOWN_ERROR;
         break;
@@ -144,6 +196,7 @@ auto ParseDecryptResultMeta(const Rust::GfrDecryptMetadataC& m)
   GFDecryptResult result;
 
   result.filename = QString::fromUtf8(m.filename);
+  result.symkey_algo = QString::fromUtf8(m.sym_algo);
   for (size_t i = 0; i < m.recipient_count; ++i) {
     const auto& rec = m.recipients[i];
     GpgError status;
@@ -182,6 +235,15 @@ auto ParseVerifyResultMeta(const Rust::GfrVerifyMetadataC& m)
         break;
       case Rust::GfrSignatureStatus::NoKey:
         sig_status = GFSignatureStatus::kNO_KEY;
+        break;
+      case Rust::GfrSignatureStatus::KeyRevoked:
+        sig_status = GFSignatureStatus::kKEY_REVOKED;
+        break;
+      case Rust::GfrSignatureStatus::KeyExpired:
+        sig_status = GFSignatureStatus::kKEY_EXPIRED;
+        break;
+      case Rust::GfrSignatureStatus::KeyNotAuthorized:
+        sig_status = GFSignatureStatus::kKEY_NOT_AUTHORIZED;
         break;
       case Rust::GfrSignatureStatus::UnknownError:
       default:
@@ -283,8 +345,14 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
       goto end;
     }
 
-    LOG_E() << "Encryption failed: An unknown error occurred.";
-    gf_err = GPG_ERR_GENERAL;
+    if (err == Rust::GfrStatus::ErrorUnusableKey) {
+      LOG_E() << "Encryption failed: a recipient key may not be used.";
+      gf_err = GPG_ERR_UNUSABLE_PUBKEY;
+      goto end;
+    }
+
+    LOG_E() << "Encryption failed, engine status:" << static_cast<int>(err);
+    gf_err = CommonEngineError(err);
     goto end;
   }
 
@@ -367,7 +435,8 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
       goto end;
     }
 
-    gf_err = GPG_ERR_GENERAL;
+    LOG_E() << "Decryption failed, engine status:" << static_cast<int>(err);
+    gf_err = CommonEngineError(err);
     goto end;
   }
 
@@ -412,7 +481,14 @@ auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
       goto end;
     }
 
-    gf_err = GPG_ERR_GENERAL;
+    if (err == Rust::GfrStatus::ErrorUnusableKey) {
+      LOG_E() << "Signing failed: no key of the signer may sign.";
+      gf_err = GPG_ERR_UNUSABLE_SECKEY;
+      goto end;
+    }
+
+    LOG_E() << "Signing failed, engine status:" << static_cast<int>(err);
+    gf_err = CommonEngineError(err);
     goto end;
   }
 
@@ -464,7 +540,10 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
       goto end;
     }
 
-    gf_err = GPG_ERR_GENERAL;
+    // A failed verification never converts the engine's metadata.
+    LOG_E() << "Verification failed, engine status:" << static_cast<int>(err);
+    gf_err = CommonEngineError(err);
+    goto end;
   }
 
   LOG_D() << "Verification success. Processing results...";
