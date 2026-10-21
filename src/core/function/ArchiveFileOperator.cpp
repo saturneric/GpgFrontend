@@ -527,8 +527,12 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
             ret = -1;
             break;
           }
+          // Subtraction, not addition: `declared` comes off the pax header
+          // and can be any int64 at all, so `total_written + declared` is
+          // signed overflow -- which wraps negative and passes the very check
+          // it is here to make.
           if (policy.max_total_bytes >= 0 &&
-              total_written + declared > policy.max_total_bytes) {
+              declared > policy.max_total_bytes - total_written) {
             FLOG_W(
                 "refusing archive entry '%s': would exceed the total "
                 "extraction limit",
