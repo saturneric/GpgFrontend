@@ -52,6 +52,19 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     }
   }
 
+  // Without integrity protection a tampered message decrypts to altered
+  // plaintext that nothing can detect, so the output is withheld (status -1)
+  // rather than released with a warning. This holds for symmetric messages
+  // too, which carry no recipients.
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR && result != nullptr &&
+      result->legacy_cipher_nomdc == 1) {
+    stream_ << tr("The output was withheld: this message has no integrity "
+                  "protection, so tampering with it cannot be detected. It "
+                  "may be a legacy message.")
+            << Qt::endl;
+    setStatus(-1);
+  }
+
   if (result != nullptr && result->recipients != nullptr) {
     stream_ << Qt::endl;
 
@@ -67,7 +80,6 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     stream_ << "- " << tr("Message Integrity Protection") << ": "
             << (result->legacy_cipher_nomdc == 0 ? tr("true") : tr("false"))
             << Qt::endl;
-    if (result->legacy_cipher_nomdc == 1) setStatus(0);  /// < unsafe situation
 
     if (result->symkey_algo != nullptr) {
       stream_ << "- " << tr("Symmetric Encryption Algorithm") << ": "
