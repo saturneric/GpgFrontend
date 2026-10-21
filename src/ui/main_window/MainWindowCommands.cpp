@@ -87,9 +87,8 @@ struct HostCommandHandlers {
   static QPointer<MainWindow> window;
 
   /// The target document, made current -- the existing slots all act on
-  /// the current tab. Null when there is no such document.
-  static auto Focus(const gf::cmd::DocumentRef& target)
-      -> PlainTextEditorPage* {
+  /// the current tab, of any type. Null when there is no such document.
+  static auto Focus(const gf::cmd::DocumentRef& target) -> QWidget* {
     if (window.isNull()) return nullptr;
     auto* tabs = window->edit_->TabWidget();
     auto* page = tabs->PageForDocument(target.id);

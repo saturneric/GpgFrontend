@@ -1259,12 +1259,10 @@ void TextEditTabWidget::SlotTabClosedForRecovery() {
   SlotCacheTextEditors();
 }
 
-auto TextEditTabWidget::PageForDocument(qint64 id) -> PlainTextEditorPage* {
-  if (id == 0) return CurTextPage();
+auto TextEditTabWidget::PageForDocument(qint64 id) -> QWidget* {
+  if (id == 0) return currentWidget();
   for (int i = 0; i < count(); ++i) {
-    if (DocumentIdOf(widget(i)) == id) {
-      return qobject_cast<PlainTextEditorPage*>(widget(i));
-    }
+    if (DocumentIdOf(widget(i)) == id) return widget(i);
   }
   return nullptr;
 }

@@ -87,16 +87,17 @@ class TextEditTabWidget : public QTabWidget {
   [[nodiscard]] auto CurPage() -> QWidget*;
 
   /**
-   * @brief The editor page holding document @p id; 0 means the current page.
+   * @brief The tab holding document @p id; 0 means the current tab,
+   *        whatever its type (text, file browser, a module's page).
    *
    * A document id is how anything outside the editor -- a command, a UI
    * script -- names a document without holding a widget. Ids are never
    * reused, so an id that outlived its tab finds nothing rather than finding
    * whatever tab came next.
    *
-   * @return the page, or nullptr when there is no such document
+   * @return the tab, or nullptr when there is no such document
    */
-  [[nodiscard]] auto PageForDocument(qint64 id) -> PlainTextEditorPage*;
+  [[nodiscard]] auto PageForDocument(qint64 id) -> QWidget*;
 
   /// The document id of @p page; 0 when it is not an editor page.
   static auto DocumentIdOf(const QWidget* page) -> qint64;
