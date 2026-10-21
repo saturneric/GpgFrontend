@@ -120,6 +120,7 @@ void KeyImportDetailDialog::create_general_info_box() {
         new QLabel(tr("Private Unchanged") + ": "), row, 0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->secret_unchanged)), row, 1);
+    row++;
   }
 
   if (m_result_->new_revocations != 0) {
