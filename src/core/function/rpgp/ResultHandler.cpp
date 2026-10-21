@@ -63,6 +63,8 @@ void RecordEngineDetail(Rust::GfrStatus err, QString& detail_out,
     LOG_E() << op << "failed, engine detail:" << detail;
   }
 }
+}  // namespace
+
 /// The GnuPG error for an engine status any operation can report. Handlers
 /// map their operation-specific statuses first and fall back to this, so no
 /// known status reaches the GUI as GPG_ERR_GENERAL ("unknown error").
@@ -101,10 +103,26 @@ auto CommonEngineError(Rust::GfrStatus err) -> GpgError {
       return GPG_ERR_CERT_REVOKED;
     case Rust::GfrStatus::ErrorDecryptionFailed:
       return GPG_ERR_DECRYPT_FAILED;
+    case Rust::GfrStatus::ErrorNoKey:
+      return GPG_ERR_NO_KEY;
+    case Rust::GfrStatus::ErrorUnusableKey:
+      return GPG_ERR_UNUSABLE_PUBKEY;
+    case Rust::GfrStatus::ErrorNoData:
+      return GPG_ERR_NO_DATA;
+    case Rust::GfrStatus::ErrorPasswordFailed:
+      return GPG_ERR_BAD_PASSPHRASE;
+    case Rust::GfrStatus::ErrorPasswordMismatch:
+      return GPG_ERR_INV_PASSPHRASE;
+    case Rust::GfrStatus::ErrorInternal:
+      return GPG_ERR_INTERNAL;
+    case Rust::GfrStatus::ErrorPanic:
+      return GPG_ERR_BUG;
     default:
       return GPG_ERR_GENERAL;
   }
 }
+
+namespace {
 
 auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
     -> GFEncryptResult {
@@ -113,14 +131,9 @@ auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
   for (size_t i = 0; i < m.invalid_recipient_count; ++i) {
     const auto& inv_rec = m.invalid_recipients[i];
 
-    GpgError reason;
-    if (inv_rec.reason == Rust::GfrStatus::ErrorNoKey) {
-      reason = GPG_ERR_NO_KEY;
-    } else if (inv_rec.reason == Rust::GfrStatus::ErrorInvalidData) {
-      reason = GPG_ERR_INV_DATA;
-    } else {
-      reason = GPG_ERR_GENERAL;
-    }
+    // Name the reason the way GnuPG does for an invalid recipient, so the
+    // analyser can tell the user why the key was skipped.
+    const GpgError reason = CommonEngineError(inv_rec.reason);
 
     result.invalid_recipients.push_back({
         QString::fromUtf8(inv_rec.fpr),
@@ -146,6 +159,21 @@ auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
   }
 
   return result;
+}
+
+/// The signature mode as GpgSignResult names it for the GnuPG engine, so the
+/// "Mode" shown for a signature reads the same on either engine.
+auto SignMode2SigType(Rust::GfrSignMode mode) -> QString {
+  switch (mode) {
+    case Rust::GfrSignMode::Inline:
+      return QStringLiteral("Normal");
+    case Rust::GfrSignMode::ClearText:
+      return QStringLiteral("Clear");
+    case Rust::GfrSignMode::Detached:
+      return QStringLiteral("Detach");
+    default:
+      return QStringLiteral("Unknown");
+  }
 }
 
 auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
@@ -185,6 +213,7 @@ auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
         sig.created_at,
         sig.pub_algo,
         sig.hash_algo,
+        SignMode2SigType(sig.sig_type),
     });
   }
 
@@ -257,6 +286,7 @@ auto ParseVerifyResultMeta(const Rust::GfrVerifyMetadataC& m)
         sig.created_at,
         sig.pub_algo,
         sig.hash_algo,
+        SignMode2SigType(sig.sig_type),
     });
   }
 
@@ -264,6 +294,22 @@ auto ParseVerifyResultMeta(const Rust::GfrVerifyMetadataC& m)
 }
 
 }  // namespace
+
+auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString {
+  QString detail;
+  RecordEngineDetail(err, detail, op);
+  return detail;
+}
+
+auto NoUsableRecipientsResult(const QContainer<GpgKey>& recipients)
+    -> GFEncryptResult {
+  GFEncryptResult result;
+  for (const auto& recipient : recipients) {
+    result.invalid_recipients.push_back(
+        {recipient.Fingerprint(), GPG_ERR_NO_PUBKEY});
+  }
+  return result;
+}
 
 auto GfrEncryptResultC2GFEncryptResult(const Rust::GfrEncryptResultC& r)
     -> GFEncryptResult {
@@ -530,13 +576,6 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
     if (err == Rust::GfrStatus::ErrorIo) {
       LOG_E() << "Verification failed: I/O error occurred while reading data.";
       gf_err = GPG_ERR_EIO;
-      goto end;
-    }
-
-    if (err == Rust::GfrStatus::ErrorInternal) {
-      LOG_E() << "Verification failed: An internal error occurred in the "
-                 "verification process.";
-      gf_err = GPG_ERR_NO_DATA;
       goto end;
     }
 

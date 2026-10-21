@@ -71,4 +71,15 @@ GpgGenerateKeyResult::GpgGenerateKeyResult(const QString &fingerprint) {
       });
 }
 
+auto GpgGenerateKeyResult::Failed(const QString &error_detail)
+    -> GpgGenerateKeyResult {
+  GpgGenerateKeyResult result;
+  result.error_detail_ = error_detail;
+  return result;
+}
+
+auto GpgGenerateKeyResult::ErrorDetail() const -> QString {
+  return error_detail_;
+}
+
 }  // namespace GpgFrontend

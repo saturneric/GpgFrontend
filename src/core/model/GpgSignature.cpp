@@ -184,4 +184,9 @@ auto GpgSignature::GetFingerprint() const -> QString {
   return {};
 }
 
+auto GpgSignature::IsKeyExpiredAtSigning() const -> bool {
+  return gf_signature_ref_ != nullptr &&
+         gf_signature_ref_->status == GFSignatureStatus::kKEY_EXPIRED;
+}
+
 }  // namespace GpgFrontend

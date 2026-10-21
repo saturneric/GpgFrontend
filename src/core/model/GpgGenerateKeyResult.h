@@ -44,6 +44,22 @@ class GF_CORE_EXPORT GpgGenerateKeyResult {
 
   explicit GpgGenerateKeyResult(const QString &fingerprint);
 
+  /**
+   * @brief A failed generation, carrying the engine's reason.
+   *
+   * @param error_detail human-readable failure detail (rPGP), may be empty
+   * @return GpgGenerateKeyResult
+   */
+  static auto Failed(const QString &error_detail) -> GpgGenerateKeyResult;
+
+  /**
+   * @brief Engine-specific, human-readable failure detail (rPGP only). Empty
+   * for the GnuPG engine and on success.
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto ErrorDetail() const -> QString;
+
   GpgGenerateKeyResult();
 
   GpgGenerateKeyResult(const GpgGenerateKeyResult &);
@@ -56,6 +72,7 @@ class GF_CORE_EXPORT GpgGenerateKeyResult {
   using ResultRefHandler = QSharedPointer<struct _gpgme_op_genkey_result>;  ///<
 
   ResultRefHandler result_ref_ = nullptr;  ///<
+  QString error_detail_;                   ///<
 };
 
 }  // namespace GpgFrontend

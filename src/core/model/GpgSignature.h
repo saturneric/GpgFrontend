@@ -102,6 +102,18 @@ class GF_CORE_EXPORT GpgSignature {
   [[nodiscard]] auto GetSigType() const -> QString;
 
   /**
+   * @brief Whether the signing key had already expired when the signature was
+   * made, which makes the signature invalid.
+   *
+   * Only the rPGP engine reports this. GnuPG's GPG_ERR_KEY_EXPIRED means the
+   * key expired after signing and the signature itself is still good, so this
+   * is always false for a gpgme signature.
+   *
+   * @return bool
+   */
+  [[nodiscard]] auto IsKeyExpiredAtSigning() const -> bool;
+
+  /**
    * @brief Construct a new Gpg Signature object
    *
    */

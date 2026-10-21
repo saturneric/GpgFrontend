@@ -29,17 +29,38 @@
 #include "KeyGenerate.h"
 
 #include "core/GFCoreRust.h"
+#include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
+
+namespace {
+/// Report a failed key generation: the engine's status mapped as every other
+/// rPGP operation maps it, and its human-readable reason on the result.
+auto FailKeyGeneration(Rust::GfrStatus err, const char* op,
+                       const DataObjectPtr& data_object) -> GpgError {
+  LOG_E() << op << "failed, engine status:" << static_cast<int>(err);
+  data_object->Swap(
+      {GpgGenerateKeyResult::Failed(TakeEngineErrorDetail(err, op))});
+  return CommonEngineError(err);
+}
+
+/// Store a freshly generated secret key block. Returns false when nothing was
+/// stored, so the caller never reports a key the user cannot find.
+auto StoreGeneratedKey(OpenPGPContext& ctx, const GFBuffer& secret_key)
+    -> bool {
+  auto import_info = KeyImportExportOperation::GetInstance(ctx.GetChannel())
+                         .ImportKey(secret_key);
+  return import_info != nullptr && import_info->imported > 0;
+}
+}  // namespace
+
 auto GenerateKeyWithSubkeyRpgpImpl(
     OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
-  auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());
-
   Rust::GfrKeyConfig key_config;
   key_config.can_sign = p_params->IsAllowSign();
   key_config.can_encrypt = p_params->IsAllowEncr();
@@ -71,7 +92,10 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   }
 
   Rust::GfrStatus err = Rust::GfrStatus::Success;
+  // Holds the armored secret key: zeroed so a failed call leaves nothing to
+  // free, and freed (which wipes it) on every path below.
   Rust::GfrKeyGenerateResult kg_result;
+  memset(&kg_result, 0, sizeof(kg_result));
 
   if (s_params != nullptr) {
     std::array<Rust::GfrKeyConfig, 1> s_key_configs;
@@ -117,25 +141,20 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   }
 
   if (err != Rust::GfrStatus::Success) {
-    if (err == Rust::GfrStatus::ErrorFetchPasswordFailed) {
-      LOG_E() << "Key generation failed: Failed to fetch password.";
-      return GPG_ERR_NO_PASSPHRASE;
-    }
-
-    data_object->Swap({GpgGenerateKeyResult{}});
-    LOG_D() << "gfr_crypto_create_v6_key error, code: "
-            << static_cast<int>(err);
-
-    return GPG_ERR_GENERAL;
+    Rust::gfr_crypto_free_key_generate_result(&kg_result);
+    return FailKeyGeneration(err, "Key generation", data_object);
   }
 
-  auto armored_s_key = QString::fromUtf8(kg_result.secret_key);
-  auto armored_p_key = QString::fromUtf8(kg_result.public_key);
+  auto armored_s_key = GFBuffer(kg_result.secret_key);
   auto fingerprint = QString::fromUtf8(kg_result.fingerprint);
-
   Rust::gfr_crypto_free_key_generate_result(&kg_result);
 
-  auto import_info = kie.ImportKey(GFBuffer(armored_s_key));
+  if (!StoreGeneratedKey(ctx, armored_s_key)) {
+    LOG_E() << "failed to import generated key into database, fpr: "
+            << fingerprint;
+    data_object->Swap({GpgGenerateKeyResult{}});
+    return GPG_ERR_GENERAL;
+  }
 
   // Match the engine-wide contract (and the GnuPG impl): a primary-only
   // generation yields a single result, a generation that also creates a subkey
@@ -157,8 +176,6 @@ auto GenerateKeyRpgpImpl(OpenPGPContext& ctx,
 auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
                             const DataObjectPtr& data_object) -> GpgError {
-  auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());
-
   if (key == nullptr) {
     LOG_E() << "primary key is null";
     return GPG_ERR_GENERAL;
@@ -210,8 +227,6 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return GPG_ERR_UNSUPPORTED_ALGORITHM;
   }
 
-  Rust::GfrKeyGenerateResult kg_result;
-
   auto key_block_data = gf_key->blocks.secret_key;
   if (key_block_data.Empty()) {
     LOG_E() << "primary key block data is empty, primary key fpr: "
@@ -223,30 +238,30 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
       reinterpret_cast<const uint8_t*>(key_block_data.Data()),
       key_block_data.Size()};
 
+  // Holds the armored secret key: zeroed so a failed call leaves nothing to
+  // free, and freed (which wipes it) on every path below.
+  Rust::GfrKeyGenerateResult kg_result;
+  memset(&kg_result, 0, sizeof(kg_result));
+
   auto err = Rust::gfr_crypto_add_subkey(ctx.GetChannel(), key_block_buffer,
                                          key_config, FetchPasswordCallback,
                                          &kg_result);
   if (err != Rust::GfrStatus::Success) {
-    data_object->Swap({GpgGenerateKeyResult{}});
-    LOG_D() << "gfr_crypto_add_subkey error, code: " << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
+    Rust::gfr_crypto_free_key_generate_result(&kg_result);
+    return FailKeyGeneration(err, "Adding subkey", data_object);
   }
 
-  auto armored_s_key = QString::fromUtf8(kg_result.secret_key);
-  auto armored_p_key = QString::fromUtf8(kg_result.public_key);
+  auto armored_s_key = GFBuffer(kg_result.secret_key);
+  auto fingerprint = QString::fromUtf8(kg_result.fingerprint);
+  Rust::gfr_crypto_free_key_generate_result(&kg_result);
 
-  LOG_D() << "generated subkey, armored public key: " << armored_p_key;
-
-  auto import_info = kie.ImportKey(GFBuffer(armored_s_key));
-  if (import_info->imported == 0) {
+  if (!StoreGeneratedKey(ctx, armored_s_key)) {
     LOG_E() << "failed to import generated subkey into database";
     data_object->Swap({GpgGenerateKeyResult{}});
     return GPG_ERR_GENERAL;
   }
 
-  data_object->Swap({
-      GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
-  });
+  data_object->Swap({GpgGenerateKeyResult{fingerprint}});
   return GPG_ERR_NO_ERROR;
 }
 

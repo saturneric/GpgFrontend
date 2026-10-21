@@ -177,13 +177,23 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           break;
         case GPG_ERR_KEY_EXPIRED:
           stream_ << tr("Signing Key Expired") << Qt::endl;
-          stream_
-              << "  - "
-              << tr("The signature is valid but the signing key has expired")
-              << Qt::endl;
+          if (sign.IsKeyExpiredAtSigning()) {
+            // rPGP: the key had expired before it made this signature, so
+            // the signature itself is not valid.
+            stream_ << "  - "
+                    << tr("The signing key had already expired when this "
+                          "signature was made")
+                    << Qt::endl;
+          } else {
+            stream_
+                << "  - "
+                << tr("The signature is valid but the signing key has expired")
+                << Qt::endl;
+          }
           if (!print_signer(stream_, GpgSignature(sign))) {
             setStatus(0);
           }
+          if (sign.IsKeyExpiredAtSigning()) setStatus(-1);
           break;
         case GPG_ERR_WRONG_KEY_USAGE:
           stream_ << tr("Signing Key Not Authorized") << Qt::endl;
@@ -231,6 +241,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     return;
   }
 
+  // A key the certificate does not let sign also yields kINVALID; keep it
+  // apart from a bad signature so the summary names the actual cause.
+  bool any_bad_signature = false;
+  bool any_not_authorized = false;
+
   for (const auto& sign : signatures) {
     GpgVerifySigInfo sig_info;
 
@@ -252,6 +267,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     switch (gpg_err_code(sign.GetStatus())) {
       case GPG_ERR_BAD_SIGNATURE:
         sig_info.validity = GpgSigValidity::kINVALID;
+        any_bad_signature = true;
         break;
       case GPG_ERR_NO_ERROR: {
         bool is_fully_valid = (sign.GetSummary() & GPGME_SIGSUM_VALID) != 0;
@@ -287,12 +303,14 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         break;
       case GPG_ERR_KEY_EXPIRED:
         sig_info.validity = GpgSigValidity::kKEY_EXPIRED;
+        sig_info.rejected = sign.IsKeyExpiredAtSigning();
         break;
       case GPG_ERR_WRONG_KEY_USAGE:
         sig_info.validity = GpgSigValidity::kINVALID;
         sig_info.warnings << tr(
             "Signing key is not authorized by its "
             "certificate");
+        any_not_authorized = true;
         break;
       case GPG_ERR_GENERAL:
         sig_info.validity = GpgSigValidity::kERROR;
@@ -350,10 +368,14 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
              "details.");
     }
   } else {
-    if (any_validity(GpgSigValidity::kINVALID)) {
+    if (any_bad_signature) {
       op_info_.description =
           tr("Invalid signature detected. The data may have been tampered "
              "with or the signature is corrupt.");
+    } else if (any_not_authorized) {
+      op_info_.description =
+          tr("Signature verification failed. The signing key is not "
+             "authorized to make signatures.");
     } else if (any_validity(GpgSigValidity::kKEY_REVOKED)) {
       op_info_.description =
           tr("Signature verification failed. The signing key has been "

@@ -34,6 +34,8 @@
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/function/rpgp/KeyImportExport.h"
+#include "core/function/rpgp/KeyStorage.h"
+#include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/utils/IOUtils.h"
 
@@ -119,16 +121,11 @@ auto modify_key_passphrase(OpenPGPContext& ctx, const GpgKeyPtr& key,
     LOG_E() << "gfr_crypto_modify_key_password error, code: "
             << static_cast<int>(err);
 
-    // Report a rejected passphrase as such; collapsing it into a general error
-    // shows the user "General error" when the cause is simply a wrong password.
-    switch (err) {
-      case Rust::GfrStatus::ErrorBadPassphrase:
-        return GPG_ERR_BAD_PASSPHRASE;
-      case Rust::GfrStatus::ErrorFetchPasswordFailed:
-        return GPG_ERR_CANCELED;
-      default:
-        return GPG_ERR_GENERAL;
-    }
+    // Report a rejected passphrase or a cancel as such; collapsing it into a
+    // general error shows the user "General error" when the cause is simply a
+    // wrong password.
+    TakeEngineErrorDetail(err, "Changing the passphrase");
+    return CommonEngineError(err);
   }
 
   if (out_secret_block == nullptr) {
@@ -234,15 +231,10 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto out_block_str = QString::fromUtf8(out_secret_block);
   Rust::gfr_crypto_free_string(out_secret_block);
 
-  if (!key_db->DeleteKey(meta->fpr)) {
-    LOG_E() << "Failed to delete old key from database before re-import for "
-               "key with fpr: "
-            << key->Fingerprint();
-    return false;
-  }
-
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
+  // Replace in one transaction: deleting first and then importing would lose
+  // the key for good if the import failed. Replace (do not merge), merging
+  // would bring back what the edit removed from the existing database entry.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
     LOG_E() << "Failed to import updated key block after deleting subkey for "
                "key with fpr: "
             << key->Fingerprint();
@@ -342,15 +334,10 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto out_block_str = QString::fromUtf8(out_secret_block);
   Rust::gfr_crypto_free_string(out_secret_block);
 
-  if (!key_db->DeleteKey(meta->fpr)) {
-    LOG_E() << "Failed to delete old key from database before re-import for "
-               "key with fpr: "
-            << key->Fingerprint();
-    return false;
-  }
-
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
+  // Replace in one transaction: deleting first and then importing would lose
+  // the key for good if the import failed. Replace (do not merge), merging
+  // would bring back what the edit removed from the existing database entry.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
     LOG_E() << "Failed to import updated key block after revoking subkey for "
                "key with fpr: "
             << key->Fingerprint();
@@ -498,14 +485,8 @@ auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     LOG_E() << "gfr_crypto_update_key_expiration error, code: "
             << static_cast<int>(err);
 
-    switch (err) {
-      case Rust::GfrStatus::ErrorBadPassphrase:
-        return GPG_ERR_BAD_PASSPHRASE;
-      case Rust::GfrStatus::ErrorFetchPasswordFailed:
-        return GPG_ERR_CANCELED;
-      default:
-        return GPG_ERR_GENERAL;
-    }
+    TakeEngineErrorDetail(err, "Changing the expiration");
+    return CommonEngineError(err);
   }
 
   if (out_secret_block == nullptr) {
@@ -516,15 +497,10 @@ auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto out_block_str = QString::fromUtf8(out_secret_block);
   Rust::gfr_crypto_free_string(out_secret_block);
 
-  if (!key_db->DeleteKey(meta->fpr)) {
-    LOG_E() << "Failed to delete old key from database before re-import for "
-               "key with fpr: "
-            << key->Fingerprint();
-    return GPG_ERR_GENERAL;
-  }
-
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
+  // Replace in one transaction: deleting first and then importing would lose
+  // the key for good if the import failed. Replace (do not merge), merging
+  // would bring back what the edit removed from the existing database entry.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
     LOG_E() << "Failed to import updated key block after changing expiration "
                "for key with fpr: "
             << key->Fingerprint();

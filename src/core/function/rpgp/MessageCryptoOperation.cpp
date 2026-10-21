@@ -58,7 +58,11 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
-    return GPG_ERR_GENERAL;  // Or appropriate error code
+    data_object->Swap({
+        GpgEncryptResult(NoUsableRecipientsResult(recipients)),
+        GFBuffer{},
+    });
+    return GPG_ERR_NO_PUBKEY;
   }
 
   // 2. Vector to hold the GfrBuffer structs to pass to Rust FFI
@@ -168,6 +172,7 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
 
   auto [err, skey_utf8_list] = ExportKeyBlockForSigning(*key_db, signers);
   if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult(GFSignResult{}), GFBuffer{}});
     return err;
   }
 
@@ -272,7 +277,12 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
-    return GPG_ERR_GENERAL;  // Or appropriate error code
+    data_object->Swap({
+        GpgEncryptResult(NoUsableRecipientsResult(recipients)),
+        GpgSignResult(GFSignResult{}),
+        GFBuffer{},
+    });
+    return GPG_ERR_NO_PUBKEY;
   }
 
   std::vector<Rust::GfrBuffer> recipient_buffers;
@@ -283,6 +293,15 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   }
 
   auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, signers);
+  if (skey_utf8_list.empty()) {
+    LOG_E() << "No secret key found for any of the signers.";
+    data_object->Swap({
+        GpgEncryptResult(GFEncryptResult{}),
+        GpgSignResult(GFSignResult{}),
+        GFBuffer{},
+    });
+    return GPG_ERR_NO_SECKEY;
+  }
 
   // Extract GfrBuffer structs
   std::vector<Rust::GfrBuffer> c_skeys;
@@ -316,6 +335,12 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                            .data_len = encrypt_sign_result.data_len,
                            .meta = encrypt_sign_result.sign_meta});
   Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
+
+  // Both halves share one engine status, and the first handler drained the
+  // engine's error detail; hand the same reason to the second.
+  if (sign_result.error_detail.isEmpty()) {
+    sign_result.error_detail = encrypt_result.error_detail;
+  }
 
   data_object->Swap({
       GpgEncryptResult(encrypt_result),
@@ -355,6 +380,12 @@ auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
       Rust::GfrVerifyResultC{.meta = decrypt_verify_result.verify_meta});
 
   Rust::gfr_crypto_free_decrypt_and_verify_result(&decrypt_verify_result);
+
+  // Both halves share one engine status, and the first handler drained the
+  // engine's error detail; hand the same reason to the second.
+  if (verify_result.error_detail.isEmpty()) {
+    verify_result.error_detail = decrypt_result.error_detail;
+  }
 
   data_object->Swap({
       GpgDecryptResult(decrypt_result),

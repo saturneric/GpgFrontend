@@ -79,6 +79,9 @@ struct GF_CORE_EXPORT GpgVerifySigInfo {
   GpgSigValidity validity;  ///< Parsed validity level
   QStringList warnings;     ///< Issues found, e.g. "Signature has expired",
                             ///<   "Signing key has been revoked"
+  bool rejected = false;    ///< The signature must not be relied on although
+                            ///<   @ref validity names only a key state (rPGP:
+                            ///<   the key had expired before it signed)
 };
 
 /**

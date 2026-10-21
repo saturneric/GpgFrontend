@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/DataObject.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 
 namespace GpgFrontend::UI {
@@ -145,5 +146,14 @@ auto GetAlgoByIdType(const QString& id, const QString& type,
  * @return true if generation should continue
  */
 auto ConfirmShortUserIdName(QWidget* parent, const QString& name) -> bool;
+
+/**
+ * @brief The engine's reason for a failed key or subkey generation, from the
+ * operation's result data. Empty when the engine gave none (GnuPG).
+ *
+ * @param data_obj the data object the generation callback received
+ * @return QString
+ */
+auto KeyGenerationErrorDetail(const DataObjectPtr& data_obj) -> QString;
 
 }  // namespace GpgFrontend::UI

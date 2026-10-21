@@ -188,8 +188,8 @@ enum class GFSignatureStatus : uint8_t {
 
 struct GFSignature {
   QString issuer_fpr;
-  GFSignatureStatus status;
-  uint32_t created_at;
+  GFSignatureStatus status = GFSignatureStatus::kUNKNOWN_ERROR;
+  uint32_t created_at = 0;
   QString pub_algo;
   QString hash_algo;
   QString sig_type;
@@ -198,12 +198,12 @@ struct GFSignature {
 struct GFRecipient {
   QString key_id;
   QString pub_algo;
-  GpgError status;
+  GpgError status = GPG_ERR_NO_ERROR;
 };
 
 struct GFInvalidRecipient {
   QString fpr;
-  GpgError reason;
+  GpgError reason = GPG_ERR_NO_ERROR;
 };
 
 struct GFEncryptResult {
@@ -235,7 +235,7 @@ struct GFSignResult {
 struct GFVerifyResult {
   QByteArray data;
   QContainer<GFSignature> signatures;
-  bool is_verified;
+  bool is_verified = false;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };

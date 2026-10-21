@@ -169,7 +169,8 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
   for (const auto& sig : info.signatures) {
     InfoBoardCard sig_card;
     sig_card.title = sig_validity_to_text(sig.validity);
-    sig_card.status = sig_validity_to_status(sig.validity);
+    sig_card.status = sig.rejected ? kINFO_ERROR_CRITICAL
+                                   : sig_validity_to_status(sig.validity);
     add_signer_fields(sig_card, sig.signer);
     for (const auto& w : sig.warnings) {
       sig_card.fields.append({QStringLiteral("⚠"), w});

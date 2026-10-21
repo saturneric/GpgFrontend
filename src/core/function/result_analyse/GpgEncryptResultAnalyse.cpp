@@ -54,28 +54,29 @@ void GpgEncryptResultAnalyse::doAnalyse() {
     setStatus(-1);
   }
 
-  if ((~status_) == 0) {
+  // Read the engine-agnostic list: rPGP results carry no gpgme handle, so
+  // GetRaw() alone would drop every recipient the rPGP engine rejected.
+  const auto invalid_recipients = result_.InvalidRecipients();
+
+  // Data encrypted to fewer recipients than asked for is a warning, not a
+  // clean success.
+  if (status_ > 0 && !invalid_recipients.empty()) setStatus(0);
+
+  if (status_ <= 0) {
     stream_ << Qt::endl;
 
-    const auto *result = result_.GetRaw();
-
-    if (result != nullptr) {
+    if (!invalid_recipients.empty()) {
       stream_ << "## " << tr("Invalid Recipients") << ": " << Qt::endl
               << Qt::endl;
 
-      auto *inv_reci = result->invalid_recipients;
       auto index = 0;
-
-      while (inv_reci != nullptr) {
+      for (const auto& [fpr, reason] : invalid_recipients) {
         stream_ << "### " << tr("Recipients") << " " << ++index << ": "
                 << Qt::endl;
-        stream_ << "- " << tr("Fingerprint") << ": " << inv_reci->fpr
+        stream_ << "- " << tr("Fingerprint") << ": " << fpr << Qt::endl;
+        stream_ << "- " << tr("Reason") << ": " << gpgme_strerror(reason)
                 << Qt::endl;
-        stream_ << "- " << tr("Reason") << ": "
-                << gpgme_strerror(inv_reci->reason) << Qt::endl;
         stream_ << Qt::endl << Qt::endl;
-
-        inv_reci = inv_reci->next;
       }
     }
     stream_ << Qt::endl;
@@ -83,12 +84,9 @@ void GpgEncryptResultAnalyse::doAnalyse() {
 
   stream_ << Qt::endl;
 
-  if (status_ > 0) {
-    const auto *raw = result_.GetRaw();
-    const bool has_invalid =
-        raw != nullptr && raw->invalid_recipients != nullptr;
+  if (status_ >= 0) {
     op_info_.description =
-        has_invalid
+        !invalid_recipients.empty()
             ? tr("Encrypted with warnings. Some recipients could not be "
                  "added. Please review the invalid recipient list.")
             : tr("Your data has been encrypted. Only the intended recipients "

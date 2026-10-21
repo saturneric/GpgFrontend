@@ -59,7 +59,8 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
-    return GPG_ERR_GENERAL;  // Or appropriate error code
+    data_object->Swap({GpgEncryptResult(NoUsableRecipientsResult(recipients))});
+    return GPG_ERR_NO_PUBKEY;
   }
 
   // 2. Vector to hold the GfrBuffer structs to pass to Rust FFI
@@ -117,6 +118,26 @@ auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
 }
 
 namespace {
+/// How much of an encrypted file to read when listing its recipients. The
+/// PKESK packets lead the message, so this covers dozens of recipients even
+/// with large RSA keys and armor, without reading a multi-GB payload.
+constexpr qint64 kRecipientSniffWindow = 1024 * 1024;
+
+/// The leading bytes of an encrypted file, for SniffRecipients when the engine
+/// found no secret key; message decryption passes the whole input instead.
+/// Only read on that failure, so a normal decryption never pays for it.
+auto ReadRecipientSniffWindow(Rust::GfrStatus err, const QString& path)
+    -> GFBuffer {
+  if (err != Rust::GfrStatus::ErrorNoKey) return {};
+
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    LOG_W() << "cannot open encrypted file to list its recipients: " << path;
+    return {};
+  }
+  return GFBuffer(file.read(kRecipientSniffWindow));
+}
+
 auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
                                 const QString& in_path, const QString& out_path,
                                 const DataObjectPtr& data_object) -> GpgError {
@@ -145,8 +166,8 @@ auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
         FetchPasswordCallback, key_db.data(), &decrypt_result);
   }
 
-  auto [gf_err, result] =
-      HandleDecryptResult(*key_db, GFBuffer{}, err, decrypt_result);
+  auto [gf_err, result] = HandleDecryptResult(
+      *key_db, ReadRecipientSniffWindow(err, in_path), err, decrypt_result);
   Rust::gfr_crypto_free_decrypt_result(&decrypt_result);
 
   data_object->Swap({GpgDecryptResult(result)});
@@ -194,7 +215,8 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   auto key_block_utf8 = GetSecretKeysByKeyIdForSigning(*key_db, keys);
   if (key_block_utf8.isEmpty()) {
     LOG_E() << "Failed to retrieve secret key for signing.";
-    return GPG_ERR_GENERAL;
+    data_object->Swap({GpgSignResult(GFSignResult{})});
+    return GPG_ERR_NO_SECKEY;
   }
 
   std::vector<Rust::GfrBuffer> key_block_buffers;
@@ -280,7 +302,11 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
-    return GPG_ERR_GENERAL;  // Or appropriate error code
+    data_object->Swap({
+        GpgEncryptResult(NoUsableRecipientsResult(recipients)),
+        GpgSignResult(GFSignResult{}),
+    });
+    return GPG_ERR_NO_PUBKEY;
   }
 
   std::vector<Rust::GfrBuffer> recipient_buffers;
@@ -291,6 +317,15 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
   }
 
   auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, sign_keys);
+  if (skey_utf8_list.empty()) {
+    LOG_E() << "No secret key found for any of the signers.";
+    data_object->Swap({
+        GpgEncryptResult(GFEncryptResult{}),
+        GpgSignResult(GFSignResult{}),
+    });
+    return GPG_ERR_NO_SECKEY;
+  }
+
   std::vector<Rust::GfrBuffer> c_skeys;
 
   // Fetch key blocks and safely store memory
@@ -336,6 +371,12 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
                            .data_len = encrypt_sign_result.data_len,
                            .meta = encrypt_sign_result.sign_meta});
   Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
+
+  // Both halves share one engine status, and the first handler drained the
+  // engine's error detail; hand the same reason to the second.
+  if (sign_result.error_detail.isEmpty()) {
+    sign_result.error_detail = encrypt_result.error_detail;
+  }
 
   data_object->Swap({
       GpgEncryptResult(encrypt_result),
@@ -396,7 +437,7 @@ auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
   }
 
   auto [gf_err, decrypt_result] =
-      HandleDecryptResult(*key_db, GFBuffer{}, err,
+      HandleDecryptResult(*key_db, ReadRecipientSniffWindow(err, in_path), err,
                           Rust::GfrDecryptResultC{
                               .data = decrypt_verify_result.data,
                               .data_len = decrypt_verify_result.data_len,
@@ -408,6 +449,12 @@ auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
       Rust::GfrVerifyResultC{.meta = decrypt_verify_result.verify_meta});
 
   Rust::gfr_crypto_free_decrypt_and_verify_result(&decrypt_verify_result);
+
+  // Both halves share one engine status, and the first handler drained the
+  // engine's error detail; hand the same reason to the second.
+  if (verify_result.error_detail.isEmpty()) {
+    verify_result.error_detail = decrypt_result.error_detail;
+  }
 
   data_object->Swap(
       {GpgDecryptResult(decrypt_result), GpgVerifyResult(verify_result)});

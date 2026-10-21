@@ -515,7 +515,8 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
         KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
             .GenerateSubkey(key, gen_key_info,
                             [this, hd, succeeded](
-                                GpgError err, const DataObjectPtr&) -> void {
+                                GpgError err,
+                                const DataObjectPtr& data_obj) -> void {
                               // stop showing waiting dialog
                               hd();
 
@@ -530,7 +531,9 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                                 // Report the failure on the still-open dialog
                                 // so the user can adjust and retry; success is
                                 // handled by the caller.
-                                RaiseMessageBox(this, err);
+                                RaiseFailureMessageBox(
+                                    this, err,
+                                    KeyGenerationErrorDetail(data_obj));
                                 return;
                               }
 

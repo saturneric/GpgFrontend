@@ -28,6 +28,8 @@
 
 #include "KeyGenerateHelper.h"
 
+#include "core/model/GpgGenerateKeyResult.h"
+
 namespace GpgFrontend::UI {
 
 void AddComboSectionHeader(QComboBox* combo_box, const QString& text) {
@@ -240,6 +242,13 @@ auto ConfirmShortUserIdName(QWidget* parent, const QString& name) -> bool {
                  .arg(name),
              QMessageBox::Yes | QMessageBox::No,
              QMessageBox::No) == QMessageBox::Yes;
+}
+
+auto KeyGenerationErrorDetail(const DataObjectPtr& data_obj) -> QString {
+  if (data_obj == nullptr || !data_obj->Check<GpgGenerateKeyResult>()) {
+    return {};
+  }
+  return ExtractParams<GpgGenerateKeyResult>(data_obj, 0).ErrorDetail();
 }
 
 }  // namespace GpgFrontend::UI

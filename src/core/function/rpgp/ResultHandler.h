@@ -31,9 +31,48 @@
 #include "GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/model/GFBuffer.h"
+#include "core/model/GpgKey.h"
 #include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief The GnuPG error for an engine status any operation can report.
+ *
+ * Handlers map their operation-specific statuses first and fall back to this,
+ * so no known status reaches the GUI as GPG_ERR_GENERAL ("unknown error").
+ *
+ * @param err the rPGP engine status
+ * @return GpgError
+ */
+auto CommonEngineError(Rust::GfrStatus err) -> GpgError;
+
+/**
+ * @brief Drain the engine's error detail for a failed operation on this
+ * thread, logging it under @p op.
+ *
+ * Call it right after the failing FFI call returns. A cancellation yields an
+ * empty detail (it is the user's choice, not a failure needing a reason), but
+ * the slot is drained either way so it cannot leak into a later operation.
+ *
+ * @param err the failed operation's engine status
+ * @param op operation name for the log
+ * @return QString the detail, possibly empty
+ */
+auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString;
+
+/**
+ * @brief The encrypt result for an encryption that never reached the engine
+ * because none of the recipients has a public key block in the key database.
+ *
+ * Every recipient is listed as invalid with GPG_ERR_NO_PUBKEY, so the GUI can
+ * say which keys were missing instead of showing an unexplained failure.
+ *
+ * @param recipients the recipients that were asked for
+ * @return GFEncryptResult
+ */
+auto NoUsableRecipientsResult(const QContainer<GpgKey>& recipients)
+    -> GFEncryptResult;
 
 /**
  * @brief

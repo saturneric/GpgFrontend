@@ -1516,7 +1516,7 @@ auto KeyGenerateDialog::do_generate() -> bool {
                const OperaWaitingHd& hd) -> void {
     KeyGenerationOperation::GetInstance(channel_).GenerateKeyWithSubkey(
         gen_key_info, gen_subkey_info_,
-        [this, hd, succeeded](GpgError err, const DataObjectPtr&) {
+        [this, hd, succeeded](GpgError err, const DataObjectPtr& data_obj) {
           // stop showing waiting dialog
           hd();
 
@@ -1529,7 +1529,8 @@ auto KeyGenerateDialog::do_generate() -> bool {
           if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
             // Report the failure on the still-open dialog so the user can fix
             // the input and retry; success is handled by the caller.
-            RaiseMessageBox(this, err);
+            RaiseFailureMessageBox(this, err,
+                                   KeyGenerationErrorDetail(data_obj));
             return;
           }
 
