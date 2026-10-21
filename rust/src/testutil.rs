@@ -806,8 +806,8 @@ kNl6eEN+fsTGbm+i2S1SGleCuh6yLEONt4TkhMjYIg==
 /// top of this file) reclaims it exactly: `CString::into_raw` for C strings,
 /// `Box<[u8]>::into_raw` for length-delimited buffers.
 pub mod cb {
+    use std::cell::Cell;
     use std::ffi::{CString, c_char, c_void};
-    use std::sync::atomic::{AtomicUsize, Ordering};
 
     use crate::types::{GfrPassphraseState, GfrPasswordFetchStatus};
 
@@ -815,16 +815,20 @@ pub mod cb {
     /// keys generated in tests are locked with.
     pub const CORRECT_PASSPHRASE: &str = "test-passphrase";
 
-    /// Counts how many times a prompting callback was invoked, so cache hits
-    /// can be told apart from re-prompts.
-    pub static PROMPT_COUNT: AtomicUsize = AtomicUsize::new(0);
+    thread_local! {
+        /// Counts how many times a prompting callback was invoked on this
+        /// thread, so cache hits can be told apart from re-prompts. The engine
+        /// prompts on the calling thread; a process-wide counter was bumped by
+        /// tests running in parallel and made prompt-count assertions flaky.
+        static PROMPT_COUNT: Cell<usize> = const { Cell::new(0) };
+    }
 
     pub fn reset_prompt_count() {
-        PROMPT_COUNT.store(0, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(0));
     }
 
     pub fn prompt_count() -> usize {
-        PROMPT_COUNT.load(Ordering::SeqCst)
+        PROMPT_COUNT.with(Cell::get)
     }
 
     fn provide(out_pwd: *mut *mut u8, out_status: *mut GfrPasswordFetchStatus, pw: &[u8]) -> i32 {
@@ -844,7 +848,7 @@ pub mod cb {
         out_status: *mut GfrPasswordFetchStatus,
         _user_data: *mut c_void,
     ) -> i32 {
-        PROMPT_COUNT.fetch_add(1, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(c.get() + 1));
         provide(out_pwd, out_status, CORRECT_PASSPHRASE.as_bytes())
     }
 
@@ -856,7 +860,7 @@ pub mod cb {
         out_status: *mut GfrPasswordFetchStatus,
         _user_data: *mut c_void,
     ) -> i32 {
-        PROMPT_COUNT.fetch_add(1, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(c.get() + 1));
         provide(out_pwd, out_status, super::corpus::CORPUS_PASSPHRASE)
     }
 
@@ -868,7 +872,7 @@ pub mod cb {
         out_status: *mut GfrPasswordFetchStatus,
         _user_data: *mut c_void,
     ) -> i32 {
-        PROMPT_COUNT.fetch_add(1, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(c.get() + 1));
         provide(out_pwd, out_status, b"definitely-not-the-passphrase")
     }
 
@@ -881,7 +885,7 @@ pub mod cb {
         out_status: *mut GfrPasswordFetchStatus,
         _user_data: *mut c_void,
     ) -> i32 {
-        PROMPT_COUNT.fetch_add(1, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(c.get() + 1));
         unsafe { *out_status = GfrPasswordFetchStatus::Cancelled };
         0
     }
@@ -894,7 +898,7 @@ pub mod cb {
         out_status: *mut GfrPasswordFetchStatus,
         _user_data: *mut c_void,
     ) -> i32 {
-        PROMPT_COUNT.fetch_add(1, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(c.get() + 1));
         unsafe { *out_status = GfrPasswordFetchStatus::Failed };
         0
     }
@@ -908,7 +912,7 @@ pub mod cb {
         _out_status: *mut GfrPasswordFetchStatus,
         _user_data: *mut c_void,
     ) -> i32 {
-        PROMPT_COUNT.fetch_add(1, Ordering::SeqCst);
+        PROMPT_COUNT.with(|c| c.set(c.get() + 1));
         0
     }
 
@@ -969,6 +973,48 @@ pub mod cb {
         SECKEY_ANSWER.with(|a| match a.borrow().as_deref() {
             Some(block) => CString::new(block).unwrap_or_default().into_raw(),
             None => std::ptr::null_mut(),
+        })
+    }
+
+    thread_local! {
+        static SECKEYS_BY_ID: std::cell::RefCell<Vec<(Vec<String>, String)>> =
+            const { std::cell::RefCell::new(Vec::new()) };
+    }
+
+    /// Make [`seckey_by_id`] answer each lookup with whichever of `blocks`
+    /// has a component whose Key ID or fingerprint is the one asked for,
+    /// like a host keyring holding several secret keys.
+    pub fn set_seckey_keyring(blocks: &[&str]) {
+        use pgp::composed::{Deserializable, SignedSecretKey};
+        use pgp::types::KeyDetails;
+        let entries = blocks
+            .iter()
+            .map(|block| {
+                let key = SignedSecretKey::from_string(block)
+                    .expect("keyring block")
+                    .0;
+                let mut ids = vec![
+                    key.primary_key.legacy_key_id().to_string(),
+                    key.primary_key.fingerprint().to_string(),
+                ];
+                for sub in &key.secret_subkeys {
+                    ids.push(sub.key.legacy_key_id().to_string());
+                    ids.push(sub.key.fingerprint().to_string());
+                }
+                (ids, block.to_string())
+            })
+            .collect();
+        SECKEYS_BY_ID.with(|k| *k.borrow_mut() = entries);
+    }
+
+    pub extern "C" fn seckey_by_id(key_id: *const c_char, _user_data: *mut c_void) -> *mut c_char {
+        let wanted = unsafe { std::ffi::CStr::from_ptr(key_id) }.to_string_lossy();
+        SECKEYS_BY_ID.with(|k| {
+            k.borrow()
+                .iter()
+                .find(|(ids, _)| ids.iter().any(|id| id.eq_ignore_ascii_case(&wanted)))
+                .map(|(_, block)| CString::new(block.as_str()).unwrap_or_default().into_raw())
+                .unwrap_or(std::ptr::null_mut())
         })
     }
 
@@ -1296,11 +1342,25 @@ pub mod assert {
         );
     }
 
-    /// No signature in the set is valid.
+    /// No signature in the set is valid. The set must not be empty: a
+    /// signature that was never found would otherwise pass vacuously.
     pub fn none_valid(sigs: &[SignatureResultInternal]) {
+        assert!(
+            !sigs.is_empty(),
+            "expected at least one signature, got none"
+        );
         for sig in sigs {
             is_not_valid(sig);
         }
+    }
+
+    /// Exactly one signature was found, and the policy gate gave it `want`.
+    pub fn only_status(sigs: &[SignatureResultInternal], want: GfrSignatureStatus) {
+        assert_eq!(
+            sigs.iter().map(|s| s.status).collect::<Vec<_>>(),
+            vec![want],
+            "expected exactly one {want:?} signature"
+        );
     }
 
     pub fn status_is(got: GfrStatus, want: GfrStatus) {

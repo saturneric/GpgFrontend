@@ -786,7 +786,7 @@ mod ffi_decrypt_tests {
         // §13.7: unauthenticated plaintext must never be released.
         cb::set_seckey_answer(corpus::KEY1_SECRET);
         let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
-        assert_ne!(
+        assert_eq!(
             gfr_crypto_decrypt_data(
                 0,
                 corpus::ENC_SED_TAG9.as_ptr(),
@@ -796,8 +796,13 @@ mod ffi_decrypt_tests {
                 std::ptr::null_mut(),
                 out.as_mut_ptr(),
             ),
-            GfrStatus::Success
+            GfrStatus::ErrorInvalidData
         );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("Symmetrically Encrypted Data"), "{detail}");
+        let out = unsafe { out.assume_init() };
+        assert!(out.data.is_null(), "no plaintext may be released");
+        assert_eq!(out.data_len, 0);
     }
 
     #[test]

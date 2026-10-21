@@ -407,7 +407,7 @@ mod verify_tests {
             Some(corpus::AUX_REVOKED),
         );
         assert!(!res.is_verified);
-        ta::none_valid(&res.signatures);
+        ta::only_status(&res.signatures, GfrSignatureStatus::KeyRevoked);
     }
 
     #[test]
@@ -420,7 +420,7 @@ mod verify_tests {
             Some(corpus::AUX_SHA1),
         );
         assert!(!res.is_verified);
-        ta::none_valid(&res.signatures);
+        ta::only_status(&res.signatures, GfrSignatureStatus::BadSignature);
     }
 
     #[test]
@@ -446,7 +446,7 @@ mod verify_tests {
             Some(corpus::AUX_GOOD),
         );
         assert!(!res.is_verified);
-        ta::none_valid(&res.signatures);
+        ta::only_status(&res.signatures, GfrSignatureStatus::BadSignature);
     }
 
     #[test]
@@ -457,7 +457,7 @@ mod verify_tests {
             Some(corpus::AUX_GOOD),
         );
         assert!(!res.is_verified);
-        ta::none_valid(&res.signatures);
+        ta::only_status(&res.signatures, GfrSignatureStatus::BadSignature);
     }
 
     #[test]
@@ -591,15 +591,23 @@ mod verify_tests {
 
     #[test]
     fn b2_only_the_strong_signature_of_the_pair_can_be_valid() {
+        // The pair is made by the aux-sha1 key: with any other certificate
+        // both would be NoKey and this test would pass vacuously.
         let res = verify_detached(
             corpus::PAYLOAD,
             corpus::SIG_STRONG_WEAK_SAME_KEY,
-            Some(corpus::AUX_GOOD),
+            Some(corpus::AUX_SHA1),
         );
+        assert_eq!(res.signatures.len(), 2, "both packets must be surfaced");
+        assert!(res.is_verified, "the strong signature verifies");
         for sig in &res.signatures {
-            if sig_hash_algo_is_weak(&sig.hash_algo) {
-                assert_ne!(sig.status, GfrSignatureStatus::Valid);
-            }
+            let want = if sig_hash_algo_is_weak(&sig.hash_algo) {
+                // §9.5: never validate a SHA-1 signature.
+                GfrSignatureStatus::BadSignature
+            } else {
+                GfrSignatureStatus::Valid
+            };
+            assert_eq!(sig.status, want, "{}", sig.hash_algo);
         }
     }
 
@@ -614,16 +622,14 @@ mod verify_tests {
             Some(corpus::AUX_GOOD),
         )
         .expect("verify");
-        assert!(res.signatures.len() >= 2, "both signers must be listed");
-        let valid = res
-            .signatures
-            .iter()
-            .filter(|s| s.status == GfrSignatureStatus::Valid)
-            .count();
-        assert!(
-            valid <= 1,
-            "only the signature made by the supplied cert may be valid, got {valid}"
+        // Only the signature made by the supplied cert may be valid; the
+        // other signer's certificate was not supplied.
+        assert_eq!(
+            res.signatures.iter().map(|s| s.status).collect::<Vec<_>>(),
+            vec![GfrSignatureStatus::Valid, GfrSignatureStatus::NoKey],
+            "both signers must be listed, each with its own verdict"
         );
+        assert!(res.is_verified);
     }
 
     #[test]
@@ -647,15 +653,16 @@ mod verify_tests {
             &[],
             corpus::SIG_INLINE_COMPRESSED,
             GfrSignMode::Inline,
-            Some(corpus::AUX_GOOD),
+            // The vector is made by the aux-sha1 key (over SHA-256), not by
+            // aux-good: with the wrong certificate it can only be NoKey.
+            Some(corpus::AUX_SHA1),
         );
-        // Whatever the verdict, the signature must at least be *found*.
-        if let Ok(res) = res {
-            assert!(
-                !res.signatures.is_empty(),
-                "the wrapped signature must be discovered after decompressing"
-            );
-        }
+        let res = res.expect("a compressed inline message verifies");
+        assert!(
+            res.is_verified,
+            "the wrapped signature must be discovered after decompressing"
+        );
+        ta::only_status(&res.signatures, GfrSignatureStatus::Valid);
     }
 
     #[test]
@@ -919,6 +926,7 @@ mod verify_tests {
 
         let res = verify_detached(b"tampered message", &signed.data, Some(&key.public_armored));
         assert!(!res.is_verified);
+        ta::only_status(&res.signatures, GfrSignatureStatus::BadSignature);
     }
 
     #[test]
@@ -946,6 +954,7 @@ mod verify_tests {
             !res.is_verified,
             "a subkey of a revoked primary must not verify (§5.2.1.11)"
         );
+        ta::only_status(&res.signatures, GfrSignatureStatus::KeyRevoked);
     }
 
     #[test]
@@ -959,11 +968,11 @@ mod verify_tests {
             None,
             GfrSignMode::Detached,
             true,
-        );
-        if let Ok(signed) = signed {
-            let res = verify_detached(b"", &signed.data, Some(&key.public_armored));
-            assert!(res.is_verified);
-        }
+        )
+        .expect("an empty payload can be signed");
+        let res = verify_detached(b"", &signed.data, Some(&key.public_armored));
+        assert!(res.is_verified);
+        ta::only_status(&res.signatures, GfrSignatureStatus::Valid);
     }
 
     #[test]
@@ -1099,11 +1108,15 @@ mod verify_tests {
         message.extend(packets::compressed_zlib(&parts[1]));
         message.extend(&parts[2]);
 
-        if let Ok(res) = verify_inline(&message) {
-            assert_eq!(
-                res.data, INLINE_DATA,
-                "the body must come back decompressed"
-            );
+        match verify_inline(&message) {
+            Err(status) => assert_eq!(status, GfrStatus::ErrorInvalidData),
+            Ok(res) => {
+                assert!(res.is_verified);
+                assert_eq!(
+                    res.data, INLINE_DATA,
+                    "the body must come back decompressed"
+                );
+            }
         }
     }
 
@@ -1264,6 +1277,145 @@ mod verify_tests {
         Timestamp::now().as_secs()
     }
 
+    /// The bytes a v4 User ID certification hashes before its trailer
+    /// (RFC 9580 §5.2.4): the framed primary key, then the framed User ID.
+    fn v4_certification_input(fixture: &keys::Fixture) -> (Vec<u8>, Signature) {
+        let primary = fixture.secret.primary_key.public_key();
+        let body = pgp::ser::Serialize::to_bytes(primary).unwrap();
+        let user = &fixture.secret.details.users[0];
+        let uid = user.id.id();
+        let mut data = vec![0x99];
+        data.extend_from_slice(&(body.len() as u16).to_be_bytes());
+        data.extend_from_slice(&body);
+        data.push(0xB4);
+        data.extend_from_slice(&(uid.len() as u32).to_be_bytes());
+        data.extend_from_slice(uid);
+        (data, user.signatures[0].clone())
+    }
+
+    #[test]
+    fn every_armor_block_of_a_detached_signature_file_is_verified() {
+        // INV-ALL: a signature file may hold several armor blocks
+        // (concatenated .asc files, or GF's own multi-signer output before
+        // F-L19). Each block's signatures are reported, not only the first.
+        let fixture = &keys::V4_SIGN;
+        let one = |data: &[u8]| {
+            crate::crypto::sign_internal(
+                0,
+                "",
+                data,
+                &[&fixture.secret_armored],
+                None,
+                GfrSignMode::Detached,
+                true,
+            )
+            .expect("sign")
+            .data
+        };
+        let mut file = one(AUTHZ_DATA);
+        file.extend_from_slice(b"\n");
+        file.extend_from_slice(&one(AUTHZ_DATA));
+        let res = verify_detached(AUTHZ_DATA, &file, Some(&fixture.public_armored));
+        assert_eq!(res.signatures.len(), 2, "both blocks are read");
+        assert!(
+            res.signatures
+                .iter()
+                .all(|s| s.status == GfrSignatureStatus::Valid)
+        );
+    }
+
+    #[test]
+    fn a_certification_replayed_as_a_document_signature_is_never_valid() {
+        // RFC 9580 §5.2.1: a document signature is type 0x00 or 0x01. A
+        // genuine certification (0x13) presented as a detached signature over
+        // the exact bytes it hashes must not make the keyholder appear to
+        // have signed them. (rPGP refuses to hash data for certification
+        // types; this pins that GF reports it as bad, not as Valid.)
+        let fixture = &keys::V4_SIGN;
+        let (data, cert_sig) = v4_certification_input(fixture);
+        assert_eq!(cert_sig.typ(), Some(SignatureType::CertPositive));
+        let user = &fixture.secret.details.users[0];
+        assert!(
+            cert_sig
+                .verify_certification(
+                    fixture.secret.primary_key.public_key(),
+                    pgp::types::Tag::UserId,
+                    &user.id
+                )
+                .is_ok(),
+            "precondition: a genuine certification"
+        );
+        let packet = pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(cert_sig)).unwrap();
+        let res = verify_detached(&data, &packet, Some(&fixture.public_armored));
+        assert!(!res.is_verified);
+        assert_eq!(res.signatures.len(), 1);
+        assert_eq!(res.signatures[0].status, GfrSignatureStatus::BadSignature);
+    }
+
+    /// A genuine v4 signature of type `typ` by `fixture`'s primary key, made
+    /// the way rPGP's verifier hashes that type: Standalone (0x02) and
+    /// Timestamp (0x40) hash one octet of the supplied data.
+    fn non_document_signature(fixture: &keys::Fixture, typ: SignatureType, first: u8) -> Signature {
+        use pgp::types::{KeyDetails, SigningKey};
+        let primary = &fixture.secret.primary_key;
+        let mut cfg = SignatureConfig::v4(typ, primary.algorithm(), primary.hash_alg());
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+        ];
+        let mut hasher = cfg.hash_alg.new_hasher().unwrap();
+        hasher.update(&[first]);
+        let len = cfg.hash_signature_data(&mut hasher).unwrap();
+        hasher.update(&cfg.trailer(len).unwrap());
+        let digest = hasher.finalize();
+        let bytes = SigningKey::sign(primary, &Password::empty(), cfg.hash_alg, &digest).unwrap();
+        Signature::from_config(cfg, [digest[0], digest[1]], bytes).unwrap()
+    }
+
+    #[test]
+    fn only_binary_and_text_signatures_can_vouch_for_a_document() {
+        // RFC 9580 §5.2.1: 0x00 and 0x01 are the signatures "of a document".
+        // A standalone (0x02) or timestamp (0x40) signature does not cover
+        // the document at all, yet rPGP's `Signature::verify` hashes only
+        // the first octet of the data for them: one such signature would
+        // "verify" every file that starts with the same byte.
+        let fixture = &keys::V4_SIGN;
+        let document = b"Pay the bearer 1000 EUR\n";
+        for typ in [SignatureType::Standalone, SignatureType::Timestamp] {
+            let sig = non_document_signature(fixture, typ, document[0]);
+            assert!(
+                sig.verify(fixture.secret.primary_key.public_key(), &document[..])
+                    .is_ok(),
+                "precondition: rPGP accepts the {typ:?} signature over the document"
+            );
+            let packet = pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(sig)).unwrap();
+            let res = verify_detached(document, &packet, Some(&fixture.public_armored));
+            assert!(!res.is_verified, "{typ:?}");
+            assert_eq!(
+                res.signatures[0].status,
+                GfrSignatureStatus::BadSignature,
+                "{typ:?}"
+            );
+
+            // The streaming path for large files applies the same gate.
+            cb::set_pubkey_answer(&fixture.public_armored);
+            let streamed = crate::crypto::verify_detached_stream_internal(
+                0,
+                std::io::Cursor::new(document.to_vec()),
+                &packet,
+                Some(cb::pubkey_fetch),
+                std::ptr::null_mut(),
+            )
+            .expect("stream verify returns a result");
+            assert!(!streamed.is_verified, "{typ:?} (stream)");
+            assert_eq!(
+                streamed.signatures[0].status,
+                GfrSignatureStatus::BadSignature,
+                "{typ:?} (stream)"
+            );
+        }
+    }
+
     #[test]
     fn a_pq_signature_over_a_digest_under_256_bits_is_never_valid() {
         // RFC 9980 §5.3.1, §6.2.1: "A verifying implementation MUST reject any
@@ -1320,7 +1472,7 @@ mod verify_tests {
             let res = verify_detached(AUTHZ_DATA, &packet, Some(&cert));
             assert_eq!(res.is_verified, valid, "{hash:?}");
             if !valid {
-                assert_ne!(res.signatures[0].status, GfrSignatureStatus::Valid);
+                ta::only_status(&res.signatures, GfrSignatureStatus::BadSignature);
             }
         }
     }
@@ -1496,7 +1648,10 @@ mod verify_tests {
     }
 
     #[test]
-    fn a_grafted_subkey_with_no_binding_at_all_is_not_authorized() {
+    fn a_grafted_subkey_with_no_binding_at_all_is_not_valid() {
+        // §10.1.1: every subkey MUST be followed by a binding signature. An
+        // unbound one must never make a signature valid; which non-valid
+        // status it gets is pinned by the deferred test below.
         let attacker = &keys::V4_SIGN;
         let (sig, _) = sign_with_subkey(attacker);
 
@@ -1518,7 +1673,46 @@ mod verify_tests {
 
         let res = verify_detached(AUTHZ_DATA, &sig, Some(&victim));
         assert!(!res.is_verified);
-        ta::is_not_valid(&res.signatures[0]);
+        ta::none_valid(&res.signatures);
+        assert_eq!(res.signatures.len(), 1);
+    }
+
+    #[test]
+    fn a_grafted_subkey_with_no_binding_at_all_is_not_part_of_the_certificate() {
+        // A subkey with no signature at all is dropped by rPGP's parser, so
+        // the signer is simply not in the victim's certificate: NoKey (an
+        // unknown signer), never Valid. A subkey with a *foreign* binding
+        // stays in the certificate and gets KeyNotAuthorized instead.
+        let attacker = &keys::V4_SIGN;
+        let (sig, _) = sign_with_subkey(attacker);
+
+        let mut victim = SignedPublicKey::from_string(&keys::V4_PRIMARY_ONLY.public_armored)
+            .unwrap()
+            .0;
+        let mut stolen = SignedPublicKey::from_string(&attacker.public_armored)
+            .unwrap()
+            .0
+            .public_subkeys
+            .into_iter()
+            .find(|s| s.key.fingerprint().to_string().to_uppercase() == attacker.sign_subkey_fpr())
+            .unwrap();
+        stolen.signatures.clear();
+        victim.public_subkeys.push(stolen);
+        let victim = victim
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+        assert!(
+            SignedPublicKey::from_string(&victim)
+                .unwrap()
+                .0
+                .public_subkeys
+                .is_empty(),
+            "precondition: the unbound subkey does not survive parsing"
+        );
+
+        let res = verify_detached(AUTHZ_DATA, &sig, Some(&victim));
+        assert!(!res.is_verified);
+        ta::only_status(&res.signatures, GfrSignatureStatus::NoKey);
     }
 
     // -- documented gaps -------------------------------------------------------

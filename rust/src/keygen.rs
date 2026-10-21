@@ -419,6 +419,7 @@ pub fn add_subkey_internal(
             .unlock(&primary_pw, |_, _| Ok(()))
             .is_err()
         {
+            crate::err::set_last_error("the passphrase does not unlock the primary key");
             return Err(GfrStatus::ErrorPasswordFailed);
         }
     }

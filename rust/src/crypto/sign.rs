@@ -795,7 +795,7 @@ mod sign_tests {
         // Silently signing with a different key than the user pinned would
         // defeat the purpose of pinning.
         let pinned = format!("0000000000000000!\n{}", keys::V4_SIGN.secret_armored);
-        assert!(
+        assert_eq!(
             sign_internal(
                 0,
                 "",
@@ -805,7 +805,8 @@ mod sign_tests {
                 GfrSignMode::Detached,
                 true
             )
-            .is_err()
+            .err(),
+            Some(GfrStatus::ErrorInvalidInput)
         );
     }
 
@@ -1117,7 +1118,11 @@ mod sign_tests {
             true,
         );
         crate::cancel::set_cancelled(CH, false);
-        assert!(res.is_err(), "a cancelled signing operation must abort");
+        assert_eq!(
+            res.err(),
+            Some(GfrStatus::ErrorCanceled),
+            "a cancelled signing operation must abort"
+        );
     }
 }
 

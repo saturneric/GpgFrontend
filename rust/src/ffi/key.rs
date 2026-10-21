@@ -67,6 +67,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
     out_metadata: *mut *mut GfrKeyMetadataC,
     out_metadata_count: *mut usize,
 ) -> GfrStatus {
+    clear_last_error();
     if out_metadata.is_null() || out_metadata_count.is_null() {
         return GfrStatus::ErrorInvalidInput;
     }
@@ -199,6 +200,7 @@ pub extern "C" fn gfr_crypto_detect_key_version(
     key_block: GfrBuffer,
     out_version: *mut GfrOpenPGPKeyVersion,
 ) -> GfrStatus {
+    clear_last_error();
     if out_version.is_null() {
         return GfrStatus::ErrorInvalidInput;
     }
@@ -232,6 +234,7 @@ pub extern "C" fn gfr_crypto_extract_public_key(
     secret_block: GfrBuffer,
     out_public_block: *mut *mut c_char,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if out_public_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -278,6 +281,7 @@ pub extern "C" fn gfr_crypto_get_recipients(
     out_recipients: *mut *mut GfrRecipientResultC, // Changed to return structured array
     out_count: *mut usize,                         // Added to return array length
 ) -> GfrStatus {
+    clear_last_error();
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
         if in_data.is_null() || out_recipients.is_null() || out_count.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -342,6 +346,7 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
     secret: bool,
     out_armored_ptr: *mut *mut c_char,
 ) -> GfrStatus {
+    clear_last_error();
     // Parsing caller-supplied armored key blocks runs through rPGP, which can
     // panic on malformed packets. Guard the whole body in `catch_unwind` (as the
     // sibling parsing entry points do) so a panic never unwinds across the

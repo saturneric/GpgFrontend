@@ -1061,13 +1061,16 @@ mod encrypt_tests {
         // RFC 9580 §12.4: "MUST NOT encrypt ... using RSA keys of a size less
         // than 2048 bits."
         let cert = cert_of(&keys::V4_RSA1024);
-        assert!(target_of(&cert, None).is_err());
+        assert_eq!(target_of(&cert, None).err(), Some(GfrStatus::ErrorNoKey));
         // RSA can sign, so the fixture lists its only subkey as a signing one.
         let pinned = keys::V4_RSA1024.secret.secret_subkeys[0]
             .key
             .fingerprint()
             .to_string();
-        assert!(target_of(&cert, Some(&pinned)).is_err());
+        assert_eq!(
+            target_of(&cert, Some(&pinned)).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
     }
 
     #[test]
@@ -1595,7 +1598,10 @@ mod encrypt_tests {
 
         let mut out = Vec::new();
         let blocks = [v2_only.0.as_str(), v4.0.as_str()];
-        assert!(encrypt_stream_internal(0, "", &b"payload"[..], &mut out, &blocks, false).is_err());
+        assert_eq!(
+            encrypt_stream_internal(0, "", &b"payload"[..], &mut out, &blocks, false).err(),
+            Some(GfrStatus::ErrorUnsupportedFeature)
+        );
         assert!(out.is_empty(), "no ciphertext may be written on refusal");
 
         // Alone, the v2-only recipient is fine.
@@ -2299,15 +2305,20 @@ mod encrypt_tests {
         )
         .expect("encrypt");
 
-        assert!(
-            crate::crypto::decrypt_internal(
-                0,
-                &out,
-                Some(cb::seckey_none),
-                Some(cb::pwd_wrong),
-                std::ptr::null_mut()
-            )
-            .is_err()
+        // §5.3.2: the v6 SKESK's AEAD tag rejects the wrong passphrase, and
+        // a password-only message says so.
+        let result = crate::crypto::decrypt_internal(
+            0,
+            &out,
+            Some(cb::seckey_none),
+            Some(cb::pwd_wrong),
+            std::ptr::null_mut(),
+        );
+        assert_eq!(
+            result.err(),
+            Some(GfrStatus::ErrorBadPassphrase),
+            "{}",
+            crate::err::last_error()
         );
     }
 
@@ -2485,7 +2496,11 @@ mod encrypt_tests {
             true,
         );
         crate::cancel::set_cancelled(CH, false);
-        assert!(res.is_err(), "a cancelled encryption must abort");
+        assert_eq!(
+            res.err(),
+            Some(GfrStatus::ErrorCanceled),
+            "a cancelled encryption must abort"
+        );
     }
 
     #[test]

@@ -34,7 +34,7 @@
 
 use pgp::{
     composed::{Deserializable, SignedPublicKey, SignedSecretKey},
-    crypto::{hash::HashAlgorithm, public_key},
+    crypto::hash::HashAlgorithm,
     packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
     types::{
         KeyDetails, KeyVersion, PacketHeaderVersion, SecretParams, SignedUser, Tag, Timestamp,
@@ -45,11 +45,11 @@ use zeroize::Zeroizing;
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
+    key::{is_user_id_revoked, names_primary_as_issuer, uid_reissue_template},
     types::{GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
-        fetch_password_with_cache, has_is_primary_true, is_property_self_sig,
-        is_self_signature_from_primary, key_armor_opts, password_from_zeroizing_bytes,
+        PassphraseStateInternal, build_revocation_reason_subpacket, fetch_password_with_cache,
+        is_property_self_sig, key_armor_opts, password_from_zeroizing_bytes, push_issuer,
         refresh_reissued_config,
     },
 };
@@ -134,34 +134,23 @@ pub fn add_user_id_internal(
     let new_uid = pgp::packet::UserId::from_str(PacketHeaderVersion::New, new_uid_str)
         .map_err(|_| GfrStatus::ErrorInternal)?;
 
-    let primary_fpr = skey.primary_key.fingerprint();
-    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
-    let primary_algo = skey.primary_key.algorithm();
-    let primary_version = skey.primary_key.version();
+    let pk = skey.primary_key.public_key();
 
-    // Use an existing self-signature as a template so the new UID inherits the
-    // key's key-flags and algorithm-preference subpackets (rather than rPGP's
-    // bare `UserId::sign`, which emits none). `build_updated_self_sig_config`
-    // clones the template's subpackets and refreshes the issuer/creation-time.
-    let template_sig: Option<Signature> = skey.details.users.iter().find_map(|u| {
-        let self_sigs: Vec<&Signature> = u
-            .signatures
-            .iter()
-            .filter(|s| is_self_signature_from_primary(s, &primary_fpr_bytes))
-            .collect();
-        choose_template_self_sig(&self_sigs).cloned()
-    });
+    // Use the certification that speaks for the key now as the template, so
+    // the new UID inherits the key's key-flags and algorithm-preference
+    // subpackets (rather than rPGP's bare `UserId::sign`, which emits none).
+    // `build_updated_self_sig_config` clones the template's subpackets and
+    // refreshes the issuer/creation-time.
+    let template_sig: Option<Signature> =
+        crate::key::uid_certification_in_force(&pk, &skey.details, None).cloned();
 
     let cfg = build_updated_self_sig_config(
         template_sig.as_ref(),
-        primary_algo,
-        primary_version,
+        &skey.primary_key,
         pgp::types::SigningKey::hash_alg(&skey.primary_key),
-        primary_fpr.clone(),
         false,
     )?;
 
-    let pk = skey.primary_key.public_key();
     let new_sig = cfg
         .sign_certification(&skey.primary_key, &pk, &pwd, Tag::UserId, &new_uid)
         .into_gfr()?;
@@ -187,18 +176,31 @@ pub fn update_user_id_internal(
     new_uid: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
 ) -> Result<Zeroizing<String>, GfrStatus> {
+    // Adding then deleting by text would delete the only copy.
+    if old_uid == new_uid {
+        let (skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
+        if !skey
+            .details
+            .users
+            .iter()
+            .any(|u| u.id.id() == old_uid.as_bytes())
+        {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+        return Ok(Zeroizing::new(secret_key_block.to_string()));
+    }
     let block_with_new = add_user_id_internal(channel, secret_key_block, new_uid, fetch_cb)?;
     delete_user_id_internal(block_with_new.as_str(), old_uid)
 }
 
 fn build_updated_self_sig_config(
     template_sig: Option<&Signature>,
-    primary_key_algo: public_key::PublicKeyAlgorithm,
-    primary_key_version: KeyVersion,
+    primary: &impl pgp::types::KeyDetails,
     primary_key_hash: HashAlgorithm,
-    primary_fpr: pgp::types::Fingerprint,
     make_primary: bool,
 ) -> Result<SignatureConfig, GfrStatus> {
+    let primary_key_algo = primary.algorithm();
+    let primary_key_version = primary.version();
     // Cloning an existing self-signature's config preserves its version (and key
     // flags / preference subpackets). When no template exists, build a config
     // whose version matches the primary key: a v6 key MUST produce v6 signatures
@@ -246,10 +248,7 @@ fn build_updated_self_sig_config(
     filter_subpackets(&mut cfg.hashed_subpackets);
     filter_subpackets(&mut cfg.unhashed_subpackets);
 
-    cfg.hashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-    );
+    push_issuer(&mut cfg, primary)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now()))
@@ -309,54 +308,47 @@ pub fn set_primary_user_id_internal(
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let pk = skey.primary_key.public_key();
-    let primary_fpr = skey.primary_key.fingerprint();
-    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
-    let primary_algo = skey.primary_key.algorithm();
-    let primary_version = skey.primary_key.version();
     let primary_hash = pgp::types::SigningKey::hash_alg(&skey.primary_key);
 
-    let old_primary_idx = 0;
+    // Templates come from verified self-certifications only (see
+    // `uid_reissue_template`). The target keeps its own properties; it falls
+    // back to the certification in force when it has none of its own.
+    let in_force = crate::key::uid_certification_in_force(&pk, &skey.details, None).cloned();
+    let plan: Vec<(bool, Option<Signature>, bool)> = skey
+        .details
+        .users
+        .iter()
+        .map(|user| {
+            let template = uid_reissue_template(&pk, user).cloned();
+            let marked_primary = template.as_ref().is_some_and(|sig| sig.is_primary());
+            (is_user_id_revoked(&pk, user), template, marked_primary)
+        })
+        .collect();
 
-    let current_primary_template_sig: Option<Signature> =
-        skey.details.users.get(old_primary_idx).and_then(|user| {
-            let self_sigs: Vec<&Signature> = user
-                .signatures
-                .iter()
-                .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
-                .collect();
-
-            choose_template_self_sig(&self_sigs).cloned()
-        });
+    // A revoked User ID cannot become primary: certifying it anew would
+    // un-revoke it for GnuPG and Sequoia.
+    if plan[target_idx].0 {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
 
     for (i, user) in skey.details.users.iter_mut().enumerate() {
         let is_target = i == target_idx;
+        let (revoked, own_template, marked_primary) = &plan[i];
 
-        let self_sigs: Vec<&Signature> = user
-            .signatures
-            .iter()
-            .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
-            .collect();
-
-        let has_primary_true = self_sigs.iter().any(|sig| has_is_primary_true(sig));
-
-        if !is_target && !has_primary_true {
+        if *revoked || (!is_target && !*marked_primary) {
             continue;
         }
 
-        let own_template_sig = choose_template_self_sig(&self_sigs);
-
         let template_sig = if is_target {
-            current_primary_template_sig.as_ref().or(own_template_sig)
+            own_template.as_ref().or(in_force.as_ref())
         } else {
-            own_template_sig.or(current_primary_template_sig.as_ref())
+            own_template.as_ref()
         };
 
         let cfg = build_updated_self_sig_config(
             template_sig,
-            primary_algo,
-            primary_version,
+            &skey.primary_key,
             primary_hash,
-            primary_fpr.clone(),
             is_target,
         )?;
 
@@ -365,9 +357,8 @@ pub fn set_primary_user_id_internal(
             .into_gfr()?;
 
         // Replace the certifications only: a 0x30 revocation must survive.
-        user.signatures.retain(|sig| {
-            !(is_self_signature_from_primary(sig, &primary_fpr_bytes) && is_property_self_sig(sig))
-        });
+        user.signatures
+            .retain(|sig| !(names_primary_as_issuer(sig, &pk) && is_property_self_sig(sig)));
 
         user.signatures.push(new_sig);
     }
@@ -426,7 +417,6 @@ pub fn revoke_user_id_internal(
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let pk = skey.primary_key.public_key();
-    let primary_fpr = skey.primary_key.fingerprint();
 
     // Version-aware: a v6 key MUST emit a v6 revocation signature, else conforming
     // verifiers ignore it and the revocation silently fails (RFC 9580 §5.2.5).
@@ -441,10 +431,7 @@ pub fn revoke_user_id_internal(
         .get_mut(target_idx)
         .ok_or(GfrStatus::ErrorInternal)?;
 
-    cfg.hashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-    );
+    push_issuer(&mut cfg, &skey.primary_key)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::SignatureCreationTime(
@@ -496,6 +483,253 @@ mod user_id_tests {
     /// A fresh unprotected key with a single user ID, safe to mutate.
     fn base_key() -> String {
         keys::V4_SIGN.secret_armored.clone()
+    }
+
+    // -- re-issue invariants (round two) --------------------------------------
+    //
+    // A re-issued self-signature is signed for real by the keyholder, so its
+    // subpackets must come only from a self-signature the keyholder verifiably
+    // made, and it must change only what the user asked to change.
+
+    const PLANTED: &str = "planted@attacker.example";
+
+    fn has_notation(sig: &Signature, name: &str) -> bool {
+        sig.notations()
+            .iter()
+            .any(|n| n.name.as_ref() == name.as_bytes())
+    }
+
+    fn now_secs() -> u32 {
+        Timestamp::now().as_secs()
+    }
+
+    /// `block` with a forged "self-signature" on its first User ID: it names
+    /// the primary as issuer, is dated in the future (so it looks newest) and
+    /// carries a notation the keyholder never signed. Its signature bytes are
+    /// borrowed from a genuine self-signature, so it does not verify.
+    fn with_forged_template(block: &str) -> String {
+        let mut sk = parse(block);
+        let genuine = sk.details.users[0].signatures[0].clone();
+        let mut cfg = genuine.config().unwrap().clone();
+        cfg.hashed_subpackets
+            .retain(|sp| !matches!(sp.data, SubpacketData::SignatureCreationTime(_)));
+        cfg.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                now_secs() + 100_000,
+            )))
+            .unwrap(),
+        );
+        cfg.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::Notation(pgp::packet::Notation {
+                readable: true,
+                name: PLANTED.into(),
+                value: "1".into(),
+            }))
+            .unwrap(),
+        );
+        let forged =
+            Signature::from_config(cfg, [0, 0], genuine.signature().unwrap().clone()).unwrap();
+        sk.details.users[0].signatures.push(forged);
+        sk.to_armored_string(crate::utils::armor_opts()).unwrap()
+    }
+
+    /// True if any User ID of `block` carries a *valid* certification that
+    /// contains the planted notation, i.e. the keyholder was made to sign it.
+    fn keyholder_signed_planted(block: &str) -> bool {
+        let sk = parse(block);
+        let pk = sk.primary_key.public_key();
+        sk.details.users.iter().any(|u| {
+            u.signatures.iter().any(|s| {
+                has_notation(s, PLANTED) && s.verify_certification(&pk, Tag::UserId, &u.id).is_ok()
+            })
+        })
+    }
+
+    #[test]
+    fn re_issuing_never_signs_subpackets_from_an_unverified_signature() {
+        let block = with_forged_template(&base_key());
+        let uid = base_uid();
+        let expiry = (now_secs() + 365 * 86_400) as u64;
+        let results = [
+            (
+                "expiry change",
+                crate::key::update_key_expiration_internal(0, &block, None, expiry, None)
+                    .map(|k| k.secret),
+            ),
+            (
+                "add user id",
+                add_user_id_internal(0, &block, "New <new@test.example>", None),
+            ),
+            (
+                "set primary",
+                set_primary_user_id_internal(0, &block, &uid, None),
+            ),
+        ];
+        for (op, out) in results {
+            let out = out.unwrap_or_else(|e| panic!("{op}: {e:?}"));
+            assert!(
+                !keyholder_signed_planted(&out),
+                "{op} signed a forged template"
+            );
+        }
+    }
+
+    /// A self-certification of `sk`'s User ID `idx` by its primary key,
+    /// carrying Key Flags and `extra` hashed subpackets. With `key_id_only` it
+    /// names its issuer only by Key ID (unhashed), as GnuPG 1.x and old PGP
+    /// versions did.
+    fn self_cert(
+        sk: &SignedSecretKey,
+        idx: usize,
+        key_id_only: bool,
+        extra: Vec<Subpacket>,
+    ) -> Signature {
+        use pgp::types::Password;
+        let primary = &sk.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::CertPositive)
+                .unwrap();
+        let mut flags = pgp::packet::KeyFlags::default();
+        flags.set_sign(true);
+        flags.set_certify(true);
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+            Subpacket::regular(SubpacketData::KeyFlags(flags)).unwrap(),
+        ];
+        cfg.hashed_subpackets.extend(extra);
+        if key_id_only {
+            cfg.unhashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::IssuerKeyId(primary.legacy_key_id())).unwrap(),
+            ];
+        } else {
+            cfg.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+            );
+        }
+        cfg.sign_certification(
+            primary,
+            primary.public_key(),
+            &Password::empty(),
+            Tag::UserId,
+            &sk.details.users[idx].id,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn a_legacy_key_id_only_self_signature_can_be_re_issued() {
+        // RFC 9580 §5.2.3.12/§5.2.3.35: a v4 signature may name its issuer by
+        // Key ID alone. Such a key must still accept an expiry change and keep
+        // its Key Flags.
+        let mut sk = parse(&base_key());
+        let legacy = self_cert(&sk, 0, true, vec![]);
+        sk.details.users[0].signatures = vec![legacy];
+        let block = sk.to_armored_string(crate::utils::armor_opts()).unwrap();
+        let expiry = (now_secs() + 365 * 86_400) as u64;
+        let out = crate::key::update_key_expiration_internal(0, &block, None, expiry, None)
+            .expect("expiry change on a key-ID-only self-signature");
+        let cert = SignedPublicKey::from_string(&out.public).unwrap().0;
+        let sig = crate::key::preference_self_signature(&cert).expect("a self-signature in force");
+        assert!(sig.key_flags().sign(), "Key Flags survive the re-issue");
+        assert_eq!(
+            crate::key::primary_key_expires_at(&cert) as u64,
+            expiry,
+            "the new expiry applies"
+        );
+    }
+
+    /// The creation time of `user`'s certification revocation, if any.
+    fn revoked_at(user: &SignedUser) -> Option<u32> {
+        user.signatures
+            .iter()
+            .filter(|s| matches!(s.typ(), Some(SignatureType::CertRevocation)))
+            .filter_map(|s| s.created().map(|t| t.as_secs()))
+            .max()
+    }
+
+    #[test]
+    fn a_revoked_user_id_is_never_re_certified() {
+        // A certification newer than a User ID's revocation un-revokes it in
+        // GnuPG ("we allow invalidation of cert revocations by a newer
+        // signature") and, for soft reasons, in Sequoia. Re-issuing must
+        // leave revoked User IDs alone.
+        let second = "Second <second@test.example>";
+        let block = add_user_id_internal(0, &base_key(), second, None).unwrap();
+        let block = revoke_user_id_internal(
+            0,
+            &block,
+            second,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            None,
+        )
+        .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(1100));
+        let expiry = (now_secs() + 365 * 86_400) as u64;
+        let out = crate::key::update_key_expiration_internal(0, &block, None, expiry, None)
+            .unwrap()
+            .secret;
+        let sk = parse(&out);
+        let user = sk
+            .details
+            .users
+            .iter()
+            .find(|u| u.id.id() == second.as_bytes())
+            .unwrap();
+        let revoked = revoked_at(user).expect("still carries its revocation");
+        assert!(
+            user.signatures
+                .iter()
+                .filter(|s| is_property_self_sig(s))
+                .all(|s| s.created().map(|t| t.as_secs()).unwrap_or(0) <= revoked),
+            "no certification newer than the revocation"
+        );
+        assert_eq!(
+            set_primary_user_id_internal(0, &block, second, None).err(),
+            Some(GfrStatus::ErrorInvalidInput),
+            "a revoked User ID cannot become primary"
+        );
+    }
+
+    #[test]
+    fn setting_the_primary_user_id_keeps_the_targets_own_properties() {
+        // Only the Primary User ID flag changes. The target's own
+        // self-signature (here: its notation) is the template, not whatever
+        // User ID happens to be stored first.
+        let second = "Second <second@test.example>";
+        let mut sk = parse(&add_user_id_internal(0, &base_key(), second, None).unwrap());
+        let own = Subpacket::regular(SubpacketData::Notation(pgp::packet::Notation {
+            readable: true,
+            name: "own@second.example".into(),
+            value: "1".into(),
+        }))
+        .unwrap();
+        let cert = self_cert(&sk, 1, false, vec![own]);
+        sk.details.users[1].signatures = vec![cert];
+        let block = sk.to_armored_string(crate::utils::armor_opts()).unwrap();
+        let out = parse(&set_primary_user_id_internal(0, &block, second, None).unwrap());
+        let target = out
+            .details
+            .users
+            .iter()
+            .find(|u| u.id.id() == second.as_bytes())
+            .unwrap();
+        let newest = target
+            .signatures
+            .iter()
+            .filter(|s| is_property_self_sig(s))
+            .max_by_key(|s| s.created().map(|t| t.as_secs()))
+            .unwrap();
+        assert!(newest.is_primary());
+        assert!(has_notation(newest, "own@second.example"));
+    }
+
+    #[test]
+    fn renaming_a_user_id_to_itself_keeps_it() {
+        let uid = base_uid();
+        let out = update_user_id_internal(0, &base_key(), &uid, &uid, None).expect("no-op rename");
+        assert_eq!(uids_of(&out), vec![uid]);
     }
 
     #[test]
@@ -681,10 +915,7 @@ mod user_id_tests {
             .find(|u| String::from_utf8_lossy(u.id.id()) == "Issuer <issuer@example.test>")
             .expect("the new uid");
         let sig = added.signatures.first().expect("a self-signature");
-        assert!(is_self_signature_from_primary(
-            sig,
-            key.primary_key.fingerprint().as_bytes()
-        ));
+        assert!(names_primary_as_issuer(sig, &key.primary_key.public_key()));
     }
 
     #[test]
@@ -872,7 +1103,7 @@ mod user_id_tests {
             .find(|u| String::from_utf8_lossy(u.id.id()) == "Second <second@example.test>")
             .expect("the target uid");
         assert!(
-            target.signatures.iter().any(has_is_primary_true),
+            target.signatures.iter().any(|s| s.is_primary()),
             "the nominated user ID must carry the Primary User ID flag"
         );
     }
@@ -893,7 +1124,7 @@ mod user_id_tests {
             .details
             .users
             .iter()
-            .filter(|u| u.signatures.iter().any(has_is_primary_true))
+            .filter(|u| u.signatures.iter().any(|s| s.is_primary()))
             .count();
         assert_eq!(flagged, 1, "exactly one user ID may be primary");
     }

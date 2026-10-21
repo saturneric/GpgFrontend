@@ -53,6 +53,11 @@ pub fn set_last_error(msg: &str) {
     });
 }
 
+/// Append `suffix` to the current thread's pending error message.
+pub fn append_last_error(suffix: &str) {
+    LAST_ERROR.with(|e| e.borrow_mut().push_str(suffix));
+}
+
 /// Clear the thread-local error slot before starting a new operation.
 pub fn clear_last_error() {
     LAST_ERROR.with(|e| {

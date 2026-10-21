@@ -40,7 +40,7 @@ use pgp::{
         RevocationCode, Signature, SignatureConfig, SignatureType, SignatureVersionSpecific,
         Subpacket, SubpacketData,
     },
-    types::{KeyVersion, Password, PublicParams, Timestamp},
+    types::{KeyVersion, Password, PublicParams},
 };
 use rsa::traits::PublicKeyParts;
 use zeroize::Zeroizing;
@@ -492,50 +492,40 @@ pub fn check_if_should_use_key_ver_v6(
     false
 }
 
-pub fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
-    sig.issuer_fingerprint()
-        .iter()
-        .any(|f| f.as_bytes() == primary_fpr_bytes)
-}
-
-fn sig_creation_time(sig: &Signature) -> Option<Timestamp> {
-    sig.config().and_then(|c| {
-        c.hashed_subpackets
-            .iter()
-            .chain(c.unhashed_subpackets.iter())
-            .find_map(|sp| match &sp.data {
-                SubpacketData::SignatureCreationTime(ts) => Some(*ts),
-                _ => None,
-            })
-    })
-}
-
+/// Key Flags count only from the hashed area (§5.2.3.29 is signed data).
 fn has_key_flags(sig: &Signature) -> bool {
     sig.config()
         .map(|c| {
             c.hashed_subpackets
                 .iter()
-                .chain(c.unhashed_subpackets.iter())
                 .any(|sp| matches!(sp.data, SubpacketData::KeyFlags(_)))
         })
         .unwrap_or(false)
 }
 
-pub fn has_is_primary_true(sig: &Signature) -> bool {
-    sig.config()
-        .map(|c| {
-            c.hashed_subpackets
-                .iter()
-                .chain(c.unhashed_subpackets.iter())
-                .any(|sp| matches!(sp.data, SubpacketData::IsPrimary(true)))
-        })
-        .unwrap_or(false)
+fn sig_creation_time_value(sig: &Signature) -> u64 {
+    sig.created().map(|ts| ts.as_secs() as u64).unwrap_or(0)
 }
 
-fn sig_creation_time_value(sig: &Signature) -> u64 {
-    sig_creation_time(sig)
-        .map(|ts| ts.as_secs() as u64)
-        .unwrap_or(0)
+/// Name `key` as the issuer of a signature GF makes: a hashed Issuer
+/// Fingerprint, plus an unhashed Issuer Key ID on v4 signatures for verifiers
+/// that look keys up by ID (RFC 9580 §5.2.3.12, §5.2.3.35), as rPGP's own
+/// builders do.
+pub fn push_issuer(
+    cfg: &mut SignatureConfig,
+    key: &impl pgp::types::KeyDetails,
+) -> Result<(), GfrStatus> {
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::IssuerFingerprint(key.fingerprint()))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+    if cfg.version() == pgp::packet::SignatureVersion::V4 {
+        cfg.unhashed_subpackets.push(
+            Subpacket::regular(SubpacketData::IssuerKeyId(key.legacy_key_id()))
+                .map_err(|_| GfrStatus::ErrorInternal)?,
+        );
+    }
+    Ok(())
 }
 
 /// True for the self-signature types that carry a key's properties (User ID
@@ -583,6 +573,9 @@ pub fn refresh_reissued_config(
 }
 
 /// Pick the best self-signature to use as a template when re-signing a user ID.
+///
+/// `self_sigs` must already be verified self-signatures: the template's
+/// subpackets are signed anew by the keyholder.
 ///
 /// Prefers the most-recent signature that carries a `KeyFlags` subpacket, so
 /// the re-generated signature preserves the original capability flags. Falls
@@ -1292,12 +1285,14 @@ mod utils_tests {
     #[test]
     fn a_self_signature_is_recognised_by_its_issuer_fingerprint() {
         let key = &keys::V4_SIGN.secret;
-        let fpr = key.primary_key.fingerprint();
         let sig = key.details.users[0]
             .signatures
             .first()
             .expect("a user id self-signature");
-        assert!(is_self_signature_from_primary(sig, fpr.as_bytes()));
+        assert!(crate::key::names_primary_as_issuer(
+            sig,
+            &key.primary_key.public_key()
+        ));
     }
 
     #[test]
@@ -1308,17 +1303,10 @@ mod utils_tests {
             .signatures
             .first()
             .expect("a user id self-signature");
-        assert!(!is_self_signature_from_primary(
+        assert!(!crate::key::names_primary_as_issuer(
             sig,
-            other.primary_key.fingerprint().as_bytes()
+            &other.primary_key.public_key()
         ));
-    }
-
-    #[test]
-    fn an_empty_fingerprint_never_matches() {
-        let key = &keys::V4_SIGN.secret;
-        let sig = key.details.users[0].signatures.first().expect("a sig");
-        assert!(!is_self_signature_from_primary(sig, &[]));
     }
 
     #[test]
@@ -1329,7 +1317,7 @@ mod utils_tests {
         // added later.
         let key = &keys::V4_SIGN.secret;
         let sig = key.details.users[0].signatures.first().expect("a sig");
-        assert!(has_is_primary_true(sig));
+        assert!(sig.is_primary());
     }
 
     #[test]
@@ -1339,7 +1327,7 @@ mod utils_tests {
         let key = &keys::V4_SIGN.secret;
         let sub = key.secret_subkeys.first().expect("a subkey");
         let sig = sub.signatures.first().expect("a binding signature");
-        assert!(!has_is_primary_true(sig));
+        assert!(!sig.is_primary());
     }
 
     #[test]

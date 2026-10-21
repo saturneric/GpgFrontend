@@ -213,10 +213,10 @@ pub fn inspect(data: &[u8]) -> Document {
 
 /// A `-----BEGIN ...-----` / `-----END ...-----` span within the input.
 #[derive(Debug, Clone, Copy)]
-struct Region {
-    start: usize,
-    end: usize,
-    cleartext: bool,
+pub(crate) struct Region {
+    pub(crate) start: usize,
+    pub(crate) end: usize,
+    pub(crate) cleartext: bool,
 }
 
 /// Find every armor block in `text`, in input order.
@@ -226,7 +226,7 @@ struct Region {
 /// hands back its inner reader once it has reached its `Done` state, so the
 /// remainder is unreachable on exactly the malformed inputs that most need
 /// reporting.
-fn find_armor_regions(text: &str) -> Vec<Region> {
+pub(crate) fn find_armor_regions(text: &str) -> Vec<Region> {
     let mut regions = Vec::new();
     let mut open: Option<(usize, bool)> = None;
 
@@ -332,7 +332,10 @@ fn inspect_armored(body: &str, offset: usize, budget: &mut usize) -> Block {
     // Whatever was decoded before the failure stays in `decoded`, so a
     // truncated or CRC-broken block still lists the packets it did carry.
     let mut decoded = Vec::new();
-    let armor_error = dearmor.read_to_end(&mut decoded).err().map(|e| e.to_string());
+    let armor_error = dearmor
+        .read_to_end(&mut decoded)
+        .err()
+        .map(|e| e.to_string());
 
     // Only the plain fields and `crc24_status` may be touched after a failed
     // read: `into_parts` panics unless the dearmorer reached its `Done` state.
@@ -494,7 +497,11 @@ fn read_framing(data: &[u8]) -> std::io::Result<Framing> {
 ///
 /// Returns the nodes and, when the stream could not be walked to its end, a
 /// note saying why. The note never replaces the nodes already collected.
-fn walk_packets(data: &[u8], depth: usize, budget: &mut usize) -> (Vec<PacketNode>, Option<String>) {
+fn walk_packets(
+    data: &[u8],
+    depth: usize,
+    budget: &mut usize,
+) -> (Vec<PacketNode>, Option<String>) {
     let mut nodes = Vec::new();
     let mut offset = 0usize;
 
@@ -534,7 +541,9 @@ fn walk_packets(data: &[u8], depth: usize, budget: &mut usize) -> (Vec<PacketNod
         if framing.truncated || advance == 0 {
             return (
                 nodes,
-                Some(format!("the input ends inside the packet at offset {offset}")),
+                Some(format!(
+                    "the input ends inside the packet at offset {offset}"
+                )),
             );
         }
         offset += advance;
@@ -552,7 +561,9 @@ fn walk_compressed(
     if depth + 1 >= MAX_DEPTH {
         return (
             Vec::new(),
-            Some(format!("nesting deeper than {MAX_DEPTH} levels, not expanded")),
+            Some(format!(
+                "nesting deeper than {MAX_DEPTH} levels, not expanded"
+            )),
         );
     }
 
@@ -626,14 +637,19 @@ fn describe_framing(framing: &Framing, offset: usize) -> PacketNode {
 /// way to report them is to read the envelope back out of the body.
 fn describe_packet(packet: &Packet, body: &[u8]) -> (Option<u32>, Vec<Field>) {
     match packet {
-        Packet::Signature(sig) => (Some(u8::from(sig.version()) as u32), describe_signature(sig)),
+        Packet::Signature(sig) => (
+            Some(u8::from(sig.version()) as u32),
+            describe_signature(sig),
+        ),
         Packet::OnePassSignature(ops) => (Some(ops.version() as u32), describe_one_pass(ops)),
-        Packet::PublicKeyEncryptedSessionKey(pkesk) => {
-            (Some(u8::from(pkesk.version()) as u32), describe_pkesk(pkesk))
-        }
-        Packet::SymKeyEncryptedSessionKey(skesk) => {
-            (Some(u8::from(skesk.version()) as u32), describe_skesk(skesk))
-        }
+        Packet::PublicKeyEncryptedSessionKey(pkesk) => (
+            Some(u8::from(pkesk.version()) as u32),
+            describe_pkesk(pkesk),
+        ),
+        Packet::SymKeyEncryptedSessionKey(skesk) => (
+            Some(u8::from(skesk.version()) as u32),
+            describe_skesk(skesk),
+        ),
         Packet::LiteralData(literal) => (None, describe_literal(literal)),
         Packet::CompressedData(compressed) => (None, describe_compressed(compressed)),
         Packet::SymEncryptedData(sed) => (
@@ -668,7 +684,10 @@ fn describe_packet(packet: &Packet, body: &[u8]) -> (Option<u32>, Vec<Field>) {
         ),
         Packet::Trust(_) => (
             None,
-            vec![Field::new("Trust", "local trust data, not part of the message")],
+            vec![Field::new(
+                "Trust",
+                "local trust data, not part of the message",
+            )],
         ),
         Packet::ModDetectionCode(_) => (
             None,
@@ -1135,7 +1154,11 @@ mod inspect_tests {
     fn a_v2_seipd_message_reports_its_aead_mode_without_decrypting() {
         let nodes = packets(corpus::ENC_V2SEIPD_OCB);
         assert_eq!(nodes[0].tag, 1);
-        assert_eq!(nodes[0].version, Some(6), "a v2 SEIPD pairs with a v6 PKESK");
+        assert_eq!(
+            nodes[0].version,
+            Some(6),
+            "a v2 SEIPD pairs with a v6 PKESK"
+        );
 
         let container = nodes.last().expect("a container");
         assert_eq!(container.tag, 18);
@@ -1311,7 +1334,11 @@ mod inspect_tests {
     fn a_v6_secret_key_block_is_walked_without_touching_its_secrets() {
         let d = doc(corpus::AUX_V6_SECRET.as_bytes());
         let tags = tags(&d.blocks[0].packets);
-        assert_eq!(tags.first(), Some(&5), "a secret key block opens with tag 5");
+        assert_eq!(
+            tags.first(),
+            Some(&5),
+            "a secret key block opens with tag 5"
+        );
         let key = &d.blocks[0].packets[0];
         assert_eq!(key.version, Some(6));
     }
@@ -1356,8 +1383,7 @@ mod inspect_tests {
     fn garbage_is_reported_as_not_openpgp_rather_than_failing() {
         let d = doc(corpus::GARBAGE);
         assert!(
-            d.errors.iter().any(|e| e == "not OpenPGP data")
-                || d.blocks[0].error.is_some(),
+            d.errors.iter().any(|e| e == "not OpenPGP data") || d.blocks[0].error.is_some(),
             "garbage must produce a finding, not an exception"
         );
     }
@@ -1443,10 +1469,6 @@ mod inspect_tests {
             node = child;
         }
         assert!(depth < MAX_DEPTH, "expansion must stop at the cap: {depth}");
-        assert!(
-            node.error.is_some(),
-            "and must say why it stopped"
-        );
+        assert!(node.error.is_some(), "and must say why it stopped");
     }
 }
-

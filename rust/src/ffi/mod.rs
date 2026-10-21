@@ -380,4 +380,38 @@ mod ffi_mod_tests {
         }
         assert_eq!(GfrStatus::Success as i32, 0);
     }
+
+    #[test]
+    fn every_engine_entry_point_clears_the_previous_error_first() {
+        // INV-MAP: the C++ side reads the last-error slot after a failure. An
+        // entry point that does not clear it first can surface a stale
+        // message from an earlier, unrelated operation on the same thread.
+        let sources = [
+            ("ffi/key.rs", include_str!("key.rs")),
+            ("ffi/keygen.rs", include_str!("keygen.rs")),
+            ("ffi/user_id.rs", include_str!("user_id.rs")),
+            ("ffi/inspect.rs", include_str!("inspect.rs")),
+            ("ffi/crypto/encrypt.rs", include_str!("crypto/encrypt.rs")),
+            ("ffi/crypto/decrypt.rs", include_str!("crypto/decrypt.rs")),
+            ("ffi/crypto/sign.rs", include_str!("crypto/sign.rs")),
+        ];
+        let mut checked = 0;
+        for (file, src) in sources {
+            let parts: Vec<&str> = src.split("extern \"C\" fn ").collect();
+            for part in &parts[1..] {
+                let name: String = part.chars().take_while(|c| *c != '(').collect();
+                if !(name.starts_with("gfr_crypto_") || name.starts_with("gfr_export_")) {
+                    continue;
+                }
+                checked += 1;
+                // The body ends where the next item begins.
+                let body = part.split("\n}\n").next().unwrap_or(part);
+                assert!(
+                    body.contains("clear_last_error()"),
+                    "{file}: {name} does not clear the last error"
+                );
+            }
+        }
+        assert!(checked > 30, "only {checked} entry points found");
+    }
 }

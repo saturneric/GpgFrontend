@@ -188,6 +188,7 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
     fetch_pwd_cb: GfrPasswordFetchCb,
     out_block: *mut *mut std::os::raw::c_char,
 ) -> GfrStatus {
+    clear_last_error();
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
         if target_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);

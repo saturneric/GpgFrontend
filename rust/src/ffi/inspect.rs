@@ -161,7 +161,9 @@ mod ffi_inspect_tests {
             corpus::CORRUPT_CRC.as_bytes(),
             corpus::AUX_GOOD.as_bytes(),
         ] {
-            let _ = inspect_json(data);
+            let doc = inspect_json(data);
+            assert_eq!(doc["size"], data.len(), "every input yields a document");
+            assert!(doc["blocks"].is_array(), "{doc}");
         }
     }
 }

@@ -183,11 +183,15 @@ fn analyze_encrypted_envelope(
 /// Always bypasses the password cache and always asks for a new password
 /// (`ask_for_new: true`) because symmetric encryption has no fingerprint to
 /// key the cache on, so a stale cache entry would silently fail.
+///
+/// The flag is true when the packet that yielded the key confirms the
+/// password: a v6 SKESK is AEAD-protected, while a v4 one either has no
+/// encrypted session key (any password derives "a" key) or no check at all.
 fn skesk_session_key(
     channel: i32,
     esks: &[Esk],
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-) -> Result<PlainSessionKey, GfrStatus> {
+) -> Result<(PlainSessionKey, bool), GfrStatus> {
     let password = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
@@ -221,12 +225,21 @@ fn skesk_session_key(
             continue;
         }
         match decrypt_session_key_with_password(skesk, &msg_pw) {
-            Ok(key) => return Ok(key),
+            Ok(key) => return Ok((key, skesk.version() == SkeskVersion::V6)),
             Err(e) => last_err = Some(e),
         }
     }
     match last_err {
-        Some(e) => Err(e).record_err(GfrStatus::ErrorDecryptionFailed),
+        // A v6 SKESK's AEAD tag, or the algorithm octet and key length a v4
+        // one decrypts to, rejected the password. Said plainly: the detail
+        // rPGP gives ("AEAD Decrypt", "Unsupported symmetric algorithm
+        // Other(77)") describes what the wrong password decrypted to. A mixed
+        // message still reports one uniform error (see the caller).
+        Some(e) => {
+            log::debug!("no password packet opened with this password: {e}");
+            set_last_error("the password does not open this message");
+            Err(GfrStatus::ErrorBadPassphrase)
+        }
         None => {
             set_last_error("the message has no usable password-protected session-key packet");
             Err(GfrStatus::ErrorDecryptionFailed)
@@ -235,9 +248,14 @@ fn skesk_session_key(
 }
 
 /// Recover the session key from the public-key session-key packets (PKESK)
-/// with the secret key the host holds for one of `recipients`, prompting for
-/// that key's passphrase when it is locked. Returns the session key and the
+/// with a secret key the host holds for one of `recipients`, prompting for a
+/// key's passphrase when it is locked. Returns the session key and the
 /// recipient identifier it matched.
+///
+/// Every distinct secret key the host holds for any recipient is tried, in
+/// recipient order: a key that is locked with an unavailable passphrase, or
+/// whose packet does not open, must not hide another key that works. A
+/// cancelled prompt aborts at once.
 fn pkesk_session_key(
     channel: i32,
     esks: &[Esk],
@@ -246,36 +264,64 @@ fn pkesk_session_key(
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     user_data: *mut c_void,
 ) -> Result<(PlainSessionKey, String), GfrStatus> {
-    // Request the secret key from C++.
-    let mut target_skey: Option<SignedSecretKey> = None;
-    let mut matched_recipient_id = String::new();
+    let mut tried: Vec<String> = Vec::new();
+    let mut failure: Option<GfrStatus> = None;
 
     if let Some(cb) = fetch_seckey_cb {
         for rec in recipients {
             let c_key_id = CString::new(rec.key_id.clone()).unwrap_or_default();
             let c_key_block = cb(c_key_id.as_ptr(), user_data);
+            if c_key_block.is_null() {
+                continue;
+            }
+            let skey = unsafe { CStr::from_ptr(c_key_block) }
+                .to_str()
+                .ok()
+                .and_then(|key_str| SignedSecretKey::from_string(key_str).ok())
+                .map(|(key, _)| key);
+            unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
+            let Some(skey) = skey else {
+                continue;
+            };
+            let fpr = skey.primary_key.fingerprint().to_string();
+            if tried.contains(&fpr) {
+                continue;
+            }
+            tried.push(fpr);
 
-            if !c_key_block.is_null() {
-                if let Ok(key_str) = unsafe { CStr::from_ptr(c_key_block) }.to_str() {
-                    if let Ok((cert, _)) = SignedSecretKey::from_string(key_str) {
-                        target_skey = Some(cert);
-                        matched_recipient_id = rec.key_id.clone();
-                    }
-                }
-                unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
-
-                if target_skey.is_some() {
-                    break;
+            match pkesk_session_key_with(channel, esks, &skey, &rec.key_id, fetch_pwd_cb) {
+                Ok(session_key) => return Ok((session_key, rec.key_id.clone())),
+                Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
+                // Keep the most telling failure: a passphrase problem over a
+                // packet that did not open, over "no packet for this key".
+                Err(status) => {
+                    failure = Some(match (failure, status) {
+                        (Some(GfrStatus::ErrorBadPassphrase), _) => GfrStatus::ErrorBadPassphrase,
+                        (Some(GfrStatus::ErrorDecryptionFailed), GfrStatus::ErrorNoKey) => {
+                            GfrStatus::ErrorDecryptionFailed
+                        }
+                        (_, status) => status,
+                    })
                 }
             }
         }
     }
 
-    let skey = target_skey.ok_or_else(|| {
+    Err(failure.unwrap_or_else(|| {
         set_last_error("no available secret key matches any recipient of this message");
         GfrStatus::ErrorNoKey
-    })?;
+    }))
+}
 
+/// [`pkesk_session_key`] for one secret key `skey`, found for the recipient
+/// identifier `matched_recipient_id`.
+fn pkesk_session_key_with(
+    channel: i32,
+    esks: &[Esk],
+    skey: &SignedSecretKey,
+    matched_recipient_id: &str,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+) -> Result<PlainSessionKey, GfrStatus> {
     // Check if unlocking is needed.
     let mut needs_password = false;
     let primary_id = skey.primary_key.legacy_key_id().to_string();
@@ -287,7 +333,7 @@ fn pkesk_session_key(
     };
     let mut target_fpr_for_pwd = primary_fpr.clone();
 
-    if id_matches(&matched_recipient_id, &primary_id, &primary_fpr)
+    if id_matches(matched_recipient_id, &primary_id, &primary_fpr)
         && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
     {
         needs_password = true;
@@ -297,7 +343,7 @@ fn pkesk_session_key(
         for subkey in &skey.secret_subkeys {
             let subkey_id = subkey.key.legacy_key_id().to_string();
             let subkey_fpr = subkey.key.fingerprint().to_string();
-            if id_matches(&matched_recipient_id, &subkey_id, &subkey_fpr)
+            if id_matches(matched_recipient_id, &subkey_id, &subkey_fpr)
                 && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
             {
                 needs_password = true;
@@ -354,7 +400,7 @@ fn pkesk_session_key(
         }
         for key in candidates {
             match key.decrypt(&pwd, values, typ) {
-                Ok(Ok(session_key)) => return Ok((session_key, matched_recipient_id)),
+                Ok(Ok(session_key)) => return Ok(session_key),
                 Ok(Err(e)) => last_err = Some(e),
                 Err(e) => {
                     if needs_password {
@@ -431,6 +477,11 @@ fn is_anonymous(id: &str) -> bool {
 /// `sink` decides how a SEIPD v1 payload is read and how far decompressed
 /// output may grow (see [`Sink`]). Private on purpose: the public entry points
 /// fix the sink, so streaming can only be paired with a stage.
+///
+/// When the session key came from a password packet that cannot confirm the
+/// password, a later integrity failure is as likely a mistyped password as a
+/// modified message: the status stays an integrity failure (nothing is
+/// released), and the detail names both causes.
 #[allow(clippy::too_many_arguments)]
 fn decrypt_message_stream<R, W>(
     channel: i32,
@@ -442,6 +493,44 @@ fn decrypt_message_stream<R, W>(
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
     user_data: *mut c_void,
     sink: Sink,
+) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus>
+where
+    R: Read + Send + Sync + fmt::Debug,
+    W: Write + Send + Sync,
+{
+    let mut unconfirmed_password = false;
+    let result = decrypt_message_stream_inner(
+        channel,
+        input_stream,
+        output_stream,
+        ascii_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        user_data,
+        sink,
+        &mut unconfirmed_password,
+    );
+    if unconfirmed_password && result.as_ref().err() == Some(&GfrStatus::ErrorDataCorrupted) {
+        crate::err::append_last_error(
+            " (or a wrong password: this message's password packet cannot confirm it)",
+        );
+    }
+    result
+}
+
+#[allow(clippy::too_many_arguments)]
+fn decrypt_message_stream_inner<R, W>(
+    channel: i32,
+    input_stream: R,
+    output_stream: W,
+    ascii_armor: bool,
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    user_data: *mut c_void,
+    sink: Sink,
+    unconfirmed_password: &mut bool,
 ) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus>
 where
     R: Read + Send + Sync + fmt::Debug,
@@ -522,7 +611,10 @@ where
     if session_key.is_none() && has_skesk {
         debug!("Attempting password-based decryption.");
         match skesk_session_key(channel, esks, fetch_pwd_cb) {
-            Ok(key) => session_key = Some(key),
+            Ok((key, confirmed)) => {
+                *unconfirmed_password = !confirmed;
+                session_key = Some(key);
+            }
             Err(GfrStatus::ErrorCanceled) => return Err(GfrStatus::ErrorCanceled),
             Err(_) if has_pkesk => {
                 set_last_error("no usable private key or password opens this message");
@@ -583,12 +675,12 @@ where
             .report()
     })?;
 
-    // 7. Extract filename
-    let mut filename = String::new();
-    if let Message::Literal { ref reader, .. } = decrypted {
-        let header = reader.data_header();
-        filename = String::from_utf8_lossy(header.file_name()).to_string();
-    }
+    // 7. Extract filename, from the Literal Data packet wherever it sits (it
+    //    is under the signature layer of a signed message).
+    let filename = decrypted
+        .literal_data_header()
+        .map(|header| String::from_utf8_lossy(header.file_name()).to_string())
+        .unwrap_or_default();
 
     // 8. Stream Execution
     //
@@ -775,6 +867,10 @@ fn decrypt_archive_staged(
         out_dir_path
     );
     let mut archive = tar::Archive::new(temp_archive);
+    // The recorded modes are the sender's choice, and tar applies no umask
+    // by default: never let decrypted plaintext become group or world
+    // writable (the conventional 022 umask).
+    archive.set_mask(0o022);
     archive.unpack(&extract_dir).map_err(|e| {
         log::error!("Failed to unpack tar archive: {}", e);
         set_last_error(&format!("decrypted data is not a valid archive: {}", e));
@@ -1008,8 +1104,9 @@ mod rfc9580_envelope_tests {
     #[test]
     fn envelope_rejects_legacy_sed() {
         let msg = parse(ENC_SED);
-        assert!(
-            analyze_encrypted_envelope(&msg).is_err(),
+        assert_eq!(
+            analyze_encrypted_envelope(&msg).err(),
+            Some(GfrStatus::ErrorInvalidData),
             "legacy SED must be refused"
         );
     }
@@ -1173,8 +1270,37 @@ mod decrypt_tests {
 
     #[test]
     fn an_argon2_message_refuses_the_wrong_passphrase() {
-        // Memory-hard or not, a wrong passphrase must still fail cleanly.
-        assert!(decrypt_with_password(rfc9580::A12_ARGON2_AES128.as_bytes(), pw_corpus).is_err());
+        // Memory-hard or not, a wrong passphrase must still fail cleanly. The
+        // A.12 password is "password", so `pw_corpus` ("123456") is wrong.
+        // The v4 SKESK's encrypted session key (§5.3.1) then decrypts to
+        // garbage, so the session key cannot be recovered. A password-only
+        // message reports that as a wrong password, in plain words, not as
+        // the garbage algorithm octet it decrypted to.
+        let result = decrypt_with_password(rfc9580::A12_ARGON2_AES128.as_bytes(), pw_corpus);
+        assert_eq!(
+            result.err(),
+            Some(GfrStatus::ErrorBadPassphrase),
+            "{}",
+            crate::err::last_error()
+        );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("password does not open"), "{detail}");
+    }
+
+    #[test]
+    fn a_v6_skesk_message_refuses_the_wrong_passphrase() {
+        // §5.3.2: a v6 SKESK wraps the session key with AEAD, so a wrong
+        // passphrase fails the SKESK's own authentication tag. A.10's
+        // password is "password", so `pw_corpus` ("123456") is wrong.
+        let result = decrypt_with_password(rfc9580::A10_OCB_SKESK.as_bytes(), pw_corpus);
+        assert_eq!(
+            result.err(),
+            Some(GfrStatus::ErrorBadPassphrase),
+            "{}",
+            crate::err::last_error()
+        );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("password does not open"), "{detail}");
     }
 
     #[test]
@@ -1256,7 +1382,8 @@ mod decrypt_tests {
 
     #[test]
     fn a_symmetric_v2_message_decrypts_with_its_passphrase() {
-        // §5.3.2 v6 SKESK + §5.13.2 v2 SEIPD.
+        // Despite its name, this vector is a v4 SKESK (§5.3.1) + v1 SEIPD
+        // (§5.13.1); the v6 SKESK + v2 SEIPD path is covered by A.9 - A.11.
         let res = decrypt_with_password(corpus::ENC_SYMMETRIC_V2, pw_corpus).expect("decrypt");
         assert_eq!(res.data, corpus::PAYLOAD);
     }
@@ -1290,10 +1417,13 @@ mod decrypt_tests {
         // §13.7 / §5.7: "This packet is obsolete. An implementation MUST NOT
         // create this packet. An implementation SHOULD reject such a packet
         // and stop processing the message."
-        assert!(
-            decrypt_with_key(corpus::ENC_SED_TAG9, corpus::KEY1_SECRET, Some(pw_corpus)).is_err(),
+        assert_eq!(
+            decrypt_with_key(corpus::ENC_SED_TAG9, corpus::KEY1_SECRET, Some(pw_corpus)).err(),
+            Some(GfrStatus::ErrorInvalidData),
             "an unauthenticated SED payload must never be decrypted"
         );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("Symmetrically Encrypted Data"), "{detail}");
     }
 
     #[test]
@@ -1310,21 +1440,30 @@ mod decrypt_tests {
         let mut tampered = corpus::ENC_V1SEIPD_MDC.to_vec();
         let last = tampered.len() - 8;
         tampered[last] ^= 0xFF;
-        assert!(
-            decrypt_with_key(&tampered, corpus::KEY1_SECRET, Some(pw_corpus)).is_err(),
+        assert_eq!(
+            decrypt_with_key(&tampered, corpus::KEY1_SECRET, Some(pw_corpus)).err(),
+            Some(GfrStatus::ErrorDataCorrupted),
             "a corrupted MDC must not release plaintext"
         );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("modification detection code"), "{detail}");
     }
 
     #[test]
     fn a_tampered_aead_tag_is_detected() {
         // §13.7: "if the authentication tag fails to verify, the
         // implementation MUST NOT attempt to parse nor release decrypted data".
-        let mut tampered = rfc9580::A8_X25519_AEAD_OCB.as_bytes().to_vec();
-        // Flip a byte inside the base64 body rather than the armor header.
-        let pos = tampered.len() / 2;
-        tampered[pos] = if tampered[pos] == b'A' { b'B' } else { b'A' };
-        assert!(decrypt_with_key(&tampered, rfc9580::A4_V6_SECRET_UNLOCKED, None).is_err());
+        // Tamper the binary body's final byte, which lies inside the final
+        // authentication tag (§5.13.2), so the PKESK and the armor stay intact
+        // and only the AEAD check can catch it.
+        let binary = crate::crypto::dearmor_all(rfc9580::A8_X25519_AEAD_OCB.as_bytes());
+        let tampered = crate::testutil::seipd::flipped(&binary, -1);
+        assert_eq!(
+            decrypt_with_key(&tampered, rfc9580::A4_V6_SECRET_UNLOCKED, None).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("AEAD authentication failed"), "{detail}");
     }
 
     #[test]
@@ -1344,22 +1483,35 @@ mod decrypt_tests {
 
     #[test]
     fn a_wrong_passphrase_on_a_symmetric_message_fails() {
-        assert!(decrypt_with_password(corpus::ENC_SYMMETRIC_V1, pw_password).is_err());
+        // A v4 password packet without an encrypted session key yields a key
+        // for any password (RFC 9580 §5.3): a wrong one surfaces only as the
+        // payload's integrity failure. The status stays an integrity failure
+        // (nothing is released), but the detail must not claim tampering
+        // alone when the likelier cause is a mistyped password.
+        let result = decrypt_with_password(corpus::ENC_SYMMETRIC_V1, pw_password);
+        assert_eq!(result.err(), Some(GfrStatus::ErrorDataCorrupted));
+        let detail = crate::err::last_error();
+        assert!(detail.contains("wrong password"), "{detail}");
     }
 
     #[test]
     fn a_missing_secret_key_fails() {
         cb::clear_seckey_answer();
-        assert!(
-            decrypt_internal(
-                0,
-                corpus::ENC_V1SEIPD_MDC,
-                Some(cb::seckey_none),
-                Some(pw_corpus),
-                std::ptr::null_mut()
-            )
-            .is_err()
+        let result = decrypt_internal(
+            0,
+            corpus::ENC_V1SEIPD_MDC,
+            Some(cb::seckey_none),
+            Some(pw_corpus),
+            std::ptr::null_mut(),
         );
+        assert_eq!(
+            result.err(),
+            Some(GfrStatus::ErrorNoKey),
+            "{}",
+            crate::err::last_error()
+        );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("no available secret key"), "{detail}");
     }
 
     #[test]
@@ -1495,7 +1647,12 @@ mod decrypt_tests {
         let sink = Sink::Memory {
             seipdv1_limit: 1024,
         };
-        assert!(stream_decrypt(&data, sink).is_err());
+        assert_eq!(
+            stream_decrypt(&data, sink).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("ProtectedCheckFirst"), "{detail}");
     }
 
     #[test]
@@ -1508,7 +1665,12 @@ mod decrypt_tests {
     fn streaming_mode_still_detects_a_tampered_mdc() {
         let (_, mut data) = v1_message(64 * 1024);
         tamper_mdc(&mut data);
-        assert!(stream_decrypt(&data, STAGED).is_err());
+        assert_eq!(
+            stream_decrypt(&data, STAGED).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("modification detection code"), "{detail}");
     }
 
     fn decrypt_file(in_path: &Path, out_path: &Path) -> Result<(), GfrStatus> {
@@ -1559,7 +1721,10 @@ mod decrypt_tests {
         let out_path = dir.path().join("out.bin");
         std::fs::write(&in_path, &data).expect("write");
 
-        assert!(decrypt_file(&in_path, &out_path).is_err());
+        assert_eq!(
+            decrypt_file(&in_path, &out_path).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
         assert!(!out_path.exists(), "no plaintext may reach the output path");
         assert_eq!(
             dir_entries(dir.path()),
@@ -1578,16 +1743,35 @@ mod decrypt_tests {
         std::fs::write(&in_path, &data).expect("write");
         std::fs::write(&out_path, b"previous").expect("write");
 
-        assert!(decrypt_file(&in_path, &out_path).is_err());
+        assert_eq!(
+            decrypt_file(&in_path, &out_path).err(),
+            Some(GfrStatus::ErrorDataCorrupted)
+        );
         assert_eq!(std::fs::read(&out_path).expect("read"), b"previous");
     }
 
     #[test]
     fn a_tampered_v1_archive_extracts_nothing() {
+        // The payload must be a real tar stream: anything else fails as
+        // invalid data even if the MDC check (§5.13.1) were skipped.
         let dir = tempfile::tempdir().expect("tempdir");
-        let (_, mut data) = v1_message(64 * 1024);
-        tamper_mdc(&mut data);
+        let src = dir.path().join("src");
+        std::fs::create_dir_all(src.join("sub")).expect("mkdir");
+        let payload: Vec<u8> = (0..=255u8).cycle().take(64 * 1024).collect();
+        std::fs::write(src.join("a.bin"), &payload).expect("write");
+        std::fs::write(src.join("sub/b.txt"), b"nested").expect("write");
         let in_path = dir.path().join("in.gpg");
+        crate::crypto::encrypt_directory_internal(
+            0,
+            src.to_str().unwrap(),
+            in_path.to_str().unwrap(),
+            &[&keys::V4_SIGN.public_armored],
+            false,
+        )
+        .expect("encrypt directory");
+        std::fs::remove_dir_all(&src).expect("rm src");
+        let mut data = std::fs::read(&in_path).expect("read");
+        tamper_mdc(&mut data);
         let out_dir = dir.path().join("out");
         std::fs::write(&in_path, &data).expect("write");
 
@@ -1602,7 +1786,12 @@ mod decrypt_tests {
             None,
             std::ptr::null_mut(),
         );
-        assert!(res.is_err());
+        assert_eq!(
+            res.err(),
+            Some(GfrStatus::ErrorDataCorrupted),
+            "{}",
+            crate::err::last_error()
+        );
         assert!(
             !out_dir.exists(),
             "a failed archive decrypt creates nothing"
@@ -1671,6 +1860,33 @@ mod decrypt_tests {
     }
 
     #[test]
+    fn a_signed_message_keeps_its_filename() {
+        // INV-ALL: the Literal Data packet is not always the top level. In a
+        // signed message (RFC 9580 §10.3: "Signature Packet, OpenPGP
+        // Message") it sits under the signature, and its filename must still
+        // be reported.
+        let key = &keys::V4_SIGN;
+        let body = b"named and signed";
+        let sig = crate::crypto::sign_internal(
+            0,
+            "",
+            body,
+            &[&key.secret_armored],
+            None,
+            GfrSignMode::Detached,
+            false,
+        )
+        .unwrap()
+        .data;
+        let mut inner = sig;
+        inner.extend_from_slice(&packets::literal(b'b', b"report.txt", 0, body));
+        let msg = crate::testutil::seipd::v1_with_inner(key, &inner);
+        let out = decrypt_with_key(&msg, &key.secret_armored, None).expect("decrypt");
+        assert_eq!(out.data, body);
+        assert_eq!(out.filename, "report.txt");
+    }
+
+    #[test]
     fn decrypting_with_the_wrong_key_fails() {
         let encrypted = crate::crypto::encrypt_internal(
             0,
@@ -1680,7 +1896,15 @@ mod decrypt_tests {
             false,
         )
         .expect("encrypt");
-        assert!(decrypt_with_key(&encrypted.data, &keys::V6_SIGN.secret_armored, None).is_err());
+        assert_eq!(
+            decrypt_with_key(&encrypted.data, &keys::V6_SIGN.secret_armored, None).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
+        let detail = crate::err::last_error();
+        assert!(
+            detail.contains("does not match any session-key packet"),
+            "{detail}"
+        );
     }
 
     #[test]
@@ -1744,6 +1968,8 @@ mod decrypt_tests {
 
         assert_eq!(res.data, b"payload");
         assert!(!res.is_verified);
+        assert_eq!(res.signatures.len(), 1, "the signature is still reported");
+        assert_eq!(res.signatures[0].status, GfrSignatureStatus::NoKey);
     }
 }
 
@@ -2004,7 +2230,7 @@ mod seipd_file_tests {
         let len = data.len() as isize;
         for at in [-(len / 2), -(len / 3), -1024, -23] {
             let dir = tempfile::tempdir().unwrap();
-            assert!(
+            assert_eq!(
                 decrypt_file_as(
                     dir.path(),
                     &seipd::flipped(&data, at),
@@ -2012,7 +2238,8 @@ mod seipd_file_tests {
                     None,
                     plain_stage_writer
                 )
-                .is_err(),
+                .err(),
+                Some(GfrStatus::ErrorDataCorrupted),
                 "tamper at {at}"
             );
             assert_nothing_committed(dir.path(), None);
@@ -2054,7 +2281,7 @@ mod seipd_file_tests {
         let (_, data) = v1(PAYLOAD);
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(dir.path().join("out.bin"), b"previous").unwrap();
-        assert!(
+        assert_eq!(
             decrypt_file_as(
                 dir.path(),
                 &seipd::flipped(&data, -1),
@@ -2062,8 +2289,11 @@ mod seipd_file_tests {
                 None,
                 plain_stage_writer
             )
-            .is_err()
+            .err(),
+            Some(GfrStatus::ErrorDataCorrupted)
         );
+        let detail = crate::err::last_error();
+        assert!(detail.contains("modification detection code"), "{detail}");
         assert_nothing_committed(dir.path(), Some(b"previous"));
     }
 
@@ -2375,7 +2605,7 @@ mod seipd_file_tests {
 
             for back in [1isize, 16, 17, 4096] {
                 let dir = tempfile::tempdir().unwrap();
-                assert!(
+                assert_eq!(
                     decrypt_file_as(
                         dir.path(),
                         &seipd::flipped(&data, -back),
@@ -2383,7 +2613,8 @@ mod seipd_file_tests {
                         None,
                         plain_stage_writer
                     )
-                    .is_err(),
+                    .err(),
+                    Some(GfrStatus::ErrorDataCorrupted),
                     "v2 tamper at -{back}"
                 );
                 assert_nothing_committed(dir.path(), None);
@@ -2464,6 +2695,36 @@ mod seipd_file_tests {
             names(dir.path()).iter().all(|n| !n.starts_with(".gf-")),
             "no stage may remain"
         );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn extracted_plaintext_is_never_group_or_world_writable() {
+        // INV-STAGE: the archive's recorded modes are the sender's choice.
+        // tar applies none of the user's umask by default, so a 0666 file or
+        // a 0777 directory would land in the user's tree writable by anyone.
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("src");
+        sample_tree(&src);
+        std::fs::set_permissions(src.join("a.bin"), std::fs::Permissions::from_mode(0o666))
+            .unwrap();
+        std::fs::set_permissions(src.join("sub"), std::fs::Permissions::from_mode(0o777)).unwrap();
+        let enc = dir.path().join("tree.tar.gpg");
+        encrypt_tree(&src, &enc, &keys::V4_SIGN);
+
+        let out = dir.path().join("out");
+        decrypt_archive(
+            &enc,
+            &out,
+            &keys::V4_SIGN.secret_armored,
+            plain_stage_writer,
+        )
+        .expect("decrypt");
+        for path in [out.join("a.bin"), out.join("sub"), out.join("sub/b.txt")] {
+            let mode = std::fs::metadata(&path).unwrap().permissions().mode();
+            assert_eq!(mode & 0o022, 0, "{} is {:o}", path.display(), mode & 0o777);
+        }
     }
 
     #[test]
@@ -2584,7 +2845,7 @@ mod seipd_file_tests {
                     assert_nothing_committed(dir.path(), None);
                 }
                 let dir = tempfile::tempdir().unwrap();
-                assert!(
+                assert_eq!(
                     decrypt_file_as(
                         dir.path(),
                         &seipd::flipped(&data, -(data.len() as isize / 2)),
@@ -2592,7 +2853,8 @@ mod seipd_file_tests {
                         cert,
                         plain_stage_writer
                     )
-                    .is_err(),
+                    .err(),
+                    Some(GfrStatus::ErrorDataCorrupted),
                     "{case}, mid-stream tamper"
                 );
                 assert_nothing_committed(dir.path(), None);
@@ -2652,7 +2914,7 @@ mod seipd_file_tests {
                 assert_eq!(res.is_verified, sign, "{case}");
 
                 let dir = tempfile::tempdir().unwrap();
-                assert!(
+                assert_eq!(
                     decrypt_file_as(
                         dir.path(),
                         &seipd::flipped(&data, -1),
@@ -2660,7 +2922,8 @@ mod seipd_file_tests {
                         cert,
                         plain_stage_writer
                     )
-                    .is_err(),
+                    .err(),
+                    Some(GfrStatus::ErrorDataCorrupted),
                     "{case}, tampered"
                 );
                 assert_nothing_committed(dir.path(), None);
@@ -2979,6 +3242,89 @@ mod esk_and_integrity_tests {
             Ok(_) => panic!("{what}: must not decrypt"),
             Err(status) => status,
         }
+    }
+
+    // -- several secret keys (INV-MIX) ---------------------------------------
+
+    fn decrypt_with_keyring(
+        data: &[u8],
+        keyring: &[&str],
+        pwd: GfrPasswordFetchCb,
+    ) -> Result<DecryptResultInternal, GfrStatus> {
+        cb::set_seckey_keyring(keyring);
+        decrypt_internal(
+            0,
+            data,
+            Some(cb::seckey_by_id),
+            Some(pwd),
+            std::ptr::null_mut(),
+        )
+    }
+
+    #[test]
+    fn a_key_that_cannot_be_unlocked_does_not_hide_another_usable_key() {
+        // The message is for two of the user's keys. The first one found is
+        // locked and its passphrase is not available; the second is usable
+        // and must open the message.
+        let locked = crate::testutil::corpus::KEY1_SECRET;
+        let locked_cert =
+            pgp::composed::SignedPublicKey::from(crate::testutil::corpus::KEY1.clone())
+                .to_armored_string(crate::utils::armor_opts())
+                .unwrap();
+        let usable = &keys::V4_SIGN;
+        let msg = crate::crypto::encrypt_internal(
+            0,
+            "",
+            PAYLOAD,
+            &[&locked_cert, &usable.public_armored],
+            false,
+        )
+        .expect("encrypt to both");
+        assert!(msg.invalid_recipients.is_empty());
+        let out = decrypt_with_keyring(&msg.data, &[locked, &usable.secret_armored], cb::pwd_wrong)
+            .expect("the usable key opens the message");
+        assert_eq!(out.data, PAYLOAD);
+    }
+
+    /// The first packet of a binary OpenPGP stream, header included.
+    fn first_packet(bin: &[u8]) -> &[u8] {
+        assert!(bin[0] & 0xC0 == 0xC0, "new-format header expected");
+        let (len, hdr) = match bin[1] {
+            n @ 0..=191 => (n as usize, 2),
+            n @ 192..=223 => ((((n as usize) - 192) << 8) + bin[2] as usize + 192, 3),
+            255 => (
+                u32::from_be_bytes([bin[2], bin[3], bin[4], bin[5]]) as usize,
+                6,
+            ),
+            _ => panic!("partial length in an ESK"),
+        };
+        &bin[..hdr + len]
+    }
+
+    #[test]
+    fn an_esk_that_does_not_fit_the_container_is_discarded() {
+        // RFC 9580 §10.3.2.1: a v3 PKESK with a v2 SEIPD (or a v6 one with a
+        // v1 SEIPD) is misaligned and MUST be discarded. Here a stray v3
+        // PKESK to one of the user's keys precedes the genuine v6 PKESK; it
+        // must not stop the matching key from opening the message.
+        let v4 = &keys::V4_SIGN;
+        let v6 = &keys::V6_SIGN;
+        let stray = crate::crypto::encrypt_internal(0, "", b"other", &[&v4.public_armored], false)
+            .unwrap()
+            .data;
+        let genuine = crate::crypto::encrypt_internal(0, "", PAYLOAD, &[&v6.public_armored], false)
+            .unwrap()
+            .data;
+        assert_eq!(stray[0] & 0x3F, 1, "a PKESK leads the stray message");
+        let mut spliced = first_packet(&stray).to_vec();
+        spliced.extend_from_slice(&genuine);
+        let out = decrypt_with_keyring(
+            &spliced,
+            &[&v4.secret_armored, &v6.secret_armored],
+            cb::pwd_wrong,
+        )
+        .expect("the aligned v6 PKESK opens the message");
+        assert_eq!(out.data, PAYLOAD);
     }
 
     // -- mixed SKESK + PKESK ------------------------------------------------

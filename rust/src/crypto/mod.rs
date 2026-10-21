@@ -72,9 +72,9 @@ pub(crate) use std::{
 };
 
 mod decrypt;
-mod staging;
 mod encrypt;
 mod sign;
+mod staging;
 mod verify;
 
 pub use decrypt::*;
@@ -564,14 +564,15 @@ mod rfc9580_policy_tests {
     fn gate_rejects_weak_hash_even_when_verified() {
         // A cryptographically valid SHA-1 signature must never be Valid (§9.5).
         let (status, is_verified) = gated(true, "SHA1", 0);
-        assert_ne!(status, GfrSignatureStatus::Valid);
+        assert_eq!(status, GfrSignatureStatus::BadSignature);
         assert!(!is_verified);
     }
 
     #[test]
     fn gate_rejects_expired_even_when_verified() {
+        // §5.2.3.18: a signature past its own expiration time is not valid.
         let (status, is_verified) = gated(true, "SHA512", 1);
-        assert_ne!(status, GfrSignatureStatus::Valid);
+        assert_eq!(status, GfrSignatureStatus::BadSignature);
         assert!(!is_verified);
     }
 
@@ -884,10 +885,29 @@ pub(crate) fn message_index_verdict(
     cert: &SignedPublicKey,
     created_at: u32,
 ) -> KeyVerdict {
-    cert_verdict(cert, created_at, |key| match key {
-        None => msg.verify_nested_explicit(index, cert).is_ok(),
-        Some(sk) => msg.verify_nested_explicit(index, sk).is_ok(),
+    let is_document = match msg {
+        Message::Signed { reader, .. } => {
+            reader.signature(index).is_some_and(is_document_signature)
+        }
+        _ => false,
+    };
+    cert_verdict(cert, created_at, |key| {
+        is_document
+            && match key {
+                None => msg.verify_nested_explicit(index, cert).is_ok(),
+                Some(sk) => msg.verify_nested_explicit(index, sk).is_ok(),
+            }
     })
+}
+
+/// RFC 9580 §5.2.1: only a binary (0x00) or text (0x01) signature is a
+/// signature "of a document". rPGP's `Signature::verify` does not check the
+/// type, and hashes a single octet of the data for standalone (0x02) and
+/// timestamp (0x40) signatures, so without this gate one such signature
+/// would vouch for every document starting with the same byte.
+pub(crate) fn is_document_signature(sig: &pgp::packet::Signature) -> bool {
+    use pgp::packet::SignatureType;
+    matches!(sig.typ(), Some(SignatureType::Binary | SignatureType::Text))
 }
 
 /// Build one `NoKey` result entry per signature packet carried by a parsed
@@ -1010,21 +1030,49 @@ pub(crate) fn sig_entry_from_packet(
 /// several signature packets (multiple signers over the same data). Returns them
 /// in packet order so the caller can attribute each independently.
 pub(crate) fn parse_all_signature_packets(data: &[u8]) -> Vec<pgp::packet::Signature> {
-    let mut dearmored = Vec::new();
-    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
-    let payload = if dearmored.is_empty() {
-        data
-    } else {
-        &dearmored
-    };
+    let payload = dearmor_all(data);
 
-    PacketParser::new(Cursor::new(payload))
+    PacketParser::new(Cursor::new(&payload[..]))
         .flatten()
         .filter_map(|packet| match packet {
             Packet::Signature(sig) => Some(sig),
             _ => None,
         })
         .collect()
+}
+
+/// The binary packets of `data`: every armor block decoded and concatenated
+/// in input order, or `data` itself when it holds no decodable armor. A file
+/// may carry several blocks (concatenated .asc files, or one block per signer
+/// as GF wrote detached signatures before F-L19); a single `Dearmor` stops at
+/// the first footer. Cleartext-signed regions are left to their own parser.
+pub(crate) fn dearmor_all(data: &[u8]) -> std::borrow::Cow<'_, [u8]> {
+    let text = String::from_utf8_lossy(data);
+    let mut out = Vec::new();
+    for region in crate::inspect::find_armor_regions(&text) {
+        if region.cleartext {
+            continue;
+        }
+        let block = &text.as_bytes()[region.start..region.end];
+        let _ = Dearmor::new(Cursor::new(block)).read_to_end(&mut out);
+    }
+    if out.is_empty() {
+        std::borrow::Cow::Borrowed(data)
+    } else {
+        std::borrow::Cow::Owned(out)
+    }
+}
+
+/// The identifier a PKESK names its recipient by: the Key ID of a v3 PKESK,
+/// the fingerprint of a v6 one (whose `id()` errors). `None` for an
+/// anonymous v6 recipient.
+pub(crate) fn pkesk_recipient_id(
+    pkesk: &pgp::packet::PublicKeyEncryptedSessionKey,
+) -> Option<String> {
+    match pkesk.id() {
+        Ok(id) => Some(id.to_string()),
+        Err(_) => pkesk.fingerprint().ok().flatten().map(|fp| fp.to_string()),
+    }
 }
 
 /// The [`KeyVerdict`] of `cert` on signature packet `sig` over `data`, made at
@@ -1040,9 +1088,12 @@ pub(crate) fn signature_verdict(
     data: &[u8],
     created_at: u32,
 ) -> KeyVerdict {
-    cert_verdict(cert, created_at, |key| match key {
-        None => sig.verify(&cert.primary_key, data).is_ok(),
-        Some(sk) => sig.verify(&sk.key, data).is_ok(),
+    cert_verdict(cert, created_at, |key| {
+        is_document_signature(sig)
+            && match key {
+                None => sig.verify(&cert.primary_key, data).is_ok(),
+                Some(sk) => sig.verify(&sk.key, data).is_ok(),
+            }
     })
 }
 
@@ -1058,7 +1109,7 @@ pub(crate) fn signature_verdict_stream<R: Read + Seek>(
     created_at: u32,
 ) -> KeyVerdict {
     cert_verdict(cert, created_at, |key| {
-        if stream.seek(SeekFrom::Start(0)).is_err() {
+        if !is_document_signature(sig) || stream.seek(SeekFrom::Start(0)).is_err() {
             return false;
         }
         let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut *stream);
@@ -1234,24 +1285,15 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
     }
 
     // 2. Un-armor if necessary for standard encrypted or detached/inline signed data
-    let mut dearmored = Vec::new();
-    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
-
-    let payload = if dearmored.is_empty() {
-        data
-    } else {
-        &dearmored
-    };
+    let payload = dearmor_all(data);
 
     // 3. Parse standard PGP packets
-    let parser = PacketParser::new(Cursor::new(payload));
+    let parser = PacketParser::new(Cursor::new(&payload[..]));
 
     for packet in parser.flatten() {
         match packet {
             Packet::PublicKeyEncryptedSessionKey(pkesk) => {
-                if let Ok(id) = pkesk.id() {
-                    recipients.push(id.to_string());
-                }
+                recipients.extend(pkesk_recipient_id(&pkesk));
             }
             Packet::OnePassSignature(ops) => {
                 match ops.version_specific() {
@@ -1322,24 +1364,12 @@ pub(crate) fn parse_secret_signers(
 /// status `NoKey` — the caller updates statuses after decryption.
 pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
     let mut results = Vec::new();
-    let mut dearmored = Vec::new();
-    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
-    let payload = if dearmored.is_empty() {
-        data
-    } else {
-        &dearmored
-    };
+    let payload = dearmor_all(data);
 
-    let parser = PacketParser::new(Cursor::new(payload));
+    let parser = PacketParser::new(Cursor::new(&payload[..]));
     for packet_result in parser {
         if let Ok(Packet::PublicKeyEncryptedSessionKey(pkesk)) = packet_result {
-            // v3 PKESK exposes an 8-byte key ID; v6 PKESK a full fingerprint
-            // (pkesk.id() errors for v6). Fall back so v6 recipients are listed.
-            let recipient_id = match pkesk.id() {
-                Ok(id) => Some(id.to_string()),
-                Err(_) => pkesk.fingerprint().ok().flatten().map(|fp| fp.to_string()),
-            };
-            if let Some(key_id) = recipient_id {
+            if let Some(key_id) = pkesk_recipient_id(&pkesk) {
                 let algo = if let Ok(algo_id) = pkesk.algorithm() {
                     algo_to_string_simple(algo_id)
                 } else {
@@ -1962,6 +1992,23 @@ mod attribution_tests {
     use crate::testutil::corpus;
     use crate::testutil::keys;
 
+    // -- recipient listing (INV-ALL, sibling of F-L12) -------------------------
+
+    #[test]
+    fn a_v6_recipient_is_listed_by_fingerprint() {
+        // A v6 PKESK names its recipient by fingerprint, not Key ID; the
+        // listing must still report it (as the decrypt-side sniff does).
+        let fixture = &keys::V6_SIGN;
+        let msg = crate::crypto::encrypt_internal(0, "", b"x", &[&fixture.public_armored], true)
+            .unwrap()
+            .data;
+        let (recipients, _) = get_signature_issuers_internal(&msg).unwrap();
+        assert!(
+            recipients.eq_ignore_ascii_case(fixture.enc_subkey_fpr()),
+            "recipients: {recipients:?}"
+        );
+    }
+
     // -- key_identifier_matches --------------------------------------------
 
     #[test]
@@ -2159,7 +2206,7 @@ mod attribution_tests {
         // for, which is exactly what a pin is meant to prevent.
         let key = &keys::V4_SIGN.secret;
         let res = with_signing_key(key, Some("0000000000000000"), |k| Ok(k.fpr()));
-        assert!(res.is_err());
+        assert_eq!(res.err(), Some(crate::types::GfrStatus::ErrorInvalidInput));
     }
 
     #[test]
@@ -2169,8 +2216,9 @@ mod attribution_tests {
         let key = &keys::V4_SIGN.secret;
         let enc = keys::V4_SIGN.enc_subkey_fpr();
         let res = with_signing_key(key, Some(enc), |k| Ok(k.fpr()));
-        assert!(
-            res.is_err(),
+        assert_eq!(
+            res.err(),
+            Some(crate::types::GfrStatus::ErrorUnusableKey),
             "an encryption subkey must not be usable for signing"
         );
     }
@@ -2304,7 +2352,8 @@ mod attribution_tests {
                 .collect();
         assert_eq!(entries.len(), 2, "the vector carries two signatures");
 
-        let certs = vec![corpus::AUX_GOOD_CERT.clone()];
+        // The pair is made by the aux-sha1 key; index 0 is the SHA-256 one.
+        let certs = vec![corpus::AUX_SHA1_CERT.clone()];
         let mut is_verified = false;
         // Claim only index 0 verifies.
         attribute_entries(&mut entries, &certs, &mut is_verified, |i, _, _| {
@@ -2315,9 +2364,11 @@ mod attribution_tests {
             }
         });
 
-        assert_ne!(
+        assert_eq!(entries[0].status, GfrSignatureStatus::Valid);
+        assert!(is_verified);
+        assert_eq!(
             entries[1].status,
-            GfrSignatureStatus::Valid,
+            GfrSignatureStatus::BadSignature,
             "index 1 did not verify and must not inherit index 0's verdict"
         );
     }
@@ -2339,7 +2390,8 @@ mod attribution_tests {
             KeyVerdict::Authorized
         });
 
-        assert_ne!(entries[0].status, GfrSignatureStatus::Valid);
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].status, GfrSignatureStatus::BadSignature);
         assert!(!is_verified);
     }
 

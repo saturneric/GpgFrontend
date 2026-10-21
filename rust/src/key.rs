@@ -44,7 +44,7 @@ use crate::utils::armor_opts;
 use crate::utils::{
     PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
     determine_algo, extract_key_length, fetch_password_with_cache, is_property_self_sig, is_v4_era,
-    key_armor_opts, password_from_zeroizing_bytes, refresh_reissued_config,
+    key_armor_opts, password_from_zeroizing_bytes, push_issuer, refresh_reissued_config,
 };
 use pgp::armor::{self, BlockType};
 use pgp::composed::{SignedKeyDetails, SignedPublicSubKey, SignedSecretSubKey};
@@ -116,21 +116,23 @@ pub struct ExtractedMetadata {
     pub secret_key_block: Option<Zeroizing<String>>,
 }
 
-fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
-    sig.issuer_fingerprint()
-        .iter()
-        .any(|f| f.as_bytes() == primary_fpr_bytes)
-}
-
 /// True if `user` carries a *cryptographically valid* certification-revocation
 /// (0x30) issued by `primary` (RFC 9580 §5.2.3.32).
 ///
 /// The revocation is verified, not merely matched by its Issuer subpacket, so a
 /// fabricated revocation smuggled into a foreign certificate is never honored,
 /// and a genuine self-revocation always is. See [[project_rpgp_rfc9580_verify_gaps]].
-fn is_user_id_revoked(primary: &PublicKey, user: &SignedUser) -> bool {
+pub(crate) fn is_user_id_revoked(primary: &PublicKey, user: &SignedUser) -> bool {
+    user_id_revoked_at(primary, user, None)
+}
+
+/// True if `user` carries a valid certification revocation (0x30) made at or
+/// before `at` (`None`: at any time). A User ID revoked later was still
+/// certified when an earlier signature was made.
+fn user_id_revoked_at(primary: &PublicKey, user: &SignedUser, at: Option<u32>) -> bool {
     user.signatures.iter().any(|sig| {
         matches!(sig.typ(), Some(SignatureType::CertRevocation))
+            && at.is_none_or(|t| created_secs(sig) <= t)
             && sig
                 .verify_certification(primary, Tag::UserId, &user.id)
                 .is_ok()
@@ -144,6 +146,52 @@ pub(crate) fn is_primary_key_revoked(primary: &PublicKey, signatures: &[Signatur
     signatures.iter().any(|sig| {
         matches!(sig.typ(), Some(SignatureType::KeyRevocation)) && sig.verify_key(primary).is_ok()
     })
+}
+
+/// True if `sig` names `primary` as its issuer, by Issuer Fingerprint or (as
+/// legacy v4 signatures do) by Issuer Key ID alone. Says nothing about
+/// validity: used to retire every self-signature a re-issued one supersedes.
+pub(crate) fn names_primary_as_issuer(sig: &Signature, primary: &PublicKey) -> bool {
+    let fpr = primary.fingerprint();
+    let key_id = primary.legacy_key_id();
+    sig.issuer_fingerprint().iter().any(|f| **f == fpr)
+        || sig.issuer_key_id().iter().any(|id| **id == key_id)
+}
+
+/// The template for re-issuing `user`'s self-certification: its newest
+/// *verified* property self-certification. A re-issued signature is signed
+/// anew by the keyholder, so only a signature the keyholder verifiably made
+/// may lend it subpackets; a forged or merged-in one never can.
+pub(crate) fn uid_reissue_template<'a>(
+    primary: &PublicKey,
+    user: &'a SignedUser,
+) -> Option<&'a Signature> {
+    choose_template_self_sig(&verified_uid_self_sigs(primary, user))
+}
+
+/// [`uid_reissue_template`] for a Direct Key signature (0x1F).
+fn direct_reissue_template<'a>(
+    primary: &PublicKey,
+    signatures: &'a [Signature],
+) -> Option<&'a Signature> {
+    let sigs: Vec<&Signature> = verified_primary_self_sigs(primary, signatures)
+        .into_iter()
+        .filter(|sig| matches!(sig.typ(), Some(SignatureType::Key)))
+        .collect();
+    choose_template_self_sig(&sigs)
+}
+
+/// [`uid_reissue_template`] for a subkey binding (0x18).
+fn binding_reissue_template<'a>(
+    primary: &PublicKey,
+    subkey: &PublicSubkey,
+    signatures: &'a [Signature],
+) -> Option<&'a Signature> {
+    let sigs: Vec<&Signature> = verified_subkey_self_sigs(primary, subkey, signatures)
+        .into_iter()
+        .filter(|sig| matches!(sig.typ(), Some(SignatureType::SubkeyBinding)))
+        .collect();
+    choose_template_self_sig(&sigs)
 }
 
 /// Collect the cryptographically valid direct-key self-signatures (0x1F) and
@@ -253,11 +301,26 @@ where
 /// For a past instant with no earlier self-signature the oldest one is used:
 /// tools commonly drop superseded self-signatures when they rewrite one (GF's
 /// own expiry update does), and that must not orphan every older signature.
+///
+/// A self-signature past its own Signature Expiration Time at that instant is
+/// no longer valid (§5.2.3.18), so it yields `None` rather than letting an
+/// older one speak again.
 fn sig_in_force<'a>(sigs: Vec<&'a Signature>, at: Option<u32>) -> Option<&'a Signature> {
-    match at {
+    let chosen = match at {
         None => newest_sig(sigs),
         Some(t) => newest_sig(sigs.iter().copied().filter(|sig| created_secs(sig) <= t))
             .or_else(|| sigs.into_iter().min_by_key(|sig| created_secs(sig))),
+    };
+    let t = at.unwrap_or_else(|| pgp::types::Timestamp::now().as_secs());
+    chosen.filter(|sig| sig_alive_at(sig, t))
+}
+
+/// False once `sig`'s Signature Expiration Time (§5.2.3.18) has passed at
+/// `t`. Zero or absent means it never expires.
+fn sig_alive_at(sig: &Signature, t: u32) -> bool {
+    match sig.signature_expiration_time().map(|d| d.as_secs()) {
+        Some(secs) if secs != 0 => created_secs(sig).saturating_add(secs) > t,
+        _ => true,
     }
 }
 
@@ -286,11 +349,22 @@ fn primary_sig_in_force<'a>(
     if primary.version() == KeyVersion::V6 {
         return direct;
     }
+    uid_certification_in_force(primary, details, at).or(direct)
+}
 
+/// The User ID self-certification that speaks for the key at `at` (`None`:
+/// now): that of the primary User ID, else of the newest certified
+/// non-revoked one. The Primary User ID flag is read only from valid
+/// self-certifications, newest first (§5.2.3.27).
+pub(crate) fn uid_certification_in_force<'a>(
+    primary: &PublicKey,
+    details: &'a SignedKeyDetails,
+    at: Option<u32>,
+) -> Option<&'a Signature> {
     let uid_sigs: Vec<&Signature> = details
         .users
         .iter()
-        .filter(|user| !is_user_id_revoked(primary, user))
+        .filter(|user| !user_id_revoked_at(primary, user, at))
         .filter_map(|user| {
             sig_in_force(
                 verified_uid_self_sigs(primary, user)
@@ -304,7 +378,6 @@ fn primary_sig_in_force<'a>(
 
     newest_sig(uid_sigs.iter().copied().filter(|sig| sig.is_primary()))
         .or_else(|| newest_sig(uid_sigs.iter().copied()))
-        .or(direct)
 }
 
 /// The cryptographically valid self-signature whose subpackets (Features,
@@ -560,10 +633,13 @@ fn primary_verdict(primary: &PublicKey, details: &SignedKeyDetails, t: u32) -> K
     if primary_revocation_state(primary, details).revoked_at(t) {
         return KeyVerdict::Revoked;
     }
-    let sig = primary_sig_in_force(primary, details, Some(t));
-    if primary.version() == KeyVersion::V6 && sig.is_none() {
+    // v6: §5.2.3.10 requires a valid Direct Key signature. v4: without a
+    // valid self-signature in force nothing certifies the key's usage, and
+    // dropping one must not also drop its expiry and flags.
+    let Some(sig) = primary_sig_in_force(primary, details, Some(t)) else {
         return KeyVerdict::NotAuthorized;
-    }
+    };
+    let sig = Some(sig);
     let expires = expiry_of(sig, primary.created_at().as_secs());
     if expires != 0 && expires <= t {
         return KeyVerdict::Expired;
@@ -625,26 +701,21 @@ impl From<KeyVersion> for GfrOpenPGPKeyVersion {
     }
 }
 
-/// True if `user`'s self-certification in force carries the Primary User ID
-/// flag. Only valid self-certifications count: a third-party or forged
-/// signature carrying the flag must not decide which User ID speaks for the
-/// key (RFC 9580 §5.2.3.27).
-fn user_marked_primary(primary: &PublicKey, user: &SignedUser) -> bool {
-    newest_sig(
-        verified_uid_self_sigs(primary, user)
-            .into_iter()
-            .filter(|sig| !matches!(sig.typ(), Some(SignatureType::CertRevocation))),
-    )
-    .is_some_and(|sig| sig.is_primary())
-}
-
-/// Index of the primary User ID: the one marked primary by its newest valid
-/// self-certification, else the first.
-fn primary_user_index(primary: &PublicKey, users: &[SignedUser]) -> usize {
-    users
+/// Index of the User ID whose self-certification is in force now (see
+/// [`uid_certification_in_force`]), and whether that certification marks it
+/// primary. Expiry, preferences and capabilities follow the same signature,
+/// so the listing and the engine always agree on which User ID speaks for
+/// the key.
+fn primary_user_index(primary: &PublicKey, details: &SignedKeyDetails) -> (usize, bool) {
+    let Some(in_force) = uid_certification_in_force(primary, details, None) else {
+        return (0, false);
+    };
+    let idx = details
+        .users
         .iter()
-        .position(|u| user_marked_primary(primary, u))
-        .unwrap_or(0)
+        .position(|u| u.signatures.iter().any(|sig| std::ptr::eq(sig, in_force)))
+        .unwrap_or(0);
+    (idx, in_force.is_primary())
 }
 
 // Helper: Extract metadata from a secret key
@@ -654,9 +725,9 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 
     for sub in &sk.secret_subkeys {
         let sub_pub = sub.key.public_key();
-        let verified_sigs = verified_subkey_self_sigs(&pk.primary_key, sub_pub, &sub.signatures);
-        let (can_sign, can_encrypt, can_auth, can_certify) =
-            extract_capabilities(verified_sigs.iter().copied());
+        let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
+            subkey_binding_signature(&pk.primary_key, sub_pub, &sub.signatures),
+        );
         let key_length = extract_key_length(sub.key.public_params());
         let is_revoked = is_subkey_revoked(&pk.primary_key, sub_pub, &sub.signatures);
         let created_at = sub.key.created_at().as_secs();
@@ -680,17 +751,18 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 
     let users = &pk.details.users;
 
-    let primary_idx = primary_user_index(&pk.primary_key, users);
+    let (primary_idx, primary_marked) = primary_user_index(&pk.primary_key, &pk.details);
 
     // extract all user IDs into a vector of strings
     let mut user_ids: Vec<ExtractUserId> = users
         .iter()
-        .map(|u| {
+        .enumerate()
+        .map(|(i, u)| {
             let is_revoked = is_user_id_revoked(&pk.primary_key, u);
 
             ExtractUserId {
                 user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
-                is_primary: !is_revoked && user_marked_primary(&pk.primary_key, u),
+                is_primary: !is_revoked && primary_marked && i == primary_idx,
                 is_revoked,
             }
         })
@@ -704,18 +776,8 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         user_ids.insert(0, primary_uid);
     }
 
-    let verified_direct =
-        verified_primary_self_sigs(&pk.primary_key, &pk.details.direct_signatures);
-    let verified_primary_uid = users
-        .get(primary_idx)
-        .map(|u| verified_uid_self_sigs(&pk.primary_key, u))
-        .unwrap_or_default();
-    let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
-        verified_direct
-            .iter()
-            .copied()
-            .chain(verified_primary_uid.iter().copied()),
-    );
+    let (can_sign, can_encrypt, can_auth, can_certify) =
+        extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None));
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.primary_key, &pk.details.revocation_signatures)
         || is_primary_key_revoked(&pk.primary_key, &pk.details.direct_signatures);
@@ -753,9 +815,9 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let mut subs = Vec::new();
 
     for sub in &pk.public_subkeys {
-        let verified_sigs = verified_subkey_self_sigs(&pk.primary_key, &sub.key, &sub.signatures);
-        let (can_sign, can_encrypt, can_auth, can_certify) =
-            extract_capabilities(verified_sigs.iter().copied());
+        let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
+            subkey_binding_signature(&pk.primary_key, &sub.key, &sub.signatures),
+        );
         let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
         let is_revoked = is_subkey_revoked(&pk.primary_key, &sub.key, &sub.signatures);
         let created_at = sub.key.created_at().as_secs();
@@ -779,17 +841,18 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
 
     let users = &pk.details.users;
 
-    let primary_idx = primary_user_index(&pk.primary_key, users);
+    let (primary_idx, primary_marked) = primary_user_index(&pk.primary_key, &pk.details);
 
     // extract all user IDs into a vector of strings
     let mut user_ids: Vec<ExtractUserId> = users
         .iter()
-        .map(|u| {
+        .enumerate()
+        .map(|(i, u)| {
             let is_revoked = is_user_id_revoked(&pk.primary_key, u);
 
             ExtractUserId {
                 user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
-                is_primary: !is_revoked && user_marked_primary(&pk.primary_key, u),
+                is_primary: !is_revoked && primary_marked && i == primary_idx,
                 is_revoked,
             }
         })
@@ -805,19 +868,8 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
 
     // use only cryptographically valid self-signatures of the primary key and its
     // primary User ID to determine capabilities / expiry / revocation.
-    let verified_direct =
-        verified_primary_self_sigs(&pk.primary_key, &pk.details.direct_signatures);
-    let verified_primary_uid = users
-        .get(primary_idx)
-        .map(|u| verified_uid_self_sigs(&pk.primary_key, u))
-        .unwrap_or_default();
-
-    let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
-        verified_direct
-            .iter()
-            .copied()
-            .chain(verified_primary_uid.iter().copied()),
-    );
+    let (can_sign, can_encrypt, can_auth, can_certify) =
+        extract_capabilities(primary_sig_in_force(&pk.primary_key, &pk.details, None));
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.primary_key, &pk.details.revocation_signatures)
         || is_primary_key_revoked(&pk.primary_key, &pk.details.direct_signatures);
@@ -1549,9 +1601,13 @@ fn expiration_duration(
 /// cloned from the existing signature. Only the issuer fingerprint, signature
 /// creation time, and key expiration are refreshed. A `None` duration drops the
 /// expiration entirely ("never expires").
+///
+/// The template's own Signature Expiration Time (§5.2.3.18) is dropped too:
+/// the user is setting the key's validity window, and a copied one would end
+/// the new self-signature, and with it the key, at the old date.
 fn build_expiration_sig_config(
     template: &Signature,
-    primary_fpr: pgp::types::Fingerprint,
+    primary: &PublicKey,
     default_hash: pgp::crypto::hash::HashAlgorithm,
     duration: Option<Duration>,
 ) -> Result<SignatureConfig, GfrStatus> {
@@ -1566,16 +1622,14 @@ fn build_expiration_sig_config(
                     | SubpacketData::IssuerFingerprint(_)
                     | SubpacketData::IssuerKeyId(_)
                     | SubpacketData::KeyExpirationTime(_)
+                    | SubpacketData::SignatureExpirationTime(_)
             )
         });
     };
     strip(&mut cfg.hashed_subpackets);
     strip(&mut cfg.unhashed_subpackets);
 
-    cfg.hashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-    );
+    push_issuer(&mut cfg, primary)?;
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::SignatureCreationTime(
             pgp::types::Timestamp::now(),
@@ -1603,61 +1657,46 @@ fn update_primary_expiration(
     duration: Option<Duration>,
     pwd: &Password,
 ) -> Result<(), GfrStatus> {
-    let primary_fpr = secret_key.primary_key.fingerprint();
-    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
     let pk = secret_key.primary_key.public_key();
+    let default_hash = pgp::types::SigningKey::hash_alg(&secret_key.primary_key);
 
     if secret_key.primary_key.version() == KeyVersion::V6 {
-        let template = {
-            let self_sigs: Vec<&Signature> = secret_key
-                .details
-                .direct_signatures
-                .iter()
-                .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
-                .collect();
-            choose_template_self_sig(&self_sigs)
-                .cloned()
-                .ok_or(GfrStatus::ErrorInvalidData)?
-        };
+        let template = direct_reissue_template(&pk, &secret_key.details.direct_signatures)
+            .cloned()
+            .ok_or(GfrStatus::ErrorInvalidData)?;
 
-        let default_hash = pgp::types::SigningKey::hash_alg(&secret_key.primary_key);
-        let cfg = build_expiration_sig_config(&template, primary_fpr, default_hash, duration)?;
+        let cfg = build_expiration_sig_config(&template, &pk, default_hash, duration)?;
         let new_sig = cfg.sign_key(&secret_key.primary_key, pwd, &pk).into_gfr()?;
 
-        secret_key.details.direct_signatures.retain(|sig| {
-            !(is_self_signature_from_primary(sig, &primary_fpr_bytes) && is_property_self_sig(sig))
-        });
+        secret_key
+            .details
+            .direct_signatures
+            .retain(|sig| !(names_primary_as_issuer(sig, &pk) && is_property_self_sig(sig)));
         secret_key.details.direct_signatures.push(new_sig);
 
         return Ok(());
     }
 
-    // V4: re-sign the self-certification on every User ID that carries one.
+    // V4: re-sign the self-certification on every certified User ID. A
+    // revoked one is left alone: a certification newer than its revocation
+    // would un-revoke it for GnuPG and Sequoia.
     let mut updated_any = false;
     for user in secret_key.details.users.iter_mut() {
-        let template = {
-            let self_sigs: Vec<&Signature> = user
-                .signatures
-                .iter()
-                .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
-                .collect();
-            match choose_template_self_sig(&self_sigs) {
-                Some(sig) => sig.clone(),
-                None => continue,
-            }
+        if is_user_id_revoked(&pk, user) {
+            continue;
+        }
+        let Some(template) = uid_reissue_template(&pk, user).cloned() else {
+            continue;
         };
 
-        let default_hash = pgp::types::SigningKey::hash_alg(&secret_key.primary_key);
-        let cfg =
-            build_expiration_sig_config(&template, primary_fpr.clone(), default_hash, duration)?;
+        let cfg = build_expiration_sig_config(&template, &pk, default_hash, duration)?;
         let new_sig = cfg
             .sign_certification(&secret_key.primary_key, &pk, pwd, Tag::UserId, &user.id)
             .into_gfr()?;
 
         // Replace the certifications only: a 0x30 revocation must survive.
-        user.signatures.retain(|sig| {
-            !(is_self_signature_from_primary(sig, &primary_fpr_bytes) && is_property_self_sig(sig))
-        });
+        user.signatures
+            .retain(|sig| !(names_primary_as_issuer(sig, &pk) && is_property_self_sig(sig)));
         user.signatures.push(new_sig);
         updated_any = true;
     }
@@ -1671,8 +1710,9 @@ fn update_primary_expiration(
 
 /// Re-issue a single subkey's binding signature with a new expiration.
 ///
-/// The subkey binding signature (0x18) is rebuilt from the current one and
-/// replaced in place; any revocation signatures on the subkey are preserved.
+/// The subkey binding signature (0x18) is rebuilt from the current verified
+/// one and replaced in place; any revocation signatures on the subkey are
+/// preserved.
 fn update_subkey_expiration(
     secret_key: &mut SignedSecretKey,
     target_fpr: &str,
@@ -1685,37 +1725,25 @@ fn update_subkey_expiration(
         .position(|sub| sub.key.fingerprint().to_string().to_uppercase() == target_fpr)
         .ok_or(GfrStatus::ErrorInvalidInput)?;
 
-    let primary_fpr = secret_key.primary_key.fingerprint();
-    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
     let pk = secret_key.primary_key.public_key();
+    let default_hash = pgp::types::SigningKey::hash_alg(&secret_key.primary_key);
 
     let subkey = secret_key
         .secret_subkeys
         .get_mut(target_idx)
         .ok_or(GfrStatus::ErrorInternal)?;
 
-    let template = {
-        let binding_sigs: Vec<&Signature> = subkey
-            .signatures
-            .iter()
-            .filter(|sig| {
-                is_self_signature_from_primary(sig, &primary_fpr_bytes)
-                    && matches!(sig.typ(), Some(SignatureType::SubkeyBinding))
-            })
-            .collect();
-        choose_template_self_sig(&binding_sigs)
-            .cloned()
-            .ok_or(GfrStatus::ErrorInvalidData)?
-    };
+    let template = binding_reissue_template(&pk, &subkey.key.public_key(), &subkey.signatures)
+        .cloned()
+        .ok_or(GfrStatus::ErrorInvalidData)?;
 
-    let default_hash = pgp::types::SigningKey::hash_alg(&secret_key.primary_key);
-    let cfg = build_expiration_sig_config(&template, primary_fpr, default_hash, duration)?;
+    let cfg = build_expiration_sig_config(&template, &pk, default_hash, duration)?;
     let new_sig = cfg
         .sign_subkey_binding(&secret_key.primary_key, &pk, pwd, subkey.key.public_key())
         .into_gfr()?;
 
     subkey.signatures.retain(|sig| {
-        !(is_self_signature_from_primary(sig, &primary_fpr_bytes)
+        !(names_primary_as_issuer(sig, &pk)
             && matches!(sig.typ(), Some(SignatureType::SubkeyBinding)))
     });
     subkey.signatures.push(new_sig);
@@ -1776,6 +1804,14 @@ pub fn update_key_expiration_internal(
         Zeroizing::new(Vec::new())
     };
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
+
+    // Check the passphrase before re-signing, so a wrong one is reported as
+    // such rather than as whatever the signing step fails with.
+    if is_enc && secret_key.primary_key.unlock(&pwd, |_, _| Ok(())).is_err() {
+        PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
+        crate::err::set_last_error("the passphrase does not unlock the secret key");
+        return Err(GfrStatus::ErrorBadPassphrase);
+    }
 
     if is_primary_target {
         let created_at = secret_key.primary_key.created_at().as_secs();
@@ -2010,7 +2046,6 @@ pub fn revoke_subkey_internal(
     let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let pk = secret_key.primary_key.public_key();
-    let primary_fpr = secret_key.primary_key.fingerprint();
 
     let subkey = secret_key
         .secret_subkeys
@@ -2038,10 +2073,7 @@ pub fn revoke_subkey_internal(
     )
     .map_err(|_| GfrStatus::ErrorInternal)?;
 
-    cfg.hashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-    );
+    push_issuer(&mut cfg, &secret_key.primary_key)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::SignatureCreationTime(
@@ -2123,7 +2155,6 @@ pub fn generate_key_rev_cert_internal(
         inner.map_err(|_| GfrStatus::ErrorPasswordFailed)?;
     }
 
-    let primary_fpr = skey.primary_key.fingerprint();
     let pk = skey.primary_key.public_key();
 
     // Version-aware: v4 key -> v4 signature, v6 key -> v6 signature (RFC 9580
@@ -2133,10 +2164,7 @@ pub fn generate_key_rev_cert_internal(
         SignatureConfig::from_key(&mut rng, &skey.primary_key, SignatureType::KeyRevocation)
             .map_err(|_| GfrStatus::ErrorInternal)?;
 
-    cfg.hashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-    );
+    push_issuer(&mut cfg, &skey.primary_key)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::SignatureCreationTime(
@@ -2451,9 +2479,8 @@ fn merge_pk_into_sk(
 }
 
 fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus> {
-    let cursor = Cursor::new(block.as_bytes());
-    let dearmor = armor::Dearmor::new(cursor);
-    let mut buf_reader = BufReader::new(dearmor);
+    let payload = crate::crypto::dearmor_all(block.as_bytes());
+    let mut buf_reader = BufReader::new(Cursor::new(&payload[..]));
 
     let mut sigs = Vec::new();
 
@@ -2535,13 +2562,18 @@ pub fn import_rev_cert_internal(
 
 /// Extract the fingerprint of the key targeted by a revocation certificate.
 pub fn extract_rev_cert_target_fpr_internal(rev_cert_block: &str) -> Result<String, GfrStatus> {
+    // The first revocation that names its issuer, by fingerprint or (legacy
+    // v4) Key ID; the host resolves a key by either.
     let rev_sigs = extract_key_revocation_signatures(rev_cert_block)?;
-    let sig = rev_sigs.first().ok_or(GfrStatus::ErrorInvalidInput)?;
-
-    let binding = sig.issuer_fingerprint();
-    let issuer_fp = binding.first().ok_or(GfrStatus::ErrorInvalidInput)?;
-
-    Ok(issuer_fp.to_string())
+    rev_sigs
+        .iter()
+        .find_map(|sig| {
+            sig.issuer_fingerprint()
+                .first()
+                .map(|fp| fp.to_string())
+                .or_else(|| sig.issuer_key_id().first().map(|id| id.to_string()))
+        })
+        .ok_or(GfrStatus::ErrorInvalidInput)
 }
 
 #[cfg(test)]
@@ -3408,6 +3440,383 @@ mod key_tests {
         )));
     }
 
+    /// `fixture`'s secret key with its only User ID's self-certifications
+    /// replaced by `sigs(...)`, built by the primary key.
+    fn with_uid_sigs(
+        fixture: &keys::Fixture,
+        sigs: impl Fn(&pgp::composed::SignedSecretKey) -> Vec<Signature>,
+    ) -> pgp::composed::SignedSecretKey {
+        let mut sk = fixture.secret.clone();
+        let new = sigs(&sk);
+        sk.details.users[0].signatures = new;
+        sk
+    }
+
+    /// A self-certification (0x13) of `sk`'s first User ID created at
+    /// `created`, optionally expiring `sig_expiry` seconds later
+    /// (§5.2.3.18), or a certification revocation (0x30) when `revoke`.
+    fn uid_self_sig(
+        sk: &pgp::composed::SignedSecretKey,
+        created: u32,
+        sig_expiry: Option<u32>,
+        revoke: bool,
+    ) -> Signature {
+        use pgp::packet::KeyFlags;
+        use pgp::types::{Duration, Password, Timestamp};
+        let primary = &sk.primary_key;
+        let typ = if revoke {
+            SignatureType::CertRevocation
+        } else {
+            SignatureType::CertPositive
+        };
+        let mut cfg = SignatureConfig::from_key(rand::thread_rng(), primary, typ).unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                created,
+            )))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+        ];
+        if !revoke {
+            let mut flags = KeyFlags::default();
+            flags.set_sign(true);
+            flags.set_certify(true);
+            cfg.hashed_subpackets
+                .push(Subpacket::regular(SubpacketData::KeyFlags(flags)).unwrap());
+        }
+        if let Some(secs) = sig_expiry {
+            cfg.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                    secs,
+                )))
+                .unwrap(),
+            );
+        }
+        cfg.sign_certification(
+            primary,
+            primary.public_key(),
+            &Password::empty(),
+            Tag::UserId,
+            &sk.details.users[0].id,
+        )
+        .unwrap()
+    }
+
+    fn signing_verdict_at(sk: &pgp::composed::SignedSecretKey, t: u32) -> KeyVerdict {
+        let cert = SignedPublicKey::from(sk.clone());
+        primary_signing_verdict(&cert.primary_key, &cert.details, t)
+    }
+
+    // -- metadata agrees with the verdicts (INV-AUTH) ---------------------------
+
+    /// A self-signature of `typ` by `sk`'s primary over `target` (a User ID
+    /// index, or a subkey index for 0x18) created at `created`, with `flags`
+    /// and the Primary User ID flag when `primary`.
+    fn self_sig_with(
+        sk: &pgp::composed::SignedSecretKey,
+        target: usize,
+        typ: SignatureType,
+        created: u32,
+        flags: pgp::packet::KeyFlags,
+        primary: bool,
+    ) -> Signature {
+        use pgp::types::{Password, Timestamp};
+        let key = &sk.primary_key;
+        let mut cfg = SignatureConfig::from_key(rand::thread_rng(), key, typ).unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                created,
+            )))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(key.fingerprint())).unwrap(),
+            Subpacket::regular(SubpacketData::KeyFlags(flags)).unwrap(),
+        ];
+        if primary {
+            cfg.hashed_subpackets
+                .push(Subpacket::regular(SubpacketData::IsPrimary(true)).unwrap());
+        }
+        let pw = Password::empty();
+        match typ {
+            SignatureType::SubkeyBinding => cfg
+                .sign_subkey_binding(
+                    key,
+                    key.public_key(),
+                    &pw,
+                    sk.secret_subkeys[target].key.public_key(),
+                )
+                .unwrap(),
+            _ => cfg
+                .sign_certification(
+                    key,
+                    key.public_key(),
+                    &pw,
+                    Tag::UserId,
+                    &sk.details.users[target].id,
+                )
+                .unwrap(),
+        }
+    }
+
+    fn flags(sign: bool, encrypt: bool) -> pgp::packet::KeyFlags {
+        let mut f = pgp::packet::KeyFlags::default();
+        f.set_sign(sign);
+        f.set_certify(sign);
+        f.set_encrypt_comms(encrypt);
+        f.set_encrypt_storage(encrypt);
+        f
+    }
+
+    #[test]
+    fn metadata_reports_the_capabilities_of_the_binding_in_force() {
+        // A newer binding that drops a flag supersedes the older one
+        // (§5.2.3.10); the GUI must not keep offering what the engine will
+        // refuse.
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let mut sk = fixture.secret.clone();
+        let enc = sk
+            .secret_subkeys
+            .iter()
+            .position(|s| {
+                s.key.fingerprint().to_string().to_uppercase() == fixture.enc_subkey_fpr()
+            })
+            .unwrap();
+        let old = self_sig_with(
+            &sk,
+            enc,
+            SignatureType::SubkeyBinding,
+            created,
+            flags(true, true),
+            false,
+        );
+        let new = self_sig_with(
+            &sk,
+            enc,
+            SignatureType::SubkeyBinding,
+            created + 10,
+            flags(false, true),
+            false,
+        );
+        sk.secret_subkeys[enc].signatures = vec![old, new];
+        let meta = build_public_metadata(&SignedPublicKey::from(sk));
+        let sub = meta
+            .subkeys
+            .iter()
+            .find(|s| s.fpr.eq_ignore_ascii_case(fixture.enc_subkey_fpr()))
+            .unwrap();
+        assert!(sub.can_encrypt);
+        assert!(!sub.can_sign, "the superseded binding's sign flag is gone");
+    }
+
+    #[test]
+    fn metadata_names_one_primary_user_id_the_one_in_force() {
+        // §5.2.3.27: with several User IDs marked primary, the most recent
+        // self-signature decides. The listing, the reported primary and the
+        // primary's capabilities must all follow the same signature.
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let mut sk = fixture.secret.clone();
+        let second = pgp::packet::UserId::from_str(
+            pgp::types::PacketHeaderVersion::New,
+            "Second <second@test.example>",
+        )
+        .unwrap();
+        sk.details.users.push(SignedUser::new(second, vec![]));
+        let first_sig = self_sig_with(
+            &sk,
+            0,
+            SignatureType::CertPositive,
+            created,
+            flags(true, true),
+            true,
+        );
+        let second_sig = self_sig_with(
+            &sk,
+            1,
+            SignatureType::CertPositive,
+            created + 10,
+            flags(true, false),
+            true,
+        );
+        sk.details.users[0].signatures = vec![first_sig];
+        sk.details.users[1].signatures = vec![second_sig];
+        let meta = build_public_metadata(&SignedPublicKey::from(sk));
+        assert_eq!(meta.user_ids[0].user_id, "Second <second@test.example>");
+        assert_eq!(
+            meta.user_ids.iter().filter(|u| u.is_primary).count(),
+            1,
+            "exactly one primary User ID"
+        );
+        assert!(meta.user_ids[0].is_primary);
+        assert!(
+            !meta.can_encrypt,
+            "capabilities come from the primary in force"
+        );
+    }
+
+    #[test]
+    fn a_v4_primary_with_no_valid_self_signature_is_never_authorized() {
+        // RFC 9580 §5.2.3.10, §10.1: a key's usage comes from its valid
+        // self-signatures. Filtering out an invalid, weak or revoked one must
+        // remove the permission along with its constraints (expiry, flags),
+        // not leave an unconstrained key behind.
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let bare = with_uid_sigs(fixture, |_| vec![]);
+        assert_eq!(
+            signing_verdict_at(&bare, created + 10),
+            KeyVerdict::NotAuthorized
+        );
+        let control = with_uid_sigs(fixture, |sk| vec![uid_self_sig(sk, created, None, false)]);
+        assert_eq!(
+            signing_verdict_at(&control, created + 10),
+            KeyVerdict::Authorized
+        );
+    }
+
+    #[test]
+    fn a_user_id_revocation_takes_effect_from_its_creation_time() {
+        // Historical judgement (key-validity.md): a signature made before the
+        // only User ID was revoked was made while the key was certified; one
+        // made afterwards was not.
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let sk = with_uid_sigs(fixture, |sk| {
+            vec![
+                uid_self_sig(sk, created, None, false),
+                uid_self_sig(sk, created + 100, None, true),
+            ]
+        });
+        assert_eq!(
+            signing_verdict_at(&sk, created + 50),
+            KeyVerdict::Authorized
+        );
+        assert_eq!(
+            signing_verdict_at(&sk, created + 200),
+            KeyVerdict::NotAuthorized
+        );
+    }
+
+    #[test]
+    fn an_expired_self_signature_stops_speaking_for_the_key() {
+        // RFC 9580 §5.2.3.18: after its Signature Expiration Time a
+        // self-signature is no longer valid, so the key it certified is not
+        // usable at a later time (it does not silently become unconstrained).
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let sk = with_uid_sigs(fixture, |sk| {
+            vec![uid_self_sig(sk, created, Some(100), false)]
+        });
+        assert_eq!(
+            signing_verdict_at(&sk, created + 50),
+            KeyVerdict::Authorized
+        );
+        assert_eq!(
+            signing_verdict_at(&sk, created + 200),
+            KeyVerdict::NotAuthorized
+        );
+    }
+
+    #[test]
+    fn extending_a_keys_expiry_also_outlives_an_old_self_signature_expiry() {
+        // Changing the expiry re-issues the self-signature. A Signature
+        // Expiration Time copied from the template would end the new
+        // self-signature, and with it the key, at the old date (§5.2.3.18).
+        let fixture = &keys::V4_SIGN;
+        let created = fixture.secret.primary_key.created_at().as_secs();
+        let sk = with_uid_sigs(fixture, |sk| {
+            vec![uid_self_sig(sk, created, Some(100), false)]
+        });
+        let block = sk.to_armored_string(armor_opts()).unwrap();
+        let expiry = created + 365 * 86_400;
+        let out =
+            update_key_expiration_internal(0, &block, None, expiry as u64, None).expect("extend");
+        let extended = SignedSecretKey::from_string(&out.secret).unwrap().0;
+        assert_eq!(
+            signing_verdict_at(&extended, created + 200),
+            KeyVerdict::Authorized
+        );
+        assert_eq!(
+            signing_verdict_at(&extended, expiry + 1),
+            KeyVerdict::Expired
+        );
+    }
+
+    #[test]
+    fn a_re_issued_v4_self_signature_names_its_issuer_by_key_id_too() {
+        // RFC 9580 §5.2.3.12: a v4 signature SHOULD carry an Issuer Key ID
+        // for verifiers that look keys up by ID; rPGP's own builders add it,
+        // and a re-issued self-signature must not lose it.
+        let fixture = &keys::V4_SIGN;
+        let expiry = fixture.secret.primary_key.created_at().as_secs() + 365 * 86_400;
+        let out =
+            update_key_expiration_internal(0, &fixture.secret_armored, None, expiry as u64, None)
+                .unwrap();
+        let sk = SignedSecretKey::from_string(&out.secret).unwrap().0;
+        let key_id = sk.primary_key.legacy_key_id();
+        for sig in sk.details.users[0]
+            .signatures
+            .iter()
+            .chain(sk.secret_subkeys.iter().flat_map(|s| s.signatures.iter()))
+        {
+            assert!(
+                sig.issuer_key_id().iter().any(|id| **id == key_id),
+                "{:?} lacks an Issuer Key ID",
+                sig.typ()
+            );
+        }
+    }
+
+    #[test]
+    fn a_key_id_only_revocation_certificate_still_names_its_target() {
+        // GnuPG before 2.1 and PGP wrote v4 revocations naming the issuer by
+        // Key ID only (§5.2.3.12). The host resolves a key by Key ID too.
+        use pgp::types::Timestamp;
+        let fixture = &keys::V4_SIGN;
+        let primary = &fixture.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::KeyRevocation)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+        ];
+        cfg.unhashed_subpackets =
+            vec![Subpacket::regular(SubpacketData::IssuerKeyId(primary.legacy_key_id())).unwrap()];
+        let rev = cfg
+            .sign_key(primary, &Password::empty(), primary.public_key())
+            .unwrap();
+        let mut block = Vec::new();
+        pgp::armor::write(
+            &pgp::packet::Packet::from(rev),
+            pgp::armor::BlockType::Signature,
+            &mut block,
+            None,
+            true,
+        )
+        .unwrap();
+        let target = extract_rev_cert_target_fpr_internal(&String::from_utf8(block).unwrap())
+            .expect("a Key ID names the target");
+        assert!(target.eq_ignore_ascii_case(&primary.legacy_key_id().to_string()));
+    }
+
+    #[test]
+    fn a_wrong_passphrase_on_an_expiry_change_is_a_bad_passphrase() {
+        // INV-MAP: a passphrase problem must reach the GUI as one, not as
+        // "invalid input" from the signing step that failed afterwards.
+        let key1 = &crate::testutil::corpus::KEY1;
+        crate::cache::PASSWORD_CACHE.remove_by_fpr(&key1.primary_key.fingerprint().to_string());
+        let created = key1.primary_key.created_at().as_secs();
+        let result = update_key_expiration_internal(
+            0,
+            crate::testutil::corpus::KEY1_SECRET,
+            None,
+            (created + 365 * 86_400) as u64,
+            Some(crate::testutil::cb::pwd_wrong),
+        );
+        assert_eq!(result.err(), Some(GfrStatus::ErrorBadPassphrase));
+        assert!(crate::err::last_error().contains("passphrase"));
+    }
+
     #[test]
     fn a_weak_hash_binding_over_a_pq_subkey_never_counts() {
         // RFC 9980 §7.2: subkey binding signatures over its algorithms "MUST
@@ -3546,6 +3955,9 @@ mod key_tests {
     fn an_expiry_update_never_reissues_a_sha1_self_signature() {
         // RFC 9580 §9.5: "MUST NOT generate signatures with MD5, SHA-1, or
         // RIPEMD-160", even when the self-signature being replaced used one.
+        // The SHA-1 self-signature predates the weak-hash cutoff, as on a
+        // genuinely old key: a later one is not a valid self-signature at
+        // all, so it could not be a template (round two, INV-REISSUE).
         use pgp::crypto::hash::HashAlgorithm;
         let mut sk = keys::V4_RSA1024.secret.clone();
         let primary = sk.primary_key.clone();
@@ -3556,7 +3968,7 @@ mod key_tests {
         );
         cfg.hashed_subpackets = vec![
             Subpacket::regular(SubpacketData::SignatureCreationTime(
-                pgp::types::Timestamp::now(),
+                pgp::types::Timestamp::from_secs(WEAK_CERTIFICATION_HASH_CUTOFF - 86_400),
             ))
             .unwrap(),
             Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),

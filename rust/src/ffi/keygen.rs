@@ -28,6 +28,7 @@
 
 //! FFI entry points for key and subkey generation.
 
+use crate::err::clear_last_error;
 use crate::keygen::{GeneratedKeys, add_subkey_internal, create_key_internal};
 use crate::types::{GfrBuffer, GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus};
 
@@ -59,6 +60,7 @@ pub extern "C" fn gfr_crypto_generate_key(
     fetch_pwd_cb: GfrPasswordFetchCb,
     o_result: *mut GfrKeyGenerateResult,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<GeneratedKeys, GfrStatus> {
         if user_id.is_null() || o_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -131,6 +133,7 @@ pub extern "C" fn gfr_crypto_add_subkey(
     fetch_pwd_cb: GfrPasswordFetchCb,
     o_result: *mut GfrKeyGenerateResult,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<GeneratedKeys, GfrStatus> {
         if o_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
