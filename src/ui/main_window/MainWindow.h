@@ -624,11 +624,11 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @brief
    *
    * @param context
-   * @return auto
+   * @return bool
    */
-  void exec_operas_helper(
+  auto exec_operas_helper(
       const QString& task,
-      const QSharedPointer<GpgOperaContextBasement>& contexts);
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
 
   /**
    * @brief
