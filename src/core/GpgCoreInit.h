@@ -44,6 +44,17 @@ struct CoreInitArgs {
 void GF_CORE_EXPORT DestroyGpgFrontendCore();
 
 /**
+ * @brief Whether the core has begun shutting down.
+ *
+ * Set at the very start of DestroyGpgFrontendCore(). Background subsystems
+ * check this before using singleton storage that teardown is about to
+ * destroy.
+ *
+ * @return true once DestroyGpgFrontendCore() has started.
+ */
+auto GF_CORE_EXPORT IsCoreShuttingDown() -> bool;
+
+/**
  * @brief
  *
  */
