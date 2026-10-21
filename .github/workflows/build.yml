@@ -54,6 +54,11 @@ on:
           - nightly
           - release
 
+# A newer push supersedes a running build of the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: RelWithDebInfo
   GNUPG_VERSION: "2.5.21"
@@ -76,6 +81,13 @@ jobs:
           ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    env:
+      # Lets ccache cache every translation unit that force-includes the CMake
+      # PCH, and the .gch itself. Without these they were all uncacheable, so
+      # even a warm cache rebuilt core, ui and test in full. Only timestamp and
+      # __DATE__-style checks are relaxed; what is hashed into an object is
+      # unchanged.
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_mtime,include_file_ctime
     # The Apple signing material lives in the `macos-signing` environment, not
     # in repository secrets. Only macOS pushes and tags ask for it: pull
     # requests never get signing credentials and build unsigned instead. The
@@ -133,10 +145,24 @@ jobs:
           echo "Build mode: ${BUILD_MODE}"
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
 
+      # Saved only from pushes, so no pull request can seed an object file
+      # into what a release is built from.
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
-          key: 2.1-${{ github.job }}-${{ matrix.os }}
+          key: 2.1-${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          # ccache caps each of its 16 subdirectories at 1/16 of this, and a
+          # compressed .gch runs past 100 MB, so a smaller limit evicted every
+          # PCH result as it was stored.
+          max-size: 4G
+          save: ${{ github.event_name == 'push' }}
+
+      # Everything compiled from here on touches the cache entries it uses, so
+      # "older than this mark" is exactly "not used by this build". The build
+      # steps evict those before the post step saves the cache.
+      - name: Mark ccache Epoch
+        shell: bash
+        run: echo "CCACHE_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
 
       - name: Install Dependence (Linux)
         run: |
@@ -254,16 +280,29 @@ jobs:
           make install
         if: runner.os == 'Windows'
 
+      - name: Cache googletest (Linux)
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/third_party/googletest
+          key: gtest-${{ matrix.os }}-v1.15.2
+        if: runner.os == 'Linux'
+
       - name: Build googletest (Linux)
         run: |
-          git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
-          cd ${{github.workspace}}/third_party/googletest
-          mkdir build && cd build
-          cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            ..
-          ninja
+          if [ ! -f "${{github.workspace}}/third_party/googletest/build/build.ninja" ]; then
+            rm -rf ${{github.workspace}}/third_party/googletest
+            git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
+            cd ${{github.workspace}}/third_party/googletest
+            mkdir build && cd build
+            cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              ..
+            ninja
+          else
+            echo "Reusing cached googletest build"
+          fi
+          cd ${{github.workspace}}/third_party/googletest/build
           sudo ninja install
         if: runner.os == 'Linux'
 
@@ -294,6 +333,21 @@ jobs:
           # Build unsigned; the bundle is signed after macdeployqt has put the
           # Qt frameworks in place. The *_DEPLOYMENT_TARGET overrides keep newer
           # Xcode from aborting on conflicting deployment targets.
+          # ccache, as xcodebuild build settings rather than a CMake launcher,
+          # which the Xcode generator ignores. CC/CXX go through a wrapper;
+          # LD/LDPLUSPLUS stay the plain driver so links never see a
+          # compile-only flag. -fno-pch-timestamp: a .pch restored from the
+          # cache would otherwise be refused against this checkout's header
+          # mtimes. The index store only adds an uncacheable output.
+          WRAP="$RUNNER_TEMP/ccache-xcode"
+          mkdir -p "$WRAP"
+          REAL_CC="$(xcrun -f clang)"
+          REAL_CXX="$(xcrun -f clang++)"
+          printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CC" > "$WRAP/clang"
+          printf '#!/bin/sh\nexec ccache "%s" -Xclang -fno-pch-timestamp "$@"\n' "$REAL_CXX" > "$WRAP/clang++"
+          chmod +x "$WRAP/clang" "$WRAP/clang++"
+          ccache -z
+
           cd ${{github.workspace}}/build/
           xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
             -scheme GpgFrontend \
@@ -305,11 +359,21 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
+            CC="$WRAP/clang" \
+            CXX="$WRAP/clang++" \
+            LD="$REAL_CC" \
+            LDPLUSPLUS="$REAL_CXX" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             IPHONEOS_DEPLOYMENT_TARGET= \
             TVOS_DEPLOYMENT_TARGET= \
             WATCHOS_DEPLOYMENT_TARGET= \
             XROS_DEPLOYMENT_TARGET= \
             DRIVERKIT_DEPLOYMENT_TARGET=
+          ccache -s -v
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
 
           # Copy the app out of the archive instead of -exportArchive, which
           # demands a signing identity in the keychain.
@@ -383,6 +447,11 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
+          ccache -s -v 2>/dev/null || ccache -s
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
         if: runner.os == 'Linux'
 
       - name: Run Unit Tests (Linux)
@@ -449,6 +518,12 @@ jobs:
 
       - name: Build GpgFrontend (Windows)
         shell: msys2 {0}
+        env:
+          # ccache takes MinGW's `c++.exe` for an unknown compiler and then
+          # applies clang's PCH rule: refuse a cached .gch whose headers have a
+          # new mtime. CMake rewrites cmake_pch.hxx at every configure, so every
+          # PCH and its users missed on every run. It is gcc.
+          CCACHE_COMPILERTYPE: gcc
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
@@ -459,6 +534,11 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
+          ccache -s -v
+          # Keep only what this build used, so the saved cache stays the
+          # working set instead of growing toward max-size run after run.
+          ccache --evict-older-than "$(( $(date +%s) - CCACHE_EPOCH + 60 ))s"
+          ccache -s
         if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
