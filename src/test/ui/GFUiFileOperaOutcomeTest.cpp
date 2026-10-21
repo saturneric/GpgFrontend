@@ -54,30 +54,44 @@ auto Result(int status) -> GpgOperaResult {
 }  // namespace
 
 TEST(FileOperaOutcomeTest, NoResultsAreNotASuccess) {
-  EXPECT_FALSE(IsFileOperaSuccessful({}));
+  EXPECT_FALSE(IsFileOperaSuccessful({}, 0));
 }
 
 TEST(FileOperaOutcomeTest, SuccessIsCommitted) {
-  EXPECT_TRUE(IsFileOperaSuccessful({Result(1)}));
-  EXPECT_TRUE(IsFileOperaSuccessful({Result(1), Result(1)}));
+  EXPECT_TRUE(IsFileOperaSuccessful({Result(1)}, 1));
+  EXPECT_TRUE(IsFileOperaSuccessful({Result(1), Result(1)}, 2));
 }
 
 TEST(FileOperaOutcomeTest, AWarningIsCommitted) {
-  EXPECT_TRUE(IsFileOperaSuccessful({Result(0)}));
-  EXPECT_TRUE(IsFileOperaSuccessful({Result(1), Result(0)}));
+  EXPECT_TRUE(IsFileOperaSuccessful({Result(0)}, 1));
+  EXPECT_TRUE(IsFileOperaSuccessful({Result(1), Result(0)}, 2));
 }
 
 TEST(FileOperaOutcomeTest, AFailureIsDiscarded) {
-  EXPECT_FALSE(IsFileOperaSuccessful({Result(-1)}));
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(-1)}, 1));
 }
 
 TEST(FileOperaOutcomeTest, AnyFailureAmongWarningsIsDiscarded) {
-  EXPECT_FALSE(IsFileOperaSuccessful({Result(0), Result(-1)}));
-  EXPECT_FALSE(IsFileOperaSuccessful({Result(-1), Result(0)}));
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(0), Result(-1)}, 2));
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(-1), Result(0)}, 2));
 }
 
 TEST(FileOperaOutcomeTest, AnyFailureAmongSuccessesIsDiscarded) {
-  EXPECT_FALSE(IsFileOperaSuccessful({Result(1), Result(-1), Result(1)}));
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(1), Result(-1), Result(1)}, 3));
+}
+
+TEST(FileOperaOutcomeTest, AMissingResultIsAFailure) {
+  // An operation that has not reported yet may still be writing into its
+  // staging directory. Committing or cleaning up around it is not safe, so a
+  // batch with fewer results than operations is never a success.
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(1)}, 2));
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(1), Result(0)}, 3));
+  EXPECT_FALSE(IsFileOperaSuccessful({}, 1));
+  EXPECT_TRUE(IsFileOperaSuccessful({Result(1), Result(0)}, 2));
+}
+
+TEST(FileOperaOutcomeTest, MoreResultsThanOperationsIsAFailure) {
+  EXPECT_FALSE(IsFileOperaSuccessful({Result(1), Result(1)}, 1));
 }
 
 }  // namespace GpgFrontend::Test

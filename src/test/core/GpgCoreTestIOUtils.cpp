@@ -30,6 +30,10 @@
 #include <QFile>
 #include <QTemporaryDir>
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
@@ -229,6 +233,136 @@ TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
   EXPECT_TRUE(leftovers.isEmpty()) << leftovers.join(", ").toStdString();
 }
 
+TEST(IOUtilsSafeOutputTest, CommitReplacingAReadOnlyTreeLeavesNoBackup) {
+  // A previous archive extraction can contain read-only directories. The
+  // replaced tree is the old plaintext: it must not survive as a hidden
+  // backup just because one of its directories was not writable.
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/archive";
+  ASSERT_TRUE(QDir().mkpath(final_path + "/locked"));
+  ASSERT_TRUE(WriteFile(final_path + "/locked/old.txt", QByteArray("older")));
+  ASSERT_TRUE(QFile::setPermissions(
+      final_path + "/locked", QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  ASSERT_TRUE(QDir().mkpath(staged));
+  ASSERT_TRUE(WriteFile(staged + "/new.txt", QByteArray("newer")));
+
+  EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
+  EXPECT_TRUE(QFileInfo::exists(final_path + "/new.txt"));
+
+  const auto leftovers =
+      QDir(temp_dir.path())
+          .entryList({"*gpgfrontend.backup*"},
+                     QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+  EXPECT_TRUE(leftovers.isEmpty()) << leftovers.join(", ").toStdString();
+
+  // Let QTemporaryDir clean up whatever a failure left behind.
+  for (const auto& leftover : leftovers) {
+    QFile::setPermissions(temp_dir.path() + "/" + leftover + "/locked",
+                          QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                              QFileDevice::ExeOwner);
+  }
+}
+
+TEST(IOUtilsSafeOutputTest, DiscardRemovesAStagedTreeWithReadOnlyDirs) {
+  // An extraction that is discarded must not leave plaintext behind in a
+  // directory the archive marked read-only.
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString staged = MakeSafeOutputTempPath(temp_dir.path() + "/archive");
+  ASSERT_TRUE(QDir().mkpath(staged + "/locked"));
+  ASSERT_TRUE(WriteFile(staged + "/locked/secret.txt", QByteArray("plain")));
+  ASSERT_TRUE(QFile::setPermissions(
+      staged + "/locked", QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  EXPECT_TRUE(DiscardSafeOutput(staged));
+  EXPECT_FALSE(QFileInfo::exists(staged));
+
+  if (QFileInfo::exists(staged + "/locked")) {
+    QFile::setPermissions(staged + "/locked", QFileDevice::ReadOwner |
+                                                  QFileDevice::WriteOwner |
+                                                  QFileDevice::ExeOwner);
+  }
+}
+
+TEST(IOUtilsWriteGFBufferTest, WrittenFileIsOwnerOnlyAndRoundTrips) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString path = temp_dir.path() + "/secret.asc";
+  ASSERT_TRUE(WriteFileGFBuffer(path, GFBuffer(QString("secret key"))));
+
+  auto [ok, read_back] = ReadFileGFBuffer(path);
+  ASSERT_TRUE(ok);
+  EXPECT_EQ(read_back.ConvertToQByteArray(), QByteArray("secret key"));
+
+#ifndef _WIN32
+  EXPECT_EQ(QFileInfo(path).permissions() &
+                (QFileDevice::ReadGroup | QFileDevice::WriteGroup |
+                 QFileDevice::ExeGroup | QFileDevice::ReadOther |
+                 QFileDevice::WriteOther | QFileDevice::ExeOther),
+            QFileDevice::Permissions{});
+#endif
+}
+
+TEST(IOUtilsWriteGFBufferTest, ExistingFileIsReplacedNotTruncatedInPlace) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString path = temp_dir.path() + "/secret.asc";
+  ASSERT_TRUE(WriteFile(path, QByteArray("an older and longer content")));
+  ASSERT_TRUE(QFile::setPermissions(
+      path, QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                QFileDevice::ReadGroup | QFileDevice::ReadOther));
+
+#ifndef _WIN32
+  // A second name for the old file. An in-place truncate rewrites the file
+  // this name points at; an atomic replace gives the path a new file and
+  // leaves the old one whole until it is dropped.
+  const QString alias = temp_dir.path() + "/alias.asc";
+  ASSERT_EQ(
+      ::link(path.toLocal8Bit().constData(), alias.toLocal8Bit().constData()),
+      0);
+#endif
+
+  ASSERT_TRUE(WriteFileGFBuffer(path, GFBuffer(QString("newer"))));
+
+  QByteArray content;
+  ASSERT_TRUE(ReadFile(path, content));
+  EXPECT_EQ(content, QByteArray("newer"));
+
+#ifndef _WIN32
+  QByteArray alias_content;
+  ASSERT_TRUE(ReadFile(alias, alias_content));
+  EXPECT_EQ(alias_content, QByteArray("an older and longer content"));
+
+  EXPECT_EQ(QFileInfo(path).permissions() &
+                (QFileDevice::ReadGroup | QFileDevice::ReadOther),
+            QFileDevice::Permissions{});
+#endif
+}
+
+TEST(IOUtilsWriteGFBufferTest, ALinkAtTheTargetIsNotFollowed) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString victim = temp_dir.path() + "/victim.txt";
+  ASSERT_TRUE(WriteFile(victim, QByteArray("keep")));
+
+  const QString path = temp_dir.path() + "/secret.asc";
+  ASSERT_TRUE(QFile::link(victim, path));
+
+  EXPECT_FALSE(WriteFileGFBuffer(path, GFBuffer(QString("secret key"))));
+
+  QByteArray content;
+  ASSERT_TRUE(ReadFile(victim, content));
+  EXPECT_EQ(content, QByteArray("keep"));
+}
+
 TEST(IOUtilsSafeOutputTest, WorkDirsArePrivateAndUnpredictable) {
   // A predictable, world-readable work directory in a shared folder can be
   // created in advance by someone else, who could then plant links in it.
@@ -242,6 +376,20 @@ TEST(IOUtilsSafeOutputTest, WorkDirsArePrivateAndUnpredictable) {
   const QString second_dir = QFileInfo(second).absolutePath();
 
   EXPECT_NE(first_dir, second_dir);
+
+  // Both live in a fresh `.gpgfrontend.tmp.<random>` directory: the template
+  // placeholder was replaced by a real random suffix, not kept literally.
+  const QString prefix = QStringLiteral(".gpgfrontend.tmp.");
+  for (const auto& dir : {first_dir, second_dir}) {
+    const QString name = QFileInfo(dir).fileName();
+    ASSERT_TRUE(name.startsWith(prefix)) << name.toStdString();
+    const QString suffix = name.mid(prefix.size());
+    EXPECT_EQ(suffix.size(), 6) << name.toStdString();
+    EXPECT_NE(suffix, QStringLiteral("XXXXXX"));
+  }
+  EXPECT_NE(QFileInfo(first_dir).fileName().mid(prefix.size()),
+            QFileInfo(second_dir).fileName().mid(prefix.size()));
+
   EXPECT_EQ(QFileInfo(first_dir).permissions() &
                 (QFileDevice::ReadGroup | QFileDevice::WriteGroup |
                  QFileDevice::ExeGroup | QFileDevice::ReadOther |

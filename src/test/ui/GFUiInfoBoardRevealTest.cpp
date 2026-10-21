@@ -42,6 +42,7 @@
 #include <QTextBrowser>
 
 #include "GpgFrontendTest.h"
+#include "ui/function/InfoBoardCardConverter.h"
 #include "ui/widgets/InfoBoardWidget.h"
 
 namespace GpgFrontend::Test {
@@ -222,6 +223,23 @@ TEST(GFUiInfoBoardRevealTest, AnotherCurrentTabClearsTheLastTabsResult) {
     EXPECT_EQ(f.board->CurrentStatus(), kINFO_ERROR_NEUTRAL);
     EXPECT_FALSE(f.dock->isHidden()) << "a reset never hides";
   });
+}
+
+// A signature rejected for a key that had expired before it signed is a
+// failure, while a merely expired key (GnuPG: signed in time) stays a warning.
+// Both carry kKEY_EXPIRED, so only `rejected` tells them apart.
+TEST(GFUiInfoBoardRevealTest, RejectedExpiredKeySignatureIsCritical) {
+  GpgOpResultInfo info;
+  GpgVerifySigInfo expired_later;
+  expired_later.validity = GpgSigValidity::kKEY_EXPIRED;
+  GpgVerifySigInfo expired_before = expired_later;
+  expired_before.rejected = true;
+  info.signatures << expired_later << expired_before;
+
+  const auto cards = UI::convert_op_info_to_cards(info);
+  ASSERT_EQ(cards.size(), 2);
+  EXPECT_EQ(cards[0].status, kINFO_ERROR_WARN);
+  EXPECT_EQ(cards[1].status, kINFO_ERROR_CRITICAL);
 }
 
 }  // namespace GpgFrontend::Test

@@ -133,6 +133,19 @@ const char* const kAPlaintextHello = "Hello, world!";
 
 auto Buf(const char* s) -> GFBuffer { return GFBuffer(QByteArray(s)); }
 
+// The binary packets of an armored block, so a test can damage the packet it
+// means to (here: the SEIPD v2 body) rather than the armor around it.
+auto Dearmor(const char* block) -> QByteArray {
+  QByteArray body;
+  bool in_body = false;
+  for (const auto& line : QByteArray(block).split('\n')) {
+    if (line.startsWith("-----END")) break;
+    if (in_body) body += line;
+    if (line.isEmpty()) in_body = true;
+  }
+  return QByteArray::fromBase64(body);
+}
+
 // Import an armored key block into the unit-test keyring so the engine can
 // resolve it during verification or decryption.
 void ImportBlock(const char* block) {
@@ -325,27 +338,35 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbTamperedCiphertextIsRefused) {
   // MUST NOT attempt to parse nor release decrypted data".
   ASSERT_NO_FATAL_FAILURE(ImportBlock(kA4V6SecretUnlocked));
 
-  QByteArray tampered(kA8X25519AeadOcb);
-  auto pos = tampered.size() / 2;
-  tampered[pos] = (tampered[pos] == 'A' ? 'B' : 'A');
+  // Flip one byte of the encrypted chunk: past the PKESK and the SEIPD v2
+  // header, before the two trailing 16-octet authentication tags.
+  QByteArray tampered = Dearmor(kA8X25519AeadOcb);
+  ASSERT_GT(tampered.size(), 40);
+  auto pos = tampered.size() - 40;
+  tampered[pos] = static_cast<char>(~tampered[pos]);
 
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(GFBuffer(tampered));
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR)
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_BAD_DATA)
       << "a tampered AEAD ciphertext must never release plaintext";
+  if (dobj->Check<GpgDecryptResult, GFBuffer>()) {
+    EXPECT_TRUE(ExtractParams<GFBuffer>(dobj, 1).Empty());
+  }
 }
 
 TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbTruncatedIsRefused) {
   ASSERT_NO_FATAL_FAILURE(ImportBlock(kA4V6SecretUnlocked));
 
-  QByteArray truncated(kA8X25519AeadOcb);
-  truncated.truncate(truncated.size() / 2);
+  // Cut inside the SEIPD v2 body, after the PKESK, not in the armor.
+  QByteArray truncated = Dearmor(kA8X25519AeadOcb);
+  ASSERT_GT(truncated.size(), 40);
+  truncated.truncate(truncated.size() - 40);
 
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(GFBuffer(truncated));
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_BAD_DATA);
 }
 
 // ---------------------------------------------------------------------------

@@ -274,7 +274,8 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
   // The encryption subkey now needs the new passphrase; offering only the old
   // one must fail.
   InstallPassphraseScript({.unlock_default = kDefaultPassphrase});
-  EXPECT_NE(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()),
+            GPG_ERR_BAD_PASSPHRASE);
 
   InstallPassphraseScript({.unlock_default = kNewPassphrase});
   EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
@@ -738,6 +739,58 @@ TEST_F(RpgpCoreTest, CoreGetEcdhKdfParamsTest) {
   EXPECT_TRUE(uhex.isEmpty());
 
   KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+// Adding a subkey under a passphrase that is never right must report the bad
+// passphrase, and say why, instead of collapsing into "General error".
+TEST_F(RpgpCoreTest, GenerateSubkeyReportsBadPassphraseTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  auto params = QSharedPointer<KeyGenerateInfo>::create();
+  params->SetIsSubKey(true);
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
+  ASSERT_TRUE(found);
+  params->SetAlgo(algo);
+  params->SetNonExpired(true);
+  params->SetNonPassPhrase(true);
+
+  ClearRpgpPasswordCache();
+  InstallPassphraseScript(
+      {.unlock_default = "always-wrong", .fresh = kNewPassphrase});
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateSubkeySync(key, params);
+  RestoreDefaultPassphraseFetcher();
+
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_PASSPHRASE);
+}
+
+// A key edit refused for a wrong passphrase must say why; GPG_ERR_CANCELED or
+// "General error" would misstate what happened.
+TEST_F(RpgpCoreTest, CoreSetExpireReportsBadPassphraseTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  ClearRpgpPasswordCache();
+  InstallPassphraseScript({.unlock_default = "always-wrong"});
+
+  auto err =
+      KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+          .SetExpire(key, {}, QDateTime::currentDateTimeUtc().addYears(1));
+  RestoreDefaultPassphraseFetcher();
+
+  // A wrong passphrase is reported as one, not as a general error, a
+  // cancel, or the invalid input the failed re-signing would produce.
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_PASSPHRASE);
+
+  // The refused edit left the key in place.
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  EXPECT_TRUE(GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                  .GetKeyPtr(kFixtureKeyFpr) != nullptr);
 }
 
 }  // namespace GpgFrontend::Test

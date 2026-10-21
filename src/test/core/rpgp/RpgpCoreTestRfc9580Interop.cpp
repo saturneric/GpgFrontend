@@ -72,6 +72,11 @@ auto RunVerify(const GFBuffer& data, const GFBuffer& sig) -> VerifyOutcome {
   return out;
 }
 
+// Issuer of the two vectors made by gpg with the SHA-1 capable aux key
+// (sig_strong_weak_same_key.sig, sig_inline_compressed.pgp). Asserting it
+// keeps a test that loaded the wrong certificate from passing on NO_PUBKEY.
+constexpr auto kAuxSha1Fpr = "01BB973D0D42A8342456C59D99EE1C3EB10DAF4F";
+
 auto CountValid(const QContainer<GpgSignature>& sigs) -> int {
   return static_cast<int>(
       std::count_if(sigs.cbegin(), sigs.cend(),
@@ -98,7 +103,26 @@ TEST_F(RpgpCoreTest, Rfc9580InteropStrongWeakSameKeyOnlyStrongValid) {
   ImportAuxKeys({"aux_sha1.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_strong_weak_same_key.sig"));
+  ASSERT_EQ(out.sigs.size(), 2);
   EXPECT_EQ(CountValid(out.sigs), 1);
+
+  int strong = 0;
+  int weak = 0;
+  for (const auto& s : out.sigs) {
+    EXPECT_EQ(s.GetFingerprint(), QString(kAuxSha1Fpr));
+    const auto hash = s.GetHashAlgo().toUpper();
+    if (hash == QStringLiteral("SHA256")) {
+      ++strong;
+      EXPECT_TRUE(SignatureIsValid(s));
+    } else if (hash == QStringLiteral("SHA1")) {
+      ++weak;
+      EXPECT_FALSE(SignatureIsValid(s));
+    } else {
+      ADD_FAILURE() << "unexpected hash: " << hash.toStdString();
+    }
+  }
+  EXPECT_EQ(strong, 1);
+  EXPECT_EQ(weak, 1);
 }
 
 // --- B4: per-index attribution on the cleartext path -------------------------
@@ -170,7 +194,8 @@ TEST_F(RpgpCoreTest, Rfc9580InteropCompressedInlineVerifies) {
   auto out = RunVerify(LoadRfc9580Vector("sig_inline_compressed.pgp"),
                        GFBuffer());
   ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
-  ASSERT_FALSE(out.sigs.empty());
+  ASSERT_EQ(out.sigs.size(), 1);
+  EXPECT_EQ(out.sigs.front().GetFingerprint(), QString(kAuxSha1Fpr));
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));
 }
 

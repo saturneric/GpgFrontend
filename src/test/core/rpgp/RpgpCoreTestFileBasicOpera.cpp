@@ -158,9 +158,11 @@ TEST_F(RpgpCoreTest, CoreFileSignVerifyNormalTest) {
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
-  ASSERT_FALSE(verify_result.GetSignature().empty());
+  ASSERT_EQ(verify_result.GetSignature().size(), 1);
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
             "575572EF0DF799AB884EC6C114C6B0B1596A2755");
+  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
+            GPG_ERR_NO_ERROR);
 }
 
 TEST_F(RpgpCoreTest, CoreFileEncryptSignDecryptVerifyTest) {
@@ -203,9 +205,11 @@ TEST_F(RpgpCoreTest, CoreFileEncryptSignDecryptVerifyTest) {
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
 
   ASSERT_FALSE(decrypt_result.Recipients().empty());
-  ASSERT_FALSE(verify_result.GetSignature().empty());
+  ASSERT_EQ(verify_result.GetSignature().size(), 1);
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
             "575572EF0DF799AB884EC6C114C6B0B1596A2755");
+  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
+            GPG_ERR_NO_ERROR);
 
   const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypt_output_file);
   ASSERT_TRUE(read_success);
@@ -334,7 +338,11 @@ TEST_F(RpgpCoreTest, LargeFileEncryptSignDecryptVerifyAboveFormerLimitTest) {
   auto [err_0, data_object_0] = op.DecryptVerifyFileSync(cipher, output);
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
-  ASSERT_FALSE(verify_result.GetSignature().empty());
+  ASSERT_EQ(verify_result.GetSignature().size(), 1);
+  EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
+            "575572EF0DF799AB884EC6C114C6B0B1596A2755");
+  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
+            GPG_ERR_NO_ERROR);
 
 #if defined(__linux__)
   const auto growth_mib = (status_kib("VmHWM:") - baseline_kib) / 1024;

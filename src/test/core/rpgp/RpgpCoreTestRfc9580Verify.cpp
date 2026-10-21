@@ -173,7 +173,9 @@ TEST_F(RpgpCoreTest, Rfc9580VerifySha1DetachedIsNotValid) {
                        LoadRfc9580Vector("sig_sha1_detached.sig"));
   // The signature is cryptographically sound but uses a weak digest; the
   // weak-hash gate must prevent it from being reported as Valid.
+  ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
+  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_BAD_SIGNATURE);
 }
 
 // --- Negative: expired key --------------------------------------------------
@@ -238,7 +240,9 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyMutatedSignatureIsNotValid) {
   ImportAuxKeys({"aux_good.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_bad_mutated.sig"));
+  ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
+  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_BAD_SIGNATURE);
 }
 
 // --- Negative: detached signature over the wrong data -----------------------
@@ -247,7 +251,9 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyDetachedWrongDataIsNotValid) {
   ImportAuxKeys({"aux_good.asc"});
   auto out = RunVerify(GFBuffer(QString("a completely different payload")),
                        LoadRfc9580Vector("sig_good_detached.sig"));
+  ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
+  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_BAD_SIGNATURE);
 }
 
 // --- Negative: signer key not in the keyring --------------------------------
@@ -256,16 +262,18 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerIsNotValid) {
   // Do not import aux_good: the signer's public key cannot be resolved.
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_good_detached.sig"));
+  ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
+  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_NO_PUBKEY);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerReportsNoKeyStatus) {
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_good_detached.sig"));
   // The signature is still parsed and attributed; only its key is missing.
-  if (!out.sigs.empty()) {
-    EXPECT_EQ(CheckGpgError(out.sigs.front().GetStatus()), GPG_ERR_NO_PUBKEY);
-  }
+  ASSERT_EQ(out.sigs.size(), 1);
+  EXPECT_EQ(CheckGpgError(out.sigs.front().GetStatus()), GPG_ERR_NO_PUBKEY);
+  EXPECT_EQ(out.sigs.front().GetFingerprint(), QString(kAuxGoodSignFpr));
 }
 
 // --- Two-signer attribution (finding B-Verify) ------------------------------
@@ -292,6 +300,8 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerAttributionIsPerIssuer) {
   auto out = RunVerify(LoadRfc9580Vector("two_signer.pgp"), GFBuffer());
   // The single Valid signature must be the one issued by aux_good, proving the
   // status is attributed per issuer rather than smeared across the message.
+  ASSERT_EQ(out.sigs.size(), 2);
+  ASSERT_EQ(CountValid(out.sigs), 1);
   for (const auto& s : out.sigs) {
     if (SignatureIsValid(s)) {
       EXPECT_EQ(s.GetFingerprint(), QString(kAuxGoodSignFpr));
@@ -302,7 +312,11 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerAttributionIsPerIssuer) {
 TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerNoneKnownNoneValid) {
   // Neither signer imported -> no signature may be Valid.
   auto out = RunVerify(LoadRfc9580Vector("two_signer.pgp"), GFBuffer());
+  ASSERT_EQ(out.sigs.size(), 2);
   EXPECT_FALSE(AnyValid(out.sigs));
+  for (const auto& s : out.sigs) {
+    EXPECT_EQ(gpg_err_code(s.GetStatus()), GPG_ERR_NO_PUBKEY);
+  }
 }
 
 // --- Summary bits -----------------------------------------------------------
@@ -319,6 +333,8 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyWeakSignatureSummaryIsRed) {
   ImportAuxKeys({"aux_sha1.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_sha1_detached.sig"));
+  ASSERT_EQ(out.sigs.size(), 1);
+  ASSERT_EQ(CountValid(out.sigs), 0);
   for (const auto& s : out.sigs) {
     EXPECT_TRUE((s.GetSummary() & GPGME_SIGSUM_RED) != 0U);
   }

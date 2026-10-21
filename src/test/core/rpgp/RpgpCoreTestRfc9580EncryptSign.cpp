@@ -238,10 +238,12 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyDetachedTamperedDataFails) {
   auto [v_err, v_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(GFBuffer(QString("tampered data!")), sig);
-  if (v_obj->Check<GpgVerifyResult, GFBuffer>()) {
-    auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
-    for (const auto& s : r.GetSignature()) EXPECT_FALSE(SignatureIsValid(s));
-  }
+  ASSERT_TRUE((v_obj->Check<GpgVerifyResult, GFBuffer>()));
+  auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
+  ASSERT_EQ(r.GetSignature().size(), 1);
+  EXPECT_FALSE(SignatureIsValid(r.GetSignature().front()));
+  EXPECT_EQ(gpg_err_code(r.GetSignature().front().GetStatus()),
+            GPG_ERR_BAD_SIGNATURE);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580SignRejectsEmptyPayload) {
@@ -343,28 +345,23 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptSignDecryptVerifyBinaryPayload) {
 }
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptSignEmptyPayloadIsSafe) {
-  // Encrypt-only and sign-only reject an empty payload as an input error; the
-  // combined encrypt-and-sign path instead returns success but produces a
-  // degenerate ciphertext that does not decrypt. Whatever the engine does here,
-  // it must never crash and must never yield a wrong, non-empty plaintext.
+  // Encrypt-only and sign-only reject an empty payload as an input error.
+  // The combined path must do the same: reporting success for a ciphertext
+  // that then fails to decrypt hands the user a message nobody can read.
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({Key1Pub()}, {Key1Secret()}, GFBuffer(QByteArray()),
                            true);
-  if (CheckGpgError(e_err) != GPG_ERR_NO_ERROR) {
-    return;  // Rejecting empty input outright is acceptable.
+  if (CheckGpgError(e_err) == GPG_ERR_NO_ERROR &&
+      e_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
+    auto [d_err, d_obj] =
+        MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .DecryptVerifySync(ExtractParams<GFBuffer>(e_obj, 2));
+    ADD_FAILURE() << "empty payload encrypted and signed with success; "
+                     "decrypt-verify of the result returned "
+                  << gpg_strerror(d_err);
   }
-  ASSERT_TRUE((e_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
-  auto ct = ExtractParams<GFBuffer>(e_obj, 2);
-  auto [d_err, d_obj] =
-      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .DecryptVerifySync(ct);
-  // A failed decrypt-verify of the degenerate ciphertext is acceptable; a
-  // successful one must recover an empty payload, never wrong plaintext.
-  if (CheckGpgError(d_err) == GPG_ERR_NO_ERROR &&
-      d_obj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()) {
-    EXPECT_EQ(ExtractParams<GFBuffer>(d_obj, 2).Size(), 0U);
-  }
+  EXPECT_EQ(CheckGpgError(e_err), GPG_ERR_INV_DATA);
 }
 
 // --- symmetric round-trips --------------------------------------------------
