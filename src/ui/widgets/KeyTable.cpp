@@ -33,12 +33,17 @@
 namespace GpgFrontend::UI {
 
 auto KeyTable::GetCheckedKeys() const -> GpgAbstractKeyPtrList {
-  auto ret = GpgAbstractKeyPtrList{};
-  for (decltype(GetRowCount()) i = 0; i < GetRowCount(); i++) {
-    if (IsRowChecked(i)) {
-      ret.push_back(GetKeyByIndex(model()->index(i, 0)));
-    }
+  GpgAbstractKeyPtrList ret;
+
+  for (int row = 0; row < GetRowCount(); ++row) {
+    if (!IsRowChecked(row)) continue;
+
+    auto key = GetKeyByIndex(model()->index(row, 0));
+    if (key == nullptr) continue;
+
+    ret.push_back(key);
   }
+
   return ret;
 }
 
@@ -51,7 +56,38 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
       proxy_model_(model_, select_type, column_filter, std::move(filter), this),
       column_filter_(column_filter) {
   setModel(&proxy_model_);
+  InitTableStyle();
 
+  connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
+          &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
+
+  connect(this, &KeyTable::SignalColumnTypeChange, this,
+          [this](GpgKeyTableColumn global_column_filter) {
+            emit proxy_model_.SignalColumnTypeChange(column_filter_ &
+                                                     global_column_filter);
+          });
+
+  connect(this, &QTableView::doubleClicked, this,
+          [this](const QModelIndex& index) {
+            if (!index.isValid()) return;
+
+            auto key = GetKeyByIndex(index);
+            if (key == nullptr) return;
+
+            CommonUtils::OpenDetailsDialogByKey(
+                this, model_->GetGpgContextChannel(), key);
+          });
+
+  connect(&proxy_model_, &GpgKeyTableProxyModel::dataChanged, this,
+          [this](const QModelIndex&, const QModelIndex&,
+                 const QContainer<int>& roles) {
+            if (bulk_checking_) return;
+            if (!roles.contains(Qt::CheckStateRole)) return;
+            emit SignalKeyChecked();
+          });
+}
+
+void KeyTable::InitTableStyle() {
   verticalHeader()->hide();
   horizontalHeader()->setStretchLastSection(false);
   horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -66,64 +102,62 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
   setFocusPolicy(Qt::NoFocus);
   setAlternatingRowColors(true);
   setSortingEnabled(true);
-
-  connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
-          &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
-  connect(this, &KeyTable::SignalColumnTypeChange, this,
-          [=](GpgKeyTableColumn global_column_filter) {
-            emit(&proxy_model_)
-                ->SignalColumnTypeChange(column_filter_ & global_column_filter);
-          });
-  connect(this, &QTableView::doubleClicked, this,
-          [this](const QModelIndex& index) {
-            if (!index.isValid()) return;
-
-            auto key = GetKeyByIndex(index);
-            if (key == nullptr) return;
-
-            CommonUtils::OpenDetailsDialogByKey(
-                this, model_->GetGpgContextChannel(), key);
-          });
-
-  connect(&proxy_model_, &GpgKeyTableProxyModel::dataChanged, this,
-          [=](const QModelIndex&, const QModelIndex&,
-              const QContainer<int>& roles) {
-            if (!roles.contains(Qt::CheckStateRole)) return;
-            emit SignalKeyChecked();
-          });
 }
 
 void KeyTable::SetFilterKeyword(const QString& keyword) {
   proxy_model_.SetSearchKeywords(keyword);
+  clearSelection();
+  emit SignalKeyChecked();
 }
 
 void KeyTable::RefreshModel(QSharedPointer<GpgKeyTableModel> model) {
+  clearSelection();
+
   model_ = std::move(model);
   proxy_model_.ResetGpgKeyTableModel(model_);
+
+  sortByColumn(2, Qt::AscendingOrder);
+  resizeColumnsToContents();
+
+  emit SignalKeyChecked();
 }
 
 auto KeyTable::IsRowChecked(int row) const -> bool {
-  auto index = model()->index(row, 0);
+  if (row < 0 || row >= model()->rowCount()) return false;
+
+  const auto index = model()->index(row, 0);
+  if (!index.isValid()) return false;
+
   return index.data(Qt::CheckStateRole).toInt() == Qt::Checked;
 }
 
 auto KeyTable::GetRowCount() const -> int { return model()->rowCount(); }
 
 auto KeyTable::GetKeyByIndex(QModelIndex index) const -> GpgAbstractKeyPtr {
-  auto idx = proxy_model_.mapToSource(index);
-  auto* i = idx.isValid() ? static_cast<GpgKeyTableItem*>(idx.internalPointer())
-                          : nullptr;
-  assert(i != nullptr);
+  if (!index.isValid()) return nullptr;
 
-  return i->SharedKey();
+  const auto source_index = proxy_model_.mapToSource(index);
+  if (!source_index.isValid()) return nullptr;
+
+  auto* item = static_cast<GpgKeyTableItem*>(source_index.internalPointer());
+  if (item == nullptr) return nullptr;
+
+  return item->SharedKey();
 }
 
 auto KeyTable::GetSelectedKeys() const -> GpgAbstractKeyPtrList {
   GpgAbstractKeyPtrList ret;
-  QItemSelectionModel* select = selectionModel();
-  for (auto index : select->selectedRows()) {
-    ret.push_back(GetKeyByIndex(index));
+
+  const auto* select = selectionModel();
+  if (select == nullptr) return ret;
+
+  for (const auto& index : select->selectedRows()) {
+    auto key = GetKeyByIndex(index);
+    if (key == nullptr) continue;
+
+    ret.push_back(key);
   }
+
   return ret;
 }
 
@@ -133,17 +167,31 @@ void KeyTable::SetRowChecked(int row) const {
 }
 
 void KeyTable::CheckAll() {
+  bulk_checking_ = true;
+
   for (int row = 0; row < model()->rowCount(); ++row) {
-    auto index = model()->index(row, 0);
+    const auto index = model()->index(row, 0);
+    if (!index.isValid()) continue;
+
     model()->setData(index, Qt::Checked, Qt::CheckStateRole);
   }
+
+  bulk_checking_ = false;
+  emit SignalKeyChecked();
 }
 
 void KeyTable::UncheckAll() {
+  bulk_checking_ = true;
+
   for (int row = 0; row < model()->rowCount(); ++row) {
-    auto index = model()->index(row, 0);
+    const auto index = model()->index(row, 0);
+    if (!index.isValid()) continue;
+
     model()->setData(index, Qt::Unchecked, Qt::CheckStateRole);
   }
+
+  bulk_checking_ = false;
+  emit SignalKeyChecked();
 }
 
 [[nodiscard]] auto KeyTable::GetRowSelected() const -> int {

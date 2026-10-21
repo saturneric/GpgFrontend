@@ -58,6 +58,12 @@ struct KeyTable : public QTableView {
           [](const GpgAbstractKey*) -> bool { return true; });
 
   /**
+   * @brief Apply the table's view settings.
+   *
+   */
+  void InitTableStyle();
+
+  /**
    * @brief
    *
    * @param model
@@ -184,6 +190,7 @@ struct KeyTable : public QTableView {
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableProxyModel proxy_model_;
   GpgKeyTableColumn column_filter_;
+  bool bulk_checking_ = false;
 };
 
 }  // namespace GpgFrontend::UI
