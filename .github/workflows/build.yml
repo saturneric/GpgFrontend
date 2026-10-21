@@ -23,23 +23,22 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-name: Build
+name: Build 2.1 (Qt6)
 
+# CI for the legacy 2.1.x series only. main (2.2.x) has its own workflows.
 on:
   push:
     branches:
-      - develop
-      - main
-      - release/*
+      - release/2.1
+    tags:
+      - "v2.1.*"
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
 
   pull_request:
     branches:
-      - develop
-      - main
-      - release/*
+      - release/2.1
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
@@ -107,13 +106,9 @@ jobs:
             BUILD_MODE="pr"
             BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
 
-          elif [[ "${GITHUB_REF_NAME}" == "main" || "${GITHUB_REF_NAME}" == release/* ]]; then
+          elif [[ "${GITHUB_REF_NAME}" == release/* || "${GITHUB_REF_TYPE}" == "tag" ]]; then
             BUILD_MODE="release"
             BUILD_TYPE_EFFECTIVE="Release"
-
-          elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
-            BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
 
           else
             BUILD_MODE="nightly"
@@ -134,7 +129,7 @@ jobs:
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.os }}
+          key: 2.1-${{ github.job }}-${{ matrix.os }}
 
       - name: Install Dependence (Linux)
         run: |
@@ -376,6 +371,26 @@ jobs:
             --verbose
         if: runner.os == 'Linux'
 
+      - name: Run Unit Tests (Linux)
+        # The suite reports failures in its log but always exits 0, so the
+        # step surfaces the gtest summary instead of gating on the exit code.
+        run: |
+          sudo apt-get -y install gnupg
+          BIN=$(find ${{github.workspace}}/build/artifacts -type f -name gpgfrontend -perm -u+x | head -n 1)
+          if [ -z "$BIN" ]; then
+            echo "gpgfrontend binary not found" >&2
+            exit 1
+          fi
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$(dirname "$BIN")/../lib:$LD_LIBRARY_PATH
+          QT_QPA_PLATFORM=offscreen timeout 1200 "$BIN" --test 2>&1 | tee ${{github.workspace}}/build/unit-test.log || true
+          {
+            echo "### Unit tests (${{ matrix.os }})"
+            echo '```'
+            grep -E '^\[  (PASSED|FAILED)  \]' ${{github.workspace}}/build/unit-test.log || echo "no gtest summary found"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+        if: runner.os == 'Linux'
+
       - name: Package App Image (Linux)
         run: |
           QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
@@ -562,79 +577,20 @@ jobs:
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-2.1-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-2.1-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-2.1-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'Windows'
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    # Only publish nightly release from develop branch.
-    # Stable releases are packaged manually/offline.
-    if: github.event_name != 'pull_request' && github.ref_name == 'develop'
-    environment: nightly-release-approval
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          lfs: "false"
-          submodules: recursive
-
-      - name: Re-create nightly tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cd ${{github.workspace}}
-          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
-          git tag -f nightly $GITHUB_SHA
-          git push origin nightly --force
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-          pattern: gpgfrontend-*
-          merge-multiple: true
-
-      - name: Ignore Non-Artifact Files
-        run: |
-          # Remove MAS specific .pkg files if they exist, since they are not
-          # needed for the release and we only want to keep the main artifacts
-          # (dmg, AppImage, zip).
-          find artifacts/ -type f -name '*.pkg' -delete
-
-      - name: Generate SHA256 checksums
-        run: |
-          sha256sum artifacts/* > artifacts/SHA256SUMS.txt
-          cat artifacts/SHA256SUMS.txt
-
-      - name: List files
-        run: ls -rl artifacts/
-
-      - name: Generate Nightly Release Title
-        id: release_title
-        run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-      - name: Update Nightly Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: nightly
-          name: ${{ steps.release_title.outputs.title }}
-          draft: false
-          prerelease: true
-          body_path: ${{ github.workspace }}/.github/NIGHTLY_RELEASE.md
-          files: |
-            artifacts/*

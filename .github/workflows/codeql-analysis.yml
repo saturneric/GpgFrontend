@@ -29,6 +29,7 @@ on:
   push:
     branches:
       - main
+      - release/2.1
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
@@ -36,6 +37,7 @@ on:
   pull_request:
     branches:
       - main
+      - release/2.1
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
