@@ -259,9 +259,12 @@ void InfoBoardWidget::UpdateActionButtons() {
   ui_->clearToolButton->setEnabled(has_text);
 
   // The magnifier inspects the rendered report, so it is only meaningful while
-  // a generated document is on screen and the Status view (index 0) is active.
+  // a generated document is posted and the Status view (index 0) is active.
+  // isHidden() rather than isVisible(): a result posted while the panel is
+  // collapsed must still enable the button, and expanding the panel later does
+  // not re-run this.
   const bool on_status_view = ui_->stackedWidget->currentIndex() == 0;
-  const bool has_document = doc_scroll_ != nullptr && doc_scroll_->isVisible();
+  const bool has_document = doc_scroll_ != nullptr && !doc_scroll_->isHidden();
   ui_->magnifierToolButton->setEnabled(has_document && on_status_view);
 }
 
@@ -591,10 +594,11 @@ void InfoBoardWidget::SlotReset() {
   ui_->infoBoard->setPlaceholderText(tr("Operation status will appear here."));
   ApplyStatusStyle(kINFO_ERROR_NEUTRAL);
   ResetOptionActionsMenu();
-  UpdateActionButtons();
 
   reset_document_view();
   clear_document_fields();
+  // After the document view is gone, or the magnifier stays enabled.
+  UpdateActionButtons();
 }
 
 void InfoBoardWidget::AddBarAction(QAction* action) {

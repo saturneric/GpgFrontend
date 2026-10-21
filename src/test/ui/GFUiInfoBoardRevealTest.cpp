@@ -38,8 +38,10 @@
 #include <QCoreApplication>
 #include <QDockWidget>
 #include <QMainWindow>
+#include <QStackedWidget>
 #include <QTabWidget>
 #include <QTextBrowser>
+#include <QToolButton>
 
 #include "GpgFrontendTest.h"
 #include "ui/function/InfoBoardCardConverter.h"
@@ -180,6 +182,32 @@ TEST(GFUiInfoBoardRevealTest, CardsAloneAreAResult) {
 
     EXPECT_FALSE(f.dock->isHidden());
     EXPECT_EQ(f.posted, 1);
+  });
+}
+
+// The panel may be collapsed when a result arrives, and expanding it later
+// does not refresh the tool strip, so the magnifier must not depend on the
+// document being on screen. The fixture's window is never shown.
+TEST(GFUiInfoBoardRevealTest, MagnifierEnabledForDocumentPostedOffScreen) {
+  OnGuiThread([] {
+    RevealFixture f;
+    // Status view, without persisting the choice to the settings.
+    f.board->findChild<QStackedWidget*>(QStringLiteral("stackedWidget"))
+        ->setCurrentIndex(0);
+    auto* magnifier =
+        f.board->findChild<QToolButton*>(QStringLiteral("magnifierToolButton"));
+    ASSERT_NE(magnifier, nullptr);
+    EXPECT_FALSE(magnifier->isEnabled());
+
+    InfoBoardCard card;
+    card.title = QStringLiteral("Signature");
+    card.fields.append({QStringLiteral("Status"), QStringLiteral("Good")});
+    f.board->SetInfoBoardCards(QStringLiteral("verified"), kINFO_ERROR_OK,
+                               {card});
+    EXPECT_TRUE(magnifier->isEnabled());
+
+    f.board->SlotReset();
+    EXPECT_FALSE(magnifier->isEnabled());
   });
 }
 
