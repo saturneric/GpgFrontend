@@ -130,9 +130,9 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadWithoutKeyFails) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  // The engine reports "no secret key matches any recipient" as ErrorNoKey,
-  // which maps to GPG_ERR_NO_KEY (see ResultHandler.cpp).
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_KEY);
+  // No secret key matches any recipient: GPG_ERR_NO_SECKEY, as GnuPG says
+  // and as signing without a secret key says.
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
 }
 
 // --- Multi-recipient PKESK --------------------------------------------------
@@ -216,9 +216,10 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedIsRejected) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  // The engine must refuse a non-integrity-protected packet outright, as
-  // invalid input, and say why.
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_INV_DATA);
+  // The engine must refuse a non-integrity-protected packet outright and say
+  // why. The packet is well-formed, so it is a refusal by policy (not
+  // supported), not invalid input and not a failed integrity check.
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NOT_SUPPORTED);
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
   const auto detail =
       ExtractParams<GpgDecryptResult>(dobj, 0).ErrorDetail().toLower();

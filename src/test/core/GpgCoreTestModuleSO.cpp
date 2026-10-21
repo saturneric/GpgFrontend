@@ -210,7 +210,10 @@ TEST_F(GFCoreTest, AFileThatGrewHasAnotherIdentity) {
 // both reset a choice the user had made the moment the module was rebuilt --
 // which an upgrade always does.
 TEST_F(GFCoreTest, ASettingsReconcileKeepsTheUsersChoiceAcrossARebuild) {
-  const auto id = QStringLiteral("com.example.reconcile.integrated");
+  // Fresh per run: the settings persist in the profile, and a second run
+  // there would otherwise start from the first run's choice.
+  const auto id = QStringLiteral("com.example.reconcile.integrated.%1")
+                      .arg(GenerateRandomString(8).toLower());
 
   const auto first = Module::ReconcileModuleSettings(id, "hash-1", true);
   EXPECT_TRUE(first.auto_activate) << "integrated modules start on";

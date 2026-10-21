@@ -29,6 +29,8 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
+#include "core/model/GpgKeyGenerateInfo.h"
+#include "ui/function/KeyGenerateHelper.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/main_window/KeyActionState.h"
 
@@ -320,6 +322,24 @@ TEST(MainWindowChromeStyleTest, NamesOnlyPaletteRolesSoDarkModeSurvives) {
   // stand out against every other surface once the user goes dark.
   EXPECT_FALSE(qss.contains(QChar('#')))
       << "literal colour in the shared chrome sheet: " << qss.toStdString();
+}
+
+// A saved key-generation profile names its algorithms by (id, type). After a
+// type label is corrected (secp256k1: "EdDSA" -> "ECDSA") the profile must
+// still find the algorithm; an id shared by several types stays ambiguous.
+TEST(KeyGenerateProfileTest, ARelabelledAlgorithmStillMatchesItsId) {
+  auto [found, algo] = UI::GetAlgoByIdType("secp256k1", "EdDSA",
+                                           KeyGenerateInfo::kPrimaryKeyAlgos);
+  ASSERT_TRUE(found);
+  EXPECT_EQ(algo.Type(), "ECDSA");
+
+  auto [exact, nist] =
+      UI::GetAlgoByIdType("nistp256", "ECDH", KeyGenerateInfo::kSubKeyAlgos);
+  ASSERT_TRUE(exact);
+  EXPECT_EQ(nist.Type(), "ECDH");
+  auto [ambiguous, none] = UI::GetAlgoByIdType("nistp256", "Nonsense",
+                                               KeyGenerateInfo::kSubKeyAlgos);
+  EXPECT_FALSE(ambiguous);
 }
 
 }  // namespace GpgFrontend::Test

@@ -33,6 +33,7 @@
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
+#include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 
@@ -86,6 +87,54 @@ TEST_F(GpgCoreTest, IsPostQuantumAlgoTest) {
   for (const auto& algo : KeyGenerateInfo::kHybridSubKeyAlgos) {
     ASSERT_TRUE(algo.IsPostQuantum()) << algo.Id().toStdString();
   }
+}
+
+// An existing key's algorithm resolves to its KeyAlgo, hybrids by their
+// joined id, so what the algorithm IS comes from the KeyAlgo metadata.
+TEST(KeyAlgoLookupTest, AnAlgoIdResolvesToItsKeyAlgo) {
+  for (const auto* id : {"ky768_cv25519", "kyber1024_x448", "mldsa65_ed25519",
+                         "mldsa87_ed448", "slhdsashake128s"}) {
+    const auto algo = KeyGenerateInfo::SearchKeyAlgoByAlgoId(id);
+    ASSERT_TRUE(algo.has_value()) << id;
+    EXPECT_TRUE(algo->IsPostQuantum()) << id;
+  }
+  for (const auto* id : {"cv25519", "x448", "rsa3072", "nistp256",
+                         "brainpoolp256r1", "ed25519"}) {
+    const auto algo = KeyGenerateInfo::SearchKeyAlgoByAlgoId(id);
+    ASSERT_TRUE(algo.has_value()) << id;
+    EXPECT_FALSE(algo->IsPostQuantum()) << id;
+  }
+  EXPECT_FALSE(KeyGenerateInfo::SearchKeyAlgoByAlgoId("").has_value());
+  EXPECT_TRUE(KeyGenerateInfo::SearchKeyAlgoByAlgoId("ky768").has_value());
+  EXPECT_FALSE(
+      KeyGenerateInfo::SearchKeyAlgoByAlgoId("ky768_unknown").has_value());
+}
+
+// GnuPG names some algorithms differently from the KeyAlgo ids.
+TEST(KeyAlgoLookupTest, GnuPGNamesBecomeKeyAlgoIds) {
+  EXPECT_EQ(GpgSubKey::AlgoIdFromGnuPGName("ky768_cv25519"), "ky768_cv25519");
+  EXPECT_EQ(GpgSubKey::AlgoIdFromGnuPGName("ky1024_cv448"), "kyber1024_x448");
+  EXPECT_EQ(GpgSubKey::AlgoIdFromGnuPGName("cv448"), "x448");
+  EXPECT_EQ(GpgSubKey::AlgoIdFromGnuPGName("brainpoolP256r1"),
+            "brainpoolp256r1");
+  EXPECT_EQ(GpgSubKey::AlgoIdFromGnuPGName("rsa3072"), "rsa3072");
+}
+
+// Mixing is allowed but warned about: the message is only as strong against
+// a quantum attacker as its weakest recipient. A recipient that may be
+// encrypted to classically counts as classical; the engine picks the subkey.
+TEST(KeyAlgoLookupTest, MixingIsReportedOnlyForPostQuantumBesideClassical) {
+  const QContainer<bool> pq{true};
+  const QContainer<bool> classical{false};
+  const QContainer<bool> both{false, true};
+
+  EXPECT_TRUE(MixesPostQuantumAndClassical({pq, classical}));
+  EXPECT_TRUE(MixesPostQuantumAndClassical({pq, both}));
+  EXPECT_FALSE(MixesPostQuantumAndClassical({classical, both}));
+  EXPECT_FALSE(MixesPostQuantumAndClassical({classical, classical}));
+  EXPECT_FALSE(MixesPostQuantumAndClassical({pq}));
+  // A recipient with no usable encryption key says nothing either way.
+  EXPECT_FALSE(MixesPostQuantumAndClassical({pq, {}}));
 }
 
 TEST_F(GpgCoreTest, IsEccAlgoTest) {

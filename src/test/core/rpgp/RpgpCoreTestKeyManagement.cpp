@@ -33,7 +33,9 @@
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/rpgp/KeyManagement.h"
+#include "core/function/rpgp/KeyStorage.h"
 #include "core/function/rpgp/PasswordFetcher.h"
+#include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -99,6 +101,42 @@ bb01vuifu3YZOZYHyprI6yhMDRtYvHMawPbvE6q0Mn9yfcTpVc4t8Qc=
 
 namespace GpgFrontend::Test {
 
+// A key edit is computed from the blocks it read. If another operation saved
+// the key in between, writing the edit would silently undo that change; the
+// replace must refuse instead and leave the newer key in place.
+TEST_F(RpgpCoreTest, CoreReplaceRefusesAKeyChangedSinceItWasReadTest) {
+  constexpr auto kFpr = "3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497";
+  auto info =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_TRUE(info != nullptr);
+
+  auto key_db =
+      OpenPGPContext::GetInstance(kRpgpChannelForUnitTest).KeyDatabase();
+  ASSERT_TRUE(key_db != nullptr);
+  const auto before = key_db->GetKeyBlocks(kFpr);
+  ASSERT_TRUE(before.has_value());
+  ASSERT_FALSE(before->secret_key.Empty());
+
+  // Another operation stores the public-only form first.
+  ASSERT_TRUE(ReplaceKeyInDatabaseRpgp(kRpgpChannelForUnitTest,
+                                       before->public_key, *before));
+  const auto changed = key_db->GetKeyBlocks(kFpr);
+  ASSERT_TRUE(changed.has_value());
+  ASSERT_TRUE(changed->secret_key.Empty());
+
+  // An edit that read the key before that change must not overwrite it.
+  EXPECT_FALSE(ReplaceKeyInDatabaseRpgp(kRpgpChannelForUnitTest,
+                                        before->secret_key, *before));
+  const auto after = key_db->GetKeyBlocks(kFpr);
+  ASSERT_TRUE(after.has_value());
+  EXPECT_TRUE(after->secret_key.Empty());
+
+  // Computed from what is stored now, it goes through.
+  EXPECT_TRUE(ReplaceKeyInDatabaseRpgp(kRpgpChannelForUnitTest,
+                                       before->secret_key, *after));
+}
+
 TEST_F(RpgpCoreTest, CoreDeleteSubkeyTest) {
   auto info =
       KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
@@ -155,6 +193,40 @@ TEST_F(RpgpCoreTest, CoreRevokeSubkeyTest) {
   s_keys = key->SubKeys();
   ASSERT_GE(s_keys.size(), 2);
   ASSERT_TRUE(s_keys[1].IsRevoked());
+}
+
+// With no recipient left that may be encrypted to, the failure names each
+// refused recipient and why, instead of reading as bad input.
+TEST_F(RpgpCoreTest, CoreEncryptToNoUsableRecipientNamesEachOneTest) {
+  constexpr auto kFpr = "3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497";
+  auto info =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_TRUE(info != nullptr);
+
+  auto key =
+      GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).GetKeyPtr(kFpr);
+  ASSERT_TRUE(key != nullptr);
+  const auto s_keys = key->SubKeys();
+  for (int i = 1; i < static_cast<int>(s_keys.size()); ++i) {
+    if (!s_keys[i].IsHasEncrCap()) continue;
+    ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                    .RevokeSubkey(key, i, 0, QString("retired")));
+  }
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).GetKeyPtr(kFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({key}, GFBuffer(QString("hello")), true);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_PUBKEY);
+  ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
+  auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
+  const auto invalid = result.InvalidRecipients();
+  ASSERT_EQ(invalid.size(), 1);
+  EXPECT_EQ(std::get<0>(invalid.front()).toUpper(), kFpr);
+  EXPECT_NE(CheckGpgError(std::get<1>(invalid.front())), GPG_ERR_NO_ERROR);
 }
 
 namespace {
@@ -383,6 +455,27 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRejectsEmptyFprTest) {
 }
 
 namespace {
+// secp256k1 is an ECDSA curve (RFC 9580 §9.2 lists the ECC curves by the
+// algorithms they serve); labelling it EdDSA misdescribes the key.
+TEST_F(RpgpCoreTest, Secp256k1IsOfferedAsEcdsa) {
+  auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("secp256k1");
+  ASSERT_TRUE(found);
+  EXPECT_EQ(algo.Type(), "ECDSA");
+}
+
+// GF generation policy: RFC 9580 §9.2 does not register secp256k1, so rPGP
+// never offers it for a new key or subkey (GnuPG still does).
+TEST_F(RpgpCoreTest, RpgpOffersNoSecp256k1ForGeneration) {
+  for (const auto& algo :
+       KeyGenerateInfo::GetSupportedKeyAlgo(kRpgpChannelForUnitTest)) {
+    EXPECT_NE(algo.Id(), "secp256k1");
+  }
+  for (const auto& algo :
+       KeyGenerateInfo::GetSupportedSubkeyAlgo(kRpgpChannelForUnitTest)) {
+    EXPECT_NE(algo.Id(), "secp256k1");
+  }
+}
+
 // RFC 9580 §12.4: "MUST NOT generate RSA keys of a size less than 3072 bits."
 // The rPGP channel must not offer smaller RSA sizes for generation.
 TEST_F(RpgpCoreTest, RpgpOffersNoRsaBelow3072ForGeneration) {

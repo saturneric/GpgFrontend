@@ -27,10 +27,14 @@
  */
 
 #include "RpgpCoreTest.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyGenerationOperation.h"
+#include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
@@ -214,6 +218,179 @@ TEST_F(RpgpCoreTest, CoreFileEncryptSignDecryptVerifyTest) {
   const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypt_output_file);
   ASSERT_TRUE(read_success);
   ASSERT_EQ(buffer, out_buffer);
+}
+
+// A cleartext-signed file ("BEGIN PGP SIGNED MESSAGE") carries its signature,
+// so verifying it as a file without a separate signature must take the
+// cleartext path, not the inline one that cannot parse it.
+TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
+  auto sign_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                      .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(sign_key != nullptr);
+
+  for (const auto mode : {GPGME_SIG_MODE_CLEAR, GPGME_SIG_MODE_NORMAL}) {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .SignSync({sign_key}, GFBuffer(QString("Hello RPGP Clear File!")),
+                      mode, true);
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    auto signed_file =
+        CreateTempFileAndWriteData(ExtractParams<GFBuffer>(data_object, 1));
+
+    auto [err_0, data_object_0] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .VerifyFileSync(signed_file, QString());
+
+    ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR) << mode;
+    auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
+    ASSERT_EQ(verify_result.GetSignature().size(), 1) << mode;
+    EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
+              "575572EF0DF799AB884EC6C114C6B0B1596A2755");
+    EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
+              GPG_ERR_NO_ERROR);
+    QFile::remove(signed_file);
+  }
+}
+
+namespace {
+
+// The fixture key's default signing subkey, the one the engine picks when the
+// user pins none.
+constexpr auto kDefaultSigningSubkeyFpr =
+    "575572EF0DF799AB884EC6C114C6B0B1596A2755";
+
+// Give the fixture key a second signing subkey, then return every signing
+// subkey of it (primary excluded), each pinned the way the GUI pins it:
+// "<fpr>!". Whichever one the engine would pick by itself, the other one
+// shows whether a pin is honored.
+auto PinEachSigningSubkey()
+    -> QContainer<std::pair<GpgAbstractKeyPtr, QString>> {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  if (key == nullptr) return {};
+
+  auto params = QSharedPointer<KeyGenerateInfo>::create();
+  params->SetIsSubKey(true);
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("ed25519");
+  if (!found) return {};
+  params->SetAlgo(algo);
+  params->SetAllowSign(true);
+  params->SetAllowEncr(false);
+  params->SetNonExpired(true);
+  params->SetNonPassPhrase(true);
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateSubkeySync(key, params);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return {};
+
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+            .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  if (key == nullptr) return {};
+
+  QContainer<std::pair<GpgAbstractKeyPtr, QString>> pinned;
+  for (const auto& s : key->SubKeys()) {
+    if (s.IsHasCertCap() || !s.IsHasSignCap() || s.IsRevoked()) continue;
+    pinned.push_back(
+        {AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+             .GetKey(s.Fingerprint() + "!"),
+         s.Fingerprint()});
+  }
+  return pinned;
+}
+
+}  // namespace
+
+// A signing subkey the user picked must be the one that signs a file, not the
+// key's default signing subkey.
+TEST_F(RpgpCoreTest, CoreFileSignHonorsPinnedSigningSubkeyTest) {
+  const auto pinned_list = PinEachSigningSubkey();
+  ASSERT_GE(pinned_list.size(), 2);
+
+  for (const auto& [pinned, pinned_fpr] : pinned_list) {
+    ASSERT_TRUE(pinned != nullptr) << pinned_fpr.toStdString();
+    auto input_file = CreateTempFileAndWriteData("Hello RPGP Pinned Sign!");
+    auto output_file = GetTempFilePath();
+
+    auto [err, data_object] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .SignFileSync({pinned}, input_file, true, output_file);
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+    auto [err_0, data_object_0] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .VerifyFileSync(input_file, output_file);
+    ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+    auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
+    ASSERT_EQ(verify_result.GetSignature().size(), 1);
+    EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(), pinned_fpr);
+  }
+}
+
+// The same for encrypt+sign, of a file and of a message.
+TEST_F(RpgpCoreTest, CoreEncryptSignHonorsPinnedSigningSubkeyTest) {
+  const auto pinned_list = PinEachSigningSubkey();
+  ASSERT_GE(pinned_list.size(), 2);
+  auto encrypt_key =
+      GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+          .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(encrypt_key != nullptr);
+
+  for (const auto& [pinned, pinned_fpr] : pinned_list) {
+    ASSERT_TRUE(pinned != nullptr) << pinned_fpr.toStdString();
+    auto input_file = CreateTempFileAndWriteData("Hello RPGP Pinned EncSign!");
+    auto output_file = GetTempFilePath();
+    auto [err, data_object] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .EncryptSignFileSync({encrypt_key}, {pinned}, input_file, true,
+                                 output_file);
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+    auto decrypt_output_file = GetTempFilePath();
+    auto [err_0, data_object_0] =
+        FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .DecryptVerifyFileSync(output_file, decrypt_output_file);
+    ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+    auto file_verify = ExtractParams<GpgVerifyResult>(data_object_0, 1);
+    ASSERT_EQ(file_verify.GetSignature().size(), 1);
+    EXPECT_EQ(file_verify.GetSignature().at(0).GetFingerprint(), pinned_fpr);
+
+    auto [err_1, data_object_1] =
+        MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .EncryptSignSync({encrypt_key}, {pinned},
+                             GFBuffer(QString("Hello RPGP Pinned!")), true);
+    ASSERT_EQ(CheckGpgError(err_1), GPG_ERR_NO_ERROR);
+    auto [err_2, data_object_2] =
+        MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .DecryptVerifySync(ExtractParams<GFBuffer>(data_object_1, 2));
+    ASSERT_EQ(CheckGpgError(err_2), GPG_ERR_NO_ERROR);
+    auto msg_verify = ExtractParams<GpgVerifyResult>(data_object_2, 1);
+    ASSERT_EQ(msg_verify.GetSignature().size(), 1);
+    EXPECT_EQ(msg_verify.GetSignature().at(0).GetFingerprint(), pinned_fpr);
+  }
+}
+
+// The "!" pin is matched whatever the case of the key id or fingerprint, and
+// marks exactly the subkey it names.
+TEST_F(RpgpCoreTest, CorePinSubkeyIsCaseInsensitiveTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(key != nullptr);
+
+  for (const auto& id :
+       {QString(kDefaultSigningSubkeyFpr).toLower(),
+        QString(kDefaultSigningSubkeyFpr).right(16).toLower()}) {
+    auto pinned = qSharedPointerDynamicCast<GpgKey>(
+        AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+            .GetKey(id + "!"));
+    ASSERT_TRUE(pinned != nullptr) << id.toStdString();
+    QStringList marked;
+    for (const auto& s : pinned->SubKeys()) {
+      if (s.IsMarked()) marked << s.Fingerprint();
+    }
+    EXPECT_EQ(marked, QStringList{kDefaultSigningSubkeyFpr})
+        << id.toStdString();
+  }
 }
 
 namespace {

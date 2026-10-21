@@ -30,6 +30,7 @@
 
 #include "RpgpCoreTest.h"
 #include "core/GFCoreRust.h"
+#include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -37,10 +38,12 @@
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/function/rpgp/EncryptSignAttribution.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -273,10 +276,12 @@ TEST_F(RpgpCoreTest, CoreEncryptRejectsPinnedRevokedSubkeyTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({pinned}, GFBuffer(QString("hi")), true);
 
-  // The engine refuses a set with no usable recipient as an input error
-  // ("no usable recipient to encrypt to") and encrypts to nobody.
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_INV_DATA);
+  // No usable recipient: an unusable key, named with its reason, not bad
+  // input. Nothing is encrypted.
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_PUBKEY);
   ASSERT_TRUE((dobj->Check<GpgEncryptResult, GFBuffer>()));
+  EXPECT_EQ(ExtractParams<GpgEncryptResult>(dobj, 0).InvalidRecipients().size(),
+            1);
   auto r = ExtractParams<GpgEncryptResult>(dobj, 0);
   EXPECT_TRUE(r.Recipients().empty());
   EXPECT_TRUE(ExtractParams<GFBuffer>(dobj, 1).Empty());
@@ -877,6 +882,42 @@ auto GenerateThrowawayRpgpKey(const QString& email) -> GpgKeyPtr {
       .GetKeyPtr(result.GetFingerprint());
 }
 
+// A v6 key whose encryption subkey is ML-KEM-768+X25519 (RFC 9980).
+auto GeneratePostQuantumRpgpKey(const QString& email) -> GpgKeyPtr {
+  auto p_params = QSharedPointer<KeyGenerateInfo>::create();
+  p_params->SetName("post-quantum");
+  p_params->SetEmail(email);
+  auto [p_found, p_algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
+  if (!p_found) return nullptr;
+  p_params->SetAlgo(p_algo);
+  p_params->SetNonExpired(true);
+  p_params->SetNonPassPhrase(true);
+  p_params->SetKeyVersion(6);
+
+  auto s_params = QSharedPointer<KeyGenerateInfo>::create();
+  s_params->SetIsSubKey(true);
+  for (const auto& algo : KeyGenerateInfo::kHybridSubKeyAlgos) {
+    if (algo.Id() != "ky768") continue;
+    s_params->SetAlgo(algo);
+    for (const auto& sub : algo.SubAlgos(kRpgpChannelForUnitTest)) {
+      if (sub.Id() == "cv25519") s_params->SetSubAlgo(sub);
+    }
+  }
+  if (s_params->GetAlgo().Id() != "ky768") return nullptr;
+  s_params->SetNonExpired(true);
+  s_params->SetNonPassPhrase(true);
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateKeyWithSubkeySync(p_params, s_params);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  return GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+      .GetKeyPtr(result.GetFingerprint());
+}
+
 auto MakeRpgpSignature(GFSignatureStatus status) -> GFSignature {
   return GFSignature{
       .issuer_fpr = kFixtureFpr,
@@ -907,6 +948,27 @@ TEST_F(RpgpCoreTest, CoreEncryptResultAnalyseShowsRpgpInvalidRecipientsTest) {
   EXPECT_TRUE(analyse.GetOpInfo().description.contains(
       "Some recipients could not be added"))
       << analyse.GetOpInfo().description.toStdString();
+}
+
+// RFC 9580 §9.3 / §12.2: a message decrypted with a deprecated cipher, or one
+// the decrypting key does not prefer, must not read as a clean success.
+TEST_F(RpgpCoreTest, CoreDecryptResultAnalyseShowsCipherWarningTest) {
+  const QString warning =
+      "the message is encrypted with CAST5, a deprecated cipher whose "
+      "confidentiality is suspect (RFC 9580 §9.3)";
+  GFDecryptResult gf_result;
+  gf_result.symkey_algo = "CAST5.CFB";
+  gf_result.cipher_warning = warning;
+  // A password-only message: no recipient (and so no missing key) lowers the
+  // status by itself.
+
+  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+                                  GpgDecryptResult(gf_result)};
+  analyse.Analyse();
+
+  EXPECT_EQ(analyse.GetStatus(), 0) << analyse.GetResultReport().toStdString();
+  EXPECT_TRUE(analyse.GetResultReport().contains(warning))
+      << analyse.GetResultReport().toStdString();
 }
 
 // Encrypting to one good recipient and one whose pinned subkey is revoked must
@@ -985,6 +1047,56 @@ TEST_F(RpgpCoreTest, CoreVerifyRpgpKeyExpiredAtSigningIsRejectedTest) {
       << analyse.GetOpInfo().description.toStdString();
 }
 
+// Whether a recipient is post-quantum comes from its subkey's KeyAlgo
+// metadata, read off a real rPGP key, not from the algorithm's display name.
+TEST_F(RpgpCoreTest, CoreRecipientMixIsReadFromKeyAlgoMetadataTest) {
+  auto pq = GeneratePostQuantumRpgpKey("pq@gpgfrontend.bktus.com");
+  ASSERT_TRUE(pq != nullptr);
+  auto classical = GenerateThrowawayRpgpKey("classic@gpgfrontend.bktus.com");
+  ASSERT_TRUE(classical != nullptr);
+
+  bool found_pq_subkey = false;
+  for (const auto& s_key : pq->SubKeys()) {
+    if (!s_key.IsHasEncrCap()) continue;
+    EXPECT_EQ(s_key.AlgoId(), "ky768_cv25519");
+    const auto algo = KeyGenerateInfo::SearchKeyAlgoByAlgoId(s_key.AlgoId());
+    ASSERT_TRUE(algo.has_value());
+    EXPECT_TRUE(algo->IsPostQuantum());
+    found_pq_subkey = true;
+  }
+  EXPECT_TRUE(found_pq_subkey);
+
+  EXPECT_TRUE(RecipientsMixPostQuantumAndClassical({pq, classical}));
+  EXPECT_FALSE(RecipientsMixPostQuantumAndClassical({pq}));
+  EXPECT_FALSE(RecipientsMixPostQuantumAndClassical({classical}));
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+      .DeleteKeys({pq, classical});
+}
+
+// Encrypt+sign gets one engine status for both halves. An unusable key is the
+// recipients' fault only when the engine named refused recipients; otherwise
+// the signer may not sign, and neither half may blame the recipients.
+TEST_F(RpgpCoreTest, CoreEncryptSignNamesTheSideThatMayNotBeUsedTest) {
+  GFEncryptResult no_recipient_refused;
+  GpgError enc_err = GPG_ERR_UNUSABLE_PUBKEY;
+  GpgError sign_err = GPG_ERR_UNUSABLE_SECKEY;
+  AttributeUnusableKey(true, no_recipient_refused, enc_err, sign_err);
+  EXPECT_EQ(enc_err, GPG_ERR_UNUSABLE_SECKEY);
+  EXPECT_EQ(sign_err, GPG_ERR_UNUSABLE_SECKEY);
+
+  GFEncryptResult refused;
+  refused.invalid_recipients.push_back({"ABCD", GPG_ERR_CERT_REVOKED});
+  AttributeUnusableKey(true, refused, enc_err, sign_err);
+  EXPECT_EQ(enc_err, GPG_ERR_UNUSABLE_PUBKEY);
+  EXPECT_EQ(sign_err, GPG_ERR_UNUSABLE_PUBKEY);
+
+  // Any other status is left alone.
+  GpgError untouched = GPG_ERR_BAD_PASSPHRASE;
+  AttributeUnusableKey(false, refused, untouched, sign_err);
+  EXPECT_EQ(untouched, GPG_ERR_BAD_PASSPHRASE);
+}
+
 // A signature by a key not authorized to sign is invalid for that reason, not
 // because the data was tampered with.
 TEST_F(RpgpCoreTest, CoreVerifyKeyNotAuthorizedSummaryNamesCauseTest) {
@@ -998,6 +1110,10 @@ TEST_F(RpgpCoreTest, CoreVerifyKeyNotAuthorizedSummaryNamesCauseTest) {
 
   const auto description = analyse.GetOpInfo().description;
   EXPECT_LT(analyse.GetStatus(), 0);
+  // Modules see only the validity value: it must not read as a bad signature.
+  ASSERT_EQ(analyse.GetOpInfo().signatures.size(), 1);
+  EXPECT_EQ(analyse.GetOpInfo().signatures.front().validity,
+            GpgSigValidity::kKEY_NOT_AUTHORIZED);
   EXPECT_FALSE(description.contains("tampered")) << description.toStdString();
   EXPECT_TRUE(description.contains("not authorized"))
       << description.toStdString();
@@ -1082,7 +1198,7 @@ TEST_F(RpgpCoreTest, CoreFileDecryptWithoutSecretKeyNamesRecipientsTest) {
   auto [err_0, data_object_0] =
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptFileSync(enc_file, GetTempFilePath());
-  EXPECT_EQ(CheckGpgError(err_0), GPG_ERR_NO_KEY);
+  EXPECT_EQ(CheckGpgError(err_0), GPG_ERR_NO_SECKEY);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   EXPECT_FALSE(decr_result.Recipients().empty());
@@ -1124,6 +1240,95 @@ TEST_F(RpgpCoreTest, CoreSignResultCarriesSignatureModeTest) {
   analyse.Analyse();
   ASSERT_FALSE(analyse.GetOpInfo().newSignatures.isEmpty());
   EXPECT_EQ(analyse.GetOpInfo().newSignatures.front().sigMode, "Detach");
+}
+
+// A cancel belongs to the batch it was requested for. Once that batch is over,
+// later work on the same channel (key edits, module calls) whose wait carries
+// no cancel channel of its own must not be skipped as cancelled.
+TEST_F(RpgpCoreTest, CancelScopeEndsWithItsBatchTest) {
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+  {
+    const GpgOperationCancelScope scope(kRpgpChannelForUnitTest);
+    RequestCancelGpgOperation(kRpgpChannelForUnitTest);
+    ASSERT_TRUE(IsGpgOperationCancelRequested(kRpgpChannelForUnitTest));
+  }
+  EXPECT_FALSE(IsGpgOperationCancelRequested(kRpgpChannelForUnitTest));
+
+  // The engine's own per-channel flag is cleared too: a streaming operation
+  // after the batch runs to completion.
+  auto encrypt_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                         .GetPubkeyPtr(kFixtureFpr);
+  ASSERT_TRUE(encrypt_key != nullptr);
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({encrypt_key}, GFBuffer(QString("after cancel")), true);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  // A scope without a channel (a non-cancelable wait) leaves a pending cancel
+  // alone: it is not its own to clear.
+  RequestCancelGpgOperation(kRpgpChannelForUnitTest);
+  {
+    const GpgOperationCancelScope scope(-1);
+  }
+  EXPECT_TRUE(IsGpgOperationCancelRequested(kRpgpChannelForUnitTest));
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+}
+
+// The engine reports a wrong passphrase as ErrorBadPassphrase. ErrorNoKey for a
+// recipient whose secret key is in the database means that key could not be
+// used (here: a stored secret block the engine cannot parse), and must not be
+// shown as a wrong passphrase.
+TEST_F(RpgpCoreTest, CoreDecryptUnusableStoredSecretIsNotBadPassphraseTest) {
+  auto encrypt_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                         .GetPubkeyPtr(kFixtureFpr);
+  ASSERT_TRUE(encrypt_key != nullptr);
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({encrypt_key}, GFBuffer(QString("no key")), true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  auto cipher = ExtractParams<GFBuffer>(data_object, 1);
+
+  // Keep the metadata (which says the secret is present) but store a block
+  // that is no secret key at all.
+  auto key_db =
+      OpenPGPContext::GetInstance(kRpgpChannelForUnitTest).KeyDatabase();
+  ASSERT_TRUE(key_db != nullptr);
+  auto meta = key_db->GetKeyMetadata(kFixtureFpr);
+  auto blocks = key_db->GetKeyBlocks(kFixtureFpr);
+  ASSERT_TRUE(meta.has_value() && blocks.has_value());
+  ASSERT_TRUE(meta->has_secret);
+  blocks->secret_key = blocks->public_key;
+  ASSERT_TRUE(key_db->SaveKey(*meta, *blocks));
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(cipher);
+  EXPECT_NE(CheckGpgError(err_0), GPG_ERR_BAD_PASSPHRASE);
+  EXPECT_EQ(CheckGpgError(err_0), GPG_ERR_UNUSABLE_SECKEY);
+  auto result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
+  ASSERT_FALSE(result.Recipients().empty());
+  for (const auto& rec : result.Recipients()) {
+    EXPECT_NE(gpg_err_code(rec.status), GPG_ERR_BAD_PASSPHRASE)
+        << rec.keyid.toStdString();
+  }
+}
+
+// rPGP has no trust model, so a good rPGP signature is valid, but the summary
+// must not claim the signer is trusted.
+TEST_F(RpgpCoreTest, CoreVerifyRpgpValidSignatureDoesNotClaimTrustTest) {
+  GFVerifyResult gf_result{};
+  gf_result.signatures.push_back(MakeRpgpSignature(GFSignatureStatus::kVALID));
+
+  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+                                 GpgVerifyResult(gf_result)};
+  analyse.Analyse();
+
+  EXPECT_GT(analyse.GetStatus(), 0);
+  const auto description = analyse.GetOpInfo().description;
+  EXPECT_FALSE(description.contains("trusted")) << description.toStdString();
+  EXPECT_TRUE(description.contains("valid")) << description.toStdString();
+  EXPECT_FALSE(analyse.GetResultReport().contains("trusted"))
+      << analyse.GetResultReport().toStdString();
 }
 
 }  // namespace GpgFrontend::Test

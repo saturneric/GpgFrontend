@@ -33,6 +33,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
+#include "core/function/gpg/GpgCommandExecutor.h"
 #include "sdk/GFSDK.hpp"
 
 /**
@@ -95,6 +96,13 @@ TEST(SdkProcessTest, RunCommandsRunsEveryCommandInTheBatch) {
 
 TEST(SdkProcessTest, AnEmptyBatchIsRefused) {
   EXPECT_NE(gf::sdk::RunCommands(Ctx(), {}), 0);
+}
+
+// The executor waits for every task of a batch to end; a batch with no task
+// must return at once instead of waiting for an end that never comes.
+TEST(SdkProcessTest, AnEmptyExecutorBatchReturns) {
+  GpgCommandExecutor::ExecuteConcurrentlySync({});
+  SUCCEED();
 }
 
 }  // namespace GpgFrontend::Test

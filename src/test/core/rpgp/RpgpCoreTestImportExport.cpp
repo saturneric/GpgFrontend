@@ -29,6 +29,7 @@
 #include "RpgpCoreTest.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 
@@ -88,6 +89,81 @@ TEST_F(RpgpCoreTest, CoreImportKeyTest) {
 
   ASSERT_TRUE(info != nullptr);
   ASSERT_GE(info->imported, 0);
+}
+
+namespace {
+
+// The binary packets inside an ASCII-armored block, as `gpg --export` writes
+// them without --armor.
+auto DearmorForTest(const QByteArray& armored) -> QByteArray {
+  QByteArray body;
+  bool in_body = false;
+  for (const auto& raw : armored.split('\n')) {
+    const auto line = raw.trimmed();
+    if (line.startsWith("-----BEGIN PGP")) continue;
+    if (line.startsWith("-----END PGP")) break;
+    if (!in_body) {
+      if (line.isEmpty()) in_body = true;  // end of the armor headers
+      continue;
+    }
+    if (line.startsWith('=')) continue;  // CRC-24
+    body += line;
+  }
+  return QByteArray::fromBase64(body);
+}
+
+auto ExportFixtureKey(bool secret) -> QByteArray {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  if (key == nullptr) return {};
+  auto [err, gf_buffer] =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ExportKey(key, secret, true, false);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return {};
+  return gf_buffer.ConvertToQByteArray();
+}
+
+void DeleteFixtureKey() {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  if (key == nullptr) return;
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+}
+
+}  // namespace
+
+// GnuPG's default `--export` is binary, and "Import from file" offers *.gpg:
+// the engine re-armors binary key blocks before reading them.
+TEST_F(RpgpCoreTest, CoreImportBinaryKeyBlockTest) {
+  const auto armored = ExportFixtureKey(true);
+  ASSERT_FALSE(armored.isEmpty());
+  const auto binary = DearmorForTest(armored);
+  ASSERT_FALSE(binary.isEmpty());
+
+  DeleteFixtureKey();
+  auto info = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .ImportKey(GFBuffer(binary));
+  ASSERT_TRUE(info != nullptr);
+  EXPECT_EQ(info->imported, 1);
+}
+
+// Pasted, dropped or editor text may carry a non-ASCII armor header. The GUI
+// hands it to the engine as UTF-8; Latin-1 would turn it into bytes that are
+// not UTF-8, and the import would fail outright.
+TEST_F(RpgpCoreTest, CoreImportKeyWithNonLatin1ArmorHeaderTest) {
+  auto armored = QString::fromUtf8(ExportFixtureKey(false));
+  ASSERT_FALSE(armored.isEmpty());
+  const auto first_nl = armored.indexOf('\n');
+  ASSERT_GT(first_nl, 0);
+  armored.insert(first_nl + 1, QString::fromUtf8("Comment: \xe5\x85\xac\xe9"
+                                                 "\x92\xa5 \xc3\xbc\n"));
+
+  DeleteFixtureKey();
+  auto info = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .ImportKey(GFBuffer(armored.toUtf8()));
+  ASSERT_TRUE(info != nullptr);
+  EXPECT_EQ(info->imported, 1);
 }
 
 }  // namespace GpgFrontend::Test

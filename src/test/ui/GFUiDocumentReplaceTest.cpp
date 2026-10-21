@@ -89,4 +89,26 @@ TEST(DocumentReplaceTest, NullDocumentIsIgnored) {
   UI::ReplaceDocumentText(nullptr, QStringLiteral("x"), false);
 }
 
+// What a crypto operation reads. toPlainText() turns a no-break space into a
+// space and U+2028 into a newline; a signature over either is then a
+// signature over text the user never had.
+TEST(DocumentReplaceTest, DocumentTextKeepsEveryCharacterAsHeld) {
+  QTextDocument doc;
+  const auto text = QStringLiteral("price:\u00A0100\u2028next\nline\t \n");
+  QTextCursor(&doc).insertText(text);
+
+  EXPECT_EQ(UI::DocumentText(&doc), text);
+  EXPECT_EQ(UI::DocumentText(&doc).toUtf8(), QByteArray("price:\xC2\xA0"
+                                                        "100\xE2\x80\xA8"
+                                                        "next\nline\t \n"));
+  // The difference this exists for.
+  EXPECT_NE(doc.toPlainText(), text);
+}
+
+TEST(DocumentReplaceTest, DocumentTextOfNothingIsEmpty) {
+  QTextDocument doc;
+  EXPECT_TRUE(UI::DocumentText(&doc).isEmpty());
+  EXPECT_TRUE(UI::DocumentText(nullptr).isEmpty());
+}
+
 }  // namespace GpgFrontend::Test

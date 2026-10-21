@@ -41,10 +41,18 @@
 #include <gtest/gtest.h>
 
 #include <QApplication>
+#include <QCryptographicHash>
+#include <QFile>
+#include <QKeyEvent>
+#include <QLabel>
+#include <QPlainTextEdit>
+#include <QTabWidget>
+#include <QTemporaryDir>
 #include <QThread>
 
 #include "GpgFrontendTest.h"
 #include "ui/UIModuleManager.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::Test {
@@ -139,6 +147,134 @@ TEST(GFUiCurrentEditorContentTest, NoTextTabIsReportedAsAbsent) {
   });
 
   EXPECT_FALSE(bytes.has_value());
+
+  OnGuiThread([&] { delete edit; });
+}
+
+namespace {
+
+/// A plain-text tab in a fresh editor, built on the GUI thread.
+auto NewTextTab() -> UI::TextEdit* {
+  UI::TextEdit* edit = nullptr;
+  OnGuiThread([&] {
+    edit = new UI::TextEdit(nullptr);
+    UI::RegisterNamedQObject("main_window_edit", edit);
+    edit->SlotNewTab();
+  });
+  return edit;
+}
+
+/// The current tab's text widget. Call on the GUI thread.
+auto CurrentTextWidget(UI::TextEdit* edit) -> QPlainTextEdit* {
+  QWidget* page = edit->CurTextPage();
+  return page == nullptr ? nullptr : page->findChild<QPlainTextEdit*>();
+}
+
+}  // namespace
+
+// The text an operation signs, encrypts or verifies is the text in the
+// editor, character for character: no OpenPGP rule asks for a no-break space
+// or a U+2028 to be rewritten.
+TEST(GFUiCurrentEditorContentTest, OperationsReadTheCharactersAsTyped) {
+  auto* edit = NewTextTab();
+  const auto typed = QStringLiteral("a\u00A0b\u2028c\nd");
+  QString text;
+  QByteArray bytes;
+  OnGuiThread([&] {
+    CurrentTextWidget(edit)->insertPlainText(typed);
+    text = edit->CurPlainText();
+    bytes = edit->CurDocumentBytesForOperation();
+  });
+
+  EXPECT_EQ(text, typed);
+  EXPECT_EQ(bytes, typed.toUtf8());
+
+  OnGuiThread([&] { delete edit; });
+}
+
+// Shift+Enter is a line break to the person typing it. Qt stores it as
+// U+2028, which would now reach the signature as that character; the editor
+// must store an ordinary newline instead.
+TEST(GFUiCurrentEditorContentTest, ShiftEnterTypesAnOrdinaryNewline) {
+  auto* edit = NewTextTab();
+  QString text;
+  OnGuiThread([&] {
+    auto* page = CurrentTextWidget(edit);
+    page->insertPlainText(QStringLiteral("a"));
+    QKeyEvent press(QEvent::KeyPress, Qt::Key_Return, Qt::ShiftModifier,
+                    QStringLiteral("\r"));
+    QCoreApplication::sendEvent(page, &press);
+    page->insertPlainText(QStringLiteral("b"));
+    text = edit->CurPlainText();
+  });
+
+  EXPECT_EQ(text, QStringLiteral("a\nb"));
+
+  OnGuiThread([&] { delete edit; });
+}
+
+// A document that came in with CRLF is encrypted with CRLF, the same bytes
+// Save would write, not silently rewritten to LF.
+TEST(GFUiCurrentEditorContentTest, ACrlfDocumentKeepsItsLineEndings) {
+  auto* edit = NewTextTab();
+  QByteArray bytes;
+  OnGuiThread([&] {
+    edit->SlotFillTextEditWithText(GFBuffer(QByteArray("one\r\ntwo\r\n")));
+    bytes = edit->CurDocumentBytesForOperation();
+  });
+
+  EXPECT_EQ(bytes, QByteArray("one\r\ntwo\r\n"));
+
+  // The SHA-256 shown for the document is that of the same bytes.
+  const auto want =
+      QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
+  bool shown = false;
+  for (int i = 0; i < 300 && !shown; ++i) {
+    QThread::msleep(10);
+    OnGuiThread([&] {
+      for (auto* label : edit->findChildren<QLabel*>("sha256Label")) {
+        shown = shown || label->toolTip().contains(want);
+      }
+    });
+  }
+  EXPECT_TRUE(shown);
+
+  OnGuiThread([&] { delete edit; });
+}
+
+// A file is read in 8 KiB chunks. A UTF-8 character split across two of them
+// must arrive whole, not as two replacement characters.
+TEST(GFUiCurrentEditorContentTest, AFileReadInChunksKeepsSplitCharacters) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = dir.filePath("split.txt");
+  QByteArray content(8191, 'x');
+  content += "\xC3\xA9 and \xE2\x82\xAC\n";  // "é" straddles 8192
+  {
+    QFile file(path);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    file.write(content);
+  }
+
+  auto* edit = NewTextTab();
+  OnGuiThread([&] { edit->SlotOpenFile(path); });
+
+  // Loading is asynchronous; wait until the whole file is in.
+  // The editor may also restore cached tabs, so select the file's own tab.
+  QByteArray bytes;
+  for (int i = 0; i < 500 && bytes.size() < content.size(); ++i) {
+    // The read task runs on the Default runner, the thread this test is on.
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+    QThread::msleep(10);
+    OnGuiThread([&] {
+      auto* tabs = edit->findChild<QTabWidget*>();
+      for (int t = 0; tabs != nullptr && t < tabs->count(); ++t) {
+        if (tabs->tabText(t).contains("split.txt")) tabs->setCurrentIndex(t);
+      }
+      bytes = edit->CurDocumentBytesForOperation();
+    });
+  }
+  EXPECT_EQ(bytes, content);
 
   OnGuiThread([&] { delete edit; });
 }

@@ -115,10 +115,9 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptRandomLargeGarbageFailsCleanly) {
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptCiphertextWithoutSecretKeyFails) {
   // The v2/AEAD vector is encrypted to aux_v6, whose secret is not imported.
-  // The engine reports "no secret key matches any recipient" as ErrorNoKey,
-  // which maps to GPG_ERR_NO_KEY (see ResultHandler.cpp).
+  // No secret key matches any recipient: GPG_ERR_NO_SECKEY, as GnuPG says.
   EXPECT_EQ(CheckGpgError(Decrypt(LoadRfc9580Vector("enc_v2seipd_ocb.pgp"))),
-            GPG_ERR_NO_KEY);
+            GPG_ERR_NO_SECKEY);
 }
 
 // RFC 9580 §13.7: a truncated or tampered AEAD message "MUST indicate a clear
@@ -214,7 +213,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptVerifyLegacySedIsRejected) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(LoadRfc9580Vector("enc_sed_tag9.pgp"));
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_INV_DATA);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NOT_SUPPORTED);
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   const auto detail =
       ExtractParams<GpgDecryptResult>(dobj, 0).ErrorDetail().toLower();
