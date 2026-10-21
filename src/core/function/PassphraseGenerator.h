@@ -34,6 +34,25 @@
 namespace GpgFrontend {
 
 /**
+ * @brief Map uniformly random bytes onto the [0-9A-Za-z] alphabet.
+ *
+ * Uses rejection sampling: bytes at or above the largest multiple of 62 that
+ * fits in an octet (248) are discarded rather than folded with a modulo, which
+ * would over-represent the first eight characters of the alphabet. Callers
+ * therefore consume more input than they produce and must top up @p src until
+ * @p dst is full.
+ *
+ * @param src random input bytes
+ * @param src_size number of bytes available at @p src
+ * @param dst output buffer receiving alphanumeric characters
+ * @param dst_size capacity of @p dst
+ * @return number of characters written to @p dst
+ */
+GF_CORE_EXPORT auto MapRandomBytesToAlphanum(const char *src, size_t src_size,
+                                             char *dst, size_t dst_size)
+    -> size_t;
+
+/**
  * @brief The PassphraseGenerator class
  *
  * This class is used to generate a passphrase.
@@ -74,6 +93,11 @@ class GF_CORE_EXPORT PassphraseGenerator
   static auto GenerateBytesByOpenSSL(int len) -> GFBufferOrNone;
 
  private:
+  /**
+   * @brief Draw @p len random bytes from GnuPG, falling back to OpenSSL.
+   */
+  auto draw_random_bytes(int len) -> GFBufferOrNone;
+
   SecureRandomGenerator& rand_ =
       SecureRandomGenerator::GetInstance(SingletonFunctionObject::GetChannel());
 };
