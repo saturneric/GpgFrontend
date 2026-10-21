@@ -30,8 +30,10 @@
 
 namespace GpgFrontend::UI {
 
-auto IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results) -> bool {
-  if (results.empty()) return false;
+auto IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results,
+                           qsizetype operation_count) -> bool {
+  // A missing result is an operation that may still be writing its output.
+  if (results.empty() || results.size() != operation_count) return false;
 
   return std::all_of(results.cbegin(), results.cend(),
                      [](const GpgOperaResult& result) -> bool {

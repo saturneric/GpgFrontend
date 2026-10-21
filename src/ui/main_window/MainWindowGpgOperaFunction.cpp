@@ -95,16 +95,15 @@ auto CodecCards(const CodecStageResult& r) -> InfoBoardCardsPayload {
 }  // namespace
 
 auto MainWindow::commit_safe_output_files(
-    const QContainer<SafeOutputPath>& outputs) -> bool {
+    const QContainer<SafeOutputPath>& outputs, QStringList& committed) -> bool {
   for (const auto& output : outputs) {
     if (!CommitSafeOutputFile(output.temp_path, output.final_path)) {
       QMessageBox::critical(
           this, tr("Error"),
           tr("Failed to finalize output file:\n\n%1").arg(output.final_path));
-
-      CleanupSafeOutputFiles(outputs);
       return false;
     }
+    committed.append(output.final_path);
   }
 
   return true;
@@ -114,6 +113,10 @@ void MainWindow::exec_file_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts,
     const QContainer<SafeOutputPath>& safe_outputs) {
+  // Every operation must report before its staging directory is touched: one
+  // without a result may still be writing into it.
+  const auto operation_count = contexts->operas.size();
+
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
@@ -125,7 +128,7 @@ void MainWindow::exec_file_operas_helper(
   // being iterated.
   const auto opera_results = contexts->opera_results;
 
-  const bool success = IsFileOperaSuccessful(opera_results);
+  const bool success = IsFileOperaSuccessful(opera_results, operation_count);
 
   if (!success) {
     LOG_E()
@@ -136,18 +139,29 @@ void MainWindow::exec_file_operas_helper(
     return;
   }
 
-  if (!commit_safe_output_files(safe_outputs)) {
+  QStringList committed;
+  if (!commit_safe_output_files(safe_outputs, committed)) {
     LOG_E() << "Failed to commit output files. Temporary files have been "
-               "cleaned up.";
+               "cleaned up, already committed outputs:"
+            << committed.size();
     CleanupSafeOutputFiles(safe_outputs);
     RemoveSafeOutputWorkDirs(safe_outputs);
 
+    // Outputs committed before the failure are in place: only claim the
+    // originals were kept when none of them was replaced.
     slot_refresh_info_board(
-        -1,
-        tr("The operation succeeded, but GpgFrontend failed to finalize one "
-           "or more output files.\n\n"
-           "Temporary output files have been cleaned up. Original files were "
-           "kept unchanged."));
+        -1, committed.isEmpty()
+                ? tr("The operation succeeded, but GpgFrontend failed to "
+                     "finalize one or more output files.\n\n"
+                     "Temporary output files have been cleaned up. Original "
+                     "files were kept unchanged.")
+                : tr("The operation succeeded, but GpgFrontend failed to "
+                     "finalize one or more output files.\n\n"
+                     "These output files were already written before the "
+                     "failure:\n%1\n\n"
+                     "The remaining temporary output files have been cleaned "
+                     "up.")
+                      .arg(committed.join('\n')));
     return;
   }
 

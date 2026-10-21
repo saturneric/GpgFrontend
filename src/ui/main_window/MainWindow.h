@@ -1007,14 +1007,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void apply_tool_bar_appearance();
 
   /**
-   * @brief
+   * @brief Commit every staged output to its final path, stopping at the
+   * first one that cannot be committed.
    *
    * @param outputs
-   * @return true
-   * @return false
+   * @param committed receives the final paths that were already committed
+   *        before a failure; those are in place and cannot be rolled back
+   * @return true if every output was committed
    */
-  auto commit_safe_output_files(const QContainer<SafeOutputPath>& outputs)
-      -> bool;
+  auto commit_safe_output_files(const QContainer<SafeOutputPath>& outputs,
+                                QStringList& committed) -> bool;
 
   /**
    * @brief

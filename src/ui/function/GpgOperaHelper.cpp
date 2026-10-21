@@ -766,6 +766,10 @@ void GpgOperaHelper::WaitForMultipleOperas(
   // the batch. Only cancelable operations carry a channel to reset.
   if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
 
+  // A cancelable dialog cannot be closed by the user: Escape and the window's
+  // close only request cancellation, and the dialog finishes once every
+  // operation has reported. The callers clean up the staged output right after
+  // this returns, and an operation still running would keep writing into it.
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, operas.size() > 1, parent, cancel_channel >= 0);
@@ -805,10 +809,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
             if (progress->remaining > 0) return;
 
             if (show_timer) show_timer->stop();
-            if (dialog != nullptr) {
-              dialog->close();
-              dialog->accept();
-            }
+            if (dialog != nullptr) dialog->SlotFinish();
           });
         },
         Qt::QueuedConnection);
@@ -898,6 +899,9 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
   // the operation. Only cancelable operations carry a channel to reset.
   if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
 
+  // A cancelable dialog cannot be closed by the user: Escape and the window's
+  // close only request cancellation, and the dialog finishes once the
+  // operation has reported.
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, false, parent, cancel_channel >= 0);
@@ -922,10 +926,7 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
       [=]() {
         opera([dialog, show_timer]() {
           if (show_timer) show_timer->stop();
-          if (dialog) {
-            dialog->close();
-            dialog->accept();
-          }
+          if (dialog) dialog->SlotFinish();
         });
       },
       Qt::QueuedConnection);

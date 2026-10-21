@@ -65,7 +65,29 @@ class WaitingDialog : public GeneralDialog {
    */
   void SlotMarkCancelling();
 
+  /**
+   * @brief Close the dialog because every operation it waits for is done.
+   *
+   * The only way a cancelable dialog closes: the user can ask to cancel, but
+   * the operations keep writing until they report, and whoever waits on this
+   * dialog must not clean up their output before then.
+   */
+  void SlotFinish();
+
+  /**
+   * @brief Escape. A cancelable dialog requests cancellation and stays open
+   * until SlotFinish(); any other dialog closes as before.
+   */
+  void reject() override;
+
  protected:
+  /**
+   * @brief The window manager's close, handled like reject().
+   *
+   * @param event
+   */
+  void closeEvent(QCloseEvent* event) override;
+
   /**
    * @brief
    *
@@ -90,6 +112,9 @@ class WaitingDialog : public GeneralDialog {
  private:
   QProgressBar* pb_;
   QPushButton* cancel_button_ = nullptr;
+  bool finished_ = false;
+
+  void request_cancel();
 };
 
 }  // namespace GpgFrontend::UI

@@ -44,10 +44,8 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent,
 
   if (cancelable) {
     cancel_button_ = new QPushButton(tr("Cancel"));
-    connect(cancel_button_, &QPushButton::clicked, this, [this]() {
-      SlotMarkCancelling();
-      emit SignalCancelRequested();
-    });
+    connect(cancel_button_, &QPushButton::clicked, this,
+            &WaitingDialog::request_cancel);
 
     auto* button_layout = new QHBoxLayout();
     button_layout->addStretch();
@@ -82,6 +80,36 @@ void WaitingDialog::SlotMarkCancelling() {
   if (cancel_button_ == nullptr) return;
   cancel_button_->setEnabled(false);
   cancel_button_->setText(tr("Cancelling..."));
+}
+
+void WaitingDialog::request_cancel() {
+  // Ask once: the button is disabled while the request is pending.
+  if (cancel_button_ == nullptr || !cancel_button_->isEnabled()) return;
+  SlotMarkCancelling();
+  emit SignalCancelRequested();
+}
+
+void WaitingDialog::SlotFinish() {
+  finished_ = true;
+  close();
+  accept();
+}
+
+void WaitingDialog::reject() {
+  if (cancel_button_ == nullptr || finished_) {
+    GeneralDialog::reject();
+    return;
+  }
+  request_cancel();
+}
+
+void WaitingDialog::closeEvent(QCloseEvent* event) {
+  if (cancel_button_ == nullptr || finished_) {
+    GeneralDialog::closeEvent(event);
+    return;
+  }
+  event->ignore();
+  request_cancel();
 }
 
 void WaitingDialog::showEvent(QShowEvent* event) {

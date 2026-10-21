@@ -67,10 +67,36 @@ auto UnpredictableSuffix() -> QString {
   return QUuid::createUuid().toString(QUuid::Id128);
 }
 
-// Remove a staged output, file or directory, with everything in it.
+// Give the owner write access to every directory of a tree, so the entries
+// in it can be unlinked. Links are skipped: changing a mode follows a link.
+void MakeTreeRemovable(const QString& root) {
+  const auto add_owner_rwx = [](const QString& dir) {
+    QFile::setPermissions(dir,
+                          QFile::permissions(dir) | QFileDevice::ReadOwner |
+                              QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+  };
+
+  add_owner_rwx(root);
+  QDirIterator it(
+      root, QDir::Dirs | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot,
+      QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    const auto dir = it.next();
+    if (!QFileInfo(dir).isSymLink()) add_owner_rwx(dir);
+  }
+}
+
+// Remove a staged output, file or directory, with everything in it. A tree
+// with read-only directories in it (an extracted archive can carry them) is
+// made writable first rather than left behind with plaintext inside.
 auto RemoveStagedPath(const QString& path) -> bool {
   const QFileInfo info(path);
-  if (info.isDir() && !info.isSymLink()) return QDir(path).removeRecursively();
+  if (info.isDir() && !info.isSymLink()) {
+    if (QDir(path).removeRecursively()) return true;
+
+    MakeTreeRemovable(path);
+    return QDir(path).removeRecursively();
+  }
   return !info.exists() && !info.isSymLink() ? true : QFile::remove(path);
 }
 
@@ -117,16 +143,33 @@ auto ReadFileGFBuffer(const QString& file_name) -> std::tuple<bool, GFBuffer> {
 }
 
 auto WriteFileGFBuffer(const QString& file_name, GFBuffer data) -> bool {
-  QFile file(file_name);
-  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+  // QSaveFile writes through a link to its target. Secret material must land
+  // at the path that was chosen, not wherever a link there points.
+  if (QFileInfo(file_name).isSymLink()) {
+    LOG_W() << "refusing to write through a symbolic link:" << file_name;
     return false;
   }
 
-  file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-  auto n = file.write(data.Data(), static_cast<qsizetype>(data.Size()));
-  file.flush();
-  file.close();
-  return n == static_cast<decltype(n)>(data.Size());
+  // Written to a new file beside the target and renamed over it on commit,
+  // so a failed or short write never leaves a truncated file, and the content
+  // is never readable by others: the new file is owner-only before any byte
+  // is written.
+  QSaveFile file(file_name);
+  if (!file.open(QIODevice::WriteOnly)) return false;
+
+  if (!file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+    LOG_W() << "cannot restrict the permissions of:" << file_name;
+    file.cancelWriting();
+    return false;
+  }
+
+  const auto size = static_cast<qint64>(data.Size());
+  if (file.write(data.Data(), size) != size) {
+    file.cancelWriting();
+    return false;
+  }
+
+  return file.commit();
 }
 
 auto CalculateFileHashInfo(const QString& file_path)

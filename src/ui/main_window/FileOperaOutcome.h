@@ -45,9 +45,13 @@ namespace GpgFrontend::UI {
  * Exposed primarily for unit testing.
  *
  * @param results the results of every operation that wrote staged output
- * @return true when there is at least one result and none failed
+ * @param operation_count how many operations the batch started; an operation
+ *        without a result may still be writing, so it counts as a failure
+ * @return true when every operation reported exactly one result and none
+ *         failed
  */
-auto GF_UI_EXPORT
-IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results) -> bool;
+auto GF_UI_EXPORT IsFileOperaSuccessful(
+    const QContainer<GpgOperaResult>& results, qsizetype operation_count)
+    -> bool;
 
 }  // namespace GpgFrontend::UI

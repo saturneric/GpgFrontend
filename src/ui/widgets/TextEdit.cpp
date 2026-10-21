@@ -178,14 +178,28 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
   const auto bytes = page->PrimaryViewPrepareSave(page->DocumentBytes());
   if (!bytes.has_value()) return false;  // the user cancelled
 
-  QFile file(file_name);
+  // Written to a new file and renamed over the old one on commit, so a failed
+  // or short write (a full disk) never leaves the file truncated. Only a
+  // directory that cannot take the new file falls back to writing in place.
+  QSaveFile file(file_name);
+  file.setDirectWriteFallback(true);
   // Written as bytes, and without QIODevice::Text: the document knows which
   // line endings it came with and DocumentBytes() has already applied them.
   // Going through a text-mode stream would translate them a second time.
   if (file.open(QIODevice::WriteOnly)) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    file.write(*bytes);
+    const bool written = file.write(*bytes) == bytes->size() && file.commit();
     QApplication::restoreOverrideCursor();
+
+    if (!written) {
+      file.cancelWriting();
+      QMessageBox::warning(this, tr("Warning"),
+                           tr("Cannot read file %1:\n%2.")
+                               .arg(file_name)
+                               .arg(file.errorString()));
+      return false;
+    }
+
     QTextDocument* document = page->GetTextPage()->document();
 
     document->setModified(false);
@@ -204,7 +218,6 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     // unsaved content will not be restored on next startup.
     tab_widget_->SlotRefreshRecoveryCache();
 
-    file.close();
     return true;
   }
 
