@@ -27,23 +27,11 @@ name: "CodeQL"
 
 on:
   push:
-    branches:
-      - main
-      - release/2.1
+    tags:
+      - "v*"
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
-
-  pull_request:
-    branches:
-      - main
-      - release/2.1
-    paths-ignore:
-      - "resource/lfs/locale/**"
-      - "**.md"
-
-  schedule:
-    - cron: "19 14 * * 2"
 
 # A newer push supersedes a running build of the same ref.
 concurrency:
