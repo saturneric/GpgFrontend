@@ -46,6 +46,7 @@ auto GpgSignature::operator=(const GpgSignature &) -> GpgSignature & = default;
  * @return gpgme_validity_t
  */
 auto GpgSignature::GetValidity() const -> gpgme_validity_t {
+  if (signature_ref_ == nullptr) return GPGME_VALIDITY_UNKNOWN;
   return signature_ref_->validity;
 }
 
@@ -55,6 +56,7 @@ auto GpgSignature::GetValidity() const -> gpgme_validity_t {
  * @return gpgme_error_t
  */
 auto GpgSignature::GetStatus() const -> gpgme_error_t {
+  if (signature_ref_ == nullptr) return GPG_ERR_GENERAL;
   return signature_ref_->status;
 }
 
@@ -64,6 +66,7 @@ auto GpgSignature::GetStatus() const -> gpgme_error_t {
  * @return gpgme_error_t
  */
 auto GpgSignature::GetSummary() const -> gpgme_error_t {
+  if (signature_ref_ == nullptr) return GPGME_SIGSUM_RED;
   return signature_ref_->summary;
 }
 
@@ -73,6 +76,7 @@ auto GpgSignature::GetSummary() const -> gpgme_error_t {
  * @return QString
  */
 auto GpgSignature::GetPubkeyAlgo() const -> QString {
+  if (signature_ref_ == nullptr) return {};
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
@@ -82,6 +86,7 @@ auto GpgSignature::GetPubkeyAlgo() const -> QString {
  * @return QString
  */
 auto GpgSignature::GetHashAlgo() const -> QString {
+  if (signature_ref_ == nullptr) return {};
   return gpgme_hash_algo_name(signature_ref_->hash_algo);
 }
 
@@ -91,6 +96,7 @@ auto GpgSignature::GetHashAlgo() const -> QString {
  * @return QDateTime
  */
 auto GpgSignature::GetCreateTime() const -> QDateTime {
+  if (signature_ref_ == nullptr) return QDateTime::fromSecsSinceEpoch(0);
   return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
 }
 
@@ -100,6 +106,7 @@ auto GpgSignature::GetCreateTime() const -> QDateTime {
  * @return QDateTime
  */
 auto GpgSignature::GetExpireTime() const -> QDateTime {
+  if (signature_ref_ == nullptr) return QDateTime::fromSecsSinceEpoch(0);
   return QDateTime::fromSecsSinceEpoch(signature_ref_->exp_timestamp);
 }
 
@@ -109,6 +116,7 @@ auto GpgSignature::GetExpireTime() const -> QDateTime {
  * @return QString
  */
 auto GpgSignature::GetFingerprint() const -> QString {
+  if (signature_ref_ == nullptr) return {};
   return signature_ref_->fpr != nullptr ? signature_ref_->fpr : "";
 }
 

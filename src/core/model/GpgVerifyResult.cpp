@@ -52,6 +52,10 @@ auto GpgVerifyResult::GetRaw() const -> gpgme_verify_result_t {
 auto GpgVerifyResult::GetSignature() const -> QContainer<GpgSignature> {
   QContainer<GpgSignature> signatures;
 
+  // a default-constructed result (every failed verify operation) holds no
+  // ref; IsGood() reports that state, but callers reach here regardless.
+  if (result_ref_ == nullptr) return signatures;
+
   auto* signature = result_ref_->signatures;
   while (signature != nullptr) {
     signatures.push_back(GpgSignature{signature});
