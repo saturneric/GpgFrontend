@@ -81,6 +81,29 @@ TEST(GFBufferTest, EqualityOperators) {
   EXPECT_TRUE(a != c);
 }
 
+TEST(GFBufferTest, EqualityWithCharPointer) {
+  GFBuffer a("bar");
+  EXPECT_TRUE(a == "bar");
+  EXPECT_FALSE(a == "baz");
+  EXPECT_TRUE(a != "baz");
+  // shorter/longer C-strings must not compare equal
+  EXPECT_FALSE(a == "ba");
+  EXPECT_TRUE(a != "ba");
+  EXPECT_FALSE(a == "barbar");
+  EXPECT_TRUE(a != "barbar");
+}
+
+TEST(GFBufferTest, EqualityWithNullptr) {
+  // comparing against a null C-string must not crash (regression: strnlen(0))
+  GFBuffer non_empty("bar");
+  EXPECT_FALSE(non_empty == static_cast<const char*>(nullptr));
+  EXPECT_TRUE(non_empty != static_cast<const char*>(nullptr));
+
+  GFBuffer empty;
+  EXPECT_TRUE(empty == static_cast<const char*>(nullptr));
+  EXPECT_FALSE(empty != static_cast<const char*>(nullptr));
+}
+
 TEST(GFBufferTest, AppendBuffer) {
   GFBuffer a("hello");
   GFBuffer b(", world");
