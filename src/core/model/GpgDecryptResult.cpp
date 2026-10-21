@@ -122,7 +122,7 @@ auto GpgDecryptResult::MessageIntegrityProtected() -> bool {
 
 auto GpgDecryptResult::SymmetricEncryptionAlgorithm() -> QString {
   if (gf_result_ref_ != nullptr) {
-    return {};
+    return gf_result_ref_->symkey_algo;
   }
   if (result_ref_ != nullptr && result_ref_->symkey_algo != nullptr) {
     return QString{result_ref_->symkey_algo};

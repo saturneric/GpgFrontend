@@ -67,10 +67,10 @@ auto RsaFamily(int opera) -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> algos;
   for (int bits : {1024, 2048, 3072, 4096}) {
     EngineSupportList support{{OpenPGPEngine::kGNUPG, "2.2.0"}};
-    // RFC 9580 §12.4: implementations MUST NOT generate RSA keys < 2048 bits.
-    // The rPGP engine enforces this, so it only advertises RSA >= 2048 for
-    // generation (existing RSA-1024 keys are still imported/displayed).
-    if (bits >= 2048) support.append({OpenPGPEngine::kRPGP, "0.1.0"});
+    // RFC 9580 §12.4: "MUST NOT generate RSA keys of a size less than 3072
+    // bits." The rPGP engine enforces this, so it only advertises RSA >= 3072
+    // for generation (smaller existing keys are still imported/displayed).
+    if (bits >= 3072) support.append({OpenPGPEngine::kRPGP, "0.1.0"});
     algos.append(KeyAlgoSpec{.id = QString("rsa%1").arg(bits),
                              .name = "RSA",
                              .type = "RSA",

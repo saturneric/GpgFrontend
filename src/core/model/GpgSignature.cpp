@@ -70,6 +70,12 @@ auto GpgSignature::GetStatus() const -> gpgme_error_t {
         return GPG_ERR_BAD_SIGNATURE;
       case GFSignatureStatus::kNO_KEY:
         return GPG_ERR_NO_PUBKEY;
+      case GFSignatureStatus::kKEY_REVOKED:
+        return GPG_ERR_CERT_REVOKED;
+      case GFSignatureStatus::kKEY_EXPIRED:
+        return GPG_ERR_KEY_EXPIRED;
+      case GFSignatureStatus::kKEY_NOT_AUTHORIZED:
+        return GPG_ERR_WRONG_KEY_USAGE;
       default:
         return GPG_ERR_GENERAL;
     }
@@ -89,6 +95,12 @@ auto GpgSignature::GetSummary() const -> gpgme_error_t {
     switch (gf_signature_ref_->status) {
       case GFSignatureStatus::kVALID:
         summary |= GPGME_SIGSUM_VALID | GPGME_SIGSUM_GREEN;
+        break;
+      case GFSignatureStatus::kKEY_REVOKED:
+        summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_REVOKED;
+        break;
+      case GFSignatureStatus::kKEY_EXPIRED:
+        summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_EXPIRED;
         break;
       default:
         summary |= GPGME_SIGSUM_RED;
