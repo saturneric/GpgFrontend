@@ -626,6 +626,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const QString& capability_err_string) -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief check_keys_helper() for encryption, naming the first recipient
+   * that cannot be encrypted to and why.
+   *
+   * @param keys
+   * @return GpgAbstractKeyPtrList
+   */
+  auto check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
+      -> GpgAbstractKeyPtrList;
+
+  /**
    * @brief
    *
    * @param context

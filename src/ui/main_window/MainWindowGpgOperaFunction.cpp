@@ -34,6 +34,7 @@
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/SubKeyPicker.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/main_window/EncryptBlockReason.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -164,9 +165,7 @@ auto MainWindow::encrypt_operation_key_validate(
     return true;
   }
 
-  contexts->keys = check_keys_helper(
-      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
+  contexts->keys = check_encrypt_keys_helper(keys);
 
   return !contexts->keys.empty();
 }
@@ -294,6 +293,27 @@ auto MainWindow::check_write_file_paths_helper(const QStringList& o_paths)
   return true;
 }
 
+auto MainWindow::check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
+    -> GpgAbstractKeyPtrList {
+  const auto can_encrypt = [](const GpgAbstractKeyPtr& key) {
+    return key->IsHasEncrCap();
+  };
+  const auto generic = tr("The selected keypair cannot be used for encryption.");
+
+  // Name the recipient and, for an expired key, the date: "cannot be used"
+  // alone leaves the user guessing which key and why.
+  for (const auto& key : keys) {
+    if (key == nullptr || can_encrypt(key)) continue;
+
+    const auto reason = DescribeEncryptBlock(key);
+    QMessageBox::critical(this, tr("Cannot Encrypt"),
+                          reason.isEmpty() ? generic : reason);
+    return {};
+  }
+
+  return check_keys_helper(keys, can_encrypt, generic);
+}
+
 auto MainWindow::check_keys_helper(
     const GpgAbstractKeyPtrList& keys,
     const std::function<bool(const GpgAbstractKeyPtr&)>& capability_check,
@@ -412,9 +432,7 @@ void MainWindow::SlotEncryptSign() {
 
   auto keys = m_key_list_->GetCheckedKeys();
 
-  contexts->keys = check_keys_helper(
-      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
+  contexts->keys = check_encrypt_keys_helper(keys);
   if (contexts->keys.empty()) return;
 
   if (!sign_operation_key_validate(contexts)) return;
@@ -636,9 +654,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
-  contexts->keys = check_keys_helper(
-      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
+  contexts->keys = check_encrypt_keys_helper(keys);
   if (contexts->keys.empty()) return;
 
   if (!sign_operation_key_validate(contexts)) return;
