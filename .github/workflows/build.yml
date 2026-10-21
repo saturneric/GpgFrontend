@@ -77,7 +77,6 @@ jobs:
             "macos-26-intel",
             "macos-26",
             "windows-2022",
-            "windows-2025",
           ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
