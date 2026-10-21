@@ -642,8 +642,8 @@ void KeyGenerateDialog::slot_key_gen_accept() {
                      "')', '<', '>' or control characters.")
                << Qt::endl;
   }
-  if (ui_->emailEdit->text().isEmpty() ||
-      !IsEmailAddress(ui_->emailEdit->text())) {
+  if (ui_->emailEdit->text().trimmed().isEmpty() ||
+      !IsEmailAddress(ui_->emailEdit->text().trimmed())) {
     err_stream << " -> " << tr("Please give a valid email address.")
                << Qt::endl;
   }
@@ -686,7 +686,7 @@ void KeyGenerateDialog::slot_key_gen_accept() {
   }
 
   gen_key_info_->SetName(ui_->nameEdit->text());
-  gen_key_info_->SetEmail(ui_->emailEdit->text());
+  gen_key_info_->SetEmail(ui_->emailEdit->text().trimmed());
   gen_key_info_->SetComment(ui_->commentEdit->text());
 
   LOG_D() << "try to generate key at gpg context channel: " << channel_;

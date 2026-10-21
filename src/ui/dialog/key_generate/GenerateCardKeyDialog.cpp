@@ -91,7 +91,7 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
   }
 
   if (ui_->nameEdit->text().isEmpty() ||
-      !IsEmailAddress(ui_->emailEdit->text())) {
+      !IsEmailAddress(ui_->emailEdit->text().trimmed())) {
     error_stream << "  " << tr("Please give a email address.") << Qt::endl;
   }
 
@@ -111,7 +111,7 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
 
   auto f = [=](const OperaWaitingHd& hd) {
     auto [err, detail] = GpgSmartCardManager::GetInstance(channel_).GenerateKey(
-        serial_number_, ui_->nameEdit->text(), ui_->emailEdit->text(),
+        serial_number_, ui_->nameEdit->text(), ui_->emailEdit->text().trimmed(),
         ui_->commentEdit->text(), ui_->dateEdit->dateTime(),
         ui_->nonExpireCheckBox->isChecked());
 

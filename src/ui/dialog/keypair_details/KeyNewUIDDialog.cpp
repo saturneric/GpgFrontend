@@ -97,13 +97,15 @@ void KeyNewUIDDialog::slot_create_new_uid() {
                        "')', '<', '>' or control characters.")
                  << Qt::endl;
   }
-  if (email_->text().isEmpty() || !IsEmailAddress(email_->text())) {
+  if (email_->text().trimmed().isEmpty() ||
+      !IsEmailAddress(email_->text().trimmed())) {
     error_stream << "  " << tr("Please give a email address.") << Qt::endl;
   }
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
     if (GpgUIDOperator::GetInstance(current_gpg_context_channel_)
-            .AddUID(m_key_, name_->text(), comment_->text(), email_->text())) {
+            .AddUID(m_key_, name_->text(), comment_->text(),
+                    email_->text().trimmed())) {
       emit finished(1);
       emit SignalUIDCreated();
     } else {
