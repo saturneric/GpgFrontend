@@ -291,6 +291,21 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   auto key_db_list = KeyDatabaseListSO(key_db_list_so);
   auto& key_dbs = key_db_list.key_databases;
 
+  QContainer<KeyDatabaseItemSO> tmp_key_dbs;
+  for (const auto& key_db : key_dbs) {
+    LOG_D() << "filtering key database from settings:" << key_db.name
+            << ", path:" << key_db.path;
+
+    if (key_db.path.isEmpty() || key_db.name.isEmpty()) {
+      LOG_W() << "invalid key db info, skip, name:" << key_db.name
+              << "key db path:" << key_db.path;
+      continue;
+    }
+
+    tmp_key_dbs.push_back(key_db);
+  }
+  key_dbs = std::move(tmp_key_dbs);
+
   if (key_dbs.empty()) {
     KeyDatabaseItemSO key_db;
 
