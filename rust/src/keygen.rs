@@ -32,14 +32,16 @@
 //! higher-level `create_key_internal` and `add_subkey_internal` wrap it with
 //! optional passphrase protection and armored export.
 
+#[cfg(test)]
+use crate::utils::armor_opts;
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::{IntoGfrResult, set_last_error},
     key::{apply_primary_key_expiration, apply_subkey_expiration},
     types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrStatus},
     utils::{
-        PassphraseStateInternal, armor_opts, check_if_should_use_key_ver_v6,
-        fetch_password_with_cache, password_from_zeroizing_bytes, resolve_key_type,
+        PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
+        key_armor_opts, password_from_zeroizing_bytes, resolve_key_type,
     },
 };
 use log::error;
@@ -353,12 +355,12 @@ pub fn create_key_internal(
     let fingerprint = secret_key.fingerprint().to_string();
 
     let armored_s_key = secret_key
-        .to_armored_string(armor_opts())
+        .to_armored_string(key_armor_opts(secret_key.primary_key.version()))
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     let public_key = SignedPublicKey::from(secret_key);
     let armored_p_key = public_key
-        .to_armored_string(armor_opts())
+        .to_armored_string(key_armor_opts(public_key.primary_key.version()))
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
@@ -418,6 +420,24 @@ pub fn add_subkey_internal(
             .is_err()
         {
             return Err(GfrStatus::ErrorPasswordFailed);
+        }
+    }
+
+    // RFC 9980 §3.5: "All PQ(/T) asymmetric algorithms are to be used only in
+    // v6 (and newer) keys and certificates, with the single exception of
+    // ML-KEM-768+X25519 (algorithm ID 35), which is also allowed in v4
+    // encryption-capable subkeys."
+    if secret_key.version() != KeyVersion::V6
+        && crate::utils::check_if_quantum_hybrid_algo(&config.algo)
+    {
+        let v4_allowed = matches!(config.algo, GfrKeyAlgo::KYBER768X25519)
+            && config.can_encrypt
+            && !config.can_sign;
+        if !v4_allowed {
+            set_last_error(
+                "a v4 key may only carry ML-KEM-768+X25519, as an encryption subkey (RFC 9980 §3.5)",
+            );
+            return Err(GfrStatus::ErrorUnsupportedAlgorithm);
         }
     }
 
@@ -561,12 +581,12 @@ pub fn add_subkey_internal(
 
     // 9. Armor the updated keys for export
     let armored_s_key = secret_key
-        .to_armored_string(armor_opts())
+        .to_armored_string(key_armor_opts(secret_key.primary_key.version()))
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     let public_key = SignedPublicKey::from(secret_key);
     let armored_p_key = public_key
-        .to_armored_string(armor_opts())
+        .to_armored_string(key_armor_opts(public_key.primary_key.version()))
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
@@ -585,15 +605,67 @@ mod rfc9580_tests {
     use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
     use pgp::crypto::public_key::PublicKeyAlgorithm;
 
-    /// RFC 9580 §12.4/§12.5: RSA < 2048 and DSA MUST NOT be generated.
+    fn subkey_cfg(algo: GfrKeyAlgo, can_sign: bool, can_encrypt: bool) -> GfrKeyConfig {
+        crate::testutil::keys::cfg(algo, can_sign, can_encrypt, GfrOpenPGPKeyVersion::V4)
+    }
+
+    /// RFC 9980 §3.5: "All PQ(/T) asymmetric algorithms are to be used only in
+    /// v6 (and newer) keys and certificates, with the single exception of
+    /// ML-KEM-768+X25519 (algorithm ID 35), which is also allowed in v4
+    /// encryption-capable subkeys."
+    #[test]
+    fn a_pq_signing_subkey_is_refused_on_a_v4_key() {
+        let base = &crate::testutil::keys::V4_SIGN;
+        let res = add_subkey_internal(
+            0,
+            &base.secret_armored,
+            &subkey_cfg(GfrKeyAlgo::MLDSA65ED25519, true, false),
+            None,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnsupportedAlgorithm));
+        assert!(
+            crate::err::last_error().contains("RFC 9980"),
+            "{}",
+            crate::err::last_error()
+        );
+    }
+
+    #[test]
+    fn ml_kem_768_on_a_v4_key_must_be_encryption_capable() {
+        let base = &crate::testutil::keys::V4_SIGN;
+        let res = add_subkey_internal(
+            0,
+            &base.secret_armored,
+            &subkey_cfg(GfrKeyAlgo::KYBER768X25519, false, false),
+            None,
+        );
+        assert_eq!(res.err(), Some(GfrStatus::ErrorUnsupportedAlgorithm));
+    }
+
+    #[test]
+    fn ml_kem_768_is_allowed_as_a_v4_encryption_subkey() {
+        let base = &crate::testutil::keys::V4_SIGN;
+        assert!(
+            add_subkey_internal(
+                0,
+                &base.secret_armored,
+                &subkey_cfg(GfrKeyAlgo::KYBER768X25519, false, true),
+                None,
+            )
+            .is_ok()
+        );
+    }
+
+    /// RFC 9580 §12.4/§12.5: RSA < 3072 and DSA MUST NOT be generated.
     #[test]
     fn resolve_key_type_rejects_weak_generation() {
         assert!(resolve_key_type(&GfrKeyAlgo::RSA1024, false).is_err());
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA2048, false).is_err());
         assert!(resolve_key_type(&GfrKeyAlgo::DSA1024, false).is_err());
         assert!(resolve_key_type(&GfrKeyAlgo::DSA2048, false).is_err());
         assert!(resolve_key_type(&GfrKeyAlgo::DSA3072, false).is_err());
         // Still-permitted generation targets must continue to resolve.
-        assert!(resolve_key_type(&GfrKeyAlgo::RSA2048, false).is_ok());
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA3072, false).is_ok());
         assert!(resolve_key_type(&GfrKeyAlgo::ED25519, false).is_ok());
     }
 
@@ -760,8 +832,14 @@ mod rfc9580_tests {
     }
 
     #[test]
-    fn resolve_key_type_accepts_rsa_2048_and_above() {
-        assert!(resolve_key_type(&GfrKeyAlgo::RSA2048, false).is_ok());
+    fn resolve_key_type_rejects_rsa_below_3072() {
+        // RFC 9580 §12.4: "MUST NOT generate RSA keys of a size less than
+        // 3072 bits."
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA2048, false).is_err());
+    }
+
+    #[test]
+    fn resolve_key_type_accepts_rsa_3072_and_above() {
         assert!(resolve_key_type(&GfrKeyAlgo::RSA3072, false).is_ok());
         assert!(resolve_key_type(&GfrKeyAlgo::RSA4096, false).is_ok());
     }
@@ -1196,11 +1274,13 @@ mod keygen_more_tests {
     }
 
     #[test]
-    fn create_key_emits_armor_without_a_crc24_footer() {
+    fn creating_a_v4_key_emits_armor_with_a_crc24_footer() {
+        // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
+        // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
         let out = create_key_internal("Armor <armor@example.test>", v4_primary(), &[], None)
             .expect("create");
-        crate::testutil::assert::armor_has_no_crc24(&out.secret);
-        crate::testutil::assert::armor_has_no_crc24(&out.public);
+        crate::testutil::assert::armor_has_crc24(&out.secret);
+        crate::testutil::assert::armor_has_crc24(&out.public);
     }
 
     // -- expiration at generation time ---------------------------------------
@@ -1374,9 +1454,9 @@ mod keygen_more_tests {
     // -- slow algorithms ------------------------------------------------------
 
     #[test]
-    #[ignore = "slow: RSA-2048 key generation takes seconds even optimised; run with --ignored"]
-    fn rsa_2048_generates_a_usable_key() {
-        let primary = cfg(GfrKeyAlgo::RSA2048, true, false, GfrOpenPGPKeyVersion::V4);
+    #[ignore = "slow: RSA-3072 key generation takes seconds even optimised; run with --ignored"]
+    fn rsa_3072_generates_a_usable_key() {
+        let primary = cfg(GfrKeyAlgo::RSA3072, true, false, GfrOpenPGPKeyVersion::V4);
         let key = keygen_dynamic("RSA <rsa@example.test>", &primary, &[]).expect("keygen");
         assert_eq!(key.primary_key.version(), KeyVersion::V4);
     }
