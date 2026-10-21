@@ -120,13 +120,17 @@ class GpgAgentProcess {
   }
 
   ~GpgAgentProcess() {
+    // The spawned gpg-agent is terminated authoritatively via `gpgconf --kill
+    // all` (GpgContext::Impl::kill_gpg_agent), which is always paired with
+    // releasing this object. Do NOT run any blocking QProcess wait here: this
+    // QProcess may have been created on a worker thread (channels are built off
+    // the main thread) while teardown runs on the main thread, so a
+    // cross-thread waitForFinished() cannot observe completion and burns its
+    // full timeout -- accumulated across channels that overran the shutdown
+    // watchdog. Just signal a kill and return.
     if (process_.state() != QProcess::NotRunning) {
       qInfo() << "killing gpg-agent, channel: " << channel_;
-      process_.terminate();
-      if (!process_.waitForFinished(3000)) {
-        process_.kill();
-        process_.waitForFinished();
-      }
+      process_.kill();
     }
   }
 
@@ -168,8 +172,14 @@ class GpgContext::Impl {
     // process lingering). gpgconf --kill is the reliable way to stop it; doing
     // it here also protects teardown paths that don't go through
     // ShutdownGlobalBasicEnv().
-    kill_gpg_agent();
-    agent_.reset();
+    //
+    // Only kill when we still own an agent: KillGpgAgent() (used by the
+    // shutdown path) already releases it, and killing again would run a second
+    // redundant `gpgconf --kill all` per context teardown.
+    if (agent_ != nullptr) {
+      kill_gpg_agent();
+      agent_.reset();
+    }
 
     if (ctx_ref_ != nullptr) {
       gpgme_release(ctx_ref_);
