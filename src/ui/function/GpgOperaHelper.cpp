@@ -77,9 +77,9 @@ class BatchInProgressMarker {
 
 namespace GpgFrontend::UI {
 
-void GpgOperaHelper::BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
-                                 int category, int channel,
-                                 const GpgOperaFactory& f) {
+void GpgOperaHelper::BuildOperas(
+    const QSharedPointer<GpgOperaContextBasement>& base, int category,
+    int channel, const GpgOperaFactory& f) {
   assert(base != nullptr);
 
   auto context = GetGpgOperaContextFromBasement(base, category);

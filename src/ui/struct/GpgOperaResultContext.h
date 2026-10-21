@@ -45,7 +45,7 @@ struct GpgOperaCategory {
 
 struct GpgOperaContext;
 
-struct GpgOperaContextBasement {
+struct GF_UI_EXPORT GpgOperaContextBasement {
   // Each opera captures the GpgOperaContext it was built from, and that context
   // holds a strong reference back to this basement — so this container owns a
   // cycle. Whoever runs the operas must clear it once they are done, or the
@@ -80,8 +80,52 @@ struct GpgOperaContext {
   explicit GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base);
 };
 
-auto GetGpgOperaContextFromBasement(
+auto GF_UI_EXPORT GetGpgOperaContextFromBasement(
     const QSharedPointer<GpgOperaContextBasement>& base, int category)
     -> QSharedPointer<GpgOperaContext>;
+
+/**
+ * @brief Owns a basement and guarantees its opera cycle is broken.
+ *
+ * The cycle described on GpgOperaContextBasement has to be cut by hand, and
+ * that worked only as long as every path out of a slot remembered to do it —
+ * one did not, and every instant message decrypted in that session stayed in
+ * memory. This makes the release a property of the scope instead, so a return
+ * added above the wait, or a wait that ends without a clear, still frees the
+ * keys and buffers below.
+ *
+ * Safe while operations are still running. The starters queued by
+ * WaitForMultipleOperas capture by value, so each holds its own copy of the
+ * callback and therefore its own strong reference; clearing the container here
+ * cannot strand a callback that is still in flight. The basement simply lives
+ * until the last queued copy is gone.
+ *
+ * Deliberately does not Zeroize the buffers: GFBuffer::Zeroize() wipes through
+ * every copy-on-write share, and results are handed on to the editor and the
+ * info board. Breaking the cycle lets the last share die, and GFBuffer erases
+ * its storage when it does.
+ */
+class GF_UI_EXPORT GpgOperaContextHolder {
+ public:
+  GpgOperaContextHolder();
+  ~GpgOperaContextHolder();
+
+  GpgOperaContextHolder(const GpgOperaContextHolder&) = delete;
+  auto operator=(const GpgOperaContextHolder&)
+      -> GpgOperaContextHolder& = delete;
+  GpgOperaContextHolder(GpgOperaContextHolder&&) = delete;
+  auto operator=(GpgOperaContextHolder&&) -> GpgOperaContextHolder& = delete;
+
+  auto operator->() const -> GpgOperaContextBasement*;
+
+  /**
+   * @brief The owned basement, for the helpers that take it by shared pointer.
+   */
+  [[nodiscard]] auto Base() const
+      -> const QSharedPointer<GpgOperaContextBasement>&;
+
+ private:
+  QSharedPointer<GpgOperaContextBasement> base_;
+};
 
 }  // namespace GpgFrontend::UI
