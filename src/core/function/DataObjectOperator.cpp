@@ -38,6 +38,10 @@
 
 namespace {
 
+auto IsValidRefHex(const QString& s) -> bool {
+  return s.size() == 64 && QByteArray::fromHex(s.toLatin1()).size() == 32;
+}
+
 auto LogOpenSSLError(const QString& context) -> void {
   unsigned long err = ERR_get_error();
   std::array<char, 256> err_buf;
@@ -132,7 +136,7 @@ auto DataObjectOperator::GetDataObject(const QString& key)
 
 auto DataObjectOperator::GetDataObjectByRef(const QString& ref)
     -> std::optional<QJsonDocument> {
-  if (key_.Empty() || ref.size() != 64) return {};
+  if (key_.Empty() || !IsValidRefHex(ref)) return {};
   return read_decr_json_object(GFBuffer(QByteArray::fromHex(ref.toLatin1())));
 }
 
@@ -157,7 +161,7 @@ auto DataObjectOperator::GetSecDataObject(const QString& key)
 
 auto DataObjectOperator::GetSecDataObjectByRef(const QString& ref)
     -> GFBufferOrNone {
-  if (key_.Empty() || ref.size() != 64) return {};
+  if (key_.Empty() || !IsValidRefHex(ref)) return {};
   return read_decr_object(GFBuffer(QByteArray::fromHex(ref.toLatin1())));
 }
 
