@@ -45,7 +45,7 @@ auto GpgAdvancedOperator::ReloadAllGpgComponents() -> bool {
 
 auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
   mgr_.Reset();
-  return ctx_.RestartGpgAgent();
+  return ctx_.KillGpgAgent();
 }
 
 auto GpgAdvancedOperator::ResetConfigures() -> bool {

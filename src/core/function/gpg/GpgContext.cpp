@@ -113,6 +113,9 @@ class GpgAgentProcess {
       return false;
     }
 
+    LOG_D() << "gpg-agent started, channel: " << channel_
+            << "pid: " << process_.processId();
+
     return true;
   }
 
@@ -234,6 +237,19 @@ class GpgContext::Impl {
     kill_gpg_agent();
 
     return launch_gpg_agent();
+  }
+
+  auto KillGpgAgent() -> bool {
+    // `gpgconf --kill gpg-agent` is the authoritative kill and does not depend
+    // on the child QProcess handle. Do NOT reassign agent_ to a fresh process
+    // first (as RestartGpgAgent must): that destroys the running
+    // GpgAgentProcess and burns a blocking wait in its destructor before we
+    // even reach gpgconf.
+    auto ok = kill_gpg_agent();
+
+    // Release our handle so a later teardown won't kill a second time.
+    agent_.reset();
+    return ok;
   }
 
  private:
@@ -601,4 +617,6 @@ auto GpgContext::ComponentDirectory(GpgComponentType type) const -> QString {
 auto GpgContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 
 auto GpgContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
+
+auto GpgContext::KillGpgAgent() -> bool { return p_->KillGpgAgent(); }
 }  // namespace GpgFrontend

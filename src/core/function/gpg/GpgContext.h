@@ -119,6 +119,13 @@ class GF_CORE_EXPORT GpgContext : public SingletonFunctionObject<GpgContext> {
    */
   auto RestartGpgAgent() -> bool;
 
+  /**
+   * @brief Kill the gpg-agent of this context without starting a new one.
+   *
+   * @return true when gpgconf reported success
+   */
+  auto KillGpgAgent() -> bool;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
