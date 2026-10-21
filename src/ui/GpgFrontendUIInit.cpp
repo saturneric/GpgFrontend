@@ -95,8 +95,12 @@ void WaitEnvCheckingProcess() {
 
   QApplication::connect(progress_dialog, &QProgressDialog::canceled, [=]() {
     FLOG_D("cancel clicked on waiting dialog");
-    QApplication::quit();
-    exit(0);
+    // Quitting the application from inside this nested event loop while the
+    // core is still initializing on worker threads can abort or hang in
+    // static destructors. Nothing has been written yet, so end the process
+    // directly.
+    qWarning() << "Application startup was canceled. Terminating process.";
+    std::_Exit(0);
   });
 
   auto env_state =
