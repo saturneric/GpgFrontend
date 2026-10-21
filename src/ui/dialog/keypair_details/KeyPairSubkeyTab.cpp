@@ -464,9 +464,13 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
 }
 
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  key_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-             .GetKeyPtr(key_->ID());
-  assert(key_ != nullptr);
+  auto refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                           .GetKeyPtr(key_->ID());
+  // the key can disappear while the dialog is open, e.g. when it is deleted
+  // from the key list. Keep showing the last known state instead of crashing.
+  if (refreshed_key == nullptr) return;
+
+  key_ = refreshed_key;
 }
 
 void KeyPairSubkeyTab::slot_export_subkey() {

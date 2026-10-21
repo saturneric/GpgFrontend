@@ -286,7 +286,9 @@ void KeyPairDetailTab::slot_refresh_key() {
   // refresh the key
   auto refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                            .GetKeyPtr(key_->ID());
-  assert(refreshed_key != nullptr);
+  // the key can disappear while the dialog is open, e.g. when it is deleted
+  // from the key list. Keep showing the last known state instead of crashing.
+  if (refreshed_key == nullptr) return;
 
   std::swap(this->key_, refreshed_key);
   this->slot_refresh_key_info();
