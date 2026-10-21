@@ -165,9 +165,22 @@ class GlobalSettingStation::Impl {
     const auto exec_binary_path = GetAppDir();
 
 #ifdef Q_OS_LINUX
-    // AppImage
-    if (IsAppImageENV()) {
-      return qEnvironmentVariable("APPDIR") + "/usr/lib/modules";
+    // AppImage, whether mounted or extracted.
+    //
+    // $APPIMAGE is set only when the .AppImage FILE is executed. AppRun sets
+    // $APPDIR in both cases, including after `--appimage-extract`, which is
+    // how the image is run on a system without FUSE. Keying on $APPIMAGE
+    // alone sent an extracted run looking for modules beside the binary,
+    // where there are none, and the application started with no modules.
+    //
+    // The extracted case is existence-checked rather than trusted: $APPDIR is
+    // a convention and a stray one must not redirect module discovery. When
+    // $APPIMAGE is set the answer is returned regardless, so a broken image
+    // still reports the path it meant to use.
+    const auto appdir = qEnvironmentVariable("APPDIR");
+    if (!appdir.isEmpty()) {
+      const auto candidate = appdir + "/usr/lib/modules";
+      if (IsAppImageENV() || QFileInfo(candidate).isDir()) return candidate;
     }
     // Flatpak
     if (IsFlatpakENV()) {
