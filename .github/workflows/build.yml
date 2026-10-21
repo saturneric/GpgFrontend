@@ -2112,8 +2112,32 @@ jobs:
           # convert step reading a still-attached file. HFS+ is also the
           # traditional read-only app-image format, mountable everywhere, and
           # what create-dmg produced before.
-          hdiutil create -format UDRW -fs HFS+ -volname GpgFrontend \
-            -srcfolder "$STAGE" -ov "$RW"
+          #
+          # -srcfolder makes hdiutil attach the new image internally and
+          # detach it once the copy is done; on hosted runners XProtect or
+          # Spotlight scanning the fresh volume can hold it at that detach
+          # ("create failed - Resource busy"). The same race the detach
+          # below retries, so retry here too, from a clean file each time.
+          for attempt in 1 2 3 4 5; do
+            rm -f "$RW"
+            if hdiutil create -format UDRW -fs HFS+ -volname GpgFrontend \
+              -srcfolder "$STAGE" -ov "$RW"; then
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "could not create the disk image after 5 attempts" >&2
+              exit 1
+            fi
+            echo "hdiutil create failed (attempt $attempt/5), retrying" >&2
+            # A failed create can leave its internal attachment behind; drop
+            # it so the next attempt does not trip over the same busy device.
+            hdiutil info \
+              | awk -v img="$RW" 'index($0, img) {f=1} f && /^\/dev\/disk/ {print $1; exit}' \
+              | while read -r dev; do
+                  hdiutil detach "$dev" -force > /dev/null 2>&1 || true
+                done || true
+            sleep $((attempt * 5))
+          done
 
           # Detach by device node, not by mount point: the first line of
           # `hdiutil attach` output is the image's top-level device, and that
