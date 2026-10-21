@@ -1921,6 +1921,32 @@ jobs:
           echo "notarization accepted: $(basename "$TARGET")"
           SH
 
+          # --- Stapling -------------------------------------------------------
+          # Both staple and validate fetch the ticket from Apple's CloudKit
+          # service, and a dropped connection there (NSURLError -1005, stapler
+          # exit 68) says nothing about the ticket itself. By this point the
+          # notarization is already accepted, so retry rather than lose the
+          # job. Each verb retries on its own: a staple that already landed
+          # is not redone just because the validate after it hit the network.
+          cat > "$RUNNER_TEMP/staple.sh" <<'SH'
+          #!/bin/bash
+          set -euo pipefail
+          TARGET="$1"
+          for verb in staple validate; do
+            for attempt in 1 2 3 4 5; do
+              if xcrun stapler "$verb" "$TARGET"; then
+                break
+              fi
+              if [ "$attempt" -eq 5 ]; then
+                echo "stapler $verb $(basename "$TARGET") failed after 5 attempts" >&2
+                exit 1
+              fi
+              echo "stapler $verb failed (attempt $attempt/5), retrying" >&2
+              sleep $((attempt * 10))
+            done
+          done
+          SH
+
           # --- Entitlement equality check -------------------------------------
           cat > "$RUNNER_TEMP/check-entitlements.py" <<'PY'
           #!/usr/bin/env python3
@@ -1949,7 +1975,8 @@ jobs:
           sys.exit(1)
           PY
 
-          chmod 700 "$RUNNER_TEMP/sign-bundle.sh" "$RUNNER_TEMP/notarize.sh"
+          chmod 700 "$RUNNER_TEMP/sign-bundle.sh" "$RUNNER_TEMP/notarize.sh" \
+            "$RUNNER_TEMP/staple.sh"
 
       - name: Prepare Signing Keychain
         env:
@@ -2065,8 +2092,7 @@ jobs:
           ditto -c -k --keepParent "$RUNNER_TEMP/app/GpgFrontend.app" \
             "$RUNNER_TEMP/notarize-app.zip"
           "$RUNNER_TEMP/notarize.sh" "$RUNNER_TEMP/notarize-app.zip"
-          xcrun stapler staple "$RUNNER_TEMP/app/GpgFrontend.app"
-          xcrun stapler validate "$RUNNER_TEMP/app/GpgFrontend.app"
+          "$RUNNER_TEMP/staple.sh" "$RUNNER_TEMP/app/GpgFrontend.app"
           rm -f "$RUNNER_TEMP/notarize-app.zip"
 
           # The .app is stapled but not shipped on its own: the dmg is the only
@@ -2189,8 +2215,7 @@ jobs:
             sleep $((attempt * 5))
           done
           "$RUNNER_TEMP/notarize.sh" "$DMG"
-          xcrun stapler staple "$DMG"
-          xcrun stapler validate "$DMG"
+          "$RUNNER_TEMP/staple.sh" "$DMG"
 
       - name: Assess With Gatekeeper
         env:
@@ -2221,6 +2246,7 @@ jobs:
                 "$RUNNER_TEMP/certificate.p12" \
                 "$RUNNER_TEMP/sign-bundle.sh" \
                 "$RUNNER_TEMP/notarize.sh" \
+                "$RUNNER_TEMP/staple.sh" \
                 "$RUNNER_TEMP/check-entitlements.py" \
                 "$RUNNER_TEMP/notary-result.json"
 
