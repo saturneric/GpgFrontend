@@ -63,12 +63,16 @@ KeyImportDetailDialog::KeyImportDetailDialog(
   this->setMinimumSize(QSize(600, 300));
   this->adjustSize();
 
-  setPosCenterOfScreen();
   this->setModal(true);
 
   this->show();
   this->raise();
   this->activateWindow();
+}
+
+void KeyImportDetailDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+  this->movePosition2CenterOfParent();
 }
 
 void KeyImportDetailDialog::create_general_info_box() {
