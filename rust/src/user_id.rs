@@ -47,9 +47,10 @@ use crate::{
     err::IntoGfrResult,
     types::{GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket,
-        choose_template_self_sig, fetch_password_with_cache, has_is_primary_true,
-        is_self_signature_from_primary, password_from_zeroizing_bytes,
+        PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
+        fetch_password_with_cache, has_is_primary_true, is_property_self_sig,
+        is_self_signature_from_primary, key_armor_opts, password_from_zeroizing_bytes,
+        refresh_reissued_config,
     },
 };
 
@@ -71,7 +72,7 @@ pub fn delete_user_id_internal(
             return Err(GfrStatus::ErrorInvalidInput);
         }
         return skey
-            .to_armored_string(armor_opts())
+            .to_armored_string(key_armor_opts(skey.primary_key.version()))
             .into_gfr()
             .map(Zeroizing::new);
     }
@@ -86,7 +87,7 @@ pub fn delete_user_id_internal(
             return Err(GfrStatus::ErrorInvalidInput);
         }
         return pkey
-            .to_armored_string(armor_opts())
+            .to_armored_string(key_armor_opts(pkey.primary_key.version()))
             .into_gfr()
             .map(Zeroizing::new);
     }
@@ -155,6 +156,7 @@ pub fn add_user_id_internal(
         template_sig.as_ref(),
         primary_algo,
         primary_version,
+        pgp::types::SigningKey::hash_alg(&skey.primary_key),
         primary_fpr.clone(),
         false,
     )?;
@@ -168,7 +170,7 @@ pub fn add_user_id_internal(
         .users
         .push(SignedUser::new(new_uid, vec![new_sig]));
 
-    skey.to_armored_string(armor_opts())
+    skey.to_armored_string(key_armor_opts(skey.primary_key.version()))
         .into_gfr()
         .map(Zeroizing::new)
 }
@@ -193,6 +195,7 @@ fn build_updated_self_sig_config(
     template_sig: Option<&Signature>,
     primary_key_algo: public_key::PublicKeyAlgorithm,
     primary_key_version: KeyVersion,
+    primary_key_hash: HashAlgorithm,
     primary_fpr: pgp::types::Fingerprint,
     make_primary: bool,
 ) -> Result<SignatureConfig, GfrStatus> {
@@ -221,7 +224,10 @@ fn build_updated_self_sig_config(
     };
 
     let mut cfg = match template_sig.and_then(|sig| sig.config().cloned()) {
-        Some(cfg) => cfg,
+        Some(mut cfg) => {
+            refresh_reissued_config(&mut cfg, primary_key_hash)?;
+            cfg
+        }
         None => build_fallback()?,
     };
 
@@ -307,6 +313,7 @@ pub fn set_primary_user_id_internal(
     let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
     let primary_algo = skey.primary_key.algorithm();
     let primary_version = skey.primary_key.version();
+    let primary_hash = pgp::types::SigningKey::hash_alg(&skey.primary_key);
 
     let old_primary_idx = 0;
 
@@ -348,6 +355,7 @@ pub fn set_primary_user_id_internal(
             template_sig,
             primary_algo,
             primary_version,
+            primary_hash,
             primary_fpr.clone(),
             is_target,
         )?;
@@ -356,8 +364,10 @@ pub fn set_primary_user_id_internal(
             .sign_certification(&skey.primary_key, &pk, &pwd, Tag::UserId, &user.id)
             .into_gfr()?;
 
-        user.signatures
-            .retain(|sig| !is_self_signature_from_primary(sig, &primary_fpr_bytes));
+        // Replace the certifications only: a 0x30 revocation must survive.
+        user.signatures.retain(|sig| {
+            !(is_self_signature_from_primary(sig, &primary_fpr_bytes) && is_property_self_sig(sig))
+        });
 
         user.signatures.push(new_sig);
     }
@@ -367,7 +377,7 @@ pub fn set_primary_user_id_internal(
         skey.details.users.insert(0, primary_user);
     }
 
-    skey.to_armored_string(armor_opts())
+    skey.to_armored_string(key_armor_opts(skey.primary_key.version()))
         .into_gfr()
         .map(Zeroizing::new)
 }
@@ -452,7 +462,7 @@ pub fn revoke_user_id_internal(
 
     user.signatures.push(revoke_sig);
 
-    skey.to_armored_string(armor_opts())
+    skey.to_armored_string(key_armor_opts(skey.primary_key.version()))
         .into_gfr()
         .map(Zeroizing::new)
 }
@@ -486,6 +496,41 @@ mod user_id_tests {
     /// A fresh unprotected key with a single user ID, safe to mutate.
     fn base_key() -> String {
         keys::V4_SIGN.secret_armored.clone()
+    }
+
+    #[test]
+    fn setting_the_primary_user_id_keeps_another_user_ids_revocation() {
+        // RFC 9580 §5.2.1.13: the 0x30 revocation retires the User ID.
+        // Re-signing the former primary (which still carries IsPrimary) must
+        // not drop it.
+        let first = uids_of(&base_key()).remove(0);
+        let second = "Second <second@test.example>";
+        let block = add_user_id_internal(0, &base_key(), second, None).unwrap();
+        let block = set_primary_user_id_internal(0, &block, second, None).unwrap();
+        let block = revoke_user_id_internal(
+            0,
+            &block,
+            second,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            None,
+        )
+        .unwrap();
+        let block = set_primary_user_id_internal(0, &block, &first, None).unwrap();
+
+        let sk = parse(&block);
+        let user = sk
+            .details
+            .users
+            .iter()
+            .find(|u| u.id.id() == second.as_bytes())
+            .expect("the second User ID survives");
+        assert!(user.signatures.iter().any(|sig| {
+            matches!(sig.typ(), Some(SignatureType::CertRevocation))
+                && sig
+                    .verify_certification(sk.primary_key.public_key(), Tag::UserId, &user.id)
+                    .is_ok()
+        }));
     }
 
     fn base_uid() -> String {
@@ -573,11 +618,13 @@ mod user_id_tests {
     }
 
     #[test]
-    fn a_delete_emits_armor_without_a_crc24_footer() {
+    fn a_delete_on_a_v4_key_emits_armor_with_a_crc24_footer() {
+        // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
+        // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
         let block = base_key();
         let uid = base_uid();
         let out = delete_user_id_internal(&block, &uid).expect("delete");
-        crate::testutil::assert::armor_has_no_crc24(&out);
+        crate::testutil::assert::armor_has_crc24(&out);
     }
 
     // -- add_user_id_internal -----------------------------------------------
@@ -740,10 +787,12 @@ mod user_id_tests {
     }
 
     #[test]
-    fn adding_emits_armor_without_a_crc24_footer() {
+    fn adding_to_a_v4_key_emits_armor_with_a_crc24_footer() {
+        // RFC 9580 §6.1 interoperability exception: v4-only armor carries the
+        // CRC24 footer (GnuPG 2.4); v6 armor never does (utils::crc24_policy_tests).
         let block = base_key();
         let out = add_user_id_internal(0, &block, "C <c@example.test>", None).expect("add");
-        crate::testutil::assert::armor_has_no_crc24(&out);
+        crate::testutil::assert::armor_has_crc24(&out);
     }
 
     // -- update_user_id_internal --------------------------------------------
