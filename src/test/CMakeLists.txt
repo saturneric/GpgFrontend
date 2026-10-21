@@ -29,6 +29,7 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 aux_source_directory(./core TEST_SOURCE)
+aux_source_directory(./ui TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)
 
 # define test library
@@ -40,5 +41,6 @@ target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
 # link options
 target_link_libraries(${LIBRARY_TARGET} PRIVATE GTest::gtest)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_core)
+target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})

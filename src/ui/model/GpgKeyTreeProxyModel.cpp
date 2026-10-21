@@ -33,6 +33,7 @@
 #include "core/model/GpgKeyTreeModel.h"
 #include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/model/KeySearchMatcher.h"
 
 namespace GpgFrontend::UI {
 
@@ -77,7 +78,9 @@ auto GpgKeyTreeProxyModel::filterAcceptsRow(
   if (filter_keywords_.isEmpty()) return true;
 
   QStringList infos;
-  for (int column = 0; column < sourceModel()->columnCount(); ++column) {
+  // From column 1: column 0 holds the row number, and matching that makes a
+  // keyword like "3" hit an arbitrary row.
+  for (int column = 1; column < sourceModel()->columnCount(); ++column) {
     auto index = sourceModel()->index(source_row, column, sourceParent);
     infos << sourceModel()->data(index).toString();
   }
@@ -88,9 +91,7 @@ auto GpgKeyTreeProxyModel::filterAcceptsRow(
     for (const auto &uid : g_key->UIDs()) infos << uid.GetUID();
   }
 
-  return std::any_of(infos.cbegin(), infos.cend(), [&](const QString &info) {
-    return info.contains(filter_keywords_, Qt::CaseInsensitive);
-  });
+  return KeySearchMatches(infos, key->Fingerprint(), filter_keywords_);
 }
 
 void GpgKeyTreeProxyModel::SetRecursiveFiltering(bool enabled) {

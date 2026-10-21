@@ -34,6 +34,7 @@
 #include "core/model/GpgKeyTableModel.h"
 #include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/model/KeySearchMatcher.h"
 
 namespace GpgFrontend::UI {
 
@@ -88,24 +89,29 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
 
   if (filter_keywords_.isEmpty()) return true;
 
+  const auto column_count = sourceModel()->columnCount();
+
   QStringList infos;
-  for (int column = 0; column < sourceModel()->columnCount(); ++column) {
+  infos.reserve(column_count + 4);
+
+  // From column 1: column 0 holds the row number, and matching that makes a
+  // keyword like "3" hit an arbitrary row.
+  for (int column = 1; column < column_count; ++column) {
     auto index = sourceModel()->index(sourceRow, column, sourceParent);
     infos << sourceModel()->data(index).toString();
+  }
 
-    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
-      auto *k = dynamic_cast<GpgKey *>(key);
+  // Once per row. This used to sit inside the column loop, appending every UID
+  // once per column.
+  if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+    if (auto *k = dynamic_cast<GpgKey *>(key); k != nullptr) {
       for (const auto &uid : k->UIDs()) {
         infos << uid.GetUID();
       }
     }
   }
 
-  return std::any_of(infos.cbegin(), infos.cend(), [&](const QString &info) {
-    return info.contains(filter_keywords_, Qt::CaseInsensitive);
-  });
-
-  return false;
+  return KeySearchMatches(infos, key->Fingerprint(), filter_keywords_);
 }
 
 auto GpgKeyTableProxyModel::filterAcceptsColumn(
