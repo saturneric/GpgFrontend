@@ -229,6 +229,9 @@ pub extern "C" fn gfr_crypto_free_decrypt_metadata(meta: *mut GfrDecryptMetadata
         if !(*meta).filename.is_null() {
             secure_free_c_string((*meta).filename);
         }
+        if !(*meta).sym_algo.is_null() {
+            secure_free_c_string((*meta).sym_algo);
+        }
 
         if !(*meta).recipients.is_null() && (*meta).recipient_count > 0 {
             let recs_slice =
@@ -246,6 +249,7 @@ pub extern "C" fn gfr_crypto_free_decrypt_metadata(meta: *mut GfrDecryptMetadata
             drop(Box::from_raw(array_ptr));
         }
         (*meta).filename = std::ptr::null_mut();
+        (*meta).sym_algo = std::ptr::null_mut();
         (*meta).recipients = std::ptr::null_mut();
         (*meta).recipient_count = 0;
     }
