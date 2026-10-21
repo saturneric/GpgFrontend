@@ -59,6 +59,22 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
   this->activateWindow();
 }
 
+void WaitingDialog::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    event->accept();
+    return;
+  }
+  GeneralDialog::keyPressEvent(event);
+}
+
+void WaitingDialog::closeEvent(QCloseEvent* event) {
+  if (event->spontaneous()) {
+    event->ignore();
+    return;
+  }
+  GeneralDialog::closeEvent(event);
+}
+
 void WaitingDialog::SlotUpdateValue(int value) {
   if (pb_->maximum() > 0) pb_->setValue(value);
 }

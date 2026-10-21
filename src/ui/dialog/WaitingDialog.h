@@ -65,6 +65,25 @@ class WaitingDialog : public GeneralDialog {
    */
   void SignalUpdateValue(int value);
 
+ protected:
+  /**
+   * @brief Ignore Esc.
+   *
+   * The operations behind this dialog cannot be cancelled on this release
+   * series. Letting the user dismiss it would end the wait while they are
+   * still writing their output, and the caller would act on a partial result.
+   * The dialog is closed by the caller once every operation reported back.
+   *
+   */
+  void keyPressEvent(QKeyEvent* event) override;
+
+  /**
+   * @brief Ignore close requests coming from the user or the window system,
+   * for the same reason as keyPressEvent(); programmatic closes still work.
+   *
+   */
+  void closeEvent(QCloseEvent* event) override;
+
  private:
   QProgressBar* pb_;
 };

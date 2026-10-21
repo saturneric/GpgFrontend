@@ -105,6 +105,7 @@ void MainWindow::exec_file_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts,
     const QContainer<SafeOutputPath>& safe_outputs) {
+  const auto expected_results = contexts->operas.size();
   GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
 
   // Releases the reference cycle the operas hold on this basement.
@@ -115,7 +116,10 @@ void MainWindow::exec_file_operas_helper(
   // being iterated.
   const auto opera_results = contexts->opera_results;
 
-  const bool success = IsFileOperaSuccessful(opera_results);
+  // Only commit when every operation reported back. A missing result means
+  // the wait ended early and its output may still be being written.
+  const bool success = opera_results.size() == expected_results &&
+                       IsFileOperaSuccessful(opera_results);
 
   if (!success) {
     LOG_E()
