@@ -271,6 +271,14 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
             << "GRT key prefix: " << grt_key_prefix
             << "database name: " << database_name;
 
+    // The cache is indexed by channel. A context reporting no channel, or one
+    // past the end of the list, would otherwise write out of bounds.
+    if (channel < 0 || channel >= gpg_key_database_info_cache.size()) {
+      LOG_W() << "context reports an invalid channel, skip:" << channel
+              << "database name:" << database_name;
+      continue;
+    }
+
     auto i = KeyDatabaseInfo();
     i.channel = channel;
     i.name = database_name;
@@ -282,7 +290,7 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
 }
 auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
   auto info = GetGpgKeyDatabaseInfos();
-  if (channel >= info.size()) return {};
+  if (channel < 0 || channel >= info.size()) return {};
   return info[channel].name;
 }
 

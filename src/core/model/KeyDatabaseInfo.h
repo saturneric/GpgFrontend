@@ -31,7 +31,10 @@
 namespace GpgFrontend {
 
 struct KeyDatabaseInfo {
-  int channel;
+  /// No channel until something assigns one. Left uninitialised, an entry that
+  /// was never filled in reads as a channel number that happens to be whatever
+  /// was on the stack.
+  int channel{-1};
   QString name;
   QString path;
   QString origin_path;
