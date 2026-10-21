@@ -49,6 +49,11 @@ struct GpgOperaContext;
 struct GpgOperaContextBasement;
 struct KeyTable;
 
+struct SafeOutputPath {
+  QString final_path;
+  QString temp_path;
+};
+
 /**
  * @brief
  *
@@ -797,6 +802,28 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   bool show_wizard_on_startup_ = false;    ///<
   bool wizard_checked_ = false;            ///<
   unsigned int operations_menu_mask_ = ~0;
+
+  /**
+   * @brief Move staged outputs into place.
+   *
+   * @param outputs
+   * @return true when every output was committed
+   */
+  auto commit_safe_output_files(const QContainer<SafeOutputPath>& outputs)
+      -> bool;
+
+  /**
+   * @brief Run file operations writing to staged outputs and commit them
+   * only on success.
+   *
+   * @param task
+   * @param contexts
+   * @param safe_outputs
+   */
+  void exec_file_operas_helper(
+      const QString& task,
+      const QSharedPointer<GpgOperaContextBasement>& contexts,
+      const QContainer<SafeOutputPath>& safe_outputs);
 };
 
 }  // namespace GpgFrontend::UI
