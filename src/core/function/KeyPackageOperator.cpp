@@ -134,7 +134,11 @@ auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
  */
 auto KeyPackageOperator::generate_key_package_name() -> QString {
   auto random = gb_fac_.RandomGpgZBasePassphase(31);
-  if (!random) return {};
+  if (!random) {
+    LOG_E()
+        << "generate random passphrase failed when generating key package name";
+    return QString{"KeyPackage"};
+  }
 
   return QString("KeyPackage_%1").arg(random->Left(8).ConvertToQString());
 }

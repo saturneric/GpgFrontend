@@ -38,7 +38,17 @@ auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
 
   auto buffer = rand_.GnuPGGenerate(len);
   if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
-    LOG_E() << "generate random bytes failed, len: " << len;
+    LOG_W() << "generate random bytes using gnupg failed, fallback to openssl, "
+               "len: "
+            << len;
+    buffer = SecureRandomGenerator::OpenSSLGenerate(len);
+  }
+
+  // a short buffer is as unusable as a missing one: consuming it would read
+  // past its end.
+  if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
+    LOG_E() << "generate random bytes using gnupg and openssl failed, len: "
+            << len;
     return {};
   }
 
