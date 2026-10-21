@@ -54,11 +54,24 @@ auto GetFileHashQt(const QString& file_path,
   return hash.result();
 }
 
-// Name of the directory staged outputs are written into, one per output
-// directory per process. Carries the pid so two GpgFrontend instances working
-// in the same directory never share, or clean up, each other's staging area.
-auto SafeOutputWorkDirName() -> QString {
-  return QString(".gpgfrontend.tmp.%1").arg(QCoreApplication::applicationPid());
+// Prefix of the work directories staged outputs are written into. Each one is
+// created fresh, private and with an unpredictable suffix, so two GpgFrontend
+// instances never share one and nobody can create one in advance.
+auto SafeOutputWorkDirPrefix() -> QString {
+  return QStringLiteral(".gpgfrontend.tmp.");
+}
+
+// An unpredictable suffix for staging names that cannot live in a private
+// work directory.
+auto UnpredictableSuffix() -> QString {
+  return QUuid::createUuid().toString(QUuid::Id128);
+}
+
+// Remove a staged output, file or directory, with everything in it.
+auto RemoveStagedPath(const QString& path) -> bool {
+  const QFileInfo info(path);
+  if (info.isDir() && !info.isSymLink()) return QDir(path).removeRecursively();
+  return !info.exists() && !info.isSymLink() ? true : QFile::remove(path);
 }
 
 }  // namespace
@@ -232,25 +245,19 @@ auto MakeSafeOutputTempPath(const QString& final_path) -> QString {
   const auto base_name = info.fileName();
   const auto final_dir = info.absolutePath();
 
-  auto dir = QDir(final_dir).absoluteFilePath(SafeOutputWorkDirName());
-  if (!QDir().mkpath(dir)) {
-    LOG_W() << "cannot create output work directory:" << dir
-            << ", staging next to the final file instead";
-    dir = final_dir;
+  // mkdtemp semantics: a new directory, owner-only (0700), with a random
+  // suffix. Nothing can be planted in it before the output is written.
+  QTemporaryDir work_dir(
+      QDir(final_dir).absoluteFilePath(SafeOutputWorkDirPrefix() + "XXXXXX"));
+  if (work_dir.isValid()) {
+    work_dir.setAutoRemove(false);
+    return QDir(work_dir.path()).absoluteFilePath(base_name);
   }
 
-  QString temp_path;
-  int counter = 0;
-
-  do {
-    temp_path =
-        QDir(dir).absoluteFilePath(QString(".%1.gpgfrontend.tmp.%2.%3")
-                                       .arg(base_name)
-                                       .arg(QCoreApplication::applicationPid())
-                                       .arg(counter++));
-  } while (QFileInfo::exists(temp_path));
-
-  return temp_path;
+  LOG_W() << "cannot create an output work directory in:" << final_dir
+          << ", staging next to the final file instead";
+  return QDir(final_dir).absoluteFilePath(
+      QString(".%1.gpgfrontend.tmp.%2").arg(base_name, UnpredictableSuffix()));
 }
 
 auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
@@ -260,35 +267,42 @@ auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
   const QFileInfo final_info(final_path);
   const auto backup_path =
       QDir(final_info.absolutePath())
-          .absoluteFilePath(QString(".%1.gpgfrontend.backup.%2")
-                                .arg(final_info.fileName())
-                                .arg(QCoreApplication::applicationPid()));
+          .absoluteFilePath(
+              QString(".%1.gpgfrontend.backup.%2")
+                  .arg(final_info.fileName(), UnpredictableSuffix()));
 
   bool has_backup = false;
 
-  if (QFileInfo::exists(final_path)) {
-    QFile::remove(backup_path);
-
-    if (!QFile::rename(final_path, backup_path)) return false;
+  // QDir::rename moves files and directories alike (an archive decryption
+  // stages a directory).
+  if (QFileInfo::exists(final_path) || QFileInfo(final_path).isSymLink()) {
+    if (!QDir().rename(final_path, backup_path)) return false;
 
     has_backup = true;
   }
 
-  if (!QFile::rename(temp_path, final_path)) {
-    if (has_backup) QFile::rename(backup_path, final_path);
+  if (!QDir().rename(temp_path, final_path)) {
+    if (has_backup) QDir().rename(backup_path, final_path);
     return false;
   }
 
-  if (has_backup) QFile::remove(backup_path);
+  if (has_backup && !RemoveStagedPath(backup_path)) {
+    LOG_W() << "cannot remove the replaced output:" << backup_path;
+  }
 
   return true;
+}
+
+auto DiscardSafeOutput(const QString& temp_path) -> bool {
+  if (temp_path.isEmpty()) return true;
+  return RemoveStagedPath(temp_path);
 }
 
 void RemoveSafeOutputWorkDir(const QString& temp_path) {
   if (temp_path.isEmpty()) return;
 
   const auto dir = QFileInfo(temp_path).absolutePath();
-  if (QFileInfo(dir).fileName() != SafeOutputWorkDirName()) return;
+  if (!QFileInfo(dir).fileName().startsWith(SafeOutputWorkDirPrefix())) return;
 
   QDir().rmdir(dir);
 }
