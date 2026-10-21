@@ -290,7 +290,7 @@ void KeyGenerateInfo::SetIsSubKey(bool m_sub_key) {
  * @return QString
  */
 [[nodiscard]] auto KeyGenerateInfo::GetUserid() const -> QString {
-  return QString("%1(%2)<%3>").arg(name_).arg(comment_).arg(email_);
+  return AssembleUserId(name_, comment_, email_);
 }
 
 /**

@@ -66,7 +66,12 @@ class GpgAbstractKey {
   [[nodiscard]] auto IsPrimaryKey() const -> bool { return IsHasCertCap(); }
 
   [[nodiscard]] virtual auto UID() const -> QString {
-    return QString("%1(%2)<%3>").arg(Name()).arg(Comment()).arg(Email());
+    // RFC 2822 mail name-addr convention: "Name (Comment) <email>", with the
+    // comment and email omitted when empty (see GpgFrontend::AssembleUserId).
+    auto uid = Name();
+    if (!Comment().isEmpty()) uid += QString(" (%1)").arg(Comment());
+    if (!Email().isEmpty()) uid += QString(" <%1>").arg(Email());
+    return uid;
   };
 
   auto operator==(const GpgAbstractKey& o) const -> bool {

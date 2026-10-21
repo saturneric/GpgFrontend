@@ -54,7 +54,11 @@ auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
                             const QString& comment,
                             const QString& email) -> bool {
   LOG_D() << "new uuid:" << name << comment << email;
-  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
+  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
+    LOG_E() << "refusing to add UID with malformed name or comment component";
+    return false;
+  }
+  return AddUID(key, AssembleUserId(name, comment, email));
 }
 
 auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
