@@ -28,11 +28,11 @@ name: Build Legacy Qt5
 on:
   push:
     tags:
-      - "v*"
+      - "v2.1.*"
 
   pull_request:
     branches:
-      - main
+      - release/2.1
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
