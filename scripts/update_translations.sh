@@ -251,6 +251,20 @@ warn_unexpected_ts() {
   done
 }
 
+# lupdate refuses to update a translated .ts whose <TS> carries no language
+# ("target language is not recognized"), so the catalog silently goes stale.
+# The filename names the locale, so put it back.
+fix_missing_language() {
+  local ts_dir="$1" base="$2" f loc
+  for loc in "${LOCALES[@]}"; do
+    f="${ts_dir}/${base}.${loc}.ts"
+    [[ -e "$f" ]] || continue
+    grep -q '<TS[^>]*language=' "$f" && continue
+    sed -i.bak "s/<TS\( [^>]*\)\{0,1\}>/<TS\1 language=\"${loc}\">/" "$f" && rm -f "$f.bak"
+    echo "    fixed missing language: $(basename "$f")"
+  done
+}
+
 # --- run lupdate per target ------------------------------------------------
 fail=0
 TR_TMP="$(mktemp -d)"
@@ -282,6 +296,7 @@ for i in "${!T_NAMES[@]}"; do
   echo "==> ${name}: ${#sources[@]} source(s) -> ${#ts_files[@]} .ts file(s)"
   [[ ${#created[@]} -gt 0 ]] && echo "    creating: ${created[*]}"
   warn_unexpected_ts "$ts_dir" "$base"
+  fix_missing_language "$ts_dir" "$base"
 
   # -locations absolute keeps the existing line-number style of the committed
   # .ts files (e.g. line="49") instead of switching to relative offsets.

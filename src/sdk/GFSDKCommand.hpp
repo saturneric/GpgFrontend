@@ -55,8 +55,12 @@
  * once:
  *
  * @code
+ * // A module spells the type unqualified: lupdate misreads
+ * // `gf::cmd::Meta kMeta{` in a class body and warns.
+ * using CommandMeta = gf::cmd::Meta;
+ *
  * struct PublishKey {
- *   static constexpr gf::cmd::Meta kMeta{
+ *   static constexpr CommandMeta kMeta{
  *       "com.example.module.publish_key", GC_TR("Publish Key"),
  *       GC_TR("Upload the public key to the key server"),
  *       GC_TR("Key Server Operations"), GF_HOST_CAP_GPG,
