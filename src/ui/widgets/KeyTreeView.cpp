@@ -38,9 +38,10 @@ namespace GpgFrontend::UI {
 KeyTreeView::KeyTreeView(QWidget* parent)
     : QTreeView(parent),
       channel_(kGpgFrontendDefaultChannel),
+      checkable_detector_([](auto) { return false; }),
       model_(SecureCreateSharedObject<GpgKeyTreeModel>(
           channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
-          [](auto) { return false; }, this)),
+          checkable_detector_, this)),
       proxy_model_(
           model_, GpgKeyTreeDisplayMode::kALL, [](auto) { return false; },
           this) {
@@ -53,9 +54,10 @@ KeyTreeView::KeyTreeView(int channel,
                          QWidget* parent)
     : QTreeView(parent),
       channel_(channel),
+      checkable_detector_(std::move(checkable_detector)),
       model_(SecureCreateSharedObject<GpgKeyTreeModel>(
           channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
-          checkable_detector, this)),
+          checkable_detector_, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, std::move(filter),
                    this) {
   init();
@@ -116,18 +118,34 @@ void KeyTreeView::init() {
           });
 
   connect(UISignalStation::GetInstance(),
-          &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=] {
-            model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
-                channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
-                [](auto) { return false; }, this);
-            proxy_model_.setSourceModel(model_.get());
-            proxy_model_.invalidate();
-          });
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
+          [=] { reset_model(); });
 
+  connect_model();
+}
+
+void KeyTreeView::connect_model() {
   connect(model_.get(), &GpgKeyTreeModel::SignalKeyCheckedChanged, this,
           [=](GpgAbstractKey*, bool) {
             emit SignalKeysChecked(GetAllCheckedKeys());
           });
+
+  // Fully expanded, so subkeys are visible by default.
+  expandAll();
+}
+
+void KeyTreeView::reset_model() {
+  // A new model starts with nothing checked, and it must keep the detector:
+  // without it, a refresh turned every row of a picker uncheckable, and
+  // without the connection the picker never learnt about new checks.
+  model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
+      channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
+      checkable_detector_, this);
+  proxy_model_.setSourceModel(model_.get());
+  proxy_model_.invalidate();
+
+  connect_model();
+  emit SignalKeysChecked(GetAllCheckedKeys());
 }
 
 void KeyTreeView::SetKeyFilter(const GpgKeyTreeProxyModel::KeyFilter& filter) {
@@ -140,11 +158,7 @@ void KeyTreeView::SetChannel(int channel) {
 
   channel_ = channel;
   init_ = false;
-  model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
-      channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
-      [](auto) { return false; }, this);
-  proxy_model_.setSourceModel(model_.get());
-  proxy_model_.invalidate();
+  reset_model();
 }
 
 auto KeyTreeView::GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr {

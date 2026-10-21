@@ -128,14 +128,25 @@ class KeyTreeView : public QTreeView {
   void paintEvent(QPaintEvent* event) override;
 
  private:
-  bool init_;
+  bool init_ = false;
   int channel_;
-  QSharedPointer<GpgKeyTreeModel> model_;  ///<
+  GpgKeyTreeModel::Detector checkable_detector_;  ///< kept for every new model
+  QSharedPointer<GpgKeyTreeModel> model_;         ///<
   GpgKeyTreeProxyModel proxy_model_;
 
   void slot_adjust_column_widths();
 
   void init();
+
+  /**
+   * @brief Wire a model to this view and show it fully expanded.
+   */
+  void connect_model();
+
+  /**
+   * @brief Replace the model with a fresh one for the current channel.
+   */
+  void reset_model();
 };
 
 }  // namespace GpgFrontend::UI
