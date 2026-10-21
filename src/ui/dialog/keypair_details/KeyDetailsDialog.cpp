@@ -36,7 +36,10 @@
 #include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
 #include "ui/dialog/keypair_details/KeyPairUIDTab.h"
 
-namespace {}  // namespace
+namespace {
+constexpr int kMinDialogWidth = 680;
+constexpr int kMinDialogHeight = 560;
+}  // namespace
 
 namespace GpgFrontend::UI {
 
@@ -96,6 +99,14 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
       QString(tr("Key Details") + " (" + tr("Key DB Index: %1") + ")")
           .arg(current_gpg_context_channel_));
   this->setModal(true);
+
+  // Commit the size before the native window is mapped. Relying on the size
+  // hint alone maps the window smaller than the tab pages need, and the
+  // correction lands after the first frame is already on screen. A saved
+  // geometry still wins: GeneralDialog restores it right before the map.
+  this->ensurePolished();
+  main_layout->activate();
+  this->resize(sizeHint().expandedTo(QSize(kMinDialogWidth, kMinDialogHeight)));
 
   this->show();
   this->raise();

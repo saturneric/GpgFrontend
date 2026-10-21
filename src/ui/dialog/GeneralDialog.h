@@ -36,12 +36,36 @@ class GeneralDialog : public QDialog {
    *
    * @param name
    */
-  explicit GeneralDialog(QString name, QWidget* parent = nullptr);
+  explicit GeneralDialog(QString name, QWidget *parent = nullptr);
 
   /**
    *
    */
   ~GeneralDialog() override;
+
+  /**
+   * @brief Prepare the dialog's geometry before the native window is mapped.
+   *
+   * On the first show we polish the widget, activate its layout and resolve the
+   * final size/position up front. Otherwise platforms that present eagerly
+   * (Windows) briefly map the window at its unpolished size hint and paint the
+   * unfilled backing store, so the user sees a small white frame that is then
+   * laid out again into the real dialog.
+   *
+   * @param visible
+   */
+  void setVisible(bool visible) override;
+
+  /**
+   * @brief Save the geometry however the dialog ends.
+   *
+   * Escape, Cancel, OK, accept() and reject() all end here, and since Qt 6.3
+   * done() closes the dialog but swallows the close event, so closeEvent()
+   * alone only ever sees the title bar's close button.
+   *
+   * @param result
+   */
+  void done(int result) override;
 
  protected:
   /**
@@ -59,13 +83,21 @@ class GeneralDialog : public QDialog {
    * @brief
    *
    */
-  [[nodiscard]] auto isRectRestored() -> bool;
+  [[nodiscard]] auto isRectRestored() const -> bool;
 
   /**
    * @brief
    *
+   * @param event
    */
-  void showEvent(QShowEvent* event) override;
+  void closeEvent(QCloseEvent *event) override;
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent *event) override;
 
  private slots:
   /**
@@ -78,16 +110,34 @@ class GeneralDialog : public QDialog {
    */
   void slot_save_settings() noexcept;
 
+  /**
+   * @brief Pull the window frame back onto the available screen area.
+   *
+   * Runs deferred after the native window is mapped, once the window manager
+   * has added the title bar and the frame margins become known. The pre-map
+   * clamping only constrains the client rect, so without this correction a
+   * dialog centered against a full-screen parent can end up with its title bar
+   * (and close button) above the top of the screen.
+   */
+  void slot_ensure_frame_on_screen();
+
  private:
   /**
    *
    */
   void update_rect_cache();
 
+  /**
+   * @brief Polish, size and restore the dialog's geometry. Runs exactly once,
+   * before the native window is first mapped.
+   */
+  void prepare_first_show();
+
   QString name_;  ///<
   QRect rect_;
   QRect parent_rect_;
   QRect screen_rect_;
   bool rect_restored_ = false;
+  bool first_show_handled_ = false;
 };
 }  // namespace GpgFrontend::UI

@@ -29,67 +29,171 @@
 #include "GeneralDialog.h"
 
 #include "core/model/SettingsObject.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/settings_object/WindowStateSO.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
-GpgFrontend::UI::GeneralDialog::GeneralDialog(QString name, QWidget *parent)
+namespace {
+
+auto SafeAvailableGeometry(QWidget *widget) -> QRect {
+  QScreen *screen = nullptr;
+
+  if (widget != nullptr && widget->windowHandle() != nullptr) {
+    screen = widget->windowHandle()->screen();
+  }
+
+  if (screen == nullptr && widget != nullptr && widget->screen() != nullptr) {
+    screen = widget->screen();
+  }
+
+  if (screen == nullptr) {
+    screen = QGuiApplication::primaryScreen();
+  }
+
+  if (screen == nullptr) {
+    return {0, 0, 1024, 768};
+  }
+
+  return screen->availableGeometry();
+}
+
+}  // namespace
+
+GeneralDialog::GeneralDialog(QString name, QWidget *parent)
     : QDialog(parent), name_(std::move(name)) {
-  slot_restore_settings();
-  connect(this, &QDialog::finished, this, &GeneralDialog::slot_save_settings);
-
   // should delete itself at closing by default
   setAttribute(Qt::WA_DeleteOnClose);
 }
 
-GpgFrontend::UI::GeneralDialog::~GeneralDialog() = default;
+void GeneralDialog::setVisible(bool visible) {
+  if (visible && !first_show_handled_) {
+    first_show_handled_ = true;
+    prepare_first_show();
+  }
 
-void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
+  QDialog::setVisible(visible);
+}
+
+void GeneralDialog::prepare_first_show() {
+  ensurePolished();
+
+  auto *l = layout();
+  if (l != nullptr) l->activate();
+
+  // Resolve the size hint up front, but never override a size the dialog set
+  // for itself (resize()/setFixedSize()/...), which Qt marks with WA_Resized.
+  if (!testAttribute(Qt::WA_Resized)) {
+    adjustSize();
+
+    // Word-wrapped labels (and anything else with heightForWidth) only report
+    // their true height once a concrete width is committed. The first
+    // adjustSize() does that; a second layout pass then picks up the corrected
+    // heights. Without it the window is mapped too small and Qt grows it right
+    // after the first frame, which reads as a small white flash.
+    if (l != nullptr) {
+      l->invalidate();
+      l->activate();
+      adjustSize();
+    }
+  }
+
+  // Apply any saved geometry before the window is mapped so there is no
+  // post-map resize/move jump.
+  slot_restore_settings();
+
+  // With no saved geometry and no explicit placement by the caller, QDialog
+  // would center itself only after the window is mapped, which shows up as a
+  // jump. Doing it here also sets WA_Moved, so that late correction is skipped.
+  if (!rect_restored_ && !testAttribute(Qt::WA_Moved)) {
+    movePosition2CenterOfParent();
+  }
+
+  // Render the dialog once off-screen. The style, font metrics, icon pixmaps
+  // and every child's first paint path are resolved here, while the window is
+  // still unmapped, instead of in the gap between the compositor mapping the
+  // window and Qt's first expose. Without it that gap shows an empty window at
+  // the final size, which the window manager's open animation then scales up -
+  // the white flash.
+  grab();
+}
+
+void GeneralDialog::showEvent(QShowEvent *event) {
+  QDialog::showEvent(event);
+
+  // Geometry is normally prepared in setVisible() before the first map. This is
+  // only a safety net for show paths that bypass setVisible().
+  if (!first_show_handled_) {
+    first_show_handled_ = true;
+    prepare_first_show();
+  }
+
+  // Frame margins (title bar height) are unknown until the window manager maps
+  // and decorates the window, so this must run after we return to the event
+  // loop. Guarantees the title bar stays reachable even when the pre-map
+  // geometry placed the client rect flush against the top of the screen.
+  QTimer::singleShot(0, this, &GeneralDialog::slot_ensure_frame_on_screen);
+}
+
+GeneralDialog::~GeneralDialog() = default;
+
+void GeneralDialog::slot_restore_settings() noexcept {
   try {
     update_rect_cache();
 
-    SettingsObject general_windows_state(name_ + "_dialog_state");
+    SettingsObject general_windows_state(name_ + "_dialog_geometry");
     auto window_state = WindowStateSO(general_windows_state);
 
-    // Restore window size & location
-    if (window_state.window_save) {
-      int x = window_state.x;
-      int y = window_state.y;
-
-      QPoint relative_pos = {x, y};
-      QPoint pos = parent_rect_.topLeft() + relative_pos;
-
-      int width = window_state.width;
-      int height = window_state.height;
-
-      QRect target_rect = {pos.x(), pos.y(), width, height};
-
-      // check for valid
-      if (width > 0 && height > 0 && screen_rect_.contains(target_rect)) {
-        this->setGeometry(target_rect);
-        this->rect_restored_ = true;
-      }
+    if (!window_state.window_save) {
+      return;
     }
+
+    int width = window_state.width;
+    int height = window_state.height;
+
+    if (width <= 0 || height <= 0) return;
+
+    QPoint target_pos{window_state.x, window_state.y};
+    QRect target_rect{target_pos, QSize(width, height)};
+
+    // Never restore a size the current contents cannot live in. A saved size
+    // belongs to whatever this dialog looked like when it was last closed,
+    // which may be an older release with fewer buttons or shorter text; below
+    // the minimum a layout stops honouring spacing and the widgets end up
+    // drawn on top of each other. The position is the user's choice, the size
+    // is only a preference.
+    target_rect.setSize(target_rect.size().expandedTo(
+        minimumSizeHint().expandedTo(minimumSize())));
+
+    update_rect_cache();
+    target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
+
+    this->setGeometry(target_rect);
+    rect_restored_ = true;
 
   } catch (...) {
     FLOG_W("error at restoring settings");
   }
 }
 
-void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
+void GeneralDialog::slot_save_settings() noexcept {
   try {
-    SettingsObject general_windows_state(name_ + "_dialog_state");
+    SettingsObject general_windows_state(name_ + "_dialog_geometry");
 
     update_rect_cache();
 
-    // window position relative to parent
-    auto relative_pos = rect_.topLeft() - parent_rect_.topLeft();
+    // Restore applies the saved position via setGeometry(), which addresses the
+    // client area (frame-excluded). Save must read from the same coordinate
+    // space, otherwise the title-bar height leaks into the position and the
+    // dialog creeps upward by one title bar on every open/close cycle.
+    QRect current_geometry = this->geometry();
 
     WindowStateSO window_state;
-    window_state.x = relative_pos.x();
-    window_state.y = relative_pos.y();
-    window_state.width = rect_.width();
-    window_state.height = rect_.height();
+    window_state.x = current_geometry.x();
+    window_state.y = current_geometry.y();
+
+    window_state.width = current_geometry.width();
+    window_state.height = current_geometry.height();
     window_state.window_save = true;
 
     general_windows_state.Store(window_state.Json());
@@ -99,89 +203,113 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
   }
 }
 
-void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
+void GeneralDialog::slot_ensure_frame_on_screen() {
+  if (!isVisible()) return;
+
+  // Refresh screen_rect_ for the screen the window actually landed on.
   update_rect_cache();
 
-  // update rect of current dialog
-  rect_ = this->geometry();
-  this->move(screen_rect_.center() -
-             QPoint(rect_.width() / 2, rect_.height() / 2));
-}
+  const QRect frame = frameGeometry();
+  QPoint pos = frame.topLeft();
 
-/**
- * @brief
- *
- */
-void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
-  // update cache
-  update_rect_cache();
+  // Pull the far edges in first, then the near edges, so that for a window
+  // larger than the screen the top/left wins — keeping the title bar and its
+  // close button on screen rather than the bottom.
+  if (frame.right() > screen_rect_.right()) {
+    pos.setX(screen_rect_.right() - frame.width() + 1);
+  }
+  if (frame.bottom() > screen_rect_.bottom()) {
+    pos.setY(screen_rect_.bottom() - frame.height() + 1);
+  }
+  if (pos.x() < screen_rect_.left()) pos.setX(screen_rect_.left());
+  if (pos.y() < screen_rect_.top()) pos.setY(screen_rect_.top());
 
-  if (parent_rect_.topLeft() != QPoint{0, 0} &&
-      parent_rect_.size() != QSize{0, 0}) {
-    if (rect_.width() <= 0) rect_.setWidth(100);
-    if (rect_.height() <= 0) rect_.setHeight(100);
-
-    QPoint target_position =
-        parent_rect_.center() - QPoint(rect_.width() / 2, rect_.height() / 2);
-
-    this->move(target_position);
-  } else {
-    setPosCenterOfScreen();
+  if (pos != frame.topLeft()) {
+    // move() addresses the frame top-left for top-level windows, matching the
+    // frameGeometry() measured above (setGeometry() would target the client
+    // rect and reintroduce the title-bar offset).
+    move(pos);
   }
 }
 
-/**
- *
- */
-void GpgFrontend::UI::GeneralDialog::update_rect_cache() {
-  // update size of current dialog
-  rect_ = this->geometry();
+void GeneralDialog::closeEvent(QCloseEvent *event) {
+  slot_save_settings();
+  QDialog::closeEvent(event);
+}
 
-  auto *screen = this->window()->screen();
-  screen_rect_ = screen->availableGeometry();
+void GeneralDialog::done(int result) {
+  if (isVisible()) slot_save_settings();
+  QDialog::done(result);
+}
 
-  // read pos and size from parent
-  if (this->parent() != nullptr) {
-    QRect parent_rect;
+void GeneralDialog::setPosCenterOfScreen() {
+  update_rect_cache();
 
-    auto *parent_widget = qobject_cast<QWidget *>(this->parent());
-    if (parent_widget != nullptr) {
-      parent_rect = parent_widget->geometry();
-    } else {
-      auto *parent_dialog = qobject_cast<QDialog *>(this->parent());
-      if (parent_dialog != nullptr) {
-        parent_rect = parent_dialog->geometry();
-      } else {
-        auto *parent_window = qobject_cast<QMainWindow *>(this->parent());
-        if (parent_window != nullptr) {
-          parent_rect = parent_window->geometry();
-        }
-      }
+  QRect target_rect = rect_;
+
+  if (target_rect.width() <= 0) {
+    target_rect.setWidth(std::max(width(), 100));
+  }
+
+  if (target_rect.height() <= 0) {
+    target_rect.setHeight(std::max(height(), 100));
+  }
+
+  target_rect.moveCenter(screen_rect_.center());
+  target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
+
+  this->setGeometry(target_rect);
+}
+
+void GeneralDialog::movePosition2CenterOfParent() {
+  update_rect_cache();
+
+  QRect target_rect = rect_;
+
+  if (target_rect.width() <= 0) {
+    target_rect.setWidth(std::max(width(), 100));
+  }
+
+  if (target_rect.height() <= 0) {
+    target_rect.setHeight(std::max(height(), 100));
+  }
+
+  const bool has_parent = !parent_rect_.isNull() && parent_rect_.isValid();
+
+  if (has_parent) {
+    target_rect.moveCenter(parent_rect_.center());
+    target_rect.translate(24, 24);
+  } else {
+    target_rect.moveCenter(screen_rect_.center());
+  }
+
+  target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
+  setGeometry(target_rect);
+}
+
+void GeneralDialog::update_rect_cache() {
+  rect_ = geometry();
+
+  auto *parent_widget = qobject_cast<QWidget *>(parent());
+
+  if (parent_widget != nullptr) {
+    QWidget *anchor_widget = parent_widget->window();
+
+    if (anchor_widget == nullptr) {
+      anchor_widget = parent_widget;
     }
-    parent_rect_ = parent_rect;
-  } else {
-    // reset parent's pos and size
-    this->parent_rect_ = QRect{0, 0, 0, 0};
+
+    parent_rect_ =
+        QRect(anchor_widget->mapToGlobal(QPoint(0, 0)), anchor_widget->size());
+
+    screen_rect_ = SafeAvailableGeometry(anchor_widget);
+    return;
   }
+
+  parent_rect_ = QRect{0, 0, 0, 0};
+  screen_rect_ = SafeAvailableGeometry(this);
 }
 
-/**
- * @brief
- *
- */
-auto GpgFrontend::UI::GeneralDialog::isRectRestored() -> bool {
-  return rect_restored_;
-}
+auto GeneralDialog::isRectRestored() const -> bool { return rect_restored_; }
 
-/**
- * @brief
- *
- */
-void GpgFrontend::UI::GeneralDialog::showEvent(QShowEvent *event) {
-  // default position strategy
-  if (!isRectRestored()) movePosition2CenterOfParent();
-
-  QDialog::showEvent(event);
-}
-
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI
