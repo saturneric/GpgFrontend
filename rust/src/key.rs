@@ -185,9 +185,25 @@ fn verified_subkey_self_sigs<'a>(
     signatures
         .iter()
         .filter(|sig| {
-            sig.verify_subkey_binding(primary, subkey).is_ok() && certification_hash_acceptable(sig)
+            sig.verify_subkey_binding(primary, subkey).is_ok()
+                && certification_hash_acceptable(sig)
+                && !pq_binding_hash_forbidden(subkey, sig)
         })
         .collect()
+}
+
+/// RFC 9980 §7.2: a subkey binding (0x18) over a post-quantum subkey "MUST
+/// NOT be made with MD5, SHA-1, or RIPEMD-160", and a receiver "MUST treat
+/// such a signature as invalid": no date cutoff applies, unlike
+/// [`certification_hash_acceptable`].
+fn pq_binding_hash_forbidden(subkey: &PublicSubkey, sig: &Signature) -> bool {
+    use pgp::crypto::hash::HashAlgorithm;
+    subkey.algorithm().is_pqc()
+        && sig.typ() == Some(SignatureType::SubkeyBinding)
+        && matches!(
+            sig.hash_alg(),
+            Some(HashAlgorithm::Md5 | HashAlgorithm::Sha1 | HashAlgorithm::Ripemd160)
+        )
 }
 
 /// Certifications (self-signatures, bindings, back-signatures) made with SHA-1
@@ -3390,6 +3406,71 @@ mod key_tests {
             HashAlgorithm::Sha256,
             after
         )));
+    }
+
+    #[test]
+    fn a_weak_hash_binding_over_a_pq_subkey_never_counts() {
+        // RFC 9980 §7.2: subkey binding signatures over its algorithms "MUST
+        // NOT be made with MD5, SHA-1, or RIPEMD-160. A receiving
+        // implementation MUST treat such a signature as invalid", whatever
+        // its date. The same SHA-1 binding over a classical subkey still
+        // falls under the RFC 9580 §9.5 cutoff and counts.
+        use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+        use pgp::crypto::hash::HashAlgorithm;
+        use pgp::packet::KeyFlags;
+        use pgp::types::{Password, Timestamp};
+
+        let rsa = &keys::V4_RSA1024.secret;
+        let primary = &rsa.primary_key;
+        // ML-KEM-768+X25519 is the one PQ algorithm a v4 key may carry (§3.5).
+        let donor = keys::generate(
+            "Donor <donor@example.test>",
+            &keys::cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4),
+            &[keys::cfg(
+                GfrKeyAlgo::KYBER768X25519,
+                false,
+                true,
+                GfrOpenPGPKeyVersion::V4,
+            )],
+        );
+        let pq_sub = donor.secret_subkeys[0].key.public_key();
+        let rsa_sub = rsa.secret_subkeys[0].key.public_key();
+
+        let sha1_binding = |subkey: &PublicSubkey| {
+            let mut flags = KeyFlags::default();
+            flags.set_encrypt_comms(true);
+            flags.set_encrypt_storage(true);
+            let mut cfg = SignatureConfig::v4(
+                SignatureType::SubkeyBinding,
+                primary.algorithm(),
+                HashAlgorithm::Sha1,
+            );
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                    WEAK_CERTIFICATION_HASH_CUTOFF - 86_400,
+                )))
+                .unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+                Subpacket::regular(SubpacketData::KeyFlags(flags)).unwrap(),
+            ];
+            cfg.sign_subkey_binding(primary, primary.public_key(), &Password::empty(), subkey)
+                .unwrap()
+        };
+
+        let classical = [sha1_binding(&rsa_sub)];
+        assert!(
+            subkey_binding_signature(primary.public_key(), &rsa_sub, &classical).is_some(),
+            "control: a pre-cutoff SHA-1 binding over a classical subkey counts"
+        );
+        let pq = [sha1_binding(&pq_sub)];
+        assert!(
+            pq[0]
+                .verify_subkey_binding(primary.public_key(), &pq_sub)
+                .is_ok(),
+            "precondition: the PQ binding is mathematically valid"
+        );
+        assert!(subkey_binding_signature(primary.public_key(), &pq_sub, &pq).is_none());
     }
 
     #[test]

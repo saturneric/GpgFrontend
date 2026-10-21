@@ -5,6 +5,9 @@ OpenPGP operations to the C++ core of GpgFrontend. It is compiled as a static
 library (`libgf_rust.a`) and its public C API is generated automatically at
 build time by **cbindgen** into `src/core/GpgCoreRust.h`.
 
+OpenPGP is provided by the rPGP crate (`pgp`). Base behavior targets RFC 9580;
+post-quantum algorithms target RFC 9980 (the crate's `pqc` feature).
+
 ## High-level picture
 
 ```
@@ -130,9 +133,11 @@ Key generation. `keygen_dynamic` builds a `SignedSecretKey` from a
 protection and armored export; `add_subkey_internal` attaches a new subkey to
 an existing key.
 
-Post-quantum hybrid algorithms (ML-KEM, ML-DSA, SLH-DSA) require OpenPGP v6
-keys — the v6 flag is forced automatically whenever any key in the request uses
-a PQC algorithm.
+Post-quantum algorithms (ML-KEM+ECC, ML-DSA+EdDSA, SLH-DSA) follow RFC 9980,
+which extends RFC 9580. Key generation forces v6 whenever any key in the request
+uses a PQC algorithm. `add_subkey_internal` applies the RFC 9980 §3.5 rule: an
+ML-KEM-768+X25519 encryption subkey may join a v4 key, every other PQC
+algorithm needs a v6 key.
 
 ### `user_id.rs`
 

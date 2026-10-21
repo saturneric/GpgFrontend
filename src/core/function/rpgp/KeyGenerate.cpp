@@ -280,10 +280,11 @@ auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
       continue;
     }
 
-    // Post-quantum subkeys (Kyber KEM, ML-DSA, SLH-DSA) are only legal for v6
-    // primary keys; rPGP rejects them on v4 keys. Drive this off the
-    // algorithm's intrinsic PQC trait rather than an id list so new variants
-    // stay covered.
+    // Post-quantum subkeys (Kyber KEM, ML-DSA, SLH-DSA) are offered only for
+    // v6 primary keys. RFC 9980 §3.5 also allows an ML-KEM-768+X25519
+    // encryption subkey on a v4 key, and the engine accepts one, but the UI
+    // keeps PQC to v6. Drive this off the algorithm's intrinsic PQC trait
+    // rather than an id list so new variants stay covered.
     if (algo.IsPostQuantum()) continue;
 
     // For other algorithms, there is no specific limitation based on primary

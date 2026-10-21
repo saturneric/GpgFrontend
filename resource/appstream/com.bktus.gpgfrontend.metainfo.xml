@@ -23,7 +23,7 @@
       <li>Profiles: Keep separate sets of keys and settings, and switch between them.</li>
       <li>Portable: Run from a USB drive, or carry a profile in one encrypted file.</li>
       <li>Dual-engine: Switch freely between the mature GnuPG and the Rust rPGP backend.</li>
-      <li>Future-ready: Modern algorithms, including post-quantum keys.</li>
+      <li>Future-ready: OpenPGP v6 (RFC 9580) and post-quantum OpenPGP (RFC 9980).</li>
       <li>Privacy-focused: Using multiple approaches to enhance safety.</li>
     </ul>
   </description>

@@ -89,7 +89,7 @@ class GF_CORE_EXPORT KeyAlgo {
   /**
    * @brief Whether this algorithm is post-quantum (quantum-resistant).
    *
-   * Covers the NIST PQC suite exposed through the OpenPGP draft: ML-KEM
+   * Covers the NIST PQC suite that RFC 9980 brings to OpenPGP: ML-KEM
    * (Kyber hybrid), ML-DSA (hybrid signing) and SLH-DSA.
    *
    * @return true if the algorithm provides post-quantum resistance.

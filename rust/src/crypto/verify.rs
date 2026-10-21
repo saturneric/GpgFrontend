@@ -1265,6 +1265,67 @@ mod verify_tests {
     }
 
     #[test]
+    fn a_pq_signature_over_a_digest_under_256_bits_is_never_valid() {
+        // RFC 9980 §5.3.1, §6.2.1: "A verifying implementation MUST reject any
+        // ... signature that uses a hash algorithm with a smaller digest size"
+        // than 256 bits. rPGP enforces this in every `verify*` entry point
+        // (delegated); this pins that GF passes the rejection through. rPGP
+        // also refuses to *make* such a signature, so it is assembled here
+        // the way `SignatureHasher::sign` would, minus that check.
+        use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+        use pgp::crypto::hash::HashAlgorithm;
+        use pgp::types::{KeyDetails, SigningKey};
+
+        let key = keys::generate(
+            "PQ Signer <pq-sign@example.test>",
+            &keys::cfg(
+                GfrKeyAlgo::MLDSA65ED25519,
+                true,
+                false,
+                GfrOpenPGPKeyVersion::V6,
+            ),
+            &[],
+        );
+        let cert = SignedPublicKey::from(key.clone())
+            .to_armored_string(crate::utils::armor_opts())
+            .unwrap();
+        let primary = &key.primary_key;
+        // SHA2-224 and SHA2-256 both take a 16-octet v6 salt (RFC 9580 Table 23).
+        for (hash, valid) in [
+            (HashAlgorithm::Sha224, false),
+            (HashAlgorithm::Sha256, true),
+        ] {
+            let salt = vec![0x5a; 16];
+            let mut cfg = SignatureConfig::v6_with_salt(
+                SignatureType::Binary,
+                primary.algorithm(),
+                hash,
+                salt.clone(),
+            );
+            cfg.hashed_subpackets = vec![
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now())).unwrap(),
+                Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                    .unwrap(),
+            ];
+            let mut hasher = hash.new_hasher().unwrap();
+            hasher.update(&salt);
+            hasher.update(AUTHZ_DATA);
+            let len = cfg.hash_signature_data(&mut hasher).unwrap();
+            hasher.update(&cfg.trailer(len).unwrap());
+            let digest = hasher.finalize();
+            let bytes = SigningKey::sign(primary, &Password::empty(), hash, &digest).unwrap();
+            let sig = Signature::from_config(cfg, [digest[0], digest[1]], bytes).unwrap();
+
+            let packet = pgp::ser::Serialize::to_bytes(&pgp::packet::Packet::from(sig)).unwrap();
+            let res = verify_detached(AUTHZ_DATA, &packet, Some(&cert));
+            assert_eq!(res.is_verified, valid, "{hash:?}");
+            if !valid {
+                assert_ne!(res.signatures[0].status, GfrSignatureStatus::Valid);
+            }
+        }
+    }
+
+    #[test]
     fn a_signature_made_after_the_key_expired_is_key_expired() {
         // V4_SHORT_EXPIRY expires one second after creation; date the
         // signature well past that, as "now" may still be the creation second.

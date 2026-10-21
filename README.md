@@ -17,7 +17,7 @@ more trustworthy in everyday privacy workflows.
 - Profiles: Keep separate sets of keys and settings, and switch between them.
 - Portable: Run from a USB drive, or carry a profile in one encrypted file.
 - Dual-engine: Switch freely between the mature GnuPG and the Rust rPGP backend.
-- Future-proof: Explore OpenPGP v6 (RFC 9580) and post-quantum algorithms.
+- Future-proof: Explore OpenPGP v6 (RFC 9580) and post-quantum OpenPGP (RFC 9980).
 - Memory-safe: Sensitive data is guarded in secure memory while in use.
 - Privacy-focused: Everything runs locally, with no telemetry or tracking.
 
@@ -54,7 +54,7 @@ workflows, and recommended practices for using GpgFrontend effectively.
 - **v2.2.x (Stable, recommended):** The current stable series and the
   recommended choice for daily use. It introduces the dual-engine core, adding
   the Rust **rPGP** backend for OpenPGP v6 (RFC 9580) and post-quantum
-  algorithms alongside **GnuPG**, which remains the default and most
+  OpenPGP (RFC 9980) alongside **GnuPG**, which remains the default and most
   interoperable backend. rPGP-related features continue to evolve over time.
 
 - **v2.1.x (Legacy):** The previous GnuPG-only stable series. It remains in
