@@ -414,8 +414,10 @@ class TextEdit : public QWidget {
    * @return true if the bytes were written; false if the page is gone or is
    *         no longer a text page, in which case nothing is written anywhere
    */
-  auto SetGFBuffer2Page(const QPointer<QWidget>& page, const GFBuffer& buffer)
-      -> bool;
+  // Leading return type on purpose: moc of Qt 5.15.2 cannot parse a trailing
+  // return type inside a slots section.
+  bool SetGFBuffer2Page(const QPointer<QWidget>& page,  // NOLINT
+                        const GFBuffer& buffer);
 
   /**
    * @brief Returns the underlying tab widget.
