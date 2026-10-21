@@ -45,6 +45,11 @@ on:
   schedule:
     - cron: "19 14 * * 2"
 
+# A newer push supersedes a running build of the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Debug
 

@@ -31,6 +31,12 @@ on:
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
+
+# A newer push supersedes a running build of the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Debug
 
