@@ -100,7 +100,8 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
 
   setLayout(main_layout);
 
-  this->setMinimumWidth(480);
+  this->setMinimumSize(480, 420);
+  this->resize(640, 560);
 
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);
