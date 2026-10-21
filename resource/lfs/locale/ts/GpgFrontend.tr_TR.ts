@@ -62,111 +62,120 @@
         <translation>Desteklenmeyen algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="67"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="80"/>
+        <source>Cipher Warning</source>
+        <translation>Şifre uyarısı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="88"/>
         <source>General State</source>
         <translation>Genel durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="75"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="95"/>
         <source>File Name</source>
         <translation>Dosya adı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="78"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="98"/>
         <source>MIME</source>
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="79"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="82"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="99"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="102"/>
         <source>true</source>
         <translation>doğru</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="79"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="82"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="99"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="102"/>
         <source>false</source>
         <translation>yanlış</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="81"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="101"/>
         <source>Message Integrity Protection</source>
         <translation>İleti bütünlüğü koruması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="89"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="106"/>
         <source>Symmetric Encryption Algorithm</source>
         <translation>Simetrik şifreleme algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="96"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="113"/>
         <source>Recipient(s)</source>
         <translation>Alıcılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="103"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="120"/>
         <source>Recipient</source>
         <translation>Alıcı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="118"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="135"/>
         <source>Decrypted successfully. The original filename is &quot;%1&quot;.</source>
-        <translation>Şifre başarıyla çözüldü. Özgün dosya adı "%1".</translation>
+        <translation>Şifre başarıyla çözüldü. Özgün dosya adı &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="121"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="138"/>
         <source>The message has been decrypted successfully and is now readable.</source>
         <translation>İletinin şifresi başarıyla çözüldü ve artık okunabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="127"/>
         <source>Decrypted, but message integrity protection is absent. This may be a legacy message that cannot detect tampering.</source>
-        <translation>Şifre çözüldü, ancak ileti bütünlüğü koruması yok. Bu, kurcalamayı algılayamayan eski bir ileti olabilir.</translation>
+        <translation type="vanished">Şifre çözüldü, ancak ileti bütünlüğü koruması yok. Bu, kurcalamayı algılayamayan eski bir ileti olabilir.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="136"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="148"/>
         <source>Decrypted, but %n recipient key(s) could not be found in your keyring.</source>
         <translation>
             <numerusform>Şifre çözüldü, ancak anahtarlığınızda %n alıcı anahtarı bulunamadı.</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="139"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="151"/>
         <source>Decrypted with warnings. Please review the details.</source>
         <translation>Şifre uyarılarla çözüldü. Lütfen ayrıntıları gözden geçirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="144"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="154"/>
+        <source>The output was withheld: this message has no integrity protection, so tampering with it cannot be detected. It may be a legacy message.</source>
+        <translation>Çıktı verilmedi: bu iletinin bütünlük koruması yok, bu yüzden üzerinde oynanıp oynanmadığı anlaşılamaz. Eski bir ileti olabilir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="160"/>
         <source>Decryption failed: %1.</source>
         <translation>Şifre çözme başarısız oldu: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="171"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="187"/>
         <source>&lt;unknown&gt;</source>
         <translation>&lt;bilinmiyor&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="179"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="195"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="183"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="199"/>
         <source>Subkey</source>
         <translation>Alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="184"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="200"/>
         <source>Primary Key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="190"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="206"/>
         <source>Public Key Algo</source>
         <translation>Açık anahtar algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="192"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="208"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
@@ -199,37 +208,37 @@
         <translation>Ayrıntı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="63"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="69"/>
         <source>Invalid Recipients</source>
         <translation>Geçersiz alıcılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="70"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="74"/>
         <source>Recipients</source>
         <translation>Alıcılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="72"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="76"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="74"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="77"/>
         <source>Reason</source>
         <translation>Neden</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="92"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="90"/>
         <source>Encrypted with warnings. Some recipients could not be added. Please review the invalid recipient list.</source>
         <translation>Uyarılarla şifrelendi. Bazı alıcılar eklenemedi. Lütfen geçersiz alıcı listesini gözden geçirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="94"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="92"/>
         <source>Your data has been encrypted. Only the intended recipients can decrypt and read it.</source>
         <translation>Verileriniz şifrelendi. Yalnızca hedeflenen alıcılar şifresini çözüp okuyabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="99"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="97"/>
         <source>Encryption failed: %1.</source>
         <translation>Şifreleme başarısız oldu: %1.</translation>
     </message>
@@ -558,15 +567,15 @@
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="63"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="371"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="411"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="429"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="469"/>
         <source>UTC</source>
         <translation>UTC</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="68"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="374"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="414"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="432"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="472"/>
         <source>Localized</source>
         <translation>Yerel</translation>
     </message>
@@ -596,263 +605,303 @@
         <translation>Bu imza doğrulanamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="99"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="100"/>
+        <source>Valid</source>
+        <translation>Geçerli</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="102"/>
         <source>Fully Valid</source>
         <translation>Tamamen geçerli</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="101"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="104"/>
         <source>Valid but with Issues</source>
         <translation>Geçerli, ancak sorunlu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="103"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="106"/>
         <source>Valid but Not Fully Trusted</source>
         <translation>Geçerli, ancak tam güvenilir değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="109"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="257"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="112"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="291"/>
         <source>Signature has expired</source>
         <translation>İmzanın süresi dolmuş</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="112"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="259"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="115"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="293"/>
         <source>Signing key is missing</source>
         <translation>İmzalama anahtarı eksik</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="115"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="261"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="118"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="295"/>
         <source>Signing key has been revoked</source>
         <translation>İmzalama anahtarı iptal edilmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="118"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="263"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="121"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="297"/>
         <source>Signing key has expired</source>
         <translation>İmzalama anahtarının süresi dolmuş</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="121"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="265"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="124"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="299"/>
         <source>Certificate revocation list is missing</source>
         <translation>Sertifika iptal listesi eksik</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="125"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="128"/>
         <source>Warnings</source>
         <translation>Uyarılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="132"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="135"/>
         <source>Tips</source>
         <translation>İpuçları</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="133"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="136"/>
         <source>Adjust trust level to make it fully valid</source>
         <translation>Tamamen geçerli olması için güven düzeyini ayarlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="140"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="392"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="395"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="143"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="450"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="453"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="141"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="144"/>
         <source>not present in keyring</source>
         <translation>anahtarlıkta yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="148"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="151"/>
         <source>Cannot Verify due to Key Missing</source>
         <translation>Anahtar eksik olduğu için doğrulanamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="150"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="153"/>
         <source>The public key needed to verify this signature is not available</source>
         <translation>Bu imzayı doğrulamak için gereken açık anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="159"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="162"/>
         <source>Key Revoked</source>
         <translation>Anahtar iptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="161"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="164"/>
         <source>The signature is mathematically valid but the signing key has been revoked</source>
         <translation>İmza matematiksel olarak geçerli, ancak imzalama anahtarı iptal edilmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="170"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="173"/>
         <source>Signature Expired</source>
         <translation>İmzanın süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="171"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="174"/>
         <source>The signature is valid but has expired</source>
         <translation>İmza geçerli, ancak süresi dolmuş</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="179"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="182"/>
         <source>Signing Key Expired</source>
         <translation>İmzalama anahtarının süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="182"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="187"/>
+        <source>The signing key had already expired when this signature was made</source>
+        <translation>Bu imza oluşturulduğunda imzalama anahtarının süresi zaten dolmuştu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="193"/>
         <source>The signature is valid but the signing key has expired</source>
         <translation>İmza geçerli, ancak imzalama anahtarının süresi dolmuş</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="189"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="202"/>
+        <source>Signing Key Not Authorized</source>
+        <translation>İmzalama anahtarı yetkili değil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="204"/>
+        <source>The signature is mathematically valid but the certificate does not authorize this key to sign</source>
+        <translation>İmza matematiksel olarak geçerli, ancak sertifika bu anahtarın imzalamasına izin vermiyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="213"/>
         <source>Verification Error</source>
         <translation>Doğrulama hatası</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="191"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="215"/>
         <source>An error occurred during signature verification</source>
         <translation>İmza doğrulaması sırasında bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="198"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="222"/>
         <source>Unknown Error</source>
         <translation>Bilinmeyen hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="199"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="223"/>
         <source>Key Fingerprint</source>
         <translation>Anahtar parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="206"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="230"/>
         <source>Verification process stopped due to errors.</source>
         <translation>Doğrulama işlemi hatalar nedeniyle durduruldu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="215"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="239"/>
         <source>Could not find information that can be used for verification.</source>
         <translation>Doğrulama için kullanılabilecek bilgi bulunamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="219"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="243"/>
         <source>No verifiable signatures were found in the data.</source>
         <translation>Veride doğrulanabilir imza bulunamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="311"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="317"/>
+        <source>Signing key is not authorized by its certificate</source>
+        <translation>İmzalama anahtarı sertifikası tarafından yetkilendirilmemiş</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="355"/>
+        <source>The signature is valid. The data has not been tampered with.</source>
+        <translation>İmza geçerli. Veri üzerinde oynanmamış.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="357"/>
+        <source>The signature by %1 is valid. The data has not been tampered with.</source>
+        <translation>%1 tarafından atılan imza geçerli. Veri üzerinde oynanmamış.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="365"/>
         <source>The signature is fully valid and trusted. The data has not been tampered with.</source>
         <translation>İmza tamamen geçerli ve güvenilirdir. Veri kurcalanmamıştır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="313"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="367"/>
         <source>The signature by %1 is fully valid and trusted. The data has not been tampered with.</source>
         <translation>%1 imzası tamamen geçerli ve güvenilirdir. Veri kurcalanmamıştır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="318"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="372"/>
         <source>The signature is valid, but the signing key is not fully trusted. You may need to set a higher trust level.</source>
         <translation>İmza geçerlidir, ancak imzalama anahtarına tam olarak güvenilmiyor. Daha yüksek bir güven düzeyi belirlemeniz gerekebilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="324"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="378"/>
         <source>Verification incomplete. The signing key is not in your keyring. Please import the signer&apos;s public key.</source>
         <translation>Doğrulama tamamlanmadı. İmzalama anahtarı anahtarlığınızda yok. Lütfen imzalayanın açık anahtarını içe aktarın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="328"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="382"/>
         <source>The signature is valid but the signing key is not fully trusted. Consider setting a higher trust level for that key.</source>
         <translation>İmza geçerlidir, ancak imzalama anahtarına tam olarak güvenilmiyor. Bu anahtar için daha yüksek bir güven düzeyi belirlemeyi düşünün.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="332"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="386"/>
         <source>Verification completed with warnings. Please review the details.</source>
         <translation>Doğrulama uyarılarla tamamlandı. Lütfen ayrıntıları gözden geçirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="338"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="392"/>
         <source>Invalid signature detected. The data may have been tampered with or the signature is corrupt.</source>
         <translation>Geçersiz imza algılandı. Veri kurcalanmış olabilir veya imza bozuktur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="342"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="396"/>
+        <source>Signature verification failed. The signing key is not authorized to make signatures.</source>
+        <translation>İmza doğrulaması başarısız oldu. İmzalama anahtarının imza atma yetkisi yok.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="400"/>
         <source>Signature verification failed. The signing key has been revoked.</source>
         <translation>İmza doğrulaması başarısız oldu. İmzalama anahtarı iptal edilmiş.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="346"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="404"/>
         <source>Signature verification failed. This signature has expired.</source>
         <translation>İmza doğrulaması başarısız oldu. Bu imzanın süresi dolmuş.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="349"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="407"/>
         <source>Signature verification failed. The signing key has expired.</source>
         <translation>İmza doğrulaması başarısız oldu. İmzalama anahtarının süresi dolmuş.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="352"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="410"/>
         <source>Cannot verify. The signing key is not available in your keyring.</source>
         <translation>Doğrulanamıyor. İmzalama anahtarı anahtarlığınızda yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="356"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="414"/>
         <source>Signature verification failed. Please review the details.</source>
         <translation>İmza doğrulaması başarısız oldu. Lütfen ayrıntıları gözden geçirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="363"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="389"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="402"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="421"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="447"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="460"/>
         <source>Signed By</source>
         <translation>İmzalayan</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="363"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="402"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="421"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="460"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="365"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="403"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="423"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="461"/>
         <source>&lt;unknown&gt;</source>
         <translation>&lt;bilinmiyor&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="368"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="408"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="426"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="466"/>
         <source>Public Key Algo</source>
         <translation>Açık anahtar algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="370"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="410"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="428"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="468"/>
         <source>Hash Algo</source>
         <translation>Karma algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="371"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="374"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="411"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="414"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="429"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="432"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="469"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="472"/>
         <source>Sign Date</source>
         <translation>İmza tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="393"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="451"/>
         <source>Subkey</source>
         <translation>Alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="396"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="454"/>
         <source>Primary Key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="398"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="456"/>
         <source>Key Create Date</source>
         <translation>Anahtar oluşturma tarihi</translation>
     </message>
@@ -1018,16 +1067,16 @@
         <translation>Dosya açılamadı: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="234"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="236"/>
         <source>Short Name</source>
         <translation>Kısa ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="235"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="237"/>
         <source>The name &quot;%1&quot; is shorter than five characters. Short names are allowed, but they are often a typo and make the key harder for others to recognise.
 
 Do you want to continue?</source>
-        <translation>"%1" adı beş karakterden kısadır. Kısa adlara izin verilir, ancak bunlar çoğu zaman yazım hatasıdır ve anahtarın başkaları tarafından tanınmasını zorlaştırır.
+        <translation>&quot;%1&quot; adı beş karakterden kısadır. Kısa adlara izin verilir, ancak bunlar çoğu zaman yazım hatasıdır ve anahtarın başkaları tarafından tanınmasını zorlaştırır.
 
 Devam etmek istiyor musunuz?</translation>
     </message>
@@ -1179,7 +1228,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/function/OpenPGPEnvGuard.cpp" line="95"/>
         <source>It seems that no supported OpenPGP engine is available. Please check your if GpgFrontend is properly installed and try again. Reason: %1</source>
-        <translation>Desteklenen bir OpenPGP motoru yok gibi görünüyor. Lütfen GpgFrontend'in düzgün kurulduğunu kontrol edin ve yeniden deneyin. Neden: %1</translation>
+        <translation>Desteklenen bir OpenPGP motoru yok gibi görünüyor. Lütfen GpgFrontend&apos;in düzgün kurulduğunu kontrol edin ve yeniden deneyin. Neden: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ShowKeyDetails.cpp" line="42"/>
@@ -1438,7 +1487,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="149"/>
         <source>Change PIN…</source>
-        <translation>PIN'i değiştir…</translation>
+        <translation>PIN&apos;i değiştir…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="154"/>
@@ -1534,7 +1583,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="254"/>
         <source>On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and it must be unlocked.</source>
-        <translation>Linux'ta bunun için GNOME Keyring veya KWallet gibi çalışan bir Secret Service gerekir ve kilidi açık olmalıdır.</translation>
+        <translation>Linux&apos;ta bunun için GNOME Keyring veya KWallet gibi çalışan bir Secret Service gerekir ve kilidi açık olmalıdır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="284"/>
@@ -1574,7 +1623,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="418"/>
         <source>No system credential store is available on this computer. On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and the libsecret client library (libsecret-1-0 on Debian and Ubuntu, libsecret on Fedora).</source>
-        <translation>Bu bilgisayarda sistem kimlik bilgisi deposu yok. Linux'ta bunun için GNOME Keyring veya KWallet gibi çalışan bir Secret Service ve libsecret istemci kitaplığı gerekir (Debian ve Ubuntu'da libsecret-1-0, Fedora'da libsecret).</translation>
+        <translation>Bu bilgisayarda sistem kimlik bilgisi deposu yok. Linux&apos;ta bunun için GNOME Keyring veya KWallet gibi çalışan bir Secret Service ve libsecret istemci kitaplığı gerekir (Debian ve Ubuntu&apos;da libsecret-1-0, Fedora&apos;da libsecret).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="504"/>
@@ -1611,7 +1660,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="553"/>
         <source>The application PIN has been changed.</source>
-        <translation>Uygulama PIN'i değiştirildi.</translation>
+        <translation>Uygulama PIN&apos;i değiştirildi.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="559"/>
@@ -1624,7 +1673,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="123"/>
         <source>Forgot PIN? Reset…</source>
-        <translation>PIN'i mi unuttunuz? Sıfırla…</translation>
+        <translation>PIN&apos;i mi unuttunuz? Sıfırla…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="62"/>
@@ -1634,12 +1683,12 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="65"/>
         <source>Change Application PIN</source>
-        <translation>Uygulama PIN'ini değiştir</translation>
+        <translation>Uygulama PIN&apos;ini değiştir</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="68"/>
         <source>Set an Application PIN</source>
-        <translation>Uygulama PIN'i belirle</translation>
+        <translation>Uygulama PIN&apos;i belirle</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="74"/>
@@ -1675,7 +1724,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="88"/>
         <source>Show PIN</source>
-        <translation>PIN'i göster</translation>
+        <translation>PIN&apos;i göster</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="89"/>
@@ -1710,7 +1759,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="112"/>
         <source>If you forget this PIN, everything the application has encrypted becomes permanently unreadable. There is no recovery.</source>
-        <translation>Bu PIN'i unutursanız uygulamanın şifrelediği her şey kalıcı olarak okunamaz hale gelir. Kurtarma yoktur.</translation>
+        <translation>Bu PIN&apos;i unutursanız uygulamanın şifrelediği her şey kalıcı olarak okunamaz hale gelir. Kurtarma yoktur.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="118"/>
@@ -1811,7 +1860,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="126"/>
         <source>Also offer proportional fonts for both surfaces below. They line up best with a monospaced one, but scripts such as Arabic are only shaped correctly by a font that covers them, and the monospaced font shipped with GpgFrontend covers Latin, Greek and Cyrillic only.</source>
-        <translation>Aşağıdaki her iki yüzey için orantılı yazı tiplerini de sunun. Eş aralıklı bir yazı tipiyle en iyi hizalanırlar, ancak Arapça gibi yazı sistemleri yalnızca onları kapsayan bir yazı tipiyle doğru şekillenir ve GpgFrontend ile gelen eş aralıklı yazı tipi yalnızca Latince, Yunanca ve Kiril'i kapsar.</translation>
+        <translation>Aşağıdaki her iki yüzey için orantılı yazı tiplerini de sunun. Eş aralıklı bir yazı tipiyle en iyi hizalanırlar, ancak Arapça gibi yazı sistemleri yalnızca onları kapsayan bir yazı tipiyle doğru şekillenir ve GpgFrontend ile gelen eş aralıklı yazı tipi yalnızca Latince, Yunanca ve Kiril&apos;i kapsar.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="131"/>
@@ -1937,7 +1986,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="431"/>
         <source>You can also skip these guides and start using GpgFrontend directly.</source>
-        <translation>Bu kılavuzları atlayıp GpgFrontend'i doğrudan kullanmaya da başlayabilirsiniz.</translation>
+        <translation>Bu kılavuzları atlayıp GpgFrontend&apos;i doğrudan kullanmaya da başlayabilirsiniz.</translation>
     </message>
 </context>
 <context>
@@ -1960,12 +2009,12 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="504"/>
         <source>Report issues, ask questions, or send feedback to help improve GpgFrontend.</source>
-        <translation>GpgFrontend'in iyileşmesine yardımcı olmak için sorun bildirin, soru sorun veya geri bildirim gönderin.</translation>
+        <translation>GpgFrontend&apos;in iyileşmesine yardımcı olmak için sorun bildirin, soru sorun veya geri bildirim gönderin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="508"/>
         <source>Submit an issue on GitHub</source>
-        <translation>GitHub'da sorun bildirin</translation>
+        <translation>GitHub&apos;da sorun bildirin</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="509"/>
@@ -2451,7 +2500,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="140"/>
         <source>Type a folder path and press Enter. &quot;~&quot; stands for your home folder, and a relative path is resolved against the current one. Press Escape to go back to the path buttons.</source>
-        <translation>Bir klasör yolu yazın ve Enter tuşuna basın. "~" ev klasörünüzü temsil eder ve göreli bir yol geçerli yola göre çözülür. Yol düğmelerine dönmek için Escape tuşuna basın.</translation>
+        <translation>Bir klasör yolu yazın ve Enter tuşuna basın. &quot;~&quot; ev klasörünüzü temsil eder ve göreli bir yol geçerli yola göre çözülür. Yol düğmelerine dönmek için Escape tuşuna basın.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="166"/>
@@ -2608,7 +2657,6 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeItemDelegate.cpp" line="113"/>
         <source>ENC</source>
-        <extracomment>Badge on an encrypted OpenPGP file. Keep it to about three characters.</extracomment>
         <translation>ENC</translation>
     </message>
     <message>
@@ -2632,7 +2680,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="268"/>
         <source>No file matches &quot;%1&quot;</source>
-        <translation>"%1" ile eşleşen dosya yok</translation>
+        <translation>&quot;%1&quot; ile eşleşen dosya yok</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="269"/>
@@ -2668,7 +2716,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="414"/>
         <source>Move &quot;%1&quot; to Trash?</source>
-        <translation>"%1" çöp kutusuna taşınsın mı?</translation>
+        <translation>&quot;%1&quot; çöp kutusuna taşınsın mı?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="415"/>
@@ -2683,7 +2731,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="439"/>
         <source>The item &quot;%1&quot; could not be moved to Trash.</source>
-        <translation>"%1" öğesi çöp kutusuna taşınamadı.</translation>
+        <translation>&quot;%1&quot; öğesi çöp kutusuna taşınamadı.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="441"/>
@@ -2744,7 +2792,7 @@ Devam etmek istiyor musunuz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="586"/>
         <source>Renamed &quot;%1&quot; to &quot;%2&quot;.</source>
-        <translation>"%1", "%2" olarak yeniden adlandırıldı.</translation>
+        <translation>&quot;%1&quot;, &quot;%2&quot; olarak yeniden adlandırıldı.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="599"/>
@@ -2872,14 +2920,14 @@ Devam etmek istiyor musunuz?</translation>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1015"/>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1212"/>
         <source>A file or folder named &quot;%1&quot; already exists in the target folder.</source>
-        <translation>Hedef klasörde "%1" adlı bir dosya veya klasör zaten var.</translation>
+        <translation>Hedef klasörde &quot;%1&quot; adlı bir dosya veya klasör zaten var.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1023"/>
         <source>Unable to move &quot;%1&quot;.
 
 The target may be on another volume, or you may not have sufficient permissions.</source>
-        <translation>"%1" taşınamıyor.
+        <translation>&quot;%1&quot; taşınamıyor.
 
 Hedef başka bir birimde olabilir veya yeterli izniniz olmayabilir.</translation>
     </message>
@@ -2908,7 +2956,7 @@ Hedef başka bir birimde olabilir veya yeterli izniniz olmayabilir.</translation
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
         <source>Cannot put &quot;%1&quot; into itself or one of its subfolders.</source>
-        <translation>"%1" kendi içine veya alt klasörlerinden birine konulamaz.</translation>
+        <translation>&quot;%1&quot; kendi içine veya alt klasörlerinden birine konulamaz.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1116"/>
@@ -2918,12 +2966,12 @@ Hedef başka bir birimde olabilir veya yeterli izniniz olmayabilir.</translation
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1119"/>
         <source>Move &quot;%1&quot; to &quot;%2&quot;?</source>
-        <translation>"%1", "%2" içine taşınsın mı?</translation>
+        <translation>&quot;%1&quot;, &quot;%2&quot; içine taşınsın mı?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1121"/>
         <source>Move %1 items to &quot;%2&quot;?</source>
-        <translation>%1 öğe "%2" içine taşınsın mı?</translation>
+        <translation>%1 öğe &quot;%2&quot; içine taşınsın mı?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1125"/>
@@ -2933,12 +2981,12 @@ Hedef başka bir birimde olabilir veya yeterli izniniz olmayabilir.</translation
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1128"/>
         <source>Copy &quot;%1&quot; to &quot;%2&quot;?</source>
-        <translation>"%1", "%2" içine kopyalansın mı?</translation>
+        <translation>&quot;%1&quot;, &quot;%2&quot; içine kopyalansın mı?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1130"/>
         <source>Copy %1 items to &quot;%2&quot;?</source>
-        <translation>%1 öğe "%2" içine kopyalansın mı?</translation>
+        <translation>%1 öğe &quot;%2&quot; içine kopyalansın mı?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1135"/>
@@ -2983,27 +3031,27 @@ Hedef başka bir birimde olabilir veya yeterli izniniz olmayabilir.</translation
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1226"/>
         <source>Unable to copy &quot;%1&quot;. Please check permissions.</source>
-        <translation>"%1" kopyalanamıyor. Lütfen izinleri kontrol edin.</translation>
+        <translation>&quot;%1&quot; kopyalanamıyor. Lütfen izinleri kontrol edin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1235"/>
         <source>&quot;%1&quot; is not a regular file or folder.</source>
-        <translation>"%1" normal bir dosya veya klasör değil.</translation>
+        <translation>&quot;%1&quot; normal bir dosya veya klasör değil.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1250"/>
         <source>The target folder &quot;%1&quot; already exists.</source>
-        <translation>Hedef klasör "%1" zaten var.</translation>
+        <translation>Hedef klasör &quot;%1&quot; zaten var.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1258"/>
         <source>Unable to create target folder &quot;%1&quot;.</source>
-        <translation>Hedef klasör "%1" oluşturulamıyor.</translation>
+        <translation>Hedef klasör &quot;%1&quot; oluşturulamıyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1283"/>
         <source>Unable to copy &quot;%1&quot;.</source>
-        <translation>"%1" kopyalanamıyor.</translation>
+        <translation>&quot;%1&quot; kopyalanamıyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1303"/>
@@ -3294,7 +3342,7 @@ Bu, önbelleğe alınmış tüm form konumlarının, durumların, anahtar sunucu
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="102"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
-        <translation>Ad ve yorum '(', ')', '&lt;', '&gt;' karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
+        <translation>Ad ve yorum &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="108"/>
@@ -3405,12 +3453,12 @@ Bu, önbelleğe alınmış tüm form konumlarının, durumların, anahtar sunucu
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="71"/>
         <source>Ask gpg-agent to forget all cached passphrases when GpgFrontend closes.</source>
-        <translation>GpgFrontend kapandığında önbelleğe alınmış tüm parola ifadelerini unutması için gpg-agent'ten isteyin.</translation>
+        <translation>GpgFrontend kapandığında önbelleğe alınmış tüm parola ifadelerini unutması için gpg-agent&apos;ten isteyin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="77"/>
         <source>Select the directory that contains the &quot;gpgconf&quot; executable.</source>
-        <translation>"gpgconf" yürütülebilir dosyasını içeren dizini seçin.</translation>
+        <translation>&quot;gpgconf&quot; yürütülebilir dosyasını içeren dizini seçin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="105"/>
@@ -3455,12 +3503,12 @@ Bu, önbelleğe alınmış tüm form konumlarının, durumların, anahtar sunucu
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="181"/>
         <source>Reload All GnuPG&apos;s Components</source>
-        <translation>GnuPG'nin tüm bileşenlerini yeniden yükle</translation>
+        <translation>GnuPG&apos;nin tüm bileşenlerini yeniden yükle</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="185"/>
         <source>Reload all the GnuPG&apos;s components successfully</source>
-        <translation>GnuPG'nin tüm bileşenleri başarıyla yeniden yüklendi</translation>
+        <translation>GnuPG&apos;nin tüm bileşenleri başarıyla yeniden yüklendi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="186"/>
@@ -3475,7 +3523,7 @@ Bu, önbelleğe alınmış tüm form konumlarının, durumların, anahtar sunucu
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="191"/>
         <source>Restart All GnuPG&apos;s Components</source>
-        <translation>GnuPG'nin tüm bileşenlerini yeniden başlat</translation>
+        <translation>GnuPG&apos;nin tüm bileşenlerini yeniden başlat</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="195"/>
@@ -3486,13 +3534,13 @@ Bu, önbelleğe alınmış tüm form konumlarının, durumların, anahtar sunucu
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="196"/>
         <source>Are you sure you want to restart all of GnuPG&apos;s components?
 Any GnuPG operation still running will be interrupted.</source>
-        <translation>GnuPG'nin tüm bileşenlerini yeniden başlatmak istediğinizden emin misiniz?
+        <translation>GnuPG&apos;nin tüm bileşenlerini yeniden başlatmak istediğinizden emin misiniz?
 Hâlâ çalışan herhangi bir GnuPG işlemi kesilecek.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="203"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
-        <translation>GnuPG'nin tüm bileşenleri başarıyla yeniden başlatıldı</translation>
+        <translation>GnuPG&apos;nin tüm bileşenleri başarıyla yeniden başlatıldı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="204"/>
@@ -3539,7 +3587,7 @@ Hâlâ çalışan herhangi bir GnuPG işlemi kesilecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="395"/>
         <source>Target GnuPG Path contains no &quot;gpgconf&quot; executable.</source>
-        <translation>Hedef GnuPG yolu "gpgconf" yürütülebilir dosyasını içermiyor.</translation>
+        <translation>Hedef GnuPG yolu &quot;gpgconf&quot; yürütülebilir dosyasını içermiyor.</translation>
     </message>
 </context>
 <context>
@@ -4030,7 +4078,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="280"/>
         <source>Report an issue on GitHub</source>
-        <translation>GitHub'da bir sorun bildirin</translation>
+        <translation>GitHub&apos;da bir sorun bildirin</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="281"/>
@@ -4080,7 +4128,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="312"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
-        <translation>GpgFrontend, &lt;a href="https://www.gnu.org/licenses/gpl-3.0.html"&gt;GPL-3.0-or-later&lt;/a&gt; lisansı altında özgür bir yazılımdır.</translation>
+        <translation>GpgFrontend, &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt; lisansı altında özgür bir yazılımdır.</translation>
     </message>
 </context>
 <context>
@@ -4088,7 +4136,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="318"/>
         <source>Welcome to GpgFrontend</source>
-        <translation>GpgFrontend'e hoş geldiniz</translation>
+        <translation>GpgFrontend&apos;e hoş geldiniz</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="319"/>
@@ -4118,7 +4166,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="334"/>
         <source>Star GpgFrontend on GitHub</source>
-        <translation>GpgFrontend'e GitHub'da yıldız verin</translation>
+        <translation>GpgFrontend&apos;e GitHub&apos;da yıldız verin</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="335"/>
@@ -4329,7 +4377,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="354"/>
         <source>&quot;%1&quot; is the name of the key database GpgFrontend derives from your OpenPGP engine. Turn that one on with the checkbox in Key Database settings, or pick another name.</source>
-        <translation>"%1", GpgFrontend'in OpenPGP motorunuzdan türettiği anahtar veritabanının adıdır. Onu Anahtar veritabanı ayarlarındaki onay kutusuyla açın veya başka bir ad seçin.</translation>
+        <translation>&quot;%1&quot;, GpgFrontend&apos;in OpenPGP motorunuzdan türettiği anahtar veritabanının adıdır. Onu Anahtar veritabanı ayarlarındaki onay kutusuyla açın veya başka bir ad seçin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="363"/>
@@ -4339,7 +4387,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="374"/>
         <source>A key database with the name &apos;%1&apos; already exists. Please choose a different name.</source>
-        <translation>'%1' adlı bir anahtar veritabanı zaten var. Lütfen farklı bir ad seçin.</translation>
+        <translation>&apos;%1&apos; adlı bir anahtar veritabanı zaten var. Lütfen farklı bir ad seçin.</translation>
     </message>
 </context>
 <context>
@@ -4457,7 +4505,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="623"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
-        <translation>'%1' adını taşıyan bir klasör zaten var. İçeriğini bizim değiştirmemiz doğru olmaz, bu yüzden başka bir ad seçin.</translation>
+        <translation>&apos;%1&apos; adını taşıyan bir klasör zaten var. İçeriğini bizim değiştirmemiz doğru olmaz, bu yüzden başka bir ad seçin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="633"/>
@@ -4467,7 +4515,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="634"/>
         <source>GpgFrontend could not rename the folder this key database is kept in. It may still be in use; try again after restarting GpgFrontend.</source>
-        <translation>GpgFrontend, bu anahtar veritabanının tutulduğu klasörü yeniden adlandıramadı. Klasör hâlâ kullanımda olabilir; GpgFrontend'i yeniden başlattıktan sonra yeniden deneyin.</translation>
+        <translation>GpgFrontend, bu anahtar veritabanının tutulduğu klasörü yeniden adlandıramadı. Klasör hâlâ kullanımda olabilir; GpgFrontend&apos;i yeniden başlattıktan sonra yeniden deneyin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="644"/>
@@ -4481,7 +4529,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="736"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="788"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
-        <translation>Düzenlenen anahtar veritabanı yolu, GpgFrontend'in kullanabileceği geçerli bir yol değil</translation>
+        <translation>Düzenlenen anahtar veritabanı yolu, GpgFrontend&apos;in kullanabileceği geçerli bir yol değil</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="655"/>
@@ -4802,7 +4850,7 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="727"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
-        <translation>Ad ve yorum '(', ')', '&lt;', '&gt;' karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
+        <translation>Ad ve yorum &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="733"/>
@@ -4843,9 +4891,9 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1393"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1488"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1494"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1591"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1760"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1798"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1592"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1761"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1799"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="167"/>
         <source>Custom</source>
         <translation>Özel</translation>
@@ -4861,92 +4909,92 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation>Bilinmeyen bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1540"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1541"/>
         <source>Generating</source>
         <translation>Oluşturuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1668"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1669"/>
         <source>ECC</source>
         <translation>ECC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1673"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1674"/>
         <source>Post-Quantum</source>
         <translation>Kuantum sonrası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1746"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1747"/>
         <source>Save Profile</source>
         <translation>Profili kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1747"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1748"/>
         <source>Please enter profile name:</source>
         <translation>Lütfen profil adını girin:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1755"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1761"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1769"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1783"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1799"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1811"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1756"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1762"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1770"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1784"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1800"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1812"/>
         <source>Notice</source>
         <translation>Bilgi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1756"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1757"/>
         <source>Profile was not saved: Name cannot be empty.</source>
         <translation>Profil kaydedilmedi: Ad boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1762"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1763"/>
         <source>The profile name &apos;Custom&apos; is reserved. Please choose another name.</source>
-        <translation>Profil adı 'Özel' ayrılmıştır. Lütfen başka bir ad seçin.</translation>
+        <translation>Profil adı &apos;Özel&apos; ayrılmıştır. Lütfen başka bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1770"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1771"/>
         <source>Profile was not saved: Name cannot be longer than %1 characters.</source>
         <translation>Profil kaydedilmedi: Ad %1 karakterden uzun olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1784"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1785"/>
         <source>Profile was not saved: Name already exists.</source>
         <translation>Profil kaydedilmedi: Bu ad zaten var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1800"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1801"/>
         <source>The &apos;Custom&apos; profile cannot be deleted.</source>
-        <translation>'Özel' profili silinemez.</translation>
+        <translation>&apos;Özel&apos; profili silinemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1812"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1813"/>
         <source>Selected profile does not exist.</source>
         <translation>Seçili profil mevcut değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1817"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1818"/>
         <source>Delete Profile</source>
         <translation>Profili sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1818"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1819"/>
         <source>Are you sure you want to delete the profile &apos;%1&apos;?</source>
-        <translation>'%1' profilini silmek istediğinizden emin misiniz?</translation>
+        <translation>&apos;%1&apos; profilini silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1844"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1845"/>
         <source>Reset To Default</source>
         <translation>Varsayılana sıfırla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1845"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1846"/>
         <source>Are you sure you want to reset the easy profile configuration to default? This action cannot be undone.</source>
         <translation>Kolay profil yapılandırmasını varsayılana sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2012"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2013"/>
         <source>Post-quantum algorithms require the v6 key format.</source>
         <translation>Kuantum sonrası algoritmalar v6 anahtar biçimini gerektirir.</translation>
     </message>
@@ -5327,7 +5375,7 @@ Bu anahtarlar artık kullanılamıyor. Bunları gruptan kaldırmak istiyor musun
         <source>Delete the key group &quot;%1&quot;?
 
 The group is removed. The keys in it are not touched and stay in your keyring.</source>
-        <translation>"%1" anahtar grubu silinsin mi?
+        <translation>&quot;%1&quot; anahtar grubu silinsin mi?
 
 Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda kalırlar.</translation>
     </message>
@@ -5639,7 +5687,7 @@ Grup kaldırılır. İçindeki anahtarlara dokunulmaz ve anahtarlığınızda ka
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1259"/>
         <source>Delete category &quot;%1&quot;? This removes the grouping only; the keys themselves are not affected.</source>
-        <translation>"%1" kategorisi silinsin mi? Bu yalnızca gruplandırmayı kaldırır; anahtarların kendisi etkilenmez.</translation>
+        <translation>&quot;%1&quot; kategorisi silinsin mi? Bu yalnızca gruplandırmayı kaldırır; anahtarların kendisi etkilenmez.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1325"/>
@@ -5717,13 +5765,13 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1666"/>
         <source>No key matches &quot;%1&quot;</source>
-        <translation>"%1" ile eşleşen anahtar yok</translation>
+        <translation>&quot;%1&quot; ile eşleşen anahtar yok</translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1667"/>
         <source>%n key(s) match &quot;%1&quot;</source>
         <translation>
-            <numerusform>"%1" ile eşleşen %n anahtar</numerusform>
+            <numerusform>&quot;%1&quot; ile eşleşen %n anahtar</numerusform>
         </translation>
     </message>
 </context>
@@ -5812,7 +5860,6 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Anahtar dosyasını aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="335"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="335"/>
         <source>Close</source>
         <translation>Kapat</translation>
@@ -6424,7 +6471,7 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1549"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
-        <translation>%1 anahtar %2 gün içinde sona eriyor. "Yakında sona eriyor" sekmesine bakın.</translation>
+        <translation>%1 anahtar %2 gün içinde sona eriyor. &quot;Yakında sona eriyor&quot; sekmesine bakın.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1553"/>
@@ -6497,7 +6544,7 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="146"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
-        <translation>Ad ve yorum '(', ')', '&lt;', '&gt;' karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
+        <translation>Ad ve yorum &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="152"/>
@@ -7228,173 +7275,179 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Hiçbir zaman sona ermez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="298"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="453"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="462"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="508"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="312"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="476"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="522"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="543"/>
         <source>Invalid Operation</source>
         <translation>Geçersiz işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="299"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="303"/>
+        <source>This is the only UID of a version 4 key. OpenPGP allows a key without UIDs, but a version 4 key keeps its usage, expiry and preferences in its UID self-signatures, so GpgFrontend could no longer use this key to sign or encrypt. Add another UID first if you want to replace this one.</source>
+        <translation>Bu, sürüm 4 bir anahtarın tek kullanıcı kimliğidir. OpenPGP kullanıcı kimliği olmayan anahtarlara izin verir, ancak sürüm 4 bir anahtar kullanım amacını, son kullanma tarihini ve tercihlerini kullanıcı kimliklerinin öz imzalarında tutar; bu yüzden GpgFrontend bu anahtarı artık imzalamak veya şifrelemek için kullanamaz. Bunu değiştirmek istiyorsanız önce başka bir kullanıcı kimliği ekleyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="313"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="544"/>
         <source>Cannot delete the Primary UID.</source>
         <translation>Birincil kullanıcı kimliği silinemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="318"/>
         <source>Deleting UIDs</source>
         <translation>Kullanıcı kimliklerini silme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="321"/>
         <source>Are you sure that you want to delete the following UID?</source>
         <translation>Aşağıdaki kullanıcı kimliğini silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="309"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="352"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="323"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="492"/>
         <source>The action can not be undone.</source>
         <translation>Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="321"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="365"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="484"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="335"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="379"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="498"/>
         <source>Operation Failed</source>
         <translation>İşlem başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="322"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="336"/>
         <source>An error occurred during the delete %1 operation.</source>
         <translation>%1 silme işlemi sırasında bir hata oluştu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="341"/>
         <source>Successful Operation</source>
         <translation>Başarılı işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="328"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="342"/>
         <source>Successfully deleted the UID.</source>
         <translation>Kullanıcı kimliği başarıyla silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="332"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="346"/>
         <source>Deleting UID</source>
         <translation>Kullanıcı kimliği siliniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="363"/>
         <source>Set Primary UID</source>
         <translation>Birincil kullanıcı kimliğini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="364"/>
         <source>Are you sure that you want to set the Primary UID to?</source>
         <translation>Birincil kullanıcı kimliğini aşağıdakine ayarlamak istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="366"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="485"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="380"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="499"/>
         <source>An error occurred during the operation.</source>
         <translation>İşlem sırasında bir hata oluştu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="372"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="386"/>
         <source>Setting Primary UID</source>
         <translation>Birincil kullanıcı kimliği ayarlanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="403"/>
         <source>Set As Primary</source>
         <translation>Birincil olarak ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="406"/>
         <source>Sign UID</source>
         <translation>Kullanıcı kimliğini imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="395"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="522"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="409"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="536"/>
         <source>Revoke UID</source>
         <translation>Kullanıcı kimliğini iptal et</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="398"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="412"/>
         <source>Delete UID</source>
         <translation>Kullanıcı kimliğini sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="442"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="456"/>
         <source>Delete(Revoke) Key Signature</source>
         <translation>Anahtar imzasını sil(iptal et)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="454"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="468"/>
         <source>Please select one Key Signature before doing this operation.</source>
         <translation>Bu işlemden önce lütfen bir anahtar imzası seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="463"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="477"/>
         <source>To delete the signature, you need to have its corresponding public key in the local database.</source>
         <translation>İmzayı silmek için ilgili açık anahtarın yerel veritabanında olması gerekir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="473"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="487"/>
         <source>Deleting Key Signature</source>
         <translation>Anahtar imzasını silme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="475"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="489"/>
         <source>Are you sure that you want to delete the following signature?</source>
         <translation>Aşağıdaki imzayı silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="509"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="523"/>
         <source>Please select one UID before doing this operation.</source>
         <translation>Bu işlemden önce lütfen bir kullanıcı kimliği seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="515"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="529"/>
         <source>&lt;h3&gt;Revoke UID Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;UID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a UID will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this UID?</source>
         <translation>&lt;h3&gt;Kullanıcı kimliği iptal onayı&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;Kullanıcı kimliği:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Bir kullanıcı kimliğini iptal etmek onu kalıcı olarak kullanılamaz hale getirir. Bu işlem &lt;b&gt;geri alınamaz&lt;/b&gt;.&lt;br /&gt;Bu kullanıcı kimliğini iptal etmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="535"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="549"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; Gerekçe yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="535"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="549"/>
         <source>4 -&gt; User ID is no longer valid.</source>
         <translation>4 -&gt; Kullanıcı kimliği artık geçerli değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="550"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="564"/>
         <source>Revocation Failed</source>
         <translation>İptal başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="551"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="565"/>
         <source>Failed to revoke the UID. Please try again.</source>
         <translation>Kullanıcı kimliği iptal edilemedi. Lütfen yeniden deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="569"/>
         <source>Revocation Successful</source>
         <translation>İptal başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="556"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="570"/>
         <source>The UID has been successfully revoked.</source>
         <translation>Kullanıcı kimliği başarıyla iptal edildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="560"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="574"/>
         <source>Revoking UID</source>
         <translation>Kullanıcı kimliği iptal ediliyor</translation>
     </message>
@@ -7517,12 +7570,12 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Anahtar çiftinin sona erme tarihi güncellendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="330"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="334"/>
         <source>Failure</source>
         <translation>Başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="331"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="335"/>
         <source>Failed to update the expire date of the key pair.</source>
         <translation>Anahtar çiftinin sona erme tarihi güncellenemedi.</translation>
     </message>
@@ -7583,7 +7636,7 @@ Bir tane oluşturmak için Anahtar ▸ Anahtar oluştur seçeneğini kullanın v
         <source>No key matches &quot;%1&quot;.
 
 Clear the search to see every key again.</source>
-        <translation>"%1" ile eşleşen anahtar yok.
+        <translation>&quot;%1&quot; ile eşleşen anahtar yok.
 
 Tüm anahtarları yeniden görmek için aramayı temizleyin.</translation>
     </message>
@@ -7756,11 +7809,11 @@ Without a GUI Pinentry, GnuPG cannot prompt you for passwords or passphrases.
 After installing it, please restart GpgFrontend. The configuration file will be updated automatically.</source>
         <translation>Sisteminizde uygun bir *grafik* Pinentry programı bulunamadı.
 
-Lütfen grafik arayüzlü bir Pinentry kurun (ör. 'pinentry-qt', 'pinentry-gnome3' veya macOS için 'pinentry-mac').
+Lütfen grafik arayüzlü bir Pinentry kurun (ör. &apos;pinentry-qt&apos;, &apos;pinentry-gnome3&apos; veya macOS için &apos;pinentry-mac&apos;).
 
 Grafik Pinentry olmadan GnuPG sizden parola veya parola ifadesi isteyemez.
 
-Kurduktan sonra lütfen GpgFrontend'i yeniden başlatın. Yapılandırma dosyası otomatik olarak güncellenecektir.</translation>
+Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma dosyası otomatik olarak güncellenecektir.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="200"/>
@@ -7880,8 +7933,8 @@ Kurduktan sonra lütfen GpgFrontend'i yeniden başlatın. Yapılandırma dosyas�
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="353"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="339"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="654"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="347"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="697"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="239"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
@@ -7894,8 +7947,8 @@ Kurduktan sonra lütfen GpgFrontend'i yeniden başlatın. Yapılandırma dosyas�
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="357"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="485"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="767"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="526"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="810"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
         <source>Decrypt</source>
         <translation>Şifresini çöz</translation>
@@ -8000,14 +8053,14 @@ Kurduktan sonra lütfen GpgFrontend'i yeniden başlatın. Yapılandırma dosyas�
         <translation>İleti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="108"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="221"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="260"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="102"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="229"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="268"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="109"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="103"/>
         <source>Failed to finalize output file:
 
 %1</source>
@@ -8016,7 +8069,7 @@ Kurduktan sonra lütfen GpgFrontend'i yeniden başlatın. Yapılandırma dosyas�
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="153"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="154"/>
         <source>The operation succeeded, but GpgFrontend failed to finalize one or more output files.
 
 Temporary output files have been cleaned up. Original files were kept unchanged.</source>
@@ -8025,7 +8078,22 @@ Temporary output files have been cleaned up. Original files were kept unchanged.
 Geçici çıktı dosyaları temizlendi. Orijinal dosyalar değiştirilmeden bırakıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="222"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="158"/>
+        <source>The operation succeeded, but GpgFrontend failed to finalize one or more output files.
+
+These output files were already written before the failure:
+%1
+
+The remaining temporary output files have been cleaned up.</source>
+        <translation>İşlem başarılı oldu, ancak GpgFrontend bir veya daha fazla çıktı dosyasını tamamlayamadı.
+
+Bu çıktı dosyaları hatadan önce zaten yazılmıştı:
+%1
+
+Kalan geçici çıktı dosyaları temizlendi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="230"/>
         <source>Cannot read from the following files:
 
 %1</source>
@@ -8034,23 +8102,23 @@ Geçici çıktı dosyaları temizlendi. Orijinal dosyalar değiştirilmeden bır
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="235"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="243"/>
         <source>The target file &quot;%1&quot; already exists.
 
 It will only be replaced after the operation succeeds.
 Do you want to continue?</source>
-        <translation>Hedef dosya "%1" zaten var.
+        <translation>Hedef dosya &quot;%1&quot; zaten var.
 
 Yalnızca işlem başarılı olduktan sonra değiştirilecek.
 Devam etmek istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="239"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="247"/>
         <source>Warning</source>
         <translation>Uyarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="261"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="269"/>
         <source>Cannot write to the following files:
 
 %1</source>
@@ -8059,165 +8127,185 @@ Devam etmek istiyor musunuz?</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="275"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="283"/>
         <source>No Key Checked</source>
         <translation>İşaretli anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="276"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="284"/>
         <source>Please check the key in the key toolbox on the right.</source>
         <translation>Lütfen sağdaki anahtar araç kutusundan bir anahtar işaretleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="286"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="294"/>
         <source>Invalid KeyPair</source>
         <translation>Geçersiz anahtar çifti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="288"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="296"/>
         <source>For example the Following Key:</source>
         <translation>Örneğin aşağıdaki anahtar:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="302"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="310"/>
         <source>The selected keypair cannot be used for encryption.</source>
         <translation>Seçili anahtar çifti şifreleme için kullanılamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="310"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="318"/>
         <source>Cannot Encrypt</source>
         <translation>Şifrelenemiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="330"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="338"/>
         <source>Confirm Recipients</source>
         <translation>Alıcıları onayla</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="333"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="341"/>
         <source>Encrypt to %n recipients?</source>
         <translation>
             <numerusform>%n alıcıya şifrelensin mi?</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="334"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="342"/>
         <source>Each recipient will be able to see the key IDs of all the others.</source>
         <translation>Her alıcı, diğerlerinin anahtar kimliklerini görebilecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="422"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="637"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="834"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="364"/>
+        <source>Mixed Recipient Types</source>
+        <translation>Karışık alıcı türleri</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="365"/>
+        <source>Some recipients use post-quantum encryption and others do not.</source>
+        <translation>Bazı alıcılar kuantum sonrası şifreleme kullanıyor, bazıları kullanmıyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="368"/>
+        <source>The message key is encrypted to every recipient, so anyone able to break the classical recipients&apos; encryption can read the whole message: the post-quantum protection does not hold for it. To keep that protection, encrypt separately for the post-quantum recipients.</source>
+        <translation>İleti anahtarı her alıcı için şifrelenir; bu yüzden klasik alıcıların şifrelemesini kırabilen biri iletinin tamamını okuyabilir: kuantum sonrası koruma bu ileti için geçerli olmaz. Bu korumayı korumak için kuantum sonrası alıcılar için ayrı şifreleyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="373"/>
+        <source>Encrypt Anyway</source>
+        <translation>Yine de şifrele</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="463"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="680"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="877"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="638"/>
         <source>Encrypting</source>
         <translation>Şifreleniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="472"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="921"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="513"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="964"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="710"/>
         <source>Signing</source>
         <translation>İmzalanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="494"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="503"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="882"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="535"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="544"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="925"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="507"/>
         <source>Decrypting</source>
         <translation>Şifresi çözülüyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="517"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="967"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="558"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1017"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="561"/>
         <source>Verifying</source>
         <translation>Doğrulanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="555"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="637"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1027"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="598"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="680"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1077"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="803"/>
         <source>Encrypting and Signing</source>
         <translation>Şifreleniyor ve imzalanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="565"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="608"/>
         <source>Decrypt Verify</source>
         <translation>Şifresini çöz ve doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="574"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="587"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1076"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="617"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="630"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1126"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="859"/>
         <source>Decrypting and Verifying</source>
         <translation>Şifresi çözülüyor ve doğrulanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="654"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="697"/>
         <source>Encrypt Sign</source>
         <translation>Şifrele ve imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="667"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="710"/>
         <source>Encoding</source>
         <translation>Kodlanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="680"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="723"/>
         <source>The encoder did not return text.</source>
         <translation>Kodlayıcı metin döndürmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="691"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="734"/>
         <source>Message encrypted, signed and encoded.</source>
         <translation>İleti şifrelendi, imzalandı ve kodlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="692"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="735"/>
         <source>Message encrypted and encoded.</source>
         <translation>İleti şifrelendi ve kodlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="711"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="754"/>
         <source>Checking Message</source>
         <translation>İleti kontrol ediliyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="722"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="765"/>
         <source>The message could not be decoded.</source>
         <translation>İletinin kodu çözülemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="776"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="819"/>
         <source>Failed to decrypt the decoded message.</source>
         <translation>Kodu çözülen iletinin şifresi çözülemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="778"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="821"/>
         <source>Decoded message decrypted (not signed).</source>
         <translation>Kodu çözülen iletinin şifresi çözüldü (imzalanmamış).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="780"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="823"/>
         <source>Decoded message decrypted.</source>
         <translation>Kodu çözülen iletinin şifresi çözüldü.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="893"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="936"/>
         <source>The selected key contains a key that does not actually have a sign usage.</source>
         <translation>Seçili anahtar, aslında imza kullanımı bulunmayan bir anahtar içeriyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="947"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="990"/>
         <source>File to be Verified</source>
         <translation>Doğrulanacak dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="948"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="991"/>
         <source>Please provide An ABSOLUTE Path 
 If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </source>
         <translation>Lütfen MUTLAK bir yol belirtin 
@@ -8361,17 +8449,17 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="494"/>
         <source>The decrypt operation for the tab type &apos;%1&apos; is not supported.</source>
-        <translation>'%1' sekme türü için şifre çözme işlemi desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; sekme türü için şifre çözme işlemi desteklenmiyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="550"/>
         <source>The verify operation for the tab type &apos;%1&apos; is not supported.</source>
-        <translation>'%1' sekme türü için doğrulama işlemi desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; sekme türü için doğrulama işlemi desteklenmiyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="617"/>
         <source>The encryption operation for the tab type &apos;%1&apos; is not supported.</source>
-        <translation>'%1' sekme türü için şifreleme işlemi desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; sekme türü için şifreleme işlemi desteklenmiyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="624"/>
@@ -8389,7 +8477,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="683"/>
         <source>The sign operation for the tab type &apos;%1&apos; is not supported.</source>
-        <translation>'%1' sekme türü için imzalama işlemi desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; sekme türü için imzalama işlemi desteklenmiyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="693"/>
@@ -8412,7 +8500,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="755"/>
         <source>The encrypt and sign operation for the tab type &apos;%1&apos; is not supported.</source>
-        <translation>'%1' sekme türü için şifreleme ve imzalama işlemi desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; sekme türü için şifreleme ve imzalama işlemi desteklenmiyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="765"/>
@@ -8422,7 +8510,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="849"/>
         <source>The decrypt and verify operation for the tab type &apos;%1&apos; is not supported.</source>
-        <translation>'%1' sekme türü için şifre çözme ve doğrulama işlemi desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; sekme türü için şifre çözme ve doğrulama işlemi desteklenmiyor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="152"/>
@@ -8469,7 +8557,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="344"/>
         <source>&quot;%1&quot; was written to a single file.</source>
-        <translation>"%1" tek bir dosyaya yazıldı.</translation>
+        <translation>&quot;%1&quot; tek bir dosyaya yazıldı.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="356"/>
@@ -8704,7 +8792,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="224"/>
         <source>Remove double linebreaks, e.g. in pasted text from Web Mailer</source>
-        <translation>Çift satır sonlarını kaldırın, örn. Web Mailer'dan yapıştırılan metinde</translation>
+        <translation>Çift satır sonlarını kaldırın, örn. Web Mailer&apos;dan yapıştırılan metinde</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="280"/>
@@ -9198,7 +9286,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="280"/>
         <source>&lt;p&gt;A module you enable runs inside GpgFrontend and can do anything GpgFrontend can. The capabilities it lists are what it asked for, not a limit.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Etkinleştirdiğiniz bir modül GpgFrontend içinde çalışır ve GpgFrontend'in yapabildiği her şeyi yapabilir. Listelediği yetenekler, istediği yeteneklerdir; bir sınır değildir.&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;Etkinleştirdiğiniz bir modül GpgFrontend içinde çalışır ve GpgFrontend&apos;in yapabildiği her şeyi yapabilir. Listelediği yetenekler, istediği yeteneklerdir; bir sınır değildir.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="288"/>
@@ -9542,7 +9630,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="68"/>
         <source>Enable Proxy</source>
-        <translation>Proxy'yi etkinleştir</translation>
+        <translation>Proxy&apos;yi etkinleştir</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="69"/>
@@ -9583,7 +9671,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="131"/>
         <source>Server Url</source>
-        <translation>Sunucu URL'si</translation>
+        <translation>Sunucu URL&apos;si</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="141"/>
@@ -9613,7 +9701,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="158"/>
         <source>Is using your proxy settings to access the url. Note that this test operation will apply your proxy settings to the entire software.</source>
-        <translation>URL'ye erişmek için proxy ayarlarınız kullanılıyor. Bu test işleminin proxy ayarlarınızı tüm yazılıma uygulayacağını unutmayın.</translation>
+        <translation>URL&apos;ye erişmek için proxy ayarlarınız kullanılıyor. Bu test işleminin proxy ayarlarınızı tüm yazılıma uygulayacağını unutmayın.</translation>
     </message>
 </context>
 <context>
@@ -9735,7 +9823,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="94"/>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="142"/>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="211"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="428"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="449"/>
         <source>Loading...</source>
         <translation>Yükleniyor...</translation>
     </message>
@@ -9797,67 +9885,67 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Belge değişmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="498"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="535"/>
         <source>Loading... %1 KB</source>
         <translation>Yükleniyor... %1 KB</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="861"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="898"/>
         <source>Message</source>
         <translation>İleti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="862"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="899"/>
         <source>Raw Source</source>
         <translation>Ham kaynak</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="945"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="982"/>
         <source>Protected Document</source>
         <translation>Korumalı belge</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="971"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1008"/>
         <source>Stop Editing</source>
         <translation>Düzenlemeyi durdur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="972"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1009"/>
         <source>Edit Raw Source</source>
         <translation>Ham kaynağı düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="975"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1012"/>
         <source>You are editing the raw source. What you type here is the document.</source>
         <translation>Ham kaynağı düzenliyorsunuz. Buraya yazdığınız şey belgedir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="977"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1014"/>
         <source>Read-only. Unlock to edit the source.</source>
         <translation>Salt okunur. Kaynağı düzenlemek için kilidi açın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1035"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1072"/>
         <source>Text Direction</source>
         <translation>Metin yönü</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1042"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1079"/>
         <source>Automatic</source>
         <translation>Otomatik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1043"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1080"/>
         <source>Left-to-Right</source>
         <translation>Soldan sağa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1044"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1081"/>
         <source>Right-to-Left</source>
         <translation>Sağdan sola</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1058"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1095"/>
         <source>Which way the text runs. Automatic gives every line the direction of its own first letter.</source>
         <translation>Metnin aktığı yön. Otomatik, her satıra kendi ilk harfinin yönünü verir.</translation>
     </message>
@@ -9916,7 +10004,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="74"/>
         <source>Export &quot;%1&quot;</source>
-        <translation>"%1" dışa aktar</translation>
+        <translation>&quot;%1&quot; dışa aktar</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="75"/>
@@ -10090,7 +10178,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="259"/>
         <source>Delete &quot;%1&quot;?</source>
-        <translation>"%1" silinsin mi?</translation>
+        <translation>&quot;%1&quot; silinsin mi?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="260"/>
@@ -10100,7 +10188,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="268"/>
         <source>This cannot be undone. Anything stored only in &quot;%1&quot; will be lost.</source>
-        <translation>Bu geri alınamaz. Yalnızca "%1" içinde saklanan her şey kaybolur.</translation>
+        <translation>Bu geri alınamaz. Yalnızca &quot;%1&quot; içinde saklanan her şey kaybolur.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="277"/>
@@ -10110,7 +10198,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="278"/>
         <source>&quot;%1&quot; is open in another window. Close it first.</source>
-        <translation>"%1" başka bir pencerede açık. Önce onu kapatın.</translation>
+        <translation>&quot;%1&quot; başka bir pencerede açık. Önce onu kapatın.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="296"/>
@@ -10154,7 +10242,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::RecipientConfirm</name>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/RecipientConfirm.cpp" line="60"/>
+        <location filename="../../../../src/ui/main_window/RecipientConfirm.cpp" line="61"/>
         <source>Key group, %n key(s)</source>
         <translation>
             <numerusform>Anahtar grubu, %n anahtar</numerusform>
@@ -10258,7 +10346,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="56"/>
         <source>Absolute lifetime of a cached passphrase, measured from when it was first entered, regardless of use. Never shorter than the TTL.</source>
-        <translation>Önbellekteki bir parola ifadesinin, ilk girildiği andan itibaren ve kullanımdan bağımsız olarak ölçülen mutlak ömrü. TTL'den hiçbir zaman daha kısa olmaz.</translation>
+        <translation>Önbellekteki bir parola ifadesinin, ilk girildiği andan itibaren ve kullanımdan bağımsız olarak ölçülen mutlak ömrü. TTL&apos;den hiçbir zaman daha kısa olmaz.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="60"/>
@@ -10293,7 +10381,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="77"/>
         <source>Applies to the passphrase prompt GpgFrontend shows for the rPGP engine. GnuPG keys are unlocked through pinentry, which has its own timeout.</source>
-        <translation>GpgFrontend'in rPGP motoru için gösterdiği parola ifadesi istemi için geçerlidir. GnuPG anahtarlarının kilidi, kendi zaman aşımı olan pinentry üzerinden açılır.</translation>
+        <translation>GpgFrontend&apos;in rPGP motoru için gösterdiği parola ifadesi istemi için geçerlidir. GnuPG anahtarlarının kilidi, kendi zaman aşımı olan pinentry üzerinden açılır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="81"/>
@@ -10701,7 +10789,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
         <translation>Bunu gerektiren değişikliklerin bulunduğu sayfalar: %1.
 
-Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları korumak için İptal'i seçin.</translation>
+Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları korumak için İptal&apos;i seçin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="437"/>
@@ -10963,17 +11051,17 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="166"/>
         <source>Change Public Key URL</source>
-        <translation>Açık anahtar URL'sini değiştir</translation>
+        <translation>Açık anahtar URL&apos;sini değiştir</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="171"/>
         <source>Change PIN</source>
-        <translation>PIN'i değiştir</translation>
+        <translation>PIN&apos;i değiştir</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="173"/>
         <source>Change Admin PIN</source>
-        <translation>Yönetici PIN'ini değiştir</translation>
+        <translation>Yönetici PIN&apos;ini değiştir</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="175"/>
@@ -10983,7 +11071,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="180"/>
         <source>Restart All Gpg-Agents</source>
-        <translation>Tüm Gpg-Agent'ları yeniden başlat</translation>
+        <translation>Tüm Gpg-Agent&apos;ları yeniden başlat</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="194"/>
@@ -10993,7 +11081,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="195"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
-        <translation>GnuPG'nin tüm bileşenleri başarıyla yeniden başlatıldı</translation>
+        <translation>GnuPG&apos;nin tüm bileşenleri başarıyla yeniden başlatıldı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="198"/>
@@ -11061,7 +11149,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="334"/>
         <source>Admin PIN</source>
-        <translation>Yönetici PIN'i</translation>
+        <translation>Yönetici PIN&apos;i</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="340"/>
@@ -11158,7 +11246,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="483"/>
         <source>Note: Smart card support of GpgFrontend requires GnuPG version 2.3.0 or later.</source>
-        <translation>Not: GpgFrontend'in akıllı kart desteği, GnuPG sürüm 2.3.0 veya üstünü gerektirir.</translation>
+        <translation>Not: GpgFrontend&apos;in akıllı kart desteği, GnuPG sürüm 2.3.0 veya üstünü gerektirir.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="560"/>
@@ -11229,12 +11317,12 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="627"/>
         <source>Select sex to store in &apos;%1&apos;</source>
-        <translation>'%1' içine kaydedilecek cinsiyeti seçin</translation>
+        <translation>&apos;%1&apos; içine kaydedilecek cinsiyeti seçin</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="642"/>
         <source>Enter new value for attribute &apos;%1&apos;</source>
-        <translation>'%1' özniteliği için yeni değeri girin</translation>
+        <translation>&apos;%1&apos; özniteliği için yeni değeri girin</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="660"/>
@@ -11658,22 +11746,22 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Oluşturuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="525"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="525"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="526"/>
         <source>Unknown error occurred</source>
         <translation>Bilinmeyen bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="553"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="556"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="554"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="557"/>
         <source>Subkey generation completed successfully.</source>
         <translation>Alt anahtar oluşturma başarıyla tamamlandı.</translation>
     </message>
@@ -11705,58 +11793,60 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="160"/>
         <source>Saving is not supported for tabs of type &apos;%1&apos;.</source>
-        <translation>'%1' türündeki sekmeler için kaydetme desteklenmiyor.</translation>
+        <translation>&apos;%1&apos; türündeki sekmeler için kaydetme desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="212"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="687"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="196"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="225"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="700"/>
         <source>Warning</source>
         <translation>Uyarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="213"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="197"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="226"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>%1 dosyası okunamıyor:
 %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="252"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="265"/>
         <source>Save File</source>
         <translation>Dosyayı kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="337"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="350"/>
         <source>Unsaved Document</source>
         <translation>Kaydedilmemiş belge</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="338"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="351"/>
         <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?</source>
-        <translation>"%1" belgesi değiştirildi. Değişikliklerinizi kaydetmek istiyor musunuz?</translation>
+        <translation>&quot;%1&quot; belgesi değiştirildi. Değişikliklerinizi kaydetmek istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="341"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="354"/>
         <source>Note:</source>
         <translation>Not:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="342"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="355"/>
         <source>If you don&apos;t save, your changes will be lost.</source>
         <translation>Kaydetmezseniz değişiklikleriniz kaybolur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="638"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="651"/>
         <source>File Open Error</source>
         <translation>Dosya açma hatası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="639"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="652"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
-        <translation>"%1" dosyası açılamadı.</translation>
+        <translation>&quot;%1&quot; dosyası açılamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="687"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="700"/>
         <source>No document to print.</source>
         <translation>Yazdırılacak belge yok.</translation>
     </message>
@@ -11786,17 +11876,17 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="286"/>
         <source>The file &quot;%1&quot; is larger than 4 MB and will not be opened in the text editor.</source>
-        <translation>"%1" dosyası 4 MB'tan büyük ve metin düzenleyicide açılmayacak.</translation>
+        <translation>&quot;%1&quot; dosyası 4 MB&apos;tan büyük ve metin düzenleyicide açılmayacak.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="297"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
-        <translation>"%1" dosyası açılamadı.</translation>
+        <translation>&quot;%1&quot; dosyası açılamadı.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="305"/>
         <source>The file &quot;%1&quot; appears to be a binary file and will not be opened.</source>
-        <translation>"%1" dosyası ikili bir dosya gibi görünüyor ve açılmayacak.</translation>
+        <translation>&quot;%1&quot; dosyası ikili bir dosya gibi görünüyor ve açılmayacak.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="351"/>
@@ -11809,7 +11899,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="352"/>
         <source>The file &quot;%1&quot; does not exist.</source>
-        <translation>"%1" dosyası mevcut değil.</translation>
+        <translation>&quot;%1&quot; dosyası mevcut değil.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="575"/>
@@ -11830,7 +11920,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1175"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
-        <translation>"%1" dizinine erişim izniniz yok.</translation>
+        <translation>&quot;%1&quot; dizinine erişim izniniz yok.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1197"/>
@@ -11853,7 +11943,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="407"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
-        <translation>Yerelleştirmeyi iyileştirmeye yardımcı olmak istiyorsanız lütfen &lt;a href='https://gpgfrontend.bktus.com/appendix/translate-interface/'&gt;çeviri kılavuzunu&lt;/a&gt; okuyun.!</translation>
+        <translation>Yerelleştirmeyi iyileştirmeye yardımcı olmak istiyorsanız lütfen &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;çeviri kılavuzunu&lt;/a&gt; okuyun.!</translation>
     </message>
 </context>
 <context>
@@ -11864,7 +11954,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/WaitingDialog.cpp" line="84"/>
+        <location filename="../../../../src/ui/dialog/WaitingDialog.cpp" line="82"/>
         <source>Cancelling...</source>
         <translation>İptal ediliyor...</translation>
     </message>
@@ -11875,7 +11965,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="225"/>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="232"/>
         <source>Welcome to GpgFrontend</source>
-        <translation>GpgFrontend'e hoş geldiniz</translation>
+        <translation>GpgFrontend&apos;e hoş geldiniz</translation>
     </message>
 </context>
 <context>
@@ -11972,50 +12062,50 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Gpg varsayılan anahtar veritabanı başlatması başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="128"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="171"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="184"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="227"/>
         <source>Filename</source>
         <translation>Dosya adı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="129"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="131"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="185"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="187"/>
         <source>File Size</source>
         <translation>Dosya boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="154"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="210"/>
         <source>File Hash Information</source>
         <translation>Dosya karma bilgisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="156"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="171"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="212"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="227"/>
         <source>: </source>
         <translation>: </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="169"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="225"/>
         <source>Error: cannot read target file</source>
         <translation>Hata: hedef dosya okunamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="203"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="259"/>
         <source>target path doesn&apos;t exists</source>
         <translation>hedef yol mevcut değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="209"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="265"/>
         <source>do NOT have permission to write path</source>
         <translation>yola yazma izni YOK</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="215"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="271"/>
         <source>do NOT have permission to read/write file</source>
         <translation>dosyayı okuma/yazma izni YOK</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="218"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="274"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
@@ -12057,7 +12147,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="87"/>
         <source>Loading key database &quot;%1&quot;...</source>
-        <translation>"%1" anahtar veritabanı yükleniyor...</translation>
+        <translation>&quot;%1&quot; anahtar veritabanı yükleniyor...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="90"/>
@@ -12077,7 +12167,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="96"/>
         <source>Loading module &quot;%1&quot;...</source>
-        <translation>"%1" modülü yükleniyor...</translation>
+        <translation>&quot;%1&quot; modülü yükleniyor...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="99"/>
@@ -12110,7 +12200,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/core/module/ModuleManager.cpp" line="236"/>
         <source>External modules are not supported on macOS: the system only loads code signed with this application&apos;s own Team ID.</source>
-        <translation>Harici modüller macOS'ta desteklenmiyor: sistem yalnızca bu uygulamanın kendi Team ID'si ile imzalanmış kodu yükler.</translation>
+        <translation>Harici modüller macOS&apos;ta desteklenmiyor: sistem yalnızca bu uygulamanın kendi Team ID&apos;si ile imzalanmış kodu yükler.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/ModuleManager.cpp" line="251"/>
@@ -12218,7 +12308,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="54"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="120"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="207"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="210"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
@@ -12292,7 +12382,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="127"/>
         <source>Star GpgFrontend on GitHub</source>
-        <translation>GpgFrontend'e GitHub'da yıldız verin</translation>
+        <translation>GpgFrontend&apos;e GitHub&apos;da yıldız verin</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="134"/>
@@ -12382,7 +12472,7 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="164"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="208"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="211"/>
         <source>Cipher</source>
         <translation>Şifreleme</translation>
     </message>
@@ -12594,7 +12684,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="61"/>
         <source>Resetting removes the PIN and lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
-        <translation>Sıfırlama PIN'i kaldırır ve uygulamanın başlamasını sağlar, ancak daha önce şifrelediği her şey kalıcı olarak okunamaz hale gelir.</translation>
+        <translation>Sıfırlama PIN&apos;i kaldırır ve uygulamanın başlamasını sağlar, ancak daha önce şifrelediği her şey kalıcı olarak okunamaz hale gelir.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="64"/>
@@ -12604,7 +12694,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="69"/>
         <source>Only do this if you cannot recall the PIN. There is no other way to recover the key.</source>
-        <translation>Bunu yalnızca PIN'i anımsayamıyorsanız yapın. Anahtarı kurtarmanın başka bir yolu yoktur.</translation>
+        <translation>Bunu yalnızca PIN&apos;i anımsayamıyorsanız yapın. Anahtarı kurtarmanın başka bir yolu yoktur.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="71"/>
@@ -12634,7 +12724,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="132"/>
         <source>If you have forgotten your PIN, the application key and everything encrypted with it cannot be recovered.</source>
-        <translation>PIN'inizi unuttuysanız uygulama anahtarı ve onunla şifrelenen her şey kurtarılamaz.</translation>
+        <translation>PIN&apos;inizi unuttuysanız uygulama anahtarı ve onunla şifrelenen her şey kurtarılamaz.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="163"/>
@@ -12743,7 +12833,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="288"/>
         <source>Change &apos;Profile package storage&apos; in Settings to allow an ordinary temporary folder.</source>
-        <translation>Sıradan bir geçici klasöre izin vermek için Ayarlar içinde 'Profil paketi deposu' seçeneğini değiştirin.</translation>
+        <translation>Sıradan bir geçici klasöre izin vermek için Ayarlar içinde &apos;Profil paketi deposu&apos; seçeneğini değiştirin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="292"/>
@@ -12834,7 +12924,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="356"/>
         <source>Upgrading this profile stopped at step &apos;%1&apos;.</source>
-        <translation>Bu profilin yükseltilmesi '%1' adımında durdu.</translation>
+        <translation>Bu profilin yükseltilmesi &apos;%1&apos; adımında durdu.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="359"/>
@@ -12980,132 +13070,137 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="117"/>
+        <source>Key Not Authorized</source>
+        <translation>Anahtar yetkili değil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="119"/>
         <location filename="../../../../src/ui/function/SecurityDisplayNames.cpp" line="47"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="123"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="125"/>
         <source>Signer</source>
         <translation>İmzalayan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="125"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="193"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="127"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="148"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="196"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="127"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="148"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="129"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="150"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="133"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="151"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="135"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="153"/>
         <source>Algorithm</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="136"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="138"/>
         <source>Signed</source>
         <translation>İmzalı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="144"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
         <source>Recipient</source>
         <translation>Alıcı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="150"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="152"/>
         <source>Primary Key Algorithm</source>
         <translation>Birincil anahtar algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="163"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
         <source>Input Material Hash</source>
         <translation>Girdi verisi karması</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="167"/>
         <source>SHA-256</source>
         <translation>SHA-256</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="182"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="185"/>
         <source>Signature Created</source>
         <translation>İmza oluşturuldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="185"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="188"/>
         <source>Mode</source>
         <translation>Mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="191"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="194"/>
         <source>Invalid Signer</source>
         <translation>Geçersiz imzalayan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="194"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="197"/>
         <source>Reason</source>
         <translation>Neden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="201"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="229"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="204"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="232"/>
         <source>Decrypt</source>
         <translation>Şifresini çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="204"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="207"/>
         <source>Message Metadata</source>
         <translation>İleti üst verisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="209"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="212"/>
         <source>MIME</source>
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="210"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="213"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="211"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="214"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="212"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="215"/>
         <source>Integrity</source>
         <translation>Bütünlük</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="214"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="217"/>
         <source>Protected</source>
         <translation>Korumalı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="215"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="218"/>
         <source>Not Protected (unsafe)</source>
         <translation>Korumasız (güvenli değil)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="219"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="222"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="222"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="225"/>
         <source>Encryption Recipient</source>
         <translation>Şifreleme alıcısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="232"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="235"/>
         <source>Decryption Recipient</source>
         <translation>Şifre çözme alıcısı</translation>
     </message>
@@ -13130,12 +13225,12 @@ Bağlantı panonuza kopyalandı:
         <translation>Yalnızca bu bilgisayarda</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="196"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="198"/>
         <source>ECC</source>
         <translation>ECC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="203"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="205"/>
         <source>Post-Quantum</source>
         <translation>Kuantum sonrası</translation>
     </message>
@@ -13168,7 +13263,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="151"/>
         <source>This profile was made by a newer version of GpgFrontend (%1).</source>
-        <translation>Bu profil GpgFrontend'in daha yeni bir sürümüyle oluşturuldu (%1).</translation>
+        <translation>Bu profil GpgFrontend&apos;in daha yeni bir sürümüyle oluşturuldu (%1).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="169"/>
@@ -13200,7 +13295,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="208"/>
         <source>&quot;%1&quot; is unavailable</source>
-        <translation>"%1" kullanılamıyor</translation>
+        <translation>&quot;%1&quot; kullanılamıyor</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="209"/>
@@ -13216,7 +13311,7 @@ Bağlantı panonuza kopyalandı:
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="217"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="756"/>
         <source>&quot;%1&quot; is ready.</source>
-        <translation>"%1" hazır.</translation>
+        <translation>&quot;%1&quot; hazır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="219"/>
@@ -13269,17 +13364,17 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="407"/>
         <source>There is no profile called &quot;%1&quot;.</source>
-        <translation>"%1" adlı bir profil yok.</translation>
+        <translation>&quot;%1&quot; adlı bir profil yok.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="426"/>
         <source>&quot;%1&quot; is open in another window (process %2 on %3).</source>
-        <translation>"%1" başka bir pencerede açık (%3 üzerindeki %2 süreci).</translation>
+        <translation>&quot;%1&quot; başka bir pencerede açık (%3 üzerindeki %2 süreci).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="431"/>
         <source>&quot;%1&quot; is open in another window.</source>
-        <translation>"%1" başka bir pencerede açık.</translation>
+        <translation>&quot;%1&quot; başka bir pencerede açık.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="463"/>
@@ -13336,7 +13431,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="626"/>
         <source>&quot;%1&quot; is a profile file. Choose what to do with it.</source>
-        <translation>"%1" bir profil dosyası. Bununla ne yapılacağını seçin.</translation>
+        <translation>&quot;%1&quot; bir profil dosyası. Bununla ne yapılacağını seçin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="636"/>
