@@ -53,9 +53,10 @@ workflows, and recommended practices for using GpgFrontend effectively.
   recommended backend for mature workflows. rPGP-related features are under
   active development and may evolve over time.
 
-- **v2.1.x (Stable):** Dedicated to maximum stability and reliability. This
-  series remains in maintenance mode, focusing on bug fixes and security
-  updates, with no new major features or breaking changes planned.
+- **v2.1.x (Legacy):** The previous GnuPG-only stable series. It remains in
+  maintenance mode, focusing on bug fixes and security updates, with no new
+  major features or breaking changes planned. It is also the only series that
+  can still be built with Qt5; v2.2.x requires Qt6.
 
 ## Supported Languages
 
