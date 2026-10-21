@@ -118,6 +118,27 @@ void WaitEnvCheckingProcess() {
   progress_dialog->setFocus();
   progress_dialog->show();
 
+  // Authoritative re-check, placed after show() (the only thing that pumps
+  // events here) and immediately before blocking. The connections above are
+  // edge-triggered and cross-thread, so a quit delivered while show() pumped
+  // the event loop is a no-op and the dialog would then wait forever even
+  // though the core is already initialized. The monitor publishes env.state.*
+  // before emitting its signals, so reading the state now closes that window.
+  const auto core_reached_terminal_state = []() -> bool {
+    return Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all",
+                                                   0) == 1 ||
+           Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
+                                                   0) < 0;
+  };
+
+  if (core_reached_terminal_state()) {
+    LOG_D()
+        << "core reached terminal state before waiting; skipping event loop";
+    progress_dialog->finished(0);
+    progress_dialog->deleteLater();
+    return;
+  }
+
   // block the main thread until the gpg context is loaded
   looper.exec();
 }
