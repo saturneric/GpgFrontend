@@ -32,6 +32,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 namespace GpgFrontend {
 class SecureMemoryAllocator;
@@ -40,6 +41,34 @@ class SecureMemoryAllocator;
 namespace {
 QMutex instance_mutex;
 GpgFrontend::SecureMemoryAllocator* instance = nullptr;
+}  // namespace
+
+namespace {
+
+struct AllocationInfo {
+  size_t size = 0;
+  // Allocated with OPENSSL_secure_zalloc, so it has to go back through
+  // OPENSSL_secure_clear_free.
+  bool guarded = false;
+  // Must be zeroed before the memory is released. Kept separate from
+  // `guarded` because an ordinary block holding a secret has to be wiped too.
+  bool wipe = false;
+};
+
+auto NormalAllocate(size_t size) -> void* {
+  auto* ptr = OPENSSL_zalloc(size);
+  if (ptr == nullptr) FLOG_F("OPENSSL_zalloc failed");
+  return ptr;
+}
+
+void NormalDeallocate(void* ptr, size_t size, bool wipe) {
+  if (wipe) {
+    OPENSSL_clear_free(ptr, size);
+  } else {
+    OPENSSL_free(ptr);
+  }
+}
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -68,17 +97,53 @@ class SecureMemoryAllocator {
  private:
   int secure_level_;
   QMutex mutex_;
-  QHash<void*, size_t> allocated_;
+  QHash<void*, AllocationInfo> allocated_;
 
   explicit SecureMemoryAllocator(int secure_level);
 
   ~SecureMemoryAllocator();
+
+  void reg_mem(void* ptr, size_t size, bool guarded, bool wipe);
+  auto take_info_if_tracked(void* ptr) -> std::optional<AllocationInfo>;
+  static void report_invalid_free(void* ptr);
 };
 
 SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
     : secure_level_(secure_level) {}
 
 SecureMemoryAllocator::~SecureMemoryAllocator() = default;
+
+void SecureMemoryAllocator::reg_mem(void* ptr, size_t size, bool guarded,
+                                    bool wipe) {
+  if (ptr == nullptr) return;
+
+  QMutexLocker locker(&mutex_);
+  Q_ASSERT(!allocated_.contains(ptr));
+
+  allocated_.insert(ptr, AllocationInfo{size, guarded, wipe});
+}
+
+auto SecureMemoryAllocator::take_info_if_tracked(void* ptr)
+    -> std::optional<AllocationInfo> {
+  if (ptr == nullptr) return {};
+
+  QMutexLocker locker(&mutex_);
+
+  auto it = allocated_.find(ptr);
+  if (it == allocated_.end()) return {};
+
+  auto info = it.value();
+  allocated_.erase(it);
+  return info;
+}
+
+void SecureMemoryAllocator::report_invalid_free(void* ptr) {
+  // a double free or a foreign pointer. release builds only warn and leak,
+  // debug builds fail fast so the offending call site is caught.
+  FLOG_W() << "this memory address was not allocated by SecureMemoryAllocator: "
+           << ptr;
+  Q_ASSERT_X(false, "SecureMemoryAllocator", "invalid free");
+}
 
 auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   // low secure level
@@ -87,72 +152,81 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   // should not do allocate
   if (size == 0) return nullptr;
 
-  auto* addr = OPENSSL_zalloc(size);
-  if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
-
-  {
-    QMutexLocker locker(&mutex_);
-    Q_ASSERT(!allocated_.contains(addr));
-
-    allocated_[addr] = size;
-  }
-  return addr;
+  auto* ptr = NormalAllocate(size);
+  reg_mem(ptr, size, false, true);
+  return ptr;
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
-  // debug
-  Q_ASSERT(size != 0);
-
-  // low secure level
-  if (secure_level_ < 1) return realloc(ptr, size);
-
   if (ptr == nullptr) return Allocate(size);
 
-  {
-    QMutexLocker locker(&mutex_);
-    Q_ASSERT(allocated_.count(ptr) != 0);
-    if (allocated_.count(ptr) == 0) {
-      FLOG_W()
-          << "this memory address was not allocated by SecureMemoryAllocator: "
-          << ptr;
+  if (size == 0) {
+    Deallocate(ptr);
+    return nullptr;
+  }
+
+  // The secure tier registers its allocations at every level, so a pointer can
+  // be tracked even while the normal tier is running untracked. Look before
+  // reaching for realloc: a tracked block may hold a secret, and realloc would
+  // copy it into a new block and hand the old one back to the heap intact.
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    if (secure_level_ < 1) return realloc(ptr, size);
+
+    report_invalid_free(ptr);
+    return nullptr;
+  }
+
+  if (info->guarded) {
+    FLOG_W() << "SMARealloc called for secure memory; using secure reallocation";
+
+    auto* new_ptr = SecAllocate(size);
+    if (new_ptr == nullptr) {
+      reg_mem(ptr, info->size, info->guarded, info->wipe);
       return nullptr;
     }
 
-    const auto ptr_size = allocated_.value(ptr);
-    auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
-    if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
-
-    allocated_.remove(ptr);
-    allocated_[addr] = size;
-
-    return addr;
+    std::memcpy(new_ptr, ptr, std::min(size, info->size));
+    OPENSSL_secure_clear_free(ptr, info->size);
+    return new_ptr;
   }
+
+  auto* new_ptr = NormalAllocate(size);
+  if (new_ptr == nullptr) {
+    reg_mem(ptr, info->size, info->guarded, info->wipe);
+    return nullptr;
+  }
+
+  std::memcpy(new_ptr, ptr, std::min(size, info->size));
+  NormalDeallocate(ptr, info->size, info->wipe);
+
+  reg_mem(new_ptr, size, false, info->wipe);
+  return new_ptr;
 }
 
 void SecureMemoryAllocator::Deallocate(void* ptr) {
-  // low secure level
-  if (secure_level_ < 1) {
-    free(ptr);
-    return;
-  }
-
   if (ptr == nullptr) return;
 
-  {
-    QMutexLocker locker(&mutex_);
-
-    Q_ASSERT(allocated_.contains(ptr));
-    if (!allocated_.contains(ptr)) {
-      FLOG_W()
-          << "this memory address was not allocated by SecureMemoryAllocator: "
-          << ptr;
+  // Tracked first, for the same reason as Reallocate: a secret freed through
+  // SMAFree must still be wiped, and must still leave the registry.
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    if (secure_level_ < 1) {
+      free(ptr);
       return;
     }
 
-    const auto ptr_size = allocated_.value(ptr);
-    OPENSSL_clear_free(ptr, ptr_size);
-    allocated_.remove(ptr);
+    report_invalid_free(ptr);
+    return;
   }
+
+  if (info->guarded) {
+    FLOG_W() << "SMAFree called for secure memory; using secure free";
+    OPENSSL_secure_clear_free(ptr, info->size);
+    return;
+  }
+
+  NormalDeallocate(ptr, info->size, info->wipe);
 }
 
 auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
@@ -189,62 +263,73 @@ void SMAFree(void* ptr) {
 }
 
 auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
-  // middle secure level
-  if (secure_level_ < 2) return Allocate(size);
+  if (size == 0) return nullptr;
 
-  auto* addr = OPENSSL_secure_zalloc(size);
-  if (addr == nullptr) FLOG_F("OPENSSL_secure_malloc failed");
-
-  {
-    QMutexLocker locker(&mutex_);
-    Q_ASSERT(!allocated_.contains(addr));
-
-    allocated_[addr] = size;
+  if (secure_level_ < 2) {
+    // Registered even when the normal tier is running untracked. This tier is
+    // the one GFBuffer and the other secret holders allocate from, so
+    // SecDeallocate has to know how many bytes to wipe whatever the level is.
+    auto* ptr = NormalAllocate(size);
+    reg_mem(ptr, size, false, true);
+    return ptr;
   }
-  return addr;
+
+  auto* ptr = OPENSSL_secure_zalloc(size);
+  if (ptr == nullptr) FLOG_F("OPENSSL_secure_zalloc failed");
+
+  // OPENSSL_secure_clear_free zeroes the block it releases.
+  reg_mem(ptr, size, true, false);
+  return ptr;
 }
 
 auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
-  // middle secure level
-  if (secure_level_ < 2) return Reallocate(ptr, size);
+  if (ptr == nullptr) return SecAllocate(size);
 
-  void* new_addr = SecAllocate(size);
-  Q_ASSERT(new_addr != ptr);
-
-  if (ptr != nullptr) {
-    auto old_size = OPENSSL_secure_actual_size(ptr);
-    std::memcpy(new_addr, ptr, std::min(size, old_size));
-
+  if (size == 0) {
     SecDeallocate(ptr);
+    return nullptr;
   }
 
-  return new_addr;
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    report_invalid_free(ptr);
+    return nullptr;
+  }
+
+  auto* new_ptr = SecAllocate(size);
+  if (new_ptr == nullptr) {
+    reg_mem(ptr, info->size, info->guarded, info->wipe);
+    return nullptr;
+  }
+
+  std::memcpy(new_ptr, ptr, std::min(size, info->size));
+
+  // Deliberately never plain realloc: growing a secret in place would copy it
+  // into a new block and release the old one with the contents still in it.
+  if (info->guarded) {
+    OPENSSL_secure_clear_free(ptr, info->size);
+  } else {
+    NormalDeallocate(ptr, info->size, info->wipe);
+  }
+
+  return new_ptr;
 }
 
 void SecureMemoryAllocator::SecDeallocate(void* ptr) {
-  // middle secure level
-  if (secure_level_ < 2) {
-    Deallocate(ptr);
+  if (ptr == nullptr) return;
+
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    report_invalid_free(ptr);
     return;
   }
 
-  if (ptr == nullptr) return;
-
-  {
-    QMutexLocker locker(&mutex_);
-
-    Q_ASSERT(allocated_.contains(ptr));
-    if (!allocated_.contains(ptr)) {
-      FLOG_W()
-          << "this memory address was not allocated by SecureMemoryAllocator: "
-          << ptr;
-      return;
-    }
-
-    auto sz = OPENSSL_secure_actual_size(ptr);
-    OPENSSL_secure_clear_free(ptr, sz);
-    allocated_.remove(ptr);
+  if (info->guarded) {
+    OPENSSL_secure_clear_free(ptr, info->size);
+    return;
   }
+
+  NormalDeallocate(ptr, info->size, info->wipe);
 }
 
 auto SMASecMalloc(size_t size) -> void* {
