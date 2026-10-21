@@ -27,7 +27,7 @@ name: Develop CI Qt6 Build & Test
 
 on:
   push:
-    branches: ["develop", "dev/**"]
+    branches: ["develop", "dev/**", "release/2.1"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
