@@ -189,4 +189,8 @@ auto GpgSignature::IsKeyExpiredAtSigning() const -> bool {
          gf_signature_ref_->status == GFSignatureStatus::kKEY_EXPIRED;
 }
 
+auto GpgSignature::HasTrustModel() const -> bool {
+  return gf_signature_ref_ == nullptr;
+}
+
 }  // namespace GpgFrontend

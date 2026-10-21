@@ -50,6 +50,10 @@ enum class GpgSigValidity : std::uint8_t {
   kKEY_EXPIRED,              ///< Signing key has expired
   kERROR,                    ///< Internal verification error (GPG_ERR_GENERAL)
   kUNKNOWN,                  ///< Unrecognised status code
+  kKEY_NOT_AUTHORIZED,       ///< Mathematically valid, but the certificate
+                             ///<   does not authorize the key to sign
+                             ///<   (appended so the values modules already
+                             ///<   know keep their meaning)
 };
 
 /**

@@ -95,7 +95,10 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           bool is_green = (sign.GetSummary() & GPGME_SIGSUM_GREEN) != 0;
           bool is_red = (sign.GetSummary() & GPGME_SIGSUM_RED) != 0;
 
-          if (is_fully_valid && is_green) {
+          if (is_fully_valid && is_green && !sign.HasTrustModel()) {
+            // No trust model behind it: sound, but not vouched for.
+            stream_ << tr("Valid") << Qt::endl;
+          } else if (is_fully_valid && is_green) {
             stream_ << tr("Fully Valid") << Qt::endl;
           } else if (is_red) {
             stream_ << tr("Valid but with Issues") << Qt::endl;
@@ -241,13 +244,17 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     return;
   }
 
-  // A key the certificate does not let sign also yields kINVALID; keep it
-  // apart from a bad signature so the summary names the actual cause.
+  // A key the certificate does not let sign is kept apart from a bad
+  // signature so the summary names the actual cause.
   bool any_bad_signature = false;
   bool any_not_authorized = false;
+  // Whether any signer's validity comes from a trust model (GnuPG); rPGP has
+  // none, so its valid signatures must not be summarized as trusted.
+  bool any_trust_model = false;
 
   for (const auto& sign : signatures) {
     GpgVerifySigInfo sig_info;
+    any_trust_model = any_trust_model || sign.HasTrustModel();
 
     sig_info.signer.fingerprint = sign.GetFingerprint();
     sig_info.signer.pubkeyAlgo = sign.GetPubkeyAlgo();
@@ -306,7 +313,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         sig_info.rejected = sign.IsKeyExpiredAtSigning();
         break;
       case GPG_ERR_WRONG_KEY_USAGE:
-        sig_info.validity = GpgSigValidity::kINVALID;
+        sig_info.validity = GpgSigValidity::kKEY_NOT_AUTHORIZED;
         sig_info.warnings << tr(
             "Signing key is not authorized by its "
             "certificate");
@@ -338,7 +345,19 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   };
 
   if (status_ > 0) {
-    if (all_validity(GpgSigValidity::kFULLY_VALID)) {
+    if (all_validity(GpgSigValidity::kFULLY_VALID) && !any_trust_model) {
+      // rPGP has no trust model: a valid signature proves the data intact and
+      // signed by that key, not that the key is trusted.
+      const QString uid =
+          sigs.size() == 1 ? sigs.first().signer.uid : QString();
+      op_info_.description =
+          uid.isEmpty()
+              ? tr("The signature is valid. The data has not been tampered "
+                   "with.")
+              : tr("The signature by %1 is valid. The data has not been "
+                   "tampered with.")
+                    .arg(uid);
+    } else if (all_validity(GpgSigValidity::kFULLY_VALID)) {
       const QString uid =
           sigs.size() == 1 ? sigs.first().signer.uid : QString();
       op_info_.description =

@@ -29,6 +29,7 @@
 #include "FileCryptoOpera.h"
 
 #include "core/GFCoreRust.h"
+#include "core/function/rpgp/EncryptSignAttribution.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
@@ -136,6 +137,19 @@ auto ReadRecipientSniffWindow(Rust::GfrStatus err, const QString& path)
     return {};
   }
   return GFBuffer(file.read(kRecipientSniffWindow));
+}
+
+/// How much of a signed file to read when telling a cleartext signed message
+/// from an inline signed one. The armor header leads the file, after at most
+/// some leading whitespace.
+constexpr qint64 kSignedHeadWindow = 4096;
+
+/// Whether the file at @p path is a cleartext signed message ("BEGIN PGP SIGNED
+/// MESSAGE"), judged by its leading bytes only.
+auto IsCleartextSignedFile(const QString& path) -> bool {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return false;
+  return file.read(kSignedHeadWindow).trimmed().startsWith(kPgpSignedBegin);
 }
 
 auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
@@ -258,18 +272,19 @@ auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
   Rust::GfrVerifyResultC verify_result;
   memset(&verify_result, 0, sizeof(verify_result));
 
-  Rust::GfrStatus err;
+  // Without a separate signature the file carries its own: either an inline
+  // signed message or a cleartext signed one. Only the latter is ClearText,
+  // told apart by its armor header, as message verification does.
+  Rust::GfrSignMode mode = Rust::GfrSignMode::Detached;
   if (sign_path.isEmpty()) {
-    err = Rust::gfr_crypto_verify_file(
-        ctx_.GetChannel(), data_file_path_utf8.constData(),
-        sign_file_path_utf8.constData(), nullptr, FetchPublicKeyCallback,
-        key_db.data(), Rust::GfrSignMode::Inline, &verify_result);
-  } else {
-    err = Rust::gfr_crypto_verify_file(
-        ctx_.GetChannel(), data_file_path_utf8.constData(),
-        sign_file_path_utf8.constData(), nullptr, FetchPublicKeyCallback,
-        key_db.data(), Rust::GfrSignMode::Detached, &verify_result);
+    mode = IsCleartextSignedFile(data_path) ? Rust::GfrSignMode::ClearText
+                                            : Rust::GfrSignMode::Inline;
   }
+
+  auto err = Rust::gfr_crypto_verify_file(
+      ctx_.GetChannel(), data_file_path_utf8.constData(),
+      sign_file_path_utf8.constData(), nullptr, FetchPublicKeyCallback,
+      key_db.data(), mode, &verify_result);
 
   auto [gf_err, result] = HandleVerifyResult(GFBuffer{}, err, verify_result);
   Rust::gfr_crypto_free_verify_result(&verify_result);
@@ -371,6 +386,9 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
                            .data_len = encrypt_sign_result.data_len,
                            .meta = encrypt_sign_result.sign_meta});
   Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
+
+  AttributeUnusableKey(err == Rust::GfrStatus::ErrorUnusableKey, encrypt_result,
+                       gf_err, gf_err_2);
 
   // Both halves share one engine status, and the first handler drained the
   // engine's error detail; hand the same reason to the second.

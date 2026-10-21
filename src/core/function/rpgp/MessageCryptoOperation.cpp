@@ -31,6 +31,7 @@
 #include "core/GFConstants.h"
 #include "core/GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/rpgp/EncryptSignAttribution.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
@@ -134,26 +135,7 @@ auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
       return {GPG_ERR_NO_SECKEY, {}};
     }
 
-    auto skey_data = blocks->secret_key;
-    auto data = skey_data;
-
-    if (signer->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
-      auto key = GetGpgKeyByGpgAbstractKey(signer.data());
-
-      for (const auto& sub : key.SubKeys()) {
-        if (sub.IsMarked()) {
-          LOG_D() << "Using marked subkey with fpr: " << sub.Fingerprint()
-                  << " for signing instead of primary key with fpr: "
-                  << signer->Fingerprint();
-          auto prefix = sub.Fingerprint().toUtf8() + "!\n";
-          data = GFBuffer();
-          data.Combine({GFBuffer(prefix), skey_data});
-          break;
-        }
-      }
-    }
-
-    skey_utf8_list.push_back(data);
+    skey_utf8_list.push_back(PinMarkedSubkey(*signer, blocks->secret_key));
   }
 
   return {GPG_ERR_NO_ERROR, skey_utf8_list};
@@ -335,6 +317,9 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                            .data_len = encrypt_sign_result.data_len,
                            .meta = encrypt_sign_result.sign_meta});
   Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
+
+  AttributeUnusableKey(err == Rust::GfrStatus::ErrorUnusableKey, encrypt_result,
+                       gf_err, gf_err_2);
 
   // Both halves share one engine status, and the first handler drained the
   // engine's error detail; hand the same reason to the second.

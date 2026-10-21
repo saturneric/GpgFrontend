@@ -51,6 +51,13 @@ class GF_CORE_EXPORT GpgDecryptResult {
 
   auto SymmetricEncryptionAlgorithm() -> QString;
 
+  /**
+   * @brief Why the payload's cipher deserves a warning: deprecated (RFC 9580
+   * §9.3) or not among the decrypting key's preferences (§12.2). Empty when
+   * there is none, and always for gpgme results.
+   */
+  auto CipherWarning() -> QString;
+
   /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
   /// GnuPG engine, where `gpgme_strerror` already provides the description.
   auto ErrorDetail() -> QString;

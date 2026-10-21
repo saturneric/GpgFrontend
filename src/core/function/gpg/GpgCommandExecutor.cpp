@@ -193,6 +193,9 @@ void GpgCommandExecutor::ExecuteConcurrentlyAsync(
 
 void GpgCommandExecutor::ExecuteConcurrentlySync(
     const ExecuteContexts &contexts) {
+  // Nothing would ever end the wait below.
+  if (contexts.empty()) return;
+
   QEventLoop looper;
   auto remaining_tasks = contexts.size();
   Thread::TaskRunnerPtr target_task_runner = nullptr;
@@ -203,14 +206,19 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
 
     Thread::Task *task = BuildTaskFromExecCtx(context);
 
-    QObject::connect(task, &Thread::Task::SignalTaskEnd, [&]() {
-      --remaining_tasks;
-      LOG_D() << "remaining tasks: " << remaining_tasks;
-      if (remaining_tasks <= 0) {
-        FLOG_D("no remaining task, quit");
-        looper.quit();
-      }
-    });
+    // Queued to the looper: a task can end before looper.exec() starts, and a
+    // quit() delivered directly then is lost, leaving exec() blocked forever.
+    QObject::connect(
+        task, &Thread::Task::SignalTaskEnd, &looper,
+        [&]() {
+          --remaining_tasks;
+          LOG_D() << "remaining tasks: " << remaining_tasks;
+          if (remaining_tasks <= 0) {
+            FLOG_D("no remaining task, quit");
+            looper.quit();
+          }
+        },
+        Qt::QueuedConnection);
 
     if (context.task_runner != nullptr) {
       target_task_runner = context.task_runner;

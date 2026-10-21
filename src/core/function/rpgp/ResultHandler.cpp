@@ -226,13 +226,15 @@ auto ParseDecryptResultMeta(const Rust::GfrDecryptMetadataC& m)
 
   result.filename = QString::fromUtf8(m.filename);
   result.symkey_algo = QString::fromUtf8(m.sym_algo);
+  result.cipher_warning = QString::fromUtf8(m.cipher_warning);
   for (size_t i = 0; i < m.recipient_count; ++i) {
     const auto& rec = m.recipients[i];
     GpgError status;
     if (rec.status == Rust::GfrRecipientStatus::Success) {
       status = GPG_ERR_NO_ERROR;
     } else if (rec.status == Rust::GfrRecipientStatus::NoKey) {
-      status = GPG_ERR_NO_KEY;
+      // A recipient this keyring holds no secret key for.
+      status = GPG_ERR_NO_SECKEY;
     } else {
       status = GPG_ERR_GENERAL;
     }
@@ -392,7 +394,10 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
     }
 
     if (err == Rust::GfrStatus::ErrorUnusableKey) {
-      LOG_E() << "Encryption failed: a recipient key may not be used.";
+      LOG_E() << "Encryption failed: no recipient key may be used.";
+      // The engine lists every refused recipient with its own reason.
+      result.invalid_recipients =
+          ParseEncryptResultMeta(gfr_result.meta).invalid_recipients;
       gf_err = GPG_ERR_UNUSABLE_PUBKEY;
       goto end;
     }
@@ -466,18 +471,26 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
       goto end;
     }
 
+    // A wrong passphrase comes back as ErrorBadPassphrase (handled above).
+    // ErrorNoKey for a recipient whose secret key is in the database means
+    // that key could not be used: its stored secret does not parse (or is a
+    // stub), or its key id collides with another key's. That is an unusable
+    // secret key, not a passphrase problem.
     if (err == Rust::GfrStatus::ErrorNoKey) {
-      LOG_E() << "Decryption failed: Incorrect passphrase or bad key.";
+      LOG_E() << "Decryption failed: no usable secret key.";
 
-      bool has_valid_recipient = false;
+      bool has_secret_recipient = false;
       result.recipients = SniffRecipients(key_db, in_buffer);
       for (auto& rec : result.recipients) {
-        if (rec.status != GPG_ERR_NO_KEY) {
-          rec.status = GPG_ERR_BAD_PASSPHRASE;
-          has_valid_recipient = true;
+        if (rec.status != GPG_ERR_NO_SECKEY) {
+          rec.status = GPG_ERR_UNUSABLE_SECKEY;
+          has_secret_recipient = true;
         }
       }
-      gf_err = has_valid_recipient ? GPG_ERR_BAD_PASSPHRASE : GPG_ERR_NO_KEY;
+      // No secret key at all is GnuPG's NO_SECKEY, the same answer signing
+      // without a secret key gives.
+      gf_err =
+          has_secret_recipient ? GPG_ERR_UNUSABLE_SECKEY : GPG_ERR_NO_SECKEY;
       goto end;
     }
 

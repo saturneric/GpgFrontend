@@ -120,6 +120,11 @@ auto GpgDecryptResult::MessageIntegrityProtected() -> bool {
   return {};
 }
 
+auto GpgDecryptResult::CipherWarning() -> QString {
+  if (gf_result_ref_ != nullptr) return gf_result_ref_->cipher_warning;
+  return {};
+}
+
 auto GpgDecryptResult::SymmetricEncryptionAlgorithm() -> QString {
   if (gf_result_ref_ != nullptr) {
     return gf_result_ref_->symkey_algo;

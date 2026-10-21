@@ -221,4 +221,13 @@ void ResetGpgOperationCancelState(int channel) {
 auto IsGpgOperationCancelRequested(int channel) -> bool {
   return IsChannelCancelled(channel);
 }
+
+GpgOperationCancelScope::GpgOperationCancelScope(int channel)
+    : channel_(channel) {
+  if (channel_ >= 0) ResetGpgOperationCancelState(channel_);
+}
+
+GpgOperationCancelScope::~GpgOperationCancelScope() {
+  if (channel_ >= 0) ResetGpgOperationCancelState(channel_);
+}
 }  // namespace GpgFrontend

@@ -114,6 +114,18 @@ class GF_CORE_EXPORT GpgSignature {
   [[nodiscard]] auto IsKeyExpiredAtSigning() const -> bool;
 
   /**
+   * @brief Whether the signer's validity comes from a trust model.
+   *
+   * GnuPG rates the signing key through its web of trust, so a "valid and
+   * green" summary there means the key is trusted. The rPGP engine has no
+   * trust model: its valid signature is cryptographically sound, but says
+   * nothing about whether the key belongs to whom it claims.
+   *
+   * @return bool
+   */
+  [[nodiscard]] auto HasTrustModel() const -> bool;
+
+  /**
    * @brief Construct a new Gpg Signature object
    *
    */

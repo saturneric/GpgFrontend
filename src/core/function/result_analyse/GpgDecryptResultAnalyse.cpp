@@ -72,6 +72,16 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     if (unprotected) setStatus(-1);
   }
 
+  // RFC 9580 §9.3 / §12.2: a deprecated cipher, or one the decrypting key does
+  // not prefer, is still decrypted, but the user is told. Password messages
+  // carry no recipients, so this is reported outside the recipient section.
+  const auto cipher_warning = result_.CipherWarning();
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR && !cipher_warning.isEmpty()) {
+    stream_ << "- " << tr("Cipher Warning") << ": " << cipher_warning
+            << Qt::endl;
+    setStatus(0);
+  }
+
   if (!recipients.empty()) {
     stream_ << Qt::endl;
 

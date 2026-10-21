@@ -220,6 +220,8 @@ struct GFDecryptResult {
   GFBuffer data;
   QString filename;
   QString symkey_algo;  ///< Cipher and mode, as gpgme's (e.g. "AES256.OCB").
+  QString cipher_warning;  ///< Why the cipher deserves a warning (RFC 9580
+                           ///< §9.3, §12.2), or empty.
   QContainer<GFRecipient> recipients;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.

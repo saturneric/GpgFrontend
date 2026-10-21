@@ -302,14 +302,71 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
   }
 }
 
+auto GfrKeyAlgo2KeyAlgoId(Rust::GfrKeyAlgo algo) -> QString {
+  switch (algo) {
+    case Rust::GfrKeyAlgo::ED25519:
+    case Rust::GfrKeyAlgo::ED25519LEGACY:
+      return "ed25519";
+    case Rust::GfrKeyAlgo::CV25519:
+      return "cv25519";
+    case Rust::GfrKeyAlgo::NISTP256:
+      return "nistp256";
+    case Rust::GfrKeyAlgo::NISTP384:
+      return "nistp384";
+    case Rust::GfrKeyAlgo::NISTP521:
+      return "nistp521";
+    case Rust::GfrKeyAlgo::RSA2048:
+      return "rsa2048";
+    case Rust::GfrKeyAlgo::RSA3072:
+      return "rsa3072";
+    case Rust::GfrKeyAlgo::RSA4096:
+      return "rsa4096";
+    case Rust::GfrKeyAlgo::BRAINPOOLP256:
+      return "brainpoolp256r1";
+    case Rust::GfrKeyAlgo::BRAINPOOLP384:
+      return "brainpoolp384r1";
+    case Rust::GfrKeyAlgo::BRAINPOOLP512:
+      return "brainpoolp512r1";
+    case Rust::GfrKeyAlgo::ED448:
+      return "ed448";
+    case Rust::GfrKeyAlgo::X448:
+      return "x448";
+    case Rust::GfrKeyAlgo::SECP256K1:
+      return "secp256k1";
+    case Rust::GfrKeyAlgo::DSA1024:
+      return "dsa1024";
+    case Rust::GfrKeyAlgo::DSA2048:
+      return "dsa2048";
+    case Rust::GfrKeyAlgo::DSA3072:
+      return "dsa3072";
+    case Rust::GfrKeyAlgo::KYBER768X25519:
+      return "ky768_cv25519";
+    case Rust::GfrKeyAlgo::KYBER1024X448:
+      return "kyber1024_x448";
+    case Rust::GfrKeyAlgo::MLDSA65ED25519:
+      return "mldsa65_ed25519";
+    case Rust::GfrKeyAlgo::MLDSA87ED448:
+      return "mldsa87_ed448";
+    case Rust::GfrKeyAlgo::SLHDSASHAKE128S:
+      return "slhdsashake128s";
+    case Rust::GfrKeyAlgo::SLHDSASHAKE128F:
+      return "slhdsashake128f";
+    case Rust::GfrKeyAlgo::SLHDSASHAKE256S:
+      return "slhdsashake256s";
+    default:
+      return {};
+  }
+}
+
 auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
     -> QContainer<GFRecipient> {
   QContainer<GFRecipient> recipients;
   for (const auto& rec : sniff_recipients_raw(in_buffer)) {
     auto recipient = GFRecipient{rec.key_id, rec.pub_algo};
 
+    // No usable secret key for this recipient: NO_SECKEY, as GnuPG reports.
     auto gf_key = GetKeyByKeyIdsForDecryption(key_db, {recipient.key_id});
-    recipient.status = !gf_key ? GPG_ERR_NO_KEY : GPG_ERR_NO_ERROR;
+    recipient.status = !gf_key ? GPG_ERR_NO_SECKEY : GPG_ERR_NO_ERROR;
 
     recipients.push_back(recipient);
   }

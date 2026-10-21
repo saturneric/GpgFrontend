@@ -216,6 +216,16 @@ auto GF_CORE_EXPORT KeyVersion2GfrKeyVersion(int version)
 auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString;
 
 /**
+ * @brief The canonical KeyAlgo id of a Rust GfrKeyAlgo value, the inverse of
+ * KeyAlgoId2GfrKeyAlgo(): a hybrid joins its algorithm and component ids
+ * ("ky768_cv25519"). Resolve it with KeyGenerateInfo::SearchKeyAlgoByAlgoId().
+ *
+ * @param algo GfrKeyAlgo enum value
+ * @return the id, or an empty string for an unknown value
+ */
+auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoId(Rust::GfrKeyAlgo algo) -> QString;
+
+/**
  * @brief Analyse an encrypted buffer to identify the intended recipients.
  *
  * Uses the Rust engine to parse recipient key IDs from @p in_buffer and

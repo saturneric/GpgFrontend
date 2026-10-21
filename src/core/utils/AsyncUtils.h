@@ -138,4 +138,38 @@ void GF_CORE_EXPORT ResetGpgOperationCancelState(int channel);
  */
 auto GF_CORE_EXPORT IsGpgOperationCancelRequested(int channel) -> bool;
 
+/**
+ * @brief The cancel state of one cancelable batch of operations on a channel.
+ *
+ * Clears any leftover cancellation for the channel when the batch starts and
+ * any cancellation requested during it when the batch ends, so a cancel only
+ * ever affects the batch it was requested for. Without the clear on exit, a
+ * cancel would stay pending and later work on the channel whose wait carries
+ * no cancel channel (key edits, module calls) would be skipped as cancelled.
+ *
+ * A negative channel (a non-cancelable wait) makes the scope a no-op.
+ */
+class GF_CORE_EXPORT GpgOperationCancelScope {
+ public:
+  /**
+   * @brief Start the batch, clearing any leftover cancellation.
+   *
+   * @param channel OpenPGP context channel of the batch, or negative for none
+   */
+  explicit GpgOperationCancelScope(int channel);
+
+  /**
+   * @brief End the batch, clearing a cancellation requested during it.
+   *
+   */
+  ~GpgOperationCancelScope();
+
+  GpgOperationCancelScope(const GpgOperationCancelScope&) = delete;
+  auto operator=(const GpgOperationCancelScope&)
+      -> GpgOperationCancelScope& = delete;
+
+ private:
+  int channel_;
+};
+
 }  // namespace GpgFrontend
