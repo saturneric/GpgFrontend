@@ -2090,6 +2090,36 @@ TEST(EngineLeaseTest, AHeldRetiredHandleWaitsForItsLastLease) {
   EXPECT_EQ(reclaimer.Count(handle), 1);
 }
 
+TEST(EngineLeaseTest, OnlyARetiredHandleIsRetired) {
+  RecordingReclaimer reclaimer;
+  EXPECT_FALSE(IsRetiredChannelHandle(TestHandle())) << "never issued";
+
+  const auto handle = LiveTestHandle("id-retired-query");
+  EXPECT_FALSE(IsRetiredChannelHandle(handle));
+
+  ASSERT_TRUE(RetireChannelHandle(handle));
+  EXPECT_TRUE(IsRetiredChannelHandle(handle));
+}
+
+TEST(EngineLeaseTest, AReclaimedHandleCanBeReclaimedAgain) {
+  RecordingReclaimer reclaimer;
+  const auto handle = LiveTestHandle("id-again");
+
+  EXPECT_FALSE(ReclaimChannelAgainIfReclaimed(handle)) << "not even retired";
+
+  ASSERT_TRUE(RetireChannelHandle(handle));
+  ASSERT_EQ(reclaimer.Count(handle), 1);
+  EXPECT_FALSE(ReclaimChannelAgainIfReclaimed(handle))
+      << "its first reclamation has not finished";
+
+  MarkChannelReclaimed(handle);
+  EXPECT_TRUE(ReclaimChannelAgainIfReclaimed(handle));
+  EXPECT_EQ(reclaimer.Count(handle), 2);
+
+  EXPECT_FALSE(ReclaimChannelAgainIfReclaimed(handle))
+      << "put up again before the second reclamation finished";
+}
+
 TEST(EngineLeaseTest, RetiringAGenerationRetiresOnlyItsHandles) {
   RecordingReclaimer reclaimer;
   const auto generation = AllocateRuntimeGeneration();
@@ -2229,6 +2259,21 @@ TEST(EngineScopedReleaseTest, DependentsGoFirstAndProcessWideObjectsStay) {
   EXPECT_EQ(std::count(process_wide.begin(), process_wide.end(), channel), 1);
 
   EXPECT_EQ(ReleaseEngineScopedChannel(channel), 0) << "released twice";
+}
+
+TEST(EngineScopedReleaseTest, AnObjectRebuiltOnAReclaimedChannelIsReclaimed) {
+  // A stale caller looking an engine object up after its channel was cleared
+  // gets a new one; that one must not live for the rest of the run.
+  RecordingReclaimer reclaimer;
+  const auto channel = LiveTestHandle("id-rebuilt");
+  ASSERT_TRUE(RetireChannelHandle(channel));
+  ASSERT_EQ(reclaimer.Count(channel), 1);
+  ReleaseEngineScopedChannel(channel);
+  MarkChannelReclaimed(channel);
+
+  TestEngineDependency::GetInstance(channel);
+  EXPECT_EQ(reclaimer.Count(channel), 2);
+  EXPECT_EQ(ReleaseEngineScopedChannel(channel), 1);
 }
 
 // -----------------------------------------------------------------------------

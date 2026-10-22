@@ -95,7 +95,10 @@ inline auto LoadKeyDatabaseScopedCache(CacheManager& cm, const QString& prefix,
 
   legacy["key_db_id"] = db_id;
   cm.SaveDurableCache(key, QJsonDocument{legacy}, true);
-  cm.ResetDurableCache(legacy_key);
+  // A database whose id is spelled like its name (the DEFAULT one, named
+  // "default") keeps both under one key: removing the old one would remove
+  // what was just written.
+  if (legacy_key != key) cm.ResetDurableCache(legacy_key);
   return legacy;
 }
 

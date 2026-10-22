@@ -36,6 +36,7 @@
 
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/ChannelObject.h"
+#include "core/function/openpgp/ChannelHandle.h"
 
 struct FunctionObjectTypeLockInfo {
   std::map<int, std::mutex> channel_lock_map;
@@ -147,6 +148,12 @@ auto ReleaseEngineScopedChannel(int channel) -> int {
     }
   }
   return released;
+}
+
+void NoteEngineScopedObjectCreated(const std::type_info& type, int channel) {
+  if (!ReclaimChannelAgainIfReclaimed(channel)) return;
+  LOG_W() << "engine object created on a reclaimed channel, reclaiming again:"
+          << type.name() << "channel:" << channel;
 }
 
 }  // namespace GpgFrontend

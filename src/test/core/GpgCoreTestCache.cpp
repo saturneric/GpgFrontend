@@ -277,6 +277,30 @@ TEST_F(GFCoreTest, KeyDatabaseScopedStateUnderTheNameIsTakenOverOnce) {
   cm.ResetDurableCache(prefix + ":id-1");
 }
 
+TEST_F(GFCoreTest, KeyDatabaseScopedStateWhoseIdIsItsNameSurvivesTakeOver) {
+  // The DEFAULT database's id is "default", and an earlier build kept its
+  // state under the name "default": both keys are one key. Taking it over
+  // must not remove what it has just written.
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+  const auto key = prefix + ":default";
+
+  auto legacy = Payload("old");
+  legacy["key_db_name"] = "default";
+  cm.SaveDurableCache(key, QJsonDocument{legacy}, true);
+
+  const auto taken =
+      LoadKeyDatabaseScopedCache(cm, prefix, "default", "default");
+  ASSERT_TRUE(taken.has_value());
+  EXPECT_EQ((*taken)["marker"].toString(), "old");
+
+  EXPECT_TRUE(RegistryContains(key)) << "the take-over removed its own result";
+  EXPECT_EQ(cm.LoadDurableCache(key).object()["key_db_id"].toString(),
+            "default");
+
+  cm.ResetDurableCache(key);
+}
+
 TEST_F(GFCoreTest, KeyDatabaseScopedStateUnderAnotherNameIsNotTaken) {
   auto& cm = CacheManager::GetInstance();
   const auto prefix = UniquePrefix();

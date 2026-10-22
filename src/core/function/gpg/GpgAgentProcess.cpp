@@ -80,7 +80,7 @@ auto GpgAgentProcess::Start() -> bool {
 
   // Smart cards follow the default database, whichever handle it was given,
   // so only one agent at a time talks to a card reader.
-  if (channel_ != DefaultChannelHandle()) {
+  if (!smart_cards_.value_or(channel_ == DefaultChannelHandle())) {
     args.append("--disable-scdaemon");
   }
 

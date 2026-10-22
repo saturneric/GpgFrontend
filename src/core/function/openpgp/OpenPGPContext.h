@@ -31,6 +31,7 @@
 #include <gpgme.h>
 
 #include <cstdint>
+#include <optional>
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/typedef/GFTypedef.h"
@@ -68,6 +69,9 @@ struct OpenPGPContextInitArgs {
   // in that Runtime's list. Recorded with the channel handle.
   int generation = 1;
   int order = 0;
+  // Whether this is its Runtime's default database. Unset means "the one the
+  // registry names as default", which is only right for the Runtime in use.
+  std::optional<bool> is_default;
   // Filesystem path to the key database directory
   QString db_path;
   // If true, run in test mode (relaxed constraints)

@@ -29,6 +29,7 @@
 #include "KeyCategoryRepository.h"
 
 #include "core/function/CacheManager.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/helper/KeyDatabaseScopedCache.h"
 #include "core/struct/cache_object/KeyCategoriesCO.h"
 
@@ -66,6 +67,14 @@ void KeyCategoryRepository::fetch_categories() {
 }
 
 void KeyCategoryRepository::persist_categories() {
+  // A retired channel's copy was loaded before the Runtime that replaced it,
+  // which has its own copy of the same database's entry by now. Work still
+  // finishing here must not write the older one over it.
+  if (IsRetiredChannelHandle(GetChannel())) {
+    LOG_W() << "not persisting from a retired channel:" << GetChannel();
+    return;
+  }
+
   KeyCategoriesCO co;
   co.key_db_name = ctx_.KeyDBName();
   co.categories = categories_;

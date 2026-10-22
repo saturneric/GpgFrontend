@@ -457,6 +457,10 @@ auto IsLiveChannelHandle(int handle) -> bool {
   return LookupChannelHandle(handle).state == ChannelHandleState::kAVAILABLE;
 }
 
+auto IsRetiredChannelHandle(int handle) -> bool {
+  return LookupChannelHandle(handle).state == ChannelHandleState::kRETIRED;
+}
+
 auto AllocateChannelHandle() -> int {
   auto& registry = Registry();
   std::lock_guard<std::mutex> lock(registry.mutex);
@@ -624,6 +628,22 @@ void MarkChannelReclaimed(int handle) {
   std::lock_guard<std::mutex> lock(registry.mutex);
   auto it = registry.handles.find(handle);
   if (it != registry.handles.end()) it->second.reclaimed = true;
+}
+
+auto ReclaimChannelAgainIfReclaimed(int handle) -> bool {
+  auto& registry = Registry();
+  std::function<void(int)> reclaimer;
+  {
+    std::lock_guard<std::mutex> lock(registry.mutex);
+    auto it = registry.handles.find(handle);
+    if (it == registry.handles.end() || !it->second.reclaimed) return false;
+    it->second.reclaimed = false;
+    registry.reclaim_requested.erase(handle);
+    if (!TakeReclaimLocked(registry, handle)) return false;
+    reclaimer = registry.reclaimer;
+  }
+  RunReclaimer(reclaimer, handle);
+  return true;
 }
 
 auto RetireChannelsAtLocation(const QString& path) -> QContainer<int> {

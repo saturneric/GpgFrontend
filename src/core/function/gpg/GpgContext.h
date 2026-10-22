@@ -193,6 +193,7 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   /// so a Runtime replacing another on the same home never cuts the old one's
   /// agent from under it.
   bool agent_session_held_ = false;
+  QString agent_session_home_;  ///< the key it joined its agent session with
   QMap<QString, QString> component_dirs_;
 
   static auto set_ctx_key_list_mode(const gpgme_ctx_t &ctx) -> bool;

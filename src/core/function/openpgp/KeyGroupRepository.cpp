@@ -29,6 +29,7 @@
 #include "KeyGroupRepository.h"
 
 #include "core/function/CacheManager.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/helper/KeyDatabaseScopedCache.h"
 #include "core/struct/cache_object/KeyGroupsCO.h"
@@ -194,6 +195,14 @@ void KeyGroupRepository::fetch_key_groups() {
 }
 
 void KeyGroupRepository::persist_key_groups() {
+  // A retired channel's copy was loaded before the Runtime that replaced it,
+  // which has its own copy of the same database's entry by now. Work still
+  // finishing here must not write the older one over it.
+  if (IsRetiredChannelHandle(GetChannel())) {
+    LOG_W() << "not persisting from a retired channel:" << GetChannel();
+    return;
+  }
+
   KeyGroupsCO key_groups;
   key_groups.key_db_name = ctx_.KeyDBName();
 

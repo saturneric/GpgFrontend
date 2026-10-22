@@ -118,6 +118,18 @@ auto GF_CORE_EXPORT LookupChannelHandle(int handle) -> ChannelHandleInfo;
 auto GF_CORE_EXPORT IsLiveChannelHandle(int handle) -> bool;
 
 /**
+ * @brief Whether @p handle was taken out of use.
+ *
+ * Its objects are reclaimed once nothing holds it, and looking them up after
+ * that only builds empty stand-ins. Something showing what is in a database
+ * asks this before reading from it, rather than IsLiveChannelHandle(): a
+ * handle still being opened at startup is not live yet, but not stale either.
+ *
+ * @param handle any number
+ */
+auto GF_CORE_EXPORT IsRetiredChannelHandle(int handle) -> bool;
+
+/**
  * @brief A handle no database has ever been given.
  *
  * Above every handle registered so far, so a handle issued from here cannot
@@ -304,6 +316,18 @@ void GF_CORE_EXPORT PublishRuntimeToRegisterTable();
  * @brief Record that a retired handle's objects have been destroyed.
  */
 void GF_CORE_EXPORT MarkChannelReclaimed(int handle);
+
+/**
+ * @brief Put a reclaimed handle up for reclamation once more.
+ *
+ * For an object a stale caller rebuilt on a handle whose objects were already
+ * destroyed. Nothing happens for a handle that is not retired, still leased,
+ * or not reclaimed yet -- a pending reclamation picks the new object up.
+ *
+ * @param handle any number
+ * @return true when the handle was put up again
+ */
+auto GF_CORE_EXPORT ReclaimChannelAgainIfReclaimed(int handle) -> bool;
 
 /**
  * @brief Retire every handle, of any generation, opening the directory at

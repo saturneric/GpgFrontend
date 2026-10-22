@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 namespace GpgFrontend {
 
 class GpgAgentProcess {
@@ -39,10 +41,20 @@ class GpgAgentProcess {
 
   auto Start() -> bool;
 
+  /**
+   * @brief Say whether this agent talks to smart cards.
+   *
+   * Without it, the agent of the default database's handle does. A Runtime
+   * being built is not the one in use yet, so the handle recorded as the
+   * default still names the old one; its contexts say it themselves.
+   */
+  void SetSmartCards(bool smart_cards) { smart_cards_ = smart_cards; }
+
   ~GpgAgentProcess();
 
  private:
   int channel_;
+  std::optional<bool> smart_cards_;
   QProcess process_;
   QString db_path_;
   QString gpg_agent_path_;

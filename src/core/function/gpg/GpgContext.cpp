@@ -33,6 +33,7 @@
 
 #include <map>
 #include <mutex>
+#include <utility>
 
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/module/ModuleManager.h"
@@ -45,21 +46,49 @@ namespace {
 /// How many live contexts use each GnuPG home, keyed by its physical location.
 /// The agent belongs to the home, not to any one context, so it is started by
 /// the first and stopped by the last.
+struct AgentSession {
+  int contexts{0};
+  /// The process handle of the agent started for this home. Held here rather
+  /// than only by the context that started it: destroying a still-running
+  /// QProcess kills its process, and an agent that did not detach (Windows)
+  /// is that process, still serving every other context on the home.
+  QSharedPointer<GpgAgentProcess> agent;
+};
+
 std::mutex g_agent_sessions_lock;
-std::map<QString, int> g_agent_sessions;
+std::map<QString, AgentSession> g_agent_sessions;
 
 /// Count a context in; true when it is the first on this home.
 auto JoinAgentSession(const QString& home) -> bool {
   std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
-  return g_agent_sessions[home]++ == 0;
+  return g_agent_sessions[home].contexts++ == 0;
 }
 
-/// Count a context out; true when it was the last on this home.
-auto LeaveAgentSession(const QString& home) -> bool {
+/// Record the agent started for @p home.
+void AdoptSessionAgent(const QString& home,
+                       const QSharedPointer<GpgAgentProcess>& agent) {
+  std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
+  auto it = g_agent_sessions.find(home);
+  if (it != g_agent_sessions.end()) it->second.agent = agent;
+}
+
+/// Give up the agent handle recorded for @p home, once it has been killed.
+auto TakeSessionAgent(const QString& home) -> QSharedPointer<GpgAgentProcess> {
+  std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
+  auto it = g_agent_sessions.find(home);
+  if (it == g_agent_sessions.end()) return nullptr;
+  return std::exchange(it->second.agent, nullptr);
+}
+
+/// Count a context out; true when it was the last on this home. The last one
+/// is handed the home's agent handle in @p agent, to drop after the kill.
+auto LeaveAgentSession(const QString& home,
+                       QSharedPointer<GpgAgentProcess>& agent) -> bool {
   std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
   auto it = g_agent_sessions.find(home);
   if (it == g_agent_sessions.end()) return true;
-  if (--it->second > 0) return false;
+  if (--it->second.contexts > 0) return false;
+  agent = std::move(it->second.agent);
   g_agent_sessions.erase(it);
   return true;
 }
@@ -86,13 +115,17 @@ GpgContext::~GpgContext() {
   //
   // Only when this was the last context on its home: another one -- the same
   // database opened by a newer Runtime -- is still using that agent.
-  const auto last =
-      !agent_session_held_ ||
-      LeaveAgentSession(KeyDatabasePhysicalLocation(EngineHomePath()));
+  //
+  // Left under the key it joined with: the home may no longer resolve to the
+  // same location now (a removed link), and a miss would strand the count.
+  QSharedPointer<GpgAgentProcess> session_agent;
+  const auto last = !agent_session_held_ ||
+                    LeaveAgentSession(agent_session_home_, session_agent);
   if (agent_ != nullptr && last) {
     kill_gpg_agent();
     agent_.reset();
   }
+  session_agent.reset();
 
   if (ctx_ref_ != nullptr) {
     gpgme_release(ctx_ref_);
@@ -153,12 +186,15 @@ auto GpgContext::RestartGpgAgent() -> bool {
   if (agent_ != nullptr) {
     agent_ = SecureCreateSharedObject<GpgAgentProcess>(
         GetChannel(), gpg_agent_path_, EngineHomePath());
+    if (init_args_.is_default) agent_->SetSmartCards(*init_args_.is_default);
   }
 
   // ensure all gpg-agent are killed.
   kill_gpg_agent();
 
-  return launch_gpg_agent();
+  const auto ok = launch_gpg_agent();
+  if (agent_session_held_) AdoptSessionAgent(agent_session_home_, agent_);
+  return ok;
 }
 
 auto GpgContext::KillGpgAgent() -> bool {
@@ -169,8 +205,10 @@ auto GpgContext::KillGpgAgent() -> bool {
   // before we even reach gpgconf -- the dominant cost wedging shutdown.
   auto ok = kill_gpg_agent();
 
-  // Release our handle so a later ~GpgContext won't kill a second time.
+  // Release our handle so a later ~GpgContext won't kill a second time, and
+  // the home's, which names the agent just killed.
   agent_.reset();
+  if (agent_session_held_) TakeSessionAgent(agent_session_home_).reset();
   return ok;
 }
 
@@ -253,6 +291,7 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
       "core", "gnupg.components.gpg-agent.path", QString{});
   agent_ = SecureCreateSharedObject<GpgAgentProcess>(
       GetChannel(), gpg_agent_path_, EngineHomePath());
+  if (args.is_default) agent_->SetSmartCards(*args.is_default);
 
   assert(!gpgconf_path_.isEmpty());
 
@@ -262,11 +301,14 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   // A home already served by another live context keeps its agent: killing it
   // here would cut that context's operations off mid-flight.
   agent_session_held_ = true;
-  const auto first =
-      JoinAgentSession(KeyDatabasePhysicalLocation(EngineHomePath()));
+  agent_session_home_ = KeyDatabasePhysicalLocation(EngineHomePath());
+  const auto first = JoinAgentSession(agent_session_home_);
   if (first) kill_gpg_agent();
 
-  return (!first || launch_gpg_agent()) && default_ctx_initialize(args) &&
+  const auto agent_ok = !first || launch_gpg_agent();
+  if (first) AdoptSessionAgent(agent_session_home_, agent_);
+
+  return agent_ok && default_ctx_initialize(args) &&
          binary_ctx_initialize(args) && cms_default_ctx_initialize(args) &&
          cms_binary_ctx_initialize(args);
 }

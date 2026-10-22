@@ -976,7 +976,24 @@ auto StoredKeyDatabaseConfigurationDigest() -> QByteArray {
 /// Put a moved database's stored entry back the way it was, when its folder
 /// could not be moved. Leaves the list alone if the entry has meanwhile been
 /// changed by someone else.
+void RevertKeyDatabaseMoveHere(const KeyDatabaseMove& move);
+
 void RevertKeyDatabaseMove(const KeyDatabaseMove& move) {
+  // On the GUI thread, where the list is otherwise read and written: a
+  // SettingsObject writes when it is destroyed, so a read-modify-write here
+  // and one there would each overwrite the other's change.
+  auto* app = QCoreApplication::instance();
+  if (app != nullptr && QThread::currentThread() != app->thread() &&
+      !IsCoreShuttingDown()) {
+    QMetaObject::invokeMethod(
+        app, [move]() { RevertKeyDatabaseMoveHere(move); },
+        Qt::BlockingQueuedConnection);
+    return;
+  }
+  RevertKeyDatabaseMoveHere(move);
+}
+
+void RevertKeyDatabaseMoveHere(const KeyDatabaseMove& move) {
   auto so = SettingsObject(kKeyDatabaseListObject);
   if (so.LoadFailed()) return;
 
@@ -1099,6 +1116,7 @@ auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
       args.engine = choice.engine;
       args.generation = candidate.generation;
       args.order = i;
+      args.is_default = is_default;
       args.offline_mode = options.offline_mode;
       args.auto_import_missing_key = options.auto_import_missing_key;
 
@@ -1149,8 +1167,12 @@ void InstallKeyDatabaseRuntimeReclaimer() {
 
     // On the GUI thread, which every widget reads engine objects from, so a
     // reclamation can never land in the middle of one of those reads.
-    if (auto* app = QCoreApplication::instance();
-        app != nullptr && !IsCoreShuttingDown()) {
+    //
+    // Never during teardown: the last lease may drop on a worker thread that
+    // outlived its runner's stop, while the GUI thread is destroying the very
+    // storages a reclamation would reach into. Destroy() frees them anyway.
+    if (IsCoreShuttingDown()) return;
+    if (auto* app = QCoreApplication::instance(); app != nullptr) {
       QMetaObject::invokeMethod(app, reclaim, Qt::QueuedConnection);
     } else {
       reclaim();
@@ -1171,11 +1193,20 @@ auto ApplyKeyDatabaseRuntime(const QContainer<KeyDatabaseMove>& moves)
   // Built again from the newer configuration a bounded number of times rather
   // than chasing a configuration that keeps changing.
   for (int attempt = 0; attempt < 3; ++attempt) {
-    auto candidate = BuildCandidateRuntime(result);
+    // Taken before building: the configuration the candidate is built from is
+    // the one it is checked against once it is ready.
     const auto digest = StoredKeyDatabaseConfigurationDigest();
+    auto candidate = BuildCandidateRuntime(result);
 
     if (!candidate.ok) {
       RetireRuntimeGeneration(candidate.generation);
+      // A folder already moved had its channels retired for the move; with no
+      // new Runtime to take it up, it stays closed until the next apply.
+      if (!moves.isEmpty()) {
+        result.errors.append(QCoreApplication::tr(
+            "Renamed key databases stay unavailable until the key database "
+            "settings are applied successfully."));
+      }
       return result;
     }
 

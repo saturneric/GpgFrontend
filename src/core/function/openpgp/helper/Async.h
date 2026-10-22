@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Op.h"
 #include "core/utils/AsyncUtils.h"
@@ -115,6 +116,11 @@ auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
  */
 template <typename OpTag, typename... Args>
 auto RunRegisteredForward(OpenPGPContext& ctx, Args&&... args) {
+  // Held for the call: a synchronous operation can wait on the GUI thread (a
+  // passphrase prompt runs a nested event loop), and a reload reclaiming this
+  // channel from inside that loop would destroy the objects still on the
+  // stack. Not a gate -- a channel that cannot be leased runs as before.
+  const auto lease = TryAcquireEngineLease(ctx.GetChannel(), nullptr, true);
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
 
@@ -143,6 +149,8 @@ auto RunRegisteredForward(OpenPGPContext& ctx, Args&&... args) {
  */
 template <typename OpTag, typename... Args>
 auto RunRegisteredRoutableForward(OpenPGPContext& ctx, Args&&... args) {
+  // See RunRegisteredForward().
+  const auto lease = TryAcquireEngineLease(ctx.GetChannel(), nullptr, true);
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
 

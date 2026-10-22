@@ -266,10 +266,13 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
                                 const char** cards, const char** info_json)
     -> int {
   if (analyse == nullptr) return -1;
+
+  // Taken first: the capsule is consumed on first use, and one left behind by
+  // a refusal below would only sit in the index until evicted.
+  auto capsule = TakeResultModel(capsule_id);
+
   const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
   if (!lease) return -1;
-
-  auto capsule = TakeResultModel(capsule_id);
 
   auto* result = std::any_cast<ResultT>(&capsule);
   if (result == nullptr) return -1;

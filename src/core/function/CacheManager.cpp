@@ -112,7 +112,11 @@ class CacheManager::Impl : public QObject {
 
   void SaveSecDurableCache(const QString& key, const GFBuffer& value,
                            bool flush) {
-    const bool new_key = !key_storage_.contains(key);
+    bool new_key = false;
+    {
+      std::lock_guard<std::mutex> lock(key_storage_mutex_);
+      new_key = !key_storage_.contains(key);
+    }
 
     // Don't touch disk when nothing actually changed. A save that repeats the
     // value we already hold (e.g. re-applying the same column filter to every
@@ -123,7 +127,11 @@ class CacheManager::Impl : public QObject {
     }
 
     durable_cache_storage_.insert(key, value);
-    if (new_key) key_storage_.push_back(key);
+    if (new_key) {
+      std::lock_guard<std::mutex> lock(key_storage_mutex_);
+      // Checked again: another thread may have registered it meanwhile.
+      if (!key_storage_.contains(key)) key_storage_.push_back(key);
+    }
 
     {
       std::lock_guard<std::mutex> lock(dirty_mutex_);
@@ -190,10 +198,13 @@ class CacheManager::Impl : public QObject {
     // otherwise the reset silently reverts. slot_flush_cache_storage() cannot
     // do it for us either: it skips empty values, so an emptied entry can
     // never overwrite its own on-disk copy.
-    for (auto it = key_storage_.begin(); it != key_storage_.end(); ++it) {
-      if (it->toString() == key) {
-        key_storage_.erase(it);
-        break;
+    {
+      std::lock_guard<std::mutex> lock(key_storage_mutex_);
+      for (auto it = key_storage_.begin(); it != key_storage_.end(); ++it) {
+        if (it->toString() == key) {
+          key_storage_.erase(it);
+          break;
+        }
       }
     }
 
@@ -280,7 +291,12 @@ class CacheManager::Impl : public QObject {
     }
 
     if (flush_registry) {
-      opera_.StoreDataObj(drk_key_, QJsonDocument(key_storage_));
+      QJsonArray registry;
+      {
+        std::lock_guard<std::mutex> lock(key_storage_mutex_);
+        registry = key_storage_;
+      }
+      opera_.StoreDataObj(drk_key_, QJsonDocument(registry));
     }
   }
 
@@ -332,6 +348,7 @@ class CacheManager::Impl : public QObject {
       durable_cache_storage_.insert(key_str, load_cache_storage(key_str, {}));
     }
 
+    std::lock_guard<std::mutex> lock(key_storage_mutex_);
     key_storage_ = registered_key_list;
   }
 
@@ -356,6 +373,10 @@ class CacheManager::Impl : public QObject {
   QCache<QString, CacheObject> runtime_cache_storage_;
   ThreadSafeMap<QString, GFBuffer> durable_cache_storage_;
   QJsonArray key_storage_;
+  /// Guards key_storage_: durable entries are saved and reset from the GUI
+  /// thread and from task runners alike (key groups and categories of
+  /// several key database channels).
+  std::mutex key_storage_mutex_;
   QTimer* flush_timer_;
   const QString drk_key_ = "__cache_manage_data_register_key_list";
   std::set<QString>

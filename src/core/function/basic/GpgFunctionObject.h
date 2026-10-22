@@ -100,6 +100,21 @@ void GF_CORE_EXPORT RecordEngineScopedObject(const std::type_info& type,
 auto GF_CORE_EXPORT ReleaseEngineScopedChannel(int channel) -> int;
 
 /**
+ * @brief Called after an engine-scoped object was created on @p channel.
+ *
+ * A channel whose objects were already reclaimed is never reclaimed again on
+ * its own, so whatever a stale caller rebuilds there would live for the rest
+ * of the run. Said loudly, and the channel is put up for reclamation again.
+ * Must be called with no function-object lock held: the reclaimer may run
+ * inline.
+ *
+ * @param type the type just created
+ * @param channel the channel it was created on
+ */
+void GF_CORE_EXPORT NoteEngineScopedObjectCreated(const std::type_info& type,
+                                                  int channel);
+
+/**
  * @brief Whether @p T belongs to one key database's engine context.
  *
  * Opted into with `static constexpr bool kEngineScoped = true;`. Anything that
@@ -148,16 +163,22 @@ class SingletonFunctionObject : public ChannelObject {
                   "T not derived from SingletonFunctionObject<T>");
 
     const auto& type = typeid(T);
-    std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
-    auto* channel_object = GetChannelObjectInstance(type, channel);
-    if (channel_object == nullptr) {
-      channel_object = CreateChannelObjectInstance(
-          type, channel,
-          ConvertToChannelObjectPtr(SecureCreateUniqueObject<T>(channel)));
-      if constexpr (IsEngineScoped<T>::value) {
-        RecordEngineScopedObject(type, channel);
+    ChannelObject* channel_object = nullptr;
+    bool created = false;
+    {
+      std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
+      channel_object = GetChannelObjectInstance(type, channel);
+      if (channel_object == nullptr) {
+        channel_object = CreateChannelObjectInstance(
+            type, channel,
+            ConvertToChannelObjectPtr(SecureCreateUniqueObject<T>(channel)));
+        if constexpr (IsEngineScoped<T>::value) {
+          RecordEngineScopedObject(type, channel);
+          created = true;
+        }
       }
     }
+    if (created) NoteEngineScopedObjectCreated(type, channel);
     return *static_cast<T*>(channel_object);
   }
 
