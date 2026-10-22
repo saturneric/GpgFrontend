@@ -44,6 +44,7 @@
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
 #include "ui/function/GpgErrorMessageBox.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/MoveKeyToCard.h"
 
 namespace GpgFrontend::UI {
@@ -52,6 +53,12 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent),
       current_gpg_context_channel_(channel),
       key_(std::move(key)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(key_ != nullptr);
 
   auto engine =

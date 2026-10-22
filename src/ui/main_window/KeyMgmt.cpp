@@ -33,6 +33,7 @@
 
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -71,7 +72,7 @@ namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
   /* the list of Keys available*/
-  key_list_ = new KeyList(kGpgFrontendDefaultChannel, KeyMenuAbility::kALL,
+  key_list_ = new KeyList(DefaultChannelHandle(), KeyMenuAbility::kALL,
                           GpgKeyTableColumn::kALL, this);
 
   // The Key Management window is the home for category management.

@@ -34,6 +34,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/helper/OpSupport.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
@@ -185,9 +186,18 @@ void SaveColumnFilter(const QString& scope, GpgKeyTableColumn columns) {
 
 /**
  * @brief Durable-cache key holding the checked keys of one host window on one
- * gpg context channel.
+ * key database.
+ *
+ * Keyed by the database's id rather than its channel. The channel is only
+ * where a database landed this run: one that fails to open moves every later
+ * one down, so a channel-keyed entry restored its checks onto a different
+ * database. A context reporting no id keeps the channel, as before.
  */
 auto CheckedKeysCacheKey(const QString& scope, int channel) -> QString {
+  for (const auto& info : GetGpgKeyDatabaseInfos()) {
+    if (info.channel != channel || info.id.isEmpty()) continue;
+    return QString("key_list_checked_keys:%1:db:%2").arg(scope, info.id);
+  }
   return QString("key_list_checked_keys:%1:%2").arg(scope).arg(channel);
 }
 
@@ -227,7 +237,7 @@ auto SingleRecipientModeEnabled() -> bool {
 KeyList::KeyList(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
-      model_(AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+      model_(AbstractKeyRepository::GetInstance(DefaultChannelHandle())
                  .GetGpgKeyTableModel()),
       global_column_filter_(
           LoadColumnFilter("global", GpgKeyTableColumn::kALL)) {
@@ -629,8 +639,14 @@ void KeyList::init_texts() {
 }
 
 void KeyList::init_context_menu() {
+  // Rebuilt whenever the set of databases changes, so the previous menu and
+  // its actions go with it.
+  if (auto* previous = ui_->switchContextButton->menu(); previous != nullptr) {
+    previous->deleteLater();
+  }
+
   auto* gpg_context_menu = new QMenu(this);
-  auto* gpg_context_groups = new QActionGroup(this);
+  auto* gpg_context_groups = new QActionGroup(gpg_context_menu);
   gpg_context_groups->setExclusive(true);
 
   // Menus hide action tooltips unless asked; these are the whole point of the
@@ -653,7 +669,7 @@ void KeyList::init_context_menu() {
                                    .arg(key_db_name)
                                    .arg(engine.toUpper())
                                    .arg(tr("Channel %1").arg(channel)),
-                               this);
+                               gpg_context_menu);
 
     const auto tooltip = BuildKeyDatabaseToolTip(key_db_info, engine);
     action->setToolTip(tooltip);
@@ -678,6 +694,10 @@ void KeyList::init_context_menu() {
             [this, channel, key_db_name, tooltip](bool checked) {
               if (!checked) return;
 
+              if (channel != current_gpg_context_channel_) {
+                follow_default_ = false;
+                channel_lease_ = TryAcquireEngineLease(channel);
+              }
               current_gpg_context_channel_ = channel;
               set_context_button_text(key_db_name, tooltip);
 
@@ -774,6 +794,14 @@ void KeyList::init_column_menu() {
 void KeyList::init_signals() {
   connect(this, &KeyList::SignalRefreshDatabase, UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
+  // A new set of key databases, not new keys: move to the new Runtime's
+  // channel in place. Unique, since init() can run more than once.
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRuntimeChanged, this,
+          &KeyList::follow_key_database_runtime, Qt::UniqueConnection);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseChannelsSuspended, this,
+          &KeyList::suspend_key_database_channel, Qt::UniqueConnection);
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyList::SlotRefresh);
@@ -966,6 +994,87 @@ void KeyList::init() {
   update_action_state();
 
   setAcceptDrops(true);
+
+  channel_lease_ = TryAcquireEngineLease(current_gpg_context_channel_);
+  follow_default_ = current_gpg_context_channel_ == DefaultChannelHandle();
+}
+
+void KeyList::suspend_key_database_channel() {
+  const auto shown = LookupChannelHandle(current_gpg_context_channel_);
+  LOG_D() << "key list asked to let go of retired channels, shown channel:"
+          << shown.handle;
+  if (shown.state != ChannelHandleState::kRETIRED) return;
+
+  // Any open database of the Runtime still in use, the default first.
+  auto stand_in = ResolveDatabaseHandle({});
+  if (stand_in < 0) {
+    for (const auto& info : GetGpgKeyDatabaseInfos()) {
+      if (IsLiveChannelHandle(info.channel)) {
+        stand_in = info.channel;
+        break;
+      }
+    }
+  }
+
+  if (suspended_channel_ < 0) suspended_channel_ = shown.handle;
+
+  if (stand_in < 0) {
+    // Nothing else to show; at least stop holding the retired channel.
+    channel_lease_.reset();
+    return;
+  }
+
+  auto lease = TryAcquireEngineLease(stand_in);
+  current_gpg_context_channel_ = stand_in;
+  init_context_menu();
+  SlotRefresh();
+  channel_lease_ = std::move(lease);
+}
+
+void KeyList::follow_key_database_runtime() {
+  const auto shown = LookupChannelHandle(current_gpg_context_channel_);
+  LOG_D() << "key list follows a new key database runtime, shown channel:"
+          << shown.handle << "generation:" << shown.generation
+          << "current generation:" << CurrentRuntimeGeneration();
+  const auto wanted =
+      suspended_channel_ >= 0 ? LookupChannelHandle(suspended_channel_) : shown;
+  const auto wanted_id = wanted.database_id;
+  suspended_channel_ = -1;
+
+  if (wanted_id == shown.database_id &&
+      shown.state == ChannelHandleState::kAVAILABLE &&
+      shown.generation == CurrentRuntimeGeneration()) {
+    // Still in use; only the names or the set around it changed.
+    init_context_menu();
+    return;
+  }
+
+  auto next = follow_default_ || wanted_id.isEmpty()
+                  ? ResolveDatabaseHandle({})
+                  : ResolveDatabaseHandle(wanted_id);
+  if (next < 0 && !follow_default_) {
+    // The database picked is gone: back to the default, and said so, rather
+    // than leaving a list of keys nothing can act on.
+    next = ResolveDatabaseHandle({});
+    follow_default_ = true;
+    emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
+        tr("The key database \"%1\" is no longer available; showing the "
+           "default one.")
+            .arg(wanted.name),
+        8000);
+  }
+  if (next < 0) return;
+
+  // The new lease before the old one goes, so a database is held throughout.
+  auto lease = TryAcquireEngineLease(next);
+  current_gpg_context_channel_ = next;
+
+  init_context_menu();
+  init_column_menu();
+  UpdateKeyTableColumnType(global_column_filter_);
+  SlotRefresh();
+
+  channel_lease_ = std::move(lease);
 }
 
 auto KeyList::AddListGroupTab(const QString& name, const QString& id,

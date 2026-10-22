@@ -232,6 +232,12 @@ class KeyTreeView : public QTreeView {
    *
    */
   void reset_model();
+
+  /**
+   * @brief Show nothing until the channel is found again: what was shown came
+   * from objects that are about to be reclaimed.
+   */
+  void drop_model();
 };
 
 }  // namespace GpgFrontend::UI

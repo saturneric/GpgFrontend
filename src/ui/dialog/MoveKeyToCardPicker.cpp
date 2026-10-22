@@ -29,11 +29,13 @@
 #include "MoveKeyToCardPicker.h"
 
 #include "core/function/gpg/GpgSmartCardManager.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/widgets/KeyTreeView.h"
 
 namespace GpgFrontend::UI {
@@ -59,9 +61,10 @@ auto KeyHasMovablePart(const GpgKey& key) -> bool {
 
 /// prefer the default database, otherwise the first supported one
 auto PickInitialChannel(const QContainer<KeyDatabaseInfo>& dbs) -> int {
-  if (dbs.isEmpty()) return kGpgFrontendDefaultChannel;
+  const auto default_handle = DefaultChannelHandle();
+  if (dbs.isEmpty()) return default_handle;
   for (const auto& db : dbs) {
-    if (db.channel == kGpgFrontendDefaultChannel) return db.channel;
+    if (db.channel == default_handle) return db.channel;
   }
   return dbs.front().channel;
 }
@@ -113,6 +116,12 @@ MoveKeyToCardPicker::MoveKeyToCardPicker(QWidget* parent)
             }
             return false;
           })) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 #endif

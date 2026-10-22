@@ -34,6 +34,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupEditDialog.h"
 #include "ui/dialog/KeyGroupMetadataRules.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/ShowKeyDetails.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/KeyTreeView.h"
@@ -89,6 +90,12 @@ KeyGroupManageDialog::KeyGroupManageDialog(
     : GeneralDialog("KeyGroupManageDialog", parent),
       channel_(channel),
       group_id_(key_group != nullptr ? key_group->ID() : QString{}) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 #endif

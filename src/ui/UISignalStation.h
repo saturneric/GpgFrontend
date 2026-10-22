@@ -66,6 +66,27 @@ class UISignalStation : public QObject {
   void SignalKeyDatabaseRefreshDone();
 
   /**
+   * @brief A new key database Runtime is in use; channels from before name
+   * nothing any more.
+   *
+   * Delivered on the GUI thread. Anything holding a channel finds its database
+   * again by id (KeepBoundToKeyDatabase() does it for a widget), and anything
+   * listing databases lists them again. Distinct from
+   * SignalKeyDatabaseRefreshDone, which is about the keys inside them.
+   *
+   * @param from_generation the Runtime replaced
+   * @param to_generation the Runtime now in use
+   */
+  void SignalKeyDatabaseRuntimeChanged(int from_generation, int to_generation);
+
+  /**
+   * @brief Channels in use were retired ahead of a new Runtime, so a key
+   * database folder can move. Whatever holds one lets go of it now, and finds
+   * its database again on SignalKeyDatabaseRuntimeChanged.
+   */
+  void SignalKeyDatabaseChannelsSuspended();
+
+  /**
    * @brief
    *
    */

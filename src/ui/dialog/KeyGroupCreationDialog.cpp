@@ -33,6 +33,7 @@
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupMetadataRules.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 
 namespace GpgFrontend::UI {
 KeyGroupCreationDialog::KeyGroupCreationDialog(int channel, QStringList key_ids,
@@ -40,6 +41,12 @@ KeyGroupCreationDialog::KeyGroupCreationDialog(int channel, QStringList key_ids,
     : GeneralDialog("KeyGroupCreationDialog", parent),
       current_gpg_context_channel_(channel),
       key_ids_(std::move(key_ids)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(!key_ids_.isEmpty());
 
 #ifdef Q_OS_MACOS

@@ -29,6 +29,7 @@
 #include "SigningKeysPicker.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/widgets/KeyTreeView.h"
 
 namespace GpgFrontend::UI {
@@ -74,6 +75,12 @@ SigningKeysPicker::SigningKeysPicker(int channel,
             if (!(k->IsPrivateKey() && k->IsHasSignCap())) return false;
             return allowed.isEmpty() || allowed.contains(k->Fingerprint());
           })) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 #endif

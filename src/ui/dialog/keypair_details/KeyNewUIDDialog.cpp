@@ -33,6 +33,7 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/KeyGenerateHelper.h"
 
 namespace GpgFrontend::UI {
@@ -40,6 +41,12 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
     : GeneralDialog(typeid(KeyNewUIDDialog).name(), parent),
       current_gpg_context_channel_(channel),
       m_key_(std::move(key)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(m_key_ != nullptr);
 
   auto* title_label = new QLabel(tr("Add a new User ID"));

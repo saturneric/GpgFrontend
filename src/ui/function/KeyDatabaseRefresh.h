@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/function/openpgp/KeyDatabaseRuntime.h"
+
 namespace GpgFrontend::UI {
 
 /**
@@ -40,5 +42,51 @@ namespace GpgFrontend::UI {
  * Idempotent.
  */
 void GF_UI_EXPORT InstallKeyDatabaseRefreshHandler();
+
+/**
+ * @brief Keep @p owner on its key database when a new Runtime replaces the
+ * one its channel belongs to.
+ *
+ * On every SignalKeyDatabaseRuntimeChanged the database behind the channel is
+ * found again by its id: @p rebound is told its new channel, or @p lost is
+ * called when the database is gone. Until then a lease keeps the old channel's
+ * objects alive, so nothing @p owner still holds from it is reclaimed under
+ * it. Lives as long as @p owner.
+ *
+ * @param owner what holds the channel
+ * @param current reads the channel it holds now
+ * @param rebound told the new channel
+ * @param lost called once the database is gone; MarkKeyDatabaseLost() when
+ * empty
+ * @param suspended called when the channel is retired ahead of a new Runtime
+ * (a folder about to move), before the lease is let go: drop anything still
+ * read from the old channel's objects, such as a model built from them
+ */
+void GF_UI_EXPORT KeepBoundToKeyDatabase(QWidget* owner,
+                                         std::function<int()> current,
+                                         std::function<void(int)> rebound,
+                                         std::function<void()> lost = {},
+                                         std::function<void()> suspended = {});
+
+/**
+ * @brief Show that the key database @p widget works on is gone.
+ *
+ * Disabled rather than closed, so whatever it shows can still be read; a
+ * window says so in its title.
+ */
+void GF_UI_EXPORT MarkKeyDatabaseLost(QWidget* widget);
+
+/**
+ * @brief Bring the saved key database configuration into use, without a
+ * restart.
+ *
+ * Runs ApplyKeyDatabaseRuntime() off the GUI thread and says how it went in
+ * the status bar, and in a message when something could not be done. A
+ * request made while one is running is folded into a single follow-up.
+ *
+ * @param moves managed database folders to move first
+ */
+void GF_UI_EXPORT
+ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves = {});
 
 }  // namespace GpgFrontend::UI

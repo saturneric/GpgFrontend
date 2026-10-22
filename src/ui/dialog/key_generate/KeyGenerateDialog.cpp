@@ -42,6 +42,7 @@
 #include "ui/function/KeyGenerateHelper.h"
 
 //
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_KeyGenDialog.h"
 
 namespace {
@@ -446,6 +447,12 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
           KeyGenerateInfo::GetSupportedKeyAlgo(channel)),
       supported_subkey_algos_(
           KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
   ui_->setupUi(this);
   InitUi();
 

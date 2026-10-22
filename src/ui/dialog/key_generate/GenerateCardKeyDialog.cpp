@@ -37,6 +37,7 @@
 #include "ui/function/KeyGenerateHelper.h"
 
 //
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_GenerateCardKeyDialog.h"
 
 namespace GpgFrontend::UI {
@@ -48,6 +49,12 @@ GenerateCardKeyDialog::GenerateCardKeyDialog(int channel,
       channel_(channel),
       serial_number_(serial_number),
       ui_(QSharedPointer<Ui_GenerateCardKeyDialog>::create()) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
   ui_->setupUi(this);
 
   ui_->nameLabel->setText(tr("Name"));

@@ -31,6 +31,7 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/MoveKeyToCardPicker.h"
@@ -40,6 +41,7 @@
 #include "ui/function/UIStyle.h"
 
 //
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_SmartCardControllerDialog.h"
 
 namespace GpgFrontend::UI {
@@ -72,9 +74,15 @@ const char* const kCardHowToUrl = "https://gnupg.org/howtos/card-howto/en/";
 SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
     : GeneralDialog("SmartCardControllerDialog", parent),
       ui_(QSharedPointer<Ui_SmartCardControllerDialog>::create()),
-      channel_(kGpgFrontendDefaultChannel),
+      channel_(DefaultChannelHandle()),
       scd_version_supported_(
           GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported()) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
   ui_->setupUi(this);
 
   init_texts();
@@ -179,7 +187,11 @@ void SmartCardControllerDialog::init_actions() {
   auto* overflow_menu = new QMenu(ui_->overflowButton);
   overflow_menu->addAction(tr("Restart All Gpg-Agents"), this, [=]() {
     bool ret = true;
-    for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+    for (const auto& info : GetGpgKeyDatabaseInfos()) {
+      // The Runtime in use only: a replaced one's channels are on their way out.
+      const auto channel = info.channel;
+      const auto lease = TryAcquireEngineLease(channel);
+      if (!lease) continue;
       // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
       if (OpenPGPContext::GetInstance(channel).Engine() !=
           OpenPGPEngine::kGNUPG) {
@@ -530,7 +542,7 @@ void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
 void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
   ui_->fetchButton->setDisabled(true);
 
-  auto err = GpgSmartCardManager::GetInstance().Fetch(
+  auto err = GpgSmartCardManager::GetInstance(channel_).Fetch(
       ui_->currentCardComboBox->currentText());
 
   if (err != GPG_ERR_NO_ERROR) {

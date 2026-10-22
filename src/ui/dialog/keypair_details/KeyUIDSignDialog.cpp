@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -40,6 +41,12 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKeyPtr& key,
       current_gpg_context_channel_(channel),
       m_uid_(uid),
       m_key_(key) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(m_key_ != nullptr);
   const auto key_id = m_key_->ID();
 

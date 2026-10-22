@@ -29,6 +29,7 @@
 #include "KeyPairPhotosTab.h"
 
 #include "core/utils/FilesystemUtils.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_KeyPairPhotosTab.h"
 
 namespace GpgFrontend::UI {
@@ -41,6 +42,12 @@ KeyPairPhotosTab::KeyPairPhotosTab(int channel, GpgKeyPtr key,
       current_gpg_context_channel_(channel),
       key_(std::move(key)),
       infos_(infos) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   ui_->setupUi(this);
 
   auto* table_widget = ui_->tableWidget;

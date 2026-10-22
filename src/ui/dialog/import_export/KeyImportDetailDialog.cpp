@@ -31,6 +31,7 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
 #include "ui/function/AppearanceFont.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 
 namespace GpgFrontend::UI {
 KeyImportDetailDialog::KeyImportDetailDialog(
@@ -38,6 +39,12 @@ KeyImportDetailDialog::KeyImportDetailDialog(
     : GeneralDialog(typeid(KeyImportDetailDialog).name(), parent),
       current_gpg_context_channel_(channel),
       m_result_(std::move(result)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   this->setAttribute(Qt::WA_DeleteOnClose);
 
   // If no key for import found, just show a message

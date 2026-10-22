@@ -35,6 +35,7 @@
 #include "ui/dialog/keypair_details/KeyPairPhotosTab.h"
 #include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
 #include "ui/dialog/keypair_details/KeyPairUIDTab.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 
 namespace {
 constexpr int kMinDialogWidth = 680;
@@ -47,6 +48,12 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
                                    QWidget* parent)
     : GeneralDialog(typeid(KeyDetailsDialog).name(), parent),
       current_gpg_context_channel_(channel) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(
       new KeyPairDetailTab(current_gpg_context_channel_, key, tab_widget_),

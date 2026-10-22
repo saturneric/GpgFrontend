@@ -28,7 +28,10 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "ui/widgets/KeyTable.h"
 
 class Ui_KeyList;
@@ -480,6 +483,30 @@ class KeyList : public QWidget {
   QSharedPointer<Ui_KeyList> ui_;                                    ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
   int current_gpg_context_channel_;
+
+  /// Keeps the shown database's objects alive while its model is attached,
+  /// across a Runtime replacing it until this list has moved on.
+  std::optional<EngineLease> channel_lease_;
+
+  /// Shows the default database, whichever it is, until the user picks one
+  /// from the menu; then shows that one, found again by id after a reload.
+  bool follow_default_ = true;
+
+  /**
+   * @brief Move to the new Runtime's channel for the database shown, rebuild
+   * the database menu, and reload the keys.
+   */
+  void follow_key_database_runtime();
+
+  /// The channel this list stepped away from while its folder moved; its
+  /// database is come back to once the new Runtime is published.
+  int suspended_channel_ = -1;
+
+  /**
+   * @brief Step away from a channel retired so its folder can move: show
+   * another open database meanwhile and let go of the retired one.
+   */
+  void suspend_key_database_channel();
   KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;  ///<
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableColumn fixed_columns_filter_;

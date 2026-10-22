@@ -33,6 +33,7 @@
 #include "ui/function/GpgOperaHelper.h"
 
 //
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
@@ -41,6 +42,12 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_exportKeyPackageDialog>()),
       current_gpg_context_channel_(channel),
       keys_(std::move(keys)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   ui_->setupUi(this);
 
   ui_->nameValueLabel->setText(opera_.GenerateKeyPackageName());

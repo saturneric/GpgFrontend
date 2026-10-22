@@ -32,6 +32,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/SettingsObject.h"
@@ -68,7 +69,7 @@ void MainWindow::Init() noexcept {
 
     /* the list of Keys available*/
     m_key_list_ = new KeyList(
-        kGpgFrontendDefaultChannel,
+        DefaultChannelHandle(),
         KeyMenuAbility::kREFRESH | KeyMenuAbility::kCHECK_ALL |
             KeyMenuAbility::kUNCHECK_ALL | KeyMenuAbility::kCOLUMN_FILTER |
             KeyMenuAbility::kSEARCH_BAR | KeyMenuAbility::kKEY_DATABASE |
@@ -216,6 +217,16 @@ void MainWindow::Init() noexcept {
     // asking for it, and the engine reading would sit there stale.
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalKeyDatabaseRefreshDone, this,
+            [this]() { slot_update_engine_status(); });
+
+    // Nor when a new set of key databases replaces the one in use: the key
+    // list moves to its new channel first (it connected first), then this
+    // reads it.
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseRuntimeChanged, this,
+            [this]() { slot_update_engine_status(); });
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseChannelsSuspended, this,
             [this]() { slot_update_engine_status(); });
 
     connect(this, &MainWindow::SignalLoaded, this, [this]() {

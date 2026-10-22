@@ -33,6 +33,7 @@
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 
 namespace GpgFrontend::UI {
 
@@ -60,6 +61,12 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, GpgKeyPtr key,
     : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       current_gpg_context_channel_(channel),
       m_key_(std::move(key)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(m_key_->IsGood());
   init();
 }
@@ -71,6 +78,12 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, GpgKeyPtr key,
       current_gpg_context_channel_(channel),
       m_key_(std::move(key)),
       m_subkey_(std::move(subkey_fpr)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(m_key_ != nullptr);
   init();
 }

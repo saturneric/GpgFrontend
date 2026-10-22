@@ -49,6 +49,7 @@
 #include "ui/function/GenerateRevocationCert.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/ImportKey.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
 namespace GpgFrontend::UI {
@@ -57,6 +58,12 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent),
       current_gpg_context_channel_(channel),
       m_key_(std::move(key)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   assert(m_key_ != nullptr);
 
   // Set Menu

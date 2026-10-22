@@ -32,6 +32,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/widgets/KeyTreeView.h"
 
 namespace GpgFrontend::UI {
@@ -53,6 +54,12 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
           })),
       channel_(channel),
       key_(std::move(key)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { channel_ = channel; });
+
   tree_view_->setStyleSheet("QTreeView::item { height: 28px; }");
 
   auto* confirm_button = new QPushButton(tr("Confirm"));

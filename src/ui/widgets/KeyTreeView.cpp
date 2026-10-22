@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/ShowKeyDetails.h"
 #include "ui/model/GpgKeyTreeProxyModel.h"
 #include "ui/widgets/KeyTableEmptyState.h"
@@ -43,6 +44,13 @@ KeyTreeView::KeyTreeView(QWidget* parent)
       model_(SecureCreateSharedObject<GpgKeyTreeModel>(
           channel_, GpgAbstractKeyPtrList{}, checkable_detector_, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, key_filter_, this) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { SetChannel(channel); }, {},
+      [this]() { drop_model(); });
+
   init();
 }
 
@@ -57,6 +65,13 @@ KeyTreeView::KeyTreeView(int channel,
       model_(SecureCreateSharedObject<GpgKeyTreeModel>(
           channel_, GpgAbstractKeyPtrList{}, checkable_detector_, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, key_filter_, this) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return channel_; },
+      [this](int channel) { SetChannel(channel); }, {},
+      [this]() { drop_model(); });
+
   init();
 }
 
@@ -212,6 +227,16 @@ void KeyTreeView::init() {
   // to be alive before the member initialiser list runs; the first real build
   // happens here, through the same path every later refresh takes.
   reset_model();
+}
+
+void KeyTreeView::drop_model() {
+  // Nothing read from the old channel's objects stays on show while they are
+  // reclaimed; the keys come back when the database is found again.
+  model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
+      channel_, GpgAbstractKeyPtrList{}, checkable_detector_, this,
+      build_mode_);
+  proxy_model_.setSourceModel(model_.get());
+  proxy_model_.invalidate();
 }
 
 void KeyTreeView::reset_model() {

@@ -38,6 +38,7 @@
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyGenerateHelper.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 
 //
 #include "ui_SubkeyGenDialog.h"
@@ -108,6 +109,12 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
       gen_subkey_info_(SecureCreateSharedObject<KeyGenerateInfo>(true)),
       supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(
           current_gpg_context_channel_, *key_)) {
+  // A reload of the key databases replaces the channel this works on; find
+  // the database again, or say it is gone.
+  KeepBoundToKeyDatabase(
+      this, [this]() { return current_gpg_context_channel_; },
+      [this](int channel) { current_gpg_context_channel_ = channel; });
+
   ui_->setupUi(this);
   assert(key_ != nullptr);
 
