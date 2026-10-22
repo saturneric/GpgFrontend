@@ -31,6 +31,7 @@
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/SettingsObject.h"
@@ -283,11 +284,11 @@ void MainWindow::Init() noexcept {
 
 void MainWindow::restore_settings() {
   auto settings = GetSettings();
-  if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
-    settings.setValue("gnupg/non_ascii_at_file_operation", true);
+  if (!settings.contains(SettingItems::kNonAsciiAtFileOperation.key)) {
+    SettingItems::kNonAsciiAtFileOperation.Write(settings, true);
   }
 
-  show_wizard_on_startup_ = settings.value("wizard/show_wizard", true).toBool();
+  show_wizard_on_startup_ = SettingItems::kShowWizard.Read(settings);
 
   AppearanceSO const appearance(SettingsObject("general_settings_state"));
 

@@ -28,6 +28,7 @@
 
 #include "KeyGroupManageDialog.h"
 
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
@@ -326,7 +327,8 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
         return KeyGroupRepository::GetInstance(channel_).CanAddKeyToKeyGroup(
             group_id_, key->ID());
       });
-  available_list_->SetTabOrderSettingsKey("keys/keygroup_manage_tab_order");
+  available_list_->SetTabOrderSettingsKey(
+      SettingItems::kKeyGroupManageTabOrder.key);
 
   // One fixed tab: the category rail would have nothing to switch between.
   available_list_->SetCategoryRailVisible(false);

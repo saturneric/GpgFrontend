@@ -31,6 +31,7 @@
 #include <QtPrintSupport>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
@@ -71,9 +72,7 @@ void TextEdit::SlotNewTabWithContent(QString title, const QString& content) {
 
 void TextEdit::SlotNewDefaultWorkspaceTab() {
   const auto default_workspace_as =
-      GetSettings()
-          .value("basic/default_workspace_as", "file_panel")
-          .toString();
+      SettingItems::kDefaultWorkspaceAs.Read(GetSettings());
 
   if (IsRunningInSandBox()) {
     // In a sandbox the file panel may not work properly because of the
@@ -375,7 +374,7 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
   if (unsaved_docs.empty()) return true;
 
   bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", true).toBool();
+      SettingItems::kRestoreTextEditorPage.Read(GetSettings());
   if (restore_text_editor_page) {
     FLOG_D("restore_text_editor_page is true, caching messages and exiting");
     tab_widget_->SlotCacheTextEditors();

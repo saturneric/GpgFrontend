@@ -29,6 +29,7 @@
 #include "SettingsRpgp.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/utils/RustUtils.h"
 #include "ui_RpgpSettings.h"
 
@@ -107,24 +108,19 @@ void RpgpTab::SetSettings() {
 
   // Stored in seconds; presented in minutes (rounded up so a sub-minute value
   // never collapses to 0, which would disable the cache).
-  auto cache_ttl_secs =
-      settings.value("engine/password_cache_ttl", 600).toLongLong();
-  auto cache_max_ttl_secs =
-      settings.value("engine/password_cache_max_ttl", 7200).toLongLong();
+  auto cache_ttl_secs = SettingItems::kPasswordCacheTtl.Read(settings);
+  auto cache_max_ttl_secs = SettingItems::kPasswordCacheMaxTtl.Read(settings);
   ui_->rpgpCacheTtlSpinBox->setValue(
       static_cast<int>(qMax<qint64>(1, (cache_ttl_secs + 59) / 60)));
   ui_->rpgpCacheMaxTtlSpinBox->setValue(
       static_cast<int>(qMax<qint64>(1, (cache_max_ttl_secs + 59) / 60)));
 
   ui_->promptTimeoutSpinBox->setValue(
-      settings.value("engine/passphrase_prompt_timeout", 60).toInt());
+      SettingItems::kPassphrasePromptTimeout.Read(settings));
 
   // An unknown token (an older or newer profile name) falls back to the first
   // entry, which is the high-memory default.
-  auto argon2_profile = settings
-                            .value("engine/argon2_s2k_profile",
-                                   QString(kRpgpArgon2ProfileHighMemory))
-                            .toString();
+  auto argon2_profile = SettingItems::kArgon2S2kProfile.Read(settings);
   auto argon2_index = ui_->argon2ProfileComboBox->findData(argon2_profile);
   ui_->argon2ProfileComboBox->setCurrentIndex(argon2_index != -1 ? argon2_index
                                                                  : 0);
@@ -141,10 +137,8 @@ void RpgpTab::ApplySettings() {
   qint64 cache_max_ttl_secs = qMax<qint64>(
       cache_ttl_secs,
       static_cast<qint64>(ui_->rpgpCacheMaxTtlSpinBox->value()) * 60);
-  settings.setValue("engine/password_cache_ttl",
-                    static_cast<qulonglong>(cache_ttl_secs));
-  settings.setValue("engine/password_cache_max_ttl",
-                    static_cast<qulonglong>(cache_max_ttl_secs));
+  SettingItems::kPasswordCacheTtl.Write(settings, cache_ttl_secs);
+  SettingItems::kPasswordCacheMaxTtl.Write(settings, cache_max_ttl_secs);
 
   // Apply immediately so the new timeouts take effect without a restart.
   SetRpgpPasswordCacheTtl(static_cast<uint64_t>(cache_ttl_secs),
@@ -152,11 +146,11 @@ void RpgpTab::ApplySettings() {
 
   // Read fresh by PassphraseService on every request, so the next prompt
   // already uses this value.
-  settings.setValue("engine/passphrase_prompt_timeout",
-                    ui_->promptTimeoutSpinBox->value());
+  SettingItems::kPassphrasePromptTimeout.Write(
+      settings, ui_->promptTimeoutSpinBox->value());
 
   auto argon2_profile = ui_->argon2ProfileComboBox->currentData().toString();
-  settings.setValue("engine/argon2_s2k_profile", argon2_profile);
+  SettingItems::kArgon2S2kProfile.Write(settings, argon2_profile);
 
   // Apply immediately so the next passphrase encryption already uses it.
   SetRpgpArgon2S2kParams(RpgpArgon2ParamsOfProfile(argon2_profile));

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/function/SettingCatalog.h"
+
 namespace GpgFrontend {
 
 /**
@@ -59,7 +61,8 @@ constexpr auto kProfileStorageDirEnv = "GF_PROFILE_PACKAGE_STORAGE_DIR";
 
 /// The setting this policy is read from, on the profile that launched the
 /// session rather than on the session itself.
-constexpr auto kProfileStorageSettingKey = "advanced/profile_package_storage";
+constexpr auto kProfileStorageSettingKey =
+    SettingItems::kProfilePackageStorage.key;
 
 /**
  * @brief Canonical stored spelling of a policy.

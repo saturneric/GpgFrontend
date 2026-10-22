@@ -29,6 +29,7 @@
 #include "ProfileMigration.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend {
@@ -50,8 +51,8 @@ auto MigrateFilePanelDefaultPathMode(const QString&)
     -> ProfileMigrationOutcome {
   auto settings = GetSettings();
 
-  constexpr auto kNewKey = "basic/file_panel_default_path_mode";
-  constexpr auto kOldKey = "basic/home_path_as_file_panel_default_path";
+  constexpr auto kNewKey = SettingItems::kFilePanelDefaultPathMode.key;
+  constexpr auto kOldKey = SettingItems::kFilePanelDefaultPathMode.legacy_key;
 
   if (settings.contains(kNewKey)) return {};
 

@@ -41,6 +41,7 @@
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/DataObjectOperator.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/GFDataExchanger.h"
 #include "core/profile/Profile.h"
@@ -805,28 +806,14 @@ auto MakeProfilePackageScratchDir(const QString &profiles_root,
 }
 
 auto SettingTravelsInPackage(const QString &key) -> bool {
-  // Each of these names something that exists on one computer and not on the
-  // next one. Carried, they do not merely fail to apply -- they actively point
-  // the copy at the wrong thing: a gpgconf that is not there, a workspace
-  // folder that is not there, a credential store this platform does not have.
-  static const QSet<QString> kStaysHome = {
-      // An absolute path to a GnuPG installation, and the flag that turns it
-      // on. Startup falls back when it does not resolve, but only after
-      // reporting an illegal path and prepending it to PATH.
-      "gnupg/custom_gnupg_install_path",
-      "gnupg/use_custom_gnupg_install_path",
-
-      // An absolute override for where the profile's workspace lives.
-      "workspace/path",
-
-      // Which credential store held the key here. The key inside a package is
-      // not sealed by any store -- the package's own passphrase is what
-      // protected it -- so the recipient must decide this for themselves.
-      "advanced/os_secret_store",
-      "advanced/app_key_protection",
-  };
-
-  return !kStaysHome.contains(key);
+  // A setting that names something on this computer does not merely fail to
+  // apply on the next one -- it actively points the copy at the wrong thing:
+  // a GnuPG that is not there, a workspace folder that is not there, a
+  // credential store this platform does not have. The catalog says which
+  // those are. A key it does not describe -- a module's own settings, window
+  // state -- belongs to the profile and travels.
+  const auto *meta = FindSetting(key);
+  return meta == nullptr || meta->locality == SettingLocality::kPROFILE;
 }
 
 auto SnapshotSettings(QSettings &settings) -> QMap<QString, QVariant> {
@@ -1567,7 +1554,7 @@ auto AdoptExtractedProfile(const QString &staging_dir,
   // have recorded "keychain", which here would only strand the profile.
   const auto settings_path = profile_root + "/config/config.ini";
   QSettings settings(settings_path, QSettings::IniFormat);
-  settings.setValue("advanced/app_key_protection", "none");
+  SettingItems::kAppKeyProtection.Write(settings, QStringLiteral("none"));
   settings.sync();
 
   return {};

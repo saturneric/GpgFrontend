@@ -31,6 +31,7 @@
 #include <optional>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgKey.h"
@@ -1325,7 +1326,7 @@ auto IsKeyNeverExpires(const GpgAbstractKey* key) -> bool {
 }
 
 auto GetKeyExpiringSoonDays() -> int {
-  auto days = GetSettings().value("keys/expiring_soon_days", 30).toInt();
+  auto days = SettingItems::kExpiringSoonDays.Read(GetSettings());
   return std::clamp(days, 1, 365);
 }
 

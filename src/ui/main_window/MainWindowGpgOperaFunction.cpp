@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/AsyncUtils.h"
@@ -326,7 +327,7 @@ auto MainWindow::check_encrypt_keys_helper(const GpgAbstractKeyPtrList& keys)
 auto MainWindow::confirm_recipients_helper(const GpgAbstractKeyPtrList& keys)
     -> bool {
   const auto setting_on =
-      GetSettings().value("basic/confirm_multiple_recipients", false).toBool();
+      SettingItems::kConfirmMultipleRecipients.Read(GetSettings());
   if (!NeedsRecipientConfirmation(keys.size(), setting_on)) return true;
 
   const int count = static_cast<int>(keys.size());

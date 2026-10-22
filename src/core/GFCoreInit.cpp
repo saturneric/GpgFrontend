@@ -36,6 +36,7 @@
 #include "core/function/CoreInitProgress.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
@@ -191,9 +192,9 @@ auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
 auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   auto settings = GetSettings();
   auto use_custom_gnupg_install_path =
-      settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
+      SettingItems::kUseCustomGnuPGInstallPath.Read(settings);
   auto custom_gnupg_install_path =
-      settings.value("gnupg/custom_gnupg_install_path", QString{}).toString();
+      SettingItems::kCustomGnuPGInstallPath.Read(settings);
 
   QString gpgconf_install_fs_path;
   // user defined
@@ -522,18 +523,15 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     // maximum. A ttl of 0 leaves the engine's built-in defaults untouched.
     auto settings = GetSettings();
     auto cache_ttl =
-        settings.value("engine/password_cache_ttl", 600).toULongLong();
+        static_cast<quint64>(SettingItems::kPasswordCacheTtl.Read(settings));
     auto cache_max_ttl =
-        settings.value("engine/password_cache_max_ttl", 7200).toULongLong();
+        static_cast<quint64>(SettingItems::kPasswordCacheMaxTtl.Read(settings));
     SetRpgpPasswordCacheTtl(cache_ttl, cache_max_ttl);
 
     // RFC 9106 section 4 parameter choice for the Argon2id S2K used when
     // encrypting with a passphrase. The first recommendation (2 GiB) is the
     // default; memory-constrained machines can select the second (64 MiB).
-    auto argon2_profile = settings
-                              .value("engine/argon2_s2k_profile",
-                                     QString(kRpgpArgon2ProfileHighMemory))
-                              .toString();
+    auto argon2_profile = SettingItems::kArgon2S2kProfile.Read(settings);
     SetRpgpArgon2S2kParams(RpgpArgon2ParamsOfProfile(argon2_profile));
 
     GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
@@ -590,7 +588,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
   // read settings from config file
   auto forbid_all_gnupg_connection =
-      settings.value("network/forbid_all_gnupg_connection", false).toBool();
+      SettingItems::kForbidAllGnuPGConnection.Read(settings);
 
   forbid_all_gnupg_connection = forbid_all_gnupg_connection ||
                                 qApp->property("GFGnuPGOfflineMode").toBool();
@@ -599,12 +597,11 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           << forbid_all_gnupg_connection;
 
   auto auto_import_missing_key =
-      settings.value("network/auto_import_missing_key", false).toBool();
+      SettingItems::kAutoImportMissingKey.Read(settings);
 
   // user can also explicitly set default engine to rpgp if they want to, even
   // when gnupg is supported.
-  auto default_engine =
-      settings.value("basic/default_engine", "GNUPG").toString().toUpper();
+  auto default_engine = SettingItems::kDefaultEngine.Read(settings).toUpper();
   Module::UpsertRTValue(Module::kGRTCoreNamespace,
                         Module::GRTDefaultEngineKey(),
                         default_engine.toLower());

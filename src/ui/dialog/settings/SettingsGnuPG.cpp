@@ -29,6 +29,7 @@
 #include "SettingsGnuPG.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
@@ -285,27 +286,26 @@ void GnuPGTab::SetSettings() {
   auto settings = GetSettings();
 
   clear_password_cache_at_close_check_->setChecked(
-      settings.value("basic/clear_gpg_password_cache", true).toBool());
+      SettingItems::kClearGpgPasswordCache.Read(settings));
 
   ui_->gpgmeDebugLogCheckBox->setChecked(
-      settings.value("gnupg/enable_gpgme_debug_log", false).toBool());
+      SettingItems::kEnableGpgmeDebugLog.Read(settings));
 
   ui_->killAllGnuPGDaemonCheckBox->setChecked(
-      settings.value("gnupg/kill_all_gnupg_daemon_at_close", true).toBool());
+      SettingItems::kKillAllGnuPGDaemonAtClose.Read(settings));
 
   auto forbid_all_gnupg_connection =
-      settings.value("network/forbid_all_gnupg_connection").toBool();
+      SettingItems::kForbidAllGnuPGConnection.Read(settings);
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
       forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
 
   const auto use_custom_gnupg_install_path =
-      settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
+      SettingItems::kUseCustomGnuPGInstallPath.Read(settings);
 
   ui_->useCustomGnuPGInstallPathCheckBox->setChecked(
       use_custom_gnupg_install_path);
 
-  custom_gnupg_path_ =
-      settings.value("gnupg/custom_gnupg_install_path").toString();
+  custom_gnupg_path_ = SettingItems::kCustomGnuPGInstallPath.Read(settings);
 
   slot_update_custom_gnupg_install_path_label(
       use_custom_gnupg_install_path ? Qt::Checked : Qt::Unchecked);
@@ -316,18 +316,18 @@ void GnuPGTab::ApplySettings() {
 
   const auto use_custom = ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
 
-  settings.setValue("gnupg/use_custom_gnupg_install_path", use_custom);
-  settings.setValue("gnupg/enable_gpgme_debug_log",
-                    ui_->gpgmeDebugLogCheckBox->isChecked());
-  settings.setValue("gnupg/kill_all_gnupg_daemon_at_close",
-                    ui_->killAllGnuPGDaemonCheckBox->isChecked());
-  settings.setValue("network/forbid_all_gnupg_connection",
-                    ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
-  settings.setValue("basic/clear_gpg_password_cache",
-                    clear_password_cache_at_close_check_->isChecked());
+  SettingItems::kUseCustomGnuPGInstallPath.Write(settings, use_custom);
+  SettingItems::kEnableGpgmeDebugLog.Write(
+      settings, ui_->gpgmeDebugLogCheckBox->isChecked());
+  SettingItems::kKillAllGnuPGDaemonAtClose.Write(
+      settings, ui_->killAllGnuPGDaemonCheckBox->isChecked());
+  SettingItems::kForbidAllGnuPGConnection.Write(
+      settings, ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
+  SettingItems::kClearGpgPasswordCache.Write(
+      settings, clear_password_cache_at_close_check_->isChecked());
 
   if (use_custom) {
-    settings.setValue("gnupg/custom_gnupg_install_path", custom_gnupg_path_);
+    SettingItems::kCustomGnuPGInstallPath.Write(settings, custom_gnupg_path_);
   }
 }
 
@@ -340,7 +340,7 @@ void GnuPGTab::slot_update_custom_gnupg_install_path_label(int state) {
       if (custom_gnupg_path_.isEmpty()) {
         // read from settings file
         QString custom_gnupg_install_path =
-            GetSettings().value("gnupg/custom_gnupg_install_path").toString();
+            SettingItems::kCustomGnuPGInstallPath.Read(GetSettings());
         custom_gnupg_path_ = custom_gnupg_install_path;
       }
 

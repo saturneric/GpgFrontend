@@ -32,6 +32,7 @@
 
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/helper/OpSupport.h"
@@ -52,7 +53,7 @@ namespace {
 
 // Custom (user-defined) categories share one global order across every key
 // list; integrated built-in tabs keep a per-window order instead.
-constexpr auto kCustomCategoryOrderKey = "keys/custom_category_order";
+constexpr auto kCustomCategoryOrderKey = SettingItems::kCustomCategoryOrder.key;
 
 auto IsCustomCategoryId(const QString& id) -> bool {
   return id.startsWith("cat:");
@@ -162,8 +163,9 @@ auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
   // Migration: the choice used to live in QSettings, where every window but the
   // ToolBox shared one key. Honour that once so upgrading does not silently
   // reset the visible columns; can be dropped once no one upgrades from 2.1.
-  const auto legacy_key = scope == "toolbox" ? "keys/toolbox_columns_filter"
-                                             : "keys/global_columns_filter";
+  const auto legacy_key = scope == "toolbox"
+                              ? SettingItems::kToolboxColumnsFilter.key
+                              : SettingItems::kGlobalColumnsFilter.key;
   return static_cast<GpgKeyTableColumn>(
       GetSettings()
           .value(legacy_key, static_cast<unsigned int>(default_columns))
@@ -213,11 +215,11 @@ void SaveCheckedKeys(const QString& scope, int channel,
 }
 
 auto RememberCheckedKeysEnabled() -> bool {
-  return GetSettings().value("basic/remember_checked_keys", false).toBool();
+  return SettingItems::kRememberCheckedKeys.Read(GetSettings());
 }
 
 auto SingleRecipientModeEnabled() -> bool {
-  return GetSettings().value("basic/single_recipient_mode", false).toBool();
+  return SettingItems::kSingleRecipientMode.Read(GetSettings());
 }
 
 }  // namespace
@@ -1537,7 +1539,7 @@ void KeyList::dropEvent(QDropEvent* event) {
       new QCheckBox(tr("Ask before importing keys next time."), &dialog);
 
   auto confirm_import_keys =
-      GetSettings().value("basic/confirm_import_keys", true).toBool();
+      SettingItems::kConfirmImportKeys.Read(GetSettings());
   check_box->setChecked(confirm_import_keys);
 
   auto* button_box = new QDialogButtonBox(
@@ -1558,7 +1560,7 @@ void KeyList::dropEvent(QDropEvent* event) {
     }
 
     auto settings = GetSettings();
-    settings.setValue("basic/confirm_import_keys", check_box->isChecked());
+    SettingItems::kConfirmImportKeys.Write(settings, check_box->isChecked());
   }
 
   QByteArray all_import_data;

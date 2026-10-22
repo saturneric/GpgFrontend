@@ -40,6 +40,7 @@
 #include "core/GFCoreLog.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
@@ -118,12 +119,10 @@ void PreInit(const GFCxtWPtr &p_ctx) {
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
-      GetSettings()
-          .value("gnupg/use_custom_gnupg_install_path", false)
-          .toBool();
+      SettingItems::kUseCustomGnuPGInstallPath.Read(GetSettings());
 
   auto custom_gnupg_install_path =
-      GetSettings().value("gnupg/custom_gnupg_install_path").toString();
+      SettingItems::kCustomGnuPGInstallPath.Read(GetSettings());
 
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
@@ -136,7 +135,7 @@ void InitGlobalPathEnv() {
     QString modified_path_value = getenv("PATH");
   }
 
-  if (GetSettings().value("gnupg/enable_gpgme_debug_log", false).toBool()) {
+  if (SettingItems::kEnableGpgmeDebugLog.Read(GetSettings())) {
     qputenv("GPGME_DEBUG",
             QString("9:%1").arg(QDir::currentPath() + "/gpgme.log").toUtf8());
   }
@@ -215,7 +214,7 @@ void InitLocale() {
   auto settings = GpgFrontend::GetSettings();
 
   // read from settings file
-  auto lang = settings.value("basic/lang").toString();
+  auto lang = SettingItems::kLanguage.Read(settings);
   qInfo() << "current system default locale: " << QLocale().name();
   qInfo() << "locale settings from config: " << lang;
 
@@ -385,12 +384,10 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   // effectively a no-op), so a live agent would otherwise keep an assuan
   // connection open and block gpgme_release() during DestroyGpgFrontendCore().
   auto clear_gpg_password_cache =
-      GetSettings().value("basic/clear_gpg_password_cache", false).toBool();
+      SettingItems::kClearGpgPasswordCache.Read(GetSettings());
 
   auto kill_all_gnupg_daemon_at_close =
-      GetSettings()
-          .value("gnupg/kill_all_gnupg_daemon_at_close", true)
-          .toBool();
+      SettingItems::kKillAllGnuPGDaemonAtClose.Read(GetSettings());
 
   if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
     for (const auto &channel : OpenPGPContext::GetAllChannelId()) {

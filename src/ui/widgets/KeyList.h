@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/SettingCatalog.h"
 #include "ui/widgets/KeyTable.h"
 
 class Ui_KeyList;
@@ -511,7 +512,7 @@ class KeyList : public QWidget {
 
   QTimer* search_timer_ = nullptr;
   bool applying_tab_order_ = false;
-  QString tab_order_settings_key_ = "keys/key_tab_order";
+  QString tab_order_settings_key_ = SettingItems::kKeyTabOrder.key;
   ///< Durable-cache scope holding this key list's table layout.
   QString persistence_scope_ = "global";
   QString filtered_out_text_;

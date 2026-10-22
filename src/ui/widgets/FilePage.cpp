@@ -29,6 +29,7 @@
 #include "ui/widgets/FilePage.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/profile/ProfileSession.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/FileTypeUtils.h"
@@ -152,10 +153,10 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   show_type_column_act->setCheckable(true);
   show_type_column_act->setToolTip(tr("Show the file type as its own column."));
   show_type_column_act->setChecked(
-      GetSettings().value("file_panel/show_type_column", false).toBool());
+      SettingItems::kShowTypeColumn.Read(GetSettings()));
   connect(show_type_column_act, &QAction::triggered, this, [this](bool on) {
     ui_->treeView->SetTypeColumnVisible(on);
-    GetSettings().setValue("file_panel/show_type_column", on);
+    GetSettings().setValue(SettingItems::kShowTypeColumn.Key(), on);
   });
   show_popup_menu_->addAction(show_type_column_act);
   ui_->treeView->SetTypeColumnVisible(show_type_column_act->isChecked());
@@ -173,8 +174,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
 
   ui_->optionsButton->setMenu(option_popup_menu_);
 
-  ascii_mode_ = !(
-      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool());
+  ascii_mode_ = !SettingItems::kNonAsciiAtFileOperation.Read(GetSettings());
   switch_asc_mode_act->setChecked(ascii_mode_);
 
   connect(this, &FilePage::SignalRefreshInfoBoard,

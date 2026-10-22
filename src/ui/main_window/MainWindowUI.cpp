@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
@@ -764,7 +765,7 @@ void MainWindow::create_dock_windows() {
 
   // Per-window order for the integrated (built-in) tabs; custom categories use
   // a separate, shared order (see KeyList).
-  m_key_list_->SetTabOrderSettingsKey("keys/toolbox_tab_order");
+  m_key_list_->SetTabOrderSettingsKey(SettingItems::kToolboxTabOrder.key);
 
   // The dock's checked keys are the everyday working set (the recipients of the
   // next operation), so this is the one key list that may carry them across

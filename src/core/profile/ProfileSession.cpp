@@ -30,6 +30,7 @@
 
 #include <mutex>
 
+#include "core/function/SettingCatalog.h"
 #include "core/profile/ProfileLock.h"
 
 namespace GpgFrontend {
@@ -137,7 +138,7 @@ auto ProfileSession::Root() const -> QString { return profile_->Root(); }
 
 auto ProfileSession::WorkspacePath() const -> QString {
   const auto override_path =
-      Settings().value("workspace/path").toString().trimmed();
+      SettingItems::kWorkspacePath.Read(Settings()).trimmed();
   if (!override_path.isEmpty()) return QDir::cleanPath(override_path);
 
   // The installed root has no workspace by default: its storage is split and

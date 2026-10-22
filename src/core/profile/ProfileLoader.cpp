@@ -32,6 +32,7 @@
 #include <optional>
 
 #include "core/function/AESCryptoHelper.h"
+#include "core/function/SettingCatalog.h"
 #include "core/profile/ProfileMigration.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -440,8 +441,8 @@ void ProfileLoader::stamp_marker() {
 
 void ProfileLoader::turn_protection_off() {
   auto settings = session_->Settings();
-  settings.setValue("advanced/app_key_protection",
-                    AppKeyProtectionToString(AppKeyProtection::kNONE));
+  SettingItems::kAppKeyProtection.Write(
+      settings, AppKeyProtectionToString(AppKeyProtection::kNONE));
   settings.sync();
 
   // The stored setting is only half of it: the Advanced tab, the About dialog

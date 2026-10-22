@@ -37,6 +37,7 @@
 
 #include "core/function/CoreInitProgress.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleHostPolicy.h"
@@ -206,11 +207,7 @@ ScanThread g_scan;  // NOLINT(cert-err58-cpp)
 }  // namespace
 
 void LoadGpgFrontendModules(ModuleInitArgs) {
-  const auto stored =
-      GetSettings()
-          .value("basic/module_loading_policy",
-                 ModuleLoadingPolicyKey(ModuleLoadingPolicy::kONLY_INTEGRATED))
-          .toString();
+  const auto stored = SettingItems::kModuleLoadingPolicy.Read(GetSettings());
 
   const auto parsed = ParseModuleLoadingPolicy(stored);
   if (!parsed.recognised) {

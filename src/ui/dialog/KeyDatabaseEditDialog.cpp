@@ -29,6 +29,7 @@
 #include "KeyDatabaseEditDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -118,10 +119,8 @@ void KeyDatabaseEditDialog::init_ui() {
     // fixed for the life of the database whichever kind it is.
     ui_->keyDBBackendTypeComboBox->setEnabled(false);
   } else {
-    const auto default_engine = GetSettings()
-                                    .value("basic/default_engine", "GNUPG")
-                                    .toString()
-                                    .toUpper();
+    const auto default_engine =
+        SettingItems::kDefaultEngine.Read(GetSettings()).toUpper();
     const auto engine_index =
         ui_->keyDBBackendTypeComboBox->findData(default_engine);
     ui_->keyDBBackendTypeComboBox->setCurrentIndex(

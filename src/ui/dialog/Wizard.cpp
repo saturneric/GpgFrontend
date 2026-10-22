@@ -37,6 +37,7 @@
 #include <QVBoxLayout>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendUIInit.h"
@@ -187,7 +188,7 @@ void WizardPage::changeEvent(QEvent* event) {
 }
 
 Wizard::Wizard(QWidget* parent) : QWizard(parent) {
-  initial_lang_ = GetSettings().value(QStringLiteral("basic/lang")).toString();
+  initial_lang_ = SettingItems::kLanguage.Read(GetSettings());
 
   intro_page_ = new IntroPage(this);
   setPage(kPAGE_INTRO, intro_page_);
@@ -249,14 +250,14 @@ void Wizard::changeEvent(QEvent* event) {
 void Wizard::slot_wizard_accepted() {
   auto settings = GetSettings();
 
-  settings.setValue(QStringLiteral("wizard/show_wizard"),
-                    !field(QStringLiteral("hideWizard")).toBool());
+  SettingItems::kShowWizard.Write(
+      settings, !field(QStringLiteral("hideWizard")).toBool());
 
-  settings.setValue(QStringLiteral("network/prohibit_update_check"),
-                    !field(QStringLiteral("checkUpdate")).toBool());
+  SettingItems::kProhibitUpdateCheck.Write(
+      settings, !field(QStringLiteral("checkUpdate")).toBool());
 
   const auto lang = intro_page_->SelectedLanguage();
-  settings.setValue(QStringLiteral("basic/lang"), lang);
+  SettingItems::kLanguage.Write(settings, lang);
 
   // Everything built before the switch, the main window above all, keeps the
   // translations it was built with, so it only follows after a reload.
@@ -356,9 +357,8 @@ IntroPage::IntroPage(QWidget* parent) : WizardPage(parent) {
 }
 
 void IntroPage::populate_languages() {
-  PopulateLanguageComboBox(
-      lang_select_box_,
-      GetSettings().value(QStringLiteral("basic/lang")).toString());
+  PopulateLanguageComboBox(lang_select_box_,
+                           SettingItems::kLanguage.Read(GetSettings()));
 
   applied_lang_ = lang_select_box_->currentData().toString();
 }

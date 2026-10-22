@@ -35,6 +35,7 @@
 
 #include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileMarker.h"
@@ -102,8 +103,10 @@ void GpgFrontendContext::load_env_conf_set_properties() {
     return ResolveLayeredValue(pinned, user.value(user_key), fallback);
   };
 
-  property("GFSecureLevel",
-           resolve("SecureLevel", "advanced/secure_level", 0).toInt());
+  property("GFSecureLevel", resolve(SettingItems::kSecureLevel.deployment_key,
+                                    SettingItems::kSecureLevel.key,
+                                    SettingItems::kSecureLevel.Default())
+                                .toInt());
 
   // How the key file is protected at rest used to live in two settings keys:
   // os_secret_store for the credential store, and secure_level >= 3 for a PIN.
@@ -113,9 +116,10 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   // before the secure allocator exists.
   auto protection = ProfileLoader::ResolveAppKeyProtection(
       env_value("AppKeyProtection"), env_value("SecureLevel"),
-      env_value("OSSecretStore"), user.value("advanced/app_key_protection"),
-      user.value("advanced/secure_level"),
-      user.value("advanced/os_secret_store"));
+      env_value("OSSecretStore"),
+      user.value(SettingItems::kAppKeyProtection.key),
+      user.value(SettingItems::kSecureLevel.key),
+      user.value(SettingItems::kOSSecretStore.key));
 
   // Any pinned key that could have decided the protection pins it, so the
   // Advanced tab shows it read-only rather than accepting an edit that would
@@ -124,7 +128,7 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       env_value("OSSecretStore").isValid() ||
       (env_value("SecureLevel").isValid() &&
        env_value("SecureLevel").toInt() >= 3)) {
-    locked_keys << "advanced/app_key_protection";
+    locked_keys << SettingItems::kAppKeyProtection.key;
   }
 
   // Portable installs allow only "none" and "pin". Resolving that here rather
@@ -143,14 +147,15 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   // An unset log level reads back as 0 (== kDEBUG), which would enable debug
   // logging even in release builds. Default to error level explicitly.
   const auto stored_log_level =
-      resolve("LogLevel", "advanced/log_level",
-              static_cast<int>(GFLogLevel::kCRITICAL));
+      resolve(SettingItems::kLogLevel.deployment_key,
+              SettingItems::kLogLevel.key, SettingItems::kLogLevel.Default());
   property("GFLogLevel", ResolveLayeredValue(cli_log_level, stored_log_level,
                                              stored_log_level)
                              .toInt());
   property("GFLogRingBufferCapacity",
-           resolve("LogRingBufferCapacity", "advanced/log_ring_buffer_capacity",
-                   1024)
+           resolve(SettingItems::kLogRingBufferCapacity.deployment_key,
+                   SettingItems::kLogRingBufferCapacity.key,
+                   SettingItems::kLogRingBufferCapacity.Default())
                .toInt());
 
   property("GFEnvLockedKeys", locked_keys);
@@ -176,22 +181,22 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   // The banner still has to say where the value came from.
   const auto log_level_source = cli_log_level.isValid()
                                     ? QStringLiteral("  (command line)")
-                                    : source("advanced/log_level");
+                                    : source(SettingItems::kLogLevel.key);
 
   qInfo().noquote().nospace()
       << "\n"
       << "================ GpgFrontend Startup Environment ================\n"
       << "Secure Level            : " << secure_level
-      << source("advanced/secure_level") << "\n"
+      << source(SettingItems::kSecureLevel.key) << "\n"
       << "App Key Protection      : " << app_key_protection
-      << source("advanced/app_key_protection") << "\n"
+      << source(SettingItems::kAppKeyProtection.key) << "\n"
       << "Log Level               : " << log_level << log_level_source << "\n"
       << "Portable Mode           : " << BoolText(portable_mode) << "\n"
       << "GnuPG Offline Mode      : " << BoolText(gpg_offline_mode) << "\n"
       << "Pinentry Program Path   : " << DisplayPath(pinentry_program_path)
       << "\n"
       << "Log Ring Buffer Capacity: " << ring_buffer_capacity
-      << source("advanced/log_ring_buffer_capacity") << "\n"
+      << source(SettingItems::kLogRingBufferCapacity.key) << "\n"
       << "==================================================================";
 }
 

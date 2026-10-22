@@ -32,11 +32,12 @@
 #include <QTextDocument>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 
 namespace GpgFrontend::UI {
 
 auto IsOperationUndoEnabled() -> bool {
-  return GetSettings().value("basic/undoable_operations", false).toBool();
+  return SettingItems::kUndoableOperations.Read(GetSettings());
 }
 
 void ReplaceDocumentText(QTextDocument* doc, const QString& text,

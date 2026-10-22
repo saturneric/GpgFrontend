@@ -29,6 +29,7 @@
 #include "SettingsNetwork.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UIModuleManager.h"
 #include "ui/thread/ProxyConnectionTestTask.h"
@@ -83,26 +84,26 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 void GpgFrontend::UI::NetworkTab::SetSettings() {
   auto settings = GetSettings();
 
-  auto proxy_host = settings.value("proxy/proxy_host").toString();
+  auto proxy_host = SettingItems::kProxyHost.Read(settings);
   ui_->proxyServerAddressEdit->setText(proxy_host);
-  auto username = settings.value("proxy/username").toString();
+  auto username = SettingItems::kProxyUsername.Read(settings);
   ui_->usernameEdit->setText(username);
-  auto password = settings.value("proxy/password").toString();
+  auto password = SettingItems::kProxyPassword.Read(settings);
   ui_->passwordEdit->setText(password);
 
-  auto port = settings.value("proxy/port", 0).toInt();
+  auto port = SettingItems::kProxyPort.Read(settings);
   ui_->portSpin->setValue(port);
 
   ui_->proxyTypeComboBox->setCurrentText("HTTP");
 
-  auto proxy_type = settings.value("proxy/proxy_type").toString();
+  auto proxy_type = SettingItems::kProxyType.Read(settings);
   ui_->proxyTypeComboBox->setCurrentText(proxy_type);
 
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 
   ui_->enableProxyCheckBox->setCheckState(Qt::Unchecked);
 
-  auto proxy_enable = settings.value("proxy/enable", false).toBool();
+  auto proxy_enable = SettingItems::kProxyEnable.Read(settings);
   ui_->enableProxyCheckBox->setCheckState(proxy_enable ? Qt::Checked
                                                        : Qt::Unchecked);
 
@@ -113,12 +114,14 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
   auto settings = GpgFrontend::GetSettings();
 
-  settings.setValue("proxy/proxy_host", ui_->proxyServerAddressEdit->text());
-  settings.setValue("proxy/username", ui_->usernameEdit->text());
-  settings.setValue("proxy/password", ui_->passwordEdit->text());
-  settings.setValue("proxy/port", ui_->portSpin->value());
-  settings.setValue("proxy/proxy_type", ui_->proxyTypeComboBox->currentText());
-  settings.setValue("proxy/enable", ui_->enableProxyCheckBox->isChecked());
+  SettingItems::kProxyHost.Write(settings, ui_->proxyServerAddressEdit->text());
+  SettingItems::kProxyUsername.Write(settings, ui_->usernameEdit->text());
+  SettingItems::kProxyPassword.Write(settings, ui_->passwordEdit->text());
+  SettingItems::kProxyPort.Write(settings, ui_->portSpin->value());
+  SettingItems::kProxyType.Write(settings,
+                                 ui_->proxyTypeComboBox->currentText());
+  SettingItems::kProxyEnable.Write(settings,
+                                   ui_->enableProxyCheckBox->isChecked());
 
   apply_proxy_settings();
 }

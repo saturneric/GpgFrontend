@@ -32,6 +32,7 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/typedef/GpgTypedef.h"
@@ -40,32 +41,24 @@ namespace GpgFrontend {
 
 namespace {
 
-// Seconds a prompt may stay unanswered before it gives up. 0 disables the
-// countdown entirely and the prompt waits for the user indefinitely.
-constexpr int kDefaultPromptTimeoutSeconds = 60;
-
 // The prompt owns the countdown and rejects itself when it expires; its answer
 // then travels back as a queued signal. The requester waits a little longer
 // than the prompt does so the ordinary outcome is always "the prompt answered",
 // never "the requester walked away from a prompt that was about to answer".
 // Only if this grace elapses too does the requester force the prompt closed.
-constexpr int kRequesterGraceMs = 5000;
-
+//
 // Settable so a test can drive the give-up path without paying five seconds of
-// dead wait for it; unset -- which is every real run -- keeps the constant.
+// dead wait for it; unset -- which is every real run -- keeps the default.
 auto ReadRequesterGraceMs() -> int {
-  auto grace =
-      GetSettings()
-          .value("engine/passphrase_requester_grace_ms", kRequesterGraceMs)
-          .toInt();
-  return grace > 0 ? grace : kRequesterGraceMs;
+  auto grace = SettingItems::kPassphraseRequesterGraceMs.Read(GetSettings());
+  return grace > 0 ? grace
+                   : SettingItems::kPassphraseRequesterGraceMs.Default();
 }
 
+// Seconds a prompt may stay unanswered before it gives up. 0 disables the
+// countdown entirely and the prompt waits for the user indefinitely.
 auto ReadPromptTimeoutSeconds() -> int {
-  auto timeout = GetSettings()
-                     .value("engine/passphrase_prompt_timeout",
-                            kDefaultPromptTimeoutSeconds)
-                     .toInt();
+  auto timeout = SettingItems::kPassphrasePromptTimeout.Read(GetSettings());
   return timeout > 0 ? timeout : 0;
 }
 

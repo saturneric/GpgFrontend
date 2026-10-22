@@ -29,6 +29,7 @@
 #include "ui/function/FilePanelPath.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/profile/ProfileSession.h"
 
 namespace GpgFrontend::UI {
@@ -73,7 +74,7 @@ auto ResolveFilePanelDefaultPath(FilePanelDefaultPathMode mode,
 
 auto GetDefaultUserFilePath() -> QString {
   const auto mode = FilePanelDefaultPathModeFromString(
-      GetSettings().value("basic/file_panel_default_path_mode").toString());
+      SettingItems::kFilePanelDefaultPathMode.Read(GetSettings()));
 
   return ResolveFilePanelDefaultPath(mode,
                                      ProfileSession::Instance().WorkspacePath(),

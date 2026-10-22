@@ -29,6 +29,7 @@
 #include "SettingsAppearance.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui/function/AppearanceFont.h"
@@ -248,7 +249,7 @@ void AppearanceTab::SetSettings() {
   }
 
   auto settings = GetSettings();
-  auto theme = settings.value("appearance/theme").toString();
+  auto theme = SettingItems::kTheme.Read(settings);
 
   auto target_theme_index = ui_->themeComboBox->findText(theme);
   if (theme.isEmpty() || target_theme_index == -1) {
@@ -329,7 +330,7 @@ void AppearanceTab::ApplySettings() {
   general_settings_state.Store(appearance.ToJson());
 
   auto settings = GetSettings();
-  settings.setValue("appearance/theme", ui_->themeComboBox->currentText());
+  SettingItems::kTheme.Write(settings, ui_->themeComboBox->currentText());
 }
 
 }  // namespace GpgFrontend::UI

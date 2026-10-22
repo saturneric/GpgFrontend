@@ -32,6 +32,7 @@
 #include <optional>
 
 #include "core/function/KeyPackageOperator.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -144,7 +145,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
   // Per-window order for the integrated (built-in) tabs; custom categories use
   // a separate, shared order (see KeyList).
-  key_list_->SetTabOrderSettingsKey("keys/keymgmt_tab_order");
+  key_list_->SetTabOrderSettingsKey(SettingItems::kKeyMgmtTabOrder.key);
   key_list_->RebuildCategoryTabs();
 
   setCentralWidget(key_list_);

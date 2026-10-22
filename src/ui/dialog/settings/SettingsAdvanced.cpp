@@ -33,6 +33,7 @@
 #include "core/GFCoreLog.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
@@ -350,11 +351,11 @@ void AdvancedTab::SetSettings() {
   configure_protection_items();
   refresh_protection_advice();
 
-  lock_if_pinned(secure_level_combo_, "advanced/secure_level");
-  lock_if_pinned(log_level_combo_, "advanced/log_level");
-  lock_if_pinned(ring_capacity_spin_, "advanced/log_ring_buffer_capacity");
+  lock_if_pinned(secure_level_combo_, SettingItems::kSecureLevel.key);
+  lock_if_pinned(log_level_combo_, SettingItems::kLogLevel.key);
+  lock_if_pinned(ring_capacity_spin_, SettingItems::kLogRingBufferCapacity.key);
 
-  if (lock_if_pinned(protection_combo_, "advanced/app_key_protection")) {
+  if (lock_if_pinned(protection_combo_, SettingItems::kAppKeyProtection.key)) {
     change_pin_button_->setEnabled(false);
   }
 }
@@ -452,14 +453,15 @@ void AdvancedTab::ApplySettings() {
     settings.setValue(user_key, value);
   };
 
-  store("advanced/secure_level", secure_level_combo_->currentData().toInt());
-  store("advanced/log_level", log_level_combo_->currentData().toInt());
-  store("advanced/log_ring_buffer_capacity", ring_capacity_spin_->value());
+  store(SettingItems::kSecureLevel.key,
+        secure_level_combo_->currentData().toInt());
+  store(SettingItems::kLogLevel.key, log_level_combo_->currentData().toInt());
+  store(SettingItems::kLogRingBufferCapacity.key, ring_capacity_spin_->value());
 
   // Record the protection only once the key file actually carries it, so the
   // stored setting can never disagree with the file on disk.
   if (apply_app_key_protection()) {
-    store("advanced/app_key_protection",
+    store(SettingItems::kAppKeyProtection.key,
           protection_combo_->currentData().toString());
   }
 }

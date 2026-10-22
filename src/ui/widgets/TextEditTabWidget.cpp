@@ -31,6 +31,7 @@
 #include "core/function/CacheManager.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GFBuffer.h"
 #include "core/module/ModuleManager.h"
@@ -556,7 +557,7 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
   const auto mode = FilePanelDefaultPathModeFromString(
-      GetSettings().value("basic/file_panel_default_path_mode").toString());
+      SettingItems::kFilePanelDefaultPathMode.Read(GetSettings()));
 
   // Created rather than merely resolved, so the panel never falls back to the
   // working directory just because the folder has not been used yet.
@@ -786,7 +787,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCache() {
 
 void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
   const bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", true).toBool();
+      SettingItems::kRestoreTextEditorPage.Read(GetSettings());
   if (!restore_text_editor_page) {
     ClearEditorPagesRecoveryCache(true);
     return;
@@ -1208,7 +1209,7 @@ void TextEditTabWidget::schedule_recovery_cache(PlainTextEditorPage* page) {
   if (page->property("recovery_suspended").toBool()) return;
 
   const bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", true).toBool();
+      SettingItems::kRestoreTextEditorPage.Read(GetSettings());
   if (!restore_text_editor_page) return;
 
   auto* document = page->GetTextPage()->document();
@@ -1225,7 +1226,7 @@ void TextEditTabWidget::schedule_recovery_cache(PlainTextEditorPage* page) {
 
 void TextEditTabWidget::flush_recovery_cache(bool force) {
   const bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", true).toBool();
+      SettingItems::kRestoreTextEditorPage.Read(GetSettings());
 
   if (!restore_text_editor_page) return;
 

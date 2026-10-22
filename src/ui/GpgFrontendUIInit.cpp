@@ -34,6 +34,7 @@
 #include "core/function/CoreInitProgress.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
@@ -434,7 +435,7 @@ void InitGpgFrontendUI(QApplication* app) {
   InitUITranslations();
 
   auto settings = GetSettings();
-  auto theme = settings.value("appearance/theme").toString().toLower();
+  auto theme = SettingItems::kTheme.Read(settings).toLower();
 
   // Resolve the effective style. If the user has explicitly chosen a valid
   // style, honor it; otherwise fall back to Fusion on macOS and on the AppImage
@@ -479,20 +480,18 @@ void InitGpgFrontendUI(QApplication* app) {
   UISignalStation::GetInstance();
 
   // application proxy configure
-  auto proxy_enable = settings.value("proxy/enable", false).toBool();
+  auto proxy_enable = SettingItems::kProxyEnable.Read(settings);
 
   // if enable proxy for application
   if (proxy_enable) {
     try {
-      QString proxy_type =
-          settings.value("proxy/proxy_type", QString{}).toString();
-      QString proxy_host =
-          settings.value("proxy/proxy_host", QString{}).toString();
-      int proxy_port = settings.value("prox/port", 0).toInt();
+      QString proxy_type = SettingItems::kProxyType.Read(settings);
+      QString proxy_host = SettingItems::kProxyHost.Read(settings);
+      int proxy_port = SettingItems::kProxyPort.Read(settings);
       QString const proxy_username =
-          settings.value("proxy/username", QString{}).toString();
+          SettingItems::kProxyUsername.Read(settings);
       QString const proxy_password =
-          settings.value("proxy/password", QString{}).toString();
+          SettingItems::kProxyPassword.Read(settings);
 
       QNetworkProxy::ProxyType proxy_type_qt = QNetworkProxy::NoProxy;
       if (proxy_type == "HTTP") {

@@ -31,6 +31,8 @@
 #include <QMap>
 #include <QRegularExpression>
 
+#include "core/function/SettingCatalog.h"
+
 namespace GpgFrontend::Module {
 
 namespace {
@@ -53,7 +55,8 @@ auto HostAllowlist() -> const QMap<QString, HostSettingAccess>& {
       // Whether the user wants update checks at all. Asked by the setup
       // wizard and honoured by the update-check module, which also offers it
       // in its own settings page -- one switch, not two that drift apart.
-      {"network/prohibit_update_check", HostSettingAccess::kREAD_WRITE},
+      {SettingItems::kProhibitUpdateCheck.Key(),
+       HostSettingAccess::kREAD_WRITE},
   };
   return kAllowlist;
 }

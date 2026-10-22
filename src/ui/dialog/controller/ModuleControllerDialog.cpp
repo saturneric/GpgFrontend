@@ -29,6 +29,7 @@
 #include "ModuleControllerDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleInit.h"
 #include "core/struct/settings_object/ModuleSO.h"
@@ -51,11 +52,7 @@ namespace {
 /// stored string means.
 auto CurrentLoadingPolicy() -> Module::ModuleLoadingPolicy {
   return Module::ParseModuleLoadingPolicy(
-             GetSettings()
-                 .value("basic/module_loading_policy",
-                        Module::ModuleLoadingPolicyKey(
-                            Module::ModuleLoadingPolicy::kONLY_INTEGRATED))
-                 .toString())
+             SettingItems::kModuleLoadingPolicy.Read(GetSettings()))
       .policy;
 }
 

@@ -35,6 +35,7 @@
 
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/module/ModuleInit.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
@@ -185,8 +186,7 @@ void GeneralTab::SetSettings() {
 
   auto settings = GetSettings();
 
-  auto default_workspace_as =
-      settings.value("basic/default_workspace_as", "file_panel").toString();
+  auto default_workspace_as = SettingItems::kDefaultWorkspaceAs.Read(settings);
   if (default_workspace_as == "file_panel") {
     ui_->filePanelRadioButton->setChecked(true);
   } else {
@@ -212,39 +212,37 @@ void GeneralTab::SetSettings() {
       FilePanelDefaultPathModeToString(FilePanelDefaultPathMode::kCWD));
 
   const auto stored_mode =
-      settings.value("basic/file_panel_default_path_mode").toString();
+      SettingItems::kFilePanelDefaultPathMode.Read(settings);
   const auto mode = FilePanelDefaultPathModeToString(
       FilePanelDefaultPathModeFromString(stored_mode));
   const auto index = ui_->filePanelDefaultPathComboBox->findData(mode);
   ui_->filePanelDefaultPathComboBox->setCurrentIndex(index < 0 ? 0 : index);
 
   auto restore_text_editor_page =
-      settings.value("basic/restore_text_editor_page", true).toBool();
+      SettingItems::kRestoreTextEditorPage.Read(settings);
   ui_->restoreTextEditorPageCheckBox->setCheckState(
       restore_text_editor_page ? Qt::Checked : Qt::Unchecked);
 
-  auto confirm_import_keys =
-      settings.value("basic/confirm_import_keys", false).toBool();
+  auto confirm_import_keys = SettingItems::kConfirmImportKeys.Read(settings);
   ui_->importConfirmationCheckBox->setCheckState(
       confirm_import_keys ? Qt::Checked : Qt::Unchecked);
 
   auto remember_checked_keys =
-      settings.value("basic/remember_checked_keys", false).toBool();
+      SettingItems::kRememberCheckedKeys.Read(settings);
   ui_->rememberCheckedKeysCheckBox->setCheckState(
       remember_checked_keys ? Qt::Checked : Qt::Unchecked);
 
   auto single_recipient_mode =
-      settings.value("basic/single_recipient_mode", false).toBool();
+      SettingItems::kSingleRecipientMode.Read(settings);
   ui_->singleRecipientModeCheckBox->setCheckState(
       single_recipient_mode ? Qt::Checked : Qt::Unchecked);
 
   auto confirm_multiple_recipients =
-      settings.value("basic/confirm_multiple_recipients", false).toBool();
+      SettingItems::kConfirmMultipleRecipients.Read(settings);
   ui_->confirmMultipleRecipientsCheckBox->setCheckState(
       confirm_multiple_recipients ? Qt::Checked : Qt::Unchecked);
 
-  auto undoable_operations =
-      settings.value("basic/undoable_operations", false).toBool();
+  auto undoable_operations = SettingItems::kUndoableOperations.Read(settings);
   ui_->undoableOperationsCheckBox->setCheckState(
       undoable_operations ? Qt::Checked : Qt::Unchecked);
 
@@ -254,20 +252,14 @@ void GeneralTab::SetSettings() {
   // ended in an else that called findData() and threw the answer away, so an
   // unrecognised stored value left the box showing whichever policy happened
   // to be selected -- the one case where showing the truth matters most.
-  const auto policy =
-      Module::ParseModuleLoadingPolicy(
-          settings
-              .value("basic/module_loading_policy",
-                     Module::ModuleLoadingPolicyKey(
-                         Module::ModuleLoadingPolicy::kONLY_INTEGRATED))
-              .toString())
-          .policy;
+  const auto policy = Module::ParseModuleLoadingPolicy(
+                          SettingItems::kModuleLoadingPolicy.Read(settings))
+                          .policy;
   ui_->modulePolicyComboBox->setCurrentIndex(
       ui_->modulePolicyComboBox->findData(
           Module::ModuleLoadingPolicyKey(policy)));
 
-  auto default_engine =
-      settings.value("basic/default_engine", "GNUPG").toString().toUpper();
+  auto default_engine = SettingItems::kDefaultEngine.Read(settings).toUpper();
   int engine_index = ui_->defaultEngineComboBox->findData(default_engine);
   if (engine_index != -1) {
     ui_->defaultEngineComboBox->setCurrentIndex(engine_index);
@@ -276,7 +268,7 @@ void GeneralTab::SetSettings() {
   }
 
   auto non_ascii_at_file_operation =
-      settings.value("gnupg/non_ascii_at_file_operation", true).toBool();
+      SettingItems::kNonAsciiAtFileOperation.Read(settings);
   if (non_ascii_at_file_operation) {
     ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
   }
@@ -287,41 +279,40 @@ void GeneralTab::SetSettings() {
   // SignalRestartNeeded, and a revert runs with restart declarations
   // suppressed.
   PopulateLanguageComboBox(ui_->langSelectBox,
-                           settings.value("basic/lang").toString());
+                           SettingItems::kLanguage.Read(settings));
 }
 
 void GeneralTab::ApplySettings() {
   auto settings = GpgFrontend::GetSettings();
 
-  settings.setValue(
-      "basic/default_workspace_as",
+  SettingItems::kDefaultWorkspaceAs.Write(
+      settings,
       ui_->filePanelRadioButton->isChecked() ? "file_panel" : "text_editor");
 
-  settings.setValue(
-      "basic/file_panel_default_path_mode",
-      ui_->filePanelDefaultPathComboBox->currentData().toString());
-  settings.setValue("basic/restore_text_editor_page",
-                    ui_->restoreTextEditorPageCheckBox->isChecked());
-  settings.setValue("basic/confirm_import_keys",
-                    ui_->importConfirmationCheckBox->isChecked());
-  settings.setValue("basic/remember_checked_keys",
-                    ui_->rememberCheckedKeysCheckBox->isChecked());
-  settings.setValue("basic/single_recipient_mode",
-                    ui_->singleRecipientModeCheckBox->isChecked());
-  settings.setValue("basic/confirm_multiple_recipients",
-                    ui_->confirmMultipleRecipientsCheckBox->isChecked());
-  settings.setValue("basic/undoable_operations",
-                    ui_->undoableOperationsCheckBox->isChecked());
-  settings.setValue("keys/expiring_soon_days",
-                    ui_->expiringSoonDaysSpinBox->value());
-  settings.setValue("basic/lang", ui_->langSelectBox->currentData().toString());
-  settings.setValue("basic/module_loading_policy",
-                    ui_->modulePolicyComboBox->currentData().toString());
-  settings.setValue("gnupg/non_ascii_at_file_operation",
-                    ui_->asciiModeCheckBox->isChecked());
-  settings.setValue(
-      "basic/default_engine",
-      ui_->defaultEngineComboBox->currentData().toString().toUpper());
+  SettingItems::kFilePanelDefaultPathMode.Write(
+      settings, ui_->filePanelDefaultPathComboBox->currentData().toString());
+  SettingItems::kRestoreTextEditorPage.Write(
+      settings, ui_->restoreTextEditorPageCheckBox->isChecked());
+  SettingItems::kConfirmImportKeys.Write(
+      settings, ui_->importConfirmationCheckBox->isChecked());
+  SettingItems::kRememberCheckedKeys.Write(
+      settings, ui_->rememberCheckedKeysCheckBox->isChecked());
+  SettingItems::kSingleRecipientMode.Write(
+      settings, ui_->singleRecipientModeCheckBox->isChecked());
+  SettingItems::kConfirmMultipleRecipients.Write(
+      settings, ui_->confirmMultipleRecipientsCheckBox->isChecked());
+  SettingItems::kUndoableOperations.Write(
+      settings, ui_->undoableOperationsCheckBox->isChecked());
+  SettingItems::kExpiringSoonDays.Write(settings,
+                                        ui_->expiringSoonDaysSpinBox->value());
+  SettingItems::kLanguage.Write(settings,
+                                ui_->langSelectBox->currentData().toString());
+  SettingItems::kModuleLoadingPolicy.Write(
+      settings, ui_->modulePolicyComboBox->currentData().toString());
+  SettingItems::kNonAsciiAtFileOperation.Write(
+      settings, ui_->asciiModeCheckBox->isChecked());
+  SettingItems::kDefaultEngine.Write(
+      settings, ui_->defaultEngineComboBox->currentData().toString().toUpper());
 }
 
 }  // namespace GpgFrontend::UI
