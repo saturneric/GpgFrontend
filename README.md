@@ -84,12 +84,15 @@ work](https://www.gpgfrontend.bktus.com/appendix/translate-interface).
 
 ## Modules
 
-GpgFrontend supports extensive module development, allowing users to customize
-their experience and enable only the features they need. Modules can encapsulate
-functionality, enabling users to enable or disable features as needed. Users can
-refer to existing module code for guidance [Module
-Repository](https://github.com/saturneric/GpgFrontend-Modules.git) to reach a
-broader audience.
+GpgFrontend can be extended with modules, so you only enable the features you
+need. Modules ship as signed packages and are verified before they load. A module can
+only use the features it declares, and third-party modules run only after you
+approve their publisher. Modules can add their own menus, tabs, views and
+settings pages.
+
+To write your own module, start from the [Module
+Repository](https://github.com/saturneric/GpgFrontend-Modules.git) and the [SDK
+reference](src/sdk/README.md).
 
 ## Contributing & Bug Reports
 
