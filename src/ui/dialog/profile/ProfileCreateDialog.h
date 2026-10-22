@@ -34,6 +34,8 @@
 class QLineEdit;
 class QRadioButton;
 class QDialogButtonBox;
+class QVBoxLayout;
+class QCheckBox;
 
 namespace GpgFrontend::UI {
 
@@ -71,6 +73,9 @@ class ProfileCreateDialog : public GeneralDialog {
   /// it starts from the defaults.
   [[nodiscard]] auto InheritedGroups() const -> QList<SettingGroup>;
 
+ protected:
+  void showEvent(QShowEvent* event) override;
+
  private slots:
   void slot_name_changed();
   void slot_accept();
@@ -84,6 +89,12 @@ class ProfileCreateDialog : public GeneralDialog {
   QDialogButtonBox* buttons_{};
 
   void init_ui();
+  void build_name(QVBoxLayout* layout);
+  void build_keyring(QVBoxLayout* layout);
+  void build_settings(QVBoxLayout* layout);
+
+  /// Make the select-all say what the group boxes add up to.
+  void sync_inherit_master();
 };
 
 }  // namespace GpgFrontend::UI
