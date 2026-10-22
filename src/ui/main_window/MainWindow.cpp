@@ -344,6 +344,13 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     return;
   }
 
+  // A temporary profile has no file to go back into: everything in it goes
+  // with this window, so the only question is whether to go ahead.
+  if (!ConfirmDiscardTemporarySession(this)) {
+    event->ignore();
+    return;
+  }
+
   // Only now that the close is certain. Both of the paths above can refuse
   // or defer the close, so telling modules earlier would be telling them
   // something that may not happen -- and this event is deliberately not a

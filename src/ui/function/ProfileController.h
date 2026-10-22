@@ -64,19 +64,28 @@ auto GF_UI_EXPORT ProfilePackageNameFilter() -> QString;
 /**
  * @brief What to open in a new window.
  *
- * Exactly one field is set: a profile this machine keeps, or a package to run
- * temporarily. One type rather than two entry points, because everything that
- * happens afterwards — stripping the old selection, refusing a root somebody
- * already has, starting the process — is the same for both, and the two ways of
- * saying it drifted apart the moment they were written separately.
+ * Exactly one is chosen: a profile this machine keeps, a package to run
+ * temporarily, or a new temporary profile. One type rather than two entry
+ * points, because everything that happens afterwards — stripping the old
+ * selection, refusing a root somebody already has, starting the process — is
+ * the same for both, and the two ways of saying it drifted apart the moment
+ * they were written separately.
  */
 struct GF_UI_EXPORT ProfileTarget {
   QString profile_id;
   QString package_path;
 
+  /// A brand new, empty profile that is destroyed when its window closes.
+  bool temporary = false;
+
+  /// What a temporary profile starts with; see SettingInheritedByNewProfile().
+  QMap<QString, QVariant> inherited_settings;
+
   [[nodiscard]] auto IsPackage() const -> bool {
     return !package_path.isEmpty();
   }
+
+  [[nodiscard]] auto IsTemporary() const -> bool { return temporary; }
 };
 
 /**
@@ -231,6 +240,50 @@ auto GF_UI_EXPORT IsCurrentPackageSession(const QString &path) -> bool;
  */
 auto GF_UI_EXPORT MaybeWriteBackPackageSession(
     QWidget *parent, const std::function<void()> &on_done) -> bool;
+
+/**
+ * @brief Whether this window is running a temporary profile.
+ *
+ * @return true when everything in it is destroyed as the window closes
+ */
+auto GF_UI_EXPORT IsTemporaryProfileSession() -> bool;
+
+/**
+ * @brief Ask before a temporary profile is destroyed with its window.
+ *
+ * Nothing in a temporary profile survives the close, and unlike a package
+ * there is no file for it to go back into -- so the question is only whether
+ * to go ahead. Keeping it is what Export This Profile is for.
+ *
+ * @param parent parent for the dialog
+ * @return true to let the close proceed; false when the user cancelled. Always
+ * true for any other profile.
+ */
+auto GF_UI_EXPORT ConfirmDiscardTemporarySession(QWidget *parent) -> bool;
+
+/**
+ * @brief Explain that a restart cannot happen in a temporary profile.
+ *
+ * A deep restart starts a new process, and a temporary profile does not outlive
+ * the one it was made in -- so the restart would silently destroy it.
+ *
+ * @param parent parent for the dialog
+ * @param pages the settings pages whose changes needed it, if any
+ */
+void GF_UI_EXPORT ShowTemporaryProfileRestartRefusal(
+    QWidget *parent, const QStringList &pages = {});
+
+/**
+ * @brief Open a new, empty temporary profile in a new window.
+ *
+ * It starts with this window's engine, behaviour and look; nothing that points
+ * at this profile's data goes with it.
+ *
+ * @param parent parent for the dialogs
+ * @param on_opened invoked when a new window was launched
+ */
+void GF_UI_EXPORT OpenTemporaryProfileInteractive(
+    QWidget *parent, const std::function<void()> &on_opened = {});
 
 /**
  * @brief Create a profile, asking the user what to call it.

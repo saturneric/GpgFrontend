@@ -35,6 +35,7 @@
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/model/SettingsObject.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileLock.h"
@@ -61,13 +62,18 @@ namespace {
 
 /// Options whose value is a separate argument, so stripping the option also
 /// strips what belongs to it.
-const QStringList kProfileValueOptions = {"--profile"};
+const QStringList kProfileValueOptions = {"--profile",
+                                          kTemporaryProfileSettingsOption};
 
 /// Whether "write this session back into its package" has been answered for
 /// good. Kept beside the question rather than at each call site: a close and a
 /// restart both ask it, a save re-enters through its own completion, and every
 /// one of those would otherwise need its own copy of "already asked".
 bool g_session_write_back_settled = false;  // NOLINT(*-non-const-global-*)
+
+/// Whether destroying this temporary profile has been agreed to. The close that
+/// follows the answer re-enters the same handler, which must not ask again.
+bool g_temporary_discard_settled = false;  // NOLINT(*-non-const-global-*)
 
 /**
  * @brief Start a second instance of this application, detached.
@@ -248,9 +254,13 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
       ++i;  // and its value
       continue;
     }
-    if (arg.startsWith("--profile=")) {
+    if (arg.startsWith("--profile=") ||
+        arg.startsWith(QString(kTemporaryProfileSettingsOption) + "=")) {
       continue;
     }
+    // a new temporary profile per launch is the point of one; carrying the
+    // switch over would make every window opened from it another temporary one
+    if (arg == kTemporaryProfileOption) continue;
     // a package named on the command line selected the *previous* profile; a
     // switch away from it must not silently re-open it
     if (!arg.startsWith('-') &&
@@ -272,7 +282,13 @@ auto BuildLaunchArgs(const QStringList& args, const ProfileTarget& target)
   auto stripped = StripProfileArgs(args);
   if (!stripped.isEmpty()) stripped.removeFirst();  // argv[0]
 
-  if (target.IsPackage()) {
+  if (target.IsTemporary()) {
+    stripped << kTemporaryProfileOption;
+    const auto inherited = EncodeInheritedSettings(target.inherited_settings);
+    if (!inherited.isEmpty()) {
+      stripped << kTemporaryProfileSettingsOption << inherited;
+    }
+  } else if (target.IsPackage()) {
     stripped << target.package_path;
   } else if (!target.profile_id.isEmpty() && target.profile_id != "classic" &&
              target.profile_id != "portable") {
@@ -337,6 +353,8 @@ auto ProfileKindDisplayName(ProfileKind kind) -> QString {
       return QObject::tr("Portable");
     case ProfileKind::kPACKAGED:
       return QObject::tr("From a package");
+    case ProfileKind::kEPHEMERAL:
+      return QObject::tr("Temporary");
     default:
       return QObject::tr("Local");
   }
@@ -350,6 +368,8 @@ auto CurrentProfileDisplayName() -> QString {
       return QObject::tr("Default");
     case ProfileKind::kPORTABLE_ROOT:
       return QObject::tr("Portable");
+    case ProfileKind::kEPHEMERAL:
+      return QObject::tr("Temporary");
     default:
       break;
   }
@@ -378,6 +398,12 @@ auto ProfileTargetLockRoot(const ProfileTarget& target) -> QString {
 auto OpenProfileInNewWindow(const ProfileTarget& target)
     -> ProfileLaunchResult {
   ProfileLaunchResult result;
+
+  // Nothing to find and nothing anybody else could hold: every launch makes a
+  // new one, behind a lock of its own.
+  if (target.IsTemporary()) {
+    return Launch(BuildLaunchArgs(qApp->arguments(), target));
+  }
 
   auto resolved = target;
   QString name;
@@ -738,8 +764,14 @@ void CreateProfileInteractive(QWidget* parent,
     return;
   }
 
+  QMap<QString, QVariant> inherited;
+  if (const auto groups = dialog.InheritedGroups(); !groups.isEmpty()) {
+    auto settings = GetSettings();
+    inherited = SnapshotInheritedSettings(settings, groups);
+  }
+
   const auto result = CreateProfile(profiles_root, id, dialog.DisplayName(),
-                                    dialog.SelfContained());
+                                    dialog.SelfContained(), inherited);
 
   if (!result.Ok()) {
     QMessageBox::critical(parent, QObject::tr("Cannot Create Profile"),
@@ -767,6 +799,72 @@ void CreateProfileInteractive(QWidget* parent,
     return;
   }
 
+  if (on_opened) on_opened();
+}
+
+auto IsTemporaryProfileSession() -> bool {
+  return ProfileSession::Loaded() &&
+         ProfileSession::Instance().Profile().Kind() == ProfileKind::kEPHEMERAL;
+}
+
+auto ConfirmDiscardTemporarySession(QWidget* parent) -> bool {
+  if (!IsTemporaryProfileSession() || g_temporary_discard_settled) return true;
+
+  QMessageBox box(parent);
+  box.setIcon(QMessageBox::Warning);
+  box.setWindowTitle(QObject::tr("Destroy Temporary Profile?"));
+  box.setText(
+      QObject::tr("Everything in this temporary profile will be "
+                  "destroyed: its keys, settings and files."));
+  box.setInformativeText(
+      QObject::tr("To keep it, choose Cancel and use Profiles > Export This "
+                  "Profile first."));
+  auto* destroy =
+      box.addButton(QObject::tr("Destroy and Close"), QMessageBox::AcceptRole);
+  box.addButton(QMessageBox::Cancel);
+  box.setDefaultButton(QMessageBox::Cancel);
+  box.exec();
+
+  if (box.clickedButton() != destroy) return false;
+
+  g_temporary_discard_settled = true;
+  return true;
+}
+
+void ShowTemporaryProfileRestartRefusal(QWidget* parent,
+                                        const QStringList& pages) {
+  QMessageBox box(parent);
+  box.setIcon(QMessageBox::Information);
+  box.setWindowTitle(QObject::tr("Restart Not Possible"));
+  box.setText(
+      QObject::tr("These changes need GpgFrontend to restart, and "
+                  "restarting would destroy this temporary profile."));
+  box.setInformativeText(
+      pages.isEmpty()
+          ? QObject::tr("They can't be applied in a temporary profile.")
+          : QObject::tr("Pages with changes that need this: %1.\n\nUndo "
+                        "those changes, or choose Cancel to discard everything "
+                        "you changed in this dialog.")
+                .arg(pages.join(QStringLiteral(", "))));
+  box.setStandardButtons(QMessageBox::Ok);
+  box.exec();
+}
+
+void OpenTemporaryProfileInteractive(QWidget* parent,
+                                     const std::function<void()>& on_opened) {
+  // Always from this window: a throwaway profile is for trying something
+  // without consequences, and that means trying it the way this window runs.
+  ProfileTarget target{.temporary = true};
+  auto settings = GetSettings();
+  target.inherited_settings =
+      SnapshotInheritedSettings(settings, InheritableSettingGroups());
+
+  const auto opened = OpenProfileInNewWindow(target);
+  if (!opened.Ok()) {
+    QMessageBox::warning(parent, QObject::tr("Cannot Open Profile"),
+                         opened.detail, QMessageBox::Ok);
+    return;
+  }
   if (on_opened) on_opened();
 }
 

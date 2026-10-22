@@ -105,6 +105,55 @@ TEST(ProfileLaunchArgsTest, TheImplicitProfilesCarryNoFlag) {
   }
 }
 
+TEST(ProfileLaunchArgsTest, ATemporaryProfileReplacesAnInheritedSelection) {
+  // Whatever this window was opened on, the new one is a fresh temporary
+  // profile -- and nothing else may reach it to outrank the switch.
+  const auto out = BuildLaunchArgs(
+      {"gpgfrontend", "--profile", "work", "/home/x/a.gfp", "-l", "info"},
+      {.temporary = true});
+  EXPECT_EQ(out, QStringList({"-l", "info", "--temp-profile"}));
+}
+
+TEST(ProfileLaunchArgsTest, ATemporaryProfileCarriesItsInheritedSettings) {
+  ProfileTarget target{.temporary = true};
+  target.inherited_settings = {{"basic/default_engine", "RPGP"}};
+
+  const auto out = BuildLaunchArgs({"gpgfrontend"}, target);
+  ASSERT_EQ(out.size(), 3);
+  EXPECT_EQ(out.at(0), "--temp-profile");
+  EXPECT_EQ(out.at(1), "--temp-profile-settings");
+  EXPECT_EQ(DecodeInheritedSettings(out.at(2)), target.inherited_settings);
+
+  // and nothing at all when there is nothing to carry
+  EXPECT_EQ(BuildLaunchArgs({"gpgfrontend"}, {.temporary = true}),
+            QStringList({"--temp-profile"}));
+}
+
+TEST(ProfileLaunchArgsTest, InheritedSettingsAreNotPassedOnAgain) {
+  // A window opened from a temporary profile takes its own snapshot; the one
+  // this window started with is out of date the moment anything is changed.
+  EXPECT_EQ(StripProfileArgs({"gpgfrontend", "--temp-profile",
+                              "--temp-profile-settings", "abc", "-l", "info"}),
+            QStringList({"gpgfrontend", "-l", "info"}));
+  EXPECT_EQ(StripProfileArgs({"gpgfrontend", "--temp-profile-settings=abc"}),
+            QStringList({"gpgfrontend"}));
+}
+
+TEST(ProfileLaunchArgsTest, TheTemporarySwitchIsNotInherited) {
+  // A window opened from a temporary profile is whatever was asked for, not
+  // another temporary profile carried over from this one's command line.
+  const auto out = BuildLaunchArgs({"gpgfrontend", "--temp-profile"},
+                                   {.profile_id = "work"});
+  EXPECT_EQ(out, QStringList({"--profile", "work"}));
+}
+
+TEST(ProfileLaunchArgsTest, NoTemporaryProfileOutsideOne) {
+  // Nothing is mounted in a unit test, so there is no temporary session to
+  // ask about, and a close must never be held for one.
+  EXPECT_FALSE(IsTemporaryProfileSession());
+  EXPECT_TRUE(ConfirmDiscardTemporarySession(nullptr));
+}
+
 TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfThePackageArguments) {
   const auto out = BuildLaunchArgs({"/usr/bin/gpgfrontend", "-l", "info"},
                                    {.package_path = "/home/x/work.gfp"});

@@ -117,12 +117,16 @@ void ProfileManagerDialog::init_ui() {
   open_button_ = new QPushButton(tr("Open"), this);
   open_button_->setDefault(true);
   create_button_ = new QPushButton(tr("New..."), this);
+  temp_button_ = new QPushButton(tr("New Temporary"), this);
   import_button_ = new QPushButton(tr("Import..."), this);
   delete_button_ = new QPushButton(tr("Delete"), this);
   reveal_button_ = new QPushButton(tr("Open Folder"), this);
 
   open_button_->setToolTip(tr("Open the selected profile in a new window"));
   create_button_->setToolTip(tr("Start an empty profile on this computer"));
+  temp_button_->setToolTip(
+      tr("Start an empty, throwaway profile in a new window. Everything in it "
+         "is destroyed when that window closes."));
   // Deliberately the same words as Profile -> Import Profile File: it is the
   // same act, and a second phrasing for it is how a user concludes there are
   // two.
@@ -136,6 +140,7 @@ void ProfileManagerDialog::init_ui() {
 
   buttons->addWidget(open_button_);
   buttons->addWidget(create_button_);
+  buttons->addWidget(temp_button_);
   buttons->addWidget(import_button_);
   buttons->addWidget(delete_button_);
   buttons->addWidget(reveal_button_);
@@ -154,6 +159,9 @@ void ProfileManagerDialog::init_ui() {
   connect(create_button_, &QPushButton::clicked, this, [this]() {
     CreateProfileInteractive(
         this, [this]() { reload(); }, [this]() { accept(); });
+  });
+  connect(temp_button_, &QPushButton::clicked, this, [this]() {
+    OpenTemporaryProfileInteractive(this, [this]() { accept(); });
   });
   connect(delete_button_, &QPushButton::clicked, this,
           &ProfileManagerDialog::slot_delete);

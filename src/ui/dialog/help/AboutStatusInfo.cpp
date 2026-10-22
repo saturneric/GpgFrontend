@@ -115,6 +115,17 @@ auto BuildProfileIdentityRows(ProfileKind kind, const QString& display_name,
     return rows;
   }
 
+  if (kind == ProfileKind::kEPHEMERAL) {
+    rows.append({.caption = type_caption,
+                 .value = QCoreApplication::translate(
+                     "GpgFrontend::UI::AboutStatusInfo", "Temporary"),
+                 .detail = QCoreApplication::translate(
+                     "GpgFrontend::UI::AboutStatusInfo",
+                     "Not kept on this computer. Everything in it is "
+                     "destroyed when this window closes.")});
+    return rows;
+  }
+
   rows.append(
       {.caption = type_caption,
        .value = QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",

@@ -73,6 +73,7 @@ class ProfileManagerDialog : public GeneralDialog {
   QTableWidget* table_{};
   QPushButton* open_button_{};
   QPushButton* create_button_{};
+  QPushButton* temp_button_{};
   QPushButton* import_button_{};
   QPushButton* delete_button_{};
   QPushButton* reveal_button_{};

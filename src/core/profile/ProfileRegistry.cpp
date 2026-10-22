@@ -151,8 +151,36 @@ auto MintProfileDirectoryId(const QString& profiles_root) -> QString {
   return {};
 }
 
+auto NewProfileMarker(const QString& id, const QString& display_name,
+                      ProfileKind kind, bool self_contained) -> ProfileMarker {
+  // The key file is deliberately absent: ProfileSecureKeyManager creates it
+  // lazily, so exactly one code path is ever responsible for key material.
+  ProfileMarker marker;
+  marker.schema_version = GetAppProfileSchemaVersion();
+  // The floor, not this build's schema. A brand new profile is not inherently
+  // unreadable to an older build just because a newer one made it, and saying
+  // so here would lock a user out of a profile they just created the moment
+  // they went back a version.
+  marker.min_reader_version = GetAppProfileMinReaderSchema();
+  marker.profile = GetAppProfileName();
+  marker.last_writer_version = GetProjectVersion();
+  marker.last_writer_stable = IsStableBuild();
+  // The directory name is the identity: it is already unique, already opaque,
+  // and one of the two is one too many to keep in step.
+  marker.profile_uuid = id;
+  marker.profile_id = id;
+  marker.display_name = display_name.isEmpty() ? id : display_name;
+  marker.created = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+  marker.created_by_version = GetProjectVersion();
+  marker.kind = ProfileKindToString(kind);
+  marker.self_contained = self_contained;
+
+  return marker;
+}
+
 auto CreateProfile(const QString& profiles_root, const QString& id,
-                   const QString& display_name, bool self_contained)
+                   const QString& display_name, bool self_contained,
+                   const QMap<QString, QVariant>& inherited)
     -> ProfileCreateResult {
   ProfileCreateResult result;
 
@@ -175,29 +203,8 @@ auto CreateProfile(const QString& profiles_root, const QString& id,
     return result;
   }
 
-  // Enough of a marker for the scan to recognise the directory as a profile,
-  // and for the policy to be in effect on the very first start. The key file is
-  // deliberately absent: ProfileSecureKeyManager creates it lazily, so exactly
-  // one code path is ever responsible for key material.
-  ProfileMarker marker;
-  marker.schema_version = GetAppProfileSchemaVersion();
-  // The floor, not this build's schema. A brand new profile is not inherently
-  // unreadable to an older build just because a newer one made it, and saying
-  // so here would lock a user out of a profile they just created the moment
-  // they went back a version.
-  marker.min_reader_version = GetAppProfileMinReaderSchema();
-  marker.profile = GetAppProfileName();
-  marker.last_writer_version = GetProjectVersion();
-  marker.last_writer_stable = IsStableBuild();
-  // The directory name is the identity: it is already unique, already opaque,
-  // and one of the two is one too many to keep in step.
-  marker.profile_uuid = id;
-  marker.profile_id = id;
-  marker.display_name = display_name.isEmpty() ? id : display_name;
-  marker.created = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
-  marker.created_by_version = GetProjectVersion();
-  marker.kind = ProfileKindToString(ProfileKind::kPERSIST);
-  marker.self_contained = self_contained;
+  const auto marker =
+      NewProfileMarker(id, display_name, ProfileKind::kPERSIST, self_contained);
 
   if (!WriteProfileMarker(ProfileMarkerPathFor(root), marker)) {
     QDir(root).removeRecursively();
@@ -208,6 +215,20 @@ auto CreateProfile(const QString& profiles_root, const QString& id,
 
   QDir().mkpath(root + "/config");
   QDir().mkpath(root + "/workspace");
+
+  // Written before the profile is ever opened, so its first start already
+  // runs the way the window that made it does. Through the profile's own idea
+  // of where its settings live, which is the one the loader will read.
+  if (!inherited.isEmpty()) {
+    QSettings settings(PersistProfile(id, root).SettingsFilePath(),
+                       QSettings::IniFormat);
+    for (auto it = inherited.cbegin(); it != inherited.cend(); ++it) {
+      if (SettingInheritedByNewProfile(it.key())) {
+        settings.setValue(it.key(), it.value());
+      }
+    }
+    settings.sync();
+  }
 
   result.entry.id = id;
   result.entry.root = root;

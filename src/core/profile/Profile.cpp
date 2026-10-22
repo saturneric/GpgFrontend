@@ -30,7 +30,9 @@
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/function/SettingCatalog.h"
 #include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileRegistry.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProtectedFsProfileAccessor.h"
 #include "core/utils/CommonUtils.h"
@@ -44,6 +46,12 @@ constexpr auto kTokenInstalledRoot = "classic";
 constexpr auto kTokenPortableRoot = "portable";
 constexpr auto kTokenPersist = "named";
 constexpr auto kTokenPackaged = "package_linked";
+constexpr auto kTokenEphemeral = "ephemeral";
+
+/// What a temporary profile asks its storage for. It starts empty and only
+/// ever holds a keyring and a session's worth of files; asking for more would
+/// only push it off a small tmpfs onto storage that is left readable.
+constexpr qint64 kEphemeralStorageBudget = 64LL * 1024 * 1024;
 
 auto MountStatusFor(ProfilePackageReadStatus status) -> ProfileMountStatus {
   switch (status) {
@@ -84,6 +92,8 @@ auto ProfileKindToString(ProfileKind kind) -> QString {
       return kTokenPersist;
     case ProfileKind::kPACKAGED:
       return kTokenPackaged;
+    case ProfileKind::kEPHEMERAL:
+      return kTokenEphemeral;
   }
   return kTokenInstalledRoot;
 }
@@ -92,6 +102,7 @@ auto ProfileKindFromString(const QString &s) -> ProfileKind {
   if (s == kTokenPortableRoot) return ProfileKind::kPORTABLE_ROOT;
   if (s == kTokenPersist) return ProfileKind::kPERSIST;
   if (s == kTokenPackaged) return ProfileKind::kPACKAGED;
+  if (s == kTokenEphemeral) return ProfileKind::kEPHEMERAL;
   return ProfileKind::kINSTALLED_ROOT;
 }
 
@@ -208,41 +219,27 @@ auto PersistProfile::LaunchArguments() const -> QStringList {
   return {"--profile", id_};
 }
 
-PackagedProfile::PackagedProfile(QString package_path, QString profiles_root)
-    : package_path_(std::move(package_path)),
-      profiles_root_(std::move(profiles_root)) {
-  // Derived from the package's own path rather than minted at random, so the
-  // anchor is known before anything is extracted — which is what lets the
-  // loader take the profile lock first, and lets a second window work out for
-  // itself that this very package is already open.
-  anchor_ = ProfileSessionRoot(profiles_root_, package_path_);
+TransientProfile::TransientProfile(QString profiles_root, QString anchor)
+    : profiles_root_(std::move(profiles_root)), anchor_(std::move(anchor)) {
   id_ = QFileInfo(anchor_).fileName();
 }
 
-auto PackagedProfile::LockRoot() const -> QString { return anchor_; }
+auto TransientProfile::Id() const -> QString { return id_; }
 
-auto PackagedProfile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
-  // The one place where a packaged session's storage is decided. Cached rather
-  // than rebuilt, because the loader asks for an accessor more than once and
-  // every caller has to be handed the same storage — and because probing twice
-  // could answer differently the second time.
+auto TransientProfile::LockRoot() const -> QString { return anchor_; }
+
+auto TransientProfile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
+  // The one place where a transient session's storage is decided. Cached
+  // rather than rebuilt, because the loader asks for an accessor more than once
+  // and every caller has to be handed the same storage — and because probing
+  // twice could answer differently the second time.
   if (!storage_.isNull() || storage_refused_) return storage_;
 
   ProfileAccessorSpec spec;
   spec.digest = QFileInfo(anchor_).fileName();
   spec.anchor = anchor_;
   spec.policy = ResolveProfileStoragePolicy();
-
-  // The size the package declares, when it declares one. Mount() peeks the
-  // manifest before asking for storage precisely so that this is not a guess:
-  // sizing from the *compressed* file hands a profile that compressed well a
-  // storage too small to open in, which surfaces part way through unpacking or,
-  // worse, at the close that has to write it back.
-  //
-  // Zero for a package written before the field existed, which is the case the
-  // heuristic still covers.
-  spec.budget_bytes =
-      ProfileStorageBudget(QFileInfo(package_path_).size(), declared_bytes_);
+  spec.budget_bytes = StorageBudgetBytes();
 
   // The digest is the anchor's directory name, which is dot-prefixed so that
   // the profiles-folder scan skips it. Inside another base that leading dot
@@ -264,50 +261,121 @@ auto PackagedProfile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
   return storage_;
 }
 
-void PackagedProfile::DiscardSessionStorage() {
+auto TransientProfile::ProvisionStorage() -> ProfileMountResult {
+  if (anchor_.isEmpty()) {
+    return {ProfileMountStatus::kIO_FAILED,
+            "there is nowhere to open this profile"};
+  }
+
+  auto storage = MakeAccessor();
+  if (storage.isNull()) {
+    // Every reason, verbatim: which candidate was passed over and why is the
+    // only part of this a user can act on.
+    return {ProfileMountStatus::kNO_PROTECTED_STORAGE,
+            storage_rejections_.join("\n")};
+  }
+
+  // Before anything is written into it, never after: the anchor is the only
+  // thing that knows where this session's tree went, and a process that dies
+  // between provisioning and recording it strands that tree somewhere no later
+  // sweep would think to look.
+  //
+  // Taken from the factory rather than from the accessor. The accessor may be
+  // wrapped -- a driver that holds an area in memory is still a
+  // ProfileAccessor -- and a cast to the concrete type would silently return
+  // null and skip this, which is exactly the failure the pointer exists to
+  // prevent.
+  if (!storage_anchor_state_.isEmpty() &&
+      !WriteSessionPointer(anchor_, storage_anchor_state_)) {
+    LOG_W() << "could not record where this session's storage went:" << anchor_;
+  }
+  return {};
+}
+
+void TransientProfile::DiscardSessionStorage() {
   if (storage_) storage_->Release(ProfileStorageRelease::kSCRUB);
   storage_.reset();
 
   // The anchor was made only so that it could be locked. Leaving it behind
-  // would litter the profiles folder with one empty directory per package that
+  // would litter the profiles folder with one empty directory per session that
   // failed to open, and the sweep deliberately ignores those.
   if (!anchor_.isEmpty()) QDir(anchor_).removeRecursively();
 }
 
-auto PackagedProfile::Kind() const -> ProfileKind {
-  return ProfileKind::kPACKAGED;
-}
-
-auto PackagedProfile::Id() const -> QString { return id_; }
-
-auto PackagedProfile::Root() const -> QString {
+auto TransientProfile::Root() const -> QString {
   // Empty until storage has been provisioned, and deliberately so: where a
   // session's tree lives is chosen, not derived, and anything that assumed
   // otherwise should fail loudly here rather than quietly read the anchor.
   return storage_.isNull() ? QString{} : storage_->PathOf(ProfileArea::kRoot);
 }
 
-auto PackagedProfile::DisplayName() const -> QString {
-  if (!manifest_.display_name.isEmpty()) return manifest_.display_name;
-  return QFileInfo(package_path_).completeBaseName();
-}
+auto TransientProfile::IsTransient() const -> bool { return true; }
 
-auto PackagedProfile::IsTransient() const -> bool { return true; }
-
-auto PackagedProfile::AllowsSystemKeychain() const -> bool {
-  // This profile is inside a file that was written to be carried somewhere
-  // else, quite possibly to an operating system where "the system credential
-  // store" is not the same thing and often is not anything at all.
+auto TransientProfile::AllowsSystemKeychain() const -> bool {
+  // A session leaves nothing on this machine to come back to, and a packaged
+  // one is inside a file that was written to be carried somewhere else, quite
+  // possibly to an operating system where "the system credential store" is not
+  // the same thing and often is not anything at all.
   return false;
 }
 
-auto PackagedProfile::AllowsKeyRotation() const -> bool {
+auto TransientProfile::AllowsKeyRotation() const -> bool {
   // A rotated key would be written into storage this process deletes on the
   // way out, taking everything it had encrypted with it.
   return false;
 }
 
-auto PackagedProfile::IsRegistrable() const -> bool { return false; }
+auto TransientProfile::IsRegistrable() const -> bool { return false; }
+
+void TransientProfile::Unmount(ProfileUnmountMode mode) {
+  if (!mounted_) return;
+
+  // Whatever the mode: the tree holds the profile's key material and must not
+  // survive the process that made it. Writing a package session back to the
+  // file it came from happens before this, and belongs to the application —
+  // it needs the resident key and the live settings, which a profile has no
+  // business reaching for.
+  //
+  // A forced unmount runs from the shutdown watchdog's thread against a
+  // deadline, so it gets the cheap destruction rather than the thorough one.
+  if (storage_) {
+    storage_->Release(mode == ProfileUnmountMode::kFORCED
+                          ? ProfileStorageRelease::kFAST
+                          : ProfileStorageRelease::kSCRUB);
+  }
+  mounted_ = false;
+}
+
+// Derived from the package's own path rather than minted at random, so the
+// anchor is known before anything is extracted — which is what lets the loader
+// take the profile lock first, and lets a second window work out for itself
+// that this very package is already open.
+PackagedProfile::PackagedProfile(QString package_path,
+                                 const QString &profiles_root)
+    : TransientProfile(profiles_root,
+                       ProfileSessionRoot(profiles_root, package_path)),
+      package_path_(std::move(package_path)) {}
+
+auto PackagedProfile::StorageBudgetBytes() const -> qint64 {
+  // The size the package declares, when it declares one. Mount() peeks the
+  // manifest before asking for storage precisely so that this is not a guess:
+  // sizing from the *compressed* file hands a profile that compressed well a
+  // storage too small to open in, which surfaces part way through unpacking or,
+  // worse, at the close that has to write it back.
+  //
+  // Zero for a package written before the field existed, which is the case the
+  // heuristic still covers.
+  return ProfileStorageBudget(QFileInfo(package_path_).size(), declared_bytes_);
+}
+
+auto PackagedProfile::Kind() const -> ProfileKind {
+  return ProfileKind::kPACKAGED;
+}
+
+auto PackagedProfile::DisplayName() const -> QString {
+  if (!manifest_.display_name.isEmpty()) return manifest_.display_name;
+  return QFileInfo(package_path_).completeBaseName();
+}
 
 auto PackagedProfile::LaunchArguments() const -> QStringList {
   return {package_path_};
@@ -338,11 +406,6 @@ auto PackagedProfile::Inspect() -> ProfileMountResult {
 
 auto PackagedProfile::Mount(const ProfileMountContext &ctx)
     -> ProfileMountResult {
-  if (anchor_.isEmpty()) {
-    return {ProfileMountStatus::kIO_FAILED,
-            "there is nowhere to open this package"};
-  }
-
   if (!inspected_) {
     if (const auto inspection = Inspect();
         inspection.status != ProfileMountStatus::kOK &&
@@ -359,7 +422,7 @@ auto PackagedProfile::Mount(const ProfileMountContext &ctx)
   // Best effort by design. A package that will not describe itself here is not
   // refused -- it may be one written before the field existed, and it may
   // simply be a wrong passphrase, which the real open below reports properly.
-  if (declared_bytes_ == 0 && storage_.isNull()) {
+  if (declared_bytes_ == 0 && Root().isEmpty()) {
     const auto peeked =
         PeekProfilePackageManifest(package_path_, ctx.passphrase);
     if (peeked.Ok()) declared_bytes_ = peeked.manifest.uncompressed_bytes;
@@ -367,28 +430,10 @@ auto PackagedProfile::Mount(const ProfileMountContext &ctx)
 
   // The storage is what decides where the tree may be unpacked, so it has to
   // exist before there is anywhere to unpack into.
+  if (auto provisioned = ProvisionStorage(); !provisioned.Ok()) {
+    return provisioned;
+  }
   auto storage = MakeAccessor();
-  if (storage.isNull()) {
-    // Every reason, verbatim: which candidate was passed over and why is the
-    // only part of this a user can act on.
-    return {ProfileMountStatus::kNO_PROTECTED_STORAGE,
-            storage_rejections_.join("\n")};
-  }
-
-  // Before anything is extracted, never after: the anchor is the only thing
-  // that knows where this session's tree went, and a process that dies between
-  // provisioning and recording it strands that tree somewhere no later sweep
-  // would think to look.
-  //
-  // Taken from the factory rather than from the accessor. The accessor may be
-  // wrapped -- a driver that holds an area in memory is still a
-  // ProfileAccessor -- and a cast to the concrete type would silently return
-  // null and skip this, which is exactly the failure the pointer exists to
-  // prevent.
-  if (!storage_anchor_state_.isEmpty() &&
-      !WriteSessionPointer(anchor_, storage_anchor_state_)) {
-    LOG_W() << "could not record where this session's storage went:" << anchor_;
-  }
 
   const auto opened = OpenPackageSession(package_path_, *storage,
                                          ctx.passphrase, ctx.schema_version);
@@ -468,29 +513,10 @@ void PackagedProfile::record_key_protection(bool pin) {
   // writes "none" for the import path, where a local copy deliberately does not
   // inherit the package's passphrase; a session does.
   auto settings = MakeAccessor()->Settings();
-  settings.setValue("advanced/app_key_protection",
-                    AppKeyProtectionToString(pin ? AppKeyProtection::kPIN
-                                                 : AppKeyProtection::kNONE));
+  SettingItems::kAppKeyProtection.Write(
+      settings, AppKeyProtectionToString(pin ? AppKeyProtection::kPIN
+                                             : AppKeyProtection::kNONE));
   settings.sync();
-}
-
-void PackagedProfile::Unmount(ProfileUnmountMode mode) {
-  if (!mounted_) return;
-
-  // Whatever the mode: the tree holds a copy of the profile's key material and
-  // must not survive the process that unpacked it. Writing the session back to
-  // the file it came from happens before this, and belongs to the application —
-  // it needs the resident key and the live settings, which a profile has no
-  // business reaching for.
-  //
-  // A forced unmount runs from the shutdown watchdog's thread against a
-  // deadline, so it gets the cheap destruction rather than the thorough one.
-  if (storage_) {
-    storage_->Release(mode == ProfileUnmountMode::kFORCED
-                          ? ProfileStorageRelease::kFAST
-                          : ProfileStorageRelease::kSCRUB);
-  }
-  mounted_ = false;
 }
 
 auto PackagedProfile::WriteBackRequest() const -> ProfileExportRequest {
@@ -516,11 +542,143 @@ auto PackagedProfile::WriteBackRequest() const -> ProfileExportRequest {
   return request;
 }
 
+auto SettingInheritedByNewProfile(const QString &key) -> bool {
+  // Secret is checked as well as inheritable: an inherited value can travel
+  // on a command line, and a credential must never be one.
+  const auto *meta = FindSetting(key);
+  return meta != nullptr && meta->inheritable && !meta->secret;
+}
+
+auto SnapshotInheritedSettings(QSettings &settings,
+                               const QList<SettingGroup> &groups)
+    -> QMap<QString, QVariant> {
+  settings.sync();
+
+  QMap<QString, QVariant> snapshot;
+  for (const auto *meta : SettingItems::kAll) {
+    if (!groups.contains(meta->group)) continue;
+    if (!SettingInheritedByNewProfile(QLatin1String(meta->key))) continue;
+
+    // Only what this window actually set. An unset value is the default
+    // here and will be the default there, and copying it would pin today's
+    // default into a profile that should follow tomorrow's.
+    const auto key = QLatin1String(meta->key);
+    if (settings.contains(key)) snapshot.insert(key, settings.value(key));
+  }
+  return snapshot;
+}
+
+auto EncodeInheritedSettings(const QMap<QString, QVariant> &settings)
+    -> QString {
+  if (settings.isEmpty()) return {};
+
+  // JSON for the shape, base64url so the token survives every shell and
+  // LaunchServices untouched. Nothing here is secret -- the allow-list sees to
+  // that -- so a process listing showing it costs nothing.
+  const auto json = QJsonDocument(QJsonObject::fromVariantMap(settings))
+                        .toJson(QJsonDocument::Compact);
+  return QString::fromLatin1(json.toBase64(QByteArray::Base64UrlEncoding |
+                                           QByteArray::OmitTrailingEquals));
+}
+
+auto DecodeInheritedSettings(const QString &token) -> QMap<QString, QVariant> {
+  if (token.isEmpty()) return {};
+
+  const auto decoded = QByteArray::fromBase64Encoding(
+      token.toLatin1(),
+      QByteArray::Base64UrlEncoding | QByteArray::AbortOnBase64DecodingErrors);
+  if (!decoded) return {};
+
+  const auto document = QJsonDocument::fromJson(*decoded);
+  if (!document.isObject()) return {};
+
+  QMap<QString, QVariant> settings;
+  const auto object = document.object();
+  for (auto it = object.begin(); it != object.end(); ++it) {
+    if (!SettingInheritedByNewProfile(it.key())) continue;
+    // Only plain values: an object or array was never a setting the launcher
+    // could have sent.
+    if (it.value().isObject() || it.value().isArray()) continue;
+    settings.insert(it.key(), it.value().toVariant());
+  }
+  return settings;
+}
+
+EphemeralProfile::EphemeralProfile(const QString &profiles_root,
+                                   const QMap<QString, QVariant> &inherited)
+    : TransientProfile(
+          profiles_root,
+          // Dot-prefixed like a package's anchor, so the registry scan skips
+          // it and the sweep finds it once the process that made it is gone.
+          profiles_root + "/.tmp-" +
+              QUuid::createUuid().toString(QUuid::Id128).left(16)) {
+  policy_.self_contained = true;
+
+  // Filtered here as well as when decoded, so no caller can construct one that
+  // starts on the user's real keyring.
+  for (auto it = inherited.cbegin(); it != inherited.cend(); ++it) {
+    if (SettingInheritedByNewProfile(it.key())) {
+      inherited_.insert(it.key(), it.value());
+    }
+  }
+}
+
+auto EphemeralProfile::Kind() const -> ProfileKind {
+  return ProfileKind::kEPHEMERAL;
+}
+
+auto EphemeralProfile::DisplayName() const -> QString { return "Temporary"; }
+
+auto EphemeralProfile::LaunchArguments() const -> QStringList {
+  return {kTemporaryProfileOption};
+}
+
+auto EphemeralProfile::StorageBudgetBytes() const -> qint64 {
+  return kEphemeralStorageBudget;
+}
+
+void EphemeralProfile::ApplyMarkerPolicy(const ProfileMarker & /*marker*/) {
+  // Deliberately ignored: a throwaway profile that reached for the user's real
+  // keyring would leave its changes there after the window had gone.
+}
+
+auto EphemeralProfile::Mount(const ProfileMountContext & /*ctx*/)
+    -> ProfileMountResult {
+  if (auto provisioned = ProvisionStorage(); !provisioned.Ok()) {
+    return provisioned;
+  }
+
+  // Nothing to unpack, so the marker is the whole of what makes this a
+  // profile. Written the way every other new profile is, so the loader cannot
+  // tell it from one the profile manager made except by its kind.
+  const auto marker =
+      NewProfileMarker(Id(), DisplayName(), ProfileKind::kEPHEMERAL, true);
+  if (!WriteProfileMarker(MarkerPath(), marker)) {
+    const auto path = MarkerPath();
+    DiscardSessionStorage();
+    return {ProfileMountStatus::kIO_FAILED, path};
+  }
+
+  // Before anything reads the settings, so the window opens already running
+  // the engine and the look of the one that opened it.
+  if (!inherited_.isEmpty()) {
+    auto settings = MakeAccessor()->Settings();
+    for (auto it = inherited_.cbegin(); it != inherited_.cend(); ++it) {
+      settings.setValue(it.key(), it.value());
+    }
+    settings.sync();
+  }
+
+  mounted_ = true;
+  return {};
+}
+
 namespace {
 
 /// Options that consume the following argument, so a scan for a positional
 /// never mistakes an option's value for one.
-const QStringList kValueOptions = {"--profile", "--log-level", "-l"};
+const QStringList kValueOptions = {"--profile", "--log-level", "-l",
+                                   kTemporaryProfileSettingsOption};
 
 auto OptionValue(const QStringList &args, const QString &name) -> QString {
   const auto long_form = "--" + name;
@@ -643,7 +801,18 @@ auto ResolveProfileSelection(const ProfileSelectionInput &in)
   const auto cli_named = OptionValue(in.args, "profile");
   if (!cli_named.isEmpty()) return ResolvePersist(cli_named, in, profiles_root);
 
-  // 2. a package named on the command line. It has no root of its own until it
+  // 2. a temporary profile. Nothing to name and nothing to find: every launch
+  // is a new one, so there is nothing here that could be an error.
+  if (in.args.contains(kTemporaryProfileOption)) {
+    ProfileSelectionResult r;
+    r.selection.profiles_root = profiles_root;
+    r.selection.kind = ProfileKind::kEPHEMERAL;
+    r.selection.inherited_settings = DecodeInheritedSettings(
+        OptionValue(in.args, QString(kTemporaryProfileSettingsOption).mid(2)));
+    return r;
+  }
+
+  // 3. a package named on the command line. It has no root of its own until it
   // is extracted, which the loader does — and which may need a passphrase, so
   // it cannot happen in a pure function.
   const auto package = PositionalPackage(in.args);
@@ -656,12 +825,12 @@ auto ResolveProfileSelection(const ProfileSelectionInput &in)
     return r;
   }
 
-  // 3. the environment, for CI and headless runs
+  // 4. the environment, for CI and headless runs
   if (!in.env_profile.isEmpty()) {
     return ResolvePersist(in.env_profile, in, profiles_root);
   }
 
-  // 4. the implicit default: this build's root profile. Nothing is remembered
+  // 5. the implicit default: this build's root profile. Nothing is remembered
   // between runs on purpose — an instance always starts here, and another
   // profile or a package is opened from here into a new window.
   return ImplicitDefault(in, profiles_root);
@@ -677,6 +846,9 @@ auto MakeProfile(const ProfileSelection &selection) -> QSharedPointer<Profile> {
     case ProfileKind::kPACKAGED:
       return QSharedPointer<PackagedProfile>::create(selection.package_path,
                                                      selection.profiles_root);
+    case ProfileKind::kEPHEMERAL:
+      return QSharedPointer<EphemeralProfile>::create(
+          selection.profiles_root, selection.inherited_settings);
     case ProfileKind::kINSTALLED_ROOT:
       break;
   }

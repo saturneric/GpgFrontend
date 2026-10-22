@@ -31,6 +31,8 @@
 
 #include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
+#include "core/module/ModuleInit.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileMarker.h"
@@ -39,6 +41,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -474,6 +477,49 @@ TEST(ProfileSelectionTest, AnOptionValueIsNotMistakenForAPackage) {
   EXPECT_NE(r.selection.kind, ProfileKind::kPACKAGED);
 }
 
+TEST(ProfileSelectionTest, TheTemporarySwitchSelectsATemporaryProfile) {
+  const auto r = ResolveProfileSelection(MakeInput({"--temp-profile"}));
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.selection.kind, ProfileKind::kEPHEMERAL);
+  EXPECT_EQ(r.selection.profiles_root, QString(kInstalledRoot) + "/profiles");
+  // no root and no name: it is minted when the profile is made
+  EXPECT_TRUE(r.selection.root.isEmpty());
+}
+
+TEST(ProfileSelectionTest, TheTemporarySwitchCarriesItsInheritedSettings) {
+  const auto token =
+      EncodeInheritedSettings({{"basic/default_engine", "RPGP"}});
+  const auto r = ResolveProfileSelection(MakeInput(
+      {"--temp-profile", "--temp-profile-settings", token, "-l", "info"}));
+
+  EXPECT_EQ(r.selection.kind, ProfileKind::kEPHEMERAL);
+  EXPECT_EQ(r.selection.inherited_settings.value("basic/default_engine"),
+            QVariant("RPGP"));
+}
+
+TEST(ProfileSelectionTest, ANamedProfileOutranksTheTemporarySwitch) {
+  const auto r = ResolveProfileSelection(
+      MakeInput({"--temp-profile", "--profile", "work"}));
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPERSIST);
+}
+
+TEST(ProfileSelectionTest, TheTemporarySwitchOutranksAPackageAndEnvironment) {
+  auto in = MakeInput({"/home/x/work.gfp", "--temp-profile"});
+  in.env_profile = "env";
+  EXPECT_EQ(ResolveProfileSelection(in).selection.kind,
+            ProfileKind::kEPHEMERAL);
+}
+
+TEST(ProfileSelectionTest, TheTemporarySwitchIsIgnoredWithoutProfiles) {
+  // A sandboxed build offers one profile; a switch left in a relaunched argv
+  // must not turn into a session the build cannot offer.
+  auto in = MakeInput({"--temp-profile"});
+  in.multi_profile = false;
+  EXPECT_EQ(ResolveProfileSelection(in).selection.kind,
+            ProfileKind::kINSTALLED_ROOT);
+}
+
 TEST(ProfileSelectionTest, TheEnvironmentIsConsulted) {
   auto in = MakeInput();
   in.env_profile = "ci";
@@ -779,10 +825,201 @@ TEST(ProfileIdTest, GeneratedIdsAreUsableIds) {
   }
 }
 
+// ------------------------------------------- settings a new profile inherits
+
+TEST(InheritedSettingsTest, EnginesBehaviourAndLookAreInherited) {
+  for (const auto* key :
+       {"basic/default_engine", "gnupg/custom_gnupg_install_path",
+        "gnupg/use_custom_gnupg_install_path", "engine/argon2_s2k_profile",
+        "basic/lang", "appearance/theme", "wizard/show_wizard",
+        "basic/confirm_import_keys", "keys/expiring_soon_days"}) {
+    EXPECT_TRUE(SettingInheritedByNewProfile(key)) << key;
+  }
+}
+
+TEST(InheritedSettingsTest, NothingThatPointsAtTheUsersDataIsInherited) {
+  // A new profile is meant to be separate. Any of these would point it back at
+  // what it was made to be separate from, or carry a secret on a command line.
+  for (const auto* key :
+       {"workspace/path", "proxy/password", "proxy/username",
+        "advanced/app_key_protection", "advanced/os_secret_store",
+        "advanced/secure_level", "anything/else"}) {
+    EXPECT_FALSE(SettingInheritedByNewProfile(key)) << key;
+  }
+}
+
+TEST(InheritedSettingsTest, TheCommandLineTokenRoundTrips) {
+  const QMap<QString, QVariant> settings = {
+      {"basic/default_engine", "GNUPG"},
+      {"gnupg/custom_gnupg_install_path", "/opt/gnupg with spaces/bin"},
+      {"keys/expiring_soon_days", 30},
+      {"basic/confirm_import_keys", true},
+  };
+
+  const auto token = EncodeInheritedSettings(settings);
+  // one argument that no shell or launcher has a reason to touch
+  EXPECT_FALSE(token.contains(' '));
+  EXPECT_FALSE(token.contains('='));
+
+  const auto decoded = DecodeInheritedSettings(token);
+  EXPECT_EQ(decoded.value("basic/default_engine").toString(), "GNUPG");
+  EXPECT_EQ(decoded.value("gnupg/custom_gnupg_install_path").toString(),
+            "/opt/gnupg with spaces/bin");
+  EXPECT_EQ(decoded.value("keys/expiring_soon_days").toInt(), 30);
+  EXPECT_TRUE(decoded.value("basic/confirm_import_keys").toBool());
+
+  EXPECT_TRUE(EncodeInheritedSettings({}).isEmpty());
+}
+
+TEST(InheritedSettingsTest, ADecodedTokenCannotAddWhatTheLauncherWouldNot) {
+  // The token is input. Hand-written, it must still not be able to point a
+  // temporary profile at a real workspace.
+  const auto json = QByteArray(
+      R"({"workspace/path":"/home/x","basic/lang":"de_DE","x":{"y":1}})");
+  const auto token = QString::fromLatin1(json.toBase64(
+      QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals));
+
+  const auto decoded = DecodeInheritedSettings(token);
+  EXPECT_EQ(decoded.keys(), QStringList({"basic/lang"}));
+}
+
+TEST(InheritedSettingsTest, AMalformedTokenInheritsNothing) {
+  EXPECT_TRUE(DecodeInheritedSettings("!!not base64!!").isEmpty());
+  EXPECT_TRUE(
+      DecodeInheritedSettings(QString::fromLatin1(QByteArray("[1,2]").toBase64(
+                                  QByteArray::Base64UrlEncoding)))
+          .isEmpty());
+  EXPECT_TRUE(DecodeInheritedSettings({}).isEmpty());
+}
+
+TEST(InheritedSettingsTest, ASnapshotTakesOnlyWhatIsInherited) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+  settings.setValue("basic/default_engine", "RPGP");
+  settings.setValue("proxy/password", "hunter2");
+  settings.setValue("workspace/path", "/home/x");
+
+  const auto snapshot =
+      SnapshotInheritedSettings(settings, InheritableSettingGroups());
+  EXPECT_EQ(snapshot.keys(), QStringList({"basic/default_engine"}));
+}
+
+TEST(InheritedSettingsTest, ASnapshotTakesOnlyTheChosenGroups) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+  settings.setValue("basic/default_engine", "RPGP");
+  settings.setValue("appearance/theme", "Fusion");
+  settings.setValue("basic/confirm_import_keys", false);
+
+  const auto snapshot = SnapshotInheritedSettings(
+      settings, {SettingGroup::kENGINE, SettingGroup::kAPPEARANCE});
+  EXPECT_EQ(snapshot.keys(),
+            QStringList({"appearance/theme", "basic/default_engine"}));
+
+  EXPECT_TRUE(SnapshotInheritedSettings(settings, {}).isEmpty());
+}
+
+TEST(InheritedSettingsTest, AnUnsetValueIsNotPinnedIntoTheNewProfile) {
+  // A default copied across would stop the new profile following a default
+  // that changes in a later release.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+  EXPECT_TRUE(
+      SnapshotInheritedSettings(settings, InheritableSettingGroups()).isEmpty());
+}
+
+// ------------------------------------------------------------ the catalog
+
+TEST(SettingCatalogTest, EveryKeyIsDescribedOnce) {
+  QSet<QString> seen;
+  for (const auto* meta : SettingItems::kAll) {
+    ASSERT_NE(meta, nullptr);
+    const auto key = QLatin1String(meta->key);
+    EXPECT_FALSE(seen.contains(key)) << meta->key;
+    seen.insert(key);
+
+    // a group, a separator and a name; a typo like "prox/port" is still a
+    // valid shape, which is why readers go through the catalog
+    EXPECT_EQ(key.count('/'), 1) << meta->key;
+    EXPECT_EQ(FindSetting(key), meta) << meta->key;
+  }
+  EXPECT_EQ(FindSetting("no/such_key"), nullptr);
+}
+
+TEST(SettingCatalogTest, EverySettingAPersonSetsHasATitle) {
+  for (const auto* meta : SettingItems::kAll) {
+    if (meta->group == SettingGroup::kLAYOUT) continue;
+    EXPECT_FALSE(QString(meta->title).isEmpty()) << meta->key;
+  }
+}
+
+TEST(SettingCatalogTest, NoSecretIsEverInherited) {
+  // An inherited value can travel on a command line.
+  for (const auto* meta : SettingItems::kAll) {
+    if (meta->secret) {
+      EXPECT_FALSE(SettingInheritedByNewProfile(QLatin1String(meta->key)))
+          << meta->key;
+    }
+  }
+}
+
+TEST(SettingCatalogTest, DefaultsAgreeWithTheConstantsTheyMirror) {
+  // These defaults are also spelled where their meaning lives. The catalog
+  // cannot include those headers without pulling half the core into every
+  // reader, so the agreement is checked here instead.
+  EXPECT_EQ(SettingItems::kArgon2S2kProfile.Default(),
+            QString(kRpgpArgon2ProfileHighMemory));
+  EXPECT_EQ(SettingItems::kModuleLoadingPolicy.Default(),
+            Module::ModuleLoadingPolicyKey(
+                Module::ModuleLoadingPolicy::kONLY_INTEGRATED));
+  EXPECT_EQ(SettingItems::kLogLevel.Default(),
+            static_cast<int>(GFLogLevel::kCRITICAL));
+}
+
+TEST(SettingCatalogTest, ReadingGivesTheTypeAndTheOneDefault) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+
+  // Unset: the default every reader shares. This one used to be "yes" in the
+  // key list and "no" in the settings dialog.
+  EXPECT_TRUE(SettingItems::kConfirmImportKeys.Read(settings));
+  EXPECT_EQ(SettingItems::kDefaultEngine.Read(settings), QString("GNUPG"));
+  EXPECT_EQ(SettingItems::kPasswordCacheTtl.Read(settings), 600);
+
+  SettingItems::kConfirmImportKeys.Write(settings, false);
+  SettingItems::kExpiringSoonDays.Write(settings, 14);
+  SettingItems::kDefaultEngine.Write(settings, "RPGP");
+  settings.sync();
+
+  // Read back from the file, where an INI keeps every value as text.
+  QSettings reread(dir.path() + "/config.ini", QSettings::IniFormat);
+  EXPECT_FALSE(SettingItems::kConfirmImportKeys.Read(reread));
+  EXPECT_EQ(SettingItems::kExpiringSoonDays.Read(reread), 14);
+  EXPECT_EQ(SettingItems::kDefaultEngine.Read(reread), QString("RPGP"));
+}
+
+TEST(SettingCatalogTest, WhatNamesThisComputerStaysHome) {
+  for (const auto* meta : SettingItems::kAll) {
+    EXPECT_EQ(SettingTravelsInPackage(QLatin1String(meta->key)),
+              meta->locality == SettingLocality::kPROFILE)
+        << meta->key;
+  }
+  // a key the catalog does not know -- a module's own -- belongs to the
+  // profile
+  EXPECT_TRUE(SettingTravelsInPackage("modules/example/thing"));
+}
+
 TEST(ProfileKindTest, SpellingRoundTrips) {
-  for (const auto kind :
-       {ProfileKind::kINSTALLED_ROOT, ProfileKind::kPORTABLE_ROOT,
-        ProfileKind::kPERSIST, ProfileKind::kPACKAGED}) {
+  for (const auto kind : {ProfileKind::kINSTALLED_ROOT,
+                          ProfileKind::kPORTABLE_ROOT, ProfileKind::kPERSIST,
+                          ProfileKind::kPACKAGED, ProfileKind::kEPHEMERAL}) {
     EXPECT_EQ(ProfileKindFromString(ProfileKindToString(kind)), kind);
   }
   EXPECT_EQ(ProfileKindFromString("nonsense"), ProfileKind::kINSTALLED_ROOT);
@@ -795,6 +1032,7 @@ TEST(ProfileKindTest, StoredSpellingsAreTheOnesAlreadyOnDisk) {
   EXPECT_EQ(ProfileKindToString(ProfileKind::kPORTABLE_ROOT), "portable");
   EXPECT_EQ(ProfileKindToString(ProfileKind::kPERSIST), "named");
   EXPECT_EQ(ProfileKindToString(ProfileKind::kPACKAGED), "package_linked");
+  EXPECT_EQ(ProfileKindToString(ProfileKind::kEPHEMERAL), "ephemeral");
 }
 
 // ------------------------------------------------- marker-backed overrides

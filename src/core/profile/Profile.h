@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/SettingItem.h"
 #include "core/profile/ProfileAccessor.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfilePackage.h"
@@ -49,7 +50,66 @@ enum class ProfileKind : std::uint8_t {
   kPORTABLE_ROOT,  ///< the directory above the application, on a portable build
   kPERSIST,        ///< <root-profile>/profiles/<uuid>
   kPACKAGED,       ///< extracted from a .gfp, and temporary
+  kEPHEMERAL,      ///< empty, and destroyed when its window closes
 };
+
+/// The command-line switch that asks for a temporary profile. Shared by the
+/// resolver that reads it and the launcher that writes it.
+constexpr auto kTemporaryProfileOption = "--temp-profile";
+
+/// Carries the settings a temporary profile starts with, as written by
+/// EncodeInheritedSettings(). Takes a value.
+constexpr auto kTemporaryProfileSettingsOption = "--temp-profile-settings";
+
+/**
+ * @brief Whether a new profile may start with this setting from the window
+ * that made it.
+ *
+ * Read from the setting catalog: a setting is inherited when its entry says
+ * so and it is not secret. Shared by the two kinds of profile made from
+ * nothing on this machine -- a temporary one, and one created in the profile
+ * manager. See SettingMeta::inheritable for what is never inherited and why.
+ *
+ * @param key a settings key, group included
+ * @return true when the key is inherited
+ */
+auto GF_CORE_EXPORT SettingInheritedByNewProfile(const QString &key) -> bool;
+
+/**
+ * @brief The inheritable settings this window has set, in some groups.
+ *
+ * Only values actually stored: an unset value is a default, and copying it
+ * would pin today's default into the new profile.
+ *
+ * @param settings the opening window's settings
+ * @param groups which groups to take; see InheritableSettingGroups()
+ * @return each inherited key and its value
+ */
+auto GF_CORE_EXPORT SnapshotInheritedSettings(
+    QSettings &settings, const QList<SettingGroup> &groups)
+    -> QMap<QString, QVariant>;
+
+/**
+ * @brief Spell inherited settings as one command-line argument.
+ *
+ * @param settings what SnapshotInheritedSettings() returned
+ * @return a URL-safe token, empty when there is nothing to carry
+ */
+auto GF_CORE_EXPORT
+EncodeInheritedSettings(const QMap<QString, QVariant> &settings) -> QString;
+
+/**
+ * @brief Read inherited settings back from the command line.
+ *
+ * Filtered again on the way in: the argument is input like any other, and
+ * whatever wrote it must not be able to point a temporary profile at a real
+ * keyring by adding a key the launcher would never have sent.
+ *
+ * @param token what EncodeInheritedSettings() produced
+ * @return the inheritable settings it holds; empty when it is malformed
+ */
+auto GF_CORE_EXPORT DecodeInheritedSettings(const QString &token)
+    -> QMap<QString, QVariant>;
 
 /**
  * @brief Canonical stored spelling of a kind.
@@ -413,6 +473,91 @@ class GF_CORE_EXPORT PersistProfile final : public UnpackagedProfile {
 };
 
 /**
+ * @brief A profile whose storage lives for exactly one session.
+ *
+ * The half a `.gfp` session and a temporary profile have in common: the tree is
+ * put somewhere the platform does not leave readable, the lock sits in a
+ * dot-prefixed anchor under the profiles folder so the registry scan skips it
+ * and a later sweep can find it, and everything is destroyed on the way out.
+ * Neither may bind to this machine -- there is nothing on it to come back to.
+ */
+class GF_CORE_EXPORT TransientProfile : public Profile {
+ public:
+  [[nodiscard]] auto Id() const -> QString override;
+  [[nodiscard]] auto Root() const -> QString override;
+
+  [[nodiscard]] auto IsTransient() const -> bool override;
+  [[nodiscard]] auto AllowsSystemKeychain() const -> bool override;
+  [[nodiscard]] auto AllowsKeyRotation() const -> bool override;
+  [[nodiscard]] auto IsRegistrable() const -> bool override;
+
+  void Unmount(ProfileUnmountMode mode) override;
+
+  [[nodiscard]] auto LockRoot() const -> QString override;
+
+  [[nodiscard]] auto MakeAccessor() const
+      -> QSharedPointer<ProfileAccessor> override;
+
+  /// Where transient session roots are made, this one included.
+  [[nodiscard]] auto ProfilesRoot() const -> QString { return profiles_root_; }
+
+  /**
+   * @brief Throw away whatever storage was claimed for this session.
+   *
+   * For the path where the session would not open: the lock was taken and the
+   * storage provisioned before anyone knew whether it could be used, and both
+   * have to be given back before a dialog stops to wait for a human.
+   *
+   * Safe to call when nothing was claimed.
+   */
+  void DiscardSessionStorage();
+
+ protected:
+  /**
+   * @param profiles_root where transient roots may be made
+   * @param anchor the directory holding the lock and the session pointer
+   */
+  TransientProfile(QString profiles_root, QString anchor);
+
+  /// How much room to ask the storage for.
+  [[nodiscard]] virtual auto StorageBudgetBytes() const -> qint64 = 0;
+
+  /**
+   * @brief Choose the storage and record where it went.
+   *
+   * @return kNO_PROTECTED_STORAGE with every rejection when there is nowhere
+   * this profile's policy would accept
+   */
+  auto ProvisionStorage() -> ProfileMountResult;
+
+  QString profiles_root_;
+
+  /// Where the lock lives, decided before any storage is.
+  QString anchor_;
+
+  QString id_;
+
+  bool mounted_ = false;
+
+ private:
+  /// Made once, on the first MakeAccessor(). Cached because choosing where the
+  /// session goes is a decision, and a decision taken twice is two decisions.
+  mutable QSharedPointer<ProfileAccessor> storage_;
+
+  /// Set when no storage this profile's policy would accept was available, so
+  /// that asking again neither re-probes nor reports the refusal twice.
+  mutable bool storage_refused_ = false;
+
+  /// What the probe passed over, in the words the user will be shown.
+  mutable QStringList storage_rejections_;
+
+  /// What a sweep needs to find this session's tree after a crash. Kept from
+  /// the moment the storage was chosen, because the accessor handed out above
+  /// may be a decorator and asking it for this would mean knowing its type.
+  mutable QJsonObject storage_anchor_state_;
+};
+
+/**
  * @brief A `.gfp` opened for the length of one session.
  *
  * Everything that makes this different from the rest follows from one decision:
@@ -424,7 +569,7 @@ class GF_CORE_EXPORT PersistProfile final : public UnpackagedProfile {
  * also the PIN that seals the application key inside it, so the user is asked
  * once and no plaintext key is written to disk for a protected package.
  */
-class GF_CORE_EXPORT PackagedProfile final : public Profile {
+class GF_CORE_EXPORT PackagedProfile final : public TransientProfile {
  public:
   /**
    * @brief Name a package, without touching it.
@@ -432,17 +577,10 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
    * @param package_path the `.gfp`
    * @param profiles_root where transient roots may be made
    */
-  PackagedProfile(QString package_path, QString profiles_root);
+  PackagedProfile(QString package_path, const QString &profiles_root);
 
   [[nodiscard]] auto Kind() const -> ProfileKind override;
-  [[nodiscard]] auto Id() const -> QString override;
-  [[nodiscard]] auto Root() const -> QString override;
   [[nodiscard]] auto DisplayName() const -> QString override;
-
-  [[nodiscard]] auto IsTransient() const -> bool override;
-  [[nodiscard]] auto AllowsSystemKeychain() const -> bool override;
-  [[nodiscard]] auto AllowsKeyRotation() const -> bool override;
-  [[nodiscard]] auto IsRegistrable() const -> bool override;
   [[nodiscard]] auto LaunchArguments() const -> QStringList override;
 
   /**
@@ -456,12 +594,9 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
   auto Inspect() -> ProfileMountResult;
 
   auto Mount(const ProfileMountContext &ctx) -> ProfileMountResult override;
-  void Unmount(ProfileUnmountMode mode) override;
 
   [[nodiscard]] auto PackagePath() const -> QString { return package_path_; }
 
-  /// Where transient session roots are made, this one included.
-  [[nodiscard]] auto ProfilesRoot() const -> QString { return profiles_root_; }
   [[nodiscard]] auto Protection() const -> ProfilePackageProtection;
   [[nodiscard]] auto Manifest() const -> const ProfilePackageManifest &;
 
@@ -478,21 +613,8 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
    */
   [[nodiscard]] auto WriteBackRequest() const -> ProfileExportRequest;
 
-  [[nodiscard]] auto LockRoot() const -> QString override;
-
-  [[nodiscard]] auto MakeAccessor() const
-      -> QSharedPointer<ProfileAccessor> override;
-
-  /**
-   * @brief Throw away whatever storage was claimed for this session.
-   *
-   * For the path where the package would not open: the lock was taken and the
-   * storage provisioned before anyone knew whether the file was readable, and
-   * both have to be given back before a dialog stops to wait for a human.
-   *
-   * Safe to call when nothing was claimed.
-   */
-  void DiscardSessionStorage();
+ protected:
+  [[nodiscard]] auto StorageBudgetBytes() const -> qint64 override;
 
  private:
   /**
@@ -510,40 +632,59 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
   void record_key_protection(bool pin);
 
   QString package_path_;
-  QString profiles_root_;
-
-  /// Where the lock lives. A pure function of the package path, so that a
-  /// second window computes the same one without being told.
-  QString anchor_;
-
-  QString id_;
-
-  /// Made once, on the first MakeAccessor(). Cached because choosing where the
-  /// session goes is a decision, and a decision taken twice is two decisions.
-  mutable QSharedPointer<ProfileAccessor> storage_;
-
-  /// Set when no storage this profile's policy would accept was available, so
-  /// that asking again neither re-probes nor reports the refusal twice.
-  mutable bool storage_refused_ = false;
-
-  /// What the probe passed over, in the words the user will be shown.
-  mutable QStringList storage_rejections_;
 
   /// Unpacked size the package declares, or 0 when it declares none. Read from
   /// the manifest by Mount() before any storage is asked for, which is the only
   /// window in which it can influence how much is provisioned.
-  mutable qint64 declared_bytes_ = 0;
-
-  /// What a sweep needs to find this session's tree after a crash. Kept from
-  /// the moment the storage was chosen, because the accessor handed out above
-  /// may be a decorator and asking it for this would mean knowing its type.
-  mutable QJsonObject storage_anchor_state_;
+  qint64 declared_bytes_ = 0;
 
   bool inspected_ = false;
-  bool mounted_ = false;
   ProfilePackageProtection protection_ = ProfilePackageProtection::kNONE;
   ProfilePackageManifest manifest_;
   GFBuffer passphrase_;
+};
+
+/**
+ * @brief An empty profile that exists only until its window closes.
+ *
+ * A packaged session with nothing to unpack and nothing to write back: a fresh
+ * tree in the same storage a `.gfp` would get, its own keyring inside it, and
+ * all of it destroyed on the way out. Always self-contained -- a throwaway
+ * profile that read the user's real keyring would not be throwaway.
+ *
+ * The anchor is minted at random. Nothing else names this profile, and every
+ * launch is a new one.
+ */
+class GF_CORE_EXPORT EphemeralProfile final : public TransientProfile {
+ public:
+  /**
+   * @param profiles_root where transient roots may be made
+   * @param inherited settings to start with, from the window that opened it;
+   * anything not inheritable is dropped
+   */
+  explicit EphemeralProfile(const QString &profiles_root,
+                            const QMap<QString, QVariant> &inherited = {});
+
+  /// What this profile starts with beyond the defaults.
+  [[nodiscard]] auto InheritedSettings() const
+      -> const QMap<QString, QVariant> & {
+    return inherited_;
+  }
+
+  [[nodiscard]] auto Kind() const -> ProfileKind override;
+  [[nodiscard]] auto DisplayName() const -> QString override;
+  [[nodiscard]] auto LaunchArguments() const -> QStringList override;
+
+  auto Mount(const ProfileMountContext &ctx) -> ProfileMountResult override;
+
+  /// Self-contained by construction, whatever the marker says.
+  void ApplyMarkerPolicy(const ProfileMarker &marker) override;
+
+ protected:
+  [[nodiscard]] auto StorageBudgetBytes() const -> qint64 override;
+
+ private:
+  QMap<QString, QVariant> inherited_;
 };
 
 /**
@@ -620,6 +761,9 @@ struct GF_CORE_EXPORT ProfileSelection {
 
   /// The `.gfp` named on the command line, for kPACKAGED.
   QString package_path;
+
+  /// What a kEPHEMERAL profile starts with, from the window that opened it.
+  QMap<QString, QVariant> inherited_settings;
 };
 
 /**

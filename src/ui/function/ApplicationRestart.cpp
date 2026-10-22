@@ -40,6 +40,14 @@ bool g_handler_installed = false;
 }  // namespace
 
 void RestartApplication(int code) {
+  // A deep restart is a new process, and a temporary profile ends with this
+  // one. Every path that asks for one -- a settings change, a retry after a
+  // broken environment -- would otherwise destroy it without a word.
+  if (code == kDeepRestartCode && IsTemporaryProfileSession()) {
+    ShowTemporaryProfileRestartRefusal(qApp->activeWindow());
+    return;
+  }
+
   // A restart leaves through the event loop, not through a window, so the close
   // handler never runs. For a profile opened from a file that would silently
   // throw the session away: the extracted tree is deleted on the way out, and

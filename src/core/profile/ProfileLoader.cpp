@@ -282,13 +282,16 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
   // not exist yet cannot be locked.
   if (!acquire_lock()) return false;
 
-  if (profile_->Kind() == ProfileKind::kPACKAGED) {
+  auto* transient = dynamic_cast<TransientProfile*>(profile_.data());
+  if (transient != nullptr) {
     // Anything a crashed session left behind, including a stale copy of this
     // package's own root. Cheap, and this is the one moment when nothing else
     // can be holding one.
-    auto& packaged = static_cast<PackagedProfile&>(*profile_);
-    SweepTransientProfileRoots(packaged.ProfilesRoot(), packaged.LockRoot());
+    SweepTransientProfileRoots(transient->ProfilesRoot(),
+                               transient->LockRoot());
+  }
 
+  if (profile_->Kind() == ProfileKind::kPACKAGED) {
     // Deliberately not provisioned here. Mount() reads the package's declared
     // size first and then asks, and provisioning eagerly would settle where the
     // session goes -- and how much room it gets -- before anything had been
@@ -299,7 +302,7 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
       // Nothing was extracted, and both the storage and the anchor were only
       // claimed so that this attempt could be made. Given back before the
       // report, which stops to wait for a human.
-      packaged.DiscardSessionStorage();
+      transient->DiscardSessionStorage();
 
       delegate_->Report(*error);
       return false;
@@ -307,9 +310,14 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
   } else {
     const auto mounted = profile_->Mount({});
     if (!mounted.Ok()) {
-      delegate_->Report(
-          {FailureFor(mounted.status), profile_->Root(), mounted.detail});
+      const auto root = profile_->Root();
       ProfileLock::Release();
+
+      // A temporary profile claimed its storage and anchor for this attempt
+      // alone, so both go back before the report waits for a human.
+      if (transient != nullptr) transient->DiscardSessionStorage();
+
+      delegate_->Report({FailureFor(mounted.status), root, mounted.detail});
       return false;
     }
   }
@@ -486,6 +494,11 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
                                    GFBuffer& wrap) -> bool {
   const auto key_path =
       session_->Accessor().PathOf(ProfileArea::kSecure, kProfileRootKeyName);
+
+  // A temporary profile has no secret at all. Its key is made fresh, held only
+  // in this process's memory, and destroyed with it, so there is nothing to
+  // ask for and nothing that could be kept anywhere to resolve one from.
+  if (profile_->Kind() == ProfileKind::kEPHEMERAL) return true;
 
   // A packaged profile has exactly one secret. The passphrase that opened the
   // package is also what seals the key inside it, so there is nothing to ask

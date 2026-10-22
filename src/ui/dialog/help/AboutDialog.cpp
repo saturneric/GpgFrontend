@@ -507,10 +507,10 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   profile_rows.append(
       {.caption = tr("Profile ID:"), .value = profile.Id(), .path = true});
 
-  // Only for a session opened from a package, because only there was there a
-  // choice to make. DescribeSessionStorage() carries the wording and decides
-  // which outcome counts as a fallback.
-  if (profile.Kind() == ProfileKind::kPACKAGED) {
+  // Only for a transient session, because only there was there a choice to
+  // make. DescribeSessionStorage() carries the wording and decides which
+  // outcome counts as a fallback.
+  if (profile.IsTransient()) {
     const auto& storage = session.Accessor();
     const auto session_storage = DescribeSessionStorage(
         storage.IsVolatile(), storage.IsEncryptedAtRest());

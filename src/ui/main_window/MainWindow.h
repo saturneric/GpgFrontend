@@ -670,6 +670,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* open_profile_act_{};
   QAction* open_package_act_{};
   QAction* new_profile_act_{};
+  QAction* new_temp_profile_act_{};
   QAction* import_profile_act_{};
   QAction* export_profile_act_{};
 

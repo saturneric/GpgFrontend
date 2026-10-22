@@ -28,6 +28,7 @@
 
 #include "ui/dialog/profile/ProfileCreateDialog.h"
 
+#include "core/function/SettingCatalog.h"
 #include "core/profile/Profile.h"
 
 namespace GpgFrontend::UI {
@@ -50,11 +51,30 @@ auto MakeHintLabel(const QString& text, QWidget* parent) -> QLabel* {
   label->setWordWrap(true);
   label->setStyleSheet("color: gray;");
 
+  // Minimum, not MinimumExpanding: the dialog restores a remembered size, and
+  // an expanding label soaks up every pixel of it as blank space between the
+  // text and the control it explains.
   auto policy = label->sizePolicy();
   policy.setHeightForWidth(true);
-  policy.setVerticalPolicy(QSizePolicy::MinimumExpanding);
+  policy.setVerticalPolicy(QSizePolicy::Minimum);
   label->setSizePolicy(policy);
   return label;
+}
+
+/**
+ * @brief What a group covers, for its tooltip.
+ *
+ * Straight from the catalog, so the list cannot drift from what is actually
+ * copied.
+ */
+auto DescribeGroup(SettingGroup group) -> QString {
+  QStringList titles;
+  for (const auto* meta : SettingsInGroup(group)) {
+    if (SettingInheritedByNewProfile(QLatin1String(meta->key))) {
+      titles << meta->Title();
+    }
+  }
+  return titles.join("\n");
 }
 
 }  // namespace
@@ -114,6 +134,43 @@ void ProfileCreateDialog::init_ui() {
   keyring_layout->addWidget(system_hint);
   layout->addWidget(keyring);
 
+  auto* settings = new QGroupBox(tr("Settings"), this);
+  auto* settings_layout = new QVBoxLayout(settings);
+
+  inherit_settings_ =
+      new QCheckBox(tr("Start with this window's settings"), settings);
+  inherit_settings_->setChecked(true);
+  settings_layout->addWidget(inherit_settings_);
+
+  // One box per group the catalog says a new profile may start with, so a
+  // group added there appears here without anyone remembering to.
+  auto* groups_layout = new QVBoxLayout();
+  groups_layout->setContentsMargins(24, 0, 0, 0);
+  groups_layout->setSpacing(2);
+  for (const auto group : InheritableSettingGroups()) {
+    auto* box = new QCheckBox(SettingGroupTitle(group), settings);
+    box->setChecked(true);
+    box->setToolTip(DescribeGroup(group));
+    groups_layout->addWidget(box);
+    group_boxes_.append({group, box});
+  }
+  settings_layout->addLayout(groups_layout);
+
+  settings_layout->addWidget(MakeHintLabel(
+      tr("Keys, key databases, the workspace folder, key protection and proxy "
+         "credentials are never copied. Hover over a group to see what it "
+         "covers."),
+      settings));
+  layout->addWidget(settings);
+
+  connect(inherit_settings_, &QCheckBox::toggled, this, [this](bool on) {
+    for (const auto& entry : group_boxes_) entry.second->setEnabled(on);
+  });
+
+  // Whatever height the remembered geometry gives beyond what is needed goes
+  // here, below everything, rather than between a label and its control.
+  layout->addStretch(1);
+
   buttons_ = new QDialogButtonBox(
       QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
   layout->addWidget(buttons_);
@@ -146,6 +203,16 @@ auto ProfileCreateDialog::DisplayName() const -> QString {
 
 auto ProfileCreateDialog::SelfContained() const -> bool {
   return own_keyring_->isChecked();
+}
+
+auto ProfileCreateDialog::InheritedGroups() const -> QList<SettingGroup> {
+  QList<SettingGroup> groups;
+  if (!inherit_settings_->isChecked()) return groups;
+
+  for (const auto& [group, box] : group_boxes_) {
+    if (box->isChecked()) groups.append(group);
+  }
+  return groups;
 }
 
 }  // namespace GpgFrontend::UI

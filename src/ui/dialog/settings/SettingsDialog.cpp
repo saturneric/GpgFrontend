@@ -41,6 +41,7 @@
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/dialog/settings/SettingsPageOrder.h"
 #include "ui/dialog/settings/SettingsRpgp.h"
+#include "ui/function/ProfileController.h"
 #include "ui/lua/LuaMounts.h"
 #include "ui/main_window/MainWindow.h"
 
@@ -467,6 +468,19 @@ void SettingsDialog::revert_all_tabs() {
 }
 
 void SettingsDialog::SlotAccept() {
+  // A temporary profile does not outlive its process, and a deep restart is a
+  // new process -- so applying would quietly destroy everything in it. Refused
+  // before anything is written, for the same reason the question below is.
+  if (restart_mode_ >= kDeepRestartCode && IsTemporaryProfileSession()) {
+    ShowTemporaryProfileRestartRefusal(this, restart_pages_);
+#ifndef Q_OS_MACOS
+    return;
+#else
+    // Already closing; see below. Nothing that needs the restart is kept.
+    revert_all_tabs();
+#endif
+  }
+
   // Ask before anything is written. Tabs declare their restart while the user
   // edits, so the answer is already known here -- which is what makes a clean
   // "cancel discards everything" possible.

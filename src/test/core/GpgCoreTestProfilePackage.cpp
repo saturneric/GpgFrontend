@@ -2408,4 +2408,79 @@ TEST(ProfileMeasureTest, CountsTheSettingsFileInsideTheAreaExactlyOnce) {
             QFileInfo(ini).size());
 }
 
+// --------------------------------------------------------- temporary profile
+
+TEST(EphemeralProfileTest, StartsEmptyInSessionStorageAndLeavesNothingBehind) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  EphemeralProfile temporary(dir.path());
+  const auto mounted = temporary.Mount({{}, 3});
+  ASSERT_TRUE(mounted.Ok()) << mounted.detail.toStdString();
+  ASSERT_FALSE(temporary.Root().isEmpty());
+
+  // The same storage a package would get: not in the profiles folder, and with
+  // an anchor that knows where it went.
+  EXPECT_FALSE(temporary.Root().startsWith(dir.path() + "/."));
+  EXPECT_FALSE(ReadSessionPointer(temporary.LockRoot()).isEmpty());
+  std::cerr << "  session storage: " << temporary.Root().toStdString()
+            << std::endl;
+
+  // A profile from nothing: the marker is the whole of it, and says what it is.
+  const auto marker = ReadProfileMarker(temporary.MarkerPath());
+  ASSERT_TRUE(marker.has_value());
+  EXPECT_EQ(marker->kind, QString("ephemeral"));
+  EXPECT_TRUE(marker->self_contained);
+  EXPECT_EQ(marker->profile_id, temporary.Id());
+
+  auto storage = temporary.MakeAccessor();
+  ASSERT_FALSE(storage.isNull());
+  EXPECT_TRUE(storage->IsAreaResident(ProfileArea::kSecure));
+
+  const auto session_root = temporary.Root();
+  temporary.Unmount(ProfileUnmountMode::kNORMAL);
+  EXPECT_FALSE(QFileInfo::exists(session_root));
+}
+
+TEST(EphemeralProfileTest, StartsWithTheSettingsItInherited) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  // Filtered at construction too, so nothing reaches the profile that the
+  // allow-list would not let through -- however the map was built.
+  EphemeralProfile temporary(dir.path(),
+                             {{"basic/default_engine", "RPGP"},
+                              {"workspace/path", "/home/x/real-workspace"}});
+  EXPECT_EQ(temporary.InheritedSettings().keys(),
+            QStringList({"basic/default_engine"}));
+
+  ASSERT_TRUE(temporary.Mount({{}, 3}).Ok());
+
+  auto settings = temporary.MakeAccessor()->Settings();
+  EXPECT_EQ(settings.value("basic/default_engine").toString(), "RPGP");
+  EXPECT_FALSE(settings.contains("workspace/path"));
+
+  temporary.Unmount(ProfileUnmountMode::kNORMAL);
+}
+
+TEST(EphemeralProfileTest, ACrashedTemporaryProfileIsSwept) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  // Kept alive and never unmounted: that is what dying mid-session means, and
+  // the driver would otherwise destroy its tree in its own destructor.
+  EphemeralProfile crashed(dir.path());
+  ASSERT_TRUE(crashed.Mount({{}, 3}).Ok());
+  const auto crashed_root = crashed.Root();
+  const auto crashed_anchor = crashed.LockRoot();
+  ASSERT_TRUE(QFileInfo::exists(crashed_root));
+
+  // The next session's sweep finds it by its anchor alone.
+  EphemeralProfile next(dir.path());
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), next.LockRoot()), 1);
+
+  EXPECT_FALSE(QFileInfo::exists(crashed_root));
+  EXPECT_FALSE(QFileInfo::exists(crashed_anchor));
+}
+
 }  // namespace GpgFrontend::Test

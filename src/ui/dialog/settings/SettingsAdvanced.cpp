@@ -399,6 +399,21 @@ void AdvancedTab::configure_protection_items() {
     return;
   }
 
+  // A temporary profile's key is made fresh, held only in memory and destroyed
+  // with the window, so there is nothing on disk for any of these to protect.
+  if (profile.Kind() == ProfileKind::kEPHEMERAL) {
+    const auto reason =
+        tr("This is a temporary profile. Its key is held in memory only and "
+           "is destroyed when the window closes, so there is nothing to "
+           "protect.");
+
+    protection_combo_->setEnabled(false);
+    protection_combo_->setToolTip(WrappingToolTip(reason));
+    change_pin_button_->setEnabled(false);
+    change_pin_button_->setToolTip(WrappingToolTip(reason));
+    return;
+  }
+
   if (!profile.AllowsSystemKeychain()) {
     set_item(
         AppKeyProtection::kKEYCHAIN, false,

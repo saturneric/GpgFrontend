@@ -132,6 +132,15 @@ TEST(AboutStatusInfoTest, OnlyATransientSessionIsCalledTemporary) {
   EXPECT_TRUE(kept.at(1).detail.isEmpty());
 }
 
+TEST(AboutStatusInfoTest, ATemporaryProfileSaysItWillBeDestroyed) {
+  const auto rows =
+      BuildProfileIdentityRows(ProfileKind::kEPHEMERAL, "Temporary", true);
+
+  ASSERT_EQ(rows.size(), 2);
+  EXPECT_FALSE(rows.at(1).value.isEmpty());
+  EXPECT_FALSE(rows.at(1).detail.isEmpty());
+}
+
 TEST(AboutStatusInfoTest, AForcedProtectionSaysWhyItWasForced) {
   // The settings page greys the keychain out for anything that travels and does
   // not explain itself; this row is where that explanation lives.

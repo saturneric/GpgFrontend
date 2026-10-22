@@ -184,6 +184,19 @@ TEST(StatusIndicatorInfoTest, AFallbackIsNeverDescribedAsMemory) {
   EXPECT_FALSE(info.tooltip.contains("memory"));
 }
 
+TEST(StatusIndicatorInfoTest, ATemporaryProfileNamesItsStorage) {
+  // The same choice a package's storage made, so the same honesty about it.
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kEPHEMERAL, "Temporary", "/run/user/1000/gf-abcd", QString(),
+      true, "memory only; not written to your disk", true);
+
+  // Its name already says it is temporary; no "(temporary)" on top.
+  EXPECT_EQ(info.value, "Temporary");
+  EXPECT_TRUE(info.tooltip.contains("memory only"));
+  EXPECT_TRUE(info.tooltip.contains("destroyed"));
+  EXPECT_TRUE(info.tooltip.contains("/run/user/1000/gf-abcd"));
+}
+
 TEST(StatusIndicatorInfoTest, AnOrdinaryProfileSaysNothingAboutStorage) {
   // A profile that is simply kept here has no such question to answer, and a
   // line about storage would only invite one.

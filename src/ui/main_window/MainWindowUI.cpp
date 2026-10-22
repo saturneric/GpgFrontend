@@ -134,6 +134,13 @@ void MainWindow::create_actions() {
     connect(new_profile_act_, &QAction::triggered, this,
             [this]() { CreateProfileInteractive(this); });
 
+    new_temp_profile_act_ = create_action(
+        "new_temp_profile", tr("New Temporary Profile"), {},
+        tr("Start an empty, throwaway profile in a new window. Everything in "
+           "it is destroyed when that window closes."));
+    connect(new_temp_profile_act_, &QAction::triggered, this,
+            [this]() { OpenTemporaryProfileInteractive(this); });
+
     /* Profile Menu — a profile file, worked in directly */
     //
     // The counterpart of opening a document: the file *is* the profile for as
@@ -531,6 +538,7 @@ void MainWindow::create_menus() {
             &MainWindow::slot_refresh_recent_profiles);
 
     profile_menu_->addAction(new_profile_act_);
+    profile_menu_->addAction(new_temp_profile_act_);
 
     profile_menu_->addSeparator();
     profile_menu_->addAction(open_package_act_);

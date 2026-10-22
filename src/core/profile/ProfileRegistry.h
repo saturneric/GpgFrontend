@@ -164,12 +164,34 @@ auto GF_CORE_EXPORT MintProfileDirectoryId(const QString &profiles_root)
  * @param id profile id, already sanitised
  * @param display_name free-form name
  * @param self_contained whether the profile keeps its own keyring
+ * @param inherited settings to start with, from the window that made it;
+ * anything SettingInheritedByNewProfile() refuses is dropped
  * @return the outcome
  */
 auto GF_CORE_EXPORT CreateProfile(const QString &profiles_root,
                                   const QString &id,
                                   const QString &display_name,
-                                  bool self_contained) -> ProfileCreateResult;
+                                  bool self_contained,
+                                  const QMap<QString, QVariant> &inherited = {})
+    -> ProfileCreateResult;
+
+/**
+ * @brief The marker a brand new, empty profile starts with.
+ *
+ * Enough for the scan to recognise the directory as a profile, and for the
+ * policy to be in effect on the very first start. Shared by every path that
+ * makes a profile from nothing, so they cannot drift apart.
+ *
+ * @param id profile id, which is also its uuid
+ * @param display_name free-form name; the id when empty
+ * @param kind the shape being created
+ * @param self_contained whether the profile keeps its own keyring
+ * @return the marker, ready to write
+ */
+auto GF_CORE_EXPORT NewProfileMarker(const QString &id,
+                                     const QString &display_name,
+                                     ProfileKind kind, bool self_contained)
+    -> ProfileMarker;
 
 /**
  * @brief Delete a profile directory.

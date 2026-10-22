@@ -89,6 +89,11 @@ auto main(int argc, char* argv[]) -> int {
       // exactly what it decides. Registering it here just stops
       // parser.process() rejecting it as unknown.
       {{{}, "profile"}, "open the named local profile", "id"},
+      {{{}, "temp-profile"},
+       "open an empty profile that is destroyed when its window closes"},
+      {{{}, "temp-profile-settings"},
+       "settings the temporary profile starts with (written by the launcher)",
+       "token"},
   });
   parser.addPositionalArgument("file", "a .gfp package to open", "[file]");
 

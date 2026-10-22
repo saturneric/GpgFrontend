@@ -124,6 +124,34 @@ TEST_F(ProfileRegistryDiskTest, PortableIsListedOnlyWhenThereIsOne) {
   EXPECT_EQ(portable->kind, ProfileKind::kPORTABLE_ROOT);
 }
 
+TEST_F(ProfileRegistryDiskTest, ANewProfileStartsWithTheInheritedSettings) {
+  // What the profile manager hands over when "Start with this window's
+  // settings" is ticked -- including two keys it never would, which must not
+  // reach the new profile however they got here.
+  const QMap<QString, QVariant> inherited = {
+      {"basic/default_engine", "RPGP"},
+      {"appearance/theme", "Fusion"},
+      {"workspace/path", "/home/x/real-workspace"},
+      {"advanced/app_key_protection", "keychain"},
+  };
+
+  const auto created = CreateProfile(profiles_root_, "work", "Work",
+                                     /*self_contained=*/true, inherited);
+  ASSERT_TRUE(created.Ok()) << created.detail.toStdString();
+
+  QSettings settings(profiles_root_ + "/work/config/config.ini",
+                     QSettings::IniFormat);
+  EXPECT_EQ(settings.value("basic/default_engine").toString(), "RPGP");
+  EXPECT_EQ(settings.value("appearance/theme").toString(), "Fusion");
+  EXPECT_FALSE(settings.contains("workspace/path"));
+  EXPECT_FALSE(settings.contains("advanced/app_key_protection"));
+}
+
+TEST_F(ProfileRegistryDiskTest, ANewProfileWithoutInheritanceHasNoSettings) {
+  ASSERT_TRUE(CreateProfile(profiles_root_, "work", "W", false).Ok());
+  EXPECT_FALSE(QFileInfo::exists(profiles_root_ + "/work/config/config.ini"));
+}
+
 TEST_F(ProfileRegistryDiskTest, CreateThenLoadThenDelete) {
   const auto created = CreateProfile(profiles_root_, "work", "Work",
                                      /*self_contained=*/true);

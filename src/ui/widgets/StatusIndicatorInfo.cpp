@@ -75,27 +75,38 @@ auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
       "GpgFrontend::UI::StatusIndicatorInfo", "Profile");
 
   const auto packaged = kind == ProfileKind::kPACKAGED;
+  const auto temporary = kind == ProfileKind::kEPHEMERAL;
 
+  // A temporary profile's name already says it is one.
   info.value =
       packaged ? QCoreApplication::translate(
                      "GpgFrontend::UI::StatusIndicatorInfo", "%1 (temporary)")
                      .arg(display_name)
                : display_name;
 
+  QString summary;
+  if (packaged) {
+    summary = QCoreApplication::translate(
+        "GpgFrontend::UI::StatusIndicatorInfo",
+        "Opened from a file, and not kept on this computer. Closing asks "
+        "whether to save the changes back into it.");
+  } else if (temporary) {
+    summary = QCoreApplication::translate(
+        "GpgFrontend::UI::StatusIndicatorInfo",
+        "Not kept on this computer. Everything in it is destroyed when this "
+        "window closes.");
+  } else {
+    summary = QCoreApplication::translate(
+        "GpgFrontend::UI::StatusIndicatorInfo",
+        "This window's profile — its own settings, keys and saved state");
+  }
+
   info.tooltip = JoinTooltip(
-      {packaged ? QCoreApplication::translate(
-                      "GpgFrontend::UI::StatusIndicatorInfo",
-                      "Opened from a file, and not kept on this computer. "
-                      "Closing asks whether to save the changes back into it.")
-                : QCoreApplication::translate(
-                      "GpgFrontend::UI::StatusIndicatorInfo",
-                      "This window's profile — its own settings, keys and "
-                      "saved state"),
-       QDir::toNativeSeparators(packaged ? package_path : root_path),
-       // Only for a packaged session, and only ever the storage's own words: a
-       // session that fell back from memory to an ordinary folder must not be
+      {summary, QDir::toNativeSeparators(packaged ? package_path : root_path),
+       // Only for a session, and only ever the storage's own words: a session
+       // that fell back from memory to an ordinary folder must not be
        // described as though it had not.
-       packaged && !storage_label.isEmpty()
+       (packaged || temporary) && !storage_label.isEmpty()
            ? QCoreApplication::translate("GpgFrontend::UI::StatusIndicatorInfo",
                                          "Kept in %1.")
                      .arg(storage_label) +

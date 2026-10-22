@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/SettingItem.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class QLineEdit;
@@ -66,6 +67,10 @@ class ProfileCreateDialog : public GeneralDialog {
   /// Whether the profile keeps its own keyring rather than the system one.
   [[nodiscard]] auto SelfContained() const -> bool;
 
+  /// The setting groups the profile starts with from this window; empty when
+  /// it starts from the defaults.
+  [[nodiscard]] auto InheritedGroups() const -> QList<SettingGroup>;
+
  private slots:
   void slot_name_changed();
   void slot_accept();
@@ -74,6 +79,8 @@ class ProfileCreateDialog : public GeneralDialog {
   QLineEdit* name_edit_{};
   QRadioButton* own_keyring_{};
   QRadioButton* system_keyring_{};
+  QCheckBox* inherit_settings_{};
+  QList<std::pair<SettingGroup, QCheckBox*>> group_boxes_;
   QDialogButtonBox* buttons_{};
 
   void init_ui();

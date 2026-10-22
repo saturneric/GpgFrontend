@@ -60,6 +60,7 @@ TEST(ProfileKindsTest, OnlyProfilesThatStayHereMayUseTheKeychain) {
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).AllowsSystemKeychain());
   EXPECT_FALSE(
       PackagedProfile("/tmp/work.gfp", "/srv/profiles").AllowsSystemKeychain());
+  EXPECT_FALSE(EphemeralProfile("/srv/profiles").AllowsSystemKeychain());
 }
 
 // -------------------------------------------------------------- key rotation
@@ -69,6 +70,7 @@ TEST(ProfileKindsTest, APackagedProfileNeverRotatesItsKey) {
   // way out, taking everything it had encrypted with it.
   EXPECT_FALSE(
       PackagedProfile("/tmp/work.gfp", "/srv/profiles").AllowsKeyRotation());
+  EXPECT_FALSE(EphemeralProfile("/srv/profiles").AllowsKeyRotation());
 
   EXPECT_TRUE(InstalledRootProfile(kInstalledRoot).AllowsKeyRotation());
   EXPECT_TRUE(PortableRootProfile(kPortableRoot).AllowsKeyRotation());
@@ -117,12 +119,14 @@ TEST(ProfileKindsTest, OnlyAPersistedProfileBelongsInTheRegistry) {
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).IsRegistrable());
   EXPECT_FALSE(
       PackagedProfile("/tmp/work.gfp", "/srv/profiles").IsRegistrable());
+  EXPECT_FALSE(EphemeralProfile("/srv/profiles").IsRegistrable());
 }
 
 // ---------------------------------------------------------- disposable trees
 
-TEST(ProfileKindsTest, OnlyAPackagedProfileIsTransient) {
+TEST(ProfileKindsTest, OnlySessionProfilesAreTransient) {
   EXPECT_TRUE(PackagedProfile("/tmp/work.gfp", "/srv/profiles").IsTransient());
+  EXPECT_TRUE(EphemeralProfile("/srv/profiles").IsTransient());
 
   EXPECT_FALSE(InstalledRootProfile(kInstalledRoot).IsTransient());
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).IsTransient());
@@ -141,6 +145,10 @@ TEST(ProfileKindsTest, EachShapeKnowsWhatReopensItInANewProcess) {
 
   EXPECT_EQ(PackagedProfile("/tmp/work.gfp", "/srv/profiles").LaunchArguments(),
             QStringList({"/tmp/work.gfp"}));
+
+  // Nothing names a temporary profile, so reopening one makes another.
+  EXPECT_EQ(EphemeralProfile("/srv/profiles").LaunchArguments(),
+            QStringList({kTemporaryProfileOption}));
 
   // The two implicit profiles are what the resolver picks when nothing is
   // named, so naming them would only pin a decision that is already made.
@@ -211,6 +219,40 @@ TEST(ProfileKindsTest, EverySelectionProducesTheMatchingProfile) {
   // anything is extracted — which is what lets the loader lock it first.
   EXPECT_EQ(packaged->LockRoot(), ProfileSessionRoot(selection.profiles_root,
                                                      selection.package_path));
+
+  selection.kind = ProfileKind::kEPHEMERAL;
+  const auto temporary = MakeProfile(selection);
+  EXPECT_EQ(temporary->Kind(), ProfileKind::kEPHEMERAL);
+  // Locked inside the profiles root like a package, behind a dot so the
+  // registry scan never lists it.
+  EXPECT_TRUE(temporary->LockRoot().startsWith(selection.profiles_root + "/."));
+}
+
+// ------------------------------------------------------- temporary profiles
+
+TEST(ProfileKindsTest, ATemporaryProfileIsAlwaysSelfContained) {
+  // A throwaway profile that reached for the user's real keyring would leave
+  // its changes there after the window had gone -- whatever a marker says.
+  EphemeralProfile temporary("/srv/profiles");
+  EXPECT_TRUE(temporary.Policy().self_contained);
+
+  ProfileMarker marker;
+  marker.self_contained = false;
+  temporary.ApplyMarkerPolicy(marker);
+  EXPECT_TRUE(temporary.Policy().self_contained);
+}
+
+TEST(ProfileKindsTest, EveryTemporaryProfileIsANewOne) {
+  // Nothing identifies one but its anchor, so two launches must never meet.
+  EphemeralProfile first("/srv/profiles");
+  EphemeralProfile second("/srv/profiles");
+
+  EXPECT_NE(first.LockRoot(), second.LockRoot());
+  EXPECT_NE(first.Id(), second.Id());
+  EXPECT_TRUE(first.Id().startsWith("."));
+
+  // No storage until it is mounted, exactly like a package.
+  EXPECT_TRUE(first.Root().isEmpty());
 }
 
 TEST(ProfileKindsTest, EveryProfileLocksWhereItIsStoredExceptAPackage) {
