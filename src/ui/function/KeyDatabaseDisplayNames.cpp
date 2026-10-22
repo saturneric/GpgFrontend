@@ -66,4 +66,19 @@ auto KeyDatabaseTravelsWithProfile(const QString& path,
   return IsManagedKeyDatabasePath(relative.mid(prefix.size()));
 }
 
+auto KeyDatabaseDisplayPath(const QString& path, const QString& profile_root)
+    -> QString {
+  if (path.isEmpty() || profile_root.isEmpty()) {
+    return QDir::toNativeSeparators(path);
+  }
+  return QDir::toNativeSeparators(
+      ToProfileRelativeKeyDatabasePath(path, profile_root));
+}
+
+auto KeyDatabaseDisplayId(const QString& id) -> QString {
+  if (id.isEmpty()) return QStringLiteral("\u2013");
+  const auto group = id.indexOf('-');
+  return group > 0 ? id.left(group) : id;
+}
+
 }  // namespace GpgFrontend::UI

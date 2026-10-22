@@ -29,12 +29,14 @@
 #include "KeyDetailsDialog.h"
 
 #include "core/function/gpg/GpgAttributeHelper.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/keypair_details/KeyPairDetailTab.h"
 #include "ui/dialog/keypair_details/KeyPairOperaTab.h"
 #include "ui/dialog/keypair_details/KeyPairPhotosTab.h"
 #include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
 #include "ui/dialog/keypair_details/KeyPairUIDTab.h"
+#include "ui/function/KeyDatabaseDisplayNames.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
 namespace {
@@ -52,7 +54,11 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
   // the database again, or say it is gone.
   KeepBoundToKeyDatabase(
       this, [this]() { return current_gpg_context_channel_; },
-      [this](int channel) { current_gpg_context_channel_ = channel; });
+      [this](int channel) {
+        current_gpg_context_channel_ = channel;
+        // Followed through a rename too, which keeps the id but not the name.
+        update_title();
+      });
 
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(
@@ -102,8 +108,7 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
 
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setLayout(main_layout);
-  this->setWindowTitle(QString(tr("Key Details") + " (Key DB Index: %1)")
-                           .arg(current_gpg_context_channel_));
+  update_title();
   this->setModal(true);
 
   // Commit the size before the native window is mapped. Relying on the size
@@ -118,4 +123,21 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
   this->raise();
   this->activateWindow();
 }
+
+void KeyDetailsDialog::update_title() {
+  const auto info = LookupChannelHandle(current_gpg_context_channel_);
+
+  // A context built outside any Runtime (a test, say) has no name or id to
+  // show, and the title is then just what the dialog is.
+  if (info.name.isEmpty()) {
+    setWindowTitle(tr("Key Details"));
+    return;
+  }
+
+  setWindowTitle(QString("%1 (%2  ·  %3)")
+                     .arg(tr("Key Details"))
+                     .arg(info.name)
+                     .arg(KeyDatabaseDisplayId(info.database_id)));
+}
+
 }  // namespace GpgFrontend::UI

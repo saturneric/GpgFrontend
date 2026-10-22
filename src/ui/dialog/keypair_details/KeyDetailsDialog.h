@@ -44,5 +44,14 @@ class KeyDetailsDialog : public GeneralDialog {
  private:
   QTabWidget* tab_widget_{};
   int current_gpg_context_channel_;
+
+  /**
+   * @brief Name the key database in the title, by name and id.
+   *
+   * Not by channel: the channel is only where this run opened the database
+   * and changes with every apply, while the name and id are what the user
+   * sees in the key list and the settings.
+   */
+  void update_title();
 };
 }  // namespace GpgFrontend::UI

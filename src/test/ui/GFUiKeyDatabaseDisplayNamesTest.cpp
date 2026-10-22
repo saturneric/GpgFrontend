@@ -35,6 +35,8 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+using UI::KeyDatabaseDisplayId;
+using UI::KeyDatabaseDisplayPath;
 using UI::KeyDatabaseKindDisplayName;
 using UI::KeyDatabaseTravelsWithProfile;
 
@@ -98,6 +100,28 @@ TEST(KeyDatabaseDisplayNamesTest, AnythingOutsideTheProfileStaysBehind) {
   EXPECT_FALSE(KeyDatabaseTravelsWithProfile("/home/someone/.gnupg", kRoot));
   EXPECT_FALSE(KeyDatabaseTravelsWithProfile({}, kRoot));
   EXPECT_FALSE(KeyDatabaseTravelsWithProfile("@profile/db", {}));
+}
+
+TEST(KeyDatabaseDisplayNamesTest, AFolderInTheProfileIsShownByItsToken) {
+  // The absolute form is this computer's profile location: long, nothing the
+  // user chose, and different once the profile moves.
+  EXPECT_EQ(KeyDatabaseDisplayPath(QString("%1/dbs/Work").arg(kRoot), kRoot),
+            QDir::toNativeSeparators("@profile/dbs/Work"));
+  EXPECT_EQ(KeyDatabaseDisplayPath("@profile/dbs/Work", kRoot),
+            QDir::toNativeSeparators("@profile/dbs/Work"));
+}
+
+TEST(KeyDatabaseDisplayNamesTest, AFolderOutsideTheProfileIsShownAsItIs) {
+  EXPECT_EQ(KeyDatabaseDisplayPath("/home/someone/.gnupg", kRoot),
+            QDir::toNativeSeparators("/home/someone/.gnupg"));
+  EXPECT_TRUE(KeyDatabaseDisplayPath({}, kRoot).isEmpty());
+}
+
+TEST(KeyDatabaseDisplayNamesTest, AnIdIsShortenedToItsFirstGroup) {
+  EXPECT_EQ(KeyDatabaseDisplayId("3f2a9c1e-5b7d-4e8f-9a0b-1c2d3e4f5a6b"),
+            "3f2a9c1e");
+  EXPECT_EQ(KeyDatabaseDisplayId("default"), "default");
+  EXPECT_EQ(KeyDatabaseDisplayId({}), QStringLiteral("\u2013"));
 }
 
 }  // namespace GpgFrontend::Test

@@ -35,6 +35,7 @@
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/function/KeyDatabaseDisplayNames.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/widgets/KeyTreeView.h"
 
@@ -154,8 +155,9 @@ MoveKeyToCardPicker::MoveKeyToCardPicker(QWidget* parent)
   auto* db_label = new QLabel(tr("Database") + ": ");
   db_combo_ = new QComboBox(this);
   for (const auto& db : databases) {
-    db_combo_->addItem(QString("%1: %2").arg(db.channel).arg(db.name),
-                       db.channel);
+    db_combo_->addItem(
+        QString("%1  ·  %2").arg(db.name).arg(KeyDatabaseDisplayId(db.id)),
+        db.channel);
   }
   const auto current_db = db_combo_->findData(channel_);
   if (current_db >= 0) db_combo_->setCurrentIndex(current_db);

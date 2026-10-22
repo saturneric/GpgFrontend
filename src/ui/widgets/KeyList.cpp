@@ -77,7 +77,7 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
 
   auto text = QString("<b>%1</b>").arg(info.name.toHtmlEscaped());
 
-  // The kind gets a line to itself. Run together with the engine and channel it
+  // The kind gets a line to itself. Run together with the engine and id it
   // wrapped mid-phrase at the tooltip's own width, which broke the one sentence
   // here that has to be read rather than glanced at.
   text += QString("<br/>%1").arg(
@@ -85,13 +85,18 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
           kind, KeyDatabaseTravelsWithProfile(info.path, profile_root))
           .toHtmlEscaped());
 
+  // The id, not the channel: the channel is only where this run opened it,
+  // and changes whenever the key databases are applied.
   text += QString("<br/>%1 · %2")
               .arg(engine.toUpper().toHtmlEscaped(),
-                   QObject::tr("Channel %1").arg(info.channel));
+                   QObject::tr("ID %1")
+                       .arg(KeyDatabaseDisplayId(info.id))
+                       .toHtmlEscaped());
 
   if (!info.path.isEmpty()) {
     text += QString("<br/><span style=\"color:gray;\">%1</span>")
-                .arg(QDir::toNativeSeparators(info.path).toHtmlEscaped());
+                .arg(KeyDatabaseDisplayPath(info.path, profile_root)
+                         .toHtmlEscaped());
   }
   return text;
 }
@@ -668,7 +673,7 @@ void KeyList::init_context_menu() {
     auto* action = new QAction(QString("%1  ·  %2  ·  %3")
                                    .arg(key_db_name)
                                    .arg(engine.toUpper())
-                                   .arg(tr("Channel %1").arg(channel)),
+                                   .arg(KeyDatabaseDisplayId(key_db_info.id)),
                                gpg_context_menu);
 
     const auto tooltip = BuildKeyDatabaseToolTip(key_db_info, engine);

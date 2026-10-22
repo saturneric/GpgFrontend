@@ -34,6 +34,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "ui/function/KeyDatabaseDisplayNames.h"
 
 //
 #include "ui_KeyDatabaseEditDialog.h"
@@ -309,7 +310,11 @@ void KeyDatabaseEditDialog::update_path_display() {
     return;
   }
 
+  // Shown as `@profile/...` when it is in the profile, as the settings table
+  // shows it; the absolute form is this computer's profile location, which is
+  // long and nothing the user chose. It stays in the tooltip.
   const auto native = QDir::toNativeSeparators(path_);
+  const auto shown = KeyDatabaseDisplayPath(path_, GetGSS().GetAppDataPath());
 
   // Elided against the dialog's width rather than the label's own. The label's
   // width is the wrong thing to ask twice over: before the first layout it does
@@ -322,7 +327,7 @@ void KeyDatabaseEditDialog::update_path_display() {
   const auto available = std::max(width() - kPathLabelInset, 240);
 
   const QFontMetrics metrics(label->font());
-  label->setText(metrics.elidedText(native, Qt::ElideMiddle, available));
+  label->setText(metrics.elidedText(shown, Qt::ElideMiddle, available));
 
   // The whole path, for the cases the elision hid the interesting part of.
   label->setToolTip(native);

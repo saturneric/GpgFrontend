@@ -67,4 +67,33 @@ auto GF_UI_EXPORT KeyDatabaseTravelsWithProfile(const QString& path,
                                                 const QString& profile_root)
     -> bool;
 
+/**
+ * @brief A key database's folder as the user should read it.
+ *
+ * Inside the profile it is shown as `@profile/...`, the same spelling the
+ * settings keep for it: the absolute form names this computer's profile
+ * location, which is long, says nothing the user chose, and changes when the
+ * profile moves. Anything outside the profile is shown as it is.
+ *
+ * @param path the folder, absolute or `@profile/...`
+ * @param profile_root the root the path is read against
+ * @return the folder to show, with native separators
+ */
+auto GF_UI_EXPORT KeyDatabaseDisplayPath(const QString& path,
+                                         const QString& profile_root)
+    -> QString;
+
+/**
+ * @brief A key database's id, short enough to show beside its name.
+ *
+ * The id is what the database is across renames and reorders; the channel it
+ * happens to be open on changes with every apply, so it is not shown. A
+ * generated id is a UUID, of which the first group is plenty to tell a
+ * profile's databases apart; the full id goes in a tooltip.
+ *
+ * @param id the database's id
+ * @return the id to show, or a dash for a database that has none yet
+ */
+auto GF_UI_EXPORT KeyDatabaseDisplayId(const QString& id) -> QString;
+
 }  // namespace GpgFrontend::UI

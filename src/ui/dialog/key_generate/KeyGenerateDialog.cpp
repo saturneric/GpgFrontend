@@ -42,6 +42,7 @@
 #include "ui/function/KeyGenerateHelper.h"
 
 //
+#include "ui/function/KeyDatabaseDisplayNames.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_KeyGenDialog.h"
 
@@ -459,10 +460,12 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertOpenPGPEngine2String(
         OpenPGPContext::GetInstance(key_db.channel).Engine());
-    ui_->keyDBIndexComboBox->addItem(QString("[%2]: %3 (%1)")
-                                         .arg(bnd_type)
-                                         .arg(key_db.channel)
-                                         .arg(key_db.name),
+    // Labelled the way the key list's database menu is: the channel is only
+    // where this run opened the database, so the id is shown instead.
+    ui_->keyDBIndexComboBox->addItem(QString("%1  ·  %2  ·  %3")
+                                         .arg(key_db.name)
+                                         .arg(bnd_type.toUpper())
+                                         .arg(KeyDatabaseDisplayId(key_db.id)),
                                      key_db.channel);
   }
   const int key_db_combo_index = ui_->keyDBIndexComboBox->findData(channel);

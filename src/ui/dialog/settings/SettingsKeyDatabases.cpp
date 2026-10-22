@@ -37,6 +37,7 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyDatabaseEditDialog.h"
+#include "ui/function/KeyDatabaseDisplayNames.h"
 
 //
 #include "ui_KeyDatabasesSettings.h"
@@ -114,7 +115,7 @@ void SetUpKeyDatabaseTable(QTableWidget* table) {
   table->clear();
 
   QStringList column_titles;
-  column_titles << QObject::tr("Channel") << QObject::tr("Name")
+  column_titles << QObject::tr("ID") << QObject::tr("Name")
                 << QObject::tr("Engine") << QObject::tr("Status")
                 << QObject::tr("Folder");
   table->setColumnCount(static_cast<int>(column_titles.size()));
@@ -487,21 +488,19 @@ void KeyDatabasesTab::fill_table(
   for (int index = 0; index < key_databases.size(); index++) {
     const auto& key_db = key_databases[index];
 
-    // The channel the Runtime in use opened this database on. A new Runtime
-    // is built on channels no one has seen, so it is not the row's position,
-    // and a database not open yet -- just added, or failed -- has none to
-    // show.
+    // Whether the Runtime in use has this database open. Matched by id: the
+    // channel it is open on changes with every apply, which is also why the
+    // id rather than the channel is what the row shows.
     const auto active =
         std::find_if(active_key_db_infos_.begin(), active_key_db_infos_.end(),
                      [&key_db](const KeyDatabaseInfo& i) -> bool {
                        return !key_db.id.isEmpty() ? i.id == key_db.id
                                                    : i.name == key_db.name;
                      });
-    auto* i_channel = CreateTableItem(active != active_key_db_infos_.end()
-                                          ? QString::number(active->channel)
-                                          : QStringLiteral("\u2013"),
-                                      Qt::AlignCenter);
-    table->setItem(index, 0, i_channel);
+    auto* i_id =
+        CreateTableItem(KeyDatabaseDisplayId(key_db.id), Qt::AlignCenter);
+    i_id->setToolTip(key_db.id);
+    table->setItem(index, 0, i_id);
 
     table->setItem(
         index, 1,
@@ -522,9 +521,11 @@ void KeyDatabasesTab::fill_table(
     // readable. The short form is shown and the resolved one is the tooltip,
     // which is the order of interest: where it is in the profile first, where
     // it is on this disk when you ask.
-    auto* i_folder =
-        CreateTableItem(QDir::toNativeSeparators(key_db.origin_path),
-                        Qt::AlignLeft | Qt::AlignVCenter);
+    auto* i_folder = CreateTableItem(
+        KeyDatabaseDisplayPath(
+            key_db.origin_path.isEmpty() ? key_db.path : key_db.origin_path,
+            GlobalSettingStation::GetInstance().GetAppDataPath()),
+        Qt::AlignLeft | Qt::AlignVCenter);
     i_folder->setToolTip(
         key_db.path.isEmpty()
             ? tr("This folder could not be resolved on this computer.")
