@@ -1000,302 +1000,302 @@
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="74"/>
         <source>Default OpenPGP engine</source>
-        <translation type="unfinished"></translation>
+        <translation>Движок OpenPGP по умолчанию</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="83"/>
         <source>Use a custom GnuPG installation</source>
-        <translation type="unfinished"></translation>
+        <translation>Использовать пользовательскую установку GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="93"/>
         <source>Custom GnuPG installation</source>
-        <translation type="unfinished"></translation>
+        <translation>Пользовательская установка GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="103"/>
         <source>GPGME debug log</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладочный журнал GPGME</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="111"/>
         <source>Stop GnuPG daemons on exit</source>
-        <translation type="unfinished"></translation>
+        <translation>Останавливать демоны GnuPG при выходе</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="119"/>
         <source>Binary output for file operations</source>
-        <translation type="unfinished"></translation>
+        <translation>Двоичный вывод для файловых операций</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="128"/>
         <source>Keep GnuPG offline</source>
-        <translation type="unfinished"></translation>
+        <translation>Держать GnuPG в автономном режиме</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="135"/>
         <source>Forget cached passphrases on exit</source>
-        <translation type="unfinished"></translation>
+        <translation>Забывать кэшированные парольные фразы при выходе</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="146"/>
         <source>Passphrase cache time</source>
-        <translation type="unfinished"></translation>
+        <translation>Время кэширования парольной фразы</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="153"/>
         <source>Longest passphrase cache time</source>
-        <translation type="unfinished"></translation>
+        <translation>Максимальное время кэширования парольной фразы</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="161"/>
         <source>Passphrase prompt timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>Тайм-аут запроса парольной фразы</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="169"/>
         <source>Passphrase requester grace period</source>
-        <translation type="unfinished"></translation>
+        <translation>Льготный период запроса парольной фразы</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="177"/>
         <source>Argon2 key derivation strength</source>
-        <translation type="unfinished"></translation>
+        <translation>Стойкость формирования ключа Argon2</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="187"/>
         <source>Confirm before importing keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Подтверждать перед импортом ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="196"/>
         <source>Single recipient mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Режим одного получателя</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="203"/>
         <source>Confirm encrypting to several recipients</source>
-        <translation type="unfinished"></translation>
+        <translation>Подтверждать шифрование нескольким получателям</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="212"/>
         <source>Remember checked keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Запоминать отмеченные ключи</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="220"/>
         <source>Undoable operations</source>
-        <translation type="unfinished"></translation>
+        <translation>Отменяемые операции</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="227"/>
         <source>Restore text editor pages</source>
-        <translation type="unfinished"></translation>
+        <translation>Восстанавливать страницы текстового редактора</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="235"/>
         <source>Default workspace view</source>
-        <translation type="unfinished"></translation>
+        <translation>Вид рабочей области по умолчанию</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="243"/>
         <source>File panel starting folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Начальная папка панели файлов</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="252"/>
         <source>Show the file type column</source>
-        <translation type="unfinished"></translation>
+        <translation>Показывать столбец типа файла</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="260"/>
         <source>Days before a key counts as expiring soon</source>
-        <translation type="unfinished"></translation>
+        <translation>Дней до того, как ключ считается скоро истекающим</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="268"/>
         <source>Fetch missing keys automatically</source>
-        <translation type="unfinished"></translation>
+        <translation>Автоматически получать отсутствующие ключи</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="277"/>
         <source>Which modules to load</source>
-        <translation type="unfinished"></translation>
+        <translation>Какие модули загружать</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="287"/>
         <source>Language</source>
-        <translation type="unfinished">Язык</translation>
+        <translation>Язык</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
         <source>Theme</source>
-        <translation type="unfinished">Тема</translation>
+        <translation>Тема</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="303"/>
         <source>Show the first-run wizard</source>
-        <translation type="unfinished"></translation>
+        <translation>Показывать мастер первого запуска</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="313"/>
         <source>Log level</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень журналирования</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="322"/>
         <source>Log lines kept in memory</source>
-        <translation type="unfinished"></translation>
+        <translation>Строк журнала в памяти</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="333"/>
         <source>Secure level</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень безопасности</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="341"/>
         <source>Application key protection</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита ключа приложения</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="353"/>
         <source>System credential store (legacy)</source>
-        <translation type="unfinished"></translation>
+        <translation>Системное хранилище учётных данных (устаревшее)</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="363"/>
         <source>Where profile files are opened</source>
-        <translation type="unfinished"></translation>
+        <translation>Где открываются файлы профиля</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="373"/>
         <source>Never check for updates</source>
-        <translation type="unfinished"></translation>
+        <translation>Никогда не проверять обновления</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="380"/>
         <source>Use a proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Использовать прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="386"/>
         <source>Proxy type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="392"/>
         <source>Proxy host</source>
-        <translation type="unfinished"></translation>
+        <translation>Хост прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="398"/>
         <source>Proxy port</source>
-        <translation type="unfinished"></translation>
+        <translation>Порт прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="404"/>
         <source>Proxy user name</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя пользователя прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="411"/>
         <source>Proxy password</source>
-        <translation type="unfinished"></translation>
+        <translation>Пароль прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="420"/>
         <source>Workspace folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка рабочей области</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="539"/>
         <source>OpenPGP engine and GnuPG</source>
-        <translation type="unfinished"></translation>
+        <translation>Механизм OpenPGP и GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="542"/>
         <source>rPGP passphrase handling</source>
-        <translation type="unfinished"></translation>
+        <translation>Обработка парольной фразы rPGP</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="545"/>
         <source>Everyday behaviour</source>
-        <translation type="unfinished"></translation>
+        <translation>Повседневная работа</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="548"/>
         <source>Language and appearance</source>
-        <translation type="unfinished"></translation>
+        <translation>Язык и оформление</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="551"/>
         <source>Diagnostics</source>
-        <translation type="unfinished">Диагностика</translation>
+        <translation>Диагностика</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="554"/>
         <source>Key protection</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="557"/>
         <source>Network and proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Сеть и прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="560"/>
         <source>Workspace</source>
-        <translation type="unfinished">Рабочая область</translation>
+        <translation>Рабочая область</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="563"/>
         <source>Remembered layout</source>
-        <translation type="unfinished"></translation>
+        <translation>Запоминаемая раскладка</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="574"/>
         <source>Which engine runs, which GnuPG it uses, and how GnuPG behaves.</source>
-        <translation type="unfinished"></translation>
+        <translation>Какой движок работает, какой GnuPG он использует и как ведёт себя GnuPG.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="578"/>
         <source>How long passphrases are kept and how keys are derived.</source>
-        <translation type="unfinished"></translation>
+        <translation>Как долго хранятся парольные фразы и как выводятся ключи.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="582"/>
         <source>Confirmations, recipients, the editor and the file panel.</source>
-        <translation type="unfinished"></translation>
+        <translation>Подтверждения, получатели, редактор и панель файлов.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="586"/>
         <source>Language, theme and the first-run wizard.</source>
-        <translation type="unfinished"></translation>
+        <translation>Язык, тема и мастер первого запуска.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="590"/>
         <source>How much is written to the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сколько записывается в журнал.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="593"/>
         <source>How this profile&apos;s own key is protected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Как защищён собственный ключ этого профиля.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="597"/>
         <source>Update checks and the proxy.</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка обновлений и прокси.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="600"/>
         <source>Where files are kept.</source>
-        <translation type="unfinished"></translation>
+        <translation>Где хранятся файлы.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="603"/>
         <source>Remembered tab orders and column choices.</source>
-        <translation type="unfinished"></translation>
+        <translation>Запоминаемые порядок вкладок и набор столбцов.</translation>
     </message>
 </context>
 <context>
@@ -1743,12 +1743,12 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutStatusInfo.cpp" line="120"/>
         <source>Temporary</source>
-        <translation type="unfinished"></translation>
+        <translation>Временный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutStatusInfo.cpp" line="122"/>
         <source>Not kept on this computer. Everything in it is destroyed when this window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не хранится на этом компьютере. Всё содержимое уничтожается при закрытии этого окна.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutStatusInfo.cpp" line="131"/>
@@ -1986,7 +1986,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="406"/>
         <source>This is a temporary profile. Its key is held in memory only and is destroyed when the window closes, so there is nothing to protect.</source>
-        <translation type="unfinished"></translation>
+        <translation>Это временный профиль. Его ключ хранится только в памяти и уничтожается при закрытии окна, поэтому защищать нечего.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="421"/>
@@ -5218,7 +5218,7 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="654"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
-        <translation type="unfinished"></translation>
+        <translation>Одна база данных ключей на этой странице уже использует папку базы данных ключей по умолчанию на этом компьютере. Сначала удалите её, затем включите этот параметр.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="677"/>
@@ -5281,8 +5281,8 @@ Results will appear here as a summary document.</source>
     <message numerus="yes">
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="411"/>
         <source>%1: %n operation(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%1: %n операций</numerusform>
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
@@ -5290,12 +5290,12 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="476"/>
         <source>Always available on this computer, and always listed first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всегда доступна на этом компьютере и всегда отображается первой.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="477"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всегда отображается первым. Никогда не включается в пакет профиля: у того, кто откроет ваш профиль в другом месте, будет собственная.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="812"/>
@@ -6467,7 +6467,7 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1066"/>
         <source>The key database &quot;%1&quot; is no longer available; showing the default one.</source>
-        <translation type="unfinished"></translation>
+        <translation>База данных ключей &quot;%1&quot; больше недоступна; отображается база данных по умолчанию.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1374"/>
@@ -9587,12 +9587,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
         <source>New Temporary Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый временный профиль</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="139"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Запустить пустой одноразовый профиль в новом окне. Всё в нём уничтожается при закрытии этого окна.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="176"/>
@@ -11461,12 +11461,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="176"/>
         <source>Its own keys and settings, opened in a window of its own.</source>
-        <translation type="unfinished"></translation>
+        <translation>Собственные ключи и настройки, открываемые в отдельном окне.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="189"/>
         <source>Create Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать профиль</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="211"/>
@@ -11476,7 +11476,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="215"/>
         <source>Shown in the profile list and the status bar. You can change it later.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отображается в списке профилей и в строке состояния. Вы можете изменить его позже.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="219"/>
@@ -11486,17 +11486,17 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
         <source>Keys live inside this profile and can be exported with it as one file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключи хранятся внутри этого профиля и могут быть экспортированы вместе с ним в виде одного файла.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
         <source>Recommended</source>
-        <translation type="unfinished"></translation>
+        <translation>Рекомендуется</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="238"/>
         <source>Your existing keys, shared with the system. Not carried in a profile file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ваши существующие ключи, общие с системой. Не переносятся в файл профиля.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="254"/>
@@ -11506,17 +11506,17 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="266"/>
         <source>Start with this window&apos;s settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Начать с настроек этого окна</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="333"/>
         <source>Never copied: keys, key databases, the workspace folder, key protection and proxy credentials.</source>
-        <translation type="unfinished"></translation>
+        <translation>Никогда не копируются: ключи, базы данных ключей, папка рабочей области, защита ключей и учётные данные прокси.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="340"/>
         <source>Settings</source>
-        <translation type="unfinished">Настройки</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="232"/>
@@ -11718,7 +11718,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="120"/>
         <source>New Temporary</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать временный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="121"/>
@@ -11748,7 +11748,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="128"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Запустить пустой временный профиль в новом окне. Всё в нём уничтожается при закрытии этого окна.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="134"/>
@@ -12477,17 +12477,17 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="483"/>
         <source>Operations Still Running</source>
-        <translation type="unfinished"></translation>
+        <translation>Операции всё ещё выполняются</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="484"/>
         <source>Some key databases you changed or removed still have operations running:</source>
-        <translation type="unfinished"></translation>
+        <translation>В некоторых базах данных ключей, которые вы изменили или удалили, всё ещё выполняются операции:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="487"/>
         <source>They will finish against the key database as it was before. Apply the changes now?</source>
-        <translation type="unfinished"></translation>
+        <translation>Они завершатся с базой данных ключей в её прежнем состоянии. Применить изменения сейчас?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="591"/>
@@ -13201,7 +13201,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="94"/>
         <source>Not kept on this computer. Everything in it is destroyed when this window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не хранится на этом компьютере. Всё содержимое уничтожается при закрытии этого окна.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="99"/>
@@ -14050,22 +14050,22 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1013"/>
         <source>The key database &quot;%1&quot; was still in use, so its folder was not renamed. It keeps its previous name.</source>
-        <translation type="unfinished"></translation>
+        <translation>База данных ключей &quot;%1&quot; всё ещё использовалась, поэтому её папка не была переименована. Она сохраняет прежнее имя.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1031"/>
         <source>The folder of the key database &quot;%1&quot; could not be renamed. It keeps its previous name.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось переименовать папку базы данных ключей &quot;%1&quot;. Она сохраняет прежнее имя.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1122"/>
         <source>The default key database &quot;%1&quot; could not be opened.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть базу данных ключей по умолчанию &quot;%1&quot;.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1132"/>
         <source>No key database could be opened.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть ни одну базу данных ключей.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="74"/>
@@ -14664,7 +14664,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="118"/>
         <source>ID</source>
-        <translation type="unfinished"></translation>
+        <translation>ID</translation>
     </message>
     <message>
         <source>Channel</source>
@@ -15406,7 +15406,7 @@ The link has been copied to your clipboard:
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="357"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="372"/>
         <source>Temporary</source>
-        <translation type="unfinished"></translation>
+        <translation>Временный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="359"/>
@@ -15472,44 +15472,46 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="815"/>
         <source>Destroy Temporary Profile?</source>
-        <translation type="unfinished"></translation>
+        <translation>Уничтожить временный профиль?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="817"/>
         <source>Everything in this temporary profile will be destroyed: its keys, settings and files.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всё в этом временном профиле будет уничтожено: его ключи, настройки и файлы.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="820"/>
         <source>To keep it, choose Cancel and use Profiles &gt; Export This Profile first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Чтобы сохранить его, выберите «Отмена» и сначала воспользуйтесь «Профили &gt; Экспортировать этот профиль».</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="823"/>
         <source>Destroy and Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Уничтожить и закрыть</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="838"/>
         <source>Restart Not Possible</source>
-        <translation type="unfinished"></translation>
+        <translation>Перезапуск невозможен</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="840"/>
         <source>These changes need GpgFrontend to restart, and restarting would destroy this temporary profile.</source>
-        <translation type="unfinished"></translation>
+        <translation>Эти изменения требуют перезапуска GpgFrontend, а перезапуск уничтожит этот временный профиль.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="844"/>
         <source>They can&apos;t be applied in a temporary profile.</source>
-        <translation type="unfinished"></translation>
+        <translation>Их нельзя применить во временном профиле.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="845"/>
         <source>Pages with changes that need this: %1.
 
 Undo those changes, or choose Cancel to discard everything you changed in this dialog.</source>
-        <translation type="unfinished"></translation>
+        <translation>Страницы с изменениями, требующими этого: %1.
+
+Отмените эти изменения или выберите «Отмена», чтобы отменить всё, что вы изменили в этом диалоге.</translation>
     </message>
     <message>
         <source>Enter the passphrase to protect this file with:</source>
@@ -15787,47 +15789,47 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="190"/>
         <source>Key databases updated.</source>
-        <translation type="unfinished"></translation>
+        <translation>Базы данных ключей обновлены.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="196"/>
         <source>These key databases could not be opened: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть эти базы данных ключей: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="200"/>
         <source>The key databases in use are unchanged.</source>
-        <translation type="unfinished"></translation>
+        <translation>Используемые базы данных ключей не изменены.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="204"/>
         <source>Key databases updated, with problems.</source>
-        <translation type="unfinished"></translation>
+        <translation>Базы данных ключей обновлены с проблемами.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="205"/>
         <source>Key database changes were not applied.</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменения базы данных ключей не применены.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="208"/>
         <source>Key Database Changes</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменения базы данных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="227"/>
         <source>%1 (key database no longer available)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 (база данных ключей больше недоступна)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="242"/>
         <source>Applying key database changes...</source>
-        <translation type="unfinished"></translation>
+        <translation>Применение изменений базы данных ключей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="92"/>
         <source>ID %1</source>
-        <translation type="unfinished"></translation>
+        <translation>ID %1</translation>
     </message>
 </context>
 <context>

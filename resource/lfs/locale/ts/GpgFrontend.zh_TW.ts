@@ -996,302 +996,302 @@
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="74"/>
         <source>Default OpenPGP engine</source>
-        <translation type="unfinished"></translation>
+        <translation>預設 OpenPGP 引擎</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="83"/>
         <source>Use a custom GnuPG installation</source>
-        <translation type="unfinished"></translation>
+        <translation>使用自訂的 GnuPG 安裝</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="93"/>
         <source>Custom GnuPG installation</source>
-        <translation type="unfinished"></translation>
+        <translation>自訂 GnuPG 安裝</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="103"/>
         <source>GPGME debug log</source>
-        <translation type="unfinished"></translation>
+        <translation>GPGME 偵錯記錄</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="111"/>
         <source>Stop GnuPG daemons on exit</source>
-        <translation type="unfinished"></translation>
+        <translation>結束時停止 GnuPG 常駐程式</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="119"/>
         <source>Binary output for file operations</source>
-        <translation type="unfinished"></translation>
+        <translation>檔案操作使用二進位輸出</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="128"/>
         <source>Keep GnuPG offline</source>
-        <translation type="unfinished"></translation>
+        <translation>讓 GnuPG 保持離線</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="135"/>
         <source>Forget cached passphrases on exit</source>
-        <translation type="unfinished"></translation>
+        <translation>結束時清除快取的通關片語</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="146"/>
         <source>Passphrase cache time</source>
-        <translation type="unfinished"></translation>
+        <translation>通關片語快取時間</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="153"/>
         <source>Longest passphrase cache time</source>
-        <translation type="unfinished"></translation>
+        <translation>通關片語最長快取時間</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="161"/>
         <source>Passphrase prompt timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>通關片語提示逾時</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="169"/>
         <source>Passphrase requester grace period</source>
-        <translation type="unfinished"></translation>
+        <translation>通關片語要求寬限期</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="177"/>
         <source>Argon2 key derivation strength</source>
-        <translation type="unfinished"></translation>
+        <translation>Argon2 金鑰衍生強度</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="187"/>
         <source>Confirm before importing keys</source>
-        <translation type="unfinished"></translation>
+        <translation>匯入金鑰前確認</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="196"/>
         <source>Single recipient mode</source>
-        <translation type="unfinished"></translation>
+        <translation>單一收件者模式</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="203"/>
         <source>Confirm encrypting to several recipients</source>
-        <translation type="unfinished"></translation>
+        <translation>加密給多個收件者前確認</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="212"/>
         <source>Remember checked keys</source>
-        <translation type="unfinished"></translation>
+        <translation>記住已勾選的金鑰</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="220"/>
         <source>Undoable operations</source>
-        <translation type="unfinished"></translation>
+        <translation>可復原的操作</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="227"/>
         <source>Restore text editor pages</source>
-        <translation type="unfinished"></translation>
+        <translation>還原文字編輯器頁面</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="235"/>
         <source>Default workspace view</source>
-        <translation type="unfinished"></translation>
+        <translation>預設工作區檢視</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="243"/>
         <source>File panel starting folder</source>
-        <translation type="unfinished"></translation>
+        <translation>檔案面板起始資料夾</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="252"/>
         <source>Show the file type column</source>
-        <translation type="unfinished"></translation>
+        <translation>顯示檔案類型欄</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="260"/>
         <source>Days before a key counts as expiring soon</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰視為即將到期的天數</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="268"/>
         <source>Fetch missing keys automatically</source>
-        <translation type="unfinished"></translation>
+        <translation>自動取得缺少的金鑰</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="277"/>
         <source>Which modules to load</source>
-        <translation type="unfinished"></translation>
+        <translation>要載入的模組</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="287"/>
         <source>Language</source>
-        <translation type="unfinished">語言</translation>
+        <translation>語言</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="295"/>
         <source>Theme</source>
-        <translation type="unfinished">主題</translation>
+        <translation>主題</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="303"/>
         <source>Show the first-run wizard</source>
-        <translation type="unfinished"></translation>
+        <translation>顯示首次執行精靈</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="313"/>
         <source>Log level</source>
-        <translation type="unfinished"></translation>
+        <translation>記錄等級</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="322"/>
         <source>Log lines kept in memory</source>
-        <translation type="unfinished"></translation>
+        <translation>記憶體中保留的記錄行數</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="333"/>
         <source>Secure level</source>
-        <translation type="unfinished"></translation>
+        <translation>安全等級</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="341"/>
         <source>Application key protection</source>
-        <translation type="unfinished"></translation>
+        <translation>應用程式金鑰保護</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="353"/>
         <source>System credential store (legacy)</source>
-        <translation type="unfinished"></translation>
+        <translation>系統認證資訊存放區（舊版）</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="363"/>
         <source>Where profile files are opened</source>
-        <translation type="unfinished"></translation>
+        <translation>開啟設定檔的位置</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="373"/>
         <source>Never check for updates</source>
-        <translation type="unfinished"></translation>
+        <translation>永不檢查更新</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="380"/>
         <source>Use a proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>使用代理伺服器</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="386"/>
         <source>Proxy type</source>
-        <translation type="unfinished"></translation>
+        <translation>代理伺服器類型</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="392"/>
         <source>Proxy host</source>
-        <translation type="unfinished"></translation>
+        <translation>代理伺服器主機</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="398"/>
         <source>Proxy port</source>
-        <translation type="unfinished"></translation>
+        <translation>代理伺服器連接埠</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="404"/>
         <source>Proxy user name</source>
-        <translation type="unfinished"></translation>
+        <translation>代理伺服器使用者名稱</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="411"/>
         <source>Proxy password</source>
-        <translation type="unfinished"></translation>
+        <translation>代理伺服器密碼</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="420"/>
         <source>Workspace folder</source>
-        <translation type="unfinished"></translation>
+        <translation>工作區資料夾</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="539"/>
         <source>OpenPGP engine and GnuPG</source>
-        <translation type="unfinished"></translation>
+        <translation>OpenPGP 引擎與 GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="542"/>
         <source>rPGP passphrase handling</source>
-        <translation type="unfinished"></translation>
+        <translation>rPGP 通關片語處理</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="545"/>
         <source>Everyday behaviour</source>
-        <translation type="unfinished"></translation>
+        <translation>日常行為</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="548"/>
         <source>Language and appearance</source>
-        <translation type="unfinished"></translation>
+        <translation>語言與外觀</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="551"/>
         <source>Diagnostics</source>
-        <translation type="unfinished">診斷</translation>
+        <translation>診斷</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="554"/>
         <source>Key protection</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰保護</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="557"/>
         <source>Network and proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>網路與代理伺服器</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="560"/>
         <source>Workspace</source>
-        <translation type="unfinished">工作區</translation>
+        <translation>工作區</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="563"/>
         <source>Remembered layout</source>
-        <translation type="unfinished"></translation>
+        <translation>記住的版面配置</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="574"/>
         <source>Which engine runs, which GnuPG it uses, and how GnuPG behaves.</source>
-        <translation type="unfinished"></translation>
+        <translation>使用哪個引擎、使用哪個 GnuPG，以及 GnuPG 的行為方式。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="578"/>
         <source>How long passphrases are kept and how keys are derived.</source>
-        <translation type="unfinished"></translation>
+        <translation>通關片語保留多久，以及金鑰如何衍生。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="582"/>
         <source>Confirmations, recipients, the editor and the file panel.</source>
-        <translation type="unfinished"></translation>
+        <translation>確認提示、收件者、編輯器與檔案面板。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="586"/>
         <source>Language, theme and the first-run wizard.</source>
-        <translation type="unfinished"></translation>
+        <translation>語言、主題與首次執行精靈。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="590"/>
         <source>How much is written to the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>寫入記錄的詳細程度。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="593"/>
         <source>How this profile&apos;s own key is protected.</source>
-        <translation type="unfinished"></translation>
+        <translation>此設定檔自身金鑰的保護方式。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="597"/>
         <source>Update checks and the proxy.</source>
-        <translation type="unfinished"></translation>
+        <translation>更新檢查與代理伺服器。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="600"/>
         <source>Where files are kept.</source>
-        <translation type="unfinished"></translation>
+        <translation>檔案的存放位置。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/SettingCatalog.h" line="603"/>
         <source>Remembered tab orders and column choices.</source>
-        <translation type="unfinished"></translation>
+        <translation>記住的分頁順序與欄位選擇。</translation>
     </message>
 </context>
 <context>
@@ -1739,12 +1739,12 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutStatusInfo.cpp" line="120"/>
         <source>Temporary</source>
-        <translation type="unfinished"></translation>
+        <translation>暫時性</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutStatusInfo.cpp" line="122"/>
         <source>Not kept on this computer. Everything in it is destroyed when this window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>不保留在此電腦上。此視窗關閉時，其中的所有內容都會被銷毀。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutStatusInfo.cpp" line="131"/>
@@ -1982,7 +1982,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="406"/>
         <source>This is a temporary profile. Its key is held in memory only and is destroyed when the window closes, so there is nothing to protect.</source>
-        <translation type="unfinished"></translation>
+        <translation>這是臨時設定檔。其金鑰僅儲存在記憶體中，並會在視窗關閉時銷毀，因此沒有需要保護的內容。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="421"/>
@@ -5209,7 +5209,7 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="654"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
-        <translation type="unfinished"></translation>
+        <translation>此頁面上的某個金鑰資料庫已使用此電腦的預設金鑰資料庫資料夾。請先將其移除，然後再開啟此選項。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="677"/>
@@ -5272,19 +5272,19 @@ Results will appear here as a summary document.</source>
     <message numerus="yes">
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="411"/>
         <source>%1: %n operation(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%1：%n 個操作</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="476"/>
         <source>Always available on this computer, and always listed first.</source>
-        <translation type="unfinished"></translation>
+        <translation>在此電腦上永遠可用，且永遠列在最前面。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="477"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
-        <translation type="unfinished"></translation>
+        <translation>一律列在最前面。永遠不會包含在設定檔套件中：任何人在其他地方開啟您的設定檔時，都會取得自己的金鑰資料庫。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="812"/>
@@ -6466,7 +6466,7 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1066"/>
         <source>The key database &quot;%1&quot; is no longer available; showing the default one.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫「%1」已無法使用，改為顯示預設資料庫。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1374"/>
@@ -9584,12 +9584,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
         <source>New Temporary Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>新增臨時設定檔</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="139"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>在新視窗中建立一個空的臨時設定檔。該視窗關閉時，其中的所有內容都會被銷毀。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="150"/>
@@ -11428,12 +11428,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="176"/>
         <source>Its own keys and settings, opened in a window of its own.</source>
-        <translation type="unfinished"></translation>
+        <translation>擁有自己的金鑰與設定，並在獨立視窗中開啟。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="189"/>
         <source>Create Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>建立設定檔</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="211"/>
@@ -11443,7 +11443,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="215"/>
         <source>Shown in the profile list and the status bar. You can change it later.</source>
-        <translation type="unfinished"></translation>
+        <translation>顯示於設定檔清單與狀態列。您之後可以變更。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="219"/>
@@ -11453,17 +11453,17 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
         <source>Keys live inside this profile and can be exported with it as one file.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰位於此設定檔中，可隨設定檔匯出為單一檔案。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
         <source>Recommended</source>
-        <translation type="unfinished"></translation>
+        <translation>建議</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="238"/>
         <source>Your existing keys, shared with the system. Not carried in a profile file.</source>
-        <translation type="unfinished"></translation>
+        <translation>您現有的金鑰，與系統共用。不會放入設定檔檔案中攜帶。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="254"/>
@@ -11473,17 +11473,17 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="266"/>
         <source>Start with this window&apos;s settings</source>
-        <translation type="unfinished"></translation>
+        <translation>沿用此視窗的設定開始</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="333"/>
         <source>Never copied: keys, key databases, the workspace folder, key protection and proxy credentials.</source>
-        <translation type="unfinished"></translation>
+        <translation>絕不複製：金鑰、金鑰資料庫、工作區資料夾、金鑰保護與代理伺服器認證資訊。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="340"/>
         <source>Settings</source>
-        <translation type="unfinished">設定</translation>
+        <translation>設定</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="232"/>
@@ -11685,7 +11685,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="120"/>
         <source>New Temporary</source>
-        <translation type="unfinished"></translation>
+        <translation>新增臨時</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="121"/>
@@ -11715,7 +11715,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="128"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>在新視窗中啟動一個空白、用完即丟的設定檔。該視窗關閉時，其中的所有內容都會被銷毀。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="134"/>
@@ -12440,17 +12440,17 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="483"/>
         <source>Operations Still Running</source>
-        <translation type="unfinished"></translation>
+        <translation>操作仍在執行中</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="484"/>
         <source>Some key databases you changed or removed still have operations running:</source>
-        <translation type="unfinished"></translation>
+        <translation>您變更或移除的部分金鑰資料庫仍有操作正在執行：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="487"/>
         <source>They will finish against the key database as it was before. Apply the changes now?</source>
-        <translation type="unfinished"></translation>
+        <translation>這些操作將以變更前的金鑰資料庫狀態完成。要立即套用變更嗎？</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="591"/>
@@ -13164,7 +13164,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="94"/>
         <source>Not kept on this computer. Everything in it is destroyed when this window closes.</source>
-        <translation type="unfinished"></translation>
+        <translation>未保留在此電腦上。此視窗關閉時，其中的所有內容都會被銷毀。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="99"/>
@@ -14013,22 +14013,22 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1013"/>
         <source>The key database &quot;%1&quot; was still in use, so its folder was not renamed. It keeps its previous name.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫「%1」仍在使用中，因此其資料夾未被重新命名。它會保留先前的名稱。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1031"/>
         <source>The folder of the key database &quot;%1&quot; could not be renamed. It keeps its previous name.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫「%1」的資料夾無法重新命名。它會保留先前的名稱。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1122"/>
         <source>The default key database &quot;%1&quot; could not be opened.</source>
-        <translation type="unfinished"></translation>
+        <translation>無法開啟預設金鑰資料庫「%1」。</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GFCoreInit.cpp" line="1132"/>
         <source>No key database could be opened.</source>
-        <translation type="unfinished"></translation>
+        <translation>無法開啟任何金鑰資料庫。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="74"/>
@@ -14627,7 +14627,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="118"/>
         <source>ID</source>
-        <translation type="unfinished">ID</translation>
+        <translation>ID</translation>
     </message>
     <message>
         <source>Channel</source>
@@ -15369,7 +15369,7 @@ The link has been copied to your clipboard:
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="357"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="372"/>
         <source>Temporary</source>
-        <translation type="unfinished"></translation>
+        <translation>臨時</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="359"/>
@@ -15435,44 +15435,46 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="815"/>
         <source>Destroy Temporary Profile?</source>
-        <translation type="unfinished"></translation>
+        <translation>要銷毀臨時設定檔嗎？</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="817"/>
         <source>Everything in this temporary profile will be destroyed: its keys, settings and files.</source>
-        <translation type="unfinished"></translation>
+        <translation>此臨時設定檔中的所有內容都會被銷毀：包括其金鑰、設定與檔案。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="820"/>
         <source>To keep it, choose Cancel and use Profiles &gt; Export This Profile first.</source>
-        <translation type="unfinished"></translation>
+        <translation>若要保留，請選擇「取消」，並先使用「設定檔 &gt; 匯出此設定檔」。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="823"/>
         <source>Destroy and Close</source>
-        <translation type="unfinished"></translation>
+        <translation>銷毀並關閉</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="838"/>
         <source>Restart Not Possible</source>
-        <translation type="unfinished"></translation>
+        <translation>無法重新啟動</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="840"/>
         <source>These changes need GpgFrontend to restart, and restarting would destroy this temporary profile.</source>
-        <translation type="unfinished"></translation>
+        <translation>這些變更需要重新啟動 GpgFrontend，而重新啟動會銷毀此臨時設定檔。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="844"/>
         <source>They can&apos;t be applied in a temporary profile.</source>
-        <translation type="unfinished"></translation>
+        <translation>它們無法在臨時設定檔中套用。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="845"/>
         <source>Pages with changes that need this: %1.
 
 Undo those changes, or choose Cancel to discard everything you changed in this dialog.</source>
-        <translation type="unfinished"></translation>
+        <translation>含有需要此操作之變更的頁面：%1。
+
+請復原那些變更，或選擇「取消」以捨棄您在此對話框中做的所有變更。</translation>
     </message>
     <message>
         <source>Enter the passphrase to protect this file with:</source>
@@ -15750,47 +15752,47 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="190"/>
         <source>Key databases updated.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫已更新。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="196"/>
         <source>These key databases could not be opened: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>無法開啟這些金鑰資料庫：%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="200"/>
         <source>The key databases in use are unchanged.</source>
-        <translation type="unfinished"></translation>
+        <translation>使用中的金鑰資料庫未變更。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="204"/>
         <source>Key databases updated, with problems.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫已更新，但發生問題。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="205"/>
         <source>Key database changes were not applied.</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫變更未套用。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="208"/>
         <source>Key Database Changes</source>
-        <translation type="unfinished"></translation>
+        <translation>金鑰資料庫變更</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="227"/>
         <source>%1 (key database no longer available)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1（金鑰資料庫已無法使用）</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseRefresh.cpp" line="242"/>
         <source>Applying key database changes...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在套用金鑰資料庫變更...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="92"/>
         <source>ID %1</source>
-        <translation type="unfinished"></translation>
+        <translation>ID %1</translation>
     </message>
 </context>
 <context>
