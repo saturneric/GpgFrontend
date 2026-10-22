@@ -69,7 +69,7 @@ void MainWindow::Init() noexcept {
 
     /* the list of Keys available*/
     m_key_list_ = new KeyList(
-        DefaultChannelHandle(),
+        UsableDefaultChannelHandle(),
         KeyMenuAbility::kREFRESH | KeyMenuAbility::kCHECK_ALL |
             KeyMenuAbility::kUNCHECK_ALL | KeyMenuAbility::kCOLUMN_FILTER |
             KeyMenuAbility::kSEARCH_BAR | KeyMenuAbility::kKEY_DATABASE |

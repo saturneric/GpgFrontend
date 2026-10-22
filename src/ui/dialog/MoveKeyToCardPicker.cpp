@@ -62,7 +62,7 @@ auto KeyHasMovablePart(const GpgKey& key) -> bool {
 
 /// prefer the default database, otherwise the first supported one
 auto PickInitialChannel(const QContainer<KeyDatabaseInfo>& dbs) -> int {
-  const auto default_handle = DefaultChannelHandle();
+  const auto default_handle = UsableDefaultChannelHandle();
   if (dbs.isEmpty()) return default_handle;
   for (const auto& db : dbs) {
     if (db.channel == default_handle) return db.channel;

@@ -531,6 +531,11 @@ void SettingsDialog::SlotAccept() {
     }
   }
 
+  // Noted before the renamed paths are saved: from then until each folder
+  // has moved, the stored list names folders that are not there yet.
+  const auto moves = key_dbs_tab_->TakePendingMoves();
+  NotePendingKeyDatabaseMoves(moves);
+
   general_tab_->ApplySettings();
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
@@ -564,8 +569,7 @@ void SettingsDialog::SlotAccept() {
   // -- except for folder moves: the renamed paths are already saved, and
   // nothing after the restart would move the folders to them. The restart
   // waits for the apply (see MainWindow's settings dialog handler).
-  if (runtime_apply_needed_) {
-    auto moves = key_dbs_tab_->TakePendingMoves();
+  if (runtime_apply_needed_ || !moves.isEmpty()) {
     if (restart_mode_ < kDeepRestartCode || !moves.isEmpty()) {
       ApplyKeyDatabaseChanges(moves);
     }

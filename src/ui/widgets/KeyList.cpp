@@ -242,7 +242,7 @@ auto SingleRecipientModeEnabled() -> bool {
 KeyList::KeyList(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
-      model_(AbstractKeyRepository::GetInstance(DefaultChannelHandle())
+      model_(AbstractKeyRepository::GetInstance(UsableDefaultChannelHandle())
                  .GetGpgKeyTableModel()),
       global_column_filter_(
           LoadColumnFilter("global", GpgKeyTableColumn::kALL)) {
@@ -1029,15 +1029,8 @@ void KeyList::suspend_key_database_channel() {
   }
 
   // Any open database of the Runtime still in use, the default first.
-  auto stand_in = ResolveDatabaseHandle({});
-  if (stand_in < 0) {
-    for (const auto& info : GetGpgKeyDatabaseInfos()) {
-      if (IsLiveChannelHandle(info.channel)) {
-        stand_in = info.channel;
-        break;
-      }
-    }
-  }
+  auto stand_in = UsableDefaultChannelHandle();
+  if (!IsLiveChannelHandle(stand_in)) stand_in = -1;
 
   if (suspended_channel_ < 0) suspended_channel_ = shown.handle;
 

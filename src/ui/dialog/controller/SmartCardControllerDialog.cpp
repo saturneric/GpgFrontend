@@ -74,7 +74,7 @@ const char* const kCardHowToUrl = "https://gnupg.org/howtos/card-howto/en/";
 SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
     : GeneralDialog("SmartCardControllerDialog", parent),
       ui_(QSharedPointer<Ui_SmartCardControllerDialog>::create()),
-      channel_(DefaultChannelHandle()),
+      channel_(UsableDefaultChannelHandle()),
       scd_version_supported_(
           GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported()) {
   // A reload of the key databases replaces the channel this works on; find

@@ -72,7 +72,7 @@ namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
   /* the list of Keys available*/
-  key_list_ = new KeyList(DefaultChannelHandle(), KeyMenuAbility::kALL,
+  key_list_ = new KeyList(UsableDefaultChannelHandle(), KeyMenuAbility::kALL,
                           GpgKeyTableColumn::kALL, this);
 
   // The Key Management window is the home for category management.
