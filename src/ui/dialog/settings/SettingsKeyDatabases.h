@@ -30,6 +30,7 @@
 
 #include <optional>
 
+#include "core/function/openpgp/KeyDatabaseRuntime.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/CoreTypedef.h"
 
@@ -65,6 +66,25 @@ class KeyDatabasesTab : public QWidget {
    */
   void ApplySettings();
 
+  /**
+   * @brief The managed database folders a rename has to move, handed over to
+   * be carried out when the change is applied.
+   */
+  auto TakePendingMoves() -> QContainer<KeyDatabaseMove>;
+
+  /**
+   * @brief The databases in use whose operations would be left running on a
+   * database this page removes or points elsewhere.
+   *
+   * Such work is not stopped by applying: it finishes on the database it was
+   * started on, which is no longer the one shown under that name, or no longer
+   * shown at all. A database whose folder stays where it is shares that folder
+   * with what replaces it, so its work is not counted.
+   *
+   * @return one line per such database, naming it and its operation count
+   */
+  [[nodiscard]] auto OperationsLeftRunning() const -> QStringList;
+
  signals:
 
   /**
@@ -72,7 +92,7 @@ class KeyDatabasesTab : public QWidget {
    *
    * @param needed
    */
-  void SignalDeepRestartNeeded();
+  void SignalRuntimeApplyNeeded();
 
  protected:
   /**
@@ -102,6 +122,11 @@ class KeyDatabasesTab : public QWidget {
 
   bool is_sandbox_ = false;
 
+  /// Folders renamed in this page and not yet moved; see TakePendingMoves().
+  QContainer<KeyDatabaseMove> pending_moves_;
+
+  void record_move(const KeyDatabaseInfo& info, const QString& to);
+
   /// True while SetSettings() is populating the widgets, so the checkbox's own
   /// toggled() handler does not mistake being restored for being clicked.
   bool loading_ = false;
@@ -112,7 +137,7 @@ class KeyDatabasesTab : public QWidget {
    */
   void fill_table(QTableWidget* table,
                   const QContainer<KeyDatabaseInfo>& key_databases,
-                  int first_channel, int selected_row);
+                  int selected_row);
 
   /**
    * @brief
@@ -131,6 +156,13 @@ class KeyDatabasesTab : public QWidget {
   /// How many key databases the profile holds in total, the DEFAULT one
   /// included. The cap and the never-empty rule are both about this number.
   [[nodiscard]] auto total_count() const -> int;
+
+  /// Whether @p path is the directory of a database already on this page, the
+  /// DEFAULT one included, however either is spelled. @p self is the entry
+  /// being edited, which may keep its own directory.
+  [[nodiscard]] auto location_taken(const QString& path,
+                                    const KeyDatabaseInfo* self = nullptr) const
+      -> bool;
 
   /// Put the DEFAULT checkbox and its hint in step with what the engine on this
   /// computer actually offers.

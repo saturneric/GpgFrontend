@@ -67,6 +67,12 @@ class GnuPGTab : public QWidget {
    */
   void SignalDeepRestartNeeded();
 
+  /**
+   * @brief A change that takes effect once the key databases are opened
+   * again, which applying does without a restart.
+   */
+  void SignalRuntimeApplyNeeded();
+
  private slots:
 
   /**

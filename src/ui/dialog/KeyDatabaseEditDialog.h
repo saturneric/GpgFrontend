@@ -75,6 +75,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   int channel_;
   QString default_name_;
   QString default_path_;
+  QString default_backend_;  ///< the backend of the entry being edited
   QString name_;
   QString path_;
   QString backend_type_;

@@ -41,6 +41,7 @@
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/dialog/settings/SettingsPageOrder.h"
 #include "ui/dialog/settings/SettingsRpgp.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/ProfileController.h"
 #include "ui/lua/LuaMounts.h"
 #include "ui/main_window/MainWindow.h"
@@ -250,8 +251,16 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   connect(appearance_tab_, &AppearanceTab::SignalRestartNeeded, this,
           declare(kRestartCode, appearance_title));
 
-  connect(key_dbs_tab_, &KeyDatabasesTab::SignalDeepRestartNeeded, this,
-          declare(kDeepRestartCode, key_dbs_title));
+  // Applied live when OK is pressed: the key databases are opened again in
+  // the running process, with nothing to restart and nothing to confirm.
+  const auto runtime_apply = [this]() {
+    if (!suppress_restart_declaration_) runtime_apply_needed_ = true;
+  };
+  connect(key_dbs_tab_, &KeyDatabasesTab::SignalRuntimeApplyNeeded, this,
+          runtime_apply);
+  connect(general_tab_, &GeneralTab::SignalRuntimeApplyNeeded, this,
+          runtime_apply);
+  connect(gnupg_tab_, &GnuPGTab::SignalRuntimeApplyNeeded, this, runtime_apply);
 
   connect(gnupg_tab_, &GnuPGTab::SignalDeepRestartNeeded, this,
           declare(kDeepRestartCode, gnupg_title));
@@ -463,8 +472,22 @@ void SettingsDialog::revert_all_tabs() {
 
   restart_mode_ = kNonRestartCode;
   restart_pages_.clear();
+  runtime_apply_needed_ = false;
 
   suppress_restart_declaration_ = false;
+}
+
+auto SettingsDialog::confirm_operations_left_running(
+    const QStringList& running) -> bool {
+  const auto ret = QMessageBox::question(
+      this, tr("Operations Still Running"),
+      tr("Some key databases you changed or removed still have operations "
+         "running:") +
+          "\n\n" + running.join("\n") + "\n\n" +
+          tr("They will finish against the key database as it was before. "
+             "Apply the changes now?"),
+      QMessageBox::Apply | QMessageBox::Cancel, QMessageBox::Cancel);
+  return ret == QMessageBox::Apply;
 }
 
 void SettingsDialog::SlotAccept() {
@@ -495,6 +518,19 @@ void SettingsDialog::SlotAccept() {
 #endif
   }
 
+  // Applying never stops work already running; it finishes on the database it
+  // was started on. Said before anything is written when that database is one
+  // this change removes or points elsewhere, since its result then lands
+  // somewhere the user is no longer looking.
+  if (runtime_apply_needed_ && restart_mode_ < kDeepRestartCode) {
+    const auto running = key_dbs_tab_->OperationsLeftRunning();
+    if (!running.isEmpty() && !confirm_operations_left_running(running)) {
+#ifndef Q_OS_MACOS
+      return;
+#endif
+    }
+  }
+
   general_tab_->ApplySettings();
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
@@ -522,6 +558,12 @@ void SettingsDialog::SlotAccept() {
   }
 
   emit SignalAppearanceChanged();
+
+  // After every page has written, so the Runtime is built from all of it. A
+  // deep restart pending anyway rebuilds everything, so it is not done twice.
+  if (runtime_apply_needed_ && restart_mode_ < kDeepRestartCode) {
+    ApplyKeyDatabaseChanges(key_dbs_tab_->TakePendingMoves());
+  }
 
   // Every page has written by now, so this is the first moment at which
   // "the settings changed" is true of all of them rather than of some.

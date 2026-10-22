@@ -80,6 +80,7 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
   const auto& key_db_info = key_database_infos_[index];
   default_name_ = key_db_info.name;
   default_path_ = key_db_info.origin_path;
+  default_backend_ = key_db_info.backend_type;
   channel_ = index;
 
   LOG_D() << "edit key database, index: " << index << "name: " << default_name_
@@ -107,8 +108,13 @@ void KeyDatabaseEditDialog::init_ui() {
     // findData rather than an index: "rPGP is index 1" holds only in a build
     // that shipped both engines, and the rpgp-only build is exactly the one
     // where getting this wrong is silent.
-    const auto engine = ConvertOpenPGPEngine2String(
-        OpenPGPContext::GetInstance(channel_).Engine());
+    //
+    // Read from the entry being edited, not from a context: channel_ is the
+    // entry's row in the settings list, which is not the channel its context
+    // runs on, so asking OpenPGPContext about it named some other database --
+    // or none, and built a placeholder for it.
+    const auto engine = default_backend_.isEmpty() ? QStringLiteral("gnupg")
+                                                   : default_backend_.trimmed();
     const auto engine_index =
         ui_->keyDBBackendTypeComboBox->findData(engine.toUpper());
     if (engine_index != -1) {

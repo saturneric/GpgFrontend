@@ -148,11 +148,12 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::SignalRestartNeeded);
 
-  // Changing the default engine re-initializes the core, so a deep restart
-  // (core + UI) is required for the new engine to take effect.
+  // The default engine decides which engine opens the default database, so a
+  // change takes effect when the key databases are opened again -- which
+  // applying does, without a restart.
   connect(ui_->defaultEngineComboBox,
           qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &GeneralTab::SignalDeepRestartNeeded);
+          &GeneralTab::SignalRuntimeApplyNeeded);
 
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;

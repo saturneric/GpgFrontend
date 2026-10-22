@@ -28,6 +28,7 @@
 
 #include "SettingsGnuPG.h"
 
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
@@ -154,6 +155,11 @@ GnuPGTab::GnuPGTab(QWidget* parent)
           });
 #endif
 
+  // Every context is built with it, so it takes effect when the key databases
+  // are opened again -- which applying does, without a restart.
+  connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox, &QCheckBox::toggled,
+          this, [this](bool) -> void { emit SignalRuntimeApplyNeeded(); });
+
   // ---- maintenance -------------------------------------------------------
   // These act immediately, so they neither announce a restart nor take part in
   // SetSettings()/ApplySettings().
@@ -260,7 +266,11 @@ void GnuPGTab::run_advanced_operation(
     const std::function<bool(GpgAdvancedOperator&)>& op,
     const QString& success_text, const QString& failure_text) {
   bool ret = true;
-  for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+  for (const auto& info : GetGpgKeyDatabaseInfos()) {
+    // The Runtime in use only: a replaced one's channels are on their way out.
+    const auto channel = info.channel;
+    const auto lease = TryAcquireEngineLease(channel);
+    if (!lease) continue;
     // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
     if (OpenPGPContext::GetInstance(channel).Engine() !=
         OpenPGPEngine::kGNUPG) {

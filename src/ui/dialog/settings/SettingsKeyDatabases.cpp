@@ -30,10 +30,12 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GnuPGHome.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/KeyDatabaseEditDialog.h"
 
 //
@@ -231,10 +233,19 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
           &KeyDatabasesTab::slot_toggle_default_key_database);
 
   SetSettings();
+
+  // The Active column says which databases the Runtime in use opened, and a
+  // new one may have opened others.
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRuntimeChanged, this, [this]() {
+            active_key_db_infos_ = GetGpgKeyDatabaseInfos();
+            slot_refresh_key_database_table(current_row());
+          });
 }
 
 void KeyDatabasesTab::SetSettings() {
   active_key_db_infos_ = GetGpgKeyDatabaseInfos();
+  pending_moves_.clear();
 
   default_db_info_.reset();
   managed_db_infos_.clear();
@@ -338,6 +349,84 @@ auto KeyDatabasesTab::current_row() const -> int {
   return selected_rows.first().row();
 }
 
+auto KeyDatabasesTab::TakePendingMoves() -> QContainer<KeyDatabaseMove> {
+  auto moves = std::move(pending_moves_);
+  pending_moves_.clear();
+  return moves;
+}
+
+void KeyDatabasesTab::record_move(const KeyDatabaseInfo& info,
+                                  const QString& to) {
+  // Renamed again before applying: still one move, from where it is on disk
+  // to where it should end up.
+  for (auto& move : pending_moves_) {
+    if (move.database_id != info.id) continue;
+    move.to = to;
+    return;
+  }
+
+  KeyDatabaseMove move;
+  move.database_id = info.id;
+  move.old_name = info.name;
+  move.old_stored_path =
+      info.origin_path.isEmpty() ? info.path : info.origin_path;
+  move.from = info.path;
+  move.to = to;
+  pending_moves_.append(move);
+}
+
+auto KeyDatabasesTab::OperationsLeftRunning() const -> QStringList {
+  const auto find = [&](const QString& id) -> const KeyDatabaseInfo* {
+    if (default_db_info_ && default_db_info_->id == id) {
+      return &*default_db_info_;
+    }
+    for (const auto* list : {&managed_db_infos_, &external_db_infos_}) {
+      for (const auto& info : *list) {
+        if (info.id == id) return &info;
+      }
+    }
+    return nullptr;
+  };
+
+  QStringList lines;
+  for (const auto& channel : ListRuntimeChannels()) {
+    if (channel.operations <= 0) continue;
+
+    const auto* info = find(channel.database_id);
+    const bool moved = std::any_of(
+        pending_moves_.begin(), pending_moves_.end(),
+        [&](const KeyDatabaseMove& m) {
+          return m.database_id == channel.database_id;
+        });
+    const bool kept =
+        info != nullptr && !moved &&
+        IsSameKeyDatabaseLocation(info->path, channel.path) &&
+        (info->backend_type.isEmpty() ? QStringLiteral("gnupg")
+                                      : info->backend_type.toLower()) ==
+            (channel.backend_type.isEmpty() ? QStringLiteral("gnupg")
+                                            : channel.backend_type.toLower());
+    if (kept) continue;
+
+    lines.append(tr("%1: %n operation(s)", "", channel.operations)
+                     .arg(channel.name));
+  }
+  return lines;
+}
+
+auto KeyDatabasesTab::location_taken(const QString& path,
+                                     const KeyDatabaseInfo* self) const
+    -> bool {
+  const auto taken = [&](const KeyDatabaseInfo& info) -> bool {
+    return &info != self && IsSameKeyDatabaseLocation(info.path, path);
+  };
+
+  if (default_db_info_ && taken(*default_db_info_)) return true;
+  return std::any_of(managed_db_infos_.begin(), managed_db_infos_.end(),
+                     taken) ||
+         std::any_of(external_db_infos_.begin(), external_db_infos_.end(),
+                     taken);
+}
+
 auto KeyDatabasesTab::total_count() const -> int {
   return (default_db_info_ ? 1 : 0) +
          static_cast<int>(managed_db_infos_.size()) +
@@ -383,14 +472,14 @@ void KeyDatabasesTab::refresh_default_key_database_ui() {
 
   ui_->defaultKeyDatabaseHintLabel->setText(
       is_sandbox_
-          ? tr("Always available on this computer, and always channel 0.")
-          : tr("Always channel 0. Never included in a profile package: "
+          ? tr("Always available on this computer, and always listed first.")
+          : tr("Always listed first. Never included in a profile package: "
                "whoever opens your profile elsewhere gets their own."));
 }
 
 void KeyDatabasesTab::fill_table(
     QTableWidget* table, const QContainer<KeyDatabaseInfo>& key_databases,
-    int first_channel, int selected_row) {
+    int selected_row) {
   table->setUpdatesEnabled(false);
   table->clearContents();
   table->setRowCount(static_cast<int>(key_databases.size()));
@@ -398,11 +487,19 @@ void KeyDatabasesTab::fill_table(
   for (int index = 0; index < key_databases.size(); index++) {
     const auto& key_db = key_databases[index];
 
-    // The channel this row will actually get, not its position in this table.
-    // The two differ by whatever comes before it -- the default database, and
-    // for the external list every managed one -- and the channel is the number
-    // the rest of the program speaks in.
-    auto* i_channel = CreateTableItem(QString::number(first_channel + index),
+    // The channel the Runtime in use opened this database on. A new Runtime
+    // is built on channels no one has seen, so it is not the row's position,
+    // and a database not open yet -- just added, or failed -- has none to
+    // show.
+    const auto active =
+        std::find_if(active_key_db_infos_.begin(), active_key_db_infos_.end(),
+                     [&key_db](const KeyDatabaseInfo& i) -> bool {
+                       return !key_db.id.isEmpty() ? i.id == key_db.id
+                                                   : i.name == key_db.name;
+                     });
+    auto* i_channel = CreateTableItem(active != active_key_db_infos_.end()
+                                          ? QString::number(active->channel)
+                                          : QStringLiteral("\u2013"),
                                       Qt::AlignCenter);
     table->setItem(index, 0, i_channel);
 
@@ -416,11 +513,7 @@ void KeyDatabasesTab::fill_table(
     table->setItem(index, 2,
                    CreateTableItem(backend_type_display, Qt::AlignCenter));
 
-    const auto is_active =
-        std::find_if(active_key_db_infos_.begin(), active_key_db_infos_.end(),
-                     [&key_db](const KeyDatabaseInfo& i) -> bool {
-                       return i.name == key_db.name;
-                     }) != active_key_db_infos_.end();
+    const auto is_active = active != active_key_db_infos_.end();
 
     table->setItem(index, 3, CreateStatusItem(is_active));
 
@@ -454,17 +547,10 @@ void KeyDatabasesTab::slot_refresh_key_database_table(int selected_row) {
   const auto external_visible =
       ui_->keyDatabaseTabs->currentWidget() == ui_->externalTab;
 
-  // Where each list starts in the channel numbering, which is the order
-  // ComposeKeyDatabaseList() lays down: the default one, then the profile's
-  // own, then this computer's.
-  const auto managed_first_channel = default_db_info_ ? 1 : 0;
-  const auto external_first_channel =
-      managed_first_channel + static_cast<int>(managed_db_infos_.size());
-
-  fill_table(ui_->keyDatabaseTable, managed_db_infos_, managed_first_channel,
+  fill_table(ui_->keyDatabaseTable, managed_db_infos_,
              external_visible ? -1 : selected_row);
   fill_table(ui_->externalKeyDatabaseTable, external_db_infos_,
-             external_first_channel, external_visible ? selected_row : -1);
+             external_visible ? selected_row : -1);
 
   // The hint doubles as the empty state. A blank table with a heading over it
   // says only that something is missing; this says what would go there.
@@ -503,7 +589,7 @@ void KeyDatabasesTab::slot_move_up_key_database() {
 
   slot_refresh_key_database_table(row - 1);
 
-  emit SignalDeepRestartNeeded();
+  emit SignalRuntimeApplyNeeded();
 }
 
 void KeyDatabasesTab::slot_move_to_top_key_database() {
@@ -516,7 +602,7 @@ void KeyDatabasesTab::slot_move_to_top_key_database() {
 
   slot_refresh_key_database_table(0);
 
-  emit SignalDeepRestartNeeded();
+  emit SignalRuntimeApplyNeeded();
 }
 
 void KeyDatabasesTab::slot_move_down_key_database() {
@@ -528,7 +614,7 @@ void KeyDatabasesTab::slot_move_down_key_database() {
 
   slot_refresh_key_database_table(row + 1);
 
-  emit SignalDeepRestartNeeded();
+  emit SignalRuntimeApplyNeeded();
 }
 
 void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
@@ -557,11 +643,27 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
     info.path = GetCanonicalKeyDatabasePath(app_path_, candidate.path);
     info.channel = 0;
     info.kind = KeyDatabaseKind::kDEFAULT;
+    info.id = QLatin1String(kDefaultKeyDatabaseId);
+
+    // An external entry may already point at this computer's own keyring.
+    // Turning DEFAULT on beside it would open that directory twice.
+    if (location_taken(info.path)) {
+      QMessageBox::warning(
+          this, tr("Duplicate Key Database Paths"),
+          tr("A key database on this page already uses this computer's "
+             "default key database folder. Remove it first, then turn this "
+             "on."));
+      loading_ = true;
+      ui_->defaultKeyDatabaseCheckBox->setChecked(false);
+      loading_ = false;
+      return;
+    }
+
     default_db_info_ = info;
 
     refresh_default_key_database_ui();
     slot_refresh_key_database_table();
-    emit SignalDeepRestartNeeded();
+    emit SignalRuntimeApplyNeeded();
     return;
   }
 
@@ -583,7 +685,7 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
   default_db_info_.reset();
   refresh_default_key_database_ui();
   slot_refresh_key_database_table();
-  emit SignalDeepRestartNeeded();
+  emit SignalRuntimeApplyNeeded();
 }
 
 void KeyDatabasesTab::slot_edit_key_database() {
@@ -627,19 +729,20 @@ void KeyDatabasesTab::slot_edit_key_database() {
                 return;
               }
 
-              if (action == ManagedRenameAction::kRENAME &&
-                  !QDir().rename(old_path, path)) {
-                QMessageBox::warning(
-                    this, tr("Failed to Rename Key Database Folder"),
-                    tr("GpgFrontend could not rename the folder this key "
-                       "database is kept in. It may still be in use; try "
-                       "again after restarting GpgFrontend."));
-                return;
+              // Moved when the change is applied, not now: the folder can
+              // only move once nothing has it open, and only applying can wait
+              // for that. Cancelling the dialog then leaves it untouched.
+              if (action == ManagedRenameAction::kRENAME) {
+                record_move((*list)[row], path);
               }
             }
 
+            // A managed folder that is still to be moved does not exist yet,
+            // and resolving its path would create it in the move's way.
             auto key_db_fs_path =
-                GpgFrontend::GetCanonicalKeyDatabasePath(app_path_, path);
+                managed
+                    ? QDir::cleanPath(QFileInfo(path).absoluteFilePath())
+                    : GpgFrontend::GetCanonicalKeyDatabasePath(app_path_, path);
             if (key_db_fs_path.isEmpty()) {
               QMessageBox::warning(this, tr("Invalid Key Database Paths"),
                                    tr("The edited key database path is not a "
@@ -647,17 +750,12 @@ void KeyDatabasesTab::slot_edit_key_database() {
               return;
             }
 
-            if (!managed) {
-              for (int i = 0; i < list->size(); i++) {
-                if (i != row &&
-                    QFileInfo((*list)[i].path) == QFileInfo(key_db_fs_path)) {
-                  QMessageBox::warning(
-                      this, tr("Duplicate Key Database Paths"),
-                      tr("The edited key database path duplicates a previously "
-                         "existing one."));
-                  return;
-                }
-              }
+            if (!managed && location_taken(key_db_fs_path, &(*list)[row])) {
+              QMessageBox::warning(
+                  this, tr("Duplicate Key Database Paths"),
+                  tr("The edited key database path duplicates a previously "
+                     "existing one."));
+              return;
             }
 
             if (RejectsGnuPGSocketPath(this, backend_type, key_db_fs_path)) {
@@ -677,7 +775,7 @@ void KeyDatabasesTab::slot_edit_key_database() {
 
             slot_refresh_key_database_table(row);
 
-            emit SignalDeepRestartNeeded();
+            emit SignalRuntimeApplyNeeded();
           });
 
   dialog->show();
@@ -699,16 +797,6 @@ void KeyDatabasesTab::slot_add_new_key_database() {
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this](const QString& name, const QString& backend_type,
                  const QString& path) -> void {
-            for (const auto& key_database : managed_db_infos_) {
-              if (QFileInfo(key_database.path) == QFileInfo(path)) {
-                QMessageBox::warning(
-                    this, tr("Duplicate Key Database Paths"),
-                    tr("The newly added key database path duplicates a "
-                       "previously existing one."));
-                return;
-              }
-            }
-
             QFileInfo file_info(path);
             if (file_info.exists() && !file_info.isDir()) {
               QMessageBox::warning(
@@ -738,6 +826,17 @@ void KeyDatabasesTab::slot_add_new_key_database() {
               return;
             }
 
+            // Asked of the resolved path, after the folder exists: the typed
+            // one may be `@profile/...` or run through a link, and compared
+            // as typed it never matched the stored, resolved spelling.
+            if (location_taken(key_db_fs_path)) {
+              QMessageBox::warning(
+                  this, tr("Duplicate Key Database Paths"),
+                  tr("The newly added key database path duplicates a "
+                     "previously existing one."));
+              return;
+            }
+
             if (RejectsGnuPGSocketPath(this, backend_type, key_db_fs_path)) {
               return;
             }
@@ -746,6 +845,9 @@ void KeyDatabasesTab::slot_add_new_key_database() {
                     << "path: " << path << "canonical path: " << key_db_fs_path;
 
             KeyDatabaseInfo key_database;
+            // Given its identity now rather than at the next read, so it is
+            // the same database from the moment it exists.
+            key_database.id = NewKeyDatabaseId();
             key_database.name = name;
             key_database.backend_type = backend_type;
             key_database.path = key_db_fs_path;
@@ -755,7 +857,7 @@ void KeyDatabasesTab::slot_add_new_key_database() {
 
             slot_refresh_key_database_table();
 
-            emit SignalDeepRestartNeeded();
+            emit SignalRuntimeApplyNeeded();
           });
   dialog->show();
 }
@@ -790,23 +892,12 @@ void KeyDatabasesTab::slot_add_external_key_database() {
               return;
             }
 
-            for (const auto& key_database : managed_db_infos_) {
-              if (QFileInfo(key_database.path) == QFileInfo(key_db_fs_path)) {
-                QMessageBox::warning(
-                    this, tr("Duplicate Key Database Paths"),
-                    tr("The newly added key database path duplicates a "
-                       "previously existing one."));
-                return;
-              }
-            }
-            for (const auto& key_database : external_db_infos_) {
-              if (QFileInfo(key_database.path) == QFileInfo(key_db_fs_path)) {
-                QMessageBox::warning(
-                    this, tr("Duplicate Key Database Paths"),
-                    tr("The newly added key database path duplicates a "
-                       "previously existing one."));
-                return;
-              }
+            if (location_taken(key_db_fs_path)) {
+              QMessageBox::warning(
+                  this, tr("Duplicate Key Database Paths"),
+                  tr("The newly added key database path duplicates a "
+                     "previously existing one."));
+              return;
             }
 
             if (RejectsGnuPGSocketPath(this, backend_type, key_db_fs_path)) {
@@ -817,6 +908,7 @@ void KeyDatabasesTab::slot_add_external_key_database() {
                     << "path: " << path << "canonical path: " << key_db_fs_path;
 
             KeyDatabaseInfo key_database;
+            key_database.id = NewKeyDatabaseId();
             key_database.name = name;
             key_database.backend_type = backend_type;
             key_database.path = key_db_fs_path;
@@ -829,7 +921,7 @@ void KeyDatabasesTab::slot_add_external_key_database() {
 
             slot_refresh_key_database_table();
 
-            emit SignalDeepRestartNeeded();
+            emit SignalRuntimeApplyNeeded();
           });
   dialog->show();
 }
@@ -864,7 +956,7 @@ void KeyDatabasesTab::slot_remove_existing_key_database() {
 
   slot_refresh_key_database_table(next_selected_row);
 
-  emit SignalDeepRestartNeeded();
+  emit SignalRuntimeApplyNeeded();
 }
 
 }  // namespace GpgFrontend::UI

@@ -162,6 +162,15 @@ class SettingsDialog : public GeneralDialog {
   auto confirm_restart() -> bool;
 
   /**
+   * @brief Ask whether to apply although operations will be left finishing on
+   * databases the change removes or points elsewhere.
+   *
+   * @param running what OperationsLeftRunning() reported
+   * @return true to apply
+   */
+  auto confirm_operations_left_running(const QStringList& running) -> bool;
+
+  /**
    * @brief Reload every tab from the settings store, dropping pending edits.
    */
   void revert_all_tabs();
@@ -233,6 +242,9 @@ class SettingsDialog : public GeneralDialog {
   int restart_mode_{kNonRestartCode};            ///<
   QStringList restart_pages_;                    ///< pages with such a change
   bool suppress_restart_declaration_{false};     ///< set while reverting
+  /// A page changed something that takes effect when the key databases are
+  /// opened again; applied live on OK, see ApplyKeyDatabaseChanges().
+  bool runtime_apply_needed_{false};
 };
 
 }  // namespace GpgFrontend::UI
