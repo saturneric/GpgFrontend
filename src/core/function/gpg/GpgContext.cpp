@@ -58,6 +58,12 @@ struct AgentSession {
 std::mutex g_agent_sessions_lock;
 std::map<QString, AgentSession> g_agent_sessions;
 
+/// Held across a context's whole agent transition: counting itself out and
+/// killing the agent, or counting itself in, killing a stale one and starting
+/// its own. Without it the last context's kill, which runs after the count is
+/// already zero, could land on the agent the next context has just started.
+std::mutex g_agent_transition_lock;
+
 /// Count a context in; true when it is the first on this home.
 auto JoinAgentSession(const QString& home) -> bool {
   std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
@@ -118,14 +124,17 @@ GpgContext::~GpgContext() {
   //
   // Left under the key it joined with: the home may no longer resolve to the
   // same location now (a removed link), and a miss would strand the count.
-  QSharedPointer<GpgAgentProcess> session_agent;
-  const auto last = !agent_session_held_ ||
-                    LeaveAgentSession(agent_session_home_, session_agent);
-  if (agent_ != nullptr && last) {
-    kill_gpg_agent();
-    agent_.reset();
+  {
+    std::lock_guard<std::mutex> transition(g_agent_transition_lock);
+    QSharedPointer<GpgAgentProcess> session_agent;
+    const auto last = !agent_session_held_ ||
+                      LeaveAgentSession(agent_session_home_, session_agent);
+    if (agent_ != nullptr && last) {
+      kill_gpg_agent();
+      agent_.reset();
+    }
+    session_agent.reset();
   }
-  session_agent.reset();
 
   if (ctx_ref_ != nullptr) {
     gpgme_release(ctx_ref_);
@@ -302,11 +311,16 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   // here would cut that context's operations off mid-flight.
   agent_session_held_ = true;
   agent_session_home_ = KeyDatabasePhysicalLocation(EngineHomePath());
-  const auto first = JoinAgentSession(agent_session_home_);
-  if (first) kill_gpg_agent();
-
-  const auto agent_ok = !first || launch_gpg_agent();
-  if (first) AdoptSessionAgent(agent_session_home_, agent_);
+  bool agent_ok = true;
+  {
+    std::lock_guard<std::mutex> transition(g_agent_transition_lock);
+    const auto first = JoinAgentSession(agent_session_home_);
+    if (first) {
+      kill_gpg_agent();
+      agent_ok = launch_gpg_agent();
+      AdoptSessionAgent(agent_session_home_, agent_);
+    }
+  }
 
   return agent_ok && default_ctx_initialize(args) &&
          binary_ctx_initialize(args) && cms_default_ctx_initialize(args) &&

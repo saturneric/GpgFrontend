@@ -28,13 +28,16 @@
 
 #include "GpgUtils.h"
 
+#include <algorithm>
+#include <mutex>
 #include <optional>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
-#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/ChannelHandle.h"
+#include "core/function/openpgp/KeyDatabaseRuntime.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "core/model/GpgKeyGroup.h"
@@ -389,6 +392,58 @@ NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
 
 namespace {
 
+std::mutex g_pending_moves_lock;
+QContainer<KeyDatabaseMove> g_pending_moves;
+
+}  // namespace
+
+void NotePendingKeyDatabaseMoves(const QContainer<KeyDatabaseMove>& moves) {
+  std::lock_guard<std::mutex> lock(g_pending_moves_lock);
+  for (const auto& move : moves) {
+    auto it = std::find_if(g_pending_moves.begin(), g_pending_moves.end(),
+                           [&](const KeyDatabaseMove& m) -> bool {
+                             return m.database_id == move.database_id;
+                           });
+    if (it != g_pending_moves.end()) {
+      *it = move;
+    } else {
+      g_pending_moves.append(move);
+    }
+  }
+}
+
+void ForgetPendingKeyDatabaseMove(const QString& database_id) {
+  std::lock_guard<std::mutex> lock(g_pending_moves_lock);
+  g_pending_moves.erase(
+      std::remove_if(g_pending_moves.begin(), g_pending_moves.end(),
+                     [&](const KeyDatabaseMove& m) -> bool {
+                       return m.database_id == database_id;
+                     }),
+      g_pending_moves.end());
+}
+
+auto PendingKeyDatabaseMoves() -> QContainer<KeyDatabaseMove> {
+  std::lock_guard<std::mutex> lock(g_pending_moves_lock);
+  return g_pending_moves;
+}
+
+auto ApplyPendingMovesToScan(QContainer<KeyDatabaseItemSO> discovered,
+                             const QContainer<KeyDatabaseMove>& moves)
+    -> QContainer<KeyDatabaseItemSO> {
+  for (auto& key_db : discovered) {
+    const auto location = QDir::cleanPath(key_db.path);
+    for (const auto& move : moves) {
+      if (QDir::cleanPath(move.from) != location) continue;
+      key_db.name = QFileInfo(move.to).fileName();
+      key_db.path = QDir::cleanPath(move.to);
+      break;
+    }
+  }
+  return discovered;
+}
+
+namespace {
+
 // Build the channel-0 "DEFAULT" key database entry. Its path is derived from
 // the gpgme context (or an app-data fallback), never from a fixed user dir.
 //
@@ -660,9 +715,14 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   // this computer, persist what came back.
   const auto reconciled =
       IsRunningInAppSandbox()
-          ? ReconcileSandboxKeyDatabaseList(MakeDefaultKeyDatabaseItem(),
-                                            ScanSandboxKeyDatabaseDir(), stored,
-                                            SupportedKeyDatabaseBackends())
+          // A folder still waiting to be moved is read under the name it
+          // moves to: the stored list already has it so, and reading it under
+          // its old one would drop that entry and give the folder a new id.
+          ? ReconcileSandboxKeyDatabaseList(
+                MakeDefaultKeyDatabaseItem(),
+                ApplyPendingMovesToScan(ScanSandboxKeyDatabaseDir(),
+                                        PendingKeyDatabaseMoves()),
+                stored, SupportedKeyDatabaseBackends())
           : ReconcileKeyDatabaseList(stored, DefaultKeyDatabaseCandidate(),
                                      MakeDefaultKeyDatabaseItem(),
                                      ProfileSession::Instance().Root(),

@@ -159,6 +159,16 @@ void GF_CORE_EXPORT SetDefaultChannelHandle(int handle);
 auto GF_CORE_EXPORT DefaultChannelHandle() -> int;
 
 /**
+ * @brief A handle to start showing a key database on.
+ *
+ * The default database's, while it is open. While a folder move has it retired
+ * -- or when it failed to open -- the first open database of the Runtime in
+ * use, so a view opened meanwhile does not start out on a handle whose objects
+ * are being reclaimed. DefaultChannelHandle() when nothing is open at all.
+ */
+auto GF_CORE_EXPORT UsableDefaultChannelHandle() -> int;
+
+/**
  * @brief Record what a handle opens, for listings.
  */
 void GF_CORE_EXPORT DescribeChannelHandle(int handle, const QString& name,

@@ -479,6 +479,15 @@ auto DefaultChannelHandle() -> int {
   return registry.default_handle.value_or(kGpgFrontendDefaultChannel);
 }
 
+auto UsableDefaultChannelHandle() -> int {
+  const auto preferred = DefaultChannelHandle();
+  if (IsLiveChannelHandle(preferred)) return preferred;
+  for (const auto& info : ListRuntimeChannels()) {
+    if (info.state == ChannelHandleState::kAVAILABLE) return info.handle;
+  }
+  return preferred;
+}
+
 auto TryAcquireEngineLease(int handle, EngineAccessError* why, bool operation)
     -> std::optional<EngineLease> {
   auto& registry = Registry();

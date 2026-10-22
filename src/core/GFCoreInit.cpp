@@ -915,6 +915,22 @@ void StartMonitorCoreInitializationStatus() { PostCoreInitializationCheck(0); }
 
 auto IsCoreShuttingDown() -> bool { return k_core_shutting_down.load(); }
 
+namespace {
+
+/// Where reclaimed channels' engine objects are destroyed. One thread, so they
+/// go in the order they were reclaimed, each channel's newest first.
+auto ReclaimPool() -> QThreadPool& {
+  static QThreadPool pool;
+  static std::once_flag once;
+  std::call_once(once, []() { pool.setMaxThreadCount(1); });
+  return pool;
+}
+
+/// How long teardown waits for reclamations already handed to the pool.
+constexpr int kReclaimDrainTimeoutMs = 10000;
+
+}  // namespace
+
 void DestroyGpgFrontendCore() {
   // Mark teardown as in progress before touching anything. Background
   // subsystems check this so they do not spawn new work (e.g. the
@@ -925,6 +941,11 @@ void DestroyGpgFrontendCore() {
   // stop all task runner
   qDebug() << "Stopping all task runner...";
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  // Reclamations already handed off finish before the storages they came out
+  // of go; no new ones start once shutting down.
+  qDebug() << "Waiting for reclaimed key database channels...";
+  ReclaimPool().waitForDone(kReclaimDrainTimeoutMs);
 
   qDebug() << "Flushing all cache storage...";
 
@@ -1011,12 +1032,21 @@ void RevertKeyDatabaseMoveHere(const KeyDatabaseMove& move) {
 
 /// Carry out one folder move once nothing has the folder open.
 void PerformKeyDatabaseMove(const KeyDatabaseMove& move,
-                            KeyDatabaseApplyResult& result) {
+                            KeyDatabaseApplyResult& result,
+                            QSet<QString>& closed_in_use) {
   LOG_I() << "moving key database folder:" << move.from << "->" << move.to;
 
   // No new work resolves onto the folder from here on, whichever Runtime it
   // asks through. Work already holding it runs on and is waited for below.
-  if (!RetireChannelsAtLocation(move.from).isEmpty()) {
+  const auto in_use = CurrentRuntimeGeneration();
+  const auto retired = RetireChannelsAtLocation(move.from);
+  for (const auto handle : retired) {
+    const auto info = LookupChannelHandle(handle);
+    if (info.generation == in_use && !info.database_id.isEmpty()) {
+      closed_in_use.insert(info.database_id);
+    }
+  }
+  if (!retired.isEmpty()) {
     emit CoreSignalStation::GetInstance() -> SignalKeyDatabaseChannelsRetired();
   }
 
@@ -1052,9 +1082,8 @@ void PerformKeyDatabaseMove(const KeyDatabaseMove& move,
   }
 }
 
-/// Build a Runtime from the stored configuration.
-auto BuildCandidateRuntime(KeyDatabaseApplyResult& result)
-    -> KeyDatabaseRuntimeCandidate {
+/// What every context is built with, from the stored settings.
+auto StoredKeyDatabaseRuntimeOptions() -> KeyDatabaseRuntimeOptions {
   auto settings = GetSettings();
 
   KeyDatabaseRuntimeOptions options;
@@ -1067,7 +1096,13 @@ auto BuildCandidateRuntime(KeyDatabaseApplyResult& result)
       SettingItems::kDefaultEngine.Read(settings).toUpper();
   options.gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
   options.rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
+  return options;
+}
 
+/// Build a Runtime from the stored configuration.
+auto BuildCandidateRuntime(KeyDatabaseApplyResult& result)
+    -> KeyDatabaseRuntimeCandidate {
+  const auto options = StoredKeyDatabaseRuntimeOptions();
   const auto key_dbs = GetKeyDatabaseInfoBySettings();
   const auto default_id = GetDefaultKeyDatabaseId();
 
@@ -1083,6 +1118,93 @@ auto BuildCandidateRuntime(KeyDatabaseApplyResult& result)
   return PrepareKeyDatabaseRuntime(key_dbs, default_index, options, result);
 }
 
+/// Open @p key_db on a fresh handle of @p generation.
+///
+/// @return the handle, or -1 when it did not open; the handle is then
+/// registered as unavailable, so the databases after it keep their places
+auto OpenKeyDatabaseOnFreshHandle(const KeyDatabaseInfo& key_db, int order,
+                                  bool is_default, int generation,
+                                  const KeyDatabaseRuntimeOptions& options)
+    -> int {
+  const auto handle = AllocateChannelHandle();
+  const auto choice =
+      is_default ? ChooseChannelZeroEngine(
+                       key_db.name, key_db.backend_type, options.default_engine,
+                       options.gnupg_supported, options.rpgp_supported)
+                 : ChooseKeyDatabaseEngine(
+                       key_db.backend_type, options.default_engine,
+                       options.gnupg_supported, options.rpgp_supported);
+
+  if (choice.ok && !key_db.path.isEmpty() && !key_db.name.isEmpty()) {
+    OpenPGPContextInitArgs args;
+    args.db_id = key_db.id;
+    args.db_name = key_db.name;
+    args.db_path = key_db.path;
+    args.engine = choice.engine;
+    args.generation = generation;
+    args.order = order;
+    args.is_default = is_default;
+    args.offline_mode = options.offline_mode;
+    args.auto_import_missing_key = options.auto_import_missing_key;
+
+    if (RunRegisteredRawForward<BuildOpenPGPContextOpTag>(args.engine, handle,
+                                                          args) &&
+        GpgKeyRepository::GetInstance(handle).FlushKeyCache()) {
+      return handle;
+    }
+  }
+
+  LOG_W() << "key database did not open:" << key_db.name
+          << "generation:" << generation;
+  RegisterChannelHandle(handle, key_db.id, false, generation);
+  DescribeChannelHandle(handle, key_db.name, key_db.path, key_db.backend_type,
+                        order);
+  return -1;
+}
+
+/// Open again, in the Runtime in use, the databases a folder move closed in it
+/// when no new Runtime is coming to take them up: from where the stored list
+/// now says they are, which is the new folder after a move and the old one
+/// after a move that was undone.
+void ReopenKeyDatabasesInUse(const QSet<QString>& ids,
+                             KeyDatabaseApplyResult& result) {
+  if (ids.isEmpty()) return;
+
+  const auto generation = CurrentRuntimeGeneration();
+  const auto options = StoredKeyDatabaseRuntimeOptions();
+  const auto default_id =
+      LookupChannelHandle(DefaultChannelHandle()).database_id;
+  const auto key_dbs = GetKeyDatabaseInfoBySettings();
+
+  int default_handle = -1;
+  bool reopened = false;
+  for (int i = 0; i < key_dbs.size(); i++) {
+    const auto& key_db = key_dbs[i];
+    if (!ids.contains(key_db.id)) continue;
+
+    const auto is_default = key_db.id == default_id;
+    const auto handle = OpenKeyDatabaseOnFreshHandle(key_db, i, is_default,
+                                                     generation, options);
+    if (handle < 0) {
+      result.unavailable.append(key_db.name);
+      continue;
+    }
+    if (is_default) default_handle = handle;
+    reopened = true;
+  }
+  if (!reopened) return;
+
+  // Same generation: nothing else is retired, only the default may move.
+  if (default_handle >= 0) {
+    PublishRuntimeGeneration(generation, default_handle);
+  }
+  PublishRuntimeToRegisterTable();
+  LOG_I() << "reopened key databases closed by a move, generation:"
+          << generation;
+  emit CoreSignalStation::GetInstance()
+      -> SignalKeyDatabaseRuntimePublished(generation, generation);
+}
+
 }  // namespace
 
 auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
@@ -1095,45 +1217,15 @@ auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
 
   for (int i = 0; i < key_dbs.size(); i++) {
     const auto& key_db = key_dbs[i];
-    const auto handle = AllocateChannelHandle();
     const auto is_default = i == default_index;
 
-    const auto choice =
-        is_default
-            ? ChooseChannelZeroEngine(
-                  key_db.name, key_db.backend_type, options.default_engine,
-                  options.gnupg_supported, options.rpgp_supported)
-            : ChooseKeyDatabaseEngine(
-                  key_db.backend_type, options.default_engine,
-                  options.gnupg_supported, options.rpgp_supported);
-
-    auto opened = false;
-    if (choice.ok && !key_db.path.isEmpty() && !key_db.name.isEmpty()) {
-      OpenPGPContextInitArgs args;
-      args.db_id = key_db.id;
-      args.db_name = key_db.name;
-      args.db_path = key_db.path;
-      args.engine = choice.engine;
-      args.generation = candidate.generation;
-      args.order = i;
-      args.is_default = is_default;
-      args.offline_mode = options.offline_mode;
-      args.auto_import_missing_key = options.auto_import_missing_key;
-
-      opened = RunRegisteredRawForward<BuildOpenPGPContextOpTag>(
-                   args.engine, handle, args) &&
-               GpgKeyRepository::GetInstance(handle).FlushKeyCache();
-    }
-
-    if (opened) {
+    const auto handle = OpenKeyDatabaseOnFreshHandle(
+        key_db, i, is_default, candidate.generation, options);
+    if (handle >= 0) {
       if (is_default) candidate.default_handle = handle;
       continue;
     }
 
-    LOG_W() << "key database did not open in the new runtime:" << key_db.name;
-    RegisterChannelHandle(handle, key_db.id, false, candidate.generation);
-    DescribeChannelHandle(handle, key_db.name, key_db.path, key_db.backend_type,
-                          i);
     result.unavailable.append(key_db.name);
     if (is_default) {
       result.errors.append(
@@ -1155,18 +1247,30 @@ auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
 void InstallKeyDatabaseRuntimeReclaimer() {
   SetRetiredChannelReclaimer([](int handle) {
     auto reclaim = [handle]() {
-      const auto released = ReleaseEngineScopedChannel(handle);
+      // Taken off the channel here, on the GUI thread every widget reads
+      // engine objects from, so no such read is in the middle of one. Destroyed
+      // elsewhere: closing a database and stopping its agent takes seconds.
+      auto objects = std::make_shared<std::vector<ChannelObjectPtr>>(
+          TakeEngineScopedChannel(handle));
 #ifdef HAS_RUST_SUPPORT
       Rust::gfr_set_channel_cache_scope(handle, nullptr);
       SetChannelPasswordFetcher(handle, {});
 #endif
-      MarkChannelReclaimed(handle);
-      LOG_D() << "reclaimed retired channel" << handle
-              << "objects:" << released;
+      ReclaimPool().start([handle, objects]() {
+        const auto released = objects->size();
+        // Newest first: a dependent goes before what it uses.
+        for (auto& object : *objects) object.reset();
+        MarkChannelReclaimed(handle);
+        LOG_D() << "reclaimed retired channel" << handle
+                << "objects:" << released;
+        // Looked up again between the taking and now: built afresh, and
+        // missed by the reclamation already under way.
+        if (HasEngineScopedObjects(handle)) {
+          ReclaimChannelAgainIfReclaimed(handle);
+        }
+      });
     };
 
-    // On the GUI thread, which every widget reads engine objects from, so a
-    // reclamation can never land in the middle of one of those reads.
     //
     // Never during teardown: the last lease may drop on a worker thread that
     // outlived its runner's stop, while the GUI thread is destroying the very
@@ -1187,7 +1291,13 @@ auto ApplyKeyDatabaseRuntime(const QContainer<KeyDatabaseMove>& moves)
   KeyDatabaseApplyResult result;
   result.from_generation = CurrentRuntimeGeneration();
 
-  for (const auto& move : moves) PerformKeyDatabaseMove(move, result);
+  // The databases the moves closed in the Runtime in use, for when no new
+  // Runtime comes to take them up.
+  QSet<QString> closed_in_use;
+  for (const auto& move : moves) {
+    PerformKeyDatabaseMove(move, result, closed_in_use);
+    ForgetPendingKeyDatabaseMove(move.database_id);
+  }
 
   // Settings saved again while a candidate was being built make it obsolete.
   // Built again from the newer configuration a bounded number of times rather
@@ -1200,13 +1310,9 @@ auto ApplyKeyDatabaseRuntime(const QContainer<KeyDatabaseMove>& moves)
 
     if (!candidate.ok) {
       RetireRuntimeGeneration(candidate.generation);
-      // A folder already moved had its channels retired for the move; with no
-      // new Runtime to take it up, it stays closed until the next apply.
-      if (!moves.isEmpty()) {
-        result.errors.append(QCoreApplication::tr(
-            "Renamed key databases stay unavailable until the key database "
-            "settings are applied successfully."));
-      }
+      // A folder moved for this apply had its channels retired; with no new
+      // Runtime to take it up, it is opened again in the one in use.
+      ReopenKeyDatabasesInUse(closed_in_use, result);
       return result;
     }
 

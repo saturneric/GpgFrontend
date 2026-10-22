@@ -29,6 +29,7 @@
 #pragma once
 
 #include <mutex>
+#include <vector>
 
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
@@ -78,6 +79,30 @@ auto GF_CORE_EXPORT GetGlobalFunctionObjectTypeLock(const std::type_info& type)
     -> std::mutex&;
 
 /**
+ * @brief Remove the instance of @p type on @p channel from storage, if any,
+ * and hand it over. Called with the type lock held.
+ *
+ * @param type type_info of the singleton type
+ * @param channel channel ID
+ * @return the instance, or null
+ */
+auto GF_CORE_EXPORT TakeChannelObjectInstance(const std::type_info& type,
+                                              int channel) -> ChannelObjectPtr;
+
+/**
+ * @brief Keep an instance CreateInstance() replaced alive for good.
+ *
+ * Whoever looked it up may still be using it; a leak beats freeing it under
+ * them, and it only happens when a channel is looked up mid-build.
+ */
+void GF_CORE_EXPORT KeepSupersededObject(ChannelObjectPtr object);
+
+/**
+ * @brief Whether any engine-scoped object lives on @p channel.
+ */
+auto GF_CORE_EXPORT HasEngineScopedObjects(int channel) -> bool;
+
+/**
  * @brief Note that an engine-scoped object of @p type now lives on @p channel.
  *
  * Kept in creation order per channel. An object's dependencies are always
@@ -98,6 +123,20 @@ void GF_CORE_EXPORT RecordEngineScopedObject(const std::type_info& type,
  * @return how many objects were destroyed
  */
 auto GF_CORE_EXPORT ReleaseEngineScopedChannel(int channel) -> int;
+
+/**
+ * @brief Take every engine-scoped object off @p channel, without destroying
+ * them.
+ *
+ * What ReleaseEngineScopedChannel() does, split in two: once this returns no
+ * lookup reaches the objects, and whoever holds the list destroys them --
+ * front to back, which is newest first -- on a thread of its choosing.
+ *
+ * @param channel the channel to clear
+ * @return the objects, newest first
+ */
+auto GF_CORE_EXPORT TakeEngineScopedChannel(int channel)
+    -> std::vector<ChannelObjectPtr>;
 
 /**
  * @brief Called after an engine-scoped object was created on @p channel.
@@ -198,12 +237,26 @@ class SingletonFunctionObject : public ChannelObject {
                   "T not derived from SingletonFunctionObject<T>");
 
     const auto& type = typeid(T);
-    std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
-    auto* channel_object =
-        CreateChannelObjectInstance(type, channel, factory());
-    if constexpr (IsEngineScoped<T>::value) {
-      RecordEngineScopedObject(type, channel);
+
+    // Built outside the type lock: building a context opens its database and
+    // starts its agent, seconds during which every GetInstance() of this type,
+    // on any channel, would otherwise wait -- the GUI among them.
+    auto object = factory();
+
+    ChannelObjectPtr superseded;
+    ChannelObject* channel_object = nullptr;
+    {
+      std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
+      // Something looked the channel up while it was being built and got an
+      // empty stand-in, which it may still be using: kept alive, not freed.
+      superseded = TakeChannelObjectInstance(type, channel);
+      channel_object =
+          CreateChannelObjectInstance(type, channel, std::move(object));
+      if constexpr (IsEngineScoped<T>::value) {
+        RecordEngineScopedObject(type, channel);
+      }
     }
+    if (superseded != nullptr) KeepSupersededObject(std::move(superseded));
     return *static_cast<T*>(channel_object);
   }
 

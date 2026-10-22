@@ -1817,6 +1817,67 @@ constexpr int kTestGeneration = 0x7fff0000;
 
 }  // namespace
 
+// -----------------------------------------------------------------------------
+// A folder move saved but not yet made: a scan of the folders reads it as the
+// stored list already has it.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto ScannedFolder(const QString& path) -> KeyDatabaseItemSO {
+  KeyDatabaseItemSO item;
+  item.name = QFileInfo(path).fileName();
+  item.path = path;
+  return item;
+}
+
+auto Move(const QString& id, const QString& from, const QString& to)
+    -> KeyDatabaseMove {
+  KeyDatabaseMove move;
+  move.database_id = id;
+  move.from = from;
+  move.to = to;
+  return move;
+}
+
+}  // namespace
+
+TEST(PendingKeyDatabaseMoveTest, AFolderStillToMoveIsScannedUnderItsNewName) {
+  const auto scanned = ApplyPendingMovesToScan(
+      {ScannedFolder("/p/dbs/work"), ScannedFolder("/p/dbs/home")},
+      {Move("id-w", "/p/dbs/work", "/p/dbs/office")});
+
+  ASSERT_EQ(scanned.size(), 2);
+  EXPECT_EQ(scanned[0].name, "office");
+  EXPECT_EQ(scanned[0].path, "/p/dbs/office");
+  EXPECT_EQ(scanned[1].name, "home") << "an unmoved folder was touched";
+}
+
+TEST(PendingKeyDatabaseMoveTest, WithNoMovesTheScanIsUnchanged) {
+  const auto scanned =
+      ApplyPendingMovesToScan({ScannedFolder("/p/dbs/work")}, {});
+  ASSERT_EQ(scanned.size(), 1);
+  EXPECT_EQ(scanned[0].name, "work");
+}
+
+TEST(PendingKeyDatabaseMoveTest, AMoveIsNotedOnceAndForgotten) {
+  NotePendingKeyDatabaseMoves({Move("id-pending", "/a", "/b")});
+  NotePendingKeyDatabaseMoves({Move("id-pending", "/a", "/c")});
+
+  int found = 0;
+  for (const auto& move : PendingKeyDatabaseMoves()) {
+    if (move.database_id != "id-pending") continue;
+    ++found;
+    EXPECT_EQ(move.to, "/c") << "a later rename did not replace the move";
+  }
+  EXPECT_EQ(found, 1);
+
+  ForgetPendingKeyDatabaseMove("id-pending");
+  for (const auto& move : PendingKeyDatabaseMoves()) {
+    EXPECT_NE(move.database_id, "id-pending");
+  }
+}
+
 TEST(ChannelHandleTest, AHandleNeverIssuedIsUnknownAndNotLive) {
   const auto handle = TestHandle();
   EXPECT_EQ(LookupChannelHandle(handle).state, ChannelHandleState::kUNKNOWN);
@@ -2259,6 +2320,58 @@ TEST(EngineScopedReleaseTest, DependentsGoFirstAndProcessWideObjectsStay) {
   EXPECT_EQ(std::count(process_wide.begin(), process_wide.end(), channel), 1);
 
   EXPECT_EQ(ReleaseEngineScopedChannel(channel), 0) << "released twice";
+}
+
+TEST(EngineScopedReleaseTest, TakingLeavesTheObjectsAliveNewestFirst) {
+  const auto channel = TestHandle();
+  {
+    std::lock_guard<std::mutex> lock(g_destroyed_lock);
+    g_destroyed.clear();
+  }
+
+  TestEngineDependent::GetInstance(channel);
+  ASSERT_TRUE(HasEngineScopedObjects(channel));
+
+  auto objects = TakeEngineScopedChannel(channel);
+  EXPECT_FALSE(HasEngineScopedObjects(channel));
+  ASSERT_EQ(objects.size(), 2U);
+  {
+    std::lock_guard<std::mutex> lock(g_destroyed_lock);
+    EXPECT_TRUE(g_destroyed.empty()) << "taking destroyed something";
+  }
+
+  for (auto& object : objects) object.reset();
+  std::lock_guard<std::mutex> lock(g_destroyed_lock);
+  ASSERT_EQ(g_destroyed.size(), 2U);
+  EXPECT_EQ(g_destroyed[0], "dependent");
+  EXPECT_EQ(g_destroyed[1], "dependency");
+}
+
+TEST(EngineScopedReleaseTest, AStandInLookedUpMidBuildIsNotFreed) {
+  // A lookup that lands while a channel is being built gets an empty stand-in;
+  // the built object then takes the channel, and the stand-in must stay valid
+  // for whoever still holds it.
+  const auto channel = TestHandle();
+  {
+    std::lock_guard<std::mutex> lock(g_destroyed_lock);
+    g_destroyed.clear();
+  }
+
+  auto& stand_in = TestEngineDependency::GetInstance(channel);
+  auto& built = TestEngineDependency::CreateInstance(channel, [channel]() {
+    return ConvertToChannelObjectPtr(
+        SecureCreateUniqueObject<TestEngineDependency>(channel));
+  });
+
+  EXPECT_NE(&stand_in, &built);
+  EXPECT_EQ(&TestEngineDependency::GetInstance(channel), &built);
+  EXPECT_EQ(stand_in.GetChannel(), channel);
+  {
+    std::lock_guard<std::mutex> lock(g_destroyed_lock);
+    EXPECT_TRUE(g_destroyed.empty()) << "the stand-in was freed";
+  }
+
+  EXPECT_EQ(ReleaseEngineScopedChannel(channel), 1);
 }
 
 TEST(EngineScopedReleaseTest, AnObjectRebuiltOnAReclaimedChannelIsReclaimed) {

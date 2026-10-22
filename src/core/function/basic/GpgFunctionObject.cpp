@@ -95,6 +95,23 @@ auto CreateChannelObjectInstance(const std::type_info& type, int channel,
   return p_storage->SetObjectInChannel(channel, std::move(channel_object));
 }
 
+auto TakeChannelObjectInstance(const std::type_info& type, int channel)
+    -> ChannelObjectPtr {
+  std::lock_guard<std::mutex> channel_guard(
+      GetGlobalFunctionObjectChannelLock(type, channel));
+  return SingletonStorageCollection::GetInstance()
+      ->GetSingletonStorage(type)
+      ->TakeObjectInChannel(channel);
+}
+
+void KeepSupersededObject(ChannelObjectPtr object) {
+  if (object == nullptr) return;
+  LOG_W() << "an object was looked up while its channel was being built, "
+             "keeping it rather than freeing it, channel:"
+          << object->GetChannel();
+  (void)object.release();
+}
+
 namespace {
 
 std::mutex g_engine_scoped_log_lock;
@@ -118,16 +135,24 @@ void RecordEngineScopedObject(const std::type_info& type, int channel) {
 }
 
 auto ReleaseEngineScopedChannel(int channel) -> int {
+  auto objects = TakeEngineScopedChannel(channel);
+  const auto released = static_cast<int>(objects.size());
+  // One at a time, newest first: a dependent goes before what it uses.
+  for (auto& object : objects) object.reset();
+  return released;
+}
+
+auto TakeEngineScopedChannel(int channel) -> std::vector<ChannelObjectPtr> {
   std::vector<const std::type_info*> types;
   {
     std::lock_guard<std::mutex> lock(g_engine_scoped_log_lock);
     auto it = g_engine_scoped_log.find(channel);
-    if (it == g_engine_scoped_log.end()) return 0;
+    if (it == g_engine_scoped_log.end()) return {};
     types = std::move(it->second);
     g_engine_scoped_log.erase(it);
   }
 
-  int released = 0;
+  std::vector<ChannelObjectPtr> objects;
   for (auto it = types.rbegin(); it != types.rend(); ++it) {
     const auto& type = **it;
     ChannelObjectPtr taken;
@@ -142,12 +167,15 @@ auto ReleaseEngineScopedChannel(int channel) -> int {
                   ->GetSingletonStorage(type)
                   ->TakeObjectInChannel(channel);
     }
-    if (taken != nullptr) {
-      taken.reset();
-      ++released;
-    }
+    if (taken != nullptr) objects.push_back(std::move(taken));
   }
-  return released;
+  return objects;
+}
+
+auto HasEngineScopedObjects(int channel) -> bool {
+  std::lock_guard<std::mutex> lock(g_engine_scoped_log_lock);
+  auto it = g_engine_scoped_log.find(channel);
+  return it != g_engine_scoped_log.end() && !it->second.empty();
 }
 
 void NoteEngineScopedObjectCreated(const std::type_info& type, int channel) {

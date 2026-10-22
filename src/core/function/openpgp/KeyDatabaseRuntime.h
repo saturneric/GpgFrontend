@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/KeyDatabaseInfo.h"
+#include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
@@ -48,6 +49,43 @@ struct KeyDatabaseMove {
   QString from;             ///< the directory now
   QString to;               ///< the directory it moves to
 };
+
+/**
+ * @brief Say that @p moves are saved in the stored list but not yet made.
+ *
+ * Between the two, the stored list names folders that are not there yet and
+ * the folders there carry names no entry has. Anything that reads the list
+ * back from the filesystem (the macOS app sandbox) asks this, so it neither
+ * drops the renamed entries nor gives the folders new identities.
+ *
+ * @param moves the moves about to be applied
+ */
+void GF_CORE_EXPORT NotePendingKeyDatabaseMoves(
+    const QContainer<KeyDatabaseMove>& moves);
+
+/**
+ * @brief The move of @p database_id was made or given up.
+ */
+void GF_CORE_EXPORT ForgetPendingKeyDatabaseMove(const QString& database_id);
+
+/**
+ * @brief The moves noted and not yet made.
+ */
+auto GF_CORE_EXPORT PendingKeyDatabaseMoves() -> QContainer<KeyDatabaseMove>;
+
+/**
+ * @brief Read a scan of the folders as it will be once @p moves are made.
+ *
+ * A scanned folder a pending move takes away is given the name and path it
+ * moves to. Pure, so the rule can be asserted without a sandbox.
+ *
+ * @param discovered the folders found, as name and path
+ * @param moves the pending moves
+ * @return the scan, with every pending move applied
+ */
+auto GF_CORE_EXPORT ApplyPendingMovesToScan(
+    QContainer<KeyDatabaseItemSO> discovered,
+    const QContainer<KeyDatabaseMove>& moves) -> QContainer<KeyDatabaseItemSO>;
 
 /**
  * @brief What applying the stored key database configuration did.
@@ -119,6 +157,9 @@ auto GF_CORE_EXPORT PrepareKeyDatabaseRuntime(
  *  4. the old Runtime is retired. Work it already accepted runs to the end on
  *     it; it is reclaimed once the last of that work lets go.
  *
+ * When no new Runtime can be built, the databases a move closed are opened
+ * again in the Runtime in use, from where the stored list now puts them.
+ *
  * One apply runs at a time; a second waits for the first. Blocks for as long
  * as building takes, so it is run off the GUI thread.
  *
@@ -131,9 +172,10 @@ auto GF_CORE_EXPORT ApplyKeyDatabaseRuntime(
 /**
  * @brief Install what reclaims a retired channel once nothing holds it.
  *
- * Reclamation destroys the channel's engine objects on the GUI thread, the one
- * every widget reads them from, so it never runs while a widget is in the
- * middle of using one.
+ * Reclamation takes the channel's engine objects out of reach on the GUI
+ * thread, the one every widget reads them from, so it never lands while a
+ * widget is in the middle of using one; they are then destroyed on a thread
+ * of their own, since closing a database and stopping its agent take seconds.
  */
 void GF_CORE_EXPORT InstallKeyDatabaseRuntimeReclaimer();
 
