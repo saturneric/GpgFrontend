@@ -804,75 +804,70 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   return 0;
 }
 
-void StartMonitorCoreInitializationStatus() {
+namespace {
+
+/// One look at how far the core has got; true once it is fully initialized
+/// (or will never be), false while it is still on its way.
+auto CheckCoreInitializationOnce() -> bool {
+  if (IsCoreShuttingDown()) return true;
+
+  int core_init_state =
+      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
+  if (core_init_state < 0) return true;
+  if (core_init_state == 0) {
+    LOG_D() << "monitor: core env is still initializing, waiting...";
+    return false;
+  }
+
+  if (!Module::ModuleManager::GetInstance().IsAllModulesRegistered()) {
+    LOG_D() << "monitor: some modules are still going to be registered, "
+               "waiting...";
+    return false;
+  }
+
+  int key_db_init_state =
+      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.key_dbs", 0);
+  if (key_db_init_state == 0) {
+    LOG_D() << "monitor: key dbs are still initializing, waiting...";
+    return false;
+  }
+
+  LOG_D() << "monitor: core is fully initialized, sending signal to ui...";
+  // Before the RT value, which is what the startup dialog re-reads to close
+  // the edge-triggered gap around its own show(). By then the bar must already
+  // say 100, or it is left showing a fraction forever.
+  CoreInitProgress::GetInstance().MarkAllDone();
+  Module::UpsertRTValue("core", "env.state.all", 1);
+  CoreSignalStation::GetInstance()->SignalCoreFullyLoaded();
+  return true;
+}
+
+/// Look once, and look again later by posting a new task rather than by
+/// waiting inside this one.
+///
+/// It used to spin in one task until the core was ready. That task held the
+/// external process runner the whole time, and every command posted there --
+/// a module running gpgconf, a test running a shell -- waited behind it; were
+/// the core never to finish (a module that never registers), they waited
+/// forever. Each look is now a short task of its own, so whatever is queued
+/// runs in between, and teardown never has a long-running task to join.
+void PostCoreInitializationCheck(int delay_ms) {
   auto* task = new Thread::Task(
-      [=](const DataObjectPtr&) -> int {
-        // Every poll below dereferences singleton storage (RTValue lookups,
-        // ModuleManager, CoreSignalStation). This task spins in synchronous
-        // loops that never return until the core finishes initializing, so
-        // TaskRunner::Stop()'s quit()/wait() cannot interrupt it. If teardown
-        // begins while we are still waiting, DestroyGpgFrontendCore() would
-        // destroy that storage out from under us. Bail out as soon as shutdown
-        // is observed (it is set before the task runners are stopped) so the
-        // thread exits and Stop() can join it before Destroy() runs.
-        for (;;) {
-          if (IsCoreShuttingDown()) return -1;
-          int core_init_state = Module::RetrieveRTValueTypedOrDefault<>(
-              "core", "env.state.basic", 0);
-          if (core_init_state < 0) return -1;
-          if (core_init_state != 0) break;
-
-          LOG_D() << "monitor: core env is still initializing, waiting...";
-          QThread::msleep(100);
-        }
-
-        // waiting for module first
-        for (;;) {
-          if (IsCoreShuttingDown()) return -1;
-          if (Module::ModuleManager::GetInstance().IsAllModulesRegistered()) {
-            break;
-          }
-
-          LOG_D() << "monitor: some modules are still going to be registered, "
-                     "waiting...";
-          QThread::msleep(15);
-        }
-        LOG_D() << "monitor: good, all module are registered.";
-
-        for (;;) {
-          if (IsCoreShuttingDown()) return -1;
-          int key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
-              "core", "env.state.key_dbs", 0);
-          if (key_db_init_state != 0) break;
-
-          LOG_D() << "monitor: key dbs are still initializing, waiting...";
-          QThread::msleep(15);
-        }
-        LOG_D() << "monitor: good, all key db are loaded.";
-
-        if (IsCoreShuttingDown()) return -1;
-        LOG_D()
-            << "monitor: core is fully initialized, sending signal to ui...";
-        // Before the RT value, which is what the startup dialog re-reads to
-        // close the edge-triggered gap around its own show(). By then the bar
-        // must already say 100, or it is left showing a fraction forever.
-        CoreInitProgress::GetInstance().MarkAllDone();
-        Module::UpsertRTValue("core", "env.state.all", 1);
-        CoreSignalStation::GetInstance()->SignalCoreFullyLoaded();
+      [delay_ms](const DataObjectPtr&) -> int {
+        if (delay_ms > 0) QThread::msleep(delay_ms);
+        if (!CheckCoreInitializationOnce()) PostCoreInitializationCheck(15);
         return 0;
       },
       "waiting_core_init_task");
 
-  QObject::connect(task, &Thread::Task::SignalTaskEnd, [=]() {
-    LOG_D() << "monitor: monitor task ended, call back to main thead.";
-  });
-
-  // start the thread to check ctx and gnupg state
-  // it may take a few seconds or minutes
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
       ->PostTask(task);
 }
+
+}  // namespace
+
+void StartMonitorCoreInitializationStatus() { PostCoreInitializationCheck(0); }
 
 auto IsCoreShuttingDown() -> bool { return k_core_shutting_down.load(); }
 
