@@ -31,6 +31,10 @@
 #include <QFileInfo>
 #include <QSharedPointer>
 #include <QTemporaryDir>
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <optional>
 #include <thread>
 
 #ifndef Q_OS_WINDOWS
@@ -115,20 +119,74 @@ auto ExchangerWith(const QByteArray& bytes)
   return ex;
 }
 
+/// How long a test waits for an archive task on the IO runner. Generous: at
+/// startup the runner is also serving the data object store, and with the
+/// suite sharded across processes a task can wait seconds before it starts.
+constexpr int kArchiveWaitMs = 10000;
+
+/**
+ * @brief Start an asynchronous archive call and wait for its callback.
+ *
+ * The callback reports into state it shares with this function, never into the
+ * test's stack. A wait that gives up ends the test while the task may still be
+ * queued; when it runs later, after the test's frame is gone, it writes only to
+ * state it keeps alive itself.
+ *
+ * @param start starts the call with the callback it is given
+ * @return the error the task reported, or nothing when it did not report in
+ * time (also recorded as a test failure)
+ */
+auto WaitForArchiveTask(
+    const std::function<void(const GpgFrontend::OperationCallback&)>& start)
+    -> std::optional<GpgFrontend::GFError> {
+  struct State {
+    std::atomic<bool> done{false};
+    std::atomic<GpgFrontend::GFError> err{0};
+  };
+  const auto state = std::make_shared<State>();
+
+  start([state](GpgFrontend::GFError err, const GpgFrontend::DataObjectPtr&) {
+    state->err.store(err);
+    state->done.store(true);
+  });
+
+  for (int waited = 0; !state->done.load() && waited < kArchiveWaitMs;
+       ++waited) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  if (!state->done.load()) {
+    ADD_FAILURE() << "archive task did not finish within " << kArchiveWaitMs
+                  << " ms";
+    return std::nullopt;
+  }
+  return state->err.load();
+}
+
+/// Pack @p src_dir into @p exchanger through the asynchronous entry point.
+auto ArchiveAsync(const QString& src_dir,
+                  const QSharedPointer<GpgFrontend::GFDataExchanger>& exchanger,
+                  GpgFrontend::ArchiveCompression compression =
+                      GpgFrontend::ArchiveCompression::kNONE,
+                  const GpgFrontend::ArchiveEntryFilter& filter = {})
+    -> std::optional<GpgFrontend::GFError> {
+  return WaitForArchiveTask([&](const GpgFrontend::OperationCallback& cb) {
+    GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
+        src_dir, exchanger, cb, compression, filter);
+  });
+}
+
+/// Unpack through the asynchronous entry point. A task that never reported is
+/// returned as -1, after being recorded as a failure, so no caller can mistake
+/// it for a result.
 auto ExtractSync(const QSharedPointer<GpgFrontend::GFDataExchanger>& ex,
                  const QString& dest,
                  const GpgFrontend::ArchiveExtractPolicy& policy) -> int {
-  int result = 0;
-  bool finished = false;
-  GpgFrontend::ArchiveFileOperator::ExtractArchiveFromDataExchanger(
-      ex, dest,
-      [&](GpgFrontend::GFError err, GpgFrontend::DataObjectPtr) {
-        result = static_cast<int>(err);
-        finished = true;
-      },
-      policy);
-  WAIT_FOR_TRUE(finished, 3000);
-  return result;
+  const auto err =
+      WaitForArchiveTask([&](const GpgFrontend::OperationCallback& cb) {
+        GpgFrontend::ArchiveFileOperator::ExtractArchiveFromDataExchanger(
+            ex, dest, cb, policy);
+      });
+  return err ? static_cast<int>(*err) : -1;
 }
 
 }  // namespace
@@ -357,15 +415,7 @@ TEST(ArchiveFileOperatorTest, ArchiveAndExtract) {
   CreateTestFile(src_dir, "test2.txt", "hello world 2");
 
   auto exchanger = CreateStandardGFDataExchanger();
-  bool archive_finished = false;
-
-  GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
-      src_dir, exchanger, [&](GFError err, DataObjectPtr) {
-        EXPECT_EQ(err, 0);
-        archive_finished = true;
-      });
-
-  WAIT_FOR_TRUE(archive_finished, 3000);
+  ASSERT_EQ(ArchiveAsync(src_dir, exchanger), 0);
 
   QTemporaryDir extract_dir;
   ASSERT_TRUE(extract_dir.isValid());
@@ -393,13 +443,7 @@ TEST(ArchiveFileOperatorTest, DirectoriesIncludingEmptyOnesSurvive) {
   CreateTestFile(src_dir + "/nested/deeper", "leaf.txt", "leaf");
 
   auto exchanger = CreateStandardGFDataExchanger();
-  bool archive_finished = false;
-  GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
-      src_dir, exchanger, [&](GFError err, DataObjectPtr) {
-        EXPECT_EQ(err, 0);
-        archive_finished = true;
-      });
-  WAIT_FOR_TRUE(archive_finished, 3000);
+  ASSERT_EQ(ArchiveAsync(src_dir, exchanger), 0);
 
   QTemporaryDir extract_dir;
   ASSERT_TRUE(extract_dir.isValid());
@@ -422,15 +466,7 @@ TEST(ArchiveFileOperatorTest, GzipRoundTrip) {
   CreateTestFile(src_dir, "compressible.txt", QByteArray(4096, 'a'));
 
   auto exchanger = CreateStandardGFDataExchanger();
-  bool archive_finished = false;
-  GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
-      src_dir, exchanger,
-      [&](GFError err, DataObjectPtr) {
-        EXPECT_EQ(err, 0);
-        archive_finished = true;
-      },
-      ArchiveCompression::kGZIP);
-  WAIT_FOR_TRUE(archive_finished, 3000);
+  ASSERT_EQ(ArchiveAsync(src_dir, exchanger, ArchiveCompression::kGZIP), 0);
 
   QTemporaryDir extract_dir;
   ASSERT_TRUE(extract_dir.isValid());
@@ -453,16 +489,9 @@ TEST(ArchiveFileOperatorTest, FilterPrunesWholeSubtree) {
   CreateTestFile(src_dir + "/drop/inner", "dropped.txt", "dropped");
 
   auto exchanger = CreateStandardGFDataExchanger();
-  bool archive_finished = false;
-  GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
-      src_dir, exchanger,
-      [&](GFError err, DataObjectPtr) {
-        EXPECT_EQ(err, 0);
-        archive_finished = true;
-      },
-      ArchiveCompression::kNONE,
-      [](const QString& rel) { return rel != "drop"; });
-  WAIT_FOR_TRUE(archive_finished, 3000);
+  ASSERT_EQ(ArchiveAsync(src_dir, exchanger, ArchiveCompression::kNONE,
+                         [](const QString& rel) { return rel != "drop"; }),
+            0);
 
   QTemporaryDir extract_dir;
   ASSERT_TRUE(extract_dir.isValid());
@@ -681,13 +710,9 @@ TEST(ArchiveFileOperatorTest, ListArchive) {
 
 TEST(ArchiveFileOperatorTest, HandleInvalidInput) {
   auto exchanger = CreateStandardGFDataExchanger();
-  bool archive_finished = false;
-  GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
-      "/not/exist", exchanger, [&](int err, DataObjectPtr) {
-        EXPECT_NE(err, 0);
-        archive_finished = true;
-      });
-  WAIT_FOR_TRUE(archive_finished, 3000);
+  const auto archive_err = ArchiveAsync("/not/exist", exchanger);
+  ASSERT_TRUE(archive_err.has_value());
+  EXPECT_NE(*archive_err, 0);
 
   QTemporaryDir temp_dir;
   EXPECT_EQ(ExtractSync(exchanger, temp_dir.path(),
