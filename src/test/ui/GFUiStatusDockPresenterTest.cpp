@@ -376,6 +376,97 @@ TEST(GFUiStatusDockPresenterTest, AHiddenDockIsNotTurnedIntoACollapsedOne) {
   });
 }
 
+TEST(GFUiStatusDockPresenterTest,
+     AFloatingPanelIsNotCollapsedByACompactContext) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+
+    f.presenter->SetCompactContext(true);
+    EXPECT_TRUE(f.presenter->InCompactContext());
+    EXPECT_FALSE(f.Collapsed()) << "it takes no room from the editor";
+    EXPECT_TRUE(f.BoardShown());
+
+    f.presenter->SetCompactContext(false);
+    EXPECT_FALSE(f.Collapsed());
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, FloatingAnAutoCollapsedPanelExpandsIt) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    f.presenter->SetCompactContext(true);
+    ASSERT_TRUE(f.Collapsed());
+
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+
+    EXPECT_FALSE(f.Collapsed());
+    EXPECT_TRUE(f.BoardShown());
+    EXPECT_EQ(f.dock->titleBarWidget(), nullptr) << "the native title bar";
+    EXPECT_TRUE(Unconstrained(f.dock->maximumHeight()));
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest,
+     RedockingInsideACompactContextCollapsesAgain) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    f.presenter->SetCompactContext(true);
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+    ASSERT_FALSE(f.Collapsed());
+
+    f.dock->setFloating(false);
+    PresenterFixture::Settle();
+    EXPECT_TRUE(f.Collapsed());
+
+    // Floated while on an ordinary page, docked on a compact one.
+    f.presenter->SetCompactContext(false);
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+    f.presenter->SetCompactContext(true);
+    ASSERT_FALSE(f.Collapsed());
+    f.dock->setFloating(false);
+    PresenterFixture::Settle();
+    EXPECT_TRUE(f.Collapsed());
+
+    // Off the compact page: back to what it was before.
+    f.presenter->SetCompactContext(false);
+    EXPECT_FALSE(f.Collapsed());
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, AUserCollapseOfAFloatingPanelIsKept) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+    f.Collapse();
+
+    f.presenter->SetCompactContext(true);
+    EXPECT_TRUE(f.Collapsed());
+    f.presenter->SetCompactContext(false);
+    EXPECT_TRUE(f.Collapsed()) << "the user's choice, restored on leaving";
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest,
+     RedockingAfterTheUserExpandedDoesNotCollapse) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+    f.presenter->SetCompactContext(true);
+    f.Expand();  // the user's choice inside the context
+
+    f.dock->setFloating(false);
+    PresenterFixture::Settle();
+    EXPECT_FALSE(f.Collapsed());
+  });
+}
+
 TEST(GFUiStatusDockPresenterTest, CompactToCompactKeepsTheUsersChoice) {
   OnGuiThread([] {
     PresenterFixture f;

@@ -59,7 +59,10 @@ enum class StatusDockPresentation : uint8_t {
  *  - a new result posted to the board expands a collapsed panel;
  *  - SetCompactContext() collapses on entering a context that asked for a
  *    compact panel, keeps the user's choice while inside it, and restores
- *    what was there before on leaving it.
+ *    what was there before on leaving it;
+ *  - a floating panel takes no room from the editor, so a compact context
+ *    never collapses it: dragging an automatically collapsed panel out
+ *    expands it, and docking it back inside the context collapses it again.
  */
 class GF_UI_EXPORT StatusDockPresenter : public QObject {
   Q_OBJECT
@@ -132,7 +135,8 @@ class GF_UI_EXPORT StatusDockPresenter : public QObject {
    * A transition, not a per-tab hook: ordinary -> compact collapses a visible
    * panel (a hidden one stays hidden, and is not turned into a collapsed one);
    * compact -> compact changes nothing; compact -> ordinary restores the
-   * presentation from before the compact context.
+   * presentation from before the compact context. A floating panel is never
+   * collapsed by it; the collapse waits until the panel is docked again.
    */
   void SetCompactContext(bool compact);
 
@@ -178,6 +182,13 @@ class GF_UI_EXPORT StatusDockPresenter : public QObject {
   StatusDockPresentation presentation_ = StatusDockPresentation::kExpanded;
   /// Set exactly while inside a compact context: what to restore on leaving.
   std::optional<StatusDockPresentation> before_compact_;
+  /// The current Collapsed came from a compact context, not from the user.
+  bool auto_collapsed_ = false;
+  /// Inside a compact context, its collapse was skipped or undone because
+  /// the dock was floating; docking it again pays it.
+  bool compact_owed_ = false;
+  /// Waits for the drag that floated the dock to end before expanding it.
+  QTimer* float_expand_ = nullptr;
 
   int expanded_height_ = 0;
   int expanded_min_height_ = 0;
@@ -205,9 +216,13 @@ class GF_UI_EXPORT StatusDockPresenter : public QObject {
   static constexpr int kMinimumSlack = 8;
   /// With no real height known, the default layout's share of the window.
   static constexpr int kDefaultSharePercent = 30;
+  /// How often a floated, still-dragged dock checks for the release.
+  static constexpr int kFloatExpandPollMs = 50;
   [[nodiscard]] auto is_chosen_height(int height) const -> bool;
   [[nodiscard]] auto expanded_target() const -> int;
   void heal_on_first_show();
+  void on_floating_changed(bool floating);
+  void expand_auto_collapsed_float();
   void apply_deferred_geometry();
 
   void transition_to(StatusDockPresentation target, bool animate);

@@ -144,6 +144,19 @@ StatusDockPresenter::StatusDockPresenter(QMainWindow* window, QDockWidget* dock,
   connect(transition_, &QVariantAnimation::finished, this,
           [this]() { finish_transition(); });
 
+  // A collapsed dock is dragged out by the bar, its title bar: swapping that
+  // for the native one while the button is still down drops the drag. So
+  // the expansion waits for the release.
+  float_expand_ = new QTimer(this);
+  float_expand_->setInterval(kFloatExpandPollMs);
+  connect(float_expand_, &QTimer::timeout, this, [this]() {
+    if (QGuiApplication::mouseButtons() != Qt::NoButton) return;
+    float_expand_->stop();
+    expand_auto_collapsed_float();
+  });
+  connect(dock, &QDockWidget::topLevelChanged, this,
+          [this](bool floating) { on_floating_changed(floating); });
+
   // The first show is when the restored layout becomes real geometry.
   window->installEventFilter(this);
 
@@ -168,10 +181,15 @@ StatusDockPresenter::~StatusDockPresenter() {
 }
 
 void StatusDockPresenter::Expand() {
+  // The user's choice, or a new result: no longer the compact context's.
+  auto_collapsed_ = false;
+  compact_owed_ = false;
   transition_to(StatusDockPresentation::kExpanded, true);
 }
 
 void StatusDockPresenter::Collapse() {
+  auto_collapsed_ = false;
+  compact_owed_ = false;
   transition_to(StatusDockPresentation::kCollapsed, true);
 }
 
@@ -389,16 +407,55 @@ void StatusDockPresenter::SetCompactContext(bool compact) {
     before_compact_ = presentation_;
     // A panel the user closed stays closed; collapsing it would only change
     // what the View menu brings back.
+    // A floating one takes no room from the editor: it waits until docked.
     // Switching tabs is not something to watch move: instant.
     if (dock_ != nullptr && !dock_->isHidden()) {
-      transition_to(StatusDockPresentation::kCollapsed, false);
+      if (dock_->isFloating()) {
+        compact_owed_ = true;
+      } else if (presentation_ != StatusDockPresentation::kCollapsed) {
+        transition_to(StatusDockPresentation::kCollapsed, false);
+        auto_collapsed_ = true;
+      }
     }
     return;
   }
 
   const auto restore = *before_compact_;
   before_compact_.reset();
+  auto_collapsed_ = false;
+  compact_owed_ = false;
+  float_expand_->stop();
   transition_to(restore, false);
+}
+
+void StatusDockPresenter::on_floating_changed(bool floating) {
+  if (dock_ == nullptr) return;
+  if (floating) {
+    if (!auto_collapsed_) return;
+    if (QGuiApplication::mouseButtons() == Qt::NoButton) {
+      expand_auto_collapsed_float();
+    } else {
+      float_expand_->start();
+    }
+    return;
+  }
+
+  // Docked again before the drag ended: it never stopped being collapsed.
+  float_expand_->stop();
+  if (compact_owed_ && InCompactContext() && !dock_->isHidden()) {
+    compact_owed_ = false;
+    transition_to(StatusDockPresentation::kCollapsed, false);
+    auto_collapsed_ = true;
+  }
+}
+
+void StatusDockPresenter::expand_auto_collapsed_float() {
+  // Re-checked: the dock may have been docked again, or the user may have
+  // chosen for themselves, while the drag was still going.
+  if (dock_ == nullptr || !dock_->isFloating() || !auto_collapsed_) return;
+  auto_collapsed_ = false;
+  compact_owed_ = InCompactContext();
+  transition_to(StatusDockPresentation::kExpanded, false);
 }
 
 void StatusDockPresenter::SetExpandedGeometry(int min_height, int height) {
