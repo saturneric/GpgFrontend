@@ -470,7 +470,6 @@ class PlainTextEditorPage : public QWidget {
   /// For a native view: the raw source is read-only until the user unlocks
   /// it, and unlocking asks the view first -- signed bytes, say, must not be
   /// edited by accident. The row lives in the page's own switcher.
-  QLabel* source_notice_ = nullptr;
   QToolButton* source_unlock_ = nullptr;
   bool source_unlocked_ = false;
   bool prefers_compact_status_dock_ = false;

@@ -612,10 +612,9 @@ void PlainTextEditorPage::withdraw_native_view() {
   native_instance_ = 0;
   if (!primary_view_.isNull()) delete primary_view_.data();
   if (view_switcher_ != nullptr) {
-    // The source notice and its unlock button live in the switcher.
+    // The source unlock button lives in the switcher.
     delete view_switcher_;
     view_switcher_ = nullptr;
-    source_notice_ = nullptr;
     source_unlock_ = nullptr;
   }
   source_unlocked_ = false;
@@ -909,14 +908,11 @@ void PlainTextEditorPage::build_view_switcher() {
   layout->addStretch();
 
   {
-    source_notice_ = new QLabel(view_switcher_);
-    source_notice_->setVisible(false);
     source_unlock_ = new QToolButton(view_switcher_);
     source_unlock_->setCheckable(true);
     source_unlock_->setAutoRaise(true);
     source_unlock_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     source_unlock_->setVisible(false);
-    layout->addWidget(source_notice_);
     layout->addWidget(source_unlock_);
     connect(source_unlock_, &QToolButton::toggled, this,
             [this](bool on) { set_source_unlocked(on); });
@@ -962,7 +958,6 @@ void PlainTextEditorPage::show_primary_view(bool primary) {
 
   // The raw source opens read-only, every time.
   set_source_unlocked(false);
-  source_notice_->setVisible(!primary);
   source_unlock_->setVisible(!primary);
 
   if (primary) {
@@ -1008,11 +1003,10 @@ void PlainTextEditorPage::refresh_source_lock() {
       QIcon(source_unlocked_ ? ":/icons/unlock.png" : ":/icons/read-only.png"));
   source_unlock_->setText(source_unlocked_ ? tr("Stop Editing")
                                            : tr("Edit Raw Source"));
-  source_notice_->setText(
-      source_unlocked_
-          ? tr("You are editing the raw source. What you type here is the "
-               "document.")
-          : reason.value_or(tr("Read-only. Unlock to edit the source.")));
+  // Why it is locked goes in the tooltip: a sentence of prose in the tab row
+  // crowds the switcher and gets cut off.
+  source_unlock_->setToolTip(source_unlocked_ ? QString()
+                                              : reason.value_or(QString()));
 }
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {
