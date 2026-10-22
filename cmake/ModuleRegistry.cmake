@@ -472,6 +472,12 @@ function(gf_add_module)
     message(FATAL_ERROR
       "gf_add_module(${GAM_NAME}): no module.json beside this CMakeLists.txt")
   endif()
+  # Read at configure time, so the configure has to know it depends on it:
+  # without this an edited manifest is silently ignored until someone
+  # reconfigures by hand, and a module whose handlers no longer match the
+  # manifest it was built with refuses to activate.
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${manifest_file}")
   file(READ "${manifest_file}" manifest_json)
 
   string(JSON schema_type ERROR_VARIABLE schema_err TYPE "${manifest_json}"
