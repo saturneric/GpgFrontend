@@ -207,7 +207,7 @@ pub fn fetch_password_with_cache(
 ) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
     let fpr = state.fpr.to_uppercase();
     let key = PasswordCacheKey {
-        channel,
+        scope: crate::cache::channel_scope(channel),
         fpr: fpr.to_string(),
         info: state.info.to_string().to_uppercase(),
     };
@@ -1587,7 +1587,7 @@ mod utils_tests {
     fn the_bypass_policy_never_consults_or_fills_the_cache() {
         let cache = fresh_cache();
         let key = crate::cache::PasswordCacheKey {
-            channel: 0,
+            scope: crate::cache::channel_scope(0),
             fpr: "BYPASSME".to_string(),
             info: "DECRYPTION".to_string(),
         };
@@ -1616,7 +1616,7 @@ mod utils_tests {
         // be dropped rather than handed back again.
         let cache = fresh_cache();
         let key = crate::cache::PasswordCacheKey {
-            channel: 0,
+            scope: crate::cache::channel_scope(0),
             fpr: "REFRESHME".to_string(),
             info: "DECRYPTION".to_string(),
         };
@@ -1655,7 +1655,7 @@ mod utils_tests {
         assert_eq!(got.as_slice(), b"hunter2");
 
         let key = crate::cache::PasswordCacheKey {
-            channel: 0,
+            scope: crate::cache::channel_scope(0),
             fpr: String::new(),
             info: "DECRYPTION".to_string(),
         };
@@ -1677,7 +1677,7 @@ mod utils_tests {
         // Fingerprints arrive from the C++ side in either case; the same key
         // must resolve to the same cache entry.
         let key = crate::cache::PasswordCacheKey {
-            channel: 0,
+            scope: crate::cache::channel_scope(0),
             fpr: "ABCDEF12".to_string(),
             info: "DECRYPTION".to_string(),
         };
@@ -1711,7 +1711,7 @@ mod utils_tests {
         assert_eq!(err, GfrStatus::ErrorFetchPasswordFailed);
 
         let key = crate::cache::PasswordCacheKey {
-            channel: 0,
+            scope: crate::cache::channel_scope(0),
             fpr: "FAILME01".to_string(),
             info: "DECRYPTION".to_string(),
         };
@@ -1787,7 +1787,7 @@ mod utils_tests {
         .expect("store on channel 7");
 
         let other_channel = crate::cache::PasswordCacheKey {
-            channel: 8,
+            scope: crate::cache::channel_scope(8),
             fpr: "SHARED01".to_string(),
             info: "DECRYPTION".to_string(),
         };
@@ -1809,7 +1809,7 @@ mod utils_tests {
         .expect("store");
 
         let other_info = crate::cache::PasswordCacheKey {
-            channel: 0,
+            scope: crate::cache::channel_scope(0),
             fpr: "INFOKEY1".to_string(),
             info: "SIGNING".to_string(),
         };

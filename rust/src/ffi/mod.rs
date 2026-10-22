@@ -185,6 +185,25 @@ pub extern "C" fn gfr_clear_password_cache() {
     crate::cache::PASSWORD_CACHE.clear();
 }
 
+/// Record which key database resource `channel` opens, for the passphrase cache.
+///
+/// `scope` is a NUL-terminated UTF-8 string naming the resource; a null or
+/// empty one forgets the channel's scope, so its passphrases are cached under
+/// the channel number alone. The string is borrowed, not taken.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_set_channel_cache_scope(channel: i32, scope: *const c_char) {
+    let scope = if scope.is_null() {
+        None
+    } else {
+        // SAFETY: the caller passes a valid NUL-terminated string or null.
+        unsafe { std::ffi::CStr::from_ptr(scope) }
+            .to_str()
+            .ok()
+            .map(str::to_string)
+    };
+    crate::cache::set_channel_scope(channel, scope);
+}
+
 /// Initialise the `env_logger` backend writing to stdout.
 ///
 /// Defaults to INFO, but honours the `RUST_LOG` environment variable so the

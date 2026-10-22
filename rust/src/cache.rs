@@ -26,7 +26,11 @@
  *
  */
 
-//! In-memory TTL cache for decryption passphrases, keyed by (channel, fingerprint, info).
+//! In-memory TTL cache for decryption passphrases, keyed by (scope, fingerprint, info).
+//!
+//! The scope is the key database resource a channel opens, as the host
+//! registered it with [`set_channel_scope`], so a passphrase cached for one
+//! database is never served to another that later takes the same channel.
 //!
 //! Entries are zeroized on eviction or drop. Each entry has two deadlines,
 //! modelled on gpg-agent's `default-cache-ttl` / `max-cache-ttl`:
@@ -181,12 +185,13 @@ pub enum PasswordCachePolicy {
     Refresh,
 }
 
-/// Cache lookup key: a combination of channel, key fingerprint, and operation context.
+/// Cache lookup key: a combination of resource scope, key fingerprint, and operation context.
 ///
 /// FPR comparisons are case-insensitive (normalised to uppercase on insert/lookup).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PasswordCacheKey {
-    pub channel: i32,
+    /// What the passphrase belongs to: see [`channel_scope`].
+    pub scope: String,
     pub fpr: String,
     pub info: String,
 }
@@ -291,6 +296,35 @@ impl PasswordCache {
     }
 }
 
+/// The key database resource each channel opens, as the host registered it.
+static CHANNEL_SCOPES: Lazy<Mutex<HashMap<i32, String>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+
+/// Record which key database resource `channel` opens, or forget it with `None`.
+///
+/// A channel is only a number for one run of a context; the resource is what
+/// a cached passphrase actually belongs to.
+pub fn set_channel_scope(channel: i32, scope: Option<String>) {
+    let mut guard = CHANNEL_SCOPES.lock().unwrap_or_else(|e| e.into_inner());
+    match scope {
+        Some(scope) if !scope.is_empty() => {
+            guard.insert(channel, scope);
+        }
+        _ => {
+            guard.remove(&channel);
+        }
+    }
+}
+
+/// The cache scope for `channel`: its registered resource, or the channel
+/// number itself when none was registered (a context built without one).
+pub fn channel_scope(channel: i32) -> String {
+    let guard = CHANNEL_SCOPES.lock().unwrap_or_else(|e| e.into_inner());
+    guard
+        .get(&channel)
+        .cloned()
+        .unwrap_or_else(|| format!("channel:{channel}"))
+}
+
 /// Global passphrase cache: 10-minute sliding window, 2-hour absolute cap,
 /// mirroring gpg-agent's `default-cache-ttl` / `max-cache-ttl` defaults.
 pub static PASSWORD_CACHE: Lazy<PasswordCache> =
@@ -302,7 +336,7 @@ mod tests {
 
     fn key() -> PasswordCacheKey {
         PasswordCacheKey {
-            channel: 0,
+            scope: "channel:0".to_string(),
             fpr: "DEADBEEF".to_string(),
             info: "decrypt".to_string(),
         }
@@ -396,7 +430,7 @@ mod cache_more_tests {
 
     fn key_for(channel: i32, fpr: &str, info: &str) -> PasswordCacheKey {
         PasswordCacheKey {
-            channel,
+            scope: format!("channel:{channel}"),
             fpr: fpr.to_string(),
             info: info.to_string(),
         }
@@ -425,6 +459,47 @@ mod cache_more_tests {
             Some(&b"one"[..])
         );
         assert!(c.get(&key_for(2, "AABB", "Decryption")).is_none());
+    }
+
+    #[test]
+    fn an_unregistered_channel_is_its_own_scope() {
+        assert_eq!(channel_scope(-7001), "channel:-7001");
+    }
+
+    #[test]
+    fn a_channel_takes_the_scope_of_the_resource_it_opens() {
+        set_channel_scope(-7002, Some("rpgp:/dbs/work".to_string()));
+        assert_eq!(channel_scope(-7002), "rpgp:/dbs/work");
+
+        set_channel_scope(-7002, None);
+        assert_eq!(channel_scope(-7002), "channel:-7002");
+    }
+
+    #[test]
+    fn a_passphrase_follows_the_resource_not_the_channel() {
+        // The same database reopened on another channel still finds its
+        // passphrase; another database given the first channel does not.
+        let c = cache(60, 600);
+        set_channel_scope(-7003, Some("rpgp:/dbs/a".to_string()));
+        let a = PasswordCacheKey {
+            scope: channel_scope(-7003),
+            fpr: "AABB".to_string(),
+            info: "Decryption".to_string(),
+        };
+        c.put(a, b"for-a".to_vec());
+
+        set_channel_scope(-7004, Some("rpgp:/dbs/a".to_string()));
+        set_channel_scope(-7003, Some("rpgp:/dbs/b".to_string()));
+        let lookup = |channel: i32| PasswordCacheKey {
+            scope: channel_scope(channel),
+            fpr: "AABB".to_string(),
+            info: "Decryption".to_string(),
+        };
+        assert_eq!(c.get(&lookup(-7004)).as_deref(), Some(&b"for-a"[..]));
+        assert!(c.get(&lookup(-7003)).is_none());
+
+        set_channel_scope(-7003, None);
+        set_channel_scope(-7004, None);
     }
 
     #[test]

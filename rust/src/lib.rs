@@ -110,6 +110,8 @@ mod crate_smoke_tests {
         let _: extern "C" fn(u64, u64) = crate::ffi::gfr_set_password_cache_ttl;
         let _: extern "C" fn(u8, u8, u8) = crate::ffi::gfr_set_argon2_s2k_params;
         let _: extern "C" fn() = crate::ffi::gfr_clear_password_cache;
+        let _: extern "C" fn(i32, *const std::os::raw::c_char) =
+            crate::ffi::gfr_set_channel_cache_scope;
         let _: extern "C" fn() = crate::ffi::gfr_init_logger;
         let _: extern "C" fn() -> *mut std::os::raw::c_char = crate::err::gfr_get_last_error_msg;
     }
