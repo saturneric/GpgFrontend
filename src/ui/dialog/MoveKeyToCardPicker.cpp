@@ -154,18 +154,24 @@ MoveKeyToCardPicker::MoveKeyToCardPicker(QWidget* parent)
   const auto databases = SupportedDatabases();
   auto* db_label = new QLabel(tr("Database") + ": ");
   db_combo_ = new QComboBox(this);
+  // Each entry carries the database's id, not its channel: a reload of the
+  // key databases while this is open gives every database a new channel.
   for (const auto& db : databases) {
     db_combo_->addItem(
         QString("%1  ·  %2").arg(db.name).arg(KeyDatabaseDisplayId(db.id)),
-        db.channel);
+        db.id);
   }
-  const auto current_db = db_combo_->findData(channel_);
+  const auto current_db =
+      db_combo_->findData(LookupChannelHandle(channel_).database_id);
   if (current_db >= 0) db_combo_->setCurrentIndex(current_db);
 
   connect(db_combo_, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [this](int index) {
             if (index < 0) return;
-            channel_ = db_combo_->itemData(index).toInt();
+            const auto channel =
+                ResolveDatabaseHandle(db_combo_->itemData(index).toString());
+            if (channel < 0) return;  // gone since the list was filled
+            channel_ = channel;
             tree_view_->SetChannel(channel_);
             update_confirm_button_state();
           });

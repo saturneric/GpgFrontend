@@ -883,6 +883,19 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   auto confirm_recipient_mix_helper(const GpgAbstractKeyPtrList& keys) -> bool;
 
   /**
+   * @brief Whether the key list still shows the key database @p channel.
+   *
+   * An operation takes its keys from one database and must run on that one.
+   * The key databases can be reloaded while a prompt is open, moving the key
+   * list to another channel; the operation is then not started, and the user
+   * is told why.
+   *
+   * @param channel the channel the operation's keys were taken from
+   * @return false, after saying so, when the key list has moved on
+   */
+  auto same_key_database_helper(int channel) -> bool;
+
+  /**
    * @brief For the rPGP engine, let the user pin a specific encryption subkey
    * per recipient when a recipient exposes more than one usable (non-revoked)
    * encryption subkey. Mirrors the signing-key picker ambiguity gate.

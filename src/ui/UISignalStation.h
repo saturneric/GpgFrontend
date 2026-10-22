@@ -87,6 +87,14 @@ class UISignalStation : public QObject {
   void SignalKeyDatabaseChannelsSuspended();
 
   /**
+   * @brief ApplyKeyDatabaseChanges() has finished, follow-ups included.
+   *
+   * Anything that must not run beside an apply -- a restart tearing the core
+   * down while folders are still being moved -- waits for this.
+   */
+  void SignalKeyDatabaseChangesApplied();
+
+  /**
    * @brief
    *
    */

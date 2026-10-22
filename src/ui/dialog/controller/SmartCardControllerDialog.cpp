@@ -503,6 +503,10 @@ void SmartCardControllerDialog::slot_listen_smart_card_changes() {
     return;
   }
 
+  // Polled on a timer, also while a reload has the channel retired or after
+  // its database is gone; asking it then would rebuild what was reclaimed.
+  if (IsRetiredChannelHandle(channel_)) return;
+
   auto serial_numbers =
       GpgSmartCardManager::GetInstance(channel_).GetSerialNumbers();
 

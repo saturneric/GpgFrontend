@@ -30,6 +30,7 @@
 
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupEditDialog.h"
@@ -569,7 +570,10 @@ void KeyGroupManageDialog::slot_delete_group() {
 
   if (box.exec() != QMessageBox::Yes) return;
 
-  if (!getter.Remove(group_id_)) {
+  // Looked up again: a key database reload can land while the box is open,
+  // move this dialog to another channel and free the repository it had.
+  if (!IsLiveChannelHandle(channel_) ||
+      !KeyGroupRepository::GetInstance(channel_).Remove(group_id_)) {
     QMessageBox::warning(this, tr("Delete Failed"),
                          tr("This key group could not be deleted."));
     return;

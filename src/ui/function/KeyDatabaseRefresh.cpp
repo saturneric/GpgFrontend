@@ -135,6 +135,14 @@ class KeyDatabaseBinding : public QObject {
                 lease_.reset();
               }
             });
+
+    // Made on a channel already retired -- a dialog opened from work that
+    // started before a reload: no lease to let go of, and no reload ahead to
+    // move it on, so it looks for its database now. Deferred: the owner is
+    // still being constructed.
+    if (!lease_ && IsRetiredChannelHandle(current_())) {
+      QTimer::singleShot(0, this, [this]() { follow(); });
+    }
   }
 
  private:
@@ -169,6 +177,7 @@ class KeyDatabaseBinding : public QObject {
     auto lease = TryAcquireEngineLease(next);
     if (rebound_) rebound_(next);
     lease_ = std::move(lease);
+    MarkKeyDatabaseFound(qobject_cast<QWidget*>(parent()));
   }
 };
 
@@ -220,14 +229,39 @@ void KeepBoundToKeyDatabase(QWidget* owner, std::function<int()> current,
                          std::move(lost), std::move(suspended));
 }
 
+namespace {
+
+/// The title a widget had before MarkKeyDatabaseLost() changed it.
+constexpr const char* kTitleBeforeLostProperty = "GFTitleBeforeKeyDatabaseLost";
+
+}  // namespace
+
 void MarkKeyDatabaseLost(QWidget* widget) {
   if (widget == nullptr) return;
   widget->setEnabled(false);
-  if (widget->isWindow()) {
-    widget->setWindowTitle(QObject::tr("%1 (key database no longer available)")
-                               .arg(widget->windowTitle()));
+
+  // Said once: every later reload that still cannot find the database calls
+  // this again.
+  if (!widget->isWindow() ||
+      widget->property(kTitleBeforeLostProperty).isValid()) {
+    return;
   }
+  widget->setProperty(kTitleBeforeLostProperty, widget->windowTitle());
+  widget->setWindowTitle(QObject::tr("%1 (key database no longer available)")
+                             .arg(widget->windowTitle()));
 }
+
+void MarkKeyDatabaseFound(QWidget* widget) {
+  if (widget == nullptr) return;
+  const auto title = widget->property(kTitleBeforeLostProperty);
+  if (!title.isValid()) return;
+
+  widget->setProperty(kTitleBeforeLostProperty, QVariant());
+  widget->setWindowTitle(title.toString());
+  widget->setEnabled(true);
+}
+
+auto IsApplyingKeyDatabaseChanges() -> bool { return Applying().running; }
 
 void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves) {
   auto& state = Applying();
@@ -249,16 +283,22 @@ void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves) {
       },
       "apply_key_database_runtime", TransferParams(),
       [result](int, const DataObjectPtr&) {
+        // Still running while the report is up: it can be a modal box, and a
+        // request made from inside its loop must queue behind this one.
+        ReportApplied(*result);
         auto& state = Applying();
         state.running = false;
-        ReportApplied(*result);
 
         if (state.again) {
           state.again = false;
           auto pending = std::move(state.pending);
           state.pending.clear();
           ApplyKeyDatabaseChanges(pending);
+          return;
         }
+
+        emit UISignalStation::GetInstance()
+            -> SignalKeyDatabaseChangesApplied();
       });
 
   Thread::TaskRunnerGetter::GetInstance()

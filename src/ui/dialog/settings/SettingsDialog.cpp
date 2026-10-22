@@ -560,9 +560,15 @@ void SettingsDialog::SlotAccept() {
   emit SignalAppearanceChanged();
 
   // After every page has written, so the Runtime is built from all of it. A
-  // deep restart pending anyway rebuilds everything, so it is not done twice.
-  if (runtime_apply_needed_ && restart_mode_ < kDeepRestartCode) {
-    ApplyKeyDatabaseChanges(key_dbs_tab_->TakePendingMoves());
+  // deep restart pending anyway rebuilds everything, so it is not done twice
+  // -- except for folder moves: the renamed paths are already saved, and
+  // nothing after the restart would move the folders to them. The restart
+  // waits for the apply (see MainWindow's settings dialog handler).
+  if (runtime_apply_needed_) {
+    auto moves = key_dbs_tab_->TakePendingMoves();
+    if (restart_mode_ < kDeepRestartCode || !moves.isEmpty()) {
+      ApplyKeyDatabaseChanges(moves);
+    }
   }
 
   // Every page has written by now, so this is the first moment at which

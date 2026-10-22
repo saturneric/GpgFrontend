@@ -29,6 +29,7 @@
 #include "ui/widgets/KeyTreeView.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/ShowKeyDetails.h"
@@ -240,6 +241,14 @@ void KeyTreeView::drop_model() {
 }
 
 void KeyTreeView::reset_model() {
+  // A refresh while the channel is retired would rebuild the objects being
+  // reclaimed and show the old keys again; the view stays empty until the
+  // database is found again.
+  if (key_provider_ == nullptr && IsRetiredChannelHandle(channel_)) {
+    drop_model();
+    return;
+  }
+
   init_ = false;
 
   model_ = SecureCreateSharedObject<GpgKeyTreeModel>(

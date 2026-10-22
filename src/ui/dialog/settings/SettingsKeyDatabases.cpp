@@ -356,6 +356,23 @@ auto KeyDatabasesTab::TakePendingMoves() -> QContainer<KeyDatabaseMove> {
   return moves;
 }
 
+auto KeyDatabasesTab::pending_move_for(const QString& id) const
+    -> const KeyDatabaseMove* {
+  for (const auto& move : pending_moves_) {
+    if (move.database_id == id) return &move;
+  }
+  return nullptr;
+}
+
+void KeyDatabasesTab::drop_pending_move(const QString& id) {
+  pending_moves_.erase(
+      std::remove_if(pending_moves_.begin(), pending_moves_.end(),
+                     [&](const KeyDatabaseMove& move) -> bool {
+                       return move.database_id == id;
+                     }),
+      pending_moves_.end());
+}
+
 void KeyDatabasesTab::record_move(const KeyDatabaseInfo& info,
                                   const QString& to) {
   // Renamed again before applying: still one move, from where it is on disk
@@ -715,10 +732,27 @@ void KeyDatabasesTab::slot_edit_key_database() {
             // folder are one fact -- the sandbox reads the list back out of the
             // filesystem -- so an entry that renamed only itself would be
             // reverted without a word at the next start.
+            bool move_needed = false;
+            bool move_cancelled = false;
             if (managed) {
-              const auto old_path = (*list)[row].path;
-              const auto action = DecideManagedRename(
-                  QFileInfo(old_path).isDir(), QFileInfo(path).exists());
+              const auto& id = (*list)[row].id;
+              const auto* pending = pending_move_for(id);
+              const auto clean_path =
+                  QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+
+              // Renamed back to where its folder still is: the earlier move
+              // is simply dropped, and there is nothing in the way.
+              move_cancelled = pending != nullptr && clean_path == pending->from;
+
+              // A folder still to be moved is not on disk under the name the
+              // entry shows, yet there is one to move.
+              const auto action =
+                  move_cancelled
+                      ? ManagedRenameAction::kNOTHING_TO_MOVE
+                      : DecideManagedRename(pending != nullptr ||
+                                                QFileInfo((*list)[row].path)
+                                                    .isDir(),
+                                            QFileInfo(path).exists());
 
               if (action == ManagedRenameAction::kTARGET_TAKEN) {
                 QMessageBox::warning(
@@ -733,9 +767,8 @@ void KeyDatabasesTab::slot_edit_key_database() {
               // Moved when the change is applied, not now: the folder can
               // only move once nothing has it open, and only applying can wait
               // for that. Cancelling the dialog then leaves it untouched.
-              if (action == ManagedRenameAction::kRENAME) {
-                record_move((*list)[row], path);
-              }
+              // Recorded only once every check below has passed.
+              move_needed = action == ManagedRenameAction::kRENAME;
             }
 
             // A managed folder that is still to be moved does not exist yet,
@@ -765,6 +798,9 @@ void KeyDatabasesTab::slot_edit_key_database() {
 
             LOG_D() << "edit key database path, name: " << name
                     << "path: " << path << "canonical path: " << key_db_fs_path;
+
+            if (move_cancelled) drop_pending_move((*list)[row].id);
+            if (move_needed) record_move((*list)[row], path);
 
             auto& key_database = (*list)[row];
             key_database.name = name;
@@ -958,6 +994,9 @@ void KeyDatabasesTab::slot_remove_existing_key_database() {
 
   if (reply != QMessageBox::Yes) return;
 
+  // A rename of it still waiting to be applied goes with it: left behind, it
+  // would move the folder into a database added later under that name.
+  drop_pending_move((*list)[row].id);
   list->removeAt(row);
 
   const int next_selected_row =

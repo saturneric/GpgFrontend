@@ -700,8 +700,17 @@ void KeyList::init_context_menu() {
               if (!checked) return;
 
               if (channel != current_gpg_context_channel_) {
+                // Taken before anything changes: a database retired since
+                // this menu was built is refused, and the list stays where
+                // it is rather than pointing at a channel being reclaimed.
+                auto lease = TryAcquireEngineLease(channel);
+                if (!lease) {
+                  init_context_menu();
+                  return;
+                }
                 follow_default_ = false;
-                channel_lease_ = TryAcquireEngineLease(channel);
+                suspended_channel_ = -1;
+                channel_lease_ = std::move(lease);
               }
               current_gpg_context_channel_ = channel;
               set_context_button_text(key_db_name, tooltip);
@@ -742,12 +751,17 @@ void KeyList::set_context_button_text(const QString& db_name,
 }
 
 void KeyList::init_column_menu() {
+  // Rebuilt on every switch and every key database reload: the previous menu
+  // goes, and its actions with it.
+  if (auto* previous = ui_->columnTypeButton->menu(); previous != nullptr) {
+    previous->deleteLater();
+  }
   auto* column_type_menu = new QMenu(this);
 
   auto add_column_action = [this, column_type_menu](QAction*& action,
                                                     const QString& title,
                                                     GpgKeyTableColumn column) {
-    action = new QAction(title, this);
+    action = new QAction(title, column_type_menu);
     action->setCheckable(true);
     action->setChecked((global_column_filter_ & column) !=
                        GpgKeyTableColumn::kNONE);
@@ -1008,7 +1022,11 @@ void KeyList::suspend_key_database_channel() {
   const auto shown = LookupChannelHandle(current_gpg_context_channel_);
   LOG_D() << "key list asked to let go of retired channels, shown channel:"
           << shown.handle;
-  if (shown.state != ChannelHandleState::kRETIRED) return;
+  if (shown.state != ChannelHandleState::kRETIRED) {
+    // Not the one shown, but it may be one the switch menu offers.
+    init_context_menu();
+    return;
+  }
 
   // Any open database of the Runtime still in use, the default first.
   auto stand_in = ResolveDatabaseHandle({});
@@ -1537,6 +1555,11 @@ void KeyList::rename_category(const QString& id, const QString& current_name) {
 }
 
 void KeyList::SlotRefresh() {
+  // Retired while a reload moves its folder, or for good when its database is
+  // gone: reading it now would rebuild what is being reclaimed. The list is
+  // refreshed again once it follows the new Runtime.
+  if (IsRetiredChannelHandle(current_gpg_context_channel_)) return;
+
   ui_->refreshKeyListButton->setDisabled(true);
 
   // Swapping in a fresh model makes every table report "nothing checked"

@@ -77,6 +77,15 @@ void GF_UI_EXPORT KeepBoundToKeyDatabase(QWidget* owner,
 void GF_UI_EXPORT MarkKeyDatabaseLost(QWidget* widget);
 
 /**
+ * @brief Undo MarkKeyDatabaseLost(), for a database found again.
+ *
+ * Does nothing to a widget that was not marked.
+ *
+ * @param widget the widget marked lost
+ */
+void GF_UI_EXPORT MarkKeyDatabaseFound(QWidget* widget);
+
+/**
  * @brief Bring the saved key database configuration into use, without a
  * restart.
  *
@@ -88,5 +97,12 @@ void GF_UI_EXPORT MarkKeyDatabaseLost(QWidget* widget);
  */
 void GF_UI_EXPORT
 ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves = {});
+
+/**
+ * @brief Whether an ApplyKeyDatabaseChanges() is still running.
+ *
+ * When it stops, UISignalStation::SignalKeyDatabaseChangesApplied is emitted.
+ */
+auto GF_UI_EXPORT IsApplyingKeyDatabaseChanges() -> bool;
 
 }  // namespace GpgFrontend::UI

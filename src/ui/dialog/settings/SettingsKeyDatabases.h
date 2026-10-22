@@ -127,6 +127,11 @@ class KeyDatabasesTab : public QWidget {
 
   void record_move(const KeyDatabaseInfo& info, const QString& to);
 
+  [[nodiscard]] auto pending_move_for(const QString& id) const
+      -> const KeyDatabaseMove*;
+
+  void drop_pending_move(const QString& id);
+
   /// True while SetSettings() is populating the widgets, so the checkbox's own
   /// toggled() handler does not mistake being restored for being clicked.
   bool loading_ = false;

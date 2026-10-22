@@ -40,6 +40,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/GpgFrontendApplication.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/LogViewDialog.h"
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/Wizard.h"
@@ -48,6 +49,7 @@
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/ProfileController.h"
 #include "ui/main_window/EncryptBlockReason.h"
 #include "ui/main_window/KeyMgmt.h"
@@ -476,10 +478,26 @@ SettingsDialog* MainWindow::open_settings_dialog() {
     restore_settings();
     m_key_list_->ReloadSettings();
 
-    if (restart_mode_ != kNonRestartCode) {
+    if (restart_mode_ == kNonRestartCode) return;
+
+    auto restart = [this]() {
       auto ok = edit_->MaybeSaveAnyTab();
       if (ok) emit SignalRestartApplication(restart_mode_);
+    };
+
+    // Not while key database changes are still being applied: the restart
+    // would tear the core down under a folder being moved.
+    if (!IsApplyingKeyDatabaseChanges()) {
+      restart();
+      return;
     }
+    auto* once = new QObject(this);
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseChangesApplied, once,
+            [once, restart]() {
+              once->deleteLater();
+              restart();
+            });
   });
 
   return dialog;

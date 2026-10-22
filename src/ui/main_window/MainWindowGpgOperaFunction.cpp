@@ -381,6 +381,17 @@ auto MainWindow::confirm_recipient_mix_helper(const GpgAbstractKeyPtrList& keys)
   return box.clickedButton() == encrypt;
 }
 
+auto MainWindow::same_key_database_helper(int channel) -> bool {
+  if (m_key_list_->GetCurrentGpgContextChannel() == channel) return true;
+
+  QMessageBox::warning(
+      this, tr("Key Databases Changed"),
+      tr("The key databases changed while this operation was being prepared, "
+         "so it was not started. Please check the selected keys and try "
+         "again."));
+  return false;
+}
+
 auto MainWindow::resolve_encrypt_recipients_helper(
     const GpgAbstractKeyPtrList& keys, bool& canceled)
     -> GpgAbstractKeyPtrList {
@@ -441,6 +452,10 @@ auto MainWindow::resolve_encrypt_recipients_helper(
 }
 
 void MainWindow::SlotEncrypt() {
+  // The keys come from this database: the operation runs on it, whatever
+  // the key list shows by the time any prompt below has been answered.
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
@@ -460,14 +475,19 @@ void MainWindow::SlotEncrypt() {
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  if (!same_key_database_helper(channel)) return;
+
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasEncrypt);
 
   exec_operas_helper(tr("Encrypting"), contexts.Base());
 }
 
 void MainWindow::SlotSign() {
+  // The keys come from this database: the operation runs on it, whatever
+  // the key list shows by the time any prompt below has been answered.
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
   if (edit_->CurPageTextEdit() == nullptr) return;
 
   GpgOperaContextHolder contexts;
@@ -497,8 +517,7 @@ void MainWindow::SlotSign() {
 
   if (sign_keys.isEmpty() || ambiguous) {
     auto picker = QSharedPointer<SigningKeysPicker>(
-        new SigningKeysPicker(m_key_list_->GetCurrentGpgContextChannel(),
-                              sign_keys, this),
+        new SigningKeysPicker(channel, sign_keys, this),
         [](SigningKeysPicker* p) { p->deleteLater(); });
     picker->exec();
     if (picker->result() == QDialog::Rejected) return;
@@ -510,8 +529,9 @@ void MainWindow::SlotSign() {
   if (contexts->keys.isEmpty()) return;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
-  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  if (!same_key_database_helper(channel)) return;
+
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasSign);
 
   exec_operas_helper(tr("Signing"), contexts.Base());
@@ -567,6 +587,10 @@ void MainWindow::SlotVerify() {
 }
 
 void MainWindow::SlotEncryptSign() {
+  // The keys come from this database: the operation runs on it, whatever
+  // the key list shows by the time any prompt below has been answered.
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
@@ -595,8 +619,9 @@ void MainWindow::SlotEncryptSign() {
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  if (!same_key_database_helper(channel)) return;
+
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasEncryptSign);
 
   exec_operas_helper(tr("Encrypting and Signing"), contexts.Base());
@@ -834,6 +859,10 @@ auto MainWindow::exec_decoded_decrypt_helper(
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
+  // The keys come from this database: the operation runs on it, whatever
+  // the key list shows by the time any prompt below has been answered.
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
   GpgOperaContextHolder contexts;
   contexts->ascii = ascii;
 
@@ -870,12 +899,12 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  if (!same_key_database_helper(channel)) return;
+
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasFileEncrypt);
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 1,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  GpgOperaHelper::BuildOperas(contexts.Base(), 1, channel,
                               GpgOperaHelper::BuildOperasDirectoryEncrypt);
 
   exec_file_operas_helper(tr("Encrypting"), contexts.Base(), safe_outputs);
@@ -930,6 +959,10 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
+  // The keys come from this database: the operation runs on it, whatever
+  // the key list shows by the time any prompt below has been answered.
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
   GpgOperaContextHolder contexts;
   contexts->ascii = ascii;
 
@@ -961,8 +994,9 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  if (!same_key_database_helper(channel)) return;
+
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasFileSign);
 
   exec_file_operas_helper(tr("Signing"), contexts.Base(), safe_outputs);
@@ -1026,6 +1060,10 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
+  // The keys come from this database: the operation runs on it, whatever
+  // the key list shows by the time any prompt below has been answered.
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
   GpgOperaContextHolder contexts;
   contexts->ascii = ascii;
 
@@ -1070,12 +1108,12 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  if (!same_key_database_helper(channel)) return;
+
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasFileEncryptSign);
 
-  GpgOperaHelper::BuildOperas(contexts.Base(), 1,
-                              m_key_list_->GetCurrentGpgContextChannel(),
+  GpgOperaHelper::BuildOperas(contexts.Base(), 1, channel,
                               GpgOperaHelper::BuildOperasDirectoryEncryptSign);
 
   exec_file_operas_helper(tr("Encrypting and Signing"), contexts.Base(),

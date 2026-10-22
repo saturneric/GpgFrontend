@@ -432,13 +432,25 @@ void MainWindow::populate_key_category_menu(int channel,
   const auto key_id = key->ID();
   auto& repo = KeyCategoryRepository::GetInstance(channel);
 
+  // Asked when an entry is chosen, not when the menu was filled: a reload of
+  // the key databases can land while the menu or the name prompt is open, and
+  // the channel it was filled from is then reclaimed. The same database is
+  // found again by id; -1 when it is gone.
+  const auto database_id = LookupChannelHandle(channel).database_id;
+  const auto live_channel = [channel, database_id]() -> int {
+    if (!IsRetiredChannelHandle(channel)) return channel;
+    return database_id.isEmpty() ? -1 : ResolveDatabaseHandle(database_id);
+  };
+
   // When viewing a custom category tab, offer to remove the key from it.
   if (current_tab_id.startsWith("cat:") &&
       repo.Contains(current_tab_id, key_id)) {
     auto* remove_act =
         add_key_2_category_menu_->addAction(tr("Remove From This Category"));
     connect(remove_act, &QAction::triggered, this, [=]() {
-      KeyCategoryRepository::GetInstance(channel).RemoveKeyFromCategory(
+      const auto target = live_channel();
+      if (target < 0) return;
+      KeyCategoryRepository::GetInstance(target).RemoveKeyFromCategory(
           current_tab_id, key_id);
       emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
       emit SignalUIRefresh();
@@ -454,7 +466,9 @@ void MainWindow::populate_key_category_menu(int channel,
     act->setChecked(repo.Contains(c.id, key_id));
     const auto category_id = c.id;
     connect(act, &QAction::triggered, this, [=](bool checked) {
-      auto& r = KeyCategoryRepository::GetInstance(channel);
+      const auto target = live_channel();
+      if (target < 0) return;
+      auto& r = KeyCategoryRepository::GetInstance(target);
       if (checked) {
         r.AddKey2Category(category_id, key_id);
       } else {
@@ -474,7 +488,9 @@ void MainWindow::populate_key_category_menu(int channel,
                               QLineEdit::Normal, QString{}, &ok);
     if (!ok || name.trimmed().isEmpty()) return;
 
-    auto& r = KeyCategoryRepository::GetInstance(channel);
+    const auto target = live_channel();
+    if (target < 0) return;
+    auto& r = KeyCategoryRepository::GetInstance(target);
     auto id = r.AddCategory(name.trimmed());
     r.AddKey2Category(id, key_id);
     emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
