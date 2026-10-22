@@ -769,7 +769,14 @@ void KeyDatabasesTab::slot_edit_key_database() {
             key_database.name = name;
             key_database.backend_type = backend_type;
             key_database.path = key_db_fs_path;
-            key_database.origin_path = path;
+            // A managed folder is kept as `@profile/...`, like every other
+            // one in the profile, so the stored list survives the profile
+            // moving and travels in a package as it is.
+            key_database.origin_path =
+                managed ? ToProfileRelativeKeyDatabasePath(
+                              path, GlobalSettingStation::GetInstance()
+                                        .GetAppDataPath())
+                        : path;
             key_database.kind = managed ? KeyDatabaseKind::kMANAGED
                                         : KeyDatabaseKind::kEXTERNAL;
 
@@ -851,7 +858,8 @@ void KeyDatabasesTab::slot_add_new_key_database() {
             key_database.name = name;
             key_database.backend_type = backend_type;
             key_database.path = key_db_fs_path;
-            key_database.origin_path = path;
+            key_database.origin_path = ToProfileRelativeKeyDatabasePath(
+                path, GlobalSettingStation::GetInstance().GetAppDataPath());
             key_database.kind = KeyDatabaseKind::kMANAGED;
             managed_db_infos_.append(key_database);
 
