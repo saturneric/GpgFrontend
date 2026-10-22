@@ -33,8 +33,10 @@
 #include <new>
 
 #include "GFHostImpl.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
+#include "core/utils/RustUtils.h"
 #include "private/GFHostContext.h"
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKHandleRegistry.h"
@@ -189,6 +191,12 @@ auto GFGpgFindKeys(int channel, const char* email, GFGpgKeyBriefListRef* out)
     -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  // A handle from another run of the context, or one never issued, names no
+  // database. Refused here rather than handed to GetInstance(), which would
+  // build a placeholder context for it. Held for the whole call, so the
+  // database cannot be reclaimed while the call is still using it.
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
   if (email == nullptr) return -1;
 
   try {
@@ -228,9 +236,21 @@ auto GFGpgSniffRecipients(int channel, GFBufferView in,
   if (data == nullptr || size == 0) return -1;
 
   try {
+    const auto buffer = GpgFrontend::GFBuffer(data, size);
+
+    // Reading the recipients needs no engine; looking them up does. A message
+    // that names none is answered on any channel, and one that does is refused
+    // on a channel that names no open database rather than reported as "no
+    // such key here".
+    const auto lease =
+        GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+    if (!lease && !GpgFrontend::SniffRecipientKeyIds(buffer).isEmpty()) {
+      return -1;
+    }
+
     auto* impl = NewList<GFGpgRecipientListImpl>("GFGpgSniffRecipients");
     if (impl == nullptr) return -1;
-    impl->rows = SniffRecipientRows(channel, GpgFrontend::GFBuffer(data, size));
+    impl->rows = SniffRecipientRows(channel, buffer);
     BuildViews(impl);
     *out = impl;
     return 0;
@@ -255,6 +275,8 @@ auto GFGpgListAddresses(int channel, int secret_only, GFStringListRef* out)
     -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
 
   try {
     auto* impl = NewList<GFStringListImpl>("GFGpgListAddresses");

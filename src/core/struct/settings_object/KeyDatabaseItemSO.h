@@ -35,6 +35,10 @@
 namespace GpgFrontend {
 
 struct KeyDatabaseItemSO {
+  /// Empty for an entry written before the field existed;
+  /// AssignKeyDatabaseIds() gives those one, and the reconciled list is written
+  /// back, so it is settled once rather than re-made on every read.
+  QString id;
   QString name;
   QString path;
   int channel = 0;  ///< a JSON object without "channel" must not leave this
@@ -49,6 +53,7 @@ struct KeyDatabaseItemSO {
   KeyDatabaseItemSO() = default;
 
   explicit KeyDatabaseItemSO(KeyDatabaseInfo i) {
+    id = i.id;
     name = i.name;
     path = i.origin_path.isEmpty() ? i.path : i.origin_path;
     channel = i.channel;
@@ -57,6 +62,9 @@ struct KeyDatabaseItemSO {
   }
 
   explicit KeyDatabaseItemSO(const QJsonObject& j) {
+    if (const auto v = j["id"]; v.isString()) {
+      id = v.toString();
+    }
     if (const auto v = j["name"]; v.isString()) {
       name = v.toString();
     }
@@ -76,6 +84,8 @@ struct KeyDatabaseItemSO {
 
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
+    // Omitted while unsettled, for the same reason as "kind" below.
+    if (!id.isEmpty()) j["id"] = id;
     j["name"] = name;
     j["path"] = path;
     j["channel"] = channel;

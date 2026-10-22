@@ -74,7 +74,41 @@ inline auto ConvertString2KeyDatabaseKind(const QString& kind)
   return std::nullopt;
 }
 
+/// The identity of the DEFAULT database. Fixed rather than generated: there is
+/// only ever one, it is derived per computer rather than stored, and anything
+/// that refers to "the default database" has to keep meaning it when the
+/// profile moves to a computer whose default keyring is somewhere else. Every
+/// other database is identified by a generated UUID, which this cannot be
+/// mistaken for.
+constexpr auto kDefaultKeyDatabaseId = "default";
+
+/// The physical identity of a key database: which engine reads it, and the
+/// directory it actually is once links are resolved. Two entries naming the
+/// same directory by different spellings -- a symlink, a short link handed to
+/// gpg-agent, `@profile/...` against the absolute path -- are one resource,
+/// and opening it twice would put two engines, or two contexts of one engine,
+/// on the same files.
+///
+/// Distinct from what a database is configured with: two configurations may be
+/// incompatible while naming one resource, and that is a change to that
+/// resource, never a second one beside it.
+struct KeyDatabaseResourceId {
+  QString backend;   ///< "gnupg" or "rpgp"
+  QString location;  ///< the physical directory, links resolved
+
+  [[nodiscard]] auto IsEmpty() const -> bool { return location.isEmpty(); }
+
+  auto operator==(const KeyDatabaseResourceId& o) const -> bool {
+    return backend == o.backend && location == o.location;
+  }
+};
+
 struct KeyDatabaseInfo {
+  /// What this database is across renames, reorders and restarts. The name can
+  /// be edited and the channel is only where it landed this run, so neither can
+  /// key state that has to follow the database itself.
+  QString id;
+
   /// No channel until something assigns one. Left uninitialised, an entry that
   /// was never filled in -- and one always can be, since callers build these
   /// from settings entries that carry no channel at all -- reads as a channel

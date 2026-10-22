@@ -45,6 +45,10 @@ class KeyGenerateInfo;
 class GF_CORE_EXPORT KeyGenerationOperation
     : public SingletonFunctionObject<KeyGenerationOperation> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct the operation handler for the given singleton channel.
    *

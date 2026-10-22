@@ -41,6 +41,10 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgAdvancedOperator
     : public SingletonFunctionObject<GpgAdvancedOperator> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct a new Gpg Advanced Operator object
    *

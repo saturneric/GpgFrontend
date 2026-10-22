@@ -118,6 +118,30 @@ class GF_CORE_EXPORT CoreSignalStation : public QObject {
    */
   void SignalCoreInitProgress(int percent, GpgFrontend::CoreInitStep step,
                               QString subject);
+
+  /**
+   * @brief A new key database Runtime is in use.
+   *
+   * Emitted once the new Runtime has been published, and never for one that
+   * failed to build. From the thread that published it, so delivery to the UI
+   * is queued. A refresh trigger: listeners read the current Runtime rather
+   * than trust that they saw every generation in between.
+   *
+   * @param from_generation the Runtime that was replaced
+   * @param to_generation the Runtime now in use
+   */
+  void SignalKeyDatabaseRuntimePublished(int from_generation,
+                                         int to_generation);
+
+  /**
+   * @brief Channels in use were retired ahead of a new Runtime, so that a key
+   * database folder can be moved.
+   *
+   * Anything holding a lease on a retired channel lets go of it now; the folder
+   * cannot move until it does. The database comes back on a new channel when
+   * the next Runtime is published.
+   */
+  void SignalKeyDatabaseChannelsRetired();
 };
 
 }  // namespace GpgFrontend

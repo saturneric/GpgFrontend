@@ -26,13 +26,23 @@
  *
  */
 
+#include <atomic>
+#include <thread>
+
 #include "GFCoreTest.h"
+#include "GpgFrontendTest.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GnuPGHome.h"
+#include "core/function/openpgp/ChannelHandle.h"
+#include "core/function/openpgp/KeyDatabaseRuntime.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileRegistry.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
@@ -1459,6 +1469,7 @@ TEST(KeyDatabaseReconcileTest, ReconcilingIsIdempotent) {
     EXPECT_EQ(once[i].channel, twice[i].channel);
     EXPECT_EQ(once[i].backend_type, twice[i].backend_type);
     EXPECT_EQ(once[i].kind.has_value(), twice[i].kind.has_value());
+    EXPECT_EQ(once[i].id, twice[i].id) << "an identity was re-made on re-read";
   }
 }
 
@@ -1512,6 +1523,838 @@ TEST(KeyDatabaseReconcileTest, WithoutARootNothingIsReanchored) {
 
   ASSERT_EQ(out.size(), 2);
   EXPECT_EQ(FindByName(out, "work")->path, "/elsewhere/dbs/work");
+}
+
+// -----------------------------------------------------------------------------
+// Key database identity. The name can be edited and the channel is only where
+// a database landed this run, so state that follows a database is keyed by an
+// id that is neither.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto MakeKindItem(const QString& name, const QString& path,
+                  KeyDatabaseKind kind, const QString& id = {})
+    -> KeyDatabaseItemSO {
+  auto item = MakeItem(name, path, "rpgp");
+  item.kind = kind;
+  item.id = id;
+  return item;
+}
+
+}  // namespace
+
+TEST(KeyDatabaseIdTest, AFreshIdIsAUuidAndNeverTheDefaultOne) {
+  const auto a = NewKeyDatabaseId();
+  const auto b = NewKeyDatabaseId();
+
+  EXPECT_FALSE(QUuid::fromString(a).isNull());
+  EXPECT_NE(a, b);
+  EXPECT_NE(a, QLatin1String(kDefaultKeyDatabaseId));
+}
+
+TEST(KeyDatabaseIdTest, TheDefaultDatabaseAlwaysHasTheReservedId) {
+  // Whatever it was stored with: it is one identity derived per computer, and
+  // a stored id for it only records what some other build once wrote.
+  const auto out = AssignKeyDatabaseIds({
+      MakeKindItem("DEFAULT", "/home/me/.gnupg", KeyDatabaseKind::kDEFAULT,
+                   "3f2c9d1e-0000-4000-8000-000000000001"),
+  });
+
+  ASSERT_EQ(out.size(), 1);
+  EXPECT_EQ(out.front().id, QLatin1String(kDefaultKeyDatabaseId));
+}
+
+TEST(KeyDatabaseIdTest, AnEntryFromBeforeTheFieldIsGivenOne) {
+  const auto out = AssignKeyDatabaseIds({
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED),
+  });
+
+  ASSERT_EQ(out.size(), 1);
+  EXPECT_FALSE(QUuid::fromString(out.front().id).isNull());
+}
+
+TEST(KeyDatabaseIdTest, AnIdAlreadyCarriedIsKept) {
+  const auto id = NewKeyDatabaseId();
+  const auto out = AssignKeyDatabaseIds({
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED, id),
+  });
+
+  EXPECT_EQ(out.front().id, id);
+}
+
+TEST(KeyDatabaseIdTest, OnlyTheDefaultDatabaseMayHoldTheReservedId) {
+  // An ordinary database claiming the default identity would make "the default
+  // database" mean two things.
+  const auto out = AssignKeyDatabaseIds({
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED,
+                   QLatin1String(kDefaultKeyDatabaseId)),
+  });
+
+  EXPECT_NE(out.front().id, QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_FALSE(QUuid::fromString(out.front().id).isNull());
+}
+
+TEST(KeyDatabaseIdTest, ACopiedEntryDoesNotShareTheOriginalsIdentity) {
+  // A hand-copied entry, or one duplicated by an older build. The first keeps
+  // the id, so what was keyed by it stays with the database it belonged to.
+  const auto id = NewKeyDatabaseId();
+  const auto out = AssignKeyDatabaseIds({
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED, id),
+      MakeKindItem("copy", "/elsewhere/copy", KeyDatabaseKind::kEXTERNAL, id),
+  });
+
+  ASSERT_EQ(out.size(), 2);
+  EXPECT_EQ(out[0].id, id);
+  EXPECT_NE(out[1].id, id);
+  EXPECT_FALSE(QUuid::fromString(out[1].id).isNull());
+}
+
+TEST(KeyDatabaseIdTest, AssigningIdsIsIdempotent) {
+  const auto once = AssignKeyDatabaseIds({
+      MakeKindItem("DEFAULT", "/home/me/.gnupg", KeyDatabaseKind::kDEFAULT),
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED),
+      MakeKindItem("ext", "/elsewhere/ext", KeyDatabaseKind::kEXTERNAL),
+  });
+  const auto twice = AssignKeyDatabaseIds(once);
+
+  ASSERT_EQ(once.size(), twice.size());
+  for (int i = 0; i < once.size(); ++i) EXPECT_EQ(once[i].id, twice[i].id);
+}
+
+TEST(KeyDatabaseIdTest, AnIdSurvivesBeingWrittenAndReadBack) {
+  auto item =
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED);
+  item.id = NewKeyDatabaseId();
+
+  const KeyDatabaseItemSO back(item.ToJson());
+  EXPECT_EQ(back.id, item.id);
+}
+
+TEST(KeyDatabaseIdTest, AnEntryWithNoIdWritesNoIdField) {
+  const auto item =
+      MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED);
+  EXPECT_FALSE(item.ToJson().contains("id"));
+}
+
+TEST(KeyDatabaseIdTest, AnIdFollowsTheDatabaseIntoItsInfo) {
+  KeyDatabaseInfo info;
+  info.id = NewKeyDatabaseId();
+  info.name = "work";
+  info.path = "/app-data/dbs/work";
+
+  EXPECT_EQ(KeyDatabaseItemSO(info).id, info.id);
+}
+
+TEST(KeyDatabaseIdTest, ReconcilingSettlesEveryIdAndKeepsStoredOnes) {
+  const auto work_id = NewKeyDatabaseId();
+  auto work = MakeItem("work", "@profile/dbs/work", "rpgp", 1);
+  work.id = work_id;
+
+  const QContainer<KeyDatabaseItemSO> stored = {
+      MakeItem("DEFAULT", "/stale", "gnupg", 0),
+      work,
+      MakeItem("ext", "/elsewhere/ext", "gnupg", 2),
+  };
+
+  const auto out = ReconcileKeyDatabaseList(
+      stored, MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg"),
+      MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp"), "/app-data",
+      "/app-data");
+
+  ASSERT_EQ(out.size(), 3);
+  EXPECT_EQ(FindByName(out, "DEFAULT")->id,
+            QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_EQ(FindByName(out, "work")->id, work_id);
+  EXPECT_FALSE(QUuid::fromString(FindByName(out, "ext")->id).isNull());
+}
+
+TEST(KeyDatabaseIdTest, ASeededFallbackIsTheDefaultIdentity) {
+  auto fallback = MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp");
+  fallback.kind = KeyDatabaseKind::kDEFAULT;
+
+  const auto out = ReconcileKeyDatabaseList({}, MakeItem("DEFAULT", "", ""),
+                                            fallback, "/app-data", "/app-data");
+
+  ASSERT_EQ(out.size(), 1);
+  EXPECT_EQ(out.front().id, QLatin1String(kDefaultKeyDatabaseId));
+}
+
+TEST_F(GFCoreTest, ASandboxDatabaseRecoversItsIdByName) {
+  // The scan is authoritative for which databases exist; the stored list is
+  // where everything else about them, the identity included, is recovered.
+  const auto id = NewKeyDatabaseId();
+  auto stored_work = MakeItem("work", "/stale/old/path", "rpgp", 5);
+  stored_work.id = id;
+
+  const auto out = ReconcileSandboxKeyDatabaseList(
+      kDefaultDb,
+      {MakeItem("work", "/app-data/dbs/work"),
+       MakeItem("fresh", "/app-data/dbs/fresh")},
+      {stored_work}, kLiteBackends);
+
+  EXPECT_EQ(FindByName(out, "DEFAULT")->id,
+            QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_EQ(FindByName(out, "work")->id, id);
+  EXPECT_FALSE(QUuid::fromString(FindByName(out, "fresh")->id).isNull());
+}
+
+TEST_F(GFCoreTest, ComposingKeepsEveryIdentity) {
+  auto def =
+      MakeKindItem("DEFAULT", "/home/me/.gnupg", KeyDatabaseKind::kDEFAULT,
+                   QLatin1String(kDefaultKeyDatabaseId));
+  auto managed = MakeKindItem("work", "@profile/dbs/work",
+                              KeyDatabaseKind::kMANAGED, NewKeyDatabaseId());
+  auto external = MakeKindItem("ext", "/elsewhere/ext",
+                               KeyDatabaseKind::kEXTERNAL, NewKeyDatabaseId());
+
+  const auto out = ComposeKeyDatabaseList(def, {managed}, {external});
+
+  ASSERT_EQ(out.size(), 3);
+  EXPECT_EQ(out[0].id, def.id);
+  EXPECT_EQ(out[1].id, managed.id);
+  EXPECT_EQ(out[2].id, external.id);
+}
+
+// -----------------------------------------------------------------------------
+// Physical identity. A directory reached by two spellings is one key database,
+// and opening it twice would put two contexts on the same files.
+// -----------------------------------------------------------------------------
+
+TEST(KeyDatabaseResourceTest, AnEmptyPathHasNoLocation) {
+  EXPECT_TRUE(KeyDatabasePhysicalLocation({}).isEmpty());
+  EXPECT_TRUE(ResolveKeyDatabaseResourceId("rpgp", {}).IsEmpty());
+  EXPECT_FALSE(IsSameKeyDatabaseLocation({}, {}));
+}
+
+TEST(KeyDatabaseResourceTest, AMissingDirectoryIsOnlyCleanedUp) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+
+  const auto missing = root.path() + "/a/../b/";
+  EXPECT_EQ(KeyDatabasePhysicalLocation(missing),
+            KeyDatabasePhysicalLocation(root.path() + "/b"));
+}
+
+TEST(KeyDatabaseResourceTest, TwoSpellingsOfOneDirectoryAreOneLocation) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("db"));
+
+  EXPECT_TRUE(
+      IsSameKeyDatabaseLocation(root.path() + "/db", root.path() + "/./db/"));
+  EXPECT_FALSE(
+      IsSameKeyDatabaseLocation(root.path() + "/db", root.path() + "/other"));
+}
+
+#ifndef Q_OS_WINDOWS
+TEST(KeyDatabaseResourceTest, ALinkIsTheDirectoryItPointsAt) {
+  // What a short link handed to gpg-agent, or a user's own symlink, is.
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("real"));
+  ASSERT_TRUE(QFile::link(root.path() + "/real", root.path() + "/link"));
+
+  EXPECT_TRUE(
+      IsSameKeyDatabaseLocation(root.path() + "/link", root.path() + "/real"));
+  EXPECT_EQ(ResolveKeyDatabaseResourceId("rpgp", root.path() + "/link"),
+            ResolveKeyDatabaseResourceId("rpgp", root.path() + "/real"));
+}
+#endif
+
+TEST(KeyDatabaseResourceTest, AnUnnamedBackendIsGnuPG) {
+  // An empty backend is read as gnupg everywhere else; the identity agrees.
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+
+  EXPECT_EQ(ResolveKeyDatabaseResourceId({}, root.path()).backend, "gnupg");
+  EXPECT_EQ(ResolveKeyDatabaseResourceId(" RPGP ", root.path()).backend,
+            "rpgp");
+}
+
+TEST(KeyDatabaseResourceTest, OnlyTheFirstDatabaseAtALocationIsOpened) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("db"));
+  ASSERT_TRUE(QDir(root.path()).mkpath("other"));
+
+  const auto out = DropDuplicateKeyDatabaseLocations({
+      MakeInfo("first", root.path() + "/db", true, 0),
+      MakeInfo("other", root.path() + "/other", true, 1),
+      MakeInfo("again", root.path() + "/./db/", true, 2),
+  });
+
+  ASSERT_EQ(out.size(), 2);
+  EXPECT_EQ(out[0].name, "first");
+  EXPECT_EQ(out[1].name, "other");
+}
+
+TEST(KeyDatabaseResourceTest, DroppingDuplicateLocationsKeepsADistinctList) {
+  const auto out = DropDuplicateKeyDatabaseLocations({
+      MakeInfo("a", "/app-data/dbs/a", true, 0),
+      MakeInfo("b", "/app-data/dbs/b", true, 1),
+  });
+
+  ASSERT_EQ(out.size(), 2);
+  EXPECT_EQ(out[0].name, "a");
+  EXPECT_EQ(out[1].name, "b");
+}
+
+// -----------------------------------------------------------------------------
+// Channel handles. A handle names one database for as long as it is used, and
+// is never handed to another one, so a caller holding a stale handle is told
+// so rather than served another database's keys. These use handles far above
+// anything a run issues, since the registry is process-wide.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto TestHandle() -> int { return AllocateChannelHandle() + 0x100000; }
+
+/// A generation no Runtime is ever current in, so these handles never show up
+/// in a listing of the databases a run actually has.
+constexpr int kTestGeneration = 0x7fff0000;
+
+}  // namespace
+
+TEST(ChannelHandleTest, AHandleNeverIssuedIsUnknownAndNotLive) {
+  const auto handle = TestHandle();
+  EXPECT_EQ(LookupChannelHandle(handle).state, ChannelHandleState::kUNKNOWN);
+  EXPECT_FALSE(IsLiveChannelHandle(handle));
+  EXPECT_FALSE(IsLiveChannelHandle(-1));
+}
+
+TEST(ChannelHandleTest, AnOpenedContextsHandleIsLive) {
+  const auto handle = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(handle, "id-open", true, kTestGeneration));
+
+  const auto info = LookupChannelHandle(handle);
+  EXPECT_EQ(info.state, ChannelHandleState::kAVAILABLE);
+  EXPECT_EQ(info.database_id, "id-open");
+  EXPECT_EQ(info.generation, kTestGeneration);
+  EXPECT_TRUE(IsLiveChannelHandle(handle));
+}
+
+TEST(ChannelHandleTest, AFailedContextKeepsItsHandleButIsNotLive) {
+  const auto handle = TestHandle();
+  ASSERT_TRUE(
+      RegisterChannelHandle(handle, "id-failed", false, kTestGeneration));
+
+  EXPECT_EQ(LookupChannelHandle(handle).state,
+            ChannelHandleState::kUNAVAILABLE);
+  EXPECT_FALSE(IsLiveChannelHandle(handle));
+}
+
+TEST(ChannelHandleTest, AHandleIsNeverGivenToAnotherDatabase) {
+  const auto handle = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(handle, "id-a", true, kTestGeneration));
+
+  EXPECT_TRUE(RegisterChannelHandle(handle, "id-a", false, kTestGeneration))
+      << "the same database could not be rebuilt on its own handle";
+  EXPECT_FALSE(RegisterChannelHandle(handle, "id-b", true, kTestGeneration));
+  EXPECT_EQ(LookupChannelHandle(handle).database_id, "id-a");
+}
+
+TEST(ChannelHandleTest, ARetiredHandleIsNeverReissued) {
+  const auto handle = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(handle, "id-r", true, kTestGeneration));
+  ASSERT_TRUE(RetireChannelHandle(handle));
+
+  EXPECT_EQ(LookupChannelHandle(handle).state, ChannelHandleState::kRETIRED);
+  EXPECT_FALSE(IsLiveChannelHandle(handle));
+  EXPECT_FALSE(RegisterChannelHandle(handle, "id-r", true, kTestGeneration));
+  EXPECT_FALSE(RetireChannelHandle(TestHandle()))
+      << "retiring a handle nobody was given succeeded";
+}
+
+TEST(ChannelHandleTest, AnAllocatedHandleIsAboveEveryOneIssued) {
+  const auto issued = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(issued, "id-x", true, kTestGeneration));
+
+  const auto next = AllocateChannelHandle();
+  EXPECT_GT(next, issued);
+  EXPECT_EQ(LookupChannelHandle(next).state, ChannelHandleState::kUNKNOWN);
+  EXPECT_GT(AllocateChannelHandle(), next);
+}
+
+TEST(ChannelHandleTest, ANegativeHandleIsRefused) {
+  EXPECT_FALSE(RegisterChannelHandle(-5, "id", true, kTestGeneration));
+}
+
+// -----------------------------------------------------------------------------
+// The default database is a choice kept with the list, not whichever entry is
+// first, and nothing assumes it was opened on channel 0.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto WithId(KeyDatabaseItemSO item, const QString& id) -> KeyDatabaseItemSO {
+  item.id = id;
+  return item;
+}
+
+}  // namespace
+
+TEST(DefaultKeyDatabaseTest, AnEmptyListHasNoDefault) {
+  EXPECT_TRUE(ResolveDefaultKeyDatabaseId("anything", {}).isEmpty());
+}
+
+TEST(DefaultKeyDatabaseTest, WithNoChoiceTheDefaultDatabaseIsTheDefault) {
+  // Wherever it sits: the order is how the list is shown, nothing more.
+  auto def = WithId(MakeItem("DEFAULT", "/home/me/.gnupg"), "default");
+  def.kind = KeyDatabaseKind::kDEFAULT;
+
+  const auto id = ResolveDefaultKeyDatabaseId(
+      {}, {WithId(MakeItem("work", "/a"), "id-work"), def});
+  EXPECT_EQ(id, "default");
+}
+
+TEST(DefaultKeyDatabaseTest, WithNoChoiceAndNoDefaultTheFirstIsTheDefault) {
+  // What channel 0 always was, so a profile nobody chose for behaves as before.
+  const auto id = ResolveDefaultKeyDatabaseId(
+      {}, {WithId(MakeItem("work", "/a"), "id-work"),
+           WithId(MakeItem("home", "/b"), "id-home")});
+  EXPECT_EQ(id, "id-work");
+}
+
+TEST(DefaultKeyDatabaseTest, AChoiceStillInTheListIsKept) {
+  auto def = WithId(MakeItem("DEFAULT", "/home/me/.gnupg"), "default");
+  def.kind = KeyDatabaseKind::kDEFAULT;
+
+  const auto id = ResolveDefaultKeyDatabaseId(
+      "id-home", {def, WithId(MakeItem("home", "/b"), "id-home")});
+  EXPECT_EQ(id, "id-home");
+}
+
+TEST(DefaultKeyDatabaseTest, AChoiceNoLongerInTheListIsIgnored) {
+  const auto id = ResolveDefaultKeyDatabaseId(
+      "id-gone", {WithId(MakeItem("work", "/a"), "id-work")});
+  EXPECT_EQ(id, "id-work");
+}
+
+TEST(DefaultKeyDatabaseTest, TheChoiceSurvivesBeingWrittenAndReadBack) {
+  KeyDatabaseListSO list;
+  list.key_databases = {WithId(MakeItem("work", "/a"), "id-work")};
+  list.default_database_id = "id-work";
+
+  const KeyDatabaseListSO back(list.ToJson());
+  EXPECT_EQ(back.default_database_id, "id-work");
+  ASSERT_EQ(back.key_databases.size(), 1);
+  EXPECT_EQ(back.key_databases.front().id, "id-work");
+}
+
+TEST(DefaultKeyDatabaseTest, NoChoiceWritesNoChoiceField) {
+  // A choice nobody made is never written down, so the rule above keeps
+  // deciding it as the list changes.
+  KeyDatabaseListSO list;
+  list.key_databases = {WithId(MakeItem("work", "/a"), "id-work")};
+  EXPECT_FALSE(list.ToJson().contains("default_database_id"));
+}
+
+TEST(DefaultKeyDatabaseTest, TheDefaultHandleIsWhereverItWasOpened) {
+  const auto before = DefaultChannelHandle();
+
+  SetDefaultChannelHandle(7);
+  EXPECT_EQ(DefaultChannelHandle(), 7);
+
+  SetDefaultChannelHandle(before);
+  EXPECT_EQ(DefaultChannelHandle(), before);
+}
+
+// -----------------------------------------------------------------------------
+// Leases. A retired handle is reclaimed only once nothing holds it, exactly
+// once, and no lease is ever granted on it after it was retired.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+/// Swaps in a reclaimer that records what it was asked to reclaim, and puts the
+/// real one back afterwards.
+class RecordingReclaimer {
+ public:
+  RecordingReclaimer()
+      : previous_(SetRetiredChannelReclaimer([this](int handle) {
+          std::lock_guard<std::mutex> lock(mutex_);
+          reclaimed_.push_back(handle);
+        })) {}
+
+  ~RecordingReclaimer() { SetRetiredChannelReclaimer(previous_); }
+
+  RecordingReclaimer(const RecordingReclaimer&) = delete;
+  auto operator=(const RecordingReclaimer&) -> RecordingReclaimer& = delete;
+
+  auto Count(int handle) -> int {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return static_cast<int>(
+        std::count(reclaimed_.begin(), reclaimed_.end(), handle));
+  }
+
+ private:
+  std::function<void(int)> previous_;
+  std::mutex mutex_;
+  std::vector<int> reclaimed_;
+};
+
+auto LiveTestHandle(const QString& id) -> int {
+  const auto handle = TestHandle();
+  EXPECT_TRUE(RegisterChannelHandle(handle, id, true, kTestGeneration));
+  return handle;
+}
+
+}  // namespace
+
+TEST(EngineLeaseTest, ALeaseIsGrantedOnlyOnALiveHandle) {
+  EngineAccessError why{};
+
+  EXPECT_FALSE(TryAcquireEngineLease(TestHandle(), &why).has_value());
+  EXPECT_EQ(why, EngineAccessError::kUNKNOWN);
+
+  const auto failed = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(failed, "id-f", false, kTestGeneration));
+  EXPECT_FALSE(TryAcquireEngineLease(failed, &why).has_value());
+  EXPECT_EQ(why, EngineAccessError::kUNAVAILABLE);
+
+  const auto live = LiveTestHandle("id-l");
+  auto lease = TryAcquireEngineLease(live);
+  ASSERT_TRUE(lease.has_value());
+  EXPECT_EQ(lease->Handle(), live);
+  EXPECT_EQ(LookupChannelHandle(live).leases, 1);
+
+  lease->Release();
+  EXPECT_FALSE(lease->IsHeld());
+  EXPECT_EQ(LookupChannelHandle(live).leases, 0);
+}
+
+TEST(EngineLeaseTest, OperationsAreCountedApartFromOtherHolders) {
+  const auto live = LiveTestHandle("id-op");
+
+  auto view = TryAcquireEngineLease(live);
+  auto operation = TryAcquireEngineLease(live, nullptr, true);
+  ASSERT_TRUE(view.has_value());
+  ASSERT_TRUE(operation.has_value());
+  EXPECT_EQ(LookupChannelHandle(live).leases, 2);
+  EXPECT_EQ(LookupChannelHandle(live).operations, 1);
+
+  // A copy shares the holding: the count drops once, with the last copy.
+  auto copy = *operation;
+  operation->Release();
+  EXPECT_EQ(LookupChannelHandle(live).operations, 1);
+  copy.Release();
+  EXPECT_EQ(LookupChannelHandle(live).operations, 0);
+  EXPECT_EQ(LookupChannelHandle(live).leases, 1);
+
+  view->Release();
+  EXPECT_EQ(LookupChannelHandle(live).leases, 0);
+}
+
+TEST(EngineLeaseTest, NoLeaseIsGrantedOnARetiredHandle) {
+  RecordingReclaimer reclaimer;
+  const auto handle = LiveTestHandle("id-retired");
+  ASSERT_TRUE(RetireChannelHandle(handle));
+
+  EngineAccessError why{};
+  EXPECT_FALSE(TryAcquireEngineLease(handle, &why).has_value());
+  EXPECT_EQ(why, EngineAccessError::kRETIRED);
+}
+
+TEST(EngineLeaseTest, AnUnheldRetiredHandleIsReclaimedAtOnce) {
+  RecordingReclaimer reclaimer;
+  const auto handle = LiveTestHandle("id-idle");
+
+  ASSERT_TRUE(RetireChannelHandle(handle));
+  EXPECT_EQ(reclaimer.Count(handle), 1);
+
+  RetireChannelHandle(handle);
+  EXPECT_EQ(reclaimer.Count(handle), 1) << "reclaimed twice";
+}
+
+TEST(EngineLeaseTest, AHeldRetiredHandleWaitsForItsLastLease) {
+  RecordingReclaimer reclaimer;
+  const auto handle = LiveTestHandle("id-held");
+
+  auto first = TryAcquireEngineLease(handle);
+  ASSERT_TRUE(first.has_value());
+  auto copy = *first;  // copies share one holding
+  auto second = TryAcquireEngineLease(handle);
+  ASSERT_TRUE(second.has_value());
+  EXPECT_EQ(LookupChannelHandle(handle).leases, 2);
+
+  ASSERT_TRUE(RetireChannelHandle(handle));
+  EXPECT_EQ(reclaimer.Count(handle), 0) << "reclaimed while still held";
+
+  first.reset();
+  EXPECT_EQ(reclaimer.Count(handle), 0) << "a copy no longer kept it";
+  copy.Release();
+  EXPECT_EQ(reclaimer.Count(handle), 0);
+  second.reset();
+  EXPECT_EQ(reclaimer.Count(handle), 1);
+}
+
+TEST(EngineLeaseTest, RetiringAGenerationRetiresOnlyItsHandles) {
+  RecordingReclaimer reclaimer;
+  const auto generation = AllocateRuntimeGeneration();
+  const auto mine = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(mine, "id-g1", true, generation));
+  const auto other = LiveTestHandle("id-other");
+
+  const auto retired = RetireRuntimeGeneration(generation);
+  ASSERT_EQ(retired.size(), 1);
+  EXPECT_EQ(retired.front(), mine);
+  EXPECT_EQ(LookupChannelHandle(mine).state, ChannelHandleState::kRETIRED);
+  EXPECT_TRUE(IsLiveChannelHandle(other));
+}
+
+TEST(EngineLeaseTest, AGenerationIsListedInItsOrder) {
+  const auto generation = AllocateRuntimeGeneration();
+  const auto b = TestHandle();
+  const auto a = TestHandle();
+  ASSERT_TRUE(RegisterChannelHandle(b, "id-b", true, generation));
+  ASSERT_TRUE(RegisterChannelHandle(a, "id-a", false, generation));
+  DescribeChannelHandle(b, "second", "/b", "rpgp", 1);
+  DescribeChannelHandle(a, "first", "/a", "gnupg", 0);
+
+  const auto listed = ListRuntimeChannels(generation);
+  ASSERT_EQ(listed.size(), 2);
+  EXPECT_EQ(listed[0].name, "first");
+  EXPECT_EQ(listed[0].state, ChannelHandleState::kUNAVAILABLE);
+  EXPECT_EQ(listed[1].name, "second");
+  EXPECT_EQ(listed[1].backend_type, "rpgp");
+
+  RetireRuntimeGeneration(generation);
+}
+
+TEST(EngineLeaseTest, LeasesRacingARetirementAreAllAccountedFor) {
+  // Every lease is either refused or granted and released, and the handle is
+  // reclaimed exactly once, after the last of them.
+  RecordingReclaimer reclaimer;
+  const auto handle = LiveTestHandle("id-race");
+
+  std::atomic<bool> go{false};
+  std::atomic<int> granted{0};
+  std::vector<std::thread> workers;
+  for (int t = 0; t < 8; ++t) {
+    workers.emplace_back([&]() {
+      while (!go.load()) std::this_thread::yield();
+      for (int i = 0; i < 2000; ++i) {
+        auto lease = TryAcquireEngineLease(handle);
+        if (!lease) continue;
+        ++granted;
+        EXPECT_EQ(reclaimer.Count(handle), 0)
+            << "reclaimed while a lease was held";
+      }
+    });
+  }
+
+  go = true;
+  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+  ASSERT_TRUE(RetireChannelHandle(handle));
+  for (auto& worker : workers) worker.join();
+
+  EXPECT_GT(granted.load(), 0);
+  EXPECT_EQ(LookupChannelHandle(handle).leases, 0);
+  EXPECT_EQ(reclaimer.Count(handle), 1);
+}
+
+// -----------------------------------------------------------------------------
+// Engine-scoped objects are released per channel, dependents first; anything
+// process-wide on the same channel is left alone.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+std::mutex g_destroyed_lock;
+std::vector<std::string> g_destroyed;
+
+void NoteDestroyed(const std::string& what) {
+  std::lock_guard<std::mutex> lock(g_destroyed_lock);
+  g_destroyed.push_back(what);
+}
+
+class TestEngineDependency
+    : public SingletonFunctionObject<TestEngineDependency> {
+ public:
+  static constexpr bool kEngineScoped = true;
+  explicit TestEngineDependency(int channel)
+      : SingletonFunctionObject<TestEngineDependency>(channel) {}
+  ~TestEngineDependency() override { NoteDestroyed("dependency"); }
+};
+
+class TestEngineDependent
+    : public SingletonFunctionObject<TestEngineDependent> {
+ public:
+  static constexpr bool kEngineScoped = true;
+  explicit TestEngineDependent(int channel)
+      : SingletonFunctionObject<TestEngineDependent>(channel) {}
+  ~TestEngineDependent() override {
+    // Still alive when this one goes, which is the point of the ordering.
+    EXPECT_EQ(dependency_.GetChannel(), GetChannel());
+    NoteDestroyed("dependent");
+  }
+
+ private:
+  TestEngineDependency& dependency_ =
+      TestEngineDependency::GetInstance(GetChannel());
+};
+
+class TestProcessWide : public SingletonFunctionObject<TestProcessWide> {
+ public:
+  explicit TestProcessWide(int channel)
+      : SingletonFunctionObject<TestProcessWide>(channel) {}
+};
+
+}  // namespace
+
+TEST(EngineScopedReleaseTest, DependentsGoFirstAndProcessWideObjectsStay) {
+  const auto channel = TestHandle();
+  {
+    std::lock_guard<std::mutex> lock(g_destroyed_lock);
+    g_destroyed.clear();
+  }
+
+  TestEngineDependent::GetInstance(channel);
+  TestProcessWide::GetInstance(channel);
+
+  EXPECT_EQ(ReleaseEngineScopedChannel(channel), 2);
+
+  {
+    std::lock_guard<std::mutex> lock(g_destroyed_lock);
+    ASSERT_EQ(g_destroyed.size(), 2U);
+    EXPECT_EQ(g_destroyed[0], "dependent");
+    EXPECT_EQ(g_destroyed[1], "dependency");
+  }
+
+  const auto dependents = TestEngineDependent::GetAllChannelId();
+  EXPECT_EQ(std::count(dependents.begin(), dependents.end(), channel), 0);
+  const auto process_wide = TestProcessWide::GetAllChannelId();
+  EXPECT_EQ(std::count(process_wide.begin(), process_wide.end(), channel), 1);
+
+  EXPECT_EQ(ReleaseEngineScopedChannel(channel), 0) << "released twice";
+}
+
+// -----------------------------------------------------------------------------
+// A Runtime is built off to the side, on handles nothing has seen, and is
+// reclaimed only once nothing holds it. Built here on rPGP, which needs no
+// agent, and never published: publishing would retire the Runtime the rest of
+// the test run uses.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto RpgpDatabase(const QString& id, const QString& name, const QString& path)
+    -> KeyDatabaseInfo {
+  KeyDatabaseInfo info;
+  info.id = id;
+  info.name = name;
+  info.path = QFileInfo(path).canonicalFilePath();
+  info.origin_path = info.path;
+  info.backend_type = "rpgp";
+  info.valid = true;
+  info.kind = KeyDatabaseKind::kEXTERNAL;
+  return info;
+}
+
+auto RpgpOnlyOptions() -> KeyDatabaseRuntimeOptions {
+  KeyDatabaseRuntimeOptions options;
+  options.default_engine = "RPGP";
+  options.rpgp_supported = true;
+  return options;
+}
+
+auto IsReclaimed(int handle) -> bool {
+  return LookupChannelHandle(handle).reclaimed;
+}
+
+}  // namespace
+
+TEST(KeyDatabaseRuntimeTest, ACandidateIsBuiltBesideTheRuntimeInUse) {
+  if (!GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    GTEST_SKIP() << "this build has no rPGP engine";
+  }
+
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("a"));
+  ASSERT_TRUE(QDir(root.path()).mkpath("b"));
+
+  const QContainer<KeyDatabaseInfo> key_dbs = {
+      RpgpDatabase("id-rt-a", "rt-a", root.path() + "/a"),
+      RpgpDatabase("id-rt-b", "rt-b", root.path() + "/b"),
+  };
+
+  KeyDatabaseApplyResult result;
+  const auto first =
+      PrepareKeyDatabaseRuntime(key_dbs, 0, RpgpOnlyOptions(), result);
+  ASSERT_TRUE(first.ok) << result.errors.join("; ").toStdString();
+  EXPECT_TRUE(result.unavailable.isEmpty());
+  EXPECT_NE(first.generation, CurrentRuntimeGeneration());
+
+  const auto channels = ListRuntimeChannels(first.generation);
+  ASSERT_EQ(channels.size(), 2);
+  EXPECT_EQ(channels[0].database_id, "id-rt-a");
+  EXPECT_EQ(channels[0].handle, first.default_handle);
+  EXPECT_EQ(channels[1].name, "rt-b");
+  for (const auto& channel : channels) {
+    EXPECT_EQ(channel.state, ChannelHandleState::kAVAILABLE);
+  }
+
+  // Not in use until published: nothing resolves onto it, and modules do not
+  // see it in the register table.
+  EXPECT_EQ(ResolveDatabaseHandle("id-rt-a"), -1);
+  const auto published = Module::ListRTChildKeys("core", "gpgme.ctx.list");
+  for (const auto& channel : channels) {
+    EXPECT_FALSE(published.contains(QString::number(channel.handle)));
+  }
+
+  // A second candidate on the same folders, as a reload builds while the old
+  // Runtime is still open there.
+  const auto second =
+      PrepareKeyDatabaseRuntime(key_dbs, 0, RpgpOnlyOptions(), result);
+  ASSERT_TRUE(second.ok);
+  EXPECT_NE(second.default_handle, first.default_handle);
+
+  auto lease = TryAcquireEngineLease(first.default_handle);
+  ASSERT_TRUE(lease.has_value());
+
+  RetireRuntimeGeneration(first.generation);
+  EXPECT_FALSE(TryAcquireEngineLease(first.default_handle).has_value());
+
+  // The other handle of the first candidate held nothing, so it goes; the
+  // default one waits for the lease.
+  EXPECT_TRUE(WaitFor([&] { return IsReclaimed(channels[1].handle); }));
+  EXPECT_FALSE(IsReclaimed(first.default_handle));
+
+  lease.reset();
+  EXPECT_TRUE(WaitFor([&] { return IsReclaimed(first.default_handle); }));
+
+  // Still open: the second candidate shares the folders.
+  EXPECT_TRUE(IsKeyDatabaseLocationInUse(root.path() + "/a"));
+  EXPECT_TRUE(IsLiveChannelHandle(second.default_handle));
+
+  RetireRuntimeGeneration(second.generation);
+  EXPECT_TRUE(WaitFor([&] {
+    return !IsKeyDatabaseLocationInUse(root.path() + "/a");
+  })) << "the folder stayed open after every runtime on it was reclaimed";
+  EXPECT_FALSE(IsKeyDatabaseLocationInUse(root.path() + "/b"));
+}
+
+TEST(KeyDatabaseRuntimeTest, ACandidateWhoseDefaultCannotOpenIsNotOk) {
+  if (!GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    GTEST_SKIP() << "this build has no rPGP engine";
+  }
+
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+
+  KeyDatabaseApplyResult result;
+  const auto candidate = PrepareKeyDatabaseRuntime(
+      {RpgpDatabase("id-rt-missing", "rt-missing", root.path() + "/nope")}, 0,
+      RpgpOnlyOptions(), result);
+
+  EXPECT_FALSE(candidate.ok);
+  EXPECT_FALSE(result.errors.isEmpty());
+  EXPECT_EQ(result.unavailable, QStringList{"rt-missing"});
+
+  RetireRuntimeGeneration(candidate.generation);
 }
 
 }  // namespace GpgFrontend::Test

@@ -32,6 +32,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgKey.h"
@@ -247,7 +248,6 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
   }
 }
 
-static QContainer<KeyDatabaseInfo> gpg_key_database_info_cache;
 
 auto GF_CORE_EXPORT
 BuildGpgKeyDatabaseInfos(const QContainer<KeyDatabaseInfo>& reported)
@@ -288,58 +288,35 @@ BuildGpgKeyDatabaseInfos(const QContainer<KeyDatabaseInfo>& reported)
 }
 
 auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
-  if (!gpg_key_database_info_cache.empty()) return gpg_key_database_info_cache;
-
-  auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
-
+  // Asked of the channel handle registry, which knows which Runtime is current:
+  // after a reload the previous one's databases are retired, and listing them
+  // would hand out channels that refuse every operation. Only databases that
+  // actually opened are listed, as the published register table entries only
+  // ever were.
   QContainer<KeyDatabaseInfo> reported;
-  reported.reserve(static_cast<qsizetype>(context_index_list.size()));
+  for (const auto& handle : ListRuntimeChannels()) {
+    if (handle.state != ChannelHandleState::kAVAILABLE) continue;
 
-  for (auto& context_index : context_index_list) {
-    LOG_D() << "context grt key: " << context_index;
-
-    const auto grt_key_prefix = QString("gpgme.ctx.list.%1").arg(context_index);
-    auto channel = Module::RetrieveRTValueTypedOrDefault(
-        "core", grt_key_prefix + ".channel", -1);
-    auto database_name = Module::RetrieveRTValueTypedOrDefault(
-        "core", grt_key_prefix + ".database_name", QString{});
-    auto database_path = Module::RetrieveRTValueTypedOrDefault(
-        "core", grt_key_prefix + ".database_path", QString{});
-    // Published by OpenPGPContext::Initialize() alongside the other three and
-    // never read back until now, which left every caller to re-derive the
-    // engine by constructing a context -- and constructing one for a channel
-    // that has none lazily creates a placeholder that reports GnuPG.
-    auto backend_type = Module::RetrieveRTValueTypedOrDefault(
-        "core", grt_key_prefix + ".backend_type", QString{});
-
-    LOG_D() << "context grt channel: " << channel
-            << "GRT key prefix: " << grt_key_prefix
-            << "database name: " << database_name;
-
-    auto i = KeyDatabaseInfo();
-    i.channel = channel;
-    i.name = database_name;
-    i.path = database_path;
-    i.backend_type = backend_type;
-    reported.append(i);
+    KeyDatabaseInfo info;
+    info.channel = handle.handle;
+    info.id = handle.database_id;
+    info.name = handle.name;
+    info.path = handle.path;
+    info.backend_type = handle.backend_type;
+    info.valid = true;
+    reported.append(info);
   }
 
   // Ordered by channel and holding one entry per live context, rather than
   // indexed by channel: a list indexed by channel has a slot for every channel
   // no context reported, and those slots are key databases that do not exist.
-  gpg_key_database_info_cache = BuildGpgKeyDatabaseInfos(reported);
-
-  return gpg_key_database_info_cache;
+  return BuildGpgKeyDatabaseInfos(reported);
 }
 
 auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
-  // Asked by channel, so answered by channel: the list is ordered by channel
-  // but not indexed by it, and never was for a profile whose channels are not
-  // the contiguous run starting at zero that GFCoreInit usually builds.
-  for (const auto& info : GetGpgKeyDatabaseInfos()) {
-    if (info.channel == channel) return info.name;
-  }
-  return {};
+  // Answered for a retired handle too: a result that finished on the previous
+  // Runtime still has to say which database it came from.
+  return LookupChannelHandle(channel).name;
 }
 
 namespace {
@@ -539,6 +516,9 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
                                 ? it->backend_type
                                 : pick_default_backend();
       key_db.channel = it->channel;
+      // Recovered by name like the rest. The settings dialog writes a renamed
+      // database's new name together with its id, so a rename keeps it.
+      key_db.id = it->id;
     } else {
       key_db.backend_type = pick_default_backend();
       key_db.channel = next_channel;
@@ -548,7 +528,7 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
   }
 
   NormalizeKeyDatabaseChannels(key_dbs);
-  return key_dbs;
+  return AssignKeyDatabaseIds(key_dbs);
 }
 
 // macOS app sandbox: user key databases live under a fixed directory
@@ -635,15 +615,40 @@ auto ReconcileKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& stored,
   if (kept.empty()) kept.append(fallback);
 
   NormalizeKeyDatabaseChannels(kept);
-  return kept;
+  return AssignKeyDatabaseIds(kept);
 }
 
 void PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs) {
-  KeyDatabaseListSO list;
-  list.key_databases = key_dbs;
-
   auto so = SettingsObject(kKeyDatabaseListObject);
+
+  // Read first so the user's choice of default survives a rewrite that is only
+  // about the list itself.
+  auto list = KeyDatabaseListSO(so);
+  list.key_databases = key_dbs;
   so.Store(list.ToJson());
+}
+
+auto ResolveDefaultKeyDatabaseId(const QString& chosen,
+                                 const QContainer<KeyDatabaseItemSO>& key_dbs)
+    -> QString {
+  if (key_dbs.isEmpty()) return {};
+
+  if (!chosen.isEmpty()) {
+    for (const auto& item : key_dbs) {
+      if (item.id == chosen) return chosen;
+    }
+  }
+
+  for (const auto& item : key_dbs) {
+    if (item.kind == KeyDatabaseKind::kDEFAULT) return item.id;
+  }
+  return key_dbs.front().id;
+}
+
+auto GetDefaultKeyDatabaseId() -> QString {
+  const auto chosen = KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject))
+                          .default_database_id;
+  return ResolveDefaultKeyDatabaseId(chosen, GetKeyDatabasesBySettings());
 }
 
 auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
@@ -848,6 +853,7 @@ auto MakeDefaultKeyDatabaseInfo() -> KeyDatabaseInfo {
   info.channel = 0;
   info.valid = !fs_path.isEmpty();
   info.kind = KeyDatabaseKind::kDEFAULT;
+  info.id = QLatin1String(kDefaultKeyDatabaseId);
   return info;
 }
 
@@ -875,6 +881,7 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
     // channel of a configured database comes from, and an info that does not
     // know its channel is one no caller can ask a context about.
     key_db_info.channel = key_database.channel;
+    key_db_info.id = key_database.id;
     key_db_info.name = key_database.name;
     key_db_info.backend_type = key_database.backend_type;
     key_db_info.path = key_database_fs_path;
@@ -916,10 +923,60 @@ auto SelectUsableKeyDatabases(const QContainer<KeyDatabaseInfo>& all,
   return usable;
 }
 
+auto KeyDatabasePhysicalLocation(const QString& path) -> QString {
+  if (path.isEmpty()) return {};
+
+  const QFileInfo info(path);
+  auto location = info.canonicalFilePath();
+  if (location.isEmpty()) location = QDir::cleanPath(info.absoluteFilePath());
+
+#ifdef Q_OS_WINDOWS
+  location = location.toLower();
+#endif
+  return location;
+}
+
+auto ResolveKeyDatabaseResourceId(const QString& backend_type,
+                                  const QString& path)
+    -> KeyDatabaseResourceId {
+  KeyDatabaseResourceId id;
+  id.location = KeyDatabasePhysicalLocation(path);
+  if (id.location.isEmpty()) return {};
+
+  const auto backend = backend_type.trimmed().toLower();
+  id.backend = backend.isEmpty() ? QStringLiteral("gnupg") : backend;
+  return id;
+}
+
+auto IsSameKeyDatabaseLocation(const QString& a, const QString& b) -> bool {
+  const auto la = KeyDatabasePhysicalLocation(a);
+  return !la.isEmpty() && la == KeyDatabasePhysicalLocation(b);
+}
+
+auto DropDuplicateKeyDatabaseLocations(const QContainer<KeyDatabaseInfo>& infos)
+    -> QContainer<KeyDatabaseInfo> {
+  QContainer<KeyDatabaseInfo> out;
+  out.reserve(infos.size());
+
+  QSet<QString> seen;
+  for (const auto& info : infos) {
+    const auto location = KeyDatabasePhysicalLocation(info.path);
+    if (!location.isEmpty() && seen.contains(location)) {
+      LOG_W() << "a second key database names the same directory, not opening "
+                 "it:"
+              << info.name << "at" << info.path;
+      continue;
+    }
+    if (!location.isEmpty()) seen.insert(location);
+    out.push_back(info);
+  }
+  return out;
+}
+
 auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   auto fallback = MakeDefaultKeyDatabaseInfo();
-  auto key_db_infos =
-      SelectUsableKeyDatabases(GetAllKeyDatabaseInfoBySettings(), fallback);
+  auto key_db_infos = DropDuplicateKeyDatabaseLocations(
+      SelectUsableKeyDatabases(GetAllKeyDatabaseInfoBySettings(), fallback));
 
   LOG_I() << "valid key database count: " << key_db_infos.size();
   return key_db_infos;
@@ -1265,6 +1322,39 @@ auto ResolveKeyDatabaseKinds(const QContainer<KeyDatabaseItemSO>& databases,
       item.kind = ClassifyKeyDatabase(item.name, item.path, profile_root);
     }
 
+    out.push_back(item);
+  }
+  return out;
+}
+
+auto NewKeyDatabaseId() -> QString {
+  return QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+auto AssignKeyDatabaseIds(const QContainer<KeyDatabaseItemSO>& databases)
+    -> QContainer<KeyDatabaseItemSO> {
+  QContainer<KeyDatabaseItemSO> out;
+  out.reserve(databases.size());
+
+  QSet<QString> claimed;
+  for (auto item : databases) {
+    if (item.kind == KeyDatabaseKind::kDEFAULT) {
+      item.id = QLatin1String(kDefaultKeyDatabaseId);
+      out.push_back(item);
+      continue;
+    }
+
+    const auto id = item.id.trimmed();
+    if (id.isEmpty() || id == QLatin1String(kDefaultKeyDatabaseId) ||
+        claimed.contains(id)) {
+      item.id = NewKeyDatabaseId();
+      LOG_D() << "gave a key database a new identity:" << item.name << "->"
+              << item.id;
+    } else {
+      item.id = id;
+    }
+
+    claimed.insert(item.id);
     out.push_back(item);
   }
   return out;

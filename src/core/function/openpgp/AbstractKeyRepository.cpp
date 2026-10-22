@@ -34,7 +34,7 @@
 namespace GpgFrontend {
 
 AbstractKeyRepository::AbstractKeyRepository(int channel)
-    : SingletonFunctionObject<AbstractKeyRepository>(channel){};
+    : SingletonFunctionObject<AbstractKeyRepository>(channel) {};
 
 auto AbstractKeyRepository::Fetch() -> GpgAbstractKeyPtrList {
   auto ret = GpgAbstractKeyPtrList{};

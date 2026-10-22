@@ -29,6 +29,7 @@
 #include "KeyCategoryRepository.h"
 
 #include "core/function/CacheManager.h"
+#include "core/function/openpgp/helper/KeyDatabaseScopedCache.h"
 #include "core/struct/cache_object/KeyCategoriesCO.h"
 
 namespace GpgFrontend {
@@ -54,27 +55,25 @@ void KeyCategoryRepository::fetch_categories() {
   tab_colors_.clear();
   tab_orders_.clear();
 
-  auto key = QString("kcats:%1").arg(ctx_.KeyDBName());
-  auto json = cm_.LoadDurableCache(key);
+  auto json = LoadKeyDatabaseScopedCache(cm_, "kcats", ctx_.KeyDBId(),
+                                         ctx_.KeyDBName());
+  if (!json) return;
 
-  auto co = KeyCategoriesCO(json.object());
-  if (co.key_db_name == ctx_.KeyDBName()) {
-    categories_ = co.categories;
-    tab_colors_ = co.tab_colors;
-    tab_orders_ = co.tab_orders;
-  }
+  auto co = KeyCategoriesCO(*json);
+  categories_ = co.categories;
+  tab_colors_ = co.tab_colors;
+  tab_orders_ = co.tab_orders;
 }
 
 void KeyCategoryRepository::persist_categories() {
-  auto key = QString("kcats:%1").arg(ctx_.KeyDBName());
-
   KeyCategoriesCO co;
   co.key_db_name = ctx_.KeyDBName();
   co.categories = categories_;
   co.tab_colors = tab_colors_;
   co.tab_orders = tab_orders_;
 
-  cm_.SaveDurableCache(key, QJsonDocument{co.ToJson()}, true);
+  SaveKeyDatabaseScopedCache(cm_, "kcats", ctx_.KeyDBId(), ctx_.KeyDBName(),
+                             co.ToJson());
 }
 
 auto KeyCategoryRepository::AddCategory(const QString& name,

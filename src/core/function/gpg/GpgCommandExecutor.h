@@ -45,6 +45,10 @@ using GpgCommandExecutorInterator = std::function<void(QProcess *)>;
 class GF_CORE_EXPORT GpgCommandExecutor
     : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   struct GF_CORE_EXPORT ExecuteContext {
     QString cmd;
     QStringList arguments;

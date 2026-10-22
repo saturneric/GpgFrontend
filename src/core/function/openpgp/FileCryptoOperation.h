@@ -44,6 +44,10 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT FileCryptoOperation
     : public SingletonFunctionObject<FileCryptoOperation> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct the operation handler for the given singleton channel.
    *

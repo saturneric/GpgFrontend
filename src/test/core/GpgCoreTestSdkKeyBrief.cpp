@@ -32,6 +32,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "sdk/GFSDKGpg.h"
 #include "sdk/GFSDKGpgList.h"
@@ -58,7 +59,10 @@ namespace {
 /// there is none, so the tests that get that far say so instead of asserting
 /// deep inside the dispatcher.
 auto ChannelIsUsable(int channel) -> bool {
-  return OpenPGPContext::GetInstance(channel).Good();
+  // Asked of the handle registry, not of GetInstance(), which would build a
+  // placeholder context for a channel nothing opened -- and the SDK now refuses
+  // such a channel anyway.
+  return IsLiveChannelHandle(channel);
 }
 
 }  // namespace

@@ -28,6 +28,8 @@
 
 #include "Common.h"
 
+#include "core/GFCoreRust.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
@@ -47,6 +49,17 @@ auto BuildOpenPGPContextRpgpImpl(int channel,
     LOG_E() << "Failed to create OpenPGPContext for GnuPG engine, channel:"
             << channel;
   }
+
+  // Cached passphrases belong to the database, not to the channel it happened
+  // to be opened on: another database given this channel later must not be
+  // served them, and this one reopened elsewhere should still find them.
+  const auto resource = ResolveKeyDatabaseResourceId("rpgp", args.db_path);
+  const auto scope =
+      ctx.Good() && !resource.IsEmpty()
+          ? QString("%1:%2").arg(resource.backend, resource.location).toUtf8()
+          : QByteArray{};
+  Rust::gfr_set_channel_cache_scope(
+      channel, scope.isEmpty() ? nullptr : scope.constData());
 
   return ctx.Good();
 }

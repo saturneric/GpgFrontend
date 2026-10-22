@@ -39,12 +39,18 @@ namespace GpgFrontend {
 class SingletonStorage::Impl {
  public:
   void ReleaseChannel(int channel) {
-    decltype(instances_map_.end()) ins_it;
-    {
-      std::shared_lock<std::shared_mutex> lock(instances_mutex_);
-      ins_it = instances_map_.find(channel);
-    }
-    if (ins_it != instances_map_.end()) instances_map_.erase(ins_it);
+    // Destroyed after the lock is dropped: a destructor may reach for another
+    // singleton, and that must not find this storage locked.
+    auto taken = TakeObjectInChannel(channel);
+  }
+
+  auto TakeObjectInChannel(int channel) -> ChannelObjectPtr {
+    std::unique_lock<std::shared_mutex> lock(instances_mutex_);
+    auto ins_it = instances_map_.find(channel);
+    if (ins_it == instances_map_.end()) return nullptr;
+    auto taken = std::move(ins_it->second);
+    instances_map_.erase(ins_it);
+    return taken;
   }
 
   auto FindObjectInChannel(int channel) -> GpgFrontend::ChannelObject* {
@@ -62,6 +68,7 @@ class SingletonStorage::Impl {
   }
 
   auto GetAllChannelId() -> QContainer<int> {
+    std::shared_lock<std::shared_mutex> lock(instances_mutex_);
     QContainer<int> channels;
     channels.reserve(instances_map_.size());
     for (const auto& [key, value] : instances_map_) {
@@ -113,6 +120,10 @@ SingletonStorage::~SingletonStorage() = default;
 
 void SingletonStorage::ReleaseChannel(int channel) {
   p_->ReleaseChannel(channel);
+}
+
+auto SingletonStorage::TakeObjectInChannel(int channel) -> ChannelObjectPtr {
+  return p_->TakeObjectInChannel(channel);
 }
 
 auto SingletonStorage::FindObjectInChannel(int channel)

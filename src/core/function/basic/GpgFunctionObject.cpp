@@ -28,9 +28,11 @@
 
 #include "GpgFunctionObject.h"
 
+#include <algorithm>
 #include <map>
 #include <mutex>
 #include <typeinfo>
+#include <vector>
 
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/ChannelObject.h"
@@ -90,6 +92,61 @@ auto CreateChannelObjectInstance(const std::type_info& type, int channel,
 
   // do create object of this channel
   return p_storage->SetObjectInChannel(channel, std::move(channel_object));
+}
+
+namespace {
+
+std::mutex g_engine_scoped_log_lock;
+/// Per channel, the engine-scoped types created on it, oldest first.
+std::map<int, std::vector<const std::type_info*>> g_engine_scoped_log;
+
+}  // namespace
+
+void RecordEngineScopedObject(const std::type_info& type, int channel) {
+  std::lock_guard<std::mutex> lock(g_engine_scoped_log_lock);
+  auto& types = g_engine_scoped_log[channel];
+  // Recreated on the same channel (a context rebuilt on its own handle): moved
+  // to the end, since it is now newer than everything created before it.
+  // Compared by hash: one type can have a type_info object per shared library.
+  types.erase(std::remove_if(types.begin(), types.end(),
+                             [&](const std::type_info* t) -> bool {
+                               return t->hash_code() == type.hash_code();
+                             }),
+              types.end());
+  types.push_back(&type);
+}
+
+auto ReleaseEngineScopedChannel(int channel) -> int {
+  std::vector<const std::type_info*> types;
+  {
+    std::lock_guard<std::mutex> lock(g_engine_scoped_log_lock);
+    auto it = g_engine_scoped_log.find(channel);
+    if (it == g_engine_scoped_log.end()) return 0;
+    types = std::move(it->second);
+    g_engine_scoped_log.erase(it);
+  }
+
+  int released = 0;
+  for (auto it = types.rbegin(); it != types.rend(); ++it) {
+    const auto& type = **it;
+    ChannelObjectPtr taken;
+    {
+      // Held while taking, so no GetInstance() of this type interleaves with
+      // the removal; released before the destructor runs, which may itself
+      // reach for another singleton.
+      std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
+      std::lock_guard<std::mutex> channel_guard(
+          GetGlobalFunctionObjectChannelLock(type, channel));
+      taken = SingletonStorageCollection::GetInstance()
+                  ->GetSingletonStorage(type)
+                  ->TakeObjectInChannel(channel);
+    }
+    if (taken != nullptr) {
+      taken.reset();
+      ++released;
+    }
+  }
+  return released;
 }
 
 }  // namespace GpgFrontend

@@ -31,11 +31,40 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 
+#include <map>
+#include <mutex>
+
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
+
+namespace {
+
+/// How many live contexts use each GnuPG home, keyed by its physical location.
+/// The agent belongs to the home, not to any one context, so it is started by
+/// the first and stopped by the last.
+std::mutex g_agent_sessions_lock;
+std::map<QString, int> g_agent_sessions;
+
+/// Count a context in; true when it is the first on this home.
+auto JoinAgentSession(const QString& home) -> bool {
+  std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
+  return g_agent_sessions[home]++ == 0;
+}
+
+/// Count a context out; true when it was the last on this home.
+auto LeaveAgentSession(const QString& home) -> bool {
+  std::lock_guard<std::mutex> lock(g_agent_sessions_lock);
+  auto it = g_agent_sessions.find(home);
+  if (it == g_agent_sessions.end()) return true;
+  if (--it->second > 0) return false;
+  g_agent_sessions.erase(it);
+  return true;
+}
+
+}  // namespace
 
 GpgContext::GpgContext(int channel) : OpenPGPContext(channel) {}
 
@@ -54,7 +83,13 @@ GpgContext::~GpgContext() {
   // Only kill when we still own an agent: KillGpgAgent() (used by the shutdown
   // path) already releases it, and killing again would run a second redundant
   // (and on Windows multi-second) `gpgconf --kill all` per context teardown.
-  if (agent_ != nullptr) {
+  //
+  // Only when this was the last context on its home: another one -- the same
+  // database opened by a newer Runtime -- is still using that agent.
+  const auto last =
+      !agent_session_held_ ||
+      LeaveAgentSession(KeyDatabasePhysicalLocation(EngineHomePath()));
+  if (agent_ != nullptr && last) {
     kill_gpg_agent();
     agent_.reset();
   }
@@ -223,9 +258,15 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
 
   // init
   get_gpg_conf_dirs();
-  kill_gpg_agent();
 
-  return launch_gpg_agent() && default_ctx_initialize(args) &&
+  // A home already served by another live context keeps its agent: killing it
+  // here would cut that context's operations off mid-flight.
+  agent_session_held_ = true;
+  const auto first =
+      JoinAgentSession(KeyDatabasePhysicalLocation(EngineHomePath()));
+  if (first) kill_gpg_agent();
+
+  return (!first || launch_gpg_agent()) && default_ctx_initialize(args) &&
          binary_ctx_initialize(args) && cms_default_ctx_initialize(args) &&
          cms_binary_ctx_initialize(args);
 }

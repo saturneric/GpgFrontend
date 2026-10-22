@@ -65,6 +65,15 @@ class GF_CORE_EXPORT SingletonStorage {
   void ReleaseChannel(int channel);
 
   /**
+   * @brief Remove the singleton instance for the given channel and hand it
+   * over, so the caller can destroy it outside every storage lock.
+   *
+   * @param channel channel ID whose instance should be taken
+   * @return the instance, or null when the channel has none
+   */
+  auto TakeObjectInChannel(int channel) -> ChannelObjectPtr;
+
+  /**
    * @brief Return the singleton instance for the given channel, or nullptr if
    * none exists.
    *

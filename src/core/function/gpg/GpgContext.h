@@ -188,6 +188,11 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   QString gpgconf_path_;
   GnuPGHome home_;  ///< see Home(); set once by init()
   QSharedPointer<GpgAgentProcess> agent_;
+  /// Whether this context counts towards the agent session of its home. Only
+  /// the first context on a home starts the agent and only the last stops it,
+  /// so a Runtime replacing another on the same home never cuts the old one's
+  /// agent from under it.
+  bool agent_session_held_ = false;
   QMap<QString, QString> component_dirs_;
 
   static auto set_ctx_key_list_mode(const gpgme_ctx_t &ctx) -> bool;

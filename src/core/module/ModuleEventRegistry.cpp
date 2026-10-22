@@ -59,6 +59,9 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
        "the application has finished starting; the main window exists"},
       {"KEY_DATABASE_REFRESH_DONE", kCore, kObserve, 0,
        "the key database finished reloading"},
+      {"KEY_DATABASES_RELOADED", kCore, kObserve, 0,
+       "the set of key databases was rebuilt; channel numbers from before now "
+       "name nothing and must be asked for again"},
       {"SETTINGS_CHANGED", kCore, kObserve, 0,
        "every settings page has been applied"},
 
@@ -70,8 +73,10 @@ auto Catalog() -> const QList<ModuleEventSpec>& {
       // comes to subscribe to the wrong one.
       //
       // "GPG_CONTEXT_CHANGED" has no single point that is true of it: the
-      // active channel changes in several places and an engine change is a
-      // restart. Declaring an event nothing fires is worse than not having
+      // active channel changes in several places. What does have one -- the
+      // whole set of key databases being rebuilt -- is
+      // KEY_DATABASES_RELOADED. Declaring an event nothing fires is worse than
+      // not having
       // it -- a module would subscribe and wait forever, and the registry
       // would have said the subscription was fine.
 

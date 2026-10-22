@@ -33,6 +33,7 @@
 
 #include "core/GFCoreRust.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/DataObject.h"
 #include "core/module/GlobalRegisterTableKeys.h"
@@ -65,6 +66,22 @@ auto IsChannelCancelled(int channel) -> bool {
   return g_gpg_cancelled_channels.count(channel) != 0;
 }
 
+/// Admit work on @p channel: a lease when the handle is live, a refusal when it
+/// names a database that is gone or never opened. A handle nothing ever
+/// registered -- a context a test built by hand -- runs as it always did.
+auto AdmitChannel(int channel, std::optional<EngineLease>* lease) -> bool {
+  EngineAccessError why{};
+  *lease = TryAcquireEngineLease(channel, &why, true);
+  if (lease->has_value()) return true;
+  if (why == EngineAccessError::kUNKNOWN) return true;
+
+  LOG_W() << "refusing an operation on channel" << channel
+          << (why == EngineAccessError::kRETIRED
+                  ? "which belongs to a replaced key database runtime"
+                  : "whose key database failed to open");
+  return false;
+}
+
 /// One more run of @p operation in the register table's usage figures.
 void CountOperation(const QString& operation, GpgError err) {
   if (operation.isEmpty()) return;
@@ -82,6 +99,15 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                       const QString& operation,
                       const QContainer<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler {
+  // Held by both closures below, so the context and everything on its channel
+  // outlive the runnable and the callback even if the key database is replaced
+  // meanwhile. Released when the task is destroyed, after the callback.
+  std::optional<EngineLease> lease;
+  if (!AdmitChannel(channel, &lease)) {
+    callback(GPG_ERR_NOT_OPERATIONAL, TransferParams());
+    return Thread::Task::TaskHandler(nullptr);
+  }
+
   if (!GpgContextSupportIf(channel, support_ifs)) {
     LOG_W() << "operation: " << operation << "is not supported.";
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
@@ -94,6 +120,7 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
           ->RegisterTask(
               operation,
               [=](const DataObjectPtr& data_object) -> int {
+                (void)lease;
                 auto custom_data_object = TransferParams();
                 // Skip operations that are still queued when a cancel has been
                 // requested (e.g. remaining files in a batch after the user
@@ -109,6 +136,7 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                 return 0;
               },
               [=](int rtn, const DataObjectPtr& data_object) {
+                (void)lease;
                 if (rtn < 0) {
                   callback(GPG_ERR_USER_1,
                            ExtractParams<DataObjectPtr>(data_object, 1));
@@ -126,6 +154,11 @@ auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
                      const QString& operation,
                      const QContainer<EngineSupportIf>& support_ifs)
     -> std::tuple<GpgError, DataObjectPtr> {
+  std::optional<EngineLease> lease;
+  if (!AdmitChannel(channel, &lease)) {
+    return {GPG_ERR_NOT_OPERATIONAL, TransferParams()};
+  }
+
   if (!GpgContextSupportIf(channel, support_ifs)) {
     LOG_W() << "operation: " << operation << "is not supported.";
     return {GPG_ERR_NOT_SUPPORTED, TransferParams()};

@@ -50,22 +50,18 @@ class SingletonStorageCollection::Impl {
   auto GetSingletonStorage(const std::type_info& type_id) -> SingletonStorage* {
     const auto hash = type_id.hash_code();
 
-    while (true) {
-      decltype(storages_map_.end()) ins_it;
-      {
-        QMutexLocker lock(&storages_mutex_);
-        ins_it = storages_map_.find(hash);
-      }
-      if (ins_it == storages_map_.end()) {
-        auto storage = SecureCreateUniqueObject<SingletonStorage>();
-        {
-          QMutexLocker lock(&storages_mutex_);
-          storages_map_.insert({hash, std::move(storage)});
-        }
-        continue;
-      }
-      return ins_it->second.get();
+    // One lock across the lookup and the insert. An iterator taken under the
+    // lock and used after it was dropped could be invalidated by a concurrent
+    // insert rehashing the map. The storages themselves are never removed
+    // before Destroy(), so the pointer stays valid after the lock goes.
+    QMutexLocker lock(&storages_mutex_);
+    auto ins_it = storages_map_.find(hash);
+    if (ins_it == storages_map_.end()) {
+      ins_it = storages_map_
+                   .insert({hash, SecureCreateUniqueObject<SingletonStorage>()})
+                   .first;
     }
+    return ins_it->second.get();
   }
 
  private:

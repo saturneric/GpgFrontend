@@ -32,6 +32,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
@@ -66,7 +67,10 @@ auto Ctx() -> GFSDKContext* {
 namespace {
 
 auto ChannelIsUsable(int channel) -> bool {
-  return OpenPGPContext::GetInstance(channel).Good();
+  // Asked of the handle registry, not of GetInstance(), which would build a
+  // placeholder context for a channel nothing opened -- and the SDK now refuses
+  // such a channel anyway.
+  return IsLiveChannelHandle(channel);
 }
 
 }  // namespace
@@ -122,6 +126,34 @@ TEST(SdkGpgListTest, AnOutOfRangeIndexIsBoundedRatherThanUndefined) {
   EXPECT_EQ(GFGpgRecipientAt(Ctx(), list, 99), nullptr);
 
   GFGpgRecipientRelease(Ctx(), list);
+}
+
+TEST(SdkGpgListTest, AChannelNoContextWasOpenedOnIsRefused) {
+  // Never issued: refused outright, rather than answered from a placeholder
+  // context built on the spot for it.
+  constexpr int kNeverIssued = 0x3fff0001;
+  ASSERT_EQ(LookupChannelHandle(kNeverIssued).state,
+            ChannelHandleState::kUNKNOWN);
+
+  GFGpgKeyBriefListRef keys = nullptr;
+  GFStringListRef addresses = nullptr;
+
+  EXPECT_LT(GFGpgFindKeys(Ctx(), kNeverIssued, "a@example.invalid", &keys), 0);
+  EXPECT_EQ(keys, nullptr);
+  EXPECT_LT(GFGpgListAddresses(Ctx(), kNeverIssued, 1, &addresses), 0);
+  EXPECT_EQ(addresses, nullptr);
+
+  // Reading recipients out of bytes needs no database, and these name none.
+  auto in = GFBuf::Copy(Ctx(), QByteArray("plainly not an openpgp message"));
+  GFGpgRecipientListRef recipients = nullptr;
+  ASSERT_EQ(GFGpgSniffRecipients(Ctx(), kNeverIssued, in.View(), &recipients),
+            0);
+  EXPECT_EQ(GFGpgRecipientCount(Ctx(), recipients), 0U);
+  GFGpgRecipientRelease(Ctx(), recipients);
+
+  EXPECT_EQ(LookupChannelHandle(kNeverIssued).state,
+            ChannelHandleState::kUNKNOWN)
+      << "asking about the channel made it exist";
 }
 
 TEST(SdkGpgListTest, EveryAccessorToleratesANullHandle) {

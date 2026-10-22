@@ -73,11 +73,6 @@ class GF_CORE_EXPORT SecureRandomGenerator
    * failure
    */
   static auto GenerateZBase32() -> GFBufferOrNone;
-
- private:
-  OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///< OpenPGP context held to
-                                               ///< ensure channel lifetime
 };
 
 }  // namespace GpgFrontend

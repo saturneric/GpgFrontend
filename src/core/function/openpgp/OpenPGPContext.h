@@ -58,8 +58,16 @@ struct OpenPGPContextInitArgs {
   // placeholder to GpgContext, throwing and crashing the process before it can
   // relaunch. Every real context sets this field explicitly.
   OpenPGPEngine engine = OpenPGPEngine::kRPGP;
+  // Stable identity of the key database, the one KeyDatabaseItemSO carries.
+  // Empty for a context built without a configured database (tests,
+  // placeholders); anything keyed by it then falls back to the name.
+  QString db_id;
   // Logical name for the key database
   QString db_name;
+  // The Runtime generation the context is built for, and its database's place
+  // in that Runtime's list. Recorded with the channel handle.
+  int generation = 1;
+  int order = 0;
   // Filesystem path to the key database directory
   QString db_path;
   // If true, run in test mode (relaxed constraints)
@@ -80,6 +88,10 @@ struct OpenPGPContextInitArgs {
 class GF_CORE_EXPORT OpenPGPContext
     : public SingletonFunctionObject<OpenPGPContext> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct a context on the given channel with default initialisation
    * arguments.
@@ -133,6 +145,16 @@ class GF_CORE_EXPORT OpenPGPContext
    * @return key database name string
    */
   [[nodiscard]] auto KeyDBName() const -> QString;
+
+  /**
+   * @brief The stable identity of the key database this context opens.
+   *
+   * Unlike the name it survives a rename, and unlike the channel it survives a
+   * reorder, so it is what state belonging to the database is keyed by.
+   *
+   * @return the id, or empty when the context was built without one
+   */
+  [[nodiscard]] auto KeyDBId() const -> QString;
 
   /**
    * @brief Return the filesystem path of the key database directory.

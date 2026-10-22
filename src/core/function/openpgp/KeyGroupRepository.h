@@ -137,6 +137,10 @@ struct GF_CORE_EXPORT GpgKeyGroupTreeNode {
 class GF_CORE_EXPORT KeyGroupRepository
     : public SingletonFunctionObject<KeyGroupRepository> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct the repository for the given singleton channel.
    *
@@ -290,8 +294,12 @@ class GF_CORE_EXPORT KeyGroupRepository
   OpenPGPContext& ctx_ =
       OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
   // Cache manager used to persist and restore key group data.
-  CacheManager& cm_ =
-      CacheManager::GetInstance(SingletonFunctionObject::GetChannel());
+  //
+  // The process-wide one, not one per channel: every instance reads and
+  // rewrites the same on-disk registry of durable keys, so a second instance
+  // would drop from it whatever the first had added since it was loaded.
+  // What is kept here is keyed by the database's id anyway.
+  CacheManager& cm_ = CacheManager::GetInstance();
 
   // Forest of key group tree nodes indexed by group ID.
   QMap<QString, QSharedPointer<GpgKeyGroupTreeNode>> key_groups_forest_;

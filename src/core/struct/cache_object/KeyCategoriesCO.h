@@ -36,9 +36,11 @@ namespace GpgFrontend {
  * @brief On-disk representation of all key categories belonging to one key
  * database.
  *
- * Persisted through the durable cache under the key "kcats:<key_db_name>". The
- * embedded key_db_name is verified on load and the payload is discarded if it
- * does not match the active database, mirroring KeyGroupsCO.
+ * Persisted through the durable cache under the key "kcats:<key_db_id>", and
+ * stamped with that id, by LoadKeyDatabaseScopedCache() and
+ * SaveKeyDatabaseScopedCache(); a payload not stamped with the active
+ * database's id is discarded, mirroring KeyGroupsCO. An entry an earlier build
+ * kept under "kcats:<key_db_name>" is taken over once.
  *
  * tab_colors maps a tab id (built-in or custom) to a user-chosen "#RRGGBB"
  * colour, and tab_orders maps a scope (e.g. a window) to its ordered tab ids.

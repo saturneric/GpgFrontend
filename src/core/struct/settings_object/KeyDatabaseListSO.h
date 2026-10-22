@@ -44,9 +44,18 @@ inline constexpr auto kKeyDatabaseListObject = "key_database_list";
 struct KeyDatabaseListSO {
   QContainer<KeyDatabaseItemSO> key_databases;
 
+  /// Which database is the default one -- opened first, and the one the key
+  /// list starts on -- kept apart from the order, which is only how the list
+  /// is shown. Empty unless the user chose one; ResolveDefaultKeyDatabaseId()
+  /// then says which it is, so a choice nobody made is never written down.
+  QString default_database_id;
+
   KeyDatabaseListSO() = default;
 
   explicit KeyDatabaseListSO(const QJsonObject& j) {
+    if (const auto v = j["default_database_id"]; v.isString()) {
+      default_database_id = v.toString();
+    }
     if (const auto v = j["key_databases"]; v.isArray()) {
       const QJsonArray j_array = v.toArray();
       for (const auto& key_database : j_array) {
@@ -64,6 +73,9 @@ struct KeyDatabaseListSO {
       j_array.push_back(s.ToJson());
     }
     j["key_databases"] = j_array;
+    if (!default_database_id.isEmpty()) {
+      j["default_database_id"] = default_database_id;
+    }
     return j;
   }
 };

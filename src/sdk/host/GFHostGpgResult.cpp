@@ -32,6 +32,7 @@
 #include <new>
 
 #include "GFHostImpl.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/DataObject.h"
@@ -253,6 +254,15 @@ auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
     -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  // A handle from another run of the context, or one never issued, names no
+  // database. Refused here rather than handed to GetInstance(), which would
+  // build a placeholder context for it. Held for the whole call, so the
+  // database cannot be reclaimed while the call is still using it.
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) {
+    return FailRequest(out, "the channel names no open key database",
+                       "GFGpgSign");
+  }
 
   // Declared outside the try so an exception cannot orphan a registered
   // result: the catch releases it.
@@ -300,6 +310,11 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
                   GFBufferView in, int ascii, GFGpgResultRef* out) -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) {
+    return FailRequest(out, "the channel names no open key database",
+                       "GFGpgEncrypt");
+  }
 
   // Declared outside the try so an exception cannot orphan a registered
   // result: the catch releases it.
@@ -343,6 +358,11 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
 auto GFGpgDecrypt(int channel, GFBufferView in, GFGpgResultRef* out) -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) {
+    return FailRequest(out, "the channel names no open key database",
+                       "GFGpgDecrypt");
+  }
 
   // Declared outside the try so an exception cannot orphan a registered
   // result: the catch releases it.
@@ -381,6 +401,11 @@ auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
                  GFGpgResultRef* out) -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) {
+    return FailRequest(out, "the channel names no open key database",
+                       "GFGpgVerify");
+  }
 
   // Declared outside the try so an exception cannot orphan a registered
   // result: the catch releases it.

@@ -34,6 +34,7 @@
 #include "GpgFrontendTest.h"
 #include "core/GpgCoreEngineTest.h"
 #include "core/SdkTestContext.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
@@ -73,7 +74,10 @@ namespace {
 /// Shards run against a throwaway profile with no agent, so an engine is not
 /// guaranteed. Tests that need one skip rather than fail.
 auto ChannelIsUsable(int channel) -> bool {
-  return OpenPGPContext::GetInstance(channel).Good();
+  // Asked of the handle registry, not of GetInstance(), which would build a
+  // placeholder context for a channel nothing opened -- and the SDK now refuses
+  // such a channel anyway.
+  return IsLiveChannelHandle(channel);
 }
 
 }  // namespace
@@ -104,6 +108,28 @@ TEST(SdkGpgResultTest, ARejectedRequestStillHandsBackAnOwnedResult) {
                "");
 
   GFGpgResultRelease(Ctx(), raw);
+}
+
+TEST(SdkGpgResultTest, AChannelNoContextWasOpenedOnIsARequestError) {
+  // Refused before any key is looked up, so asking does not build a context
+  // for it -- and refused as a request error, so the caller still gets a
+  // result saying why.
+  constexpr int kNeverIssued = 0x3fff0002;
+  auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
+  const std::array<const char*, 1> ids = {"0123456789ABCDEF"};
+
+  GFGpgResultRef raw = nullptr;
+  ASSERT_GE(GFGpgEncrypt(Ctx(), kNeverIssued, ids.data(), ids.size(), in.View(),
+                         1, &raw),
+            0);
+  ASSERT_NE(raw, nullptr);
+  EXPECT_EQ(GFGpgResultStatusOf(Ctx(), raw), GF_GPG_BAD_REQUEST);
+  EXPECT_STRNE(GFGpgResultText(Ctx(), raw, GF_GPG_RESULT_TEXT_ERROR_STRING),
+               "");
+  GFGpgResultRelease(Ctx(), raw);
+
+  EXPECT_EQ(LookupChannelHandle(kNeverIssued).state,
+            ChannelHandleState::kUNKNOWN);
 }
 
 TEST(SdkGpgResultTest, TheLedgerBalancesAcrossAFailedRequest) {

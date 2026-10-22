@@ -78,6 +78,41 @@ auto GF_CORE_EXPORT GetGlobalFunctionObjectTypeLock(const std::type_info& type)
     -> std::mutex&;
 
 /**
+ * @brief Note that an engine-scoped object of @p type now lives on @p channel.
+ *
+ * Kept in creation order per channel. An object's dependencies are always
+ * created before it -- they are reached from its member initialisers -- so the
+ * reverse of this order releases dependents first.
+ */
+void GF_CORE_EXPORT RecordEngineScopedObject(const std::type_info& type,
+                                             int channel);
+
+/**
+ * @brief Destroy every engine-scoped object on @p channel, newest first.
+ *
+ * Only for a channel handle nothing can reach any more: a retired one whose
+ * last lease is gone. Process-wide singletons are not engine-scoped and are
+ * never touched, whatever channel they live on.
+ *
+ * @param channel the channel to clear
+ * @return how many objects were destroyed
+ */
+auto GF_CORE_EXPORT ReleaseEngineScopedChannel(int channel) -> int;
+
+/**
+ * @brief Whether @p T belongs to one key database's engine context.
+ *
+ * Opted into with `static constexpr bool kEngineScoped = true;`. Anything that
+ * does not say so is process-wide and is never released per channel.
+ */
+template <typename T, typename = void>
+struct IsEngineScoped : std::false_type {};
+
+template <typename T>
+struct IsEngineScoped<T, std::void_t<decltype(T::kEngineScoped)>>
+    : std::bool_constant<T::kEngineScoped> {};
+
+/**
  * @brief CRTP base that provides per-channel singleton lifecycle management.
  *
  * Derive from SingletonFunctionObject<T> to gain GetInstance(),
@@ -119,6 +154,9 @@ class SingletonFunctionObject : public ChannelObject {
       channel_object = CreateChannelObjectInstance(
           type, channel,
           ConvertToChannelObjectPtr(SecureCreateUniqueObject<T>(channel)));
+      if constexpr (IsEngineScoped<T>::value) {
+        RecordEngineScopedObject(type, channel);
+      }
     }
     return *static_cast<T*>(channel_object);
   }
@@ -140,8 +178,12 @@ class SingletonFunctionObject : public ChannelObject {
 
     const auto& type = typeid(T);
     std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
-    return *static_cast<T*>(
-        CreateChannelObjectInstance(type, channel, factory()));
+    auto* channel_object =
+        CreateChannelObjectInstance(type, channel, factory());
+    if constexpr (IsEngineScoped<T>::value) {
+      RecordEngineScopedObject(type, channel);
+    }
+    return *static_cast<T*>(channel_object);
   }
 
   /**

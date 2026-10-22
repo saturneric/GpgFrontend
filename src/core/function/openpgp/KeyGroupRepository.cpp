@@ -30,6 +30,7 @@
 
 #include "core/function/CacheManager.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/helper/KeyDatabaseScopedCache.h"
 #include "core/struct/cache_object/KeyGroupsCO.h"
 #include "utils/GpgUtils.h"
 
@@ -170,11 +171,11 @@ auto KeyGroupRepository::ParentsOf(const QString& id) -> QStringList {
 
 void KeyGroupRepository::fetch_key_groups() {
   key_groups_forest_.clear();
-  auto key = QString("kgs:%1").arg(ctx_.KeyDBName());
-  auto json = cm_.LoadDurableCache(key);
+  auto json =
+      LoadKeyDatabaseScopedCache(cm_, "kgs", ctx_.KeyDBId(), ctx_.KeyDBName());
+  if (!json) return;
 
-  auto key_groups = KeyGroupsCO(json.object());
-  if (key_groups.key_db_name != ctx_.KeyDBName()) return;
+  auto key_groups = KeyGroupsCO(*json);
 
   for (const auto& key_group : key_groups.key_groups) {
     if (key_group.id.isEmpty()) continue;
@@ -193,8 +194,6 @@ void KeyGroupRepository::fetch_key_groups() {
 }
 
 void KeyGroupRepository::persist_key_groups() {
-  auto key = QString("kgs:%1").arg(ctx_.KeyDBName());
-
   KeyGroupsCO key_groups;
   key_groups.key_db_name = ctx_.KeyDBName();
 
@@ -205,7 +204,8 @@ void KeyGroupRepository::persist_key_groups() {
     key_groups.key_groups.push_back(node->key_group->ToCacheObject());
   }
 
-  cm_.SaveDurableCache(key, QJsonDocument{key_groups.ToJson()}, true);
+  SaveKeyDatabaseScopedCache(cm_, "kgs", ctx_.KeyDBId(), ctx_.KeyDBName(),
+                             key_groups.ToJson());
 }
 
 auto KeyGroupRepository::KeyGroup(const QString& id)

@@ -48,6 +48,10 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT KeyCategoryRepository
     : public SingletonFunctionObject<KeyCategoryRepository> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct the repository for the given singleton channel.
    *
@@ -175,8 +179,12 @@ class GF_CORE_EXPORT KeyCategoryRepository
   OpenPGPContext& ctx_ =
       OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
   // Cache manager used to persist and restore category data.
-  CacheManager& cm_ =
-      CacheManager::GetInstance(SingletonFunctionObject::GetChannel());
+  //
+  // The process-wide one, not one per channel: every instance reads and
+  // rewrites the same on-disk registry of durable keys, so a second instance
+  // would drop from it whatever the first had added since it was loaded.
+  // What is kept here is keyed by the database's id anyway.
+  CacheManager& cm_ = CacheManager::GetInstance();
 
   // All custom categories for the active key database.
   QContainer<KeyCategoryCO> categories_;

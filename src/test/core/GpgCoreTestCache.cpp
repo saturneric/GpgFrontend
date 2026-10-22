@@ -32,6 +32,7 @@
 #include "GFCoreTest.h"
 #include "core/function/CacheManager.h"
 #include "core/function/DataObjectOperator.h"
+#include "core/function/openpgp/helper/KeyDatabaseScopedCache.h"
 
 namespace GpgFrontend::Test {
 
@@ -183,6 +184,130 @@ TEST_F(GFCoreTest, ResetDurableCacheOnMissingKeyIsHarmless) {
 
   EXPECT_NO_FATAL_FAILURE((void)cm.ResetDurableCache("never-saved-key"));
   EXPECT_FALSE(DataObjectForCacheKey("never-saved-key").has_value());
+}
+
+// -----------------------------------------------------------------------------
+// State belonging to one key database (its key groups, its categories) is kept
+// under the database's id, so it follows the database through a rename and a
+// reorder. Each test uses a prefix of its own so they cannot see each other.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto UniquePrefix() -> QString {
+  return "test_kdb_scope_" + QUuid::createUuid().toString(QUuid::Id128);
+}
+
+auto Payload(const QString& marker) -> QJsonObject {
+  QJsonObject j;
+  j["marker"] = marker;
+  return j;
+}
+
+}  // namespace
+
+TEST_F(GFCoreTest, KeyDatabaseScopedStateIsKeptUnderTheId) {
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+
+  SaveKeyDatabaseScopedCache(cm, prefix, "id-1", "work", Payload("a"));
+
+  const auto key = KeyDatabaseScopedCacheKey(prefix, "id-1", "work");
+  EXPECT_EQ(key, prefix + ":id-1");
+  EXPECT_EQ(cm.LoadDurableCache(key).object()["key_db_id"].toString(), "id-1");
+
+  const auto back = LoadKeyDatabaseScopedCache(cm, prefix, "id-1", "work");
+  ASSERT_TRUE(back.has_value());
+  EXPECT_EQ((*back)["marker"].toString(), "a");
+
+  cm.ResetDurableCache(key);
+}
+
+TEST_F(GFCoreTest, KeyDatabaseScopedStateSurvivesARename) {
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+
+  SaveKeyDatabaseScopedCache(cm, prefix, "id-1", "work", Payload("a"));
+
+  const auto back = LoadKeyDatabaseScopedCache(cm, prefix, "id-1", "renamed");
+  ASSERT_TRUE(back.has_value()) << "a rename lost the database's state";
+  EXPECT_EQ((*back)["marker"].toString(), "a");
+
+  cm.ResetDurableCache(KeyDatabaseScopedCacheKey(prefix, "id-1", {}));
+}
+
+TEST_F(GFCoreTest, KeyDatabaseScopedStateIsNotHandedToAnotherId) {
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+
+  SaveKeyDatabaseScopedCache(cm, prefix, "id-1", "work", Payload("a"));
+
+  EXPECT_FALSE(
+      LoadKeyDatabaseScopedCache(cm, prefix, "id-2", "work").has_value())
+      << "a database inherited another's state by sharing its name";
+
+  cm.ResetDurableCache(KeyDatabaseScopedCacheKey(prefix, "id-1", {}));
+}
+
+TEST_F(GFCoreTest, KeyDatabaseScopedStateUnderTheNameIsTakenOverOnce) {
+  // What an earlier build left: keyed by the name, recording only the name.
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+  const auto legacy_key = prefix + ":work";
+
+  auto legacy = Payload("old");
+  legacy["key_db_name"] = "work";
+  cm.SaveDurableCache(legacy_key, QJsonDocument{legacy}, true);
+
+  const auto taken = LoadKeyDatabaseScopedCache(cm, prefix, "id-1", "work");
+  ASSERT_TRUE(taken.has_value()) << "the earlier build's state was lost";
+  EXPECT_EQ((*taken)["marker"].toString(), "old");
+
+  // Moved, not copied: under the id now, and gone under the name, so the next
+  // database to be given this name starts clean.
+  EXPECT_TRUE(cm.LoadDurableCache(legacy_key).object().isEmpty());
+  EXPECT_FALSE(RegistryContains(legacy_key));
+  EXPECT_FALSE(
+      LoadKeyDatabaseScopedCache(cm, prefix, "id-2", "work").has_value());
+
+  const auto again = LoadKeyDatabaseScopedCache(cm, prefix, "id-1", "work");
+  ASSERT_TRUE(again.has_value());
+  EXPECT_EQ((*again)["marker"].toString(), "old");
+
+  cm.ResetDurableCache(prefix + ":id-1");
+}
+
+TEST_F(GFCoreTest, KeyDatabaseScopedStateUnderAnotherNameIsNotTaken) {
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+  const auto legacy_key = prefix + ":work";
+
+  auto legacy = Payload("old");
+  legacy["key_db_name"] = "something else";
+  cm.SaveDurableCache(legacy_key, QJsonDocument{legacy}, true);
+
+  EXPECT_FALSE(
+      LoadKeyDatabaseScopedCache(cm, prefix, "id-1", "work").has_value());
+
+  cm.ResetDurableCache(legacy_key);
+}
+
+TEST_F(GFCoreTest, KeyDatabaseScopedStateWithoutAnIdGoesByTheName) {
+  // A context built without a configured database, as tests build them.
+  auto& cm = CacheManager::GetInstance();
+  const auto prefix = UniquePrefix();
+
+  SaveKeyDatabaseScopedCache(cm, prefix, {}, "work", Payload("a"));
+
+  EXPECT_EQ(KeyDatabaseScopedCacheKey(prefix, {}, "work"), prefix + ":work");
+  EXPECT_FALSE(
+      cm.LoadDurableCache(prefix + ":work").object().contains("key_db_id"));
+
+  const auto back = LoadKeyDatabaseScopedCache(cm, prefix, {}, "work");
+  ASSERT_TRUE(back.has_value());
+  EXPECT_FALSE(LoadKeyDatabaseScopedCache(cm, prefix, {}, "other").has_value());
+
+  cm.ResetDurableCache(prefix + ":work");
 }
 
 }  // namespace GpgFrontend::Test

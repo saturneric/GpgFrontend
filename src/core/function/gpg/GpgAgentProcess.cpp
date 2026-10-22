@@ -28,6 +28,7 @@
 
 #include "GpgAgentProcess.h"
 
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -77,7 +78,9 @@ auto GpgAgentProcess::Start() -> bool {
     args.append({"--pinentry-program", pinentry});
   }
 
-  if (channel_ != kGpgFrontendDefaultChannel) {
+  // Smart cards follow the default database, whichever handle it was given,
+  // so only one agent at a time talks to a card reader.
+  if (channel_ != DefaultChannelHandle()) {
     args.append("--disable-scdaemon");
   }
 

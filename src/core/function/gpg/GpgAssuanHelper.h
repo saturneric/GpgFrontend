@@ -38,6 +38,10 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgAssuanHelper
     : public SingletonFunctionObject<GpgAssuanHelper> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   struct AssuanCallbackContext;
 
   using DataCallback =

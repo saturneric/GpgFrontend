@@ -303,6 +303,34 @@ auto GF_CORE_EXPORT ResolveKeyDatabaseKinds(
     -> QContainer<KeyDatabaseItemSO>;
 
 /**
+ * @brief A fresh identity for a key database the user has just made.
+ *
+ * @return a UUID, never kDefaultKeyDatabaseId
+ */
+auto GF_CORE_EXPORT NewKeyDatabaseId() -> QString;
+
+/**
+ * @brief Give every entry a stable identity, keeping the ones it has.
+ *
+ * The name can be edited and the channel is only a position, so state that has
+ * to follow a database -- its key groups, its categories, which of its keys
+ * were checked -- needs something that is neither. The DEFAULT database always
+ * gets kDefaultKeyDatabaseId, because it is one identity derived per computer.
+ * Every other entry keeps a UUID it already carries, and gets a new one when it
+ * has none, when it carries the reserved default id, or when an earlier entry
+ * in the list already claimed the same one (a hand-copied entry, say).
+ *
+ * Run after ResolveKeyDatabaseKinds(), which is what says which entry is the
+ * DEFAULT one. Idempotent for a list it has already settled.
+ *
+ * @param databases the reconciled list
+ * @return the list with every id settled, order preserved
+ */
+auto GF_CORE_EXPORT
+AssignKeyDatabaseIds(const QContainer<KeyDatabaseItemSO>& databases)
+    -> QContainer<KeyDatabaseItemSO>;
+
+/**
  * @brief Where a managed key database of this name lives.
  *
  * The one place `<app-data>/dbs/<name>` is spelled. It was written out at each
@@ -547,6 +575,30 @@ auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
     -> QContainer<KeyDatabaseItemSO>;
 
 /**
+ * @brief Which database is the default one.
+ *
+ * The one the user chose, while it is still in the list. Otherwise the DEFAULT
+ * database when the list has it, and otherwise the first one -- which is what
+ * channel 0 always was, so a profile nobody has chosen for behaves as before.
+ *
+ * Pure, so the rule can be asserted without a profile.
+ *
+ * @param chosen the stored choice, possibly empty or stale
+ * @param key_dbs the reconciled list, in order
+ * @return the default database's id, empty only for an empty list
+ */
+auto GF_CORE_EXPORT ResolveDefaultKeyDatabaseId(
+    const QString& chosen, const QContainer<KeyDatabaseItemSO>& key_dbs)
+    -> QString;
+
+/**
+ * @brief The default database's id for this profile, from settings.
+ *
+ * @return see ResolveDefaultKeyDatabaseId()
+ */
+auto GF_CORE_EXPORT GetDefaultKeyDatabaseId() -> QString;
+
+/**
  * @brief Reconcile the macOS app-sandbox key database list against the
  * filesystem.
  *
@@ -626,6 +678,59 @@ auto GF_CORE_EXPORT DecideKeyDatabasePathAction(bool exists_as_dir,
 auto GF_CORE_EXPORT SelectUsableKeyDatabases(
     const QContainer<KeyDatabaseInfo>& all, const KeyDatabaseInfo& fallback)
     -> QContainer<KeyDatabaseInfo>;
+
+/**
+ * @brief The directory a key database path actually is.
+ *
+ * Links are resolved for a directory that exists, so a symlink and its target
+ * come out the same. One that does not exist yet is only cleaned up and made
+ * absolute, since there is nothing to resolve. Compared case-insensitively on
+ * Windows, where the filesystem is.
+ *
+ * @param path a resolved key database path (see GetCanonicalKeyDatabasePath)
+ * @return the physical location, empty for an empty path
+ */
+auto GF_CORE_EXPORT KeyDatabasePhysicalLocation(const QString& path) -> QString;
+
+/**
+ * @brief The physical identity of a key database.
+ *
+ * @param backend_type the stored backend, empty meaning gnupg as everywhere
+ * else
+ * @param path a resolved key database path
+ * @return the resource id, empty when the path is
+ */
+auto GF_CORE_EXPORT ResolveKeyDatabaseResourceId(const QString& backend_type,
+                                                 const QString& path)
+    -> KeyDatabaseResourceId;
+
+/**
+ * @brief Whether two key database paths are the same directory.
+ *
+ * Judged by location alone, whatever engine each is configured with: both
+ * engines keep their files in the directory itself, so two databases there
+ * would be reading and writing beside each other with nothing to keep them
+ * apart.
+ *
+ * @return true when both name the same physical directory
+ */
+auto GF_CORE_EXPORT IsSameKeyDatabaseLocation(const QString& a,
+                                              const QString& b) -> bool;
+
+/**
+ * @brief Keep only the first of several databases at one location.
+ *
+ * Runtime-only, like SelectUsableKeyDatabases(): the stored list is left as the
+ * user wrote it, and the duplicate is simply not opened. A stored list can hold
+ * one -- written by hand, by an older build that only compared spellings, or
+ * arriving in a package -- and opening it would put a second context on the
+ * same files.
+ *
+ * @param infos usable databases, in order
+ * @return the same list without later entries at an earlier one's location
+ */
+auto GF_CORE_EXPORT DropDuplicateKeyDatabaseLocations(
+    const QContainer<KeyDatabaseInfo>& infos) -> QContainer<KeyDatabaseInfo>;
 
 /**
  * @brief Return key database infos for custom (non-GPG) databases from

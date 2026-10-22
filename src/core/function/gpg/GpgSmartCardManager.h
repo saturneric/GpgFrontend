@@ -47,6 +47,10 @@ class GFBuffer;
 class GF_CORE_EXPORT GpgSmartCardManager
     : public SingletonFunctionObject<GpgSmartCardManager> {
  public:
+  /// Belongs to one key database's context: released with its channel once
+  /// that channel is retired and nothing holds it any more.
+  static constexpr bool kEngineScoped = true;
+
   /**
    * @brief Construct a new Gpg Key Manager object
    *

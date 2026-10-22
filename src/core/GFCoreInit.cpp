@@ -38,12 +38,17 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GnuPGHome.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyDatabaseRuntime.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/CommonTraits.h"
+#include "core/function/rpgp/PasswordFetcher.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -495,6 +500,8 @@ auto BuildOpenPGPContext(int channel, OpenPGPContextInitArgs args) -> bool {
 }
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
+  InstallKeyDatabaseRuntimeReclaimer();
+
   auto& progress = CoreInitProgress::GetInstance();
   progress.Report(CoreInitStage::kCORE, 0.0, CoreInitStep::kSTARTING_UP);
 
@@ -633,6 +640,22 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
   const auto rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
 
+  // The default database is a choice stored with the list, not whichever one
+  // comes first, and it is opened on the handle its place in the list gives
+  // it. Recorded before anything is built: the agent decides whether to run
+  // scdaemon by asking which handle is the default.
+  const auto default_db_id = GetDefaultKeyDatabaseId();
+  int default_index = 0;
+  for (int i = 0; i < key_dbs.size(); i++) {
+    if (key_dbs[i].id == default_db_id) {
+      default_index = i;
+      break;
+    }
+  }
+  const auto default_handle = kGpgFrontendDefaultChannel + default_index;
+  const auto& default_key_db_info = key_dbs[default_index];
+  SetDefaultChannelHandle(default_handle);
+
   // `basic/default_engine` is a statement about the DEFAULT database -- the one
   // every profile derives rather than stores, and the one that setting exists
   // to let a user open with rPGP even where GnuPG is available. It was being
@@ -644,8 +667,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // GnuPG because the setting said so, whatever backend that database was
   // actually written with. An rPGP keyring handed to GnuPG.
   const auto default_choice = ChooseChannelZeroEngine(
-      key_dbs.front().name, key_dbs.front().backend_type, default_engine,
-      gnupg_supported, rpgp_supported);
+      default_key_db_info.name, default_key_db_info.backend_type,
+      default_engine, gnupg_supported, rpgp_supported);
 
   if (!default_choice.ok) {
     LOG_E() << "no usable OpenPGP engine for the default key database!"
@@ -667,7 +690,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto succ = [=]() -> auto {
     OpenPGPContextInitArgs ctx_args;
 
-    const auto& default_key_db_info = key_dbs.front();
+    ctx_args.db_id = default_key_db_info.id;
+    ctx_args.order = default_index;
     ctx_args.db_name = default_key_db_info.name;
     ctx_args.db_path = default_key_db_info.path;
     ctx_args.engine = default_choice.engine;
@@ -675,11 +699,12 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     ctx_args.offline_mode = forbid_all_gnupg_connection;
     ctx_args.auto_import_missing_key = auto_import_missing_key;
 
-    LOG_I() << "gpgme default context at channel 0, key db name:"
-            << ctx_args.db_name << "key db path:" << ctx_args.db_path;
+    LOG_I() << "gpgme default context at channel" << default_handle
+            << ", key db name:" << ctx_args.db_name
+            << "key db path:" << ctx_args.db_path;
 
-    return RunRegisteredRawForward<BuildOpenPGPContextOpTag>(ctx_args.engine, 0,
-                                                             ctx_args);
+    return RunRegisteredRawForward<BuildOpenPGPContextOpTag>(
+        ctx_args.engine, default_handle, ctx_args);
   };
 
   if (!succ()) {
@@ -701,10 +726,10 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // second task below needs the same denominator.
   const auto key_db_count = static_cast<double>(key_dbs.size());
   progress.Report(CoreInitStage::kKEY_DATABASE, 0.0,
-                  CoreInitStep::kLOADING_KEY_DATABASE, key_dbs.front().name);
+                  CoreInitStep::kLOADING_KEY_DATABASE,
+                  default_key_db_info.name);
 
-  if (!GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
-           .FlushKeyCache()) {
+  if (!GpgKeyRepository::GetInstance(default_handle).FlushKeyCache()) {
     LOG_E() << "Init GpgME Default Key Database failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
@@ -715,7 +740,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   };
 
   progress.Report(CoreInitStage::kKEY_DATABASE, 1.0 / key_db_count,
-                  CoreInitStep::kLOADING_KEY_DATABASE, key_dbs.front().name);
+                  CoreInitStep::kLOADING_KEY_DATABASE,
+                  default_key_db_info.name);
 
   Module::UpsertRTValue("core", "env.state.basic", 1);
   CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
@@ -723,9 +749,23 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
   auto* task = new Thread::Task(
       [=](const DataObjectPtr&) -> int {
-        int channel_index = kGpgFrontendDefaultChannel + 1;
-        for (int i = 1; i < key_dbs.size(); i++) {
+        for (int i = 0; i < key_dbs.size(); i++) {
+          if (i == default_index) continue;
           const auto& key_db = key_dbs[i];
+
+          // The handle is the database's place in the list, whether or not it
+          // opens. Advancing only on success moved every database after a
+          // failed one onto the channel the failed one should have had, so
+          // the same number meant a different database from one run to the
+          // next.
+          const auto channel_index = kGpgFrontendDefaultChannel + i;
+          const auto give_up = [&]() {
+            RegisterChannelHandle(channel_index, key_db.id, false);
+            DescribeChannelHandle(channel_index, key_db.name, key_db.path,
+                                  key_db.backend_type, i);
+            Module::RemoveRTValue(
+                "core", QString("gpgme.ctx.list.%1").arg(channel_index));
+          };
 
           // Same check for both engines: guarding only GnuPG here meant a
           // database stored as "rpgp" was handed to an engine that might not
@@ -737,6 +777,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           if (!choice.ok) {
             LOG_W() << "no usable engine for key db, skip:" << key_db.name
                     << "requested backend:" << key_db.backend_type;
+            give_up();
             continue;
           }
 
@@ -745,6 +786,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           if (key_db.path.isEmpty() || key_db.name.isEmpty()) {
             LOG_W() << "invalid key db info, skip, name:" << key_db.name
                     << key_db.path;
+            give_up();
             continue;
           }
 
@@ -755,6 +797,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           auto succ = [=]() -> auto {
             GpgFrontend::OpenPGPContextInitArgs args;
 
+            args.db_id = key_db.id;
+            args.order = i;
             args.db_name = key_db.name;
             args.db_path = key_db.path;
             args.engine = key_db_engine;
@@ -771,16 +815,16 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
           if (!succ()) {
             LOG_E() << "gpgme context init failed, index:" << channel_index;
+            give_up();
             continue;
           }
 
           if (!GpgKeyRepository::GetInstance(channel_index).FlushKeyCache()) {
             LOG_E() << "gpgme context init key cache failed, index:"
                     << channel_index;
+            give_up();
             continue;
           }
-
-          channel_index++;
         }
 
         Module::UpsertRTValue("core", "env.state.key_dbs", 1);
@@ -895,6 +939,276 @@ void DestroyGpgFrontendCore() {
   // destroy all singleton objects
   qDebug() << "Destroying all singleton objects...";
   SingletonStorageCollection::Destroy();
+}
+
+// -----------------------------------------------------------------------------
+// Applying the key database configuration without a restart.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+/// One apply at a time; a second waits.
+std::mutex g_key_db_apply_lock;
+
+/// How long a folder move waits for the work on it to finish.
+constexpr int kKeyDatabaseMoveWaitMs = 15000;
+
+/// What the stored configuration is right now, as far as a Runtime cares: the
+/// list, and the settings every context is built with. Compared before
+/// publishing, so a candidate built from a configuration that has since
+/// changed is never put in use.
+auto StoredKeyDatabaseConfigurationDigest() -> QByteArray {
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+  hash.addData(
+      QJsonDocument(
+          KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject)).ToJson())
+          .toJson(QJsonDocument::Compact));
+
+  auto settings = GetSettings();
+  hash.addData(QByteArray::number(
+      SettingItems::kForbidAllGnuPGConnection.Read(settings) ? 1 : 0));
+  hash.addData(QByteArray::number(
+      SettingItems::kAutoImportMissingKey.Read(settings) ? 1 : 0));
+  hash.addData(SettingItems::kDefaultEngine.Read(settings).toUpper().toUtf8());
+  return hash.result();
+}
+
+/// Put a moved database's stored entry back the way it was, when its folder
+/// could not be moved. Leaves the list alone if the entry has meanwhile been
+/// changed by someone else.
+void RevertKeyDatabaseMove(const KeyDatabaseMove& move) {
+  auto so = SettingsObject(kKeyDatabaseListObject);
+  if (so.LoadFailed()) return;
+
+  auto list = KeyDatabaseListSO(so);
+  for (auto& item : list.key_databases) {
+    if (item.id != move.database_id) continue;
+    LOG_W() << "restoring key database" << item.name << "to"
+            << move.old_stored_path;
+    item.name = move.old_name;
+    item.path = move.old_stored_path;
+    so.Store(list.ToJson());
+    return;
+  }
+}
+
+/// Carry out one folder move once nothing has the folder open.
+void PerformKeyDatabaseMove(const KeyDatabaseMove& move,
+                            KeyDatabaseApplyResult& result) {
+  LOG_I() << "moving key database folder:" << move.from << "->" << move.to;
+
+  // No new work resolves onto the folder from here on, whichever Runtime it
+  // asks through. Work already holding it runs on and is waited for below.
+  if (!RetireChannelsAtLocation(move.from).isEmpty()) {
+    emit CoreSignalStation::GetInstance() -> SignalKeyDatabaseChannelsRetired();
+  }
+
+  QElapsedTimer timer;
+  timer.start();
+  while (IsKeyDatabaseLocationInUse(move.from)) {
+    if (timer.elapsed() > kKeyDatabaseMoveWaitMs) {
+      LOG_W() << "key database folder still in use, not moving it:"
+              << move.from;
+      result.errors.append(
+          QCoreApplication::tr(
+              "The key database \"%1\" was still in use, so its folder was not "
+              "renamed. It keeps its previous name.")
+              .arg(move.old_name));
+      RevertKeyDatabaseMove(move);
+      return;
+    }
+    QThread::msleep(20);
+  }
+
+  // An empty folder at the target can only have been made by resolving the
+  // new path before the move; it holds nothing and is in the way.
+  if (QFileInfo(move.to).isDir()) QDir().rmdir(move.to);
+
+  if (!QDir().rename(move.from, move.to)) {
+    LOG_W() << "failed to move key database folder:" << move.from << "->"
+            << move.to;
+    result.errors.append(
+        QCoreApplication::tr("The folder of the key database \"%1\" could not "
+                             "be renamed. It keeps its previous name.")
+            .arg(move.old_name));
+    RevertKeyDatabaseMove(move);
+  }
+}
+
+/// Build a Runtime from the stored configuration.
+auto BuildCandidateRuntime(KeyDatabaseApplyResult& result)
+    -> KeyDatabaseRuntimeCandidate {
+  auto settings = GetSettings();
+
+  KeyDatabaseRuntimeOptions options;
+  options.offline_mode =
+      SettingItems::kForbidAllGnuPGConnection.Read(settings) ||
+      qApp->property("GFGnuPGOfflineMode").toBool();
+  options.auto_import_missing_key =
+      SettingItems::kAutoImportMissingKey.Read(settings);
+  options.default_engine =
+      SettingItems::kDefaultEngine.Read(settings).toUpper();
+  options.gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  options.rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
+
+  const auto key_dbs = GetKeyDatabaseInfoBySettings();
+  const auto default_id = GetDefaultKeyDatabaseId();
+
+  // As at startup: the chosen default when it is usable, else the first.
+  int default_index = 0;
+  for (int i = 0; i < key_dbs.size(); i++) {
+    if (key_dbs[i].id == default_id) {
+      default_index = i;
+      break;
+    }
+  }
+
+  return PrepareKeyDatabaseRuntime(key_dbs, default_index, options, result);
+}
+
+}  // namespace
+
+auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
+                               int default_index,
+                               const KeyDatabaseRuntimeOptions& options,
+                               KeyDatabaseApplyResult& result)
+    -> KeyDatabaseRuntimeCandidate {
+  KeyDatabaseRuntimeCandidate candidate;
+  candidate.generation = AllocateRuntimeGeneration();
+
+  for (int i = 0; i < key_dbs.size(); i++) {
+    const auto& key_db = key_dbs[i];
+    const auto handle = AllocateChannelHandle();
+    const auto is_default = i == default_index;
+
+    const auto choice =
+        is_default
+            ? ChooseChannelZeroEngine(
+                  key_db.name, key_db.backend_type, options.default_engine,
+                  options.gnupg_supported, options.rpgp_supported)
+            : ChooseKeyDatabaseEngine(
+                  key_db.backend_type, options.default_engine,
+                  options.gnupg_supported, options.rpgp_supported);
+
+    auto opened = false;
+    if (choice.ok && !key_db.path.isEmpty() && !key_db.name.isEmpty()) {
+      OpenPGPContextInitArgs args;
+      args.db_id = key_db.id;
+      args.db_name = key_db.name;
+      args.db_path = key_db.path;
+      args.engine = choice.engine;
+      args.generation = candidate.generation;
+      args.order = i;
+      args.offline_mode = options.offline_mode;
+      args.auto_import_missing_key = options.auto_import_missing_key;
+
+      opened = RunRegisteredRawForward<BuildOpenPGPContextOpTag>(
+                   args.engine, handle, args) &&
+               GpgKeyRepository::GetInstance(handle).FlushKeyCache();
+    }
+
+    if (opened) {
+      if (is_default) candidate.default_handle = handle;
+      continue;
+    }
+
+    LOG_W() << "key database did not open in the new runtime:" << key_db.name;
+    RegisterChannelHandle(handle, key_db.id, false, candidate.generation);
+    DescribeChannelHandle(handle, key_db.name, key_db.path, key_db.backend_type,
+                          i);
+    result.unavailable.append(key_db.name);
+    if (is_default) {
+      result.errors.append(
+          QCoreApplication::tr("The default key database \"%1\" could not be "
+                               "opened.")
+              .arg(key_db.name));
+      return candidate;
+    }
+  }
+
+  candidate.ok = candidate.default_handle >= 0;
+  if (!candidate.ok) {
+    result.errors.append(
+        QCoreApplication::tr("No key database could be opened."));
+  }
+  return candidate;
+}
+
+void InstallKeyDatabaseRuntimeReclaimer() {
+  SetRetiredChannelReclaimer([](int handle) {
+    auto reclaim = [handle]() {
+      const auto released = ReleaseEngineScopedChannel(handle);
+#ifdef HAS_RUST_SUPPORT
+      Rust::gfr_set_channel_cache_scope(handle, nullptr);
+      SetChannelPasswordFetcher(handle, {});
+#endif
+      MarkChannelReclaimed(handle);
+      LOG_D() << "reclaimed retired channel" << handle
+              << "objects:" << released;
+    };
+
+    // On the GUI thread, which every widget reads engine objects from, so a
+    // reclamation can never land in the middle of one of those reads.
+    if (auto* app = QCoreApplication::instance();
+        app != nullptr && !IsCoreShuttingDown()) {
+      QMetaObject::invokeMethod(app, reclaim, Qt::QueuedConnection);
+    } else {
+      reclaim();
+    }
+  });
+}
+
+auto ApplyKeyDatabaseRuntime(const QContainer<KeyDatabaseMove>& moves)
+    -> KeyDatabaseApplyResult {
+  std::lock_guard<std::mutex> lock(g_key_db_apply_lock);
+
+  KeyDatabaseApplyResult result;
+  result.from_generation = CurrentRuntimeGeneration();
+
+  for (const auto& move : moves) PerformKeyDatabaseMove(move, result);
+
+  // Settings saved again while a candidate was being built make it obsolete.
+  // Built again from the newer configuration a bounded number of times rather
+  // than chasing a configuration that keeps changing.
+  for (int attempt = 0; attempt < 3; ++attempt) {
+    auto candidate = BuildCandidateRuntime(result);
+    const auto digest = StoredKeyDatabaseConfigurationDigest();
+
+    if (!candidate.ok) {
+      RetireRuntimeGeneration(candidate.generation);
+      return result;
+    }
+
+    if (attempt < 2 && digest != StoredKeyDatabaseConfigurationDigest()) {
+      LOG_I() << "key database configuration changed while building, "
+                 "building again";
+      RetireRuntimeGeneration(candidate.generation);
+      result.unavailable.clear();
+      continue;
+    }
+
+    PublishRuntimeGeneration(candidate.generation, candidate.default_handle);
+    PublishRuntimeToRegisterTable();
+    Module::UpsertRTValue(
+        Module::kGRTCoreNamespace, Module::GRTDefaultEngineKey(),
+        SettingItems::kDefaultEngine.Read(GetSettings()).toLower());
+
+    result.published = true;
+    result.to_generation = candidate.generation;
+
+    LOG_I() << "key database runtime published, generation:"
+            << result.from_generation << "->" << result.to_generation;
+
+    emit CoreSignalStation::GetInstance() -> SignalKeyDatabaseRuntimePublished(
+        result.from_generation, result.to_generation);
+    Module::TriggerEvent(
+        "KEY_DATABASES_RELOADED",
+        {{"from_generation", GFBuffer{QString::number(result.from_generation)}},
+         {"to_generation", GFBuffer{QString::number(result.to_generation)}}});
+    return result;
+  }
+
+  return result;
 }
 
 }  // namespace GpgFrontend

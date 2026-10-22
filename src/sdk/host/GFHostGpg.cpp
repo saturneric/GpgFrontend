@@ -40,6 +40,7 @@
 #include <any>
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
@@ -84,6 +85,12 @@ void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
 namespace gf_host {
 
 auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef {
+  // A handle from another run of the context, or one never issued, names no
+  // database. Refused here rather than handed to GetInstance(), which would
+  // build a placeholder context for it. Held for the whole call, so the
+  // database cannot be reclaimed while the call is still using it.
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return nullptr;
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFStrView(key_id));
   if (key == nullptr) return nullptr;
@@ -101,6 +108,8 @@ auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef {
 
 auto GFGpgKeyPrimaryUidParts(int channel, const char* key_id, char** name,
                              char** email, char** comment) -> int {
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKey(
       GFStrView(key_id));
 
@@ -120,6 +129,8 @@ auto GFGpgKeyPrimaryUidParts(int channel, const char* key_id, char** name,
 }
 
 auto GFGpgImportKeys(int channel, const char* data, int size) -> int {
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
   auto in_buffer = GpgFrontend::GFBuffer(QByteArray::fromRawData(data, size));
   // The Host parents its own import dialog; nothing from a module is ever
   // taken for a widget.
@@ -136,6 +147,8 @@ auto GFGpgExportKey(int channel, const char* key_id, int ascii,
                     GFBufferRef* out) -> int {
   if (out == nullptr) return -1;
   *out = nullptr;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
 
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFStrView(key_id));
@@ -253,6 +266,8 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
                                 const char** cards, const char** info_json)
     -> int {
   if (analyse == nullptr) return -1;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
 
   auto capsule = TakeResultModel(capsule_id);
 
