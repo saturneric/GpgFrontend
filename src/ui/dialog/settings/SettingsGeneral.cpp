@@ -53,11 +53,6 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->baseBox->setTitle(tr("Base"));
 
-  ui_->defaultEngineLabel->setText(tr("Default Engine:"));
-  for (const auto& engine : GetGSS().AllSupportedEngines()) {
-    ui_->defaultEngineComboBox->addItem(engine, engine.toUpper());
-  }
-
   ui_->modulePolicyLabel->setText(tr("Module Discovery:"));
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
                                      "only_integrated");
@@ -148,13 +143,6 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::SignalRestartNeeded);
 
-  // The default engine decides which engine opens the default database, so a
-  // change takes effect when the key databases are opened again -- which
-  // applying does, without a restart.
-  connect(ui_->defaultEngineComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &GeneralTab::SignalRuntimeApplyNeeded);
-
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(
@@ -181,10 +169,6 @@ GeneralTab::GeneralTab(QWidget* parent)
 }
 
 void GeneralTab::SetSettings() {
-  // Populating the controls below must not be mistaken for user edits that
-  // would announce a restart.
-  QSignalBlocker engine_blocker(ui_->defaultEngineComboBox);
-
   auto settings = GetSettings();
 
   auto default_workspace_as = SettingItems::kDefaultWorkspaceAs.Read(settings);
@@ -260,14 +244,6 @@ void GeneralTab::SetSettings() {
       ui_->modulePolicyComboBox->findData(
           Module::ModuleLoadingPolicyKey(policy)));
 
-  auto default_engine = SettingItems::kDefaultEngine.Read(settings).toUpper();
-  int engine_index = ui_->defaultEngineComboBox->findData(default_engine);
-  if (engine_index != -1) {
-    ui_->defaultEngineComboBox->setCurrentIndex(engine_index);
-  } else {
-    ui_->defaultEngineComboBox->setCurrentIndex(0);
-  }
-
   auto non_ascii_at_file_operation =
       SettingItems::kNonAsciiAtFileOperation.Read(settings);
   if (non_ascii_at_file_operation) {
@@ -312,8 +288,7 @@ void GeneralTab::ApplySettings() {
       settings, ui_->modulePolicyComboBox->currentData().toString());
   SettingItems::kNonAsciiAtFileOperation.Write(
       settings, ui_->asciiModeCheckBox->isChecked());
-  SettingItems::kDefaultEngine.Write(
-      settings, ui_->defaultEngineComboBox->currentData().toString().toUpper());
+
 }
 
 }  // namespace GpgFrontend::UI

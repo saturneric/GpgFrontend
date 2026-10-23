@@ -130,7 +130,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   descriptors.append({key_dbs_tab_,
                       key_dbs_title,
                       "keys_engines",
-                      {tr("keyring"), tr("gpg home"), tr("database path")}});
+                      {tr("keyring"), tr("gpg home"), tr("database path"),
+                       tr("engine"), tr("built-in"), tr("default")}});
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     descriptors.append(

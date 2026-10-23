@@ -29,6 +29,7 @@
 #include "SettingsKeyDatabases.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/model/SettingsObject.h"
@@ -115,13 +116,18 @@ void SetUpKeyDatabaseTable(QTableWidget* table) {
   table->clear();
 
   QStringList column_titles;
+  // The role has a column of its own: which database is the default changes
+  // without the database changing, so neither its name nor its status may say
+  // it.
   column_titles << QObject::tr("ID") << QObject::tr("Name")
                 << QObject::tr("Engine") << QObject::tr("Status")
-                << QObject::tr("Folder");
+                << QObject::tr("Role") << QObject::tr("Folder");
   table->setColumnCount(static_cast<int>(column_titles.size()));
   table->setHorizontalHeaderLabels(column_titles);
 
-  table->setFocusPolicy(Qt::NoFocus);
+  // Reachable from the keyboard: the row actions, Use as Default among them,
+  // follow the selection, and the selection has to be movable without a mouse.
+  table->setFocusPolicy(Qt::StrongFocus);
   table->setAlternatingRowColors(true);
 
   table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -155,12 +161,13 @@ void SetUpKeyDatabaseTable(QTableWidget* table) {
   header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   header->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-  header->setSectionResizeMode(4, QHeaderView::Stretch);
+  header->setSectionResizeMode(4, QHeaderView::ResizeToContents);
+  header->setSectionResizeMode(5, QHeaderView::Stretch);
 
   // Headers sit over their values rather than centred above left-aligned text.
   // It only shows on the two wide columns, which are the two that read as
   // detached from their heading when it does not.
-  for (const auto column : {1, 4}) {
+  for (const auto column : {1, 5}) {
     if (auto* head = table->horizontalHeaderItem(column); head != nullptr) {
       head->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     }
@@ -179,21 +186,87 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   SetUpKeyDatabaseTable(ui_->keyDatabaseTable);
   SetUpKeyDatabaseTable(ui_->externalKeyDatabaseTable);
 
+  const auto role_help =
+      tr("Used when an operation does not explicitly select a key database.");
+
+  use_as_default_action_ = new QAction(tr("Use as Default"), this);
+  use_as_default_action_->setToolTip(role_help);
+  copy_folder_path_action_ = new QAction(tr("Copy Folder Path"), this);
+
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
   popup_menu_->addAction(ui_->actionMove_Key_Database_To_Top);
+  popup_menu_->addSeparator();
+  popup_menu_->addAction(use_as_default_action_);
+  popup_menu_->addSeparator();
   popup_menu_->addAction(ui_->actionOpen_Key_Database);
+  popup_menu_->addAction(copy_folder_path_action_);
   if (!is_sandbox_) {
     popup_menu_->addAction(ui_->actionEdit_Key_Database);
   }
   popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
 
+  // The built-in database's section. The engine selector is the one setting
+  // that speaks for it, so it lives here rather than on the General page.
+  ui_->builtInKeyDatabaseBox->setTitle(tr("Built-in Key Database"));
   ui_->defaultKeyDatabaseCheckBox->setText(
-      tr("Use this computer's default key database"));
+      tr("Enable the built-in key database"));
+  // Short: the section's title already says whose engine it is.
+  ui_->builtInEngineLabel->setText(tr("Key engine:"));
+  ui_->builtInEngineLabel->setBuddy(ui_->builtInEngineComboBox);
+  for (const auto& engine : GetGSS().AllSupportedEngines()) {
+    ui_->builtInEngineComboBox->addItem(engine, engine.toUpper());
+  }
+  ui_->builtInEngineComboBox->setAccessibleName(
+      tr("Key engine for the built-in database"));
+  // Said on hover rather than under the selector: the section stays three
+  // lines, and the label already says whose engine this is.
+  const auto engine_help =
+      tr("Applies only to the built-in database. Other databases always open "
+         "with their own engine.");
+  ui_->builtInEngineComboBox->setToolTip(engine_help);
+  ui_->builtInEngineComboBox->setAccessibleDescription(engine_help);
+  ui_->builtInLocationLabel->setText(tr("Location:"));
+
+  builtin_location_label_ = new ElidedPathLabel(this);
+  builtin_location_label_->setAccessibleName(
+      tr("Built-in key database location"));
+  ui_->builtInLocationLabel->setBuddy(builtin_location_label_);
+  ui_->builtInLocationLayout->insertWidget(0, builtin_location_label_, 1);
+  ui_->builtInCopyPathButton->setText(tr("Copy"));
+  ui_->builtInCopyPathButton->setToolTip(tr("Copy the full path"));
+  ui_->builtInCopyPathButton->setAccessibleName(
+      tr("Copy the built-in key database location"));
+
+  // "Default" in words and in weight, so it never depends on colour alone.
+  auto marker_font = ui_->builtInDefaultMarkerLabel->font();
+  marker_font.setBold(true);
+  ui_->builtInDefaultMarkerLabel->setFont(marker_font);
+  ui_->builtInDefaultMarkerLabel->setText(tr("Default"));
+  ui_->builtInDefaultMarkerLabel->setToolTip(role_help);
+  ui_->builtInDefaultMarkerLabel->setAccessibleDescription(role_help);
+  ui_->builtInUseAsDefaultButton->setText(tr("Use as Default"));
+  ui_->builtInUseAsDefaultButton->setToolTip(role_help);
+  ui_->builtInUseAsDefaultButton->setAccessibleName(
+      tr("Use the built-in key database as default"));
+  ui_->builtInUseAsDefaultButton->setAccessibleDescription(role_help);
+
   ui_->addNewKeyDatabaseButton->setText(tr("Add Key Database"));
   ui_->addExternalKeyDatabaseButton->setText(
       tr("Add Key Database On This Computer"));
+  for (auto* button :
+       {ui_->profileUseAsDefaultButton, ui_->externalUseAsDefaultButton}) {
+    button->setText(tr("Use as Default"));
+    button->setToolTip(role_help);
+    button->setAccessibleName(tr("Use the selected key database as default"));
+  }
+
+  ui_->smartCardNoticeLabel->setText(
+      tr("Smart cards stay with the previous default database until "
+         "GpgFrontend restarts. To move them sooner, apply this change, then "
+         "use \"Restart All Gpg-Agents\" in the Smart Card Controller."));
+  ui_->smartCardNoticeLabel->setVisible(false);
 
   // A key database outside the profile cannot survive here at all: the sandbox
   // reads its list back off the fixed dbs/ directory on every start, so an
@@ -233,6 +306,46 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   connect(ui_->defaultKeyDatabaseCheckBox, &QCheckBox::toggled, this,
           &KeyDatabasesTab::slot_toggle_default_key_database);
 
+  connect(ui_->builtInEngineComboBox,
+          qOverload<int>(&QComboBox::currentIndexChanged), this, [this]() {
+            if (loading_) return;
+            model_.engine =
+                ui_->builtInEngineComboBox->currentData().toString();
+            refresh_default_key_database_ui();
+            // Takes effect when the key databases are opened again, which
+            // applying does without a restart.
+            emit SignalRuntimeApplyNeeded();
+          });
+
+  connect(ui_->builtInCopyPathButton, &QToolButton::clicked, this,
+          [this]() { builtin_location_label_->CopyPath(); });
+
+  connect(ui_->builtInUseAsDefaultButton, &QPushButton::clicked, this,
+          [this]() { use_as_default(QLatin1String(kDefaultKeyDatabaseId)); });
+  connect(ui_->profileUseAsDefaultButton, &QPushButton::clicked, this,
+          [this]() { use_as_default(selected_id()); });
+  connect(ui_->externalUseAsDefaultButton, &QPushButton::clicked, this,
+          [this]() { use_as_default(selected_id()); });
+  connect(use_as_default_action_, &QAction::triggered, this,
+          [this]() { use_as_default(selected_id()); });
+
+  connect(copy_folder_path_action_, &QAction::triggered, this, [this]() {
+    const auto row = current_row();
+    auto* list = current_list();
+    if (row < 0 || row >= list->size()) return;
+    QGuiApplication::clipboard()->setText(
+        QDir::toNativeSeparators((*list)[row].path));
+  });
+
+  // Whatever moves the selection -- mouse, arrow keys, a refill -- and
+  // whichever tab is showing, the controls follow it.
+  for (auto* table : {ui_->keyDatabaseTable, ui_->externalKeyDatabaseTable}) {
+    connect(table, &QTableWidget::itemSelectionChanged, this,
+            &KeyDatabasesTab::refresh_role_controls);
+  }
+  connect(ui_->keyDatabaseTabs, &QTabWidget::currentChanged, this,
+          &KeyDatabasesTab::refresh_role_controls);
+
   SetSettings();
 
   // The Active column says which databases the Runtime in use opened, and a
@@ -248,29 +361,20 @@ void KeyDatabasesTab::SetSettings() {
   active_key_db_infos_ = GetGpgKeyDatabaseInfos();
   pending_moves_.clear();
 
-  default_db_info_.reset();
-  managed_db_infos_.clear();
-  external_db_infos_.clear();
-
   // Split by what each database is recorded as. The core settles that once, on
   // read, deriving it from the path only for an entry written before the field
   // existed -- so this screen never has to guess, and never has to agree with
   // the packer about how the guessing is done.
-  for (const auto& info : GetAllKeyDatabaseInfoBySettings()) {
-    switch (info.kind) {
-      case KeyDatabaseKind::kDEFAULT:
-        default_db_info_ = info;
-        break;
-      case KeyDatabaseKind::kMANAGED:
-        managed_db_infos_.append(info);
-        break;
-      case KeyDatabaseKind::kEXTERNAL:
-        external_db_infos_.append(info);
-        break;
-    }
-  }
+  const auto all = GetAllKeyDatabaseInfoBySettings();
+  model_.Load(all,
+              KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject))
+                  .default_database_id,
+              SettingItems::kDefaultEngine.Read(GetSettings()));
 
   loading_ = true;
+  const auto engine_index = ui_->builtInEngineComboBox->findData(model_.engine);
+  ui_->builtInEngineComboBox->setCurrentIndex(std::max(0, engine_index));
+  model_.engine = ui_->builtInEngineComboBox->currentData().toString();
   refresh_default_key_database_ui();
   loading_ = false;
 
@@ -281,23 +385,18 @@ void KeyDatabasesTab::ApplySettings() {
   auto so = SettingsObject(kKeyDatabaseListObject);
   auto key_database_list = KeyDatabaseListSO(so);
 
-  const auto to_items = [](const QContainer<KeyDatabaseInfo>& infos)
-      -> QContainer<KeyDatabaseItemSO> {
-    QContainer<KeyDatabaseItemSO> items;
-    items.reserve(infos.size());
-    for (const auto& info : infos) items.append(KeyDatabaseItemSO(info));
-    return items;
-  };
+  // The order is the rule rather than the user's arrangement: the built-in
+  // database owns channel 0, the profile's own databases come next, and this
+  // computer's come last (ComposeKeyDatabaseList). The default choice goes
+  // with it, on either store path below.
+  model_.ApplyTo(key_database_list);
 
-  // The order is the rule rather than the user's arrangement: DEFAULT owns
-  // channel 0, the profile's own databases come next, and this computer's come
-  // last. ComposeKeyDatabaseList() is what says so, and it numbers the
-  // channels.
-  std::optional<KeyDatabaseItemSO> default_item;
-  if (default_db_info_) default_item = KeyDatabaseItemSO(*default_db_info_);
-
-  key_database_list.key_databases = ComposeKeyDatabaseList(
-      default_item, to_items(managed_db_infos_), to_items(external_db_infos_));
+  // Written here because the selector lives here: it says how the built-in
+  // database is opened, and nothing else.
+  {
+    auto settings = GetSettings();
+    SettingItems::kDefaultEngine.Write(settings, model_.engine);
+  }
 
   // The stored list is protected from being overwritten when it could not be
   // read, which would otherwise make this -- the one screen that can repair a
@@ -340,8 +439,8 @@ auto KeyDatabasesTab::current_table() const -> QTableWidget* {
 
 auto KeyDatabasesTab::current_list() -> QContainer<KeyDatabaseInfo>* {
   return ui_->keyDatabaseTabs->currentWidget() == ui_->externalTab
-             ? &external_db_infos_
-             : &managed_db_infos_;
+             ? &model_.external
+             : &model_.managed;
 }
 
 auto KeyDatabasesTab::current_row() const -> int {
@@ -395,10 +494,10 @@ void KeyDatabasesTab::record_move(const KeyDatabaseInfo& info,
 
 auto KeyDatabasesTab::OperationsLeftRunning() const -> QStringList {
   const auto find = [&](const QString& id) -> const KeyDatabaseInfo* {
-    if (default_db_info_ && default_db_info_->id == id) {
-      return &*default_db_info_;
+    if (model_.builtin && model_.builtin->id == id) {
+      return &*model_.builtin;
     }
-    for (const auto* list : {&managed_db_infos_, &external_db_infos_}) {
+    for (const auto* list : {&model_.managed, &model_.external}) {
       for (const auto& info : *list) {
         if (info.id == id) return &info;
       }
@@ -425,8 +524,9 @@ auto KeyDatabasesTab::OperationsLeftRunning() const -> QStringList {
                                             : channel.backend_type.toLower());
     if (kept) continue;
 
-    lines.append(tr("%1: %n operation(s)", "", channel.operations)
-                     .arg(channel.name));
+    lines.append(
+        tr("%1: %n operation(s)", "", channel.operations)
+            .arg(KeyDatabaseDisplayName(channel.database_id, channel.name)));
   }
   return lines;
 }
@@ -438,61 +538,173 @@ auto KeyDatabasesTab::location_taken(const QString& path,
     return &info != self && IsSameKeyDatabaseLocation(info.path, path);
   };
 
-  if (default_db_info_ && taken(*default_db_info_)) return true;
-  return std::any_of(managed_db_infos_.begin(), managed_db_infos_.end(),
-                     taken) ||
-         std::any_of(external_db_infos_.begin(), external_db_infos_.end(),
-                     taken);
+  if (model_.builtin && taken(*model_.builtin)) return true;
+  return std::any_of(model_.managed.begin(), model_.managed.end(), taken) ||
+         std::any_of(model_.external.begin(), model_.external.end(), taken);
 }
 
 auto KeyDatabasesTab::total_count() const -> int {
-  return (default_db_info_ ? 1 : 0) +
-         static_cast<int>(managed_db_infos_.size()) +
-         static_cast<int>(external_db_infos_.size());
+  return (model_.builtin ? 1 : 0) + static_cast<int>(model_.managed.size()) +
+         static_cast<int>(model_.external.size());
 }
 
 void KeyDatabasesTab::refresh_default_key_database_ui() {
   const auto candidate = DefaultKeyDatabaseCandidate();
+  const bool offered = !candidate.path.isEmpty();
 
   // A build whose engine names no key database has nothing to offer under this
-  // checkbox, and saying so is more use than an unexplained empty row.
-  if (candidate.path.isEmpty()) {
+  // checkbox, and saying so is more use than an unexplained empty section.
+  // The one hint that stays on the page: it explains why nothing here works.
+  if (!offered) {
     ui_->defaultKeyDatabaseCheckBox->setChecked(false);
     ui_->defaultKeyDatabaseCheckBox->setEnabled(false);
-    ui_->defaultKeyDatabasePathLabel->setVisible(false);
     ui_->defaultKeyDatabaseHintLabel->setText(
         tr("The OpenPGP engine on this computer does not report a key "
-           "database, so there is no default one to use."));
-    return;
+           "database, so there is no built-in one to use."));
+    ui_->defaultKeyDatabaseHintLabel->setVisible(true);
+  } else {
+    ui_->defaultKeyDatabaseCheckBox->setChecked(model_.builtin.has_value());
+
+    // In the sandbox the list is rebuilt from disk on every start with the
+    // built-in database always first, so the checkbox would not survive being
+    // turned off. Shown as it is, and not offered.
+    ui_->defaultKeyDatabaseCheckBox->setEnabled(!is_sandbox_);
+    ui_->defaultKeyDatabaseHintLabel->setVisible(false);
   }
 
-  ui_->defaultKeyDatabaseCheckBox->setChecked(default_db_info_.has_value());
-
-  // In the sandbox the list is rebuilt from disk on every start with the
-  // default database always first, so the checkbox would not survive being
-  // turned off. Shown as it is, and not offered.
-  ui_->defaultKeyDatabaseCheckBox->setEnabled(!is_sandbox_);
-
-  // The identity, the folder and the engine on one line, in the order the
-  // question is asked: which database is this, where does it live, what opens
-  // it. Separated by middots rather than laid out in a grid, because three
-  // short facts in a row do not need a grid.
-  const auto native_path = QDir::toNativeSeparators(candidate.path);
-  ui_->defaultKeyDatabasePathLabel->setVisible(true);
-  ui_->defaultKeyDatabasePathLabel->setText(
-      QString("%1  ·  %2  ·  %3")
-          .arg(candidate.name, native_path, candidate.backend_type.toUpper()));
-  ui_->defaultKeyDatabasePathLabel->setToolTip(native_path);
-
-  // Greyed along with the checkbox when it cannot be changed, so the block
-  // reads as one disabled thing rather than as a live path under a dead box.
-  ui_->defaultKeyDatabasePathLabel->setEnabled(!is_sandbox_);
-
-  ui_->defaultKeyDatabaseHintLabel->setText(
+  // What the checkbox means, on hover.
+  const auto builtin_help =
       is_sandbox_
           ? tr("Always available on this computer, and always listed first.")
           : tr("Always listed first. Never included in a profile package: "
-               "whoever opens your profile elsewhere gets their own."));
+               "whoever opens your profile elsewhere gets their own.");
+  ui_->defaultKeyDatabaseCheckBox->setToolTip(builtin_help);
+  ui_->defaultKeyDatabaseCheckBox->setAccessibleDescription(builtin_help);
+
+  // The engine it would be opened with, and what that means, follow the
+  // selector before anything is applied. The engine is the core's decision
+  // (ChooseChannelZeroEngine), so a choice this build cannot honour shows the
+  // engine it falls back to.
+  const auto choice =
+      model_.BuiltInEngine(GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG),
+                           GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP));
+  ui_->builtInDescriptionLabel->setText(
+      choice.ok ? BuiltInKeyDatabaseEngineDescription(choice.engine)
+                : tr("No engine in this build can open it."));
+
+  // Where it is opened, by the rule the core opens it by. The same folder for
+  // either engine: rPGP keeps its database beside GnuPG's keys rather than
+  // somewhere else. Resolved without creating anything.
+  builtin_location_label_->SetPath(QDir::toNativeSeparators(
+      ExpandKeyDatabasePath(app_path_, BuiltInKeyDatabaseStoredPath())));
+
+  // Its settings are greyed with it: they describe a database that is not
+  // going to be opened.
+  const bool enabled = offered && model_.builtin.has_value();
+  for (auto* widget : std::initializer_list<QWidget*>{
+           ui_->builtInEngineLabel, ui_->builtInEngineComboBox,
+           ui_->builtInDescriptionLabel, ui_->builtInLocationLabel,
+           builtin_location_label_, ui_->builtInCopyPathButton}) {
+    widget->setEnabled(enabled);
+  }
+
+  refresh_role_controls();
+}
+
+auto KeyDatabasesTab::selected_id() const -> QString {
+  const auto row = current_row();
+  const auto& list = ui_->keyDatabaseTabs->currentWidget() == ui_->externalTab
+                         ? model_.external
+                         : model_.managed;
+  if (row < 0 || row >= list.size()) return {};
+  return list[row].id;
+}
+
+void KeyDatabasesTab::refresh_role_controls() {
+  const auto effective = model_.EffectiveDefaultId();
+  const auto role_help =
+      tr("Used when an operation does not explicitly select a key database.");
+
+  // The built-in section: the marker when it holds the role, the action when
+  // it could, nothing about the role while it is turned off.
+  const auto builtin_id = QString(QLatin1String(kDefaultKeyDatabaseId));
+  const bool builtin_on = model_.builtin.has_value();
+  const bool builtin_default = builtin_on && effective == builtin_id;
+  ui_->builtInDefaultMarkerLabel->setVisible(builtin_default);
+  ui_->builtInUseAsDefaultButton->setVisible(builtin_on && !builtin_default);
+  ui_->builtInUseAsDefaultButton->setEnabled(
+      model_.CanUseAsDefault(builtin_id));
+
+  // The Role column of both tables. A name or a status never says it.
+  const auto mark = [&](QTableWidget* table,
+                        const QContainer<KeyDatabaseInfo>& list) {
+    for (int row = 0; row < table->rowCount() && row < list.size(); row++) {
+      auto* item = table->item(row, 4);
+      if (item == nullptr) continue;
+      const bool is_default = list[row].id == effective;
+      item->setText(is_default ? tr("Default") : QString());
+      item->setToolTip(is_default ? role_help : QString());
+      auto font = item->font();
+      font.setBold(is_default);
+      item->setFont(font);
+    }
+  };
+  mark(ui_->keyDatabaseTable, model_.managed);
+  mark(ui_->externalKeyDatabaseTable, model_.external);
+
+  // One rule for the visible button and the menu action of each table, so the
+  // two never disagree about the selected row.
+  const auto selected_of = [](QTableWidget* table,
+                              const QContainer<KeyDatabaseInfo>& list) {
+    const auto rows = table->selectionModel()->selectedRows();
+    if (rows.isEmpty()) return QString();
+    const auto row = rows.first().row();
+    return row < list.size() ? list[row].id : QString();
+  };
+  ui_->profileUseAsDefaultButton->setEnabled(model_.CanUseAsDefault(
+      selected_of(ui_->keyDatabaseTable, model_.managed)));
+  ui_->externalUseAsDefaultButton->setEnabled(model_.CanUseAsDefault(
+      selected_of(ui_->externalKeyDatabaseTable, model_.external)));
+
+  const auto selected = selected_id();
+  use_as_default_action_->setEnabled(model_.CanUseAsDefault(selected));
+  copy_folder_path_action_->setEnabled(!selected.isEmpty());
+
+  // A GnuPG agent's smart card role is fixed when it starts, and applying
+  // keeps the agents running. Moving the default from one GnuPG database to
+  // another therefore leaves smart cards with the previous one until its agents
+  // are restarted. Said only when that is what the pending change would do.
+  const auto running = LookupChannelHandle(DefaultChannelHandle());
+  const auto is_gnupg = [](const QString& backend) {
+    return backend.isEmpty() ||
+           backend.compare("gnupg", Qt::CaseInsensitive) == 0;
+  };
+  bool new_default_gnupg = false;
+  if (effective == builtin_id) {
+    const auto choice =
+        model_.BuiltInEngine(GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG),
+                             GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP));
+    new_default_gnupg = choice.ok && choice.engine == OpenPGPEngine::kGNUPG;
+  } else {
+    for (const auto* list : {&model_.managed, &model_.external}) {
+      for (const auto& info : *list) {
+        if (info.id == effective)
+          new_default_gnupg = is_gnupg(info.backend_type);
+      }
+    }
+  }
+  const bool notice = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG) &&
+                      !running.database_id.isEmpty() &&
+                      running.database_id != effective &&
+                      is_gnupg(running.backend_type) && new_default_gnupg;
+  ui_->smartCardNoticeLabel->setVisible(notice);
+}
+
+void KeyDatabasesTab::use_as_default(const QString& id) {
+  // Pending until OK, like everything else on the page; Cancel drops it.
+  if (!model_.UseAsDefault(id)) return;
+  refresh_role_controls();
+  emit SignalRuntimeApplyNeeded();
 }
 
 void KeyDatabasesTab::fill_table(
@@ -533,6 +745,10 @@ void KeyDatabasesTab::fill_table(
 
     table->setItem(index, 3, CreateStatusItem(is_active));
 
+    // Filled by refresh_role_controls(), which every change of the default
+    // runs; left empty here so there is one place that decides it.
+    table->setItem(index, 4, CreateTableItem(QString(), Qt::AlignCenter));
+
     // One folder column instead of the stored path beside the resolved one.
     // They were the same directory written two ways, both cut off, and neither
     // readable. The short form is shown and the resolved one is the tooltip,
@@ -547,7 +763,7 @@ void KeyDatabasesTab::fill_table(
         key_db.path.isEmpty()
             ? tr("This folder could not be resolved on this computer.")
             : QDir::toNativeSeparators(key_db.path));
-    table->setItem(index, 4, i_folder);
+    table->setItem(index, 5, i_folder);
   }
 
   if (selected_row >= 0 && selected_row < table->rowCount()) {
@@ -565,27 +781,29 @@ void KeyDatabasesTab::slot_refresh_key_database_table(int selected_row) {
   const auto external_visible =
       ui_->keyDatabaseTabs->currentWidget() == ui_->externalTab;
 
-  fill_table(ui_->keyDatabaseTable, managed_db_infos_,
+  fill_table(ui_->keyDatabaseTable, model_.managed,
              external_visible ? -1 : selected_row);
-  fill_table(ui_->externalKeyDatabaseTable, external_db_infos_,
+  fill_table(ui_->externalKeyDatabaseTable, model_.external,
              external_visible ? selected_row : -1);
 
   // The hint doubles as the empty state. A blank table with a heading over it
   // says only that something is missing; this says what would go there.
   ui_->profileHintLabel->setText(
-      managed_db_infos_.isEmpty()
+      model_.managed.isEmpty()
           ? tr("No key databases of your own yet. One you add here is kept "
                "inside your profile and travels with it.")
           : tr("Kept inside your profile, and carried by a profile package."));
 
   ui_->externalHintLabel->setText(
-      external_db_infos_.isEmpty()
+      model_.external.isEmpty()
           ? tr("Nothing here yet. A key database you add on this tab stays on "
                "this computer: a profile package never carries it, and it is "
                "always opened after the ones inside your profile.")
           : tr("Key databases outside your profile. They belong to this "
                "computer alone: a profile package never carries them, and "
                "they are always opened after the ones inside your profile."));
+
+  refresh_role_controls();
 }
 
 void KeyDatabasesTab::slot_open_key_database() {
@@ -677,7 +895,7 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
       return;
     }
 
-    default_db_info_ = info;
+    model_.SetBuiltIn(info);
 
     refresh_default_key_database_ui();
     slot_refresh_key_database_table();
@@ -700,7 +918,9 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
     return;
   }
 
-  default_db_info_.reset();
+  // Withdraws an explicit choice of it; turning it back on does not restore
+  // that (KeyDatabaseSettingsModel::SetBuiltIn).
+  model_.SetBuiltIn(std::nullopt);
   refresh_default_key_database_ui();
   slot_refresh_key_database_table();
   emit SignalRuntimeApplyNeeded();
@@ -716,7 +936,7 @@ void KeyDatabasesTab::slot_edit_key_database() {
     return;
   }
 
-  const auto managed = list == &managed_db_infos_;
+  const auto managed = list == &model_.managed;
   const auto mode = managed ? KeyDatabaseEditDialog::Mode::kRENAME_MANAGED
                             : KeyDatabaseEditDialog::Mode::kEDIT_EXTERNAL;
 
@@ -725,7 +945,7 @@ void KeyDatabasesTab::slot_edit_key_database() {
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this, row, managed](const QString& name, const QString& backend_type,
                                const QString& path) {
-            auto* list = managed ? &managed_db_infos_ : &external_db_infos_;
+            auto* list = managed ? &model_.managed : &model_.external;
             if (row < 0 || row >= list->size()) return;
 
             // Renaming a managed database moves its folder. The name and the
@@ -836,7 +1056,7 @@ void KeyDatabasesTab::slot_add_new_key_database() {
   }
 
   auto* dialog = new KeyDatabaseEditDialog(
-      KeyDatabaseEditDialog::Mode::kADD_MANAGED, managed_db_infos_, this);
+      KeyDatabaseEditDialog::Mode::kADD_MANAGED, model_.managed, this);
 
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this](const QString& name, const QString& backend_type,
@@ -898,7 +1118,7 @@ void KeyDatabasesTab::slot_add_new_key_database() {
             key_database.origin_path = ToProfileRelativeKeyDatabasePath(
                 path, GlobalSettingStation::GetInstance().GetAppDataPath());
             key_database.kind = KeyDatabaseKind::kMANAGED;
-            managed_db_infos_.append(key_database);
+            model_.managed.append(key_database);
 
             slot_refresh_key_database_table();
 
@@ -919,8 +1139,8 @@ void KeyDatabasesTab::slot_add_external_key_database() {
 
   // The dialog checks the new name against the databases it is given, and a
   // name has to be unique across the whole profile rather than within one tab.
-  auto known = managed_db_infos_;
-  known.append(external_db_infos_);
+  auto known = model_.managed;
+  known.append(model_.external);
 
   auto* dialog = new KeyDatabaseEditDialog(
       KeyDatabaseEditDialog::Mode::kADD_EXTERNAL, known, this);
@@ -962,7 +1182,7 @@ void KeyDatabasesTab::slot_add_external_key_database() {
             // database belongs to this computer, and it is what keeps a package
             // from carrying it even if it happens to sit under the profile.
             key_database.kind = KeyDatabaseKind::kEXTERNAL;
-            external_db_infos_.append(key_database);
+            model_.external.append(key_database);
 
             slot_refresh_key_database_table();
 
@@ -997,7 +1217,9 @@ void KeyDatabasesTab::slot_remove_existing_key_database() {
   // A rename of it still waiting to be applied goes with it: left behind, it
   // would move the folder into a database added later under that name.
   drop_pending_move((*list)[row].id);
-  list->removeAt(row);
+  // Removing the chosen default withdraws the choice; the marker moves to
+  // whatever the fallback picks.
+  model_.RemoveAt(*list, row);
 
   const int next_selected_row =
       list->isEmpty() ? -1 : std::min(row, static_cast<int>(list->size() - 1));

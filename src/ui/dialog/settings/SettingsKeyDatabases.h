@@ -33,6 +33,8 @@
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/CoreTypedef.h"
+#include "ui/dialog/settings/KeyDatabaseSettingsModel.h"
+#include "ui/widgets/ElidedPathLabel.h"
 
 class Ui_KeyDatabasesSettings;
 
@@ -113,12 +115,14 @@ class KeyDatabasesTab : public QWidget {
   /// is what let a folder be picked for a database whose folder is derived, and
   /// let the derived one be dragged out of channel 0.
   ///
-  /// The DEFAULT database is present exactly when the user has it turned on; it
-  /// appears in neither table, because there is nothing about it to show in a
-  /// row that the checkbox does not say better.
-  std::optional<KeyDatabaseInfo> default_db_info_;
-  QContainer<KeyDatabaseInfo> managed_db_infos_;
-  QContainer<KeyDatabaseInfo> external_db_infos_;
+  /// The built-in database is present exactly when the user has it turned on;
+  /// it has a section of its own rather than a row. The model also holds the
+  /// default choice and the built-in database's engine, until OK.
+  KeyDatabaseSettingsModel model_;
+
+  ElidedPathLabel* builtin_location_label_{};
+  QAction* use_as_default_action_{};
+  QAction* copy_folder_path_action_{};
 
   bool is_sandbox_ = false;
 
@@ -169,9 +173,19 @@ class KeyDatabasesTab : public QWidget {
                                     const KeyDatabaseInfo* self = nullptr) const
       -> bool;
 
-  /// Put the DEFAULT checkbox and its hint in step with what the engine on this
-  /// computer actually offers.
+  /// Put the built-in section in step with what the engine on this computer
+  /// offers and with the pending engine choice.
   void refresh_default_key_database_ui();
+
+  /// The id of the selected row of the visible table, empty when none.
+  [[nodiscard]] auto selected_id() const -> QString;
+
+  /// Every "Default" marker and "Use as Default" control, from the model. Run
+  /// after anything that can change which database is the default.
+  void refresh_role_controls();
+
+  /// Make @p id the default, pending until OK.
+  void use_as_default(const QString& id);
 
   /**
    * @brief

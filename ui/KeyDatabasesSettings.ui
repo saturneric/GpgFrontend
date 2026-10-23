@@ -15,6 +15,96 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QGroupBox" name="builtInKeyDatabaseBox">
+     <property name="title">
+      <string>Built-in Key Database</string>
+     </property>
+     <layout class="QVBoxLayout" name="builtInKeyDatabaseLayout">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="builtInHeaderLayout">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <item>
+         <widget class="QCheckBox" name="defaultKeyDatabaseCheckBox">
+          <property name="text">
+           <string>Enable the built-in key database</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="builtInHeaderSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="builtInDefaultMarkerLabel"><property name="text"><string/></property></widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="builtInUseAsDefaultButton"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="builtInFormLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="rowWrapPolicy">
+         <enum>QFormLayout::RowWrapPolicy::WrapLongRows</enum>
+        </property>
+        <property name="verticalSpacing">
+         <number>4</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="builtInEngineLabel"><property name="text"><string/></property></widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="builtInEngineComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="builtInDescriptionLabel"><property name="text"><string/></property><property name="wordWrap"><bool>true</bool></property></widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="builtInLocationLabel"><property name="text"><string/></property></widget>
+        </item>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="builtInLocationLayout">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QToolButton" name="builtInCopyPathButton"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="defaultKeyDatabaseHintLabel"><property name="text"><string/></property><property name="wordWrap"><bool>true</bool></property></widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QTabWidget" name="keyDatabaseTabs">
      <property name="currentIndex">
       <number>0</number>
@@ -27,60 +117,6 @@
        <property name="spacing">
         <number>10</number>
        </property>
-       <item>
-        <widget class="QFrame" name="defaultKeyDatabaseFrame">
-         <property name="frameShape">
-          <enum>QFrame::Shape::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Plain</enum>
-         </property>
-         <layout class="QVBoxLayout" name="defaultKeyDatabaseLayout">
-          <property name="spacing">
-           <number>4</number>
-          </property>
-          <property name="leftMargin">
-           <number>12</number>
-          </property>
-          <property name="topMargin">
-           <number>10</number>
-          </property>
-          <property name="rightMargin">
-           <number>12</number>
-          </property>
-          <property name="bottomMargin">
-           <number>10</number>
-          </property>
-          <item>
-           <widget class="QCheckBox" name="defaultKeyDatabaseCheckBox">
-            <property name="text">
-             <string>Use this computer's default key database</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="defaultKeyDatabasePathLabel">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="defaultKeyDatabaseHintLabel">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
        <item>
         <widget class="QLabel" name="profileHintLabel">
          <property name="text">
@@ -155,6 +191,9 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="profileUseAsDefaultButton"/>
          </item>
          <item>
           <widget class="QPushButton" name="addNewKeyDatabaseButton">
@@ -251,6 +290,9 @@
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="externalUseAsDefaultButton"/>
+         </item>
+         <item>
           <widget class="QPushButton" name="addExternalKeyDatabaseButton">
            <property name="text">
             <string>Add Key Database On This Computer</string>
@@ -262,6 +304,9 @@
       </layout>
      </widget>
     </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="smartCardNoticeLabel"><property name="text"><string/></property><property name="wordWrap"><bool>true</bool></property></widget>
    </item>
   </layout>
   <action name="actionRemove_Selected_Key_Database">
