@@ -95,7 +95,12 @@ void WaitingDialog::SlotFinish() {
   accept();
 }
 
+void WaitingDialog::SetUserClosable(bool closable) {
+  user_closable_ = closable;
+}
+
 void WaitingDialog::reject() {
+  if (!user_closable_ && !finished_) return;
   if (cancel_button_ == nullptr || finished_) {
     GeneralDialog::reject();
     return;
@@ -104,6 +109,10 @@ void WaitingDialog::reject() {
 }
 
 void WaitingDialog::closeEvent(QCloseEvent* event) {
+  if (!user_closable_ && !finished_) {
+    event->ignore();
+    return;
+  }
   if (cancel_button_ == nullptr || finished_) {
     GeneralDialog::closeEvent(event);
     return;

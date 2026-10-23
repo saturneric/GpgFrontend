@@ -93,10 +93,17 @@ void GF_UI_EXPORT MarkKeyDatabaseFound(QWidget* widget);
  * the status bar, and in a message when something could not be done. A
  * request made while one is running is folded into a single follow-up.
  *
+ * Shows a modal waiting dialog for as long as it runs, which the user cannot
+ * close, so nothing is started on a database while the databases are being
+ * replaced.
+ *
  * @param moves managed database folders to move first
+ * @param parent the window to show the waiting dialog over; the last one
+ * given, or the active window, when null
  */
 void GF_UI_EXPORT
-ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves = {});
+ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves = {},
+                        QWidget* parent = nullptr);
 
 /**
  * @brief Whether an ApplyKeyDatabaseChanges() is still running.

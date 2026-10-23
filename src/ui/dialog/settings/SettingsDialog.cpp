@@ -571,7 +571,8 @@ void SettingsDialog::SlotAccept() {
   // waits for the apply (see MainWindow's settings dialog handler).
   if (runtime_apply_needed_ || !moves.isEmpty()) {
     if (restart_mode_ < kDeepRestartCode || !moves.isEmpty()) {
-      ApplyKeyDatabaseChanges(moves);
+      // Over the main window: this dialog closes right after.
+      ApplyKeyDatabaseChanges(moves, parentWidget());
     }
   }
 

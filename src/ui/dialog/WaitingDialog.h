@@ -75,6 +75,14 @@ class WaitingDialog : public GeneralDialog {
   void SlotFinish();
 
   /**
+   * @brief Whether Escape and the window's close may close the dialog.
+   *
+   * Off for work nothing can safely be done beside, and that cannot be
+   * cancelled either: the dialog then closes only through SlotFinish().
+   */
+  void SetUserClosable(bool closable);
+
+  /**
    * @brief Escape. A cancelable dialog requests cancellation and stays open
    * until SlotFinish(); any other dialog closes as before.
    */
@@ -113,6 +121,7 @@ class WaitingDialog : public GeneralDialog {
   QProgressBar* pb_;
   QPushButton* cancel_button_ = nullptr;
   bool finished_ = false;
+  bool user_closable_ = true;
 
   void request_cancel();
 };

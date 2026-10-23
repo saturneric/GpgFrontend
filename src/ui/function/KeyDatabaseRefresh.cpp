@@ -37,6 +37,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -185,6 +186,8 @@ struct ApplyState {
   bool running{false};
   bool again{false};
   QContainer<KeyDatabaseMove> pending;
+  QPointer<QWidget> parent;          ///< where the waiting dialog is shown
+  QPointer<WaitingDialog> waiting;  ///< up while an apply runs
 };
 
 auto Applying() -> ApplyState& {
@@ -263,8 +266,10 @@ void MarkKeyDatabaseFound(QWidget* widget) {
 
 auto IsApplyingKeyDatabaseChanges() -> bool { return Applying().running; }
 
-void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves) {
+void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves,
+                             QWidget* parent) {
   auto& state = Applying();
+  if (parent != nullptr) state.parent = parent;
   if (state.running) {
     state.pending.append(moves);
     state.again = true;
@@ -275,6 +280,20 @@ void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves) {
   emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
       QObject::tr("Applying key database changes..."), 0);
 
+  // Modal, and closed only when the apply is over. Opening a key database can
+  // take a while (GnuPG on Windows especially), and anything started meanwhile
+  // would run on a database about to be replaced, or wait for one being
+  // opened.
+  if (state.waiting == nullptr) {
+    state.waiting = new WaitingDialog(
+        QObject::tr("Applying Key Database Changes"), false,
+        state.parent != nullptr ? state.parent.data()
+                                : QApplication::activeWindow());
+    state.waiting->setWindowModality(Qt::ApplicationModal);
+    state.waiting->SetUserClosable(false);
+    state.waiting->show();
+  }
+
   auto result = QSharedPointer<KeyDatabaseApplyResult>::create();
   auto* task = new Thread::Task(
       [moves, result](const DataObjectPtr&) -> int {
@@ -283,10 +302,14 @@ void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves) {
       },
       "apply_key_database_runtime", TransferParams(),
       [result](int, const DataObjectPtr&) {
+        auto& state = Applying();
+        // Down before the report, which may be a box of its own; a follow-up
+        // puts it up again.
+        if (state.waiting != nullptr) state.waiting->SlotFinish();
+
         // Still running while the report is up: it can be a modal box, and a
         // request made from inside its loop must queue behind this one.
         ReportApplied(*result);
-        auto& state = Applying();
         state.running = false;
 
         if (state.again) {
