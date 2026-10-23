@@ -1928,21 +1928,25 @@ jobs:
           # notarization is already accepted, so retry rather than lose the
           # job. Each verb retries on its own: a staple that already landed
           # is not redone just because the validate after it hit the network.
+          # The window (~5.5 min per verb) is sized for CloudKit outages that
+          # outlast a couple of minutes: a ~100s window was seen to lose all
+          # five attempts to one.
           cat > "$RUNNER_TEMP/staple.sh" <<'SH'
           #!/bin/bash
           set -euo pipefail
           TARGET="$1"
+          MAX_ATTEMPTS=8
           for verb in staple validate; do
-            for attempt in 1 2 3 4 5; do
+            for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
               if xcrun stapler "$verb" "$TARGET"; then
                 break
               fi
-              if [ "$attempt" -eq 5 ]; then
-                echo "stapler $verb $(basename "$TARGET") failed after 5 attempts" >&2
+              if [ "$attempt" -eq "$MAX_ATTEMPTS" ]; then
+                echo "stapler $verb $(basename "$TARGET") failed after $MAX_ATTEMPTS attempts" >&2
                 exit 1
               fi
-              echo "stapler $verb failed (attempt $attempt/5), retrying" >&2
-              sleep $((attempt * 10))
+              echo "stapler $verb failed (attempt $attempt/$MAX_ATTEMPTS), retrying" >&2
+              sleep $(( attempt * 15 < 60 ? attempt * 15 : 60 ))
             done
           done
           SH
