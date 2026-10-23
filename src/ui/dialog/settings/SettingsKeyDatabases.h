@@ -34,7 +34,6 @@
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/settings/KeyDatabaseSettingsModel.h"
-#include "ui/widgets/ElidedPathLabel.h"
 
 class Ui_KeyDatabasesSettings;
 
@@ -120,7 +119,6 @@ class KeyDatabasesTab : public QWidget {
   /// default choice and the built-in database's engine, until OK.
   KeyDatabaseSettingsModel model_;
 
-  ElidedPathLabel* builtin_location_label_{};
   QAction* use_as_default_action_{};
   QAction* copy_folder_path_action_{};
 

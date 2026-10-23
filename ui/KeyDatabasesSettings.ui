@@ -19,24 +19,29 @@
      <property name="title">
       <string>Built-in Key Database</string>
      </property>
-     <layout class="QVBoxLayout" name="builtInKeyDatabaseLayout">
-      <property name="spacing">
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="builtInGridLayout">
+      <property name="horizontalSpacing">
        <number>8</number>
       </property>
-      <item>
-       <layout class="QHBoxLayout" name="builtInHeaderLayout">
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="builtInEngineLabel"><property name="text"><string/></property></widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="builtInEngineRowLayout">
         <property name="spacing">
          <number>8</number>
         </property>
         <item>
-         <widget class="QCheckBox" name="defaultKeyDatabaseCheckBox">
-          <property name="text">
-           <string>Enable the built-in key database</string>
-          </property>
-         </widget>
+         <widget class="QComboBox" name="builtInEngineComboBox"/>
         </item>
         <item>
-         <spacer name="builtInHeaderSpacer">
+         <spacer name="builtInEngineRowSpacer">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
@@ -48,6 +53,13 @@
           </property>
          </spacer>
         </item>
+       </layout>
+      </item>
+      <item row="0" column="2" alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter">
+       <layout class="QHBoxLayout" name="builtInRoleLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QLabel" name="builtInDefaultMarkerLabel"><property name="text"><string/></property></widget>
         </item>
@@ -56,49 +68,30 @@
         </item>
        </layout>
       </item>
-      <item>
-       <layout class="QFormLayout" name="builtInFormLayout">
-        <property name="fieldGrowthPolicy">
-         <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
+      <item row="1" column="0">
+       <widget class="QLabel" name="builtInLocationLabel"><property name="text"><string/></property></widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <layout class="QHBoxLayout" name="builtInLocationLayout">
+        <property name="spacing">
+         <number>6</number>
         </property>
-        <property name="rowWrapPolicy">
-         <enum>QFormLayout::RowWrapPolicy::WrapLongRows</enum>
-        </property>
-        <property name="verticalSpacing">
-         <number>4</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="builtInEngineLabel"><property name="text"><string/></property></widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="builtInEngineComboBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        <item>
+         <widget class="QLineEdit" name="builtInLocationEdit">
+          <property name="readOnly">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QLabel" name="builtInDescriptionLabel"><property name="text"><string/></property><property name="wordWrap"><bool>true</bool></property></widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="builtInLocationLabel"><property name="text"><string/></property></widget>
-        </item>
-        <item row="2" column="1">
-         <layout class="QHBoxLayout" name="builtInLocationLayout">
-          <property name="spacing">
-           <number>6</number>
-          </property>
-          <item>
-           <widget class="QToolButton" name="builtInCopyPathButton"/>
-          </item>
-         </layout>
+        <item>
+         <widget class="QToolButton" name="builtInCopyPathButton"/>
         </item>
        </layout>
       </item>
-      <item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QLabel" name="builtInDescriptionLabel"><property name="text"><string/></property><property name="wordWrap"><bool>true</bool></property></widget>
+      </item>
+      <item row="3" column="0" colspan="3">
        <widget class="QLabel" name="defaultKeyDatabaseHintLabel"><property name="text"><string/></property><property name="wordWrap"><bool>true</bool></property></widget>
       </item>
      </layout>

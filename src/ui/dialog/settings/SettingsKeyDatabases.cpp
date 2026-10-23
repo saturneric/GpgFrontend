@@ -39,6 +39,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyDatabaseEditDialog.h"
 #include "ui/function/KeyDatabaseDisplayNames.h"
+#include "ui/function/UIStyle.h"
 
 //
 #include "ui_KeyDatabasesSettings.h"
@@ -209,9 +210,9 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
 
   // The built-in database's section. The engine selector is the one setting
   // that speaks for it, so it lives here rather than on the General page.
+  // Turned on and off by the box's own title checkbox, which also greys
+  // everything inside while it is off.
   ui_->builtInKeyDatabaseBox->setTitle(tr("Built-in Key Database"));
-  ui_->defaultKeyDatabaseCheckBox->setText(
-      tr("Enable the built-in key database"));
   // Short: the section's title already says whose engine it is.
   ui_->builtInEngineLabel->setText(tr("Key engine:"));
   ui_->builtInEngineLabel->setBuddy(ui_->builtInEngineComboBox);
@@ -229,11 +230,11 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   ui_->builtInEngineComboBox->setAccessibleDescription(engine_help);
   ui_->builtInLocationLabel->setText(tr("Location:"));
 
-  builtin_location_label_ = new ElidedPathLabel(this);
-  builtin_location_label_->setAccessibleName(
+  // Read-only but selectable: a long path scrolls inside the field instead
+  // of widening the page, and can be selected or copied from the keyboard.
+  ui_->builtInLocationEdit->setAccessibleName(
       tr("Built-in key database location"));
-  ui_->builtInLocationLabel->setBuddy(builtin_location_label_);
-  ui_->builtInLocationLayout->insertWidget(0, builtin_location_label_, 1);
+  ui_->builtInLocationLabel->setBuddy(ui_->builtInLocationEdit);
   ui_->builtInCopyPathButton->setText(tr("Copy"));
   ui_->builtInCopyPathButton->setToolTip(tr("Copy the full path"));
   ui_->builtInCopyPathButton->setAccessibleName(
@@ -303,7 +304,7 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   connect(ui_->addExternalKeyDatabaseButton, &QPushButton::clicked, this,
           &KeyDatabasesTab::slot_add_external_key_database);
 
-  connect(ui_->defaultKeyDatabaseCheckBox, &QCheckBox::toggled, this,
+  connect(ui_->builtInKeyDatabaseBox, &QGroupBox::toggled, this,
           &KeyDatabasesTab::slot_toggle_default_key_database);
 
   connect(ui_->builtInEngineComboBox,
@@ -317,8 +318,9 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
             emit SignalRuntimeApplyNeeded();
           });
 
-  connect(ui_->builtInCopyPathButton, &QToolButton::clicked, this,
-          [this]() { builtin_location_label_->CopyPath(); });
+  connect(ui_->builtInCopyPathButton, &QToolButton::clicked, this, [this]() {
+    QGuiApplication::clipboard()->setText(ui_->builtInLocationEdit->text());
+  });
 
   connect(ui_->builtInUseAsDefaultButton, &QPushButton::clicked, this,
           [this]() { use_as_default(QLatin1String(kDefaultKeyDatabaseId)); });
@@ -549,37 +551,41 @@ auto KeyDatabasesTab::total_count() const -> int {
 }
 
 void KeyDatabasesTab::refresh_default_key_database_ui() {
+  auto* box = ui_->builtInKeyDatabaseBox;
   const auto candidate = DefaultKeyDatabaseCandidate();
   const bool offered = !candidate.path.isEmpty();
 
-  // A build whose engine names no key database has nothing to offer under this
-  // checkbox, and saying so is more use than an unexplained empty section.
-  // The one hint that stays on the page: it explains why nothing here works.
+  // In the sandbox the list is rebuilt from disk on every start with the
+  // built-in database always first, so turning it off would not survive.
+  // Shown as it is, with nothing to switch.
+  // Only when it changes: QGroupBox::setCheckable(true) also checks the box,
+  // which would undo turning it off.
+  if (box->isCheckable() == is_sandbox_) box->setCheckable(!is_sandbox_);
+
+  // A build whose engine names no key database has nothing to offer here,
+  // and saying so is more use than an unexplained empty section. The one hint
+  // that stays on the page: it explains why nothing here works.
   if (!offered) {
-    ui_->defaultKeyDatabaseCheckBox->setChecked(false);
-    ui_->defaultKeyDatabaseCheckBox->setEnabled(false);
+    if (box->isCheckable()) box->setChecked(false);
+    box->setEnabled(false);
     ui_->defaultKeyDatabaseHintLabel->setText(
         tr("The OpenPGP engine on this computer does not report a key "
            "database, so there is no built-in one to use."));
     ui_->defaultKeyDatabaseHintLabel->setVisible(true);
   } else {
-    ui_->defaultKeyDatabaseCheckBox->setChecked(model_.builtin.has_value());
-
-    // In the sandbox the list is rebuilt from disk on every start with the
-    // built-in database always first, so the checkbox would not survive being
-    // turned off. Shown as it is, and not offered.
-    ui_->defaultKeyDatabaseCheckBox->setEnabled(!is_sandbox_);
+    box->setEnabled(true);
+    if (box->isCheckable()) box->setChecked(model_.builtin.has_value());
     ui_->defaultKeyDatabaseHintLabel->setVisible(false);
   }
 
-  // What the checkbox means, on hover.
+  // What turning it on means, on hover.
   const auto builtin_help =
       is_sandbox_
           ? tr("Always available on this computer, and always listed first.")
           : tr("Always listed first. Never included in a profile package: "
                "whoever opens your profile elsewhere gets their own.");
-  ui_->defaultKeyDatabaseCheckBox->setToolTip(builtin_help);
-  ui_->defaultKeyDatabaseCheckBox->setAccessibleDescription(builtin_help);
+  box->setToolTip(builtin_help);
+  box->setAccessibleDescription(builtin_help);
 
   // The engine it would be opened with, and what that means, follow the
   // selector before anything is applied. The engine is the core's decision
@@ -591,22 +597,26 @@ void KeyDatabasesTab::refresh_default_key_database_ui() {
   ui_->builtInDescriptionLabel->setText(
       choice.ok ? BuiltInKeyDatabaseEngineDescription(choice.engine)
                 : tr("No engine in this build can open it."));
+  // Secondary text, but only while enabled: when the section is off it greys
+  // with everything else rather than keep a colour of its own.
+  {
+    auto palette = ui_->builtInDescriptionLabel->palette();
+    // From the page's own palette: the label's already carries the muted
+    // colour, and muting it again on every refresh fades it further.
+    const auto muted = MutedTextColor(this->palette());
+    palette.setColor(QPalette::Active, QPalette::WindowText, muted);
+    palette.setColor(QPalette::Inactive, QPalette::WindowText, muted);
+    ui_->builtInDescriptionLabel->setPalette(palette);
+  }
 
   // Where it is opened, by the rule the core opens it by. The same folder for
   // either engine: rPGP keeps its database beside GnuPG's keys rather than
   // somewhere else. Resolved without creating anything.
-  builtin_location_label_->SetPath(QDir::toNativeSeparators(
-      ExpandKeyDatabasePath(app_path_, BuiltInKeyDatabaseStoredPath())));
-
-  // Its settings are greyed with it: they describe a database that is not
-  // going to be opened.
-  const bool enabled = offered && model_.builtin.has_value();
-  for (auto* widget : std::initializer_list<QWidget*>{
-           ui_->builtInEngineLabel, ui_->builtInEngineComboBox,
-           ui_->builtInDescriptionLabel, ui_->builtInLocationLabel,
-           builtin_location_label_, ui_->builtInCopyPathButton}) {
-    widget->setEnabled(enabled);
-  }
+  const auto location = QDir::toNativeSeparators(
+      ExpandKeyDatabasePath(app_path_, BuiltInKeyDatabaseStoredPath()));
+  ui_->builtInLocationEdit->setText(location);
+  ui_->builtInLocationEdit->setCursorPosition(0);
+  ui_->builtInLocationEdit->setToolTip(location);
 
   refresh_role_controls();
 }
@@ -867,7 +877,7 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
              "Please remove an existing database to add a new one.")
               .arg(kMaxKeyDatabases));
       loading_ = true;
-      ui_->defaultKeyDatabaseCheckBox->setChecked(false);
+      ui_->builtInKeyDatabaseBox->setChecked(false);
       loading_ = false;
       return;
     }
@@ -890,7 +900,7 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
              "default key database folder. Remove it first, then turn this "
              "on."));
       loading_ = true;
-      ui_->defaultKeyDatabaseCheckBox->setChecked(false);
+      ui_->builtInKeyDatabaseBox->setChecked(false);
       loading_ = false;
       return;
     }
@@ -913,7 +923,7 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
         tr("GpgFrontend needs at least one key database. Add another one "
            "first, then turn this off."));
     loading_ = true;
-    ui_->defaultKeyDatabaseCheckBox->setChecked(true);
+    ui_->builtInKeyDatabaseBox->setChecked(true);
     loading_ = false;
     return;
   }
