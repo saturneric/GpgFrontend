@@ -31,7 +31,6 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <sodium.h>
-#include <sys/fcntl.h>
 
 #include <algorithm>
 #include <cstring>
