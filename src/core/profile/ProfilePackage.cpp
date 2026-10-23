@@ -41,8 +41,8 @@
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/DataObjectOperator.h"
-#include "core/function/SettingCatalog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/model/GFDataExchanger.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileAreaTraits.h"
@@ -53,11 +53,7 @@
 #include "core/profile/ProtectedFsProfileAccessor.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
-
-#ifdef Q_OS_UNIX
-#include <sys/resource.h>
-#include <unistd.h>
-#endif
+#include "platform/common/PlatformFs.h"
 
 namespace GpgFrontend {
 
@@ -310,9 +306,7 @@ auto WriteProfilePackage(const ArchiveMemberProvider &next,
 
     // Durable before it is believed: reading back what only the page cache
     // knows would verify nothing about the file that survives a power cut.
-#ifdef Q_OS_UNIX
-    ::fsync(static_cast<int>(temporary.handle()));
-#endif
+    Platform::FlushToDisk(static_cast<int>(temporary.handle()));
     temporary.close();
   }
 
@@ -779,17 +773,14 @@ auto MeasureProfileAreas(const ProfileAccessor &storage)
 }
 
 auto ProfilePackagePayloadCap() -> qint64 {
-#ifdef Q_OS_UNIX
-  struct rlimit limit{};
-  if (getrlimit(RLIMIT_MEMLOCK, &limit) == 0 &&
-      limit.rlim_cur != RLIM_INFINITY) {
+  const auto limit = Platform::LockedMemoryLimit();
+  if (limit >= 0) {
     // Opening a version 1 body holds it whole and then its plaintext beside
     // it, both in locked memory, and the allocator needs headroom on top; a
     // quarter of the allowance is the conservative reading of that.
-    const auto quarter = static_cast<qint64>(limit.rlim_cur) / 4;
+    const auto quarter = limit / 4;
     return qBound(kPayloadCapFloor, quarter, kPayloadCapCeiling);
   }
-#endif
   return kPayloadCapCeiling;
 }
 

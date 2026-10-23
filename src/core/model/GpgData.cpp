@@ -28,12 +28,11 @@
 
 #include "core/model/GpgData.h"
 
-#include <unistd.h>
-
 #include <cstddef>
 
 #include "core/model/GFDataExchanger.h"
 #include "core/typedef/GpgErrorTypedef.h"
+#include "platform/common/PlatformFs.h"
 
 namespace {
 auto GFReadExCb(void* handle, void* buffer, size_t size) -> ssize_t {
@@ -99,7 +98,7 @@ GpgData::GpgData(const QString& path, bool read) {
   // support unicode path
   QFile file(path);
   file.open(read ? QIODevice::ReadOnly : QIODevice::WriteOnly);
-  fp_ = fdopen(dup(file.handle()), read ? "rb" : "wb");
+  fp_ = fdopen(Platform::DuplicateFd(file.handle()), read ? "rb" : "wb");
 
   auto err = gpgme_data_new_from_stream(&data, fp_);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
@@ -128,7 +127,7 @@ GpgData::~GpgData() {
   }
 
   if (fd_ >= 0) {
-    close(fd_);
+    Platform::CloseFd(fd_);
   }
 }
 

@@ -36,23 +36,10 @@
 #include <array>
 
 #include "core/GFCoreLog.h"
-#include "core/profile/FscryptStorage.h"
 #include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileAreaTraits.h"
-
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-#include <sys/stat.h>
-#include <sys/statfs.h>
-#include <unistd.h>
-#endif
-
-#ifdef Q_OS_MACOS
-#include <sys/xattr.h>
-#endif
-
-#ifdef Q_OS_WINDOWS
-#include <windows.h>
-#endif
+#include "platform/common/FscryptStorage.h"
+#include "platform/common/PlatformFs.h"
 
 namespace GpgFrontend {
 
@@ -91,184 +78,6 @@ auto OwnerOnly() -> QFile::Permissions {
 auto SessionDirIn(const QString &base, const QString &digest) -> QString {
   return QString("%1/gf-%2").arg(base, digest);
 }
-
-#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-
-/// Whether a path is on a filesystem that lives in memory. Reported rather than
-/// assumed: $XDG_RUNTIME_DIR is a tmpfs on every systemd distribution and on
-/// none of them is that a guarantee.
-auto IsRamBackedPath(const QString &path, QString &reason) -> bool {
-  struct statfs info{};
-  if (statfs(path.toLocal8Bit().constData(), &info) != 0) {
-    reason = "this folder could not be examined";
-    return false;
-  }
-
-#ifdef Q_OS_FREEBSD
-  // No magic number here; the name is what there is.
-  if (QLatin1String(info.f_fstypename) != QLatin1String("tmpfs")) {
-    reason = QString("not a memory-backed filesystem (%1)")
-                 .arg(QLatin1String(info.f_fstypename));
-    return false;
-  }
-#else
-  if (!IsRamBackedMagic(static_cast<quint64>(info.f_type))) {
-    reason = "not a memory-backed filesystem";
-    return false;
-  }
-#endif
-
-  return true;
-}
-
-/// Make a base directory private to this user, or refuse one that is not.
-auto ClaimBaseDirectory(const QString &path, QString &reason) -> bool {
-  if (mkdir(path.toLocal8Bit().constData(), 0700) == 0) return true;
-
-  struct stat info{};
-  if (lstat(path.toLocal8Bit().constData(), &info) != 0) {
-    // Not there and not creatable. Usually the parent is root-owned and this
-    // login has no per-user runtime directory at all, which is ordinary inside
-    // a container and worth saying rather than reporting as a mystery.
-    reason = "this folder is not there and could not be created";
-    return false;
-  }
-
-  if (!IsAcceptableOwnership(info.st_uid, info.st_mode,
-                             S_ISLNK(info.st_mode) != 0, geteuid())) {
-    // /dev/shm is world-writable, so something else may already be sitting at
-    // the name this build would pick. Adopting it would hand another local
-    // account a live view of somebody's keys.
-    reason = "a folder of this name is already there and is not private to you";
-    return false;
-  }
-
-  return S_ISDIR(info.st_mode) != 0;
-}
-
-#endif
-
-#ifdef Q_OS_LINUX
-
-/// The nearest ancestor of a path that exists. The interesting candidates have
-/// not been created yet, and the question being asked -- what filesystem is
-/// this -- is answerable about the place they would land.
-auto NearestExistingAncestor(const QString &path) -> QString {
-  auto current = QDir::cleanPath(path);
-
-  while (!current.isEmpty()) {
-    if (QFileInfo::exists(current)) return current;
-
-    const auto cut = current.lastIndexOf('/');
-    if (cut <= 0) return QStringLiteral("/");
-    current.truncate(cut);
-  }
-
-  return {};
-}
-
-/// Whether the filesystem a path would land on is one that implements fscrypt.
-///
-/// A pre-filter and not the answer: the feature is per-superblock, so an ext4
-/// here still has to be asked properly. What it settles cheaply is the common
-/// case -- a temporary directory on a tmpfs, which cannot carry a policy at all
-/// -- without opening or creating anything.
-auto IsFscryptCapableOrigin(const QString &path, QString &reason) -> bool {
-  const auto origin = NearestExistingAncestor(path);
-  if (origin.isEmpty()) {
-    reason = "this folder could not be examined";
-    return false;
-  }
-
-  struct statfs info{};
-  if (statfs(origin.toLocal8Bit().constData(), &info) != 0) {
-    reason = "this folder could not be examined";
-    return false;
-  }
-
-  if (!IsFscryptCapableMagic(static_cast<quint64>(info.f_type))) {
-    reason = "this filesystem cannot encrypt folders";
-    return false;
-  }
-
-  return true;
-}
-
-#endif
-
-#ifdef Q_OS_WINDOWS
-
-/// Ask NTFS to encrypt everything created inside a directory from here on.
-///
-/// Applied to the directory while it is still empty, which is exactly the
-/// provision-then-extract order: a directory-level encrypt marks it so newly
-/// created files inherit encryption.
-///
-/// Verified by reading the attribute back rather than trusting the return
-/// value, and then by creating a file and asking about that. A driver that
-/// claims an encryption it did not get is worse than one that admits it has
-/// none.
-auto EncryptDirectory(const QString &path, QString &reason) -> bool {
-  const auto native = QDir::toNativeSeparators(path).toStdWString();
-
-  if (EncryptFileW(native.c_str()) == 0) {
-    reason = "this volume or edition does not support file encryption";
-    return false;
-  }
-
-  const auto attributes = GetFileAttributesW(native.c_str());
-  if (attributes == INVALID_FILE_ATTRIBUTES ||
-      (attributes & FILE_ATTRIBUTE_ENCRYPTED) == 0) {
-    reason = "file encryption was accepted but did not take effect";
-    return false;
-  }
-
-  // The directory's own attribute says only that files created here should
-  // inherit encryption. It is not a statement about any file, and the claim
-  // this makes to the user -- that what lands here is unreadable to anyone
-  // else -- is entirely about the files. So one is created and asked.
-  //
-  // The case this catches is not hypothetical: inheritance is what fails when
-  // the account has no usable EFS certificate, and the directory keeps its
-  // attribute either way. Without this, that machine would be told its keys
-  // were in an encrypted folder while every file in it was plaintext.
-  const auto probe = path + "/.gf-encryption-probe";
-
-  QFile file(probe);
-  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    reason = "this folder could not be written to";
-    return false;
-  }
-  file.write("probe");
-  file.close();
-
-  const auto probe_native = QDir::toNativeSeparators(probe).toStdWString();
-  const auto probe_attributes = GetFileAttributesW(probe_native.c_str());
-
-  // Removed whatever the answer: it has served its purpose, and leaving a file
-  // behind in a directory whose emptiness the caller relies on is its own bug.
-  QFile::remove(probe);
-
-  if (probe_attributes == INVALID_FILE_ATTRIBUTES ||
-      (probe_attributes & FILE_ATTRIBUTE_ENCRYPTED) == 0) {
-    reason = "files created in this folder are not encrypted";
-    return false;
-  }
-
-  return true;
-}
-
-void MarkTemporaryAndUnindexed(const QString &path) {
-  const auto native = QDir::toNativeSeparators(path).toStdWString();
-  auto attributes = GetFileAttributesW(native.c_str());
-  if (attributes == INVALID_FILE_ATTRIBUTES) return;
-
-  // TEMPORARY is a hint to the cache manager to avoid flushing, not a promise.
-  attributes |= FILE_ATTRIBUTE_TEMPORARY | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
-  SetFileAttributesW(native.c_str(), attributes);
-}
-
-#endif  // Q_OS_WINDOWS
 
 auto ProbeFreeBytes(const QString &path) -> qint64 {
   QStorageInfo storage(path);
@@ -349,7 +158,7 @@ auto ProtectedFsProfileAccessor::Provision(const QString &digest,
 #ifdef Q_OS_WINDOWS
   if (plan.driver == QLatin1String(kDriverEfs)) {
     QString reason;
-    if (!EncryptDirectory(root, reason)) {
+    if (!Platform::EncryptDirectory(root, reason)) {
       // The protection did not happen, so the claim must not be made. Reported
       // as an ordinary temporary folder rather than refused outright: it is
       // still better than the profiles folder, and saying so honestly is the
@@ -545,26 +354,7 @@ void HardenStorageDirectory(const QString &path) {
     nobackup.close();
   }
 
-#ifdef Q_OS_MACOS
-  // Spotlight reads this one; Time Machine reads the extended attribute. Not
-  // CSBackupSetItemExcluded(), which would pull in CoreServices for no gain.
-  QFile never_index(path + "/.metadata_never_index");
-  if (never_index.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    never_index.close();
-  }
-
-  const auto native = path.toLocal8Bit();
-  const char kExcluded = 1;
-  setxattr(native.constData(),
-           "com.apple.metadata:com_apple_backup_excludeItem", &kExcluded,
-           sizeof(kExcluded), 0, 0);
-#endif
-
-#ifdef Q_OS_WINDOWS
-  // POSIX owner-only permissions mean nothing on NTFS, so the attributes carry
-  // what they can and the ACL is left to the directory's inherited default.
-  MarkTemporaryAndUnindexed(path);
-#endif
+  Platform::ExcludeFromIndexAndBackup(path);
 }
 
 void ScrubDirectory(const QString &path) {
@@ -672,7 +462,7 @@ auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
   // existing ancestor is.
 #ifdef Q_OS_LINUX
   if (!base.isEmpty() && QDir::isAbsolutePath(base)) {
-    base = NearestExistingAncestor(base);
+    base = Platform::NearestExistingAncestor(base);
   }
 #endif
 
@@ -708,7 +498,7 @@ auto ProbeStorageCandidates(qint64 budget_bytes, const QString &anchor)
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
   const auto bases = VolatileStoreSearchPaths(
       qEnvironmentVariable("XDG_RUNTIME_DIR"),
-      qEnvironmentVariable(kProfileStorageDirEnv), geteuid());
+      qEnvironmentVariable(kProfileStorageDirEnv), Platform::EffectiveUserId());
 
   for (const auto &base : bases) {
     StorageCandidate candidate;
@@ -718,12 +508,12 @@ auto ProbeStorageCandidates(qint64 budget_bytes, const QString &anchor)
 
     // Claimed before it is examined, because the interesting candidates do not
     // exist yet: /dev/shm/gpgfrontend-<uid> is ours to make.
-    if (!ClaimBaseDirectory(base, candidate.reason)) {
+    if (!Platform::ClaimPrivateDirectory(base, candidate.reason)) {
       candidates << candidate;
       continue;
     }
 
-    if (!IsRamBackedPath(base, candidate.reason)) {
+    if (!Platform::IsRamBackedPath(base, candidate.reason)) {
       candidates << candidate;
       continue;
     }
@@ -751,9 +541,9 @@ auto ProbeStorageCandidates(qint64 budget_bytes, const QString &anchor)
     candidate.driver = kDriverFscrypt;
     candidate.is_encrypted_at_rest = true;
 
-    const auto bases =
-        EncryptableStoreSearchPaths(qEnvironmentVariable(kProfileStorageDirEnv),
-                                    QDir::tempPath(), geteuid());
+    const auto bases = EncryptableStoreSearchPaths(
+        qEnvironmentVariable(kProfileStorageDirEnv), QDir::tempPath(),
+        Platform::EffectiveUserId());
 
     for (const auto &base : bases) {
       candidate.path = base;
@@ -762,9 +552,9 @@ auto ProbeStorageCandidates(qint64 budget_bytes, const QString &anchor)
       // The cheap answer first, on whatever part of the path already exists:
       // a temporary folder on a tmpfs is the common case and is settled here
       // without creating anything.
-      if (!IsFscryptCapableOrigin(base, candidate.reason)) continue;
+      if (!Platform::IsFscryptCapableOrigin(base, candidate.reason)) continue;
 
-      if (!ClaimBaseDirectory(base, candidate.reason)) continue;
+      if (!Platform::ClaimPrivateDirectory(base, candidate.reason)) continue;
 
       // Asked again on the directory that was created, because the first
       // answer was about an ancestor and the two can be different mounts.

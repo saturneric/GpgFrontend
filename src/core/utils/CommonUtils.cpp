@@ -31,6 +31,7 @@
 #include <sodium.h>
 
 #include "core/module/ModuleManager.h"
+#include "platform/common/PlatformEnv.h"
 
 namespace GpgFrontend {
 
@@ -218,47 +219,9 @@ auto ResolveLayeredValue(const QVariant& env_value, const QVariant& user_value,
   return fallback;
 }
 
-#ifdef APPLE_SANDBOX
-
-#include <CoreFoundation/CoreFoundation.h>
-#include <Security/Security.h>
-
 auto IsRunningInAppSandbox() -> bool {
-  SecTaskRef task = SecTaskCreateFromSelf(kCFAllocatorDefault);
-  if (task == nullptr) {
-    LOG_W() << "SecTaskCreateFromSelf failed, cannot determine if running in "
-               "app sandbox. Assuming not running in sandbox.";
-    return false;
-  }
-
-  CFTypeRef value = SecTaskCopyValueForEntitlement(
-      task, CFSTR("com.apple.security.app-sandbox"), nullptr);
-
-  CFRelease(task);
-
-  if (value == nullptr) {
-    LOG_W() << "SecTaskCopyValueForEntitlement failed, cannot determine if "
-               "running in app sandbox. Assuming not running in sandbox.";
-    return false;
-  }
-
-  bool result = false;
-
-  if (CFGetTypeID(value) == CFBooleanGetTypeID()) {
-    result = CFBooleanGetValue(static_cast<CFBooleanRef>(value));
-  }
-
-  LOG_D() << "Running in app sandbox: " << result;
-
-  CFRelease(value);
-  return result;
+  return Platform::IsRunningInAppSandbox();
 }
-
-#else
-
-auto IsRunningInAppSandbox() -> bool { return false; }
-
-#endif
 
 auto IsRunningInSandBox() -> bool {
   return IsFlatpakENV() || IsRunningInAppSandbox();

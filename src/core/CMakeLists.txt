@@ -44,6 +44,10 @@ aux_source_directory(. CORE_SOURCE)
 # register core
 register_library(core LIBRARY_TARGET ${CORE_SOURCE})
 
+# the operating-system half of core, picked per platform
+include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
+target_sources(${LIBRARY_TARGET} PRIVATE ${GF_PLATFORM_CORE_SOURCES})
+
 target_compile_definitions(${LIBRARY_TARGET} PUBLIC
   $<$<CONFIG:Debug>:GF_BUILD_DEBUG=1>
   $<$<CONFIG:RelWithDebInfo>:GF_BUILD_RELWITHDEBINFO=1>
@@ -113,7 +117,8 @@ target_compile_definitions(${LIBRARY_TARGET} PRIVATE HAS_RUST_SUPPORT)
 if(MINGW)
   # bcypt uuid generation
   target_link_libraries(${LIBRARY_TARGET} PRIVATE "-lbcrypt")
-  # ImageGetDigestStream, for the Authenticode digest in ModuleEntryBinding
+  # ImageGetDigestStream, for the Authenticode digest in
+  # platform/windows/WinModule.cpp
   target_link_libraries(${LIBRARY_TARGET} PRIVATE imagehlp)
 endif()
 

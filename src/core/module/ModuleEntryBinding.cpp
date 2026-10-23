@@ -28,19 +28,6 @@
 
 #include "core/module/ModuleEntryBinding.h"
 
-#if defined(Q_OS_WINDOWS)
-// <windows.h> before <imagehlp.h>: the latter is not self-contained. Both are
-// only needed for the Authenticode image digest, which is the one value here
-// the operating system computes rather than this file.
-#include <windows.h>
-// clang-format off
-#include <imagehlp.h>
-// clang-format on
-#else
-#include <sys/stat.h>
-#endif
-
-#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -50,6 +37,8 @@
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/module/ModuleLoadStats.h"
+#include "platform/common/PlatformFs.h"
+#include "platform/common/PlatformModule.h"
 
 namespace GpgFrontend::Module {
 
@@ -319,81 +308,24 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
 }
 
 auto CaptureModuleFileIdentity(const QString& path) -> ModuleFileIdentity {
+  const auto stamp = Platform::StatRegularFile(path);
+
   ModuleFileIdentity id;
-#if defined(Q_OS_WINDOWS)
-  const QFileInfo info(path);
-  if (!info.exists() || !info.isFile()) return id;
-  id.size = info.size();
-  id.modified_ms =
-      info.fileTime(QFileDevice::FileModificationTime).toMSecsSinceEpoch();
-#else
-  struct stat st{};
-  if (::stat(QFile::encodeName(path).constData(), &st) != 0 ||
-      !S_ISREG(st.st_mode)) {
-    return id;
-  }
-  id.size = static_cast<qint64>(st.st_size);
-#if defined(Q_OS_MACOS)
-  id.modified_ms = static_cast<qint64>(st.st_mtimespec.tv_sec) * 1000 +
-                   st.st_mtimespec.tv_nsec / 1000000;
-#else
-  id.modified_ms = static_cast<qint64>(st.st_mtim.tv_sec) * 1000 +
-                   st.st_mtim.tv_nsec / 1000000;
-#endif
-  id.file_id = static_cast<quint64>(st.st_ino);
-#endif
+  id.size = stamp.size;
+  id.modified_ms = stamp.modified_ms;
+  id.file_id = stamp.file_id;
   return id;
 }
 
-namespace {
-
-#if defined(Q_OS_WINDOWS)
-/// Receives the image bytes ImageGetDigestStream() decides are covered.
-auto WINAPI PeDigestSink(DIGEST_HANDLE handle, PBYTE data, DWORD length)
-    -> BOOL {
-  auto* hash = reinterpret_cast<QCryptographicHash*>(handle);
-  hash->addData(QByteArray(reinterpret_cast<const char*>(data),
-                           static_cast<qsizetype>(length)));
-  return TRUE;
-}
-#endif
-
-}  // namespace
-
 auto PeAuthenticodeDigestOfFile(const QString& path, QString& reason)
     -> QString {
-#if defined(Q_OS_WINDOWS)
-  const auto handle = CreateFileW(
-      reinterpret_cast<const wchar_t*>(path.utf16()), GENERIC_READ,
-      FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-  if (handle == INVALID_HANDLE_VALUE) {
-    reason = QString("\"%1\" could not be opened to hash it").arg(path);
-    return {};
-  }
-
-  QCryptographicHash hash(QCryptographicHash::Sha256);
-  // DigestLevel 0: the Authenticode image digest. The CERT_PE_IMAGE_DIGEST_*
-  // flags widen it to cover debug info, resources and import tables, none of
-  // which Authenticode includes.
-  const auto ok = ImageGetDigestStream(handle, 0, PeDigestSink, &hash);
-  CloseHandle(handle);
-
-  if (ok == FALSE) {
-    reason = QString("\"%1\" is not a PE image this can hash").arg(path);
-    return {};
-  }
-  return QString::fromLatin1(hash.result().toHex());
-#else
-  Q_UNUSED(path)
-  // Unreachable in production: a descriptor declaring `windows` is refused on
+  // The digest is the one value here the operating system computes rather
+  // than this file. Off Windows the platform layer refuses, which is
+  // unreachable in production: a descriptor declaring `windows` is refused on
   // another platform by the platform check, long before a binding is
   // computed. Refusing rather than guessing keeps that true if it ever stops
   // being.
-  reason =
-      "a PE image digest can only be computed on Windows, where the operating "
-      "system provides it";
-  return {};
-#endif
+  return Platform::PeImageDigestSha256(path, reason);
 }
 
 auto ComputeEntryVerificationValue(ModuleEntryVerificationMode mode,
