@@ -1,0 +1,13 @@
+# The single source of the Qt 6 version CI builds against. Every workflow
+# installs Qt 6 through this action, so bump the version here and only here.
+# Qt 5 (build-qt5.yml) and the MSYS2-packaged Qt on Windows are separate.
+name: Install Qt6
+description: Install the Qt 6 version GpgFrontend is built against.
+
+runs:
+  using: composite
+  steps:
+    - uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+      with:
+        version: "6.11.3"
+        cache: "true"

@@ -177,10 +177,7 @@ jobs:
           key: mas-${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
 
       - name: Install Qt6
-        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
-        with:
-          version: "6.10.3"
-          cache: "true"
+        uses: ./.github/actions/install-qt6
 
       - name: Install Dependence
         run: |

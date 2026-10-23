@@ -112,10 +112,7 @@ jobs:
         if: matrix.language == 'cpp'
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: "6.7.2"
-          cache: "true"
+        uses: ./.github/actions/install-qt6
         if: matrix.language == 'cpp'
 
       - name: Build GpgFrontend (Linux)
