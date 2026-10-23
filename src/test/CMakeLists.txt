@@ -43,7 +43,7 @@ register_library(test LIBRARY_TARGET ${TEST_SOURCE})
 # and start writing to the developer's own keyring.
 if(UNIX AND NOT APPLE)
   target_sources(${LIBRARY_TARGET} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/platform/LibSecretSearchPath.cpp)
+    ${CMAKE_SOURCE_DIR}/src/platform/linux/LibSecretSearchPath.cpp)
 endif()
 
 # Where CMake actually writes the module key list, and how many modules it

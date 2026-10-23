@@ -37,10 +37,10 @@
 #include <unistd.h>
 #endif
 
-#include "core/profile/FscryptStorage.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileStoragePlan.h"
 #include "core/profile/ProtectedFsProfileAccessor.h"
+#include "platform/common/FscryptStorage.h"
 
 namespace GpgFrontend::Test {
 
