@@ -30,7 +30,6 @@
 
 #include <QFileDialog>
 #include <QInputDialog>
-#include <QProcess>
 #include <QUuid>
 #include <algorithm>
 
@@ -47,6 +46,7 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "platform/common/PlatformRelaunch.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/SecretPrompt.h"
@@ -54,7 +54,6 @@
 #include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
-#include "ui/platform/PlatformRelaunch.h"
 
 namespace GpgFrontend::UI {
 
@@ -88,20 +87,13 @@ auto Launch(const QStringList& args) -> ProfileLaunchResult {
   ProfileLaunchResult result;
   LOG_I() << "opening a new window with args" << args;
 
-#ifdef Q_OS_MACOS
-  // A bundled application is launched through the workspace, not by running the
-  // executable: that is what gives the new instance its own Dock entry and
-  // activation, and it is already how the deep restart comes back.
-  if (!RelaunchApplication(args)) {
+  // On macOS a bundled application is launched through the workspace, not by
+  // running the executable: that is what gives the new instance its own Dock
+  // entry and activation, and it is already how the deep restart comes back.
+  if (!RelaunchApplication(QCoreApplication::applicationFilePath(), args)) {
     result.status = ProfileLaunchStatus::kFAILED;
     result.detail = QObject::tr("The new window could not be started.");
   }
-#else
-  if (!QProcess::startDetached(QCoreApplication::applicationFilePath(), args)) {
-    result.status = ProfileLaunchStatus::kFAILED;
-    result.detail = QObject::tr("The new window could not be started.");
-  }
-#endif
   return result;
 }
 
