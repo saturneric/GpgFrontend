@@ -1736,6 +1736,57 @@ TEST(KeyDatabaseResourceTest, AMissingDirectoryIsOnlyCleanedUp) {
             KeyDatabasePhysicalLocation(root.path() + "/b"));
 }
 
+TEST(KeyDatabaseResourceTest, ExpandingAPathCreatesNothing) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+
+  const auto missing = root.path() + "/not/yet/there";
+  const auto expanded = ExpandKeyDatabasePath(QDir(root.path()), missing);
+  EXPECT_EQ(expanded, QDir::cleanPath(missing));
+  EXPECT_FALSE(QFileInfo::exists(missing)) << "previewing a path created it";
+
+  // A relative one is anchored, still without being made.
+  EXPECT_EQ(ExpandKeyDatabasePath(QDir(root.path()), "rel/db"),
+            QDir::cleanPath(root.path() + "/rel/db"));
+  EXPECT_FALSE(QFileInfo::exists(root.path() + "/rel"));
+}
+
+TEST(KeyDatabaseResourceTest, AnExistingFolderIsExpandedToWhatIsOpened) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("db"));
+
+  // The spelling a context records once it has opened the folder.
+  EXPECT_EQ(ExpandKeyDatabasePath(QDir(root.path()), root.path() + "/./db"),
+            QFileInfo(root.path() + "/db").canonicalFilePath());
+}
+
+TEST_F(GFCoreTest, TheBuiltInLocationIsWhereReconcilingPutsIt) {
+  // The page shows where the built-in database is opened. Reconciling points
+  // the stored entry there (AdoptLocalDefaultKeyDatabase), whichever engine
+  // opens it.
+  const auto stored = BuiltInKeyDatabaseStoredPath();
+  ASSERT_FALSE(stored.isEmpty());
+
+  const auto candidate = DefaultKeyDatabaseCandidate();
+  if (!candidate.path.isEmpty()) {
+    EXPECT_EQ(stored, candidate.path);
+  }
+
+  for (const auto* backend : {"gnupg", "rpgp"}) {
+    KeyDatabaseItemSO builtin;
+    builtin.id = kDefaultKeyDatabaseId;
+    builtin.name = kDefaultKeyDatabaseName;
+    builtin.kind = KeyDatabaseKind::kDEFAULT;
+    builtin.backend_type = backend;
+    builtin.path = "/elsewhere";
+    const auto adopted =
+        AdoptLocalDefaultKeyDatabase({builtin}, stored, candidate.backend_type);
+    ASSERT_EQ(adopted.size(), 1);
+    EXPECT_EQ(adopted.front().path, stored) << backend;
+  }
+}
+
 TEST(KeyDatabaseResourceTest, TwoSpellingsOfOneDirectoryAreOneLocation) {
   QTemporaryDir root;
   ASSERT_TRUE(root.isValid());
