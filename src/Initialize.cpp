@@ -46,8 +46,8 @@
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "platform/common/PlatformRelaunch.h"
 #include "ui/GpgFrontendUIInit.h"
-#include "ui/platform/PlatformRelaunch.h"
 
 // main
 #include "Application.h"
@@ -55,18 +55,6 @@
 #include "GpgFrontendContext.h"
 
 namespace GpgFrontend {
-
-#ifdef Q_OS_WINDOWS
-int setenv(const char *name, const char *value, int overwrite) {
-  if (!overwrite) {
-    int errcode = 0;
-    size_t envsize = 0;
-    errcode = getenv_s(&envsize, NULL, 0, name);
-    if (errcode || envsize) return errcode;
-  }
-  return _putenv_s(name, value);
-}
-#endif
 
 namespace {}  // namespace
 
@@ -128,10 +116,9 @@ void InitGlobalPathEnv() {
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
     QString path_value = getenv("PATH");
 
-    setenv("PATH",
-           (QDir(custom_gnupg_install_path).absolutePath() + ":" + path_value)
-               .toUtf8(),
-           1);
+    qputenv("PATH",
+            (QDir(custom_gnupg_install_path).absolutePath() + ":" + path_value)
+                .toUtf8());
     QString modified_path_value = getenv("PATH");
   }
 
@@ -290,11 +277,7 @@ void PerformDeepRestartRelaunch() {
 
   if (g_relaunch_program.isEmpty()) return;
 
-#ifdef Q_OS_MACOS
-  GpgFrontend::UI::RelaunchApplication(g_relaunch_args);
-#else
-  QProcess::startDetached(g_relaunch_program, g_relaunch_args);
-#endif
+  GpgFrontend::UI::RelaunchApplication(g_relaunch_program, g_relaunch_args);
 }
 
 /**

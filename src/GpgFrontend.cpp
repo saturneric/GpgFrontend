@@ -42,7 +42,7 @@
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
-#include "platform/PlatformSecretStore.h"
+#include "platform/common/PlatformSecretStore.h"
 #include "res/GpgFrontendResource.h"
 #include "sdk/host/GFHostImpl.h"
 #include "ui/function/GuiProfileLoaderDelegate.h"

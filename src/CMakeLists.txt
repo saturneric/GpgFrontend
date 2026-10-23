@@ -365,21 +365,16 @@ target_link_libraries(${APP_NAME} gf_host_api)
 # link OpenSSL for secure mechanism
 target_link_libraries(${APP_NAME} sodium)
 
-# Compiles to nothing on platforms that ship a real backend below.
-target_sources(${APP_NAME} PRIVATE platform/StubSecretStore.cpp)
+# the system keychain backends, picked per platform
+include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
+target_sources(${APP_NAME} PRIVATE ${GF_PLATFORM_APP_SOURCES})
 
 if(MINGW OR WIN32)
   message(STATUS "Link Application Library For Windows")
-  target_sources(${APP_NAME} PRIVATE platform/WinSecretStore.cpp)
   # Advapi32 provides the Credential Manager API (CredReadW and friends).
   target_link_libraries(${APP_NAME} Advapi32)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
-  # The NSWorkspace relaunch used to live here; it is now built into gf_ui,
-  # which is what calls it -- see src/ui/CMakeLists.txt.
-  target_sources(${APP_NAME} PRIVATE
-    platform/MacSecretStore.cpp
-  )
   find_library(SECURITY_FRAMEWORK Security REQUIRED)
   find_library(COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
   target_link_libraries(${APP_NAME}
@@ -389,9 +384,6 @@ elseif(APPLE)
 else()
   message(STATUS "Link Application Library For Linux")
   # libsecret is resolved at runtime through QLibrary, so nothing to link.
-  target_sources(${APP_NAME} PRIVATE
-    platform/LinuxSecretStore.cpp
-    platform/LibSecretSearchPath.cpp)
   target_link_libraries(${APP_NAME} pthread)
 endif()
 
