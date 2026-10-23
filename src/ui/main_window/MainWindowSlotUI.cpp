@@ -820,7 +820,8 @@ void MainWindow::slot_update_engine_status() {
       OpenPGPContext::GetInstance(m_key_list_->GetCurrentGpgContextChannel());
 
   status_indicator_bar_->SetEngine(DescribeEngineIndicator(
-      ctx.Engine(), ctx.EngineVersion(), ctx.KeyDBName(), ctx.KeyDBPath()));
+      ctx.Engine(), ctx.EngineVersion(),
+      KeyDatabaseDisplayName(ctx.KeyDBId(), ctx.KeyDBName()), ctx.KeyDBPath()));
 }
 
 }  // namespace GpgFrontend::UI

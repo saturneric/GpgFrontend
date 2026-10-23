@@ -361,10 +361,9 @@ void KeyDatabaseEditDialog::slot_button_box_accepted() {
   // goes by name, and would take the default engine along with the identity.
   // There is no mode here that can produce it -- it is a checkbox in settings.
   if (IsReservedKeyDatabaseName(name_)) {
-    slot_show_err_msg(tr("\"%1\" is the name of the key database GpgFrontend "
-                         "derives from your OpenPGP engine. Turn that one on "
-                         "with the checkbox in Key Database settings, or pick "
-                         "another name.")
+    slot_show_err_msg(tr("\"%1\" is reserved for the Built-in Key Database. "
+                         "Turn that one on in its section of the Key "
+                         "Databases settings, or pick another name.")
                           .arg(name_));
     return;
   }

@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgAttributeHelper.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/keypair_details/KeyPairDetailTab.h"
 #include "ui/dialog/keypair_details/KeyPairOperaTab.h"
@@ -134,10 +135,9 @@ void KeyDetailsDialog::update_title() {
     return;
   }
 
-  setWindowTitle(QString("%1 (%2  ·  %3)")
+  setWindowTitle(QString("%1 (%2)")
                      .arg(tr("Key Details"))
-                     .arg(info.name)
-                     .arg(KeyDatabaseDisplayId(info.database_id)));
+                     .arg(KeyDatabaseDisplayName(info.database_id, info.name)));
 }
 
 }  // namespace GpgFrontend::UI

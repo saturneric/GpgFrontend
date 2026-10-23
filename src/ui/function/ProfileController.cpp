@@ -46,6 +46,7 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "platform/common/PlatformRelaunch.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 #include "ui/dialog/MetaListDialog.h"
@@ -203,7 +204,10 @@ void FinishImport(QWidget* parent, const QString& package_path,
     // rather than once per database: the fix is the same for all of them.
     rows.append(
         {.caption = QObject::tr("Keys"),
-         .value = QObject::tr("\"%1\" is unavailable").arg(database.name),
+         // A manifest entry records no id; the built-in database is never
+         // packed as external, so the name alone tells them apart here.
+         .value = QObject::tr("\"%1\" is unavailable")
+                      .arg(KeyDatabaseDisplayName({}, database.name)),
          .detail = QObject::tr(
              "It pointed at keys kept outside the profile, which do not "
              "travel. Point it somewhere on this computer to use it."),

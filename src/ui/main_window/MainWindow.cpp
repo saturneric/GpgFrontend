@@ -518,7 +518,9 @@ auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
 
     if (!key_db.valid || !is_active) {
       invalid_count++;
-      details += tr("Name: %1").arg(key_db.name) + "\n" +
+      details += tr("Name: %1").arg(KeyDatabaseDisplayName(key_db.id,
+                                                           key_db.name)) +
+                 "\n" +
                  tr("Path: %1").arg(key_db.origin_path) + "\n\n";
     }
   }

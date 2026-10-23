@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/KeyDatabaseInfo.h"
+#include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend::UI {
 
@@ -95,5 +96,35 @@ auto GF_UI_EXPORT KeyDatabaseDisplayPath(const QString& path,
  * @return the id to show, or a dash for a database that has none yet
  */
 auto GF_UI_EXPORT KeyDatabaseDisplayId(const QString& id) -> QString;
+
+/**
+ * @brief What the built-in key database is, given the engine that opens it.
+ *
+ * Said of the engine it is actually opened with, which is what the core
+ * decides (ChooseChannelZeroEngine), not only what was asked for.
+ *
+ * @param engine the engine
+ * @return a translated, user-facing sentence
+ */
+auto GF_UI_EXPORT BuiltInKeyDatabaseEngineDescription(OpenPGPEngine engine)
+    -> QString;
+
+/**
+ * @brief How a key database is offered wherever one is picked from a list.
+ *
+ * Its name, the engine that opens it, and "Default" once when it holds that
+ * role -- nothing more. The id stays out: names are unique, and the id of the
+ * built-in database reads "default", which beside the role said it twice.
+ *
+ * @param database_id the database's id, possibly empty
+ * @param stored_name the database's stored name
+ * @param engine the engine that opens it, empty to leave it out
+ * @param is_default whether it is the default one
+ * @return a translated, user-facing label
+ */
+auto GF_UI_EXPORT KeyDatabaseChoiceLabel(const QString& database_id,
+                                         const QString& stored_name,
+                                         const QString& engine,
+                                         bool is_default) -> QString;
 
 }  // namespace GpgFrontend::UI

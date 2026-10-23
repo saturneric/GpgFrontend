@@ -75,7 +75,17 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
   const auto profile_root = GetGSS().GetAppDataPath();
   const auto kind = ClassifyKeyDatabase(info.name, info.path, profile_root);
 
-  auto text = QString("<b>%1</b>").arg(info.name.toHtmlEscaped());
+  auto text = QString("<b>%1</b>").arg(
+      KeyDatabaseDisplayName(info.id, info.name).toHtmlEscaped());
+
+  // The role, in words: which one is the default is not the same question as
+  // which one is built in, and it can change without the name changing.
+  if (info.channel == DefaultChannelHandle()) {
+    text += QString("<br/>%1").arg(
+        QObject::tr("Default: used when an operation does not explicitly "
+                    "select a key database.")
+            .toHtmlEscaped());
+  }
 
   // The kind gets a line to itself. Run together with the engine and id it
   // wrapped mid-phrase at the tooltip's own width, which broke the one sentence
@@ -87,11 +97,17 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
 
   // The id, not the channel: the channel is only where this run opened it,
   // and changes whenever the key databases are applied.
-  text += QString("<br/>%1 · %2")
-              .arg(engine.toUpper().toHtmlEscaped(),
-                   QObject::tr("ID %1")
-                       .arg(KeyDatabaseDisplayId(info.id))
-                       .toHtmlEscaped());
+  // The built-in database's id is "default", which reads as the role rather
+  // than as an identity; its name already says which one it is.
+  if (IsBuiltInKeyDatabase(info.id, info.name)) {
+    text += QString("<br/>%1").arg(engine.toUpper().toHtmlEscaped());
+  } else {
+    text += QString("<br/>%1 · %2")
+                .arg(engine.toUpper().toHtmlEscaped(),
+                     QObject::tr("ID %1")
+                         .arg(KeyDatabaseDisplayId(info.id))
+                         .toHtmlEscaped());
+  }
 
   if (!info.path.isEmpty()) {
     text += QString("<br/><span style=\"color:gray;\">%1</span>")
@@ -665,16 +681,18 @@ void KeyList::init_context_menu() {
 
   for (const auto& key_db_info : key_db_infos) {
     const auto channel = key_db_info.channel;
-    const auto key_db_name = key_db_info.name;
+    // Shown, never compared: what the user knows the database by.
+    const auto key_db_name =
+        KeyDatabaseDisplayName(key_db_info.id, key_db_info.name);
+    const auto is_default = channel == DefaultChannelHandle();
 
     const auto engine = ConvertOpenPGPEngine2String(
         OpenPGPContext::GetInstance(channel).Engine());
 
-    auto* action = new QAction(QString("%1  ·  %2  ·  %3")
-                                   .arg(key_db_name)
-                                   .arg(engine.toUpper())
-                                   .arg(KeyDatabaseDisplayId(key_db_info.id)),
-                               gpg_context_menu);
+    auto* action = new QAction(
+        KeyDatabaseChoiceLabel(key_db_info.id, key_db_info.name, engine,
+                               is_default),
+        gpg_context_menu);
 
     const auto tooltip = BuildKeyDatabaseToolTip(key_db_info, engine);
     action->setToolTip(tooltip);
@@ -682,10 +700,10 @@ void KeyList::init_context_menu() {
     action->setCheckable(true);
     action->setChecked(channel == current_gpg_context_channel_);
 
-    // The derived database, marked the same way the settings table marks it:
-    // it is the one the OpenPGP engine already uses, its name and folder are
-    // not the user's to choose, and a profile has at most one.
-    if (IsReservedKeyDatabaseName(key_db_name)) {
+    // The default one, marked the way the settings page marks it: in words,
+    // above, and in weight. Whichever database holds the role, built in or
+    // not.
+    if (is_default) {
       auto font = action->font();
       font.setBold(true);
       action->setFont(font);
@@ -1076,7 +1094,7 @@ void KeyList::follow_key_database_runtime() {
     emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
         tr("The key database \"%1\" is no longer available; showing the "
            "default one.")
-            .arg(wanted.name),
+            .arg(KeyDatabaseDisplayName(wanted.database_id, wanted.name)),
         8000);
   }
   if (next < 0) return;

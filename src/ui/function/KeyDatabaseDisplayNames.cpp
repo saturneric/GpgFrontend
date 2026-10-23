@@ -42,8 +42,8 @@ auto KeyDatabaseKindDisplayName(KeyDatabaseKind kind, bool packed_directory)
       // database is @profile/db, it travels, and nothing outside the profile
       // can see it.
       return packed_directory
-                 ? QObject::tr("This profile's own default key database")
-                 : QObject::tr("This computer's default key database");
+                 ? QObject::tr("This profile's own built-in key database")
+                 : QObject::tr("This computer's built-in key database");
     case KeyDatabaseKind::kMANAGED:
       return QObject::tr("Kept inside your profile");
     case KeyDatabaseKind::kEXTERNAL:
@@ -79,6 +79,21 @@ auto KeyDatabaseDisplayId(const QString& id) -> QString {
   if (id.isEmpty()) return QStringLiteral("\u2013");
   const auto group = id.indexOf('-');
   return group > 0 ? id.left(group) : id;
+}
+
+auto BuiltInKeyDatabaseEngineDescription(OpenPGPEngine engine) -> QString {
+  return engine == OpenPGPEngine::kGNUPG
+             ? QObject::tr("Uses keys in the GnuPG home directory.")
+             : QObject::tr("Uses the rPGP key database at this location.");
+}
+
+auto KeyDatabaseChoiceLabel(const QString& database_id,
+                            const QString& stored_name, const QString& engine,
+                            bool is_default) -> QString {
+  QStringList parts{KeyDatabaseDisplayName(database_id, stored_name)};
+  if (!engine.isEmpty()) parts.append(engine.toUpper());
+  if (is_default) parts.append(QObject::tr("Default"));
+  return parts.join(QStringLiteral("  ·  "));
 }
 
 }  // namespace GpgFrontend::UI

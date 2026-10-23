@@ -38,6 +38,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/ApplicationRestart.h"
@@ -85,8 +86,11 @@ auto DescribeCoreInitStep(CoreInitStep step, const QString& subject)
     case CoreInitStep::kLOADING_KEY_DATABASE:
       return subject.isEmpty()
                  ? QCoreApplication::tr("Loading key databases...")
+                 // The core reports the stored name; it has no id to give
+                 // here, and a user's database can never be named like the
+                 // built-in one (IsReservedKeyDatabaseName).
                  : QCoreApplication::tr("Loading key database \"%1\"...")
-                       .arg(subject);
+                       .arg(KeyDatabaseDisplayName({}, subject));
     case CoreInitStep::kSCANNING_MODULES:
       return QCoreApplication::tr("Scanning modules...");
     case CoreInitStep::kVERIFYING_MODULES:

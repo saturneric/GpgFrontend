@@ -158,7 +158,8 @@ MoveKeyToCardPicker::MoveKeyToCardPicker(QWidget* parent)
   // key databases while this is open gives every database a new channel.
   for (const auto& db : databases) {
     db_combo_->addItem(
-        QString("%1  ·  %2").arg(db.name).arg(KeyDatabaseDisplayId(db.id)),
+        KeyDatabaseChoiceLabel(db.id, db.name, {},
+                               db.channel == DefaultChannelHandle()),
         db.id);
   }
   const auto current_db =

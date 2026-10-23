@@ -42,6 +42,7 @@
 #include "ui/function/KeyGenerateHelper.h"
 
 //
+#include "core/function/openpgp/ChannelHandle.h"
 #include "ui/function/KeyDatabaseDisplayNames.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui_KeyGenDialog.h"
@@ -460,13 +461,11 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertOpenPGPEngine2String(
         OpenPGPContext::GetInstance(key_db.channel).Engine());
-    // Labelled the way the key list's database menu is: the channel is only
-    // where this run opened the database, so the id is shown instead.
-    ui_->keyDBIndexComboBox->addItem(QString("%1  ·  %2  ·  %3")
-                                         .arg(key_db.name)
-                                         .arg(bnd_type.toUpper())
-                                         .arg(KeyDatabaseDisplayId(key_db.id)),
-                                     key_db.channel);
+    // Labelled the way the key list's database menu is.
+    ui_->keyDBIndexComboBox->addItem(
+        KeyDatabaseChoiceLabel(key_db.id, key_db.name, bnd_type,
+                               key_db.channel == DefaultChannelHandle()),
+        key_db.channel);
   }
   const int key_db_combo_index = ui_->keyDBIndexComboBox->findData(channel);
   ui_->keyDBIndexComboBox->setCurrentIndex(
