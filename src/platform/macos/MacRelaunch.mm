@@ -30,6 +30,7 @@
 
 #ifdef Q_OS_MACOS
 
+#include <QString>
 #include <QStringList>
 #include <QDebug>
 
@@ -40,14 +41,16 @@
 // the target's hidden default visibility, leaving the application unable to
 // link against it.
 #include "GFUiExport.h"
-#include "ui/platform/PlatformRelaunch.h"
+#include "platform/common/PlatformRelaunch.h"
 
 #import <AppKit/AppKit.h>
 
 namespace GpgFrontend::UI {
 
 // NOLINTNEXTLINE
-GF_UI_EXPORT bool RelaunchApplication(const QStringList& arguments) {
+GF_UI_EXPORT bool RelaunchApplication(const QString& program,
+                                      const QStringList& arguments) {
+  Q_UNUSED(program)
   @autoreleasepool {
     NSURL* bundle_url = [[NSBundle mainBundle] bundleURL];
     if (bundle_url == nil) {

@@ -28,6 +28,12 @@
 
 #pragma once
 
+// Whether this build carries the fscrypt backend. Shared by the backend and
+// the portable answers so both translation units agree on which one is live.
+#if defined(Q_OS_LINUX) && __has_include(<linux/fscrypt.h>)
+#define GF_HAS_FSCRYPT 1
+#endif
+
 namespace GpgFrontend {
 
 /// Length of the key identifier the kernel derives from a master key. The

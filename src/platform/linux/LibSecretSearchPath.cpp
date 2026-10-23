@@ -26,7 +26,7 @@
  *
  */
 
-#include "platform/LibSecretSearchPath.h"
+#include "platform/common/LibSecretSearchPath.h"
 
 #include <QDir>
 

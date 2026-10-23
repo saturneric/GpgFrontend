@@ -26,19 +26,18 @@
  *
  */
 
-#include "core/profile/FscryptStorage.h"
-
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 
 #include "core/GFCoreLog.h"
+#include "platform/common/FscryptStorage.h"
 
-#if defined(Q_OS_LINUX) && __has_include(<linux/fscrypt.h>)
-#define GF_HAS_FSCRYPT 1
-#endif
-
+// The whole file is the fscrypt backend; FscryptStorage.h decides whether this
+// build has one, and platform/common/FscryptStorage.cpp answers when it does
+// not.
 #ifdef GF_HAS_FSCRYPT
+
 #include <fcntl.h>
 #include <linux/fscrypt.h>
 #include <sys/ioctl.h>
@@ -52,13 +51,10 @@
 
 #include "core/function/SecureRandomGenerator.h"
 #include "core/model/GFBuffer.h"
-#endif
 
 namespace GpgFrontend {
 
 namespace {
-
-#ifdef GF_HAS_FSCRYPT
 
 /// A directory file descriptor for the length of a call. Every fscrypt ioctl
 /// takes one, and every early return in here would otherwise leak it.
@@ -334,22 +330,13 @@ auto ProbeSocketBinds(const QString &dir) -> bool {
   return bound;
 }
 
-#endif  // GF_HAS_FSCRYPT
-
 }  // namespace
 
 // ---------------------------------------------------------------- the surface
 
-auto FscryptAvailable() -> bool {
-#ifdef GF_HAS_FSCRYPT
-  return true;
-#else
-  return false;
-#endif
-}
+auto FscryptAvailable() -> bool { return true; }
 
 auto FscryptDirectoryIsUsable(const QString &path, QString &reason) -> bool {
-#ifdef GF_HAS_FSCRYPT
   FdGuard dir(path);
   if (!dir.Ok()) {
     reason = "this folder could not be examined";
@@ -364,16 +351,10 @@ auto FscryptDirectoryIsUsable(const QString &path, QString &reason) -> bool {
   }
 
   return true;
-#else
-  Q_UNUSED(path)
-  reason = "this build has no filesystem encryption support";
-  return false;
-#endif
 }
 
 auto FscryptProvisionDirectory(const QString &dir, QByteArray &identifier,
                                QString &reason) -> bool {
-#ifdef GF_HAS_FSCRYPT
   identifier.clear();
 
   FdGuard handle(dir);
@@ -429,17 +410,10 @@ auto FscryptProvisionDirectory(const QString &dir, QByteArray &identifier,
 
   identifier = minted;
   return true;
-#else
-  Q_UNUSED(dir)
-  identifier.clear();
-  reason = "this build has no filesystem encryption support";
-  return false;
-#endif
 }
 
 auto FscryptRemoveKey(const QString &any_path_on_fs,
                       const QByteArray &identifier, QString &reason) -> bool {
-#ifdef GF_HAS_FSCRYPT
   if (identifier.size() != kFscryptKeyIdentifierSize) {
     reason = "there is no key to remove";
     return false;
@@ -485,45 +459,8 @@ auto FscryptRemoveKey(const QString &any_path_on_fs,
   }
 
   return true;
-#else
-  Q_UNUSED(any_path_on_fs)
-  Q_UNUSED(identifier)
-
-  // Nothing to remove rather than a failure to remove it, for the same reason
-  // as the two errnos above: a build without the entry points never minted a
-  // key and can never evict one, so a caller asking whether anything is left
-  // to clean up is owed "no".
-  reason.clear();
-  return true;
-#endif
-}
-
-auto FscryptIdentifierToHex(const QByteArray &id) -> QString {
-  if (id.size() != kFscryptKeyIdentifierSize) return {};
-  return QString::fromLatin1(id.toHex());
-}
-
-auto FscryptIdentifierFromHex(const QString &hex) -> QByteArray {
-  if (hex.size() != kFscryptKeyIdentifierSize * 2) return {};
-
-  // Every character checked, rather than trusting the length of what comes
-  // back. fromHex() *skips* what it cannot read and pads an odd count, so a
-  // string of the right length with one bad character in it still decodes to a
-  // full-length identifier -- one naming a key nobody minted. This parses a
-  // file on disk and what is done with the result is an eviction, so it has to
-  // refuse rather than approximate.
-  for (const auto c : hex) {
-    const auto ch = c.toLatin1();
-    const auto is_hex_digit = (ch >= '0' && ch <= '9') ||
-                              (ch >= 'a' && ch <= 'f') ||
-                              (ch >= 'A' && ch <= 'F');
-    if (!is_hex_digit) return {};
-  }
-
-  const auto raw = QByteArray::fromHex(hex.toLatin1());
-  if (raw.size() != kFscryptKeyIdentifierSize) return {};
-
-  return raw;
 }
 
 }  // namespace GpgFrontend
+
+#endif  // GF_HAS_FSCRYPT

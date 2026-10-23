@@ -26,27 +26,21 @@
  *
  */
 
-#pragma once
+#include "platform/common/PlatformRelaunch.h"
+
+// macOS relaunches through the workspace instead:
+// platform/macos/MacRelaunch.mm.
+#ifndef Q_OS_MACOS
+
+#include <QProcess>
 
 namespace GpgFrontend::UI {
 
-#ifdef Q_OS_MACOS
-/**
- * @brief Start another instance of this application bundle.
- *
- * macOS only, and implemented against NSWorkspace rather than by running the
- * executable: that is what gives the new instance its own Dock entry and its
- * own activation. Both the deep restart and "open a second window" come back
- * through here.
- *
- * It lives in the UI library rather than beside the application's other
- * platform sources because gf_ui itself calls it, and a library cannot resolve
- * a symbol that only the executable defines.
- *
- * @param arguments arguments for the new instance, argv[0] excluded
- * @return whether the launch was handed to the workspace
- */
-auto GF_UI_EXPORT RelaunchApplication(const QStringList& arguments) -> bool;
-#endif
+auto RelaunchApplication(const QString& program, const QStringList& arguments)
+    -> bool {
+  return QProcess::startDetached(program, arguments);
+}
 
 }  // namespace GpgFrontend::UI
+
+#endif  // Q_OS_MACOS

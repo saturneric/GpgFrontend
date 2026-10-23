@@ -26,23 +26,14 @@
  *
  */
 
-#include "GpgFrontend.h"
+#include "platform/common/PlatformEnv.h"
 
-// Platforms with a credential store provide their own backend; this keeps the
-// application linkable everywhere else, with the feature simply unavailable.
-#if !defined(Q_OS_LINUX) && !defined(Q_OS_FREEBSD) && !defined(Q_OS_MACOS) && \
-    !defined(Q_OS_WINDOWS)
+#ifndef APPLE_SANDBOX
 
-#include "core/function/SystemSecretStore.h"
-#include "platform/PlatformSecretStore.h"
+namespace GpgFrontend::Platform {
 
-namespace GpgFrontend {
+auto IsRunningInAppSandbox() -> bool { return false; }
 
-void InstallPlatformSecretStore() {
-  RegisterSystemSecretStoreUnavailable(
-      QStringLiteral("this platform has no credential store backend"));
-}
+}  // namespace GpgFrontend::Platform
 
-}  // namespace GpgFrontend
-
-#endif
+#endif  // APPLE_SANDBOX

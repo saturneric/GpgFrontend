@@ -38,8 +38,8 @@
 
 #include "core/function/GFBufferFactory.h"
 #include "core/function/SystemSecretStore.h"
-#include "platform/LibSecretSearchPath.h"
-#include "platform/PlatformSecretStore.h"
+#include "platform/common/LibSecretSearchPath.h"
+#include "platform/common/PlatformSecretStore.h"
 
 namespace GpgFrontend {
 

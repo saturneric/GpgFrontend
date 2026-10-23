@@ -34,7 +34,7 @@
 #include <Security/Security.h>
 
 #include "core/function/SystemSecretStore.h"
-#include "platform/PlatformSecretStore.h"
+#include "platform/common/PlatformSecretStore.h"
 
 namespace GpgFrontend {
 
