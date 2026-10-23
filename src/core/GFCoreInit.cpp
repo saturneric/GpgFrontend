@@ -1186,7 +1186,7 @@ void ReopenKeyDatabasesInUse(const QSet<QString>& ids,
     const auto handle = OpenKeyDatabaseOnFreshHandle(key_db, i, is_default,
                                                      generation, options);
     if (handle < 0) {
-      result.unavailable.append(key_db.name);
+      result.unavailable.append(KeyDatabaseDisplayName(key_db.id, key_db.name));
       continue;
     }
     if (is_default) default_handle = handle;
@@ -1226,12 +1226,14 @@ auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
       continue;
     }
 
-    result.unavailable.append(key_db.name);
+    // Shown to the user, under the name the user knows it by.
+    const auto shown = KeyDatabaseDisplayName(key_db.id, key_db.name);
+    result.unavailable.append(shown);
     if (is_default) {
       result.errors.append(
           QCoreApplication::tr("The default key database \"%1\" could not be "
                                "opened.")
-              .arg(key_db.name));
+              .arg(shown));
       return candidate;
     }
   }

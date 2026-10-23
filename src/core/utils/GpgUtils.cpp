@@ -444,6 +444,17 @@ auto ApplyPendingMovesToScan(QContainer<KeyDatabaseItemSO> discovered,
 
 namespace {
 
+/// Where the built-in database goes when the engine names no home: what
+/// MakeDefaultKeyDatabaseItem() stores, without what else it does.
+auto FallbackBuiltInKeyDatabasePath() -> QString {
+  auto home_path = GetGSS().GetAppDataPath() + "/rpgp_db";
+  if (GetGSS().IsSelfContainedProfile()) {
+    home_path =
+        ToProfileRelativeKeyDatabasePath(home_path, GetGSS().GetAppDataPath());
+  }
+  return home_path;
+}
+
 // Build the channel-0 "DEFAULT" key database entry. Its path is derived from
 // the gpgme context (or an app-data fallback), never from a fixed user dir.
 //
@@ -456,9 +467,6 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
 
   LOG_E() << "failed to get default key database path from gpgme context, "
              "fallback to default app data path";
-
-  // this should not happen, but just in case, fallback to app data path
-  auto home_path = GetGSS().GetAppDataPath() + "/rpgp_db";
 
   // since we cannot get default key database path from gpgme context, it's
   // likely that gpgme is not working properly, we should fallback to rpgp --
@@ -476,12 +484,8 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
                             ? QString("gnupg")
                             : QString("rpgp");
 
-  if (GetGSS().IsSelfContainedProfile()) {
-    home_path =
-        ToProfileRelativeKeyDatabasePath(home_path, GetGSS().GetAppDataPath());
-  }
-
-  key_db.path = home_path;
+  // this should not happen, but just in case, fallback to app data path
+  key_db.path = FallbackBuiltInKeyDatabasePath();
   return key_db;
 }
 
@@ -516,6 +520,12 @@ auto ScanSandboxKeyDatabaseDir() -> QContainer<KeyDatabaseItemSO> {
 }
 
 }  // namespace
+
+auto BuiltInKeyDatabaseStoredPath() -> QString {
+  const auto candidate = DefaultKeyDatabaseCandidate();
+  return candidate.path.isEmpty() ? FallbackBuiltInKeyDatabasePath()
+                                  : candidate.path;
+}
 
 // Reconcile the sandbox key database list from the filesystem scan. The
 // filesystem (`discovered`) is authoritative for which user databases exist and
@@ -831,7 +841,10 @@ auto ForeignKeyDatabasePathTail(const QString& stored_path) -> QString {
   return {};
 }
 
-auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
+namespace {
+
+/// The token expanded and a relative path anchored; nothing else.
+auto AnchorKeyDatabasePath(const QDir& app_path, const QString& path)
     -> QString {
   auto target_path = path;
 
@@ -847,9 +860,28 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
 
   if (!QDir::isAbsolutePath(target_path)) {
     target_path = app_path.absoluteFilePath(target_path);
-    LOG_D() << "convert relative path: " << path
-            << "to absolute path: " << target_path;
   }
+  return target_path;
+}
+
+}  // namespace
+
+auto ExpandKeyDatabasePath(const QDir& app_path, const QString& path)
+    -> QString {
+  if (path.isEmpty()) return {};
+  const auto anchored = AnchorKeyDatabasePath(app_path, path);
+  if (anchored.isEmpty()) return {};
+
+  // The spelling a context records once it opens the directory.
+  const QFileInfo info(anchored);
+  if (info.isDir()) return info.canonicalFilePath();
+  return QDir::cleanPath(info.absoluteFilePath());
+}
+
+auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
+    -> QString {
+  const auto target_path = AnchorKeyDatabasePath(app_path, path);
+  if (target_path.isEmpty()) return {};
 
   QFileInfo info(target_path);
 
@@ -1314,6 +1346,20 @@ auto AdoptLocalDefaultKeyDatabase(
 auto IsReservedKeyDatabaseName(const QString& name) -> bool {
   return name.trimmed().compare(QLatin1String(kDefaultKeyDatabaseName),
                                 Qt::CaseInsensitive) == 0;
+}
+
+auto IsBuiltInKeyDatabase(const QString& database_id,
+                          const QString& stored_name) -> bool {
+  if (!database_id.isEmpty()) return database_id == kDefaultKeyDatabaseId;
+  return IsReservedKeyDatabaseName(stored_name);
+}
+
+auto KeyDatabaseDisplayName(const QString& database_id,
+                            const QString& stored_name) -> QString {
+  if (IsBuiltInKeyDatabase(database_id, stored_name)) {
+    return QCoreApplication::tr("Built-in");
+  }
+  return stored_name;
 }
 
 auto ChooseChannelZeroEngine(const QString& db_name,

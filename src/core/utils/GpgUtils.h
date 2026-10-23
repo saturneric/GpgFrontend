@@ -154,6 +154,36 @@ constexpr auto kDefaultKeyDatabaseName = "DEFAULT";
 auto GF_CORE_EXPORT IsReservedKeyDatabaseName(const QString& name) -> bool;
 
 /**
+ * @brief The name a key database is shown under.
+ *
+ * The built-in database is stored as "DEFAULT", a name that reads like the
+ * role of being the default -- which another database can hold. It is shown
+ * as "Built-in" instead; every other database by its own name.
+ *
+ * Told apart by its id, which only the built-in database can hold
+ * (AssignKeyDatabaseIds). By the reserved name only when there is no id, as
+ * for a context built without one.
+ *
+ * For display only: what it returns is translated, and must never be stored,
+ * compared, or used to find a database.
+ *
+ * @param database_id the database's id, possibly empty
+ * @param stored_name the database's stored name
+ * @return the name to show
+ */
+auto GF_CORE_EXPORT KeyDatabaseDisplayName(const QString& database_id,
+                                           const QString& stored_name)
+    -> QString;
+
+/**
+ * @brief Whether @p database_id with @p stored_name is the built-in database.
+ *
+ * The rule KeyDatabaseDisplayName() goes by.
+ */
+auto GF_CORE_EXPORT IsBuiltInKeyDatabase(const QString& database_id,
+                                         const QString& stored_name) -> bool;
+
+/**
  * @brief The DEFAULT key database as this computer's engine describes it.
  *
  * Derived, never stored: the path is whatever the OpenPGP engine already uses,
@@ -483,6 +513,33 @@ auto GF_CORE_EXPORT ReanchorKeyDatabasePath(const QString& stored_path,
 
 auto GF_CORE_EXPORT GetCanonicalKeyDatabasePath(const QDir& app_path,
                                                 const QString& path) -> QString;
+
+/**
+ * @brief Where a stored key database path points, without touching anything.
+ *
+ * The first half of GetCanonicalKeyDatabasePath(): the profile token expanded
+ * and a relative path anchored, then resolved to the canonical directory when
+ * it exists. Creates nothing, so a page may show a path before it is applied.
+ *
+ * @param app_path what a relative path is relative to
+ * @param path a stored key database path
+ * @return the absolute path, empty when the token cannot be expanded
+ */
+auto GF_CORE_EXPORT ExpandKeyDatabasePath(const QDir& app_path,
+                                          const QString& path) -> QString;
+
+/**
+ * @brief Where the built-in key database is opened, as stored.
+ *
+ * The same directory whichever engine opens it: the engine's own home when it
+ * names one, which reconciling points the stored entry at
+ * (AdoptLocalDefaultKeyDatabase), else the fallback
+ * MakeDefaultKeyDatabaseItem() stores. Unlike that function, it registers no
+ * engine and changes nothing.
+ *
+ * @return the stored spelling, possibly `@profile/...`
+ */
+auto GF_CORE_EXPORT BuiltInKeyDatabaseStoredPath() -> QString;
 
 /**
  * @brief Return all key database infos (both GPG and custom) from settings.
