@@ -111,7 +111,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  GNUPG_VERSION: "2.5.21"
+  GNUPG_VERSION: "2.5.24"
 
 jobs:
   build:
