@@ -225,7 +225,8 @@ TEST_F(ScreenshotClockTest, DecryptVerifyFixtureIsReadableAtTheDefaultClock) {
   auto [err, data] =
       MessageCryptoOperation::GetInstance(channel_).DecryptVerifySync(
           GFBuffer(ReadFile(ResourcePath("fixtures/decrypt-verify.asc"))));
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR)
+      << DescribeGpgErrCode(err).second.toStdString();
   ASSERT_TRUE((data->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
 
   const auto plain = ExtractParams<GFBuffer>(data, 2).ConvertToQByteArray();
@@ -235,7 +236,9 @@ TEST_F(ScreenshotClockTest, DecryptVerifyFixtureIsReadableAtTheDefaultClock) {
       ExtractParams<GpgVerifyResult>(data, 1).GetSignature();
   ASSERT_EQ(signatures.size(), 1);
   EXPECT_EQ(signatures.front().GetFingerprint(), Fpr("Bob"));
-  EXPECT_EQ(gpg_err_code(signatures.front().GetStatus()), GPG_ERR_NO_ERROR);
+  EXPECT_EQ(gpg_err_code(signatures.front().GetStatus()), GPG_ERR_NO_ERROR)
+      << DescribeGpgErrCode(signatures.front().GetStatus())
+             .second.toStdString();
 }
 
 }  // namespace GpgFrontend::Test
