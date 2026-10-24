@@ -296,8 +296,7 @@ class GlobalSettingStation::Impl {
   QString app_path_ = QCoreApplication::applicationDirPath();
   QString working_path_ = QDir::currentPath();
 
-  // we do not use QSet because it has different behavior on qt5 and qt6, which
-  // causes compile error on qt5. using std::set for better compatibility.
+  // Ordered, so AllSupportedEngines() reports a stable order.
   std::set<OpenPGPEngine> supported_engines_;
 };
 

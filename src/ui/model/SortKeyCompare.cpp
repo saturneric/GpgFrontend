@@ -32,12 +32,8 @@ namespace GpgFrontend::UI {
 
 namespace {
 
-// Not QVariant::typeId(): that arrived in Qt 6 and this has to build against
-// Qt 5 as well. userType() exists in both and yields the same metatype id.
-auto TypeIdOf(const QVariant& v) -> int { return v.userType(); }
-
 auto IsNumeric(const QVariant& v) -> bool {
-  switch (TypeIdOf(v)) {
+  switch (v.typeId()) {
     case QMetaType::Int:
     case QMetaType::UInt:
     case QMetaType::LongLong:
@@ -72,16 +68,16 @@ auto CompareSortKeys(const QVariant& a, const QVariant& b) -> int {
     return Spaceship(a.toDouble(), b.toDouble());
   }
 
-  if (TypeIdOf(a) == QMetaType::QDateTime &&
-      TypeIdOf(b) == QMetaType::QDateTime) {
+  if (a.typeId() == QMetaType::QDateTime &&
+      b.typeId() == QMetaType::QDateTime) {
     return Spaceship(a.toDateTime(), b.toDateTime());
   }
 
-  if (TypeIdOf(a) == QMetaType::QDate && TypeIdOf(b) == QMetaType::QDate) {
+  if (a.typeId() == QMetaType::QDate && b.typeId() == QMetaType::QDate) {
     return Spaceship(a.toDate(), b.toDate());
   }
 
-  if (TypeIdOf(a) == QMetaType::Bool && TypeIdOf(b) == QMetaType::Bool) {
+  if (a.typeId() == QMetaType::Bool && b.typeId() == QMetaType::Bool) {
     return Spaceship(static_cast<int>(a.toBool()),
                      static_cast<int>(b.toBool()));
   }

@@ -42,12 +42,6 @@ namespace {
 /// break every assertion here.
 constexpr auto kBundledFamilyMarker = "JetBrains Mono";
 
-auto InstalledFamilies() -> QStringList { return QFontDatabase::families(); }
-
-auto StylesOf(const QString& family) -> QStringList {
-  return QFontDatabase::styles(family);
-}
-
 auto ContainsFamily(const QStringList& families, const QString& family)
     -> bool {
   return std::any_of(families.cbegin(), families.cend(),
@@ -69,7 +63,7 @@ TEST(AppearanceFontTest, TheBundledMonospaceFamilyIsRegisteredAtStartup) {
   // alias was mistyped: everything else in this suite depends on it.
   ASSERT_FALSE(family.isEmpty());
   EXPECT_TRUE(family.contains(QLatin1String(kBundledFamilyMarker)));
-  EXPECT_TRUE(ContainsFamily(InstalledFamilies(), family));
+  EXPECT_TRUE(ContainsFamily(QFontDatabase::families(), family));
 }
 
 TEST(AppearanceFontTest, TheBundledFamilyIsFixedPitch) {
@@ -78,7 +72,7 @@ TEST(AppearanceFontTest, TheBundledFamilyIsFixedPitch) {
 
   // Both the aligned hash columns and the "monospaced fonts only" filter of
   // the settings combo boxes are decided by this one predicate.
-  EXPECT_TRUE(UI::IsFixedPitchFontFamily(family));
+  EXPECT_TRUE(QFontDatabase::isFixedPitch(family));
 }
 
 TEST(AppearanceFontTest, BothWeightsOfTheBundledFamilyAreAvailable) {
@@ -88,7 +82,7 @@ TEST(AppearanceFontTest, BothWeightsOfTheBundledFamilyAreAvailable) {
   // Regular and Bold are shipped as separate files. With only one of them Qt
   // silently synthesises the other, which is why this counts rather than
   // trusting the family to be complete.
-  EXPECT_GE(StylesOf(family).size(), 2);
+  EXPECT_GE(QFontDatabase::styles(family).size(), 2);
 }
 
 TEST(AppearanceFontTest, ADefaultMonospaceFontUsesTheBundledFamily) {
@@ -156,7 +150,7 @@ TEST(AppearanceFontTest, AnInstalledStoredFamilyWinsOverTheBundledOne) {
   const auto bundled = UI::BundledMonospaceFamily();
   ASSERT_FALSE(bundled.isEmpty());
 
-  const auto families = InstalledFamilies();
+  const auto families = QFontDatabase::families();
   const auto other = std::find_if(
       families.cbegin(), families.cend(), [&bundled](const QString& item) {
         return item.compare(bundled, Qt::CaseInsensitive) != 0;
@@ -224,7 +218,7 @@ TEST(AppearanceFontTest, TheBundledFontRendersEveryCharacterAtTheSameWidth) {
 }
 
 TEST(AppearanceFontTest, RegisteringTheBundledFontsIsIdempotent) {
-  const auto before = InstalledFamilies().size();
+  const auto before = QFontDatabase::families().size();
   const auto family = UI::BundledMonospaceFamily();
 
   UI::RegisterBundledFonts();
@@ -232,7 +226,7 @@ TEST(AppearanceFontTest, RegisteringTheBundledFontsIsIdempotent) {
   // A second addApplicationFont() on the same file returns a fresh id and adds
   // the family a second time, which would then show up twice in every font
   // combo box. The once-flag is what prevents that.
-  EXPECT_EQ(InstalledFamilies().size(), before);
+  EXPECT_EQ(QFontDatabase::families().size(), before);
   EXPECT_EQ(UI::BundledMonospaceFamily(), family);
 }
 

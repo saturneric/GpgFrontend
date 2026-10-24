@@ -57,9 +57,6 @@ void NotifyStatus(const QString& text, int timeout = 3000) {
   emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(text, timeout);
 }
 
-auto MovePathToTrash(const QString& path) -> bool {
-  return QFile::moveToTrash(path);
-}
 }  // namespace
 
 FileTreeView::FileTreeView(QWidget* parent)
@@ -413,7 +410,7 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
   for (const auto& path : paths) {
     if (path.isEmpty() || !QFileInfo::exists(path)) continue;
 
-    if (MovePathToTrash(path)) {
+    if (QFile::moveToTrash(path)) {
       trashed_paths.append(path);
     } else {
       failed_paths.append(path);

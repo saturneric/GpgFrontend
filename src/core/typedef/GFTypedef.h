@@ -258,7 +258,7 @@ struct GFDecryptAndVerifyResult {
 
 // SignalBadOpenPGPEnv is emitted from a task runner and received on the main
 // thread, so every delivery is queued. Without this (and the matching
-// qRegisterMetaType in CoreSignalStation) Qt5 drops the emission outright --
+// qRegisterMetaType in CoreSignalStation) the emission can be dropped --
 // and since that signal is what releases the startup event loop, the app would
 // sit on the loading dialog forever in precisely the broken-environment case
 // this reporting exists to explain.

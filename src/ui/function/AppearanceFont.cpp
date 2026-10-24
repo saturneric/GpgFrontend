@@ -118,10 +118,6 @@ void ApplyMonospaceFamily(QFont& font) {
   font.setFixedPitch(true);
 }
 
-auto IsFixedPitchFontFamily(const QString& family) -> bool {
-  return QFontDatabase::isFixedPitch(family);
-}
-
 auto ResolveAppearanceFont(const QString& family, int point_size) -> QFont {
   // Cached: this is asked again for every text surface each time appearance
   // settings are applied, and enumerating the installed families is not cheap.
@@ -149,7 +145,7 @@ auto ResolveAppearanceFont(const QString& family, int point_size) -> QFont {
     // metrics: asking for a proportional family while still requesting fixed
     // pitch lets Qt substitute something else entirely, which is how a chosen
     // script-specific font ends up rendered in the wrong one.
-    const auto fixed_pitch = IsFixedPitchFontFamily(family);
+    const auto fixed_pitch = QFontDatabase::isFixedPitch(family);
     font.setFamily(family);
     font.setStyleHint(fixed_pitch ? QFont::Monospace : QFont::AnyStyle);
     font.setFixedPitch(fixed_pitch);

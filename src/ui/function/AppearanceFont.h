@@ -131,15 +131,4 @@ auto GF_UI_EXPORT ReportFontPixelSize(int delta_px) -> int;
  */
 auto GF_UI_EXPORT ReportFont(int delta_px = 0, bool bold = false) -> QFont;
 
-/**
- * @brief Whether @p family is a monospaced family.
- *
- * Wraps the version split in QFontDatabase: Qt 6 made its query functions
- * static, while on Qt 5 they are members that need an instance.
- *
- * @param family family name to query
- * @return true when the family is fixed pitch
- */
-auto GF_UI_EXPORT IsFixedPitchFontFamily(const QString& family) -> bool;
-
 }  // namespace GpgFrontend::UI

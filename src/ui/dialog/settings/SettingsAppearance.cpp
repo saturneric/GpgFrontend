@@ -222,8 +222,8 @@ void AppearanceTab::SetSettings() {
       FamilyOrBundledDefault(appearance.text_editor_font_family);
 
   const auto show_all_fonts =
-      !IsFixedPitchFontFamily(text_editor_font.family()) ||
-      !IsFixedPitchFontFamily(info_board_font.family());
+      !QFontDatabase::isFixedPitch(text_editor_font.family()) ||
+      !QFontDatabase::isFixedPitch(info_board_font.family());
 
   ui_->showAllFontsCheckBox->setChecked(show_all_fonts);
   apply_font_filters(show_all_fonts);

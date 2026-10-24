@@ -293,9 +293,6 @@ class FileTreeView : public QTreeView {
 
   /**
    * @brief Moves the selected items to Trash after user confirmation.
-   *
-   * On Qt 5.15 or newer, QFile::moveToTrash() is used. On older Qt versions,
-   * files are removed and directories are removed recursively as a fallback.
    */
   void SlotDeleteSelectedItem();
 
