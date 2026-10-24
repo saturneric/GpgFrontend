@@ -56,7 +56,7 @@ struct PathSegment {
  * never navigates by itself: it only reports the path the user asked for and
  * lets the owner decide whether that path is usable.
  */
-class FilePathBar : public QWidget {
+class GF_UI_EXPORT FilePathBar : public QWidget {
   Q_OBJECT
 
  public:

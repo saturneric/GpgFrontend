@@ -127,6 +127,10 @@ FilePathBar::FilePathBar(QWidget* parent) : QWidget(parent) {
   stack_->setStackingMode(QStackedLayout::StackOne);
 
   crumb_page_ = new QWidget(this);
+  // The bar's width is the toolbar's to give, and the crumbs are fitted into
+  // it. Were the crumbs to set its minimum, each rebuild would move the
+  // toolbar layout, resize the bar and start another rebuild.
+  crumb_page_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
   crumb_layout_ = new QHBoxLayout(crumb_page_);
   crumb_layout_->setContentsMargins(2, 0, 2, 0);
   crumb_layout_->setSpacing(1);
@@ -266,7 +270,12 @@ auto FilePathBar::eventFilter(QObject* watched, QEvent* event) -> bool {
 void FilePathBar::clear_crumbs() {
   while (crumb_layout_->count() > 0) {
     auto* item = crumb_layout_->takeAt(0);
-    if (item->widget() != nullptr) item->widget()->deleteLater();
+    if (auto* widget = item->widget(); widget != nullptr) {
+      // Hidden now: deleteLater() leaves it on screen, at its old place
+      // under the new crumbs, until the event loop gets round to it.
+      widget->hide();
+      widget->deleteLater();
+    }
     delete item;
   }
 }
@@ -326,7 +335,13 @@ void FilePathBar::rebuild_crumbs() {
   QList<QToolButton*> buttons;
   buttons.reserve(static_cast<int>(segments.size()));
 
-  const auto chevron_width = make_chevron_width();
+  // What the layout will give each widget: never less than its minimum,
+  // which for a crumb is wider than its size hint.
+  const auto width_of = [](const QWidget* w) {
+    return std::max(w->sizeHint().width(), w->minimumWidth());
+  };
+  const auto spacing = crumb_layout_->spacing();
+  const auto chevron_width = make_chevron_width() + spacing;
   auto wanted_width = 0;
 
   for (auto i = 0; i < segments.size(); ++i) {
@@ -340,18 +355,28 @@ void FilePathBar::rebuild_crumbs() {
     }
 
     buttons.append(button);
-    wanted_width += button->sizeHint().width() + (i > 0 ? chevron_width : 0);
+    wanted_width += width_of(button) + spacing + (i > 0 ? chevron_width : 0);
   }
 
   // Drop leading segments into an overflow menu rather than let a deep path
   // push the whole toolbar wider than the window. The current folder always
   // stays visible, and so does the edit button.
-  const auto available = width() - kEditHitAreaWidth - kEditButtonSide;
+  const auto margins = crumb_layout_->contentsMargins();
+  const auto available = width() - margins.left() - margins.right() -
+                         kEditHitAreaWidth - kEditButtonSide - spacing;
+
+  // Once a folder is dropped, the overflow button and its chevron take room
+  // of their own.
+  auto* probe = make_overflow_button(segments, 1);
+  const auto overflow_width = width_of(probe) + spacing + chevron_width;
+  delete probe;
 
   auto first_visible = 0;
-  while (available > 0 && wanted_width > available &&
-         first_visible < buttons.size() - 1) {
-    wanted_width -= buttons.at(first_visible)->sizeHint().width();
+  const auto fits = [&]() {
+    return wanted_width + (first_visible > 0 ? overflow_width : 0) <= available;
+  };
+  while (available > 0 && !fits() && first_visible < buttons.size() - 1) {
+    wanted_width -= width_of(buttons.at(first_visible)) + spacing;
     wanted_width -= chevron_width;
     ++first_visible;
   }
@@ -363,6 +388,9 @@ void FilePathBar::rebuild_crumbs() {
 
   for (auto i = 0; i < buttons.size(); ++i) {
     if (i < first_visible) {
+      // Hidden first, like the crumbs clear_crumbs() drops: a child is shown
+      // with its parent, here on top of the overflow button.
+      buttons.at(i)->hide();
       buttons.at(i)->deleteLater();
       continue;
     }
