@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include "core/typedef/GpgTypedef.h"
+
+class QAction;
 class QToolBar;
 class QToolButton;
 class QMenu;
@@ -56,5 +59,39 @@ void GF_UI_EXPORT SetupMenuToolButton(QToolButton* button, QMenu* menu,
                                       const QIcon& icon, const QString& text,
                                       const QString& tooltip,
                                       Qt::ToolButtonStyle style, QSize size);
+
+/**
+ * @brief Split the crypto operations ticked in @p mask into tool bar families.
+ *
+ * The variants of one idea share a button instead of each taking its own:
+ * Encrypt (plain, & Sign, Symmetric), Decrypt (plain, & Verify), Sign, Verify.
+ * Families come back in that order, each listing its ticked members in that
+ * order; empty families and bits that are no tool bar operation are dropped.
+ */
+auto GF_UI_EXPORT GroupCryptoOperas(int mask)
+    -> std::vector<std::vector<GpgOperation>>;
+
+/**
+ * @brief Turn @p button into one tool bar button standing for @p actions.
+ *
+ * The face always shows the first action, and a click triggers it; holding the
+ * button or right-clicking it lists them all. The button is enabled while any
+ * action is, and a click on a disabled face opens the list instead, so a
+ * disabled first member never hides an enabled variant: that is why this is
+ * not QToolButton::setDefaultAction(). @p actions must not be empty.
+ */
+void GF_UI_EXPORT SetupActionFamilyToolButton(QToolButton* button,
+                                              const QList<QAction*>& actions,
+                                              Qt::ToolButtonStyle style,
+                                              QSize size);
+
+/**
+ * @brief Give every button on @p toolbar the width of the widest one.
+ *
+ * With text under the icon a button is as wide as its label, so a row of
+ * labels of different lengths leaves the icons on no rhythm. Call it again
+ * after the button style or icon size changes.
+ */
+void GF_UI_EXPORT EqualizeToolBarButtonWidths(QToolBar* toolbar);
 
 }  // namespace GpgFrontend::UI

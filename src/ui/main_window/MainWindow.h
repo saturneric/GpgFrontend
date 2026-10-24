@@ -683,8 +683,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
   QToolButton* open_button_{};       ///<
   QToolButton* workspace_button_{};  ///<
-  QDockWidget* key_list_dock_{};     ///<  Encrypt Dock
-  QDockWidget* attachment_dock_{};   ///<  Attachment Dock
+
+  /// Tool buttons grouping the variants of one crypto operation.
+  QList<QPointer<QToolButton>> crypt_family_buttons_;
+
+  QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
+  QDockWidget* attachment_dock_{};  ///<  Attachment Dock
   QDockWidget* info_board_dock_{};
   StatusDockPresenter* status_dock_presenter_{};  ///< Expanded / Collapsed
 

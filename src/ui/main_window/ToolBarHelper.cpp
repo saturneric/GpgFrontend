@@ -51,4 +51,86 @@ void SetupMenuToolButton(QToolButton* button, QMenu* menu, const QIcon& icon,
   button->setIconSize(size);
 }
 
+auto GroupCryptoOperas(int mask) -> std::vector<std::vector<GpgOperation>> {
+  const std::array<std::vector<GpgOperation>, 4> families{{
+      {kENCRYPT, kENCRYPT_SIGN, kSYMMETRIC_ENCRYPT},
+      {kDECRYPT, kDECRYPT_VERIFY},
+      {kSIGN},
+      {kVERIFY},
+  }};
+
+  std::vector<std::vector<GpgOperation>> groups;
+  for (const auto& family : families) {
+    std::vector<GpgOperation> ticked;
+    for (const auto opera : family) {
+      if ((mask & opera) != 0) ticked.push_back(opera);
+    }
+    if (!ticked.empty()) groups.push_back(std::move(ticked));
+  }
+  return groups;
+}
+
+void SetupActionFamilyToolButton(QToolButton* button,
+                                 const QList<QAction*>& actions,
+                                 Qt::ToolButtonStyle style, QSize size) {
+  auto* menu = new QMenu(button);
+  menu->addActions(actions);
+
+  // DelayedPopup, not MenuButtonPopup: the latter reserves an arrow column
+  // that pushes the icon off the centre its plain neighbours keep, while this
+  // draws the same small indicator as the Open / Import buttons.
+  button->setMenu(menu);
+  button->setPopupMode(QToolButton::DelayedPopup);
+  button->setContextMenuPolicy(Qt::CustomContextMenu);
+  button->setFocusPolicy(Qt::NoFocus);
+  button->setAutoRaise(true);
+  button->setToolButtonStyle(style);
+  button->setIconSize(size);
+
+  // The face is always the first member: a label that changed with the
+  // document would make the button jump around and read as a different one.
+  auto* face = actions.front();
+
+  const auto sync = [button, face]() {
+    button->setIcon(face->icon());
+    button->setText(face->iconText());
+    button->setToolTip(face->toolTip());
+    button->setEnabled(std::any_of(
+        button->menu()->actions().cbegin(), button->menu()->actions().cend(),
+        [](const QAction* a) { return a->isEnabled(); }));
+  };
+
+  for (auto* act : actions) {
+    QObject::connect(act, &QAction::changed, button, sync);
+  }
+  // With the face disabled but a variant enabled, a click still leads
+  // somewhere.
+  QObject::connect(button, &QToolButton::clicked, button, [button, face]() {
+    if (face->isEnabled()) {
+      face->trigger();
+    } else {
+      button->showMenu();
+    }
+  });
+  QObject::connect(button, &QWidget::customContextMenuRequested, button,
+                   &QToolButton::showMenu);
+  sync();
+}
+
+void EqualizeToolBarButtonWidths(QToolBar* toolbar) {
+  QList<QWidget*> buttons;
+  for (auto* act : toolbar->actions()) {
+    auto* widget = toolbar->widgetForAction(act);
+    if (qobject_cast<QToolButton*>(widget) == nullptr) continue;
+    widget->setMinimumWidth(0);
+    buttons.append(widget);
+  }
+
+  int width = 0;
+  for (auto* widget : buttons) {
+    width = std::max(width, widget->sizeHint().width());
+  }
+  for (auto* widget : buttons) widget->setMinimumWidth(width);
+}
+
 }  // namespace GpgFrontend::UI

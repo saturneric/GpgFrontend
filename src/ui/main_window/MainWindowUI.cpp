@@ -435,7 +435,6 @@ void MainWindow::create_actions() {
   connect(switch_tab_down_act_, &QAction::triggered, edit_,
           &TextEdit::SlotSwitchTabDown);
   this->addAction(switch_tab_down_act_);
-
 }
 
 void MainWindow::create_menus() {
@@ -918,11 +917,12 @@ void MainWindow::apply_tool_bar_appearance() {
     toolbar->setIconSize(icon_size);
   }
 
-  const QList<QToolButton*> menu_buttons = {
+  QList<QToolButton*> menu_buttons = {
       open_button_,
       workspace_button_,
       import_button_,
   };
+  for (const auto& button : crypt_family_buttons_) menu_buttons.append(button);
 
   for (auto* button : menu_buttons) {
     if (button == nullptr) continue;
@@ -935,6 +935,8 @@ void MainWindow::apply_tool_bar_appearance() {
 
   setToolButtonStyle(tool_button_style);
   setIconSize(icon_size);
+
+  if (crypt_tool_bar_ != nullptr) EqualizeToolBarButtonWidths(crypt_tool_bar_);
 }
 
 }  // namespace GpgFrontend::UI

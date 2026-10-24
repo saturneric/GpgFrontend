@@ -44,6 +44,7 @@
 #include "ui/function/ProfileController.h"
 #include "ui/lua/LuaPlacements.h"
 #include "ui/main_window/GeneralMainWindow.h"
+#include "ui/main_window/ToolBarHelper.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/StatusDockPresenter.h"
@@ -309,10 +310,14 @@ void MainWindow::restore_settings() {
   reloadAppearanceSettings();
 
   crypt_tool_bar_->clear();
+  for (const auto& button : crypt_family_buttons_) {
+    if (button != nullptr) button->deleteLater();
+  }
+  crypt_family_buttons_.clear();
 
-  // Which actions the user offered themselves, in the order they are listed on
-  // the Appearance page; the toolbar shows exactly the ones whose bit is set.
-  const std::array<std::pair<GpgOperation, QAction*>, 9> operas{{
+  // Which actions the user offered themselves; the toolbar shows exactly the
+  // ones whose bit is set, the variants of one operation behind one button.
+  const std::array<std::pair<GpgOperation, QAction*>, 7> operas{{
       {kENCRYPT, encrypt_act_},
       {kDECRYPT, decrypt_act_},
       {kSIGN, sign_act_},
@@ -321,11 +326,27 @@ void MainWindow::restore_settings() {
       {kDECRYPT_VERIFY, decrypt_verify_act_},
       {kSYMMETRIC_ENCRYPT, sym_encrypt_act_},
   }};
-
-  for (const auto& [opera, act] : operas) {
-    if ((appearance.tool_bar_crypto_operas_type & opera) != 0) {
-      crypt_tool_bar_->addAction(act);
+  const auto action_of = [&operas](GpgOperation opera) -> QAction* {
+    for (const auto& [o, act] : operas) {
+      if (o == opera) return act;
     }
+    return nullptr;
+  };
+
+  for (const auto& family :
+       GroupCryptoOperas(appearance.tool_bar_crypto_operas_type)) {
+    QList<QAction*> actions;
+    for (const auto opera : family) actions.append(action_of(opera));
+
+    if (actions.size() == 1) {
+      crypt_tool_bar_->addAction(actions.front());
+      continue;
+    }
+
+    auto* button = new QToolButton(this);
+    SetupActionFamilyToolButton(button, actions, icon_style_, icon_size_);
+    crypt_tool_bar_->addWidget(button);
+    crypt_family_buttons_.append(button);
   }
 
   apply_tool_bar_appearance();
