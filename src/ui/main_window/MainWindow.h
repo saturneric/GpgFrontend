@@ -508,7 +508,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @param opera_results
    */
   void slot_result_analyse_show_helper(
-      const QContainer<GpgOperaResult>& opera_results);
+      const QList<GpgOperaResult>& opera_results);
 
   /**
    * @brief
@@ -533,8 +533,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    *
    * @param results
    */
-  void slot_gpg_opera_buffer_show_helper(
-      const QContainer<GpgOperaResult>& results);
+  void slot_gpg_opera_buffer_show_helper(const QList<GpgOperaResult>& results);
 
   /**
    * @details refresh and enable specify crypto-menu actions.
@@ -819,8 +818,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   auto create_action(const QString& id, const QString& name,
                      const QString& icon, const QString& too_tip,
-                     const QContainer<QKeySequence>& shortcuts = {})
-      -> QAction*;
+                     const QList<QKeySequence>& shortcuts = {}) -> QAction*;
 
   /**
    * @brief
@@ -1039,7 +1037,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    *        before a failure; those are in place and cannot be rolled back
    * @return true if every output was committed
    */
-  auto commit_safe_output_files(const QContainer<SafeOutputPath>& outputs,
+  auto commit_safe_output_files(const QList<SafeOutputPath>& outputs,
                                 QStringList& committed) -> bool;
 
   /**
@@ -1052,7 +1050,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void exec_file_operas_helper(
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts,
-      const QContainer<SafeOutputPath>& safe_outputs);
+      const QList<SafeOutputPath>& safe_outputs);
 };
 
 }  // namespace GpgFrontend::UI

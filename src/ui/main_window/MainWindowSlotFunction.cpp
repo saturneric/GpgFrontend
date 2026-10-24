@@ -315,7 +315,7 @@ void MainWindow::slot_result_analyse_show_helper(
 }
 
 void MainWindow::slot_result_analyse_show_helper(
-    const QContainer<GpgOperaResult>& opera_results) {
+    const QList<GpgOperaResult>& opera_results) {
   if (opera_results.empty()) {
     slot_refresh_info_board(0, tr("No operation result available."));
     return;
@@ -905,7 +905,7 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 }
 
 void MainWindow::slot_gpg_opera_buffer_show_helper(
-    const QContainer<GpgOperaResult>& results) {
+    const QList<GpgOperaResult>& results) {
   for (const auto& result : results) {
     // Never replace the editor content with the output of a failed operation.
     // A failed decrypt can still carry a non-empty buffer (e.g. gpg extracts

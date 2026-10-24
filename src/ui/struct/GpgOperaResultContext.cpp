@@ -46,7 +46,7 @@ auto GpgOperaContextBasement::GetContextOutPath(int category) -> QStringList& {
 }
 
 auto GpgOperaContextBasement::GetContextBuffer(int category)
-    -> QContainer<GFBuffer>& {
+    -> QList<GFBuffer>& {
   if (!categories.contains(category)) categories[category] = {};
   return categories[category].buffers;
 }

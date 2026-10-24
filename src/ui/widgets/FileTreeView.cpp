@@ -777,7 +777,7 @@ void FileTreeView::slot_calculate_hash() {
             },
             [hd](int rtn, const DataObjectPtr& data_object) {
               hd();
-              using HashFields = QContainer<QPair<QString, QString>>;
+              using HashFields = QList<QPair<QString, QString>>;
               if (rtn < 0 || !data_object->Check<HashFields>()) {
                 return;
               }
@@ -789,7 +789,7 @@ void FileTreeView::slot_calculate_hash() {
               card.status = InfoBoardStatus::kINFO_ERROR_OK;
               card.fields = fields;
 
-              QContainer<InfoBoardCard> cards;
+              QList<InfoBoardCard> cards;
               cards.append(card);
 
               emit UISignalStation::GetInstance()

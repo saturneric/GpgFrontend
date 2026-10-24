@@ -87,7 +87,7 @@ enum class KeyAction {
 /**
  * @brief Every KeyAction enumerator, for callers that need to walk them all.
  */
-auto GF_UI_EXPORT AllKeyActions() -> const QVector<KeyAction>&;
+auto GF_UI_EXPORT AllKeyActions() -> const QList<KeyAction>&;
 
 /**
  * @brief What one action should look like right now.

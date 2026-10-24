@@ -46,7 +46,7 @@ namespace GpgFrontend::UI {
 struct GF_UI_EXPORT ProfileLockConflictTexts {
   QString title;                 ///< header title, and the window title
   QString subtitle;              ///< one wrapped line saying what is wrong
-  QContainer<MetaListRow> rows;  ///< the profile, and who holds it
+  QList<MetaListRow> rows;       ///< the profile, and who holds it
   QString note;                  ///< what forcing the lock past this costs
 };
 

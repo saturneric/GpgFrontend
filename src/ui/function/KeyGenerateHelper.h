@@ -40,7 +40,7 @@ namespace GpgFrontend::UI {
  * @param algos
  * @return std::tuple<bool, KeyAlgo>
  */
-auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
+auto GetAlgoById(const QString& id, const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
 /**
@@ -49,11 +49,10 @@ auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
  * @param name
  * @param type
  * @param algos
- * @return QContainer<KeyAlgo>
+ * @return QList<KeyAlgo>
  */
 auto SearchAlgoByNameType(const QString& name, const QString& type,
-                          const QContainer<KeyAlgo>& algos)
-    -> QContainer<KeyAlgo>;
+                          const QList<KeyAlgo>& algos) -> QList<KeyAlgo>;
 
 /**
  * @brief Get the Algo By Name And Key Length object
@@ -64,8 +63,7 @@ auto SearchAlgoByNameType(const QString& name, const QString& type,
  * @return std::tuple<bool, KeyAlgo>
  */
 auto GetAlgoByNameTypeAndKeyLength(const QString& name, const QString& type,
-                                   int key_length,
-                                   const QContainer<KeyAlgo>& algos)
+                                   int key_length, const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
 /**
@@ -76,7 +74,7 @@ auto GetAlgoByNameTypeAndKeyLength(const QString& name, const QString& type,
  * @return std::tuple<bool, KeyAlgo>
  */
 auto GetAlgoByNameType(const QString& name, const QString& type,
-                       const QContainer<KeyAlgo>& algos)
+                       const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
 /**
@@ -85,8 +83,7 @@ auto GetAlgoByNameType(const QString& name, const QString& type,
  * @param combo
  * @param algos
  */
-void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
-                                 const QContainer<KeyAlgo>& algos);
+void SetKeyLengthComboxBoxByAlgo(QComboBox* combo, const QList<KeyAlgo>& algos);
 
 /**
  * @brief
@@ -94,8 +91,7 @@ void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
  * @param combo_box
  * @param algos
  */
-void PopulateAlgoComboBox(QComboBox* combo_box,
-                          const QContainer<KeyAlgo>& algos);
+void PopulateAlgoComboBox(QComboBox* combo_box, const QList<KeyAlgo>& algos);
 
 /**
  * @brief Append a non-selectable, visually distinct section header to a combo
@@ -133,7 +129,7 @@ auto FirstSelectableComboIndex(const QComboBox* combo_box) -> int;
  * @return std::tuple<bool, KeyAlgo>
  */
 auto GF_UI_EXPORT GetAlgoByIdType(const QString& id, const QString& type,
-                                  const QContainer<KeyAlgo>& algos)
+                                  const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
 /**

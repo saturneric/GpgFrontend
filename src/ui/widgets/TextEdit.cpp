@@ -402,15 +402,14 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
   connect(dialog, &QuitDialog::SignalDiscard, this,
           [&]() { can_close = true; });
 
-  connect(dialog, &QuitDialog::SignalSave, this,
-          [&](const QContainer<int>& ids) {
-            bool all_saved = true;
-            for (const auto& tab_id : ids) {
-              tab_widget_->setCurrentIndex(tab_id);
-              if (!maybe_save_current_tab(false)) all_saved = false;
-            }
-            can_close = all_saved;
-          });
+  connect(dialog, &QuitDialog::SignalSave, this, [&](const QList<int>& ids) {
+    bool all_saved = true;
+    for (const auto& tab_id : ids) {
+      tab_widget_->setCurrentIndex(tab_id);
+      if (!maybe_save_current_tab(false)) all_saved = false;
+    }
+    can_close = all_saved;
+  });
 
   dialog->exec();
   dialog->deleteLater();

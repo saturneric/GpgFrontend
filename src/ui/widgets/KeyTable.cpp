@@ -151,13 +151,13 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
             ShowKeyDetails(this, model_->GetGpgContextChannel(), key);
           });
 
-  connect(&proxy_model_, &GpgKeyTableProxyModel::dataChanged, this,
-          [this](const QModelIndex&, const QModelIndex&,
-                 const QContainer<int>& roles) {
-            if (bulk_checking_) return;
-            if (!roles.contains(Qt::CheckStateRole)) return;
-            emit SignalKeyChecked();
-          });
+  connect(
+      &proxy_model_, &GpgKeyTableProxyModel::dataChanged, this,
+      [this](const QModelIndex&, const QModelIndex&, const QList<int>& roles) {
+        if (bulk_checking_) return;
+        if (!roles.contains(Qt::CheckStateRole)) return;
+        emit SignalKeyChecked();
+      });
 
   // Survives a refresh: RefreshModel() goes through ResetGpgKeyTableModel() ->
   // setSourceModel(), not setModel(), so the view keeps this selection model
@@ -251,8 +251,8 @@ void KeyTable::apply_column_sizing() {
 
   // Content-fit widths first; the stretch columns get their share of whatever
   // room is left over afterwards.
-  QVector<int> widths(columns, 0);
-  QVector<int> stretch_cols;
+  QList<int> widths(columns, 0);
+  QList<int> stretch_cols;
   int fixed_total = 0;
 
   for (int col = 0; col < columns; ++col) {
@@ -302,7 +302,7 @@ void KeyTable::redistribute_stretch_columns() {
   // Cheap counterpart of apply_column_sizing() for the resize path: the
   // content-fit columns keep the width they already have, so no row scan is
   // needed; only the leftover space is shared out again.
-  QVector<int> stretch_cols;
+  QList<int> stretch_cols;
   int fixed_total = 0;
 
   for (int col = 0; col < columns; ++col) {

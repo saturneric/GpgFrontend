@@ -48,9 +48,8 @@ namespace GpgFrontend::UI {
  * @param languages locale key -> native name, as ListLanguages() returns it
  * @return the real languages, sorted by native name, empty key excluded
  */
-auto GF_UI_EXPORT
-SortedLanguageEntries(const QHash<QString, QString>& languages)
-    -> QContainer<QPair<QString, QString>>;
+auto GF_UI_EXPORT SortedLanguageEntries(
+    const QHash<QString, QString>& languages) -> QList<QPair<QString, QString>>;
 
 /**
  * @brief Fill @p box with the interface languages the build ships.

@@ -52,7 +52,7 @@ namespace GpgFrontend::UI {
 
 namespace {
 
-QContainer<QTranslator*> registered_translators;
+QList<QTranslator*> registered_translators;
 
 [[noreturn]] void TerminateSelfImmediately() {
   qWarning() << "Application startup was canceled. Terminating process.";

@@ -196,7 +196,7 @@ auto KeyTreeView::GetAllCheckedKeyIds() -> KeyIdArgsList {
   return model_->GetAllCheckedKeyIds();
 }
 
-auto KeyTreeView::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
+auto KeyTreeView::GetAllCheckedSubKey() -> QList<GpgSubKey> {
   return model_->GetAllCheckedSubKey();
 }
 

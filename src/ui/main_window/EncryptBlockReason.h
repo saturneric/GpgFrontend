@@ -56,7 +56,7 @@ struct EncryptKeyFacts {
   bool revoked = false;
   bool expired = false;
   QDateTime expires;
-  QContainer<EncryptSubkeyFacts> subkeys;  ///< includes the primary
+  QList<EncryptSubkeyFacts> subkeys;  ///< includes the primary
 };
 
 /**

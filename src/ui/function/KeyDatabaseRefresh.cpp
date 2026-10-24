@@ -185,7 +185,7 @@ class KeyDatabaseBinding : public QObject {
 struct ApplyState {
   bool running{false};
   bool again{false};
-  QContainer<KeyDatabaseMove> pending;
+  QList<KeyDatabaseMove> pending;
   QPointer<QWidget> parent;          ///< where the waiting dialog is shown
   QPointer<WaitingDialog> waiting;  ///< up while an apply runs
 };
@@ -266,7 +266,7 @@ void MarkKeyDatabaseFound(QWidget* widget) {
 
 auto IsApplyingKeyDatabaseChanges() -> bool { return Applying().running; }
 
-void ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves,
+void ApplyKeyDatabaseChanges(const QList<KeyDatabaseMove>& moves,
                              QWidget* parent) {
   auto& state = Applying();
   if (parent != nullptr) state.parent = parent;

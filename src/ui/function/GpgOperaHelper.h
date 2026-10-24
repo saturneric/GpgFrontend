@@ -344,7 +344,7 @@ class GpgOperaHelper : QObject {
    *        any still queued are skipped); pass -1 (default) for non-cancelable
    */
   static void WaitForMultipleOperas(QWidget* parent, const QString& title,
-                                    const QContainer<OperaWaitingCb>& operas,
+                                    const QList<OperaWaitingCb>& operas,
                                     int cancel_channel = -1);
 };
 

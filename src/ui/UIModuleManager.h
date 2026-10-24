@@ -116,7 +116,7 @@ class GF_UI_EXPORT UIModuleManager
    * really was destroyed rather than merely forgotten.
    */
   [[nodiscard]] auto InstalledTranslators() const
-      -> QContainer<QPointer<QTranslator>>;
+      -> QList<QPointer<QTranslator>>;
 
  private:
   /// Install @p id's translations, replacing any it had. GUI thread.

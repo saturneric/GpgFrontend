@@ -309,8 +309,7 @@ void KeyMgmt::create_popup_menu() {
 
 auto KeyMgmt::make_action(const QString& text, const QString& icon,
                           const QString& tip,
-                          const QContainer<QKeySequence>& shortcuts)
-    -> QAction* {
+                          const QList<QKeySequence>& shortcuts) -> QAction* {
   auto* action = new QAction(text, this);
 
   if (!icon.isEmpty()) action->setIcon(QIcon(icon));
@@ -1377,10 +1376,10 @@ void KeyMgmt::update_key_action_state() {
 void KeyMgmt::sync_submenu_visibility() {
   // A submenu whose every entry is hidden is an empty arrow the user can only
   // learn is empty by opening it.
-  const QVector<QMenu*> menus = {popup_key_ops_menu_, popup_export_menu_,
-                                 export_key_menu_,    generate_key_menu_,
-                                 import_key_menu_,    copy_menu_,
-                                 bulk_menu_,          delete_menu_};
+  const QList<QMenu*> menus = {popup_key_ops_menu_, popup_export_menu_,
+                               export_key_menu_,    generate_key_menu_,
+                               import_key_menu_,    copy_menu_,
+                               bulk_menu_,          delete_menu_};
 
   for (auto* menu : menus) {
     if (menu == nullptr) continue;
@@ -1421,7 +1420,7 @@ void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,
   // menu bar unreachable: nobody can observe the overridden state, and the
   // guard puts it back the moment exec() returns, including when a triggered
   // slot throws or opens a dialog.
-  QVector<QAction*> hidden;
+  QList<QAction*> hidden;
   for (auto* action : popup_actions_) {
     if (action == nullptr || action->isEnabled() || !action->isVisible()) {
       continue;

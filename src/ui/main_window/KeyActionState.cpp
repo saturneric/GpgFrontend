@@ -98,18 +98,18 @@ auto AnyTarget(const KeyActionContext& ctx) -> KeyActionState {
 
 }  // namespace
 
-auto AllKeyActions() -> const QVector<KeyAction>& {
-  static const QVector<KeyAction> kActions = {
-      KeyAction::kShowDetails,       KeyAction::kCopyFingerprint,
-      KeyAction::kCopyKeyId,         KeyAction::kCopyEmail,
-      KeyAction::kCopyPublicKey,     KeyAction::kCertify,
-      KeyAction::kSetExpiry,         KeyAction::kGenerateSubkey,
-      KeyAction::kSetOwnerTrust,     KeyAction::kGenerateRevokeCert,
-      KeyAction::kDeleteSelected,    KeyAction::kDeleteChecked,
-      KeyAction::kExportPackage,     KeyAction::kExportClipboard,
-      KeyAction::kExportOpenSsh,     KeyAction::kExportPublicKey,
-      KeyAction::kExportPrivateKey,  KeyAction::kBulkSetOwnerTrust,
-      KeyAction::kBulkExtendExpiry,  KeyAction::kBackupAllPrivate,
+auto AllKeyActions() -> const QList<KeyAction>& {
+  static const QList<KeyAction> kActions = {
+      KeyAction::kShowDetails,      KeyAction::kCopyFingerprint,
+      KeyAction::kCopyKeyId,        KeyAction::kCopyEmail,
+      KeyAction::kCopyPublicKey,    KeyAction::kCertify,
+      KeyAction::kSetExpiry,        KeyAction::kGenerateSubkey,
+      KeyAction::kSetOwnerTrust,    KeyAction::kGenerateRevokeCert,
+      KeyAction::kDeleteSelected,   KeyAction::kDeleteChecked,
+      KeyAction::kExportPackage,    KeyAction::kExportClipboard,
+      KeyAction::kExportOpenSsh,    KeyAction::kExportPublicKey,
+      KeyAction::kExportPrivateKey, KeyAction::kBulkSetOwnerTrust,
+      KeyAction::kBulkExtendExpiry, KeyAction::kBackupAllPrivate,
       KeyAction::kCategory,
   };
   return kActions;

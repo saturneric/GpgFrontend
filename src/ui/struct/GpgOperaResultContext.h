@@ -40,7 +40,7 @@ using OperaWaitingCb = std::function<void(OperaWaitingHd)>;
 struct GpgOperaCategory {
   QStringList paths;
   QStringList o_paths;
-  QContainer<GFBuffer> buffers;
+  QList<GFBuffer> buffers;
 };
 
 struct GpgOperaContext;
@@ -50,8 +50,8 @@ struct GF_UI_EXPORT GpgOperaContextBasement {
   // holds a strong reference back to this basement — so this container owns a
   // cycle. Whoever runs the operas must clear it once they are done, or the
   // basement (with its keys and buffers) is never released.
-  QContainer<OperaWaitingCb> operas;
-  QContainer<GpgOperaResult> opera_results;
+  QList<OperaWaitingCb> operas;
+  QList<GpgOperaResult> opera_results;
   GpgAbstractKeyPtrList keys;
   GpgAbstractKeyPtrList singer_keys;
   QStringList unknown_fprs;
@@ -63,7 +63,7 @@ struct GF_UI_EXPORT GpgOperaContextBasement {
 
   auto GetContextOutPath(int category) -> QStringList&;
 
-  auto GetContextBuffer(int category) -> QContainer<GFBuffer>&;
+  auto GetContextBuffer(int category) -> QList<GFBuffer>&;
 
   auto GetAllPath() -> QStringList;
 
@@ -75,7 +75,7 @@ struct GpgOperaContext {
 
   QStringList paths;
   QStringList o_paths;
-  QContainer<GFBuffer> buffers;
+  QList<GFBuffer> buffers;
 
   explicit GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base);
 };

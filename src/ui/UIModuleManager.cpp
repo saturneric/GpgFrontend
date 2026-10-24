@@ -193,8 +193,8 @@ void UIModuleManager::RegisterAllModuleTranslators() {
 }
 
 auto UIModuleManager::InstalledTranslators() const
-    -> QContainer<QPointer<QTranslator>> {
-  QContainer<QPointer<QTranslator>> translators;
+    -> QList<QPointer<QTranslator>> {
+  QList<QPointer<QTranslator>> translators;
   translators.reserve(installed_translators_.size());
   for (const auto& entry : installed_translators_) {
     translators.append(QPointer<QTranslator>(entry.translator));

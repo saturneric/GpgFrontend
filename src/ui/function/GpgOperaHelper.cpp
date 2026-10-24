@@ -745,9 +745,10 @@ auto GpgOperaHelper::BuildOperasArchiveDecryptVerify(
       });
 }
 
-void GpgOperaHelper::WaitForMultipleOperas(
-    QWidget* parent, const QString& title,
-    const QContainer<OperaWaitingCb>& operas, int cancel_channel) {
+void GpgOperaHelper::WaitForMultipleOperas(QWidget* parent,
+                                           const QString& title,
+                                           const QList<OperaWaitingCb>& operas,
+                                           int cancel_channel) {
   if (operas.isEmpty()) return;
 
   if (batch_in_progress) {

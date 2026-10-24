@@ -383,7 +383,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 
 auto MainWindow::create_action(const QString& id, const QString& name,
                                const QString& icon, const QString& too_tip,
-                               const QContainer<QKeySequence>& shortcuts)
+                               const QList<QKeySequence>& shortcuts)
     -> QAction* {
   auto* action = new QAction(name, this);
   // Reachable by id from outside the class: buffered_actions_ is private, and

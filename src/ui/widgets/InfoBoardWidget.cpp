@@ -492,7 +492,7 @@ void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
 
 void InfoBoardWidget::SetInfoBoardCards(
     const QString& text, InfoBoardStatus status,
-    const QContainer<InfoBoardCard>& cards, const QString& operation,
+    const QList<InfoBoardCard>& cards, const QString& operation,
     const QString& description, const QString& details_title,
     const QStringList& details_items, const QString& content_hash) {
   set_info_board_text(text, status);
@@ -506,11 +506,13 @@ void InfoBoardWidget::SetInfoBoardCards(
   announce_result(text, status, cards.size());
 }
 
-void InfoBoardWidget::SlotRefreshWithCards(
-    const QString& text, InfoBoardStatus status,
-    const QContainer<InfoBoardCard>& cards, const QString& operation,
-    const QString& description, const QString& details_title,
-    const QStringList& details_items) {
+void InfoBoardWidget::SlotRefreshWithCards(const QString& text,
+                                           InfoBoardStatus status,
+                                           const QList<InfoBoardCard>& cards,
+                                           const QString& operation,
+                                           const QString& description,
+                                           const QString& details_title,
+                                           const QStringList& details_items) {
   SetInfoBoardCards(text, status, cards, operation, description, details_title,
                     details_items);
   ui_->infoBoard->verticalScrollBar()->setValue(0);

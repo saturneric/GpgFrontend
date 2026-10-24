@@ -54,7 +54,7 @@ namespace {
 
 // Drop the staging directories once their outputs have been committed or
 // cleaned up.
-void RemoveSafeOutputWorkDirs(const QContainer<SafeOutputPath>& outputs) {
+void RemoveSafeOutputWorkDirs(const QList<SafeOutputPath>& outputs) {
   for (const auto& output : outputs) {
     RemoveSafeOutputWorkDir(output.temp_path);
   }
@@ -62,7 +62,7 @@ void RemoveSafeOutputWorkDirs(const QContainer<SafeOutputPath>& outputs) {
 
 // Discard every staged output, files and staged directories (an archive
 // extraction) alike, so a failed operation leaves no plaintext behind.
-void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
+void CleanupSafeOutputFiles(const QList<SafeOutputPath>& outputs) {
   for (const auto& output : outputs) {
     if (!DiscardSafeOutput(output.temp_path)) {
       LOG_E() << "cannot discard staged output:" << output.temp_path;
@@ -72,8 +72,7 @@ void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
 
 auto PrepareSafeOutputPath(const QString& final_path,
                            QStringList* final_output_paths,
-                           QContainer<SafeOutputPath>* safe_outputs)
-    -> QString {
+                           QList<SafeOutputPath>* safe_outputs) -> QString {
   if (final_output_paths == nullptr || safe_outputs == nullptr) return {};
 
   const auto temp_path = MakeSafeOutputTempPath(final_path);
@@ -95,8 +94,8 @@ auto CodecCards(const CodecStageResult& r) -> InfoBoardCardsPayload {
 
 }  // namespace
 
-auto MainWindow::commit_safe_output_files(
-    const QContainer<SafeOutputPath>& outputs, QStringList& committed) -> bool {
+auto MainWindow::commit_safe_output_files(const QList<SafeOutputPath>& outputs,
+                                          QStringList& committed) -> bool {
   for (const auto& output : outputs) {
     if (!CommitSafeOutputFile(output.temp_path, output.final_path)) {
       QMessageBox::critical(
@@ -113,7 +112,7 @@ auto MainWindow::commit_safe_output_files(
 void MainWindow::exec_file_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts,
-    const QContainer<SafeOutputPath>& safe_outputs) {
+    const QList<SafeOutputPath>& safe_outputs) {
   // Every operation must report before its staging directory is touched: one
   // without a result may still be writing into it.
   const auto operation_count = contexts->operas.size();
@@ -728,7 +727,7 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
   // The encoder may run a memory-hard derivation: off the GUI thread, behind
   // the deferred waiting dialog.
   auto encoded = SecureCreateSharedObject<CodecStageResult>();
-  QContainer<OperaWaitingCb> operas;
+  QList<OperaWaitingCb> operas;
   operas.append([encoder, input = result.o_buffer,
                  encoded](const OperaWaitingHd& hd) {
     CodecStage::RunEncoder(encoder, input, [encoded, hd](CodecStageResult r) {
@@ -756,7 +755,7 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
   edit_->SlotFillTextEditWithText(text);
 
   const auto codec = CodecCards(*encoded);
-  QContainer<InfoBoardCard> cards = codec.cards;
+  QList<InfoBoardCard> cards = codec.cards;
   cards.append(convert_op_info_to_cards(result.op_info));
 
   info_board_->SetInfoBoardCards(
@@ -769,7 +768,7 @@ auto MainWindow::exec_decoder_stage_helper(const QString& text)
     -> CodecStageResult {
   auto decoded = SecureCreateSharedObject<CodecStageResult>();
 
-  QContainer<OperaWaitingCb> operas;
+  QList<OperaWaitingCb> operas;
   operas.append([input = GFBuffer(text), decoded](const OperaWaitingHd& hd) {
     CodecStage::RunDecoders(input, [decoded, hd](CodecStageResult r) {
       *decoded = std::move(r);
@@ -787,7 +786,7 @@ auto MainWindow::exec_decoder_stage_helper(const QString& text)
 void MainWindow::show_codec_failure_helper(const QString& operation,
                                            const CodecStageResult& failed) {
   const auto codec = CodecCards(failed);
-  QContainer<InfoBoardCard> cards = codec.cards;
+  QList<InfoBoardCard> cards = codec.cards;
   for (auto& card : cards) card.status = kINFO_ERROR_CRITICAL;
 
   const auto reason =
@@ -831,7 +830,7 @@ auto MainWindow::exec_decoded_decrypt_helper(
 
   // The decoder's section first, then the OpenPGP result.
   const auto codec = CodecCards(decoded);
-  QContainer<InfoBoardCard> cards = codec.cards;
+  QList<InfoBoardCard> cards = codec.cards;
   if (status == kINFO_ERROR_CRITICAL) {
     for (auto& card : cards) card.status = kINFO_ERROR_CRITICAL;
   }
@@ -870,7 +869,7 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
-  QContainer<SafeOutputPath> safe_outputs;
+  QList<SafeOutputPath> safe_outputs;
 
   for (const auto& path : paths) {
     const QFileInfo info(path);
@@ -917,7 +916,7 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
-  QContainer<SafeOutputPath> safe_outputs;
+  QList<SafeOutputPath> safe_outputs;
 
   for (const auto& path : paths) {
     const QFileInfo info(path);
@@ -977,7 +976,7 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
-  QContainer<SafeOutputPath> safe_outputs;
+  QList<SafeOutputPath> safe_outputs;
 
   for (const auto& path : paths) {
     const auto final_path =
@@ -1079,7 +1078,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
-  QContainer<SafeOutputPath> safe_outputs;
+  QList<SafeOutputPath> safe_outputs;
 
   for (const auto& path : paths) {
     const QFileInfo info(path);
@@ -1127,7 +1126,7 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
-  QContainer<SafeOutputPath> safe_outputs;
+  QList<SafeOutputPath> safe_outputs;
 
   for (const auto& path : paths) {
     const QFileInfo info(path);

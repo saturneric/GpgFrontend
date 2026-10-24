@@ -65,7 +65,7 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   void SetInfoBoard(const QString& text, InfoBoardStatus status,
                     const QString& content_hash = {});
   void SetInfoBoardCards(const QString& text, InfoBoardStatus status,
-                         const QContainer<InfoBoardCard>& cards,
+                         const QList<InfoBoardCard>& cards,
                          const QString& operation = {},
                          const QString& description = {},
                          const QString& details_title = {},
@@ -73,7 +73,7 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
                          const QString& content_hash = {});
   void SetInfoBoardFromResults(const QString& text,
                                InfoBoardStatus overall_status,
-                               const QContainer<GpgOperaResult>& results);
+                               const QList<GpgOperaResult>& results);
   void SetInfoBoardWithOpInfo(const QString& text, InfoBoardStatus status,
                               const GpgFrontend::GpgOpResultInfo& info);
 
@@ -117,7 +117,7 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   void SlotReset();
   void SlotRefresh(const QString& text, InfoBoardStatus status);
   void SlotRefreshWithCards(const QString& text, InfoBoardStatus status,
-                            const QContainer<InfoBoardCard>& cards,
+                            const QList<InfoBoardCard>& cards,
                             const QString& operation,
                             const QString& description,
                             const QString& details_title,
@@ -218,18 +218,18 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
                           const QString& content_hash = {},
                           const QString& operation = {},
                           const QString& description = {},
-                          const QContainer<InfoBoardCard>& cards = {},
+                          const QList<InfoBoardCard>& cards = {},
                           const QString& details_title = {},
                           const QStringList& details_items = {});
   void update_doc_header(InfoBoardStatus status, const QString& operation,
                          const QString& engine, const QString& count_summary);
-  void update_status_page_from_results(
-      InfoBoardStatus status, const QContainer<GpgOperaResult>& results);
+  void update_status_page_from_results(InfoBoardStatus status,
+                                       const QList<GpgOperaResult>& results);
   auto populate_extra_from_op_info(QVBoxLayout* layout, QWidget* parent,
                                    const GpgFrontend::GpgOpResultInfo& info)
       -> bool;
   void render_cards(QVBoxLayout* layout, QWidget* parent,
-                    const QContainer<InfoBoardCard>& cards);
+                    const QList<InfoBoardCard>& cards);
 
   static auto make_stamp_pixmap(const QColor& color, const QString& icon_path,
                                 int size) -> QPixmap;
@@ -290,7 +290,7 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
 struct InfoBoardCard {
   QString title;
   InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
-  QContainer<QPair<QString, QString>> fields;
+  QList<QPair<QString, QString>> fields;
 };
 
 /**

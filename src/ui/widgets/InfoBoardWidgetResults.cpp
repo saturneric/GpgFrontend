@@ -70,7 +70,7 @@ void InfoBoardWidget::update_doc_header(InfoBoardStatus status,
 void InfoBoardWidget::update_status_page(
     const QString& text, InfoBoardStatus status, const QString& content_hash,
     const QString& operation, const QString& description,
-    const QContainer<InfoBoardCard>& cards, const QString& details_title,
+    const QList<InfoBoardCard>& cards, const QString& details_title,
     const QStringList& details_items) {
   if (doc_frame_ == nullptr) return;
 
@@ -372,7 +372,7 @@ void InfoBoardWidget::SetInfoBoardWithOpInfo(
 
 void InfoBoardWidget::SetInfoBoardFromResults(
     const QString& text, InfoBoardStatus overall_status,
-    const QContainer<GpgOperaResult>& results) {
+    const QList<GpgOperaResult>& results) {
   // Use the first result's input hash for content-dependent REF generation
   QString content_hash;
   if (!results.isEmpty()) {
@@ -386,7 +386,7 @@ void InfoBoardWidget::SetInfoBoardFromResults(
 }
 
 void InfoBoardWidget::update_status_page_from_results(
-    InfoBoardStatus status, const QContainer<GpgOperaResult>& results) {
+    InfoBoardStatus status, const QList<GpgOperaResult>& results) {
   if (extra_widget_ == nullptr) return;
 
   auto* extra_layout = qobject_cast<QVBoxLayout*>(extra_widget_->layout());

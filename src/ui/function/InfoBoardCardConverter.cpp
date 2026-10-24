@@ -157,8 +157,8 @@ void add_recipient_fields(InfoBoardCard& card, const GpgRecipientInfo& reci) {
 }  // namespace
 
 auto convert_op_info_to_cards(const GpgOpResultInfo& info)
-    -> QContainer<InfoBoardCard> {
-  QContainer<InfoBoardCard> cards;
+    -> QList<InfoBoardCard> {
+  QList<InfoBoardCard> cards;
 
   if (!info.inputHash.isEmpty()) {
     InfoBoardCard hash_card;
@@ -242,8 +242,7 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
   return cards;
 }
 
-auto encode_info_board_cards(const QContainer<InfoBoardCard>& cards)
-    -> QByteArray {
+auto encode_info_board_cards(const QList<InfoBoardCard>& cards) -> QByteArray {
   QJsonArray arr;
   for (const auto& card : cards) arr.append(card_to_json(card));
   return QJsonDocument(arr).toJson(QJsonDocument::Compact);

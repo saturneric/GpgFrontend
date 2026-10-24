@@ -428,7 +428,7 @@ void InfoBoardWidget::delete_widgets_in_layout(QLayout* layout,
 }
 
 void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
-                                   const QContainer<InfoBoardCard>& cards) {
+                                   const QList<InfoBoardCard>& cards) {
   if (layout == nullptr || parent == nullptr) return;
 
   for (const auto& card_data : cards) {

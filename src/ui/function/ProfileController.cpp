@@ -183,7 +183,7 @@ void FinishImport(QWidget* parent, const QString& package_path,
   // Now that the payload is open, what it says about itself is a fact rather
   // than a claim -- so this list carries no caveat, unlike the one shown before
   // the passphrase was typed.
-  QVector<MetaListRow> rows;
+  QList<MetaListRow> rows;
   rows.append(
       {.caption = QObject::tr("Profile"), .value = name, .emphasis = true});
   if (!result.manifest.writer_version.isEmpty()) {

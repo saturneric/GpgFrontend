@@ -83,12 +83,12 @@ auto UnverifiedRowsCaveat() -> QString {
       "file can change.");
 }
 
-auto MetaListNeedsCaveat(const QVector<MetaListRow>& rows) -> bool {
+auto MetaListNeedsCaveat(const QList<MetaListRow>& rows) -> bool {
   return std::any_of(rows.begin(), rows.end(),
                      [](const MetaListRow& row) { return row.unverified; });
 }
 
-auto MetaListSummaryText(const QVector<MetaListRow>& rows) -> QString {
+auto MetaListSummaryText(const QList<MetaListRow>& rows) -> QString {
   QStringList lines;
 
   for (const auto& row : rows) {
@@ -126,9 +126,9 @@ auto MetaListSummaryText(const QVector<MetaListRow>& rows) -> QString {
   return lines.join("\n");
 }
 
-auto ToMetaListRows(const QContainer<QPair<QString, QString>>& fields)
-    -> QVector<MetaListRow> {
-  QVector<MetaListRow> rows;
+auto ToMetaListRows(const QList<QPair<QString, QString>>& fields)
+    -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
   rows.reserve(static_cast<int>(fields.size()));
   for (const auto& field : fields) {
     if (field.second.isEmpty()) continue;
@@ -202,16 +202,14 @@ MetaListPanel::MetaListPanel(QWidget* parent) : QWidget(parent) {
       });
 }
 
-void MetaListPanel::SetRows(const QVector<MetaListRow>& rows) {
+void MetaListPanel::SetRows(const QList<MetaListRow>& rows) {
   rows_ = rows;
   rebuild();
 }
 
-auto MetaListPanel::Rows() const -> const QVector<MetaListRow>& {
-  return rows_;
-}
+auto MetaListPanel::Rows() const -> const QList<MetaListRow>& { return rows_; }
 
-void MetaListPanel::RefreshValues(const QVector<MetaListRow>& rows) {
+void MetaListPanel::RefreshValues(const QList<MetaListRow>& rows) {
   // Only the values may move. A list whose shape changed is a different list,
   // and quietly updating half of it would leave captions describing values that
   // are no longer theirs.
@@ -472,7 +470,7 @@ void MetaListPanel::fit_to_contents() {
 }
 
 void MetaListPanel::copy_selection() const {
-  QVector<MetaListRow> selected;
+  QList<MetaListRow> selected;
   for (auto* item : tree_->selectedItems()) {
     const auto index = item->data(0, Qt::UserRole).toInt();
     if (index >= 0 && index < rows_.size()) selected.append(rows_.at(index));

@@ -339,7 +339,7 @@ void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
   LOG_D() << "selected path size: " << selected_paths.size();
   LOG_D() << "selected paths: " << selected_paths;
 
-  QContainer<QFileInfo> infos;
+  QList<QFileInfo> infos;
 
   for (const auto& path : selected_paths) {
     infos.append(QFileInfo(path));

@@ -228,7 +228,7 @@ class KeyMgmt : public GeneralMainWindow {
   ///< Flat list of the actions reachable from the context menu, submenu
   ///< children included. Flat on purpose: the actions shared with the menu bar
   ///< are exactly the nested ones, and a per-menu walk would skip them.
-  QVector<QAction*> popup_actions_;
+  QList<QAction*> popup_actions_;
 
   /**
    * @brief Build one action, wired up the way every KeyMgmt action should be.
@@ -239,7 +239,7 @@ class KeyMgmt : public GeneralMainWindow {
    * original to restore once the action becomes usable again.
    */
   auto make_action(const QString& text, const QString& icon, const QString& tip,
-                   const QContainer<QKeySequence>& shortcuts = {}) -> QAction*;
+                   const QList<QKeySequence>& shortcuts = {}) -> QAction*;
 
   /**
    * @brief Build the key-list context menu.

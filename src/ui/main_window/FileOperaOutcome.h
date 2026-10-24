@@ -50,8 +50,7 @@ namespace GpgFrontend::UI {
  * @return true when every operation reported exactly one result and none
  *         failed
  */
-auto GF_UI_EXPORT IsFileOperaSuccessful(
-    const QContainer<GpgOperaResult>& results, qsizetype operation_count)
-    -> bool;
+auto GF_UI_EXPORT IsFileOperaSuccessful(const QList<GpgOperaResult>& results,
+                                        qsizetype operation_count) -> bool;
 
 }  // namespace GpgFrontend::UI

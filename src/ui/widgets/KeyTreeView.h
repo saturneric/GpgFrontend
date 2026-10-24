@@ -81,9 +81,9 @@ class KeyTreeView : public QTreeView {
   /**
    * @brief Get the All Checked Sub Key object
    *
-   * @return QContainer<GpgSubKey>
+   * @return QList<GpgSubKey>
    */
-  auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
+  auto GetAllCheckedSubKey() -> QList<GpgSubKey>;
 
   /**
    * @brief Get the All Checked Keys object

@@ -33,8 +33,8 @@
 namespace GpgFrontend::UI {
 
 auto SortedLanguageEntries(const QHash<QString, QString>& languages)
-    -> QContainer<QPair<QString, QString>> {
-  QContainer<QPair<QString, QString>> entries;
+    -> QList<QPair<QString, QString>> {
+  QList<QPair<QString, QString>> entries;
   for (auto it = languages.constBegin(); it != languages.constEnd(); ++it) {
     if (it.key().isEmpty()) continue;
     entries.append({it.key(), it.value()});

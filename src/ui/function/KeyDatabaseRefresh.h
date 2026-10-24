@@ -101,9 +101,8 @@ void GF_UI_EXPORT MarkKeyDatabaseFound(QWidget* widget);
  * @param parent the window to show the waiting dialog over; the last one
  * given, or the active window, when null
  */
-void GF_UI_EXPORT
-ApplyKeyDatabaseChanges(const QContainer<KeyDatabaseMove>& moves = {},
-                        QWidget* parent = nullptr);
+void GF_UI_EXPORT ApplyKeyDatabaseChanges(
+    const QList<KeyDatabaseMove>& moves = {}, QWidget* parent = nullptr);
 
 /**
  * @brief Whether an ApplyKeyDatabaseChanges() is still running.

@@ -208,7 +208,7 @@ class FilePathBar : public QWidget {
    * @param count Number of leading segments to put into its menu.
    * @return The button, parented to the crumb page.
    */
-  auto make_overflow_button(const QContainer<PathSegment>& segments, int count)
+  auto make_overflow_button(const QList<PathSegment>& segments, int count)
       -> QToolButton*;
 
   /**

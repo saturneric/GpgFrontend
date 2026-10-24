@@ -137,7 +137,7 @@ void GRTTreeView::slot_show_context_menu(const QPoint& pos) {
 auto GRTTreeView::save_expanded_paths() const -> QSet<QString> {
   QSet<QString> paths;
 
-  QContainer<QModelIndex> pending;
+  QList<QModelIndex> pending;
   for (auto row = 0; row < proxy_model_->rowCount({}); ++row) {
     pending.push_back(proxy_model_->index(row, 0, {}));
   }
@@ -158,7 +158,7 @@ auto GRTTreeView::save_expanded_paths() const -> QSet<QString> {
 void GRTTreeView::restore_expanded_paths(const QSet<QString>& paths) {
   if (paths.isEmpty()) return;
 
-  QContainer<QModelIndex> pending;
+  QList<QModelIndex> pending;
   for (auto row = 0; row < proxy_model_->rowCount({}); ++row) {
     pending.push_back(proxy_model_->index(row, 0, {}));
   }

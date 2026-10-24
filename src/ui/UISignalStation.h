@@ -129,7 +129,7 @@ class UISignalStation : public QObject {
 
   void SignalRefreshInfoBoardCards(const QString& text,
                                    InfoBoardStatus verify_label_status,
-                                   const QContainer<InfoBoardCard>& cards,
+                                   const QList<InfoBoardCard>& cards,
                                    const QString& operation,
                                    const QString& description,
                                    const QString& details_title,

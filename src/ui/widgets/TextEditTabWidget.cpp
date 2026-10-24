@@ -670,7 +670,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     GFBuffer content;
   };
 
-  QContainer<TextEditorStatus> unsaved_pages;
+  QList<TextEditorStatus> unsaved_pages;
 
   for (int i = 0; i < tab_count; i++) {
     auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));

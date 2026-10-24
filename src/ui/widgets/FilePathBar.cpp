@@ -75,9 +75,8 @@ auto ToDisplayUserPath(const QString& path) -> QString {
 
 using GpgFrontend::UI::PathSegment;
 
-auto SplitPathSegments(const QString& path)
-    -> GpgFrontend::QContainer<PathSegment> {
-  GpgFrontend::QContainer<PathSegment> segments;
+auto SplitPathSegments(const QString& path) -> QList<PathSegment> {
+  QList<PathSegment> segments;
 
   auto clean = QDir::cleanPath(path);
 #ifdef Q_OS_WIN
@@ -324,7 +323,7 @@ void FilePathBar::rebuild_crumbs() {
   const auto home_icon = QIcon::fromTheme(QStringLiteral("user-home"),
                                           QIcon(":/icons/folder.png"));
 
-  QContainer<QToolButton*> buttons;
+  QList<QToolButton*> buttons;
   buttons.reserve(static_cast<int>(segments.size()));
 
   const auto chevron_width = make_chevron_width();
@@ -409,7 +408,7 @@ auto FilePathBar::make_chevron_width() -> int {
   return probe_width;
 }
 
-auto FilePathBar::make_overflow_button(const QContainer<PathSegment>& segments,
+auto FilePathBar::make_overflow_button(const QList<PathSegment>& segments,
                                        int count) -> QToolButton* {
   auto* overflow = new QToolButton(crumb_page_);
   overflow->setAutoRaise(true);

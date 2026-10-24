@@ -101,7 +101,7 @@ auto GF_UI_EXPORT UnverifiedRowsCaveat() -> QString;
  * @param rows the rows
  * @return true when at least one row is unverified
  */
-auto GF_UI_EXPORT MetaListNeedsCaveat(const QVector<MetaListRow>& rows) -> bool;
+auto GF_UI_EXPORT MetaListNeedsCaveat(const QList<MetaListRow>& rows) -> bool;
 
 /**
  * @brief The same list as plain text, for the clipboard.
@@ -113,7 +113,7 @@ auto GF_UI_EXPORT MetaListNeedsCaveat(const QVector<MetaListRow>& rows) -> bool;
  * @param rows the rows
  * @return the text
  */
-auto GF_UI_EXPORT MetaListSummaryText(const QVector<MetaListRow>& rows)
+auto GF_UI_EXPORT MetaListSummaryText(const QList<MetaListRow>& rows)
     -> QString;
 
 /**
@@ -126,8 +126,8 @@ auto GF_UI_EXPORT MetaListSummaryText(const QVector<MetaListRow>& rows)
  * @param fields caption/value pairs, as InfoBoardCard carries them
  * @return the same fields as rows
  */
-auto GF_UI_EXPORT ToMetaListRows(
-    const QContainer<QPair<QString, QString>>& fields) -> QVector<MetaListRow>;
+auto GF_UI_EXPORT ToMetaListRows(const QList<QPair<QString, QString>>& fields)
+    -> QList<MetaListRow>;
 
 /**
  * @brief The one key/value list in the application.
@@ -149,7 +149,7 @@ class GF_UI_EXPORT MetaListPanel : public QWidget {
    *
    * @param rows what to show
    */
-  void SetRows(const QVector<MetaListRow>& rows);
+  void SetRows(const QList<MetaListRow>& rows);
 
   /**
    * @brief Update the values in place, keeping the widgets that are there.
@@ -160,10 +160,10 @@ class GF_UI_EXPORT MetaListPanel : public QWidget {
    *
    * @param rows the same rows, with new values
    */
-  void RefreshValues(const QVector<MetaListRow>& rows);
+  void RefreshValues(const QList<MetaListRow>& rows);
 
   /// @brief The rows as last set.
-  [[nodiscard]] auto Rows() const -> const QVector<MetaListRow>&;
+  [[nodiscard]] auto Rows() const -> const QList<MetaListRow>&;
 
  signals:
   /**
@@ -194,7 +194,7 @@ class GF_UI_EXPORT MetaListPanel : public QWidget {
   /// @brief Copy the selected rows, in the same words the list shows them.
   void copy_selection() const;
 
-  QVector<MetaListRow> rows_;
+  QList<MetaListRow> rows_;
   int caption_width_ = 0;  ///< what the captions want, before any capping
   int value_width_ = 0;    ///< what the widest value wants
   QTreeWidget* tree_{};

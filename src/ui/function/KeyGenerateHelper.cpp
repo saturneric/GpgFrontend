@@ -73,7 +73,7 @@ auto FirstSelectableComboIndex(const QComboBox* combo_box) -> int {
   return -1;
 }
 
-auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
+auto GetAlgoById(const QString& id, const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
     if (algo.Id() != id) continue;
@@ -84,9 +84,8 @@ auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
 }
 
 auto SearchAlgoByNameType(const QString& name, const QString& type,
-                          const QContainer<KeyAlgo>& algos)
-    -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> res;
+                          const QList<KeyAlgo>& algos) -> QList<KeyAlgo> {
+  QList<KeyAlgo> res;
 
   for (const auto& algo : algos) {
     if (algo.Name() != name) continue;
@@ -98,8 +97,7 @@ auto SearchAlgoByNameType(const QString& name, const QString& type,
 }
 
 auto GetAlgoByNameTypeAndKeyLength(const QString& name, const QString& type,
-                                   int key_length,
-                                   const QContainer<KeyAlgo>& algos)
+                                   int key_length, const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
     if (algo.Name() != name) continue;
@@ -112,7 +110,7 @@ auto GetAlgoByNameTypeAndKeyLength(const QString& name, const QString& type,
 }
 
 auto GetAlgoByNameType(const QString& name, const QString& type,
-                       const QContainer<KeyAlgo>& algos)
+                       const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
     if (algo.Name() != name) continue;
@@ -124,7 +122,7 @@ auto GetAlgoByNameType(const QString& name, const QString& type,
 }
 
 void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
-                                 const QContainer<KeyAlgo>& algos) {
+                                 const QList<KeyAlgo>& algos) {
   if (combo == nullptr) return;
 
   combo->clear();
@@ -142,8 +140,7 @@ void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
   }
 }
 
-void PopulateAlgoComboBox(QComboBox* combo_box,
-                          const QContainer<KeyAlgo>& algos) {
+void PopulateAlgoComboBox(QComboBox* combo_box, const QList<KeyAlgo>& algos) {
   if (combo_box == nullptr) return;
 
   auto sorted_algos = algos;
@@ -217,9 +214,8 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
 }
 
 auto GetAlgoByIdType(const QString& id, const QString& type,
-                     const QContainer<KeyAlgo>& algos)
-    -> std::tuple<bool, KeyAlgo> {
-  QContainer<KeyAlgo> same_id;
+                     const QList<KeyAlgo>& algos) -> std::tuple<bool, KeyAlgo> {
+  QList<KeyAlgo> same_id;
   for (const auto& algo : algos) {
     if (algo.Id() != id) continue;
     if (!type.isEmpty() && algo.Type() != type) {
