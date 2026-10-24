@@ -47,21 +47,20 @@ using UI::KeyDatabaseTravelsWithProfile;
 constexpr auto kRoot = "/home/someone/.local/share/GpgFrontend";
 
 auto Database(const QString& id, const QString& name, KeyDatabaseKind kind,
-              const QString& path = QStringLiteral("/somewhere"))
-    -> KeyDatabaseInfo {
+              const QString& path = u"/somewhere"_s) -> KeyDatabaseInfo {
   KeyDatabaseInfo info;
   info.id = id;
   info.name = name;
   info.kind = kind;
   info.path = path;
   info.origin_path = path;
-  info.backend_type = QStringLiteral("gnupg");
+  info.backend_type = u"gnupg"_s;
   return info;
 }
 
 auto BuiltIn() -> KeyDatabaseInfo {
   return Database(kDefaultKeyDatabaseId, kDefaultKeyDatabaseName,
-                  KeyDatabaseKind::kDEFAULT, QStringLiteral("/home/u/.gnupg"));
+                  KeyDatabaseKind::kDEFAULT, u"/home/u/.gnupg"_s);
 }
 
 /// The built-in database, one of the profile's own and one of this
@@ -70,7 +69,7 @@ auto ThreeDatabases() -> KeyDatabaseSettingsModel {
   KeyDatabaseSettingsModel model;
   model.Load({BuiltIn(), Database("id-work", "work", KeyDatabaseKind::kMANAGED),
               Database("id-usb", "usb", KeyDatabaseKind::kEXTERNAL)},
-             {}, QStringLiteral("gnupg"));
+             {}, u"gnupg"_s);
   return model;
 }
 
@@ -153,7 +152,7 @@ TEST(KeyDatabaseDisplayNamesTest, AnIdIsShortenedToItsFirstGroup) {
   EXPECT_EQ(KeyDatabaseDisplayId("3f2a9c1e-5b7d-4e8f-9a0b-1c2d3e4f5a6b"),
             "3f2a9c1e");
   EXPECT_EQ(KeyDatabaseDisplayId("default"), "default");
-  EXPECT_EQ(KeyDatabaseDisplayId({}), QStringLiteral("\u2013"));
+  EXPECT_EQ(KeyDatabaseDisplayId({}), u"\u2013"_s);
 }
 
 // -----------------------------------------------------------------------------
@@ -196,7 +195,7 @@ TEST(KeyDatabaseDisplayNamesTest, AChoiceSaysDefaultOnceAndNoId) {
 
   const auto other =
       UI::KeyDatabaseChoiceLabel("3f2a9c1e-5b7d", "work", "rpgp", false);
-  EXPECT_EQ(other, QStringLiteral("work  ·  RPGP"));
+  EXPECT_EQ(other, u"work  ·  RPGP"_s);
   EXPECT_FALSE(other.contains("3f2a9c1e"));
 
   EXPECT_EQ(UI::KeyDatabaseChoiceLabel("id", "work", {}, false), "work");
@@ -315,7 +314,7 @@ TEST(KeyDatabaseSettingsModelTest, TheChoiceIsWrittenOnEveryStorePath) {
 
 TEST(KeyDatabaseSettingsModelTest, SavingAndReopeningRestoresChoiceAndEngine) {
   auto model = ThreeDatabases();
-  model.engine = QStringLiteral("RPGP");
+  model.engine = u"RPGP"_s;
   ASSERT_TRUE(model.UseAsDefault("id-usb"));
 
   KeyDatabaseListSO saved;
@@ -341,7 +340,7 @@ TEST(KeyDatabaseSettingsModelTest, NothingIsWrittenUntilApplied) {
 
   auto model = ThreeDatabases();
   model.choice_id = stored.default_database_id;
-  model.engine = QStringLiteral("RPGP");
+  model.engine = u"RPGP"_s;
   ASSERT_TRUE(model.UseAsDefault("id-usb"));
   model.SetBuiltIn(std::nullopt);
 
@@ -370,25 +369,25 @@ TEST(KeyDatabaseSettingsModelTest, AnUnresolvedChoiceFallsToTheFirstUsable) {
   KeyDatabaseSettingsModel model;
   model.Load(
       {BuiltIn(), Database("id-gone", "gone", KeyDatabaseKind::kEXTERNAL, {})},
-      "id-gone", QStringLiteral("GNUPG"));
+      "id-gone", u"GNUPG"_s);
   EXPECT_EQ(model.EffectiveDefaultId(), kDefaultKeyDatabaseId);
 }
 
 TEST(KeyDatabaseSettingsModelTest, TheBuiltInEngineIsTheCoresDecision) {
   auto model = ThreeDatabases();
 
-  model.engine = QStringLiteral("RPGP");
+  model.engine = u"RPGP"_s;
   auto choice = model.BuiltInEngine(true, true);
   ASSERT_TRUE(choice.ok);
   EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);
 
-  model.engine = QStringLiteral("GNUPG");
+  model.engine = u"GNUPG"_s;
   choice = model.BuiltInEngine(true, true);
   ASSERT_TRUE(choice.ok);
   EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
 
   // Asked for what this build lacks: shown as what it falls back to.
-  model.engine = QStringLiteral("GNUPG");
+  model.engine = u"GNUPG"_s;
   choice = model.BuiltInEngine(false, true);
   ASSERT_TRUE(choice.ok);
   EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);

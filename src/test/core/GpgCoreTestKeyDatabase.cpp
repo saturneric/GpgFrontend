@@ -1550,7 +1550,7 @@ TEST(KeyDatabaseIdTest, AFreshIdIsAUuidAndNeverTheDefaultOne) {
 
   EXPECT_FALSE(QUuid::fromString(a).isNull());
   EXPECT_NE(a, b);
-  EXPECT_NE(a, QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_NE(a, QLatin1StringView(kDefaultKeyDatabaseId));
 }
 
 TEST(KeyDatabaseIdTest, TheDefaultDatabaseAlwaysHasTheReservedId) {
@@ -1562,7 +1562,7 @@ TEST(KeyDatabaseIdTest, TheDefaultDatabaseAlwaysHasTheReservedId) {
   });
 
   ASSERT_EQ(out.size(), 1);
-  EXPECT_EQ(out.front().id, QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_EQ(out.front().id, QLatin1StringView(kDefaultKeyDatabaseId));
 }
 
 TEST(KeyDatabaseIdTest, AnEntryFromBeforeTheFieldIsGivenOne) {
@@ -1588,10 +1588,10 @@ TEST(KeyDatabaseIdTest, OnlyTheDefaultDatabaseMayHoldTheReservedId) {
   // database" mean two things.
   const auto out = AssignKeyDatabaseIds({
       MakeKindItem("work", "@profile/dbs/work", KeyDatabaseKind::kMANAGED,
-                   QLatin1String(kDefaultKeyDatabaseId)),
+                   QLatin1StringView(kDefaultKeyDatabaseId)),
   });
 
-  EXPECT_NE(out.front().id, QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_NE(out.front().id, QLatin1StringView(kDefaultKeyDatabaseId));
   EXPECT_FALSE(QUuid::fromString(out.front().id).isNull());
 }
 
@@ -1664,7 +1664,7 @@ TEST(KeyDatabaseIdTest, ReconcilingSettlesEveryIdAndKeepsStoredOnes) {
 
   ASSERT_EQ(out.size(), 3);
   EXPECT_EQ(FindByName(out, "DEFAULT")->id,
-            QLatin1String(kDefaultKeyDatabaseId));
+            QLatin1StringView(kDefaultKeyDatabaseId));
   EXPECT_EQ(FindByName(out, "work")->id, work_id);
   EXPECT_FALSE(QUuid::fromString(FindByName(out, "ext")->id).isNull());
 }
@@ -1677,7 +1677,7 @@ TEST(KeyDatabaseIdTest, ASeededFallbackIsTheDefaultIdentity) {
                                             fallback, "/app-data", "/app-data");
 
   ASSERT_EQ(out.size(), 1);
-  EXPECT_EQ(out.front().id, QLatin1String(kDefaultKeyDatabaseId));
+  EXPECT_EQ(out.front().id, QLatin1StringView(kDefaultKeyDatabaseId));
 }
 
 TEST_F(GFCoreTest, ASandboxDatabaseRecoversItsIdByName) {
@@ -1694,7 +1694,7 @@ TEST_F(GFCoreTest, ASandboxDatabaseRecoversItsIdByName) {
       {stored_work}, kLiteBackends);
 
   EXPECT_EQ(FindByName(out, "DEFAULT")->id,
-            QLatin1String(kDefaultKeyDatabaseId));
+            QLatin1StringView(kDefaultKeyDatabaseId));
   EXPECT_EQ(FindByName(out, "work")->id, id);
   EXPECT_FALSE(QUuid::fromString(FindByName(out, "fresh")->id).isNull());
 }
@@ -1702,7 +1702,7 @@ TEST_F(GFCoreTest, ASandboxDatabaseRecoversItsIdByName) {
 TEST_F(GFCoreTest, ComposingKeepsEveryIdentity) {
   auto def =
       MakeKindItem("DEFAULT", "/home/me/.gnupg", KeyDatabaseKind::kDEFAULT,
-                   QLatin1String(kDefaultKeyDatabaseId));
+                   QLatin1StringView(kDefaultKeyDatabaseId));
   auto managed = MakeKindItem("work", "@profile/dbs/work",
                               KeyDatabaseKind::kMANAGED, NewKeyDatabaseId());
   auto external = MakeKindItem("ext", "/elsewhere/ext",

@@ -56,9 +56,7 @@ auto SampleKey() -> GFBuffer { return GFBuffer(QByteArray(256, '\x5A')); }
  */
 class FakeSecretStore final : public SystemSecretStore {
  public:
-  [[nodiscard]] auto Name() const -> QString override {
-    return QStringLiteral("fake");
-  }
+  [[nodiscard]] auto Name() const -> QString override { return u"fake"_s; }
 
   [[nodiscard]] auto IsAvailable() -> bool override { return available; }
 
@@ -88,12 +86,12 @@ class FakeSecretStore final : public SystemSecretStore {
     // why, since a silent false and a declined prompt reach the same dialog
     // and only the message tells them apart.
     if (!unlock_supported) {
-      last_error = QStringLiteral("fake store cannot unlock at all");
+      last_error = u"fake store cannot unlock at all"_s;
       return false;
     }
 
     if (!unlockable) {
-      last_error = QStringLiteral("fake store refused to unlock");
+      last_error = u"fake store refused to unlock"_s;
       return false;
     }
 
@@ -1381,12 +1379,12 @@ TEST(AppSecureKeyWrapTest, ProtectionInEffectIsTheOneTheSettingsAskedFor) {
 
   const auto requested = ProfileLoader::ApplyProfilePortabilityRule(
       ProfileLoader::ResolveAppKeyProtection(
-          deployment.value(QStringLiteral("AppKeyProtection")),
-          deployment.value(QStringLiteral("SecureLevel")),
-          deployment.value(QStringLiteral("OSSecretStore")),
-          user.value(QStringLiteral("advanced/app_key_protection")),
-          user.value(QStringLiteral("advanced/secure_level")),
-          user.value(QStringLiteral("advanced/os_secret_store"))),
+          deployment.value(u"AppKeyProtection"_s),
+          deployment.value(u"SecureLevel"_s),
+          deployment.value(u"OSSecretStore"_s),
+          user.value(u"advanced/app_key_protection"_s),
+          user.value(u"advanced/secure_level"_s),
+          user.value(u"advanced/os_secret_store"_s)),
       session.Profile().AllowsSystemKeychain());
 
   const auto in_effect = ProfileLoader::AppKeyProtectionFromApp();
@@ -1533,18 +1531,18 @@ TEST(LibSecretSearchPathTest, BundledCopyComesFirstInsideAnAppImage) {
 TEST(LibSecretSearchPathTest, AlwaysFallsBackToTheLoaderSearchPath) {
   // A bundle whose own copy is broken must still reach a working host one.
   EXPECT_EQ(LibSecretSearchPaths("/tmp/.mount_GpgFroAbCdEf", {}).last(),
-            QLatin1String(kLibSecretSoname));
+            QLatin1StringView(kLibSecretSoname));
 }
 
 TEST(LibSecretSearchPathTest, OutsideAnAppImageOnlyTheLoaderPathIsTried) {
   EXPECT_EQ(LibSecretSearchPaths({}, {}),
-            QStringList{QLatin1String(kLibSecretSoname)});
+            QStringList{QLatin1StringView(kLibSecretSoname)});
 }
 
 TEST(LibSecretSearchPathTest, ARelativeAppDirIsIgnored) {
   // Resolved against the working directory it would name any directory at all.
   EXPECT_EQ(LibSecretSearchPaths("usr/../.", {}),
-            QStringList{QLatin1String(kLibSecretSoname)});
+            QStringList{QLatin1StringView(kLibSecretSoname)});
 }
 
 TEST(LibSecretSearchPathTest, OverrideIsTriedBeforeAnythingElse) {
@@ -1557,8 +1555,8 @@ TEST(LibSecretSearchPathTest, OverrideIsTriedBeforeAnythingElse) {
 
 TEST(LibSecretSearchPathTest, NoCandidateIsTriedTwice) {
   // Loading one file twice would report the same loader error twice.
-  EXPECT_EQ(LibSecretSearchPaths({}, QLatin1String(kLibSecretSoname)).size(),
-            1);
+  EXPECT_EQ(
+      LibSecretSearchPaths({}, QLatin1StringView(kLibSecretSoname)).size(), 1);
 }
 
 #endif
@@ -1608,9 +1606,7 @@ namespace {
 /// A backend that overrides nothing optional, to pin the interface's defaults.
 class BareSecretStore final : public SystemSecretStore {
  public:
-  [[nodiscard]] auto Name() const -> QString override {
-    return QStringLiteral("bare");
-  }
+  [[nodiscard]] auto Name() const -> QString override { return u"bare"_s; }
   [[nodiscard]] auto IsAvailable() -> bool override { return true; }
   auto Read(const QString&) -> GFBufferOrNone override { return {}; }
   auto Write(const QString&, const GFBuffer&) -> bool override { return true; }

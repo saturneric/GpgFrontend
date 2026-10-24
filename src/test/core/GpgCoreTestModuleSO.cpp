@@ -212,8 +212,8 @@ TEST_F(GFCoreTest, AFileThatGrewHasAnotherIdentity) {
 TEST_F(GFCoreTest, ASettingsReconcileKeepsTheUsersChoiceAcrossARebuild) {
   // Fresh per run: the settings persist in the profile, and a second run
   // there would otherwise start from the first run's choice.
-  const auto id = QStringLiteral("com.example.reconcile.integrated.%1")
-                      .arg(GenerateRandomString(8).toLower());
+  const auto id = u"com.example.reconcile.integrated.%1"_s.arg(
+      GenerateRandomString(8).toLower());
 
   const auto first = Module::ReconcileModuleSettings(id, "hash-1", true);
   EXPECT_TRUE(first.auto_activate) << "integrated modules start on";
@@ -235,7 +235,7 @@ TEST_F(GFCoreTest, ASettingsReconcileKeepsTheUsersChoiceAcrossARebuild) {
 
 TEST_F(GFCoreTest, ASettingsReconcileDefaultsAnExternalModuleToOff) {
   const auto so = Module::ReconcileModuleSettings(
-      QStringLiteral("com.example.reconcile.external"), "h", false);
+      u"com.example.reconcile.external"_s, "h", false);
   EXPECT_FALSE(so.auto_activate);
   EXPECT_FALSE(so.set_by_user);
 }

@@ -234,7 +234,7 @@ class LuaApiTest : public ::testing::Test {
     liar.descriptor = gf::cmd::Describe<Liar>();
     liar.run = [](const gf::cmd::CommandContext&, QCborMap,
                   std::vector<gf::cmd::Blob>, gf::cmd::Completer done) {
-      done({GF_CMD_OK, 0, QCborMap{{QStringLiteral("nonsense"), 1}}, {}, {}});
+      done({GF_CMD_OK, 0, QCborMap{{u"nonsense"_s, 1}}, {}, {}});
     };
     ASSERT_EQ(CommandRegistry::Instance().Register(std::move(liar)), GF_CMD_OK);
 
@@ -927,7 +927,7 @@ TEST_F(LuaApiTest, TheAnchorCatalogIsStable) {
         "key.details.actions", "key.list.context",
         "key.manager.menu.operations", "settings", "editor", "dialog"}) {
     EXPECT_NE(UI::Lua::FindAnchor(id), nullptr) << id;
-    EXPECT_TRUE(reference.contains(QLatin1String(id))) << id;
+    EXPECT_TRUE(reference.contains(QLatin1StringView(id))) << id;
   }
   EXPECT_EQ(UI::Lua::FindAnchor("main_menu.help"), nullptr);
   EXPECT_EQ(UI::Lua::kAnchorCatalogVersion, 2);
@@ -944,10 +944,10 @@ auto ReadmeBlock(const QString& marker) -> QString {
   const auto text = QString::fromUtf8(f.readAll());
   const auto at = text.indexOf(marker);
   if (at < 0) return {};
-  const auto open = text.indexOf(QStringLiteral("```text\n"), at);
+  const auto open = text.indexOf(u"```text\n"_s, at);
   if (open < 0) return {};
   const auto begin = open + 8;
-  const auto close = text.indexOf(QStringLiteral("\n```"), begin);
+  const auto close = text.indexOf(u"\n```"_s, begin);
   if (close < 0) return {};
   return text.mid(begin, close - begin);
 }

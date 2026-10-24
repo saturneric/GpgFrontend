@@ -228,8 +228,8 @@ TEST(NativeWidgetTest,
   // cannot remember its own geometry: the frame has to.
   constexpr auto kModule = "com.example.native.geometry";
   const auto widget_id = QString(kModule) + ".dialog";
-  const auto state_name = UI::Lua::NativeDialogStateName(widget_id) +
-                          QStringLiteral("_dialog_state");
+  const auto state_name =
+      UI::Lua::NativeDialogStateName(widget_id) + u"_dialog_state"_s;
   SdkTestContext owner(kModule, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
   auto spec = Spec("dialog", GF_NATIVE_DIALOG);
   spec.create = &CreateDialogWidget;

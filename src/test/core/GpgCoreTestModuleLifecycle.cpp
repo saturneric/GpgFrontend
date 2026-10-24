@@ -74,7 +74,7 @@ namespace {
 /// one per probe: an event the bundled modules listen to would reach them,
 /// and one shared by the probes would have them answering each other.
 auto EventOf(int n) -> QString {
-  return QStringLiteral("EDIT_TAB_TYPE_PROBE%1_OP_DECRYPT").arg(n);
+  return u"EDIT_TAB_TYPE_PROBE%1_OP_DECRYPT"_s.arg(n);
 }
 
 /// What one probe module saw, and what it is told to do.
@@ -134,7 +134,7 @@ struct ProbeModule {
   }
 
   static auto Id() -> QString {
-    return QStringLiteral("com.example.lifecycle.probe%1").arg(N);
+    return u"com.example.lifecycle.probe%1"_s.arg(N);
   }
 
   static auto Activate(const GFHostApi* host, void*) -> int {
@@ -238,7 +238,7 @@ struct ProbeModule {
     manifest.translation_context = "GTrC";
     module->SetModuleManifest(manifest);
     module->SetSourcePackagePath(
-        QStringLiteral("/nonexistent/%1/module.gfmodule").arg(Id()));
+        u"/nonexistent/%1/module.gfmodule"_s.arg(Id()));
     Module::ModuleManager::GetInstance().RegisterLoadedModule(module, false);
     return module;
   }

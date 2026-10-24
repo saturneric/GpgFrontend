@@ -940,7 +940,7 @@ TEST(SettingCatalogTest, EveryKeyIsDescribedOnce) {
   QSet<QString> seen;
   for (const auto* meta : SettingItems::kAll) {
     ASSERT_NE(meta, nullptr);
-    const auto key = QLatin1String(meta->key);
+    const auto key = QLatin1StringView(meta->key);
     EXPECT_FALSE(seen.contains(key)) << meta->key;
     seen.insert(key);
 
@@ -963,7 +963,7 @@ TEST(SettingCatalogTest, NoSecretIsEverInherited) {
   // An inherited value can travel on a command line.
   for (const auto* meta : SettingItems::kAll) {
     if (meta->secret) {
-      EXPECT_FALSE(SettingInheritedByNewProfile(QLatin1String(meta->key)))
+      EXPECT_FALSE(SettingInheritedByNewProfile(QLatin1StringView(meta->key)))
           << meta->key;
     }
   }
@@ -1007,7 +1007,7 @@ TEST(SettingCatalogTest, ReadingGivesTheTypeAndTheOneDefault) {
 
 TEST(SettingCatalogTest, WhatNamesThisComputerStaysHome) {
   for (const auto* meta : SettingItems::kAll) {
-    EXPECT_EQ(SettingTravelsInPackage(QLatin1String(meta->key)),
+    EXPECT_EQ(SettingTravelsInPackage(QLatin1StringView(meta->key)),
               meta->locality == SettingLocality::kPROFILE)
         << meta->key;
   }

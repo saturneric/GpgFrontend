@@ -66,15 +66,14 @@ TEST(GFUiEditorScrollGutterTest, TheWrapWidthDoesNotDependOnScrolling) {
     Settle();
 
     QPlainTextEdit* editor = nullptr;
-    for (auto* e : edit.findChildren<QPlainTextEdit*>(
-             QStringLiteral("PlainTextEditor"))) {
+    for (auto* e : edit.findChildren<QPlainTextEdit*>(u"PlainTextEditor"_s)) {
       if (e->isVisible()) editor = e;
     }
     ASSERT_NE(editor, nullptr);
     EXPECT_EQ(editor->verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOn);
 
     // A short document: nothing to scroll, and the gutter already there.
-    editor->setPlainText(QStringLiteral("short"));
+    editor->setPlainText(u"short"_s);
     Settle();
     EXPECT_EQ(editor->verticalScrollBar()->maximum(), 0);
 
@@ -83,7 +82,7 @@ TEST(GFUiEditorScrollGutterTest, TheWrapWidthDoesNotDependOnScrolling) {
     // panel's): enough lines to fit the tall editor but not the short one.
     QStringList lines;
     for (int i = 0; i < 20; ++i) {
-      lines << QStringLiteral("line %1 of a document").arg(i + 10);
+      lines << u"line %1 of a document"_s.arg(i + 10);
     }
     editor->setPlainText(lines.join('\n'));
     Settle();

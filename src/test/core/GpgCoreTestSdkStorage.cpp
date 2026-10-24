@@ -206,7 +206,7 @@ TEST(SdkStorageTest, TheHostsImBookPhraseMovesToTheModuleOnce) {
 // moves too -- in the secure value format -- and leaves the settings file.
 TEST(SdkStorageTest, AnImBookPhraseInTheSettingsFileMovesToo) {
   const QString host_key = "im/password_book_phrase";
-  GetSettings().setValue(host_key, QStringLiteral("  legacy phrase "));
+  GetSettings().setValue(host_key, u"  legacy phrase "_s);
   ASSERT_TRUE(GetSettings().contains(host_key));
 
   EXPECT_EQ(Get(CtxIm(), GF_STORE_SECURE_DURABLE, "book_phrase"),

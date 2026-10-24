@@ -56,7 +56,7 @@ auto MixedRightToLeftText() -> QString {
   // Arabic first, so the first strong character asks for a right-to-left base,
   // then Latin, so the two bases actually order the line differently. A line of
   // pure Arabic looks the same under either base and would prove nothing.
-  return QString::fromUtf8(kArabic) + QStringLiteral(" abc");
+  return QString::fromUtf8(kArabic) + u" abc"_s;
 }
 
 }  // namespace
@@ -79,7 +79,7 @@ TEST(TextDirectionProbeTest, AnUnsetDirectionReadsAsAutomatic) {
 
 TEST(TextDirectionProbeTest, EachBlockResolvesItsOwnDirectionUnderAutomatic) {
   QTextDocument doc;
-  doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8(kArabic));
+  doc.setPlainText(u"hello\n"_s + QString::fromUtf8(kArabic));
   ASSERT_EQ(doc.blockCount(), 2);
 
   auto option = doc.defaultTextOption();
@@ -94,7 +94,7 @@ TEST(TextDirectionProbeTest, PinningTheDocumentDirectionSuppressesPerBlock) {
   // The bug being fixed, stated as a test: a document-wide direction is what
   // stops each line from deciding for itself.
   QTextDocument doc;
-  doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8(kArabic));
+  doc.setPlainText(u"hello\n"_s + QString::fromUtf8(kArabic));
 
   auto option = doc.defaultTextOption();
   option.setTextDirection(Qt::LeftToRight);
@@ -110,7 +110,7 @@ TEST(TextDirectionProbeTest, APlainTextLayoutPropagatesOnlyTheDocumentDefault) {
   // QPlainTextEdit, and per-line alignment cannot be done there at all.
   QTextDocument doc;
   doc.setDocumentLayout(new QPlainTextDocumentLayout(&doc));
-  doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8(kArabic));
+  doc.setPlainText(u"hello\n"_s + QString::fromUtf8(kArabic));
 
   auto option = doc.defaultTextOption();
   option.setTextDirection(Qt::LayoutDirectionAuto);

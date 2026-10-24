@@ -90,8 +90,8 @@ struct PresenterFixture {
   explicit PresenterFixture(bool show = true,
                             const QString& settings_name = {}) {
     window.setCentralWidget(new QWidget(&window));
-    dock->setObjectName(QStringLiteral("infoBoardDock"));
-    dock->setWindowTitle(QStringLiteral("Status Panel"));
+    dock->setObjectName(u"infoBoardDock"_s);
+    dock->setWindowTitle(u"Status Panel"_s);
     window.addDockWidget(Qt::BottomDockWidgetArea, dock);
     dock->setWidget(board);
     dock->setMinimumHeight(120);
@@ -152,8 +152,7 @@ struct PresenterFixture {
     return qobject_cast<QToolButton*>(Bar("statusDockBarExpand"));
   }
   [[nodiscard]] auto RawText() const -> QString {
-    return board->findChild<QTextBrowser*>(QStringLiteral("infoBoard"))
-        ->toPlainText();
+    return board->findChild<QTextBrowser*>(u"infoBoard"_s)->toPlainText();
   }
   [[nodiscard]] auto IndicatorStyle() const -> QString {
     return Bar("statusDockBarIndicator")->styleSheet();
@@ -229,8 +228,7 @@ TEST(GFUiStatusDockPresenterTest, CollapsedBarKeepsOnlyTheEssentialControls) {
 TEST(GFUiStatusDockPresenterTest, ExpandBringsBackTheSameResult) {
   OnGuiThread([] {
     PresenterFixture f;
-    f.board->SetInfoBoard(QStringLiteral("bad signature"),
-                          kINFO_ERROR_CRITICAL);
+    f.board->SetInfoBoard(u"bad signature"_s, kINFO_ERROR_CRITICAL);
     const auto text = f.RawText();
     ASSERT_FALSE(text.isEmpty());
 
@@ -252,7 +250,7 @@ TEST(GFUiStatusDockPresenterTest, ExpandBringsBackTheSameResult) {
 TEST(GFUiStatusDockPresenterTest, IndicatorKeepsTheResultColourWhileCollapsed) {
   OnGuiThread([] {
     PresenterFixture f;
-    f.board->SetInfoBoard(QStringLiteral("bad"), kINFO_ERROR_CRITICAL);
+    f.board->SetInfoBoard(u"bad"_s, kINFO_ERROR_CRITICAL);
     f.Collapse();
     EXPECT_TRUE(f.IndicatorStyle().contains(
         f.board->StatusColor(kINFO_ERROR_CRITICAL).name()));
@@ -261,7 +259,7 @@ TEST(GFUiStatusDockPresenterTest, IndicatorKeepsTheResultColourWhileCollapsed) {
               f.board->StatusTitle(kINFO_ERROR_CRITICAL));
 
     // A new result expands; collapsing again must still show its colour.
-    f.board->SetInfoBoard(QStringLiteral("good"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"good"_s, kINFO_ERROR_OK);
     f.Collapse();
     EXPECT_TRUE(f.IndicatorStyle().contains(
         f.board->StatusColor(kINFO_ERROR_OK).name()));
@@ -300,7 +298,7 @@ TEST(GFUiStatusDockPresenterTest, OnlyANewResultExpands) {
                      });
 
     f.Collapse();
-    f.board->SetInfoBoard(QStringLiteral("first"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"first"_s, kINFO_ERROR_OK);
     EXPECT_FALSE(f.Collapsed());
     EXPECT_EQ(expansions, 1);
 
@@ -310,12 +308,12 @@ TEST(GFUiStatusDockPresenterTest, OnlyANewResultExpands) {
     f.board->ApplyAppearanceSettings();
     EXPECT_TRUE(f.Collapsed()) << "re-rendered content is not news";
 
-    f.board->SetInfoBoard(QStringLiteral("second"), kINFO_ERROR_CRITICAL);
+    f.board->SetInfoBoard(u"second"_s, kINFO_ERROR_CRITICAL);
     EXPECT_FALSE(f.Collapsed());
     EXPECT_EQ(expansions, 2);
 
     // Already expanded: another result changes nothing.
-    f.board->SetInfoBoard(QStringLiteral("third"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"third"_s, kINFO_ERROR_OK);
     EXPECT_EQ(expansions, 2);
   });
 }
@@ -503,7 +501,7 @@ TEST(GFUiStatusDockPresenterTest, LeavingTheCompactContextRestoresThePrevious) {
 TEST(GFUiStatusDockPresenterTest, ResetChangesNeitherAxis) {
   OnGuiThread([] {
     PresenterFixture f;
-    f.board->SetInfoBoard(QStringLiteral("x"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"x"_s, kINFO_ERROR_OK);
 
     f.board->SlotReset();
     EXPECT_FALSE(f.Collapsed());
@@ -688,7 +686,7 @@ TEST(GFUiStatusDockPresenterTest, ANewResultExpandsSmoothlyToo) {
     f.Collapse();
     f.presenter->SetTransitionDuration(StatusDockPresenter::kTransitionMs);
 
-    f.board->SetInfoBoard(QStringLiteral("verified"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"verified"_s, kINFO_ERROR_OK);
     EXPECT_TRUE(f.presenter->IsTransitioning());
     f.PlayOut();
     EXPECT_FALSE(f.Collapsed());
@@ -889,7 +887,7 @@ TEST(GFUiStatusDockPresenterTest,
 TEST(GFUiStatusDockPresenterTest, ATallFrontTabDoesNotShrinkTheSavedPanel) {
   OnGuiThread([] {
     // Its own settings name, emptied first, so no other run leaks in.
-    const auto name = QStringLiteral("test_status_dock_tall_front_tab");
+    const auto name = u"test_status_dock_tall_front_tab"_s;
     {
       SettingsObject so(name);
       so["expanded_height"] = 0;
@@ -947,7 +945,7 @@ TEST(GFUiStatusDockPresenterTest, APanelStuckAtItsMinimumIsHealedOnStart) {
   OnGuiThread([] {
     // What an earlier build left behind: the layout AND the remembered height
     // both at the dock's minimum, so every start restored it there.
-    const auto name = QStringLiteral("test_status_dock_stuck_minimum");
+    const auto name = u"test_status_dock_stuck_minimum"_s;
     QByteArray state;
     int minimum = 0;
     {
@@ -974,7 +972,7 @@ TEST(GFUiStatusDockPresenterTest, APanelStuckAtItsMinimumIsHealedOnStart) {
 
 TEST(GFUiStatusDockPresenterTest, AHeightTheDockWasPushedToIsNeverRemembered) {
   OnGuiThread([] {
-    const auto name = QStringLiteral("test_status_dock_pushed");
+    const auto name = u"test_status_dock_pushed"_s;
     Remember(name, 0);
 
     PresenterFixture f(true, name);

@@ -69,8 +69,8 @@ TEST(ModuleDeveloperPanelTest, CommandArgsAreOneJsonObject) {
   QString error;
   const auto args = UI::ParseCommandArgs(R"({"type":"text","n":2})", &error);
   ASSERT_TRUE(args.has_value()) << error.toStdString();
-  EXPECT_EQ(args->value(QStringLiteral("type")).toString(), "text");
-  EXPECT_EQ(args->value(QStringLiteral("n")).toInteger(), 2);
+  EXPECT_EQ(args->value(u"type"_s).toString(), "text");
+  EXPECT_EQ(args->value(u"n"_s).toInteger(), 2);
 
   const auto none = UI::ParseCommandArgs("  ", &error);
   ASSERT_TRUE(none.has_value());

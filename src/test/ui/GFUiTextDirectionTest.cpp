@@ -40,13 +40,12 @@ namespace GpgFrontend::Test {
 
 TEST(TextDirectionTest, TextWithoutAnyStrongCharacterIsLeftToRight) {
   EXPECT_EQ(UI::DetectTextDirection({}), Qt::LeftToRight);
-  EXPECT_EQ(UI::DetectTextDirection(QStringLiteral("\n\n")), Qt::LeftToRight);
-  EXPECT_EQ(UI::DetectTextDirection(QStringLiteral("\t\n42.")),
-            Qt::LeftToRight);
+  EXPECT_EQ(UI::DetectTextDirection(u"\n\n"_s), Qt::LeftToRight);
+  EXPECT_EQ(UI::DetectTextDirection(u"\t\n42."_s), Qt::LeftToRight);
 }
 
 TEST(TextDirectionTest, LatinTextIsLeftToRight) {
-  EXPECT_EQ(UI::DetectTextDirection(QStringLiteral("hello")), Qt::LeftToRight);
+  EXPECT_EQ(UI::DetectTextDirection(u"hello"_s), Qt::LeftToRight);
 }
 
 TEST(TextDirectionTest, RightToLeftScriptsAreDetected) {
@@ -98,15 +97,14 @@ TEST(TextDirectionTest, ALoneSurrogateDoesNotDecide) {
   // A half pair left over from a truncated read is not a strong character.
   QString text;
   text.append(QChar(static_cast<char16_t>(0xD802)));
-  text.append(QStringLiteral("a"));
+  text.append(u"a"_s);
 
   EXPECT_EQ(UI::DetectTextDirection(text), Qt::LeftToRight);
 }
 
 TEST(TextDirectionTest, TheDocumentAnchorStopsAtTheFirstStrongCharacter) {
   QTextDocument doc;
-  doc.setPlainText(QStringLiteral("\n123\n") + QString::fromUtf8("مرحبا") +
-                   QStringLiteral("\nhello"));
+  doc.setPlainText(u"\n123\n"_s + QString::fromUtf8("مرحبا") + u"\nhello"_s);
 
   // The blocks disagree, which under automatic is normal and is exactly why the
   // anchor is a separate question from how any one paragraph is laid out.
@@ -165,7 +163,7 @@ TEST(TextDirectionTest, AutomaticHandsThePlainTextLayoutBackToQt) {
   // character. Pinning a real direction here is what used to suppress that.
   QTextDocument doc;
   doc.setDocumentLayout(new QPlainTextDocumentLayout(&doc));
-  doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8("مرحبا"));
+  doc.setPlainText(u"hello\n"_s + QString::fromUtf8("مرحبا"));
 
   UI::ApplyTextDirectionToDocument(nullptr, &doc, UI::kTEXT_DIRECTION_AUTO);
   EXPECT_EQ(doc.defaultTextOption().textDirection(), Qt::LayoutDirectionAuto);
@@ -178,14 +176,14 @@ TEST(TextDirectionTest, AutomaticAnchorsThePlainTextAlignmentToTheDocument) {
   // this was resolved per paragraph.
   QTextDocument rtl_doc;
   rtl_doc.setDocumentLayout(new QPlainTextDocumentLayout(&rtl_doc));
-  rtl_doc.setPlainText(QString::fromUtf8("مرحبا") + QStringLiteral("\nhello"));
+  rtl_doc.setPlainText(QString::fromUtf8("مرحبا") + u"\nhello"_s);
 
   UI::ApplyTextDirectionToDocument(nullptr, &rtl_doc, UI::kTEXT_DIRECTION_AUTO);
   EXPECT_EQ(rtl_doc.defaultTextOption().alignment(), Qt::AlignRight);
 
   QTextDocument ltr_doc;
   ltr_doc.setDocumentLayout(new QPlainTextDocumentLayout(&ltr_doc));
-  ltr_doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8("مرحبا"));
+  ltr_doc.setPlainText(u"hello\n"_s + QString::fromUtf8("مرحبا"));
 
   UI::ApplyTextDirectionToDocument(nullptr, &ltr_doc, UI::kTEXT_DIRECTION_AUTO);
   EXPECT_EQ(ltr_doc.defaultTextOption().alignment(), Qt::AlignLeft);

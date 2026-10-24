@@ -40,9 +40,7 @@ namespace {
 
 // 0123456789...
 // "alpha beta gamma alpha delta": alpha at 0 and 17, gamma at 11.
-auto SampleText() -> QString {
-  return QStringLiteral("alpha beta gamma alpha delta");
-}
+auto SampleText() -> QString { return u"alpha beta gamma alpha delta"_s; }
 
 auto SelectionAt(QTextDocument* doc, int start, int end) -> QTextCursor {
   QTextCursor cursor(doc);
@@ -84,8 +82,8 @@ TEST(TextFindTest, AForwardSearchSelectsTheMatch) {
   QTextDocument doc;
   doc.setPlainText(SampleText());
 
-  const auto result = UI::FindInDocument(&doc, QTextCursor(&doc),
-                                         QStringLiteral("gamma"), false);
+  const auto result =
+      UI::FindInDocument(&doc, QTextCursor(&doc), u"gamma"_s, false);
 
   EXPECT_EQ(result.selectionStart(), 11);
   EXPECT_EQ(result.selectionEnd(), 16);
@@ -97,8 +95,8 @@ TEST(TextFindTest, AForwardSearchWrapsToTheStart) {
 
   // Starting past the last "alpha" leaves nothing ahead, so it has to resume
   // from the top rather than report no match.
-  const auto result = UI::FindInDocument(&doc, SelectionAt(&doc, 17, 22),
-                                         QStringLiteral("alpha"), false);
+  const auto result =
+      UI::FindInDocument(&doc, SelectionAt(&doc, 17, 22), u"alpha"_s, false);
 
   EXPECT_EQ(result.selectionStart(), 0);
 }
@@ -114,8 +112,7 @@ TEST(TextFindTest,
   QTextCursor start(&doc);
   start.setPosition(0);
 
-  const auto result =
-      UI::FindInDocument(&doc, start, QStringLiteral("alpha"), true);
+  const auto result = UI::FindInDocument(&doc, start, u"alpha"_s, true);
 
   EXPECT_EQ(result.selectionStart(), 17);
   EXPECT_NE(result.selectionStart(), 0);
@@ -125,8 +122,8 @@ TEST(TextFindTest, ABackwardSearchWalksBackwards) {
   QTextDocument doc;
   doc.setPlainText(SampleText());
 
-  const auto result = UI::FindInDocument(&doc, SelectionAt(&doc, 17, 22),
-                                         QStringLiteral("alpha"), true);
+  const auto result =
+      UI::FindInDocument(&doc, SelectionAt(&doc, 17, 22), u"alpha"_s, true);
 
   EXPECT_EQ(result.selectionStart(), 0);
 }
@@ -136,8 +133,7 @@ TEST(TextFindTest, AMissLeavesTheCursorAlone) {
   doc.setPlainText(SampleText());
 
   const auto from = SelectionAt(&doc, 11, 16);
-  const auto result =
-      UI::FindInDocument(&doc, from, QStringLiteral("epsilon"), false);
+  const auto result = UI::FindInDocument(&doc, from, u"epsilon"_s, false);
 
   EXPECT_EQ(result.selectionStart(), from.selectionStart());
   EXPECT_EQ(result.selectionEnd(), from.selectionEnd());
@@ -147,8 +143,8 @@ TEST(TextFindTest, TheSearchIsCaseSensitive) {
   QTextDocument doc;
   doc.setPlainText(SampleText());
 
-  const auto result = UI::FindInDocument(&doc, QTextCursor(&doc),
-                                         QStringLiteral("GAMMA"), false);
+  const auto result =
+      UI::FindInDocument(&doc, QTextCursor(&doc), u"GAMMA"_s, false);
 
   EXPECT_FALSE(result.hasSelection());
 }
@@ -163,8 +159,7 @@ TEST(TextFindTest, TypingOneMoreCharacterExtendsTheMatchInPlace) {
   auto cursor = SelectionAt(&doc, 11, 14);  // "gam"
   cursor.setPosition(cursor.selectionStart());
 
-  const auto result =
-      UI::FindInDocument(&doc, cursor, QStringLiteral("gamm"), false);
+  const auto result = UI::FindInDocument(&doc, cursor, u"gamm"_s, false);
 
   EXPECT_EQ(result.selectionStart(), 11);
   EXPECT_EQ(result.selectionEnd(), 15);
@@ -175,8 +170,7 @@ TEST(TextFindTest, ANullDocumentGivesTheCursorBack) {
   doc.setPlainText(SampleText());
 
   const auto from = SelectionAt(&doc, 11, 16);
-  const auto result =
-      UI::FindInDocument(nullptr, from, QStringLiteral("alpha"), false);
+  const auto result = UI::FindInDocument(nullptr, from, u"alpha"_s, false);
 
   EXPECT_EQ(result.selectionStart(), from.selectionStart());
 }

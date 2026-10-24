@@ -86,7 +86,7 @@ TEST(IOUtilsHashTest, CalculateFileHashInfoProducesStructuredFields) {
                 QCryptographicHash::hash(content, QCryptographicHash::Sha256)
                     .toHex()));
   EXPECT_EQ(FindField(fields, QCoreApplication::tr("Filename")),
-            QStringLiteral("payload.bin"));
+            u"payload.bin"_s);
 }
 
 TEST(IOUtilsHashTest, FormatFileHashInfoRendersEveryField) {
@@ -105,7 +105,7 @@ TEST(IOUtilsHashTest, FormatFileHashInfoRendersEveryField) {
   // data it was built from.
   const QString sep = QCoreApplication::tr(": ");
   for (const auto& f : fields) {
-    EXPECT_TRUE(text.contains(QStringLiteral("- ") + f.first + sep + f.second))
+    EXPECT_TRUE(text.contains(u"- "_s + f.first + sep + f.second))
         << "missing field: " << f.first.toStdString();
   }
 }
@@ -379,13 +379,13 @@ TEST(IOUtilsSafeOutputTest, WorkDirsArePrivateAndUnpredictable) {
 
   // Both live in a fresh `.gpgfrontend.tmp.<random>` directory: the template
   // placeholder was replaced by a real random suffix, not kept literally.
-  const QString prefix = QStringLiteral(".gpgfrontend.tmp.");
+  const QString prefix = u".gpgfrontend.tmp."_s;
   for (const auto& dir : {first_dir, second_dir}) {
     const QString name = QFileInfo(dir).fileName();
     ASSERT_TRUE(name.startsWith(prefix)) << name.toStdString();
     const QString suffix = name.mid(prefix.size());
     EXPECT_EQ(suffix.size(), 6) << name.toStdString();
-    EXPECT_NE(suffix, QStringLiteral("XXXXXX"));
+    EXPECT_NE(suffix, u"XXXXXX"_s);
   }
   EXPECT_NE(QFileInfo(first_dir).fileName().mid(prefix.size()),
             QFileInfo(second_dir).fileName().mid(prefix.size()));

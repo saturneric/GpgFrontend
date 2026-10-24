@@ -363,7 +363,7 @@ TEST(StorageProbeTest, AnImpossibleBudgetIsReportedNotIgnored) {
       ProbeStorageCandidates(1LL << 60, dir.path() + "/.anchor");
 
   for (const auto &candidate : candidates) {
-    if (candidate.driver == QLatin1String("fs")) continue;  // never measured
+    if (candidate.driver == "fs"_L1) continue;              // never measured
     if (candidate.free_bytes < 0) continue;                 // could not say
     EXPECT_FALSE(candidate.usable)
         << "candidate: " << candidate.path.toStdString();

@@ -164,10 +164,10 @@ TEST(CommandCodecTest, EveryFieldKindRoundTrips) {
   in.count = -42;
   in.ratio = 0.5;
   in.mode = Mode::kArmor;
-  in.text = QStringLiteral("héllo");
+  in.text = u"héllo"_s;
   in.tags = QStringList{"a", "b"};
   in.octets = QByteArray("\x00\x01\x02", 3);
-  in.maybe = QStringLiteral("there");
+  in.maybe = u"there"_s;
   in.inners = {Inner{"x"}, Inner{"y"}};
   in.key.channel = 3;
   in.key.fingerprint = "ABCD";
@@ -217,26 +217,23 @@ TEST(CommandCodecTest, DecodingIsStrict) {
   EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{}, {}, out, &error));
   EXPECT_TRUE(error.contains("missing")) << error.toStdString();
 
-  EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{{QStringLiteral("text"), 7}}, {},
-                                  out, &error))
+  EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{{u"text"_s, 7}}, {}, out, &error))
       << "a number is not a string";
 
-  EXPECT_FALSE(gf::cmd::DecodeMap(
-      QCborMap{{QStringLiteral("text"), "a"}, {QStringLiteral("extra"), 1}}, {},
-      out, &error))
+  EXPECT_FALSE(gf::cmd::DecodeMap(QCborMap{{u"text"_s, "a"}, {u"extra"_s, 1}},
+                                  {}, out, &error))
       << "an undeclared field is refused, not dropped";
 
-  EXPECT_TRUE(gf::cmd::DecodeMap(QCborMap{{QStringLiteral("text"), "a"}}, {},
-                                 out, &error));
+  EXPECT_TRUE(gf::cmd::DecodeMap(QCborMap{{u"text"_s, "a"}}, {}, out, &error));
 
   // An optional field may be absent; a blob reference must be in range.
   Everything e;
   gf::cmd::EncodeState st;
   auto m = gf::cmd::EncodeMap(e, st);
-  m.remove(QStringLiteral("maybe"));
-  m.insert(QStringLiteral("secret"), QCborMap{{QStringLiteral("$blob"), 5}});
+  m.remove(u"maybe"_s);
+  m.insert(u"secret"_s, QCborMap{{u"$blob"_s, 5}});
   EXPECT_FALSE(gf::cmd::DecodeMap(m, st.blobs, e, &error));
-  m.insert(QStringLiteral("secret"), QCborValue(QCborValue::Null));
+  m.insert(u"secret"_s, QCborValue(QCborValue::Null));
   EXPECT_TRUE(gf::cmd::DecodeMap(m, st.blobs, e, &error))
       << error.toStdString();
 }
@@ -254,23 +251,22 @@ TEST(CommandCodecTest, DocumentNewTakesATypeNotATarget) {
   EXPECT_FALSE(gf::cmd::DecodeMap(target, {}, out, &error));
 
   const auto menu = gf::cmd::EncodeMap(
-      gf::cmd::host::DocumentNew::Args{QStringLiteral("text"), QString()}, st);
+      gf::cmd::host::DocumentNew::Args{u"text"_s, QString()}, st);
   ASSERT_TRUE(gf::cmd::DecodeMap(menu, {}, out, &error)) << error.toStdString();
-  EXPECT_EQ(out.type, QStringLiteral("text"));
+  EXPECT_EQ(out.type, u"text"_s);
 }
 
 TEST(CommandCodecTest, TheDescriptorIsDerivedFromTheType) {
   const auto d = gf::cmd::Describe<Echo>();
-  EXPECT_EQ(d.value(QStringLiteral("id")).toString(), "com.example.codec.echo");
-  EXPECT_EQ(d.value(QStringLiteral("required_caps")).toInteger(),
-            GF_HOST_CAP_GPG);
-  EXPECT_EQ(d.value(QStringLiteral("flags")).toInteger(), gf::cmd::kCheckable);
+  EXPECT_EQ(d.value(u"id"_s).toString(), "com.example.codec.echo");
+  EXPECT_EQ(d.value(u"required_caps"_s).toInteger(), GF_HOST_CAP_GPG);
+  EXPECT_EQ(d.value(u"flags"_s).toInteger(), gf::cmd::kCheckable);
 
-  const auto args = d.value(QStringLiteral("args")).toMap();
-  EXPECT_EQ(args.value(QStringLiteral("type")).toString(), "object");
-  const auto fields = args.value(QStringLiteral("fields")).toArray();
+  const auto args = d.value(u"args"_s).toMap();
+  EXPECT_EQ(args.value(u"type"_s).toString(), "object");
+  const auto fields = args.value(u"fields"_s).toArray();
   ASSERT_EQ(fields.size(), 1);
-  EXPECT_EQ(fields[0].toMap().value(QStringLiteral("name")).toString(), "text");
+  EXPECT_EQ(fields[0].toMap().value(u"name"_s).toString(), "text");
 }
 
 TEST(CommandCodecTest, ASynchronousHandlerIsBoundByOneLine) {
@@ -283,33 +279,33 @@ TEST(CommandCodecTest, ASynchronousHandlerIsBoundByOneLine) {
   ctx.has_selection = true;
   EXPECT_EQ(b.state(ctx), GF_CMD_STATE_ENABLED);
 
-  auto r = RunBinding(b, QCborMap{{QStringLiteral("text"), "abc"}});
+  auto r = RunBinding(b, QCborMap{{u"text"_s, "abc"}});
   EXPECT_EQ(r.status, GF_CMD_OK);
-  EXPECT_EQ(r.result.value(QStringLiteral("text")).toString(), "ABC");
+  EXPECT_EQ(r.result.value(u"text"_s).toString(), "ABC");
 
-  r = RunBinding(b, QCborMap{{QStringLiteral("text"), "fail"}});
+  r = RunBinding(b, QCborMap{{u"text"_s, "fail"}});
   EXPECT_EQ(r.status, GF_CMD_E_FAILED);
   EXPECT_EQ(r.error, "asked to");
 
-  r = RunBinding(b, QCborMap{{QStringLiteral("wrong"), "abc"}});
+  r = RunBinding(b, QCborMap{{u"wrong"_s, "abc"}});
   EXPECT_EQ(r.status, GF_CMD_E_BAD_ARGS) << "decoded before the handler runs";
 }
 
 TEST(CommandCodecTest, ADeferredReplyAnswersExactlyOnce) {
   const auto b = gf::cmd::Bind<Echo, &EchoDeferred>();
 
-  auto r = RunBinding(b, QCborMap{{QStringLiteral("text"), "now"}});
+  auto r = RunBinding(b, QCborMap{{u"text"_s, "now"}});
   EXPECT_EQ(r.status, GF_CMD_OK);
-  EXPECT_EQ(r.result.value(QStringLiteral("text")).toString(), "now!");
+  EXPECT_EQ(r.result.value(u"text"_s).toString(), "now!");
 
   // A reply dropped on the floor still answers -- as a failure -- rather
   // than leaving the caller waiting for ever.
-  r = RunBinding(b, QCborMap{{QStringLiteral("text"), "drop"}});
+  r = RunBinding(b, QCborMap{{u"text"_s, "drop"}});
   EXPECT_EQ(r.status, GF_CMD_E_FAILED);
 
   // A parked reply answers when it is used, and only the first use counts.
   int answers = 0;
-  b.run({}, QCborMap{{QStringLiteral("text"), "park"}}, {},
+  b.run({}, QCborMap{{u"text"_s, "park"}}, {},
         [&](gf::cmd::RawResult) { ++answers; });
   EXPECT_EQ(answers, 0);
   ASSERT_NE(g_parked, nullptr);

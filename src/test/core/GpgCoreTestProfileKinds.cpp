@@ -324,7 +324,7 @@ TEST(ProfileKindsTest, AnEphemeralProfileMintsItsAnchorUnlessGivenOne) {
   // The anchor is the lock root; Root() stays empty until storage exists.
   const QString root = "/x/profiles";
   static const QRegularExpression kMinted(
-      QStringLiteral("^/x/profiles/\\.tmp-[0-9a-f]{16}$"));
+      u"^/x/profiles/\\.tmp-[0-9a-f]{16}$"_s);
 
   // Every launch a new one, as before.
   const EphemeralProfile first(root);

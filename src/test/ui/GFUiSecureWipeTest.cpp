@@ -40,7 +40,7 @@ namespace GpgFrontend::Test {
 
 TEST(SecureWipeTest, AWipedDocumentIsEmptyAndUnmodified) {
   QTextDocument doc;
-  doc.setPlainText(QStringLiteral("decrypted message"));
+  doc.setPlainText(u"decrypted message"_s);
   doc.setModified(true);
 
   UI::WipeTextDocument(&doc);
@@ -52,7 +52,7 @@ TEST(SecureWipeTest, AWipedDocumentIsEmptyAndUnmodified) {
 TEST(SecureWipeTest, AWipedSecretCannotBeBroughtBackWithUndo) {
   QTextDocument doc;
   doc.setUndoRedoEnabled(true);
-  doc.setPlainText(QStringLiteral("correct horse battery staple"));
+  doc.setPlainText(u"correct horse battery staple"_s);
 
   UI::WipeTextDocument(&doc);
   doc.undo();
@@ -65,7 +65,7 @@ TEST(SecureWipeTest, AWipedSecretCannotBeBroughtBackWithUndo) {
 TEST(SecureWipeTest, ARedoCannotBringTheSecretBackEither) {
   QTextDocument doc;
   doc.setUndoRedoEnabled(true);
-  doc.setPlainText(QStringLiteral("top secret"));
+  doc.setPlainText(u"top secret"_s);
 
   UI::WipeTextDocument(&doc);
   doc.undo();

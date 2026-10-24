@@ -195,7 +195,7 @@ auto CurrentTextWidget(UI::TextEdit* edit) -> QPlainTextEdit* {
 // or a U+2028 to be rewritten.
 TEST(GFUiCurrentEditorContentTest, OperationsReadTheCharactersAsTyped) {
   auto* edit = NewTextTab();
-  const auto typed = QStringLiteral("a\u00A0b\u2028c\nd");
+  const auto typed = u"a\u00A0b\u2028c\nd"_s;
   QString text;
   QByteArray bytes;
   OnGuiThread([&] {
@@ -218,15 +218,15 @@ TEST(GFUiCurrentEditorContentTest, ShiftEnterTypesAnOrdinaryNewline) {
   QString text;
   OnGuiThread([&] {
     auto* page = CurrentTextWidget(edit);
-    page->insertPlainText(QStringLiteral("a"));
+    page->insertPlainText(u"a"_s);
     QKeyEvent press(QEvent::KeyPress, Qt::Key_Return, Qt::ShiftModifier,
-                    QStringLiteral("\r"));
+                    u"\r"_s);
     QCoreApplication::sendEvent(page, &press);
-    page->insertPlainText(QStringLiteral("b"));
+    page->insertPlainText(u"b"_s);
     text = edit->CurPlainText();
   });
 
-  EXPECT_EQ(text, QStringLiteral("a\nb"));
+  EXPECT_EQ(text, u"a\nb"_s);
 
   OnGuiThread([&] { delete edit; });
 }

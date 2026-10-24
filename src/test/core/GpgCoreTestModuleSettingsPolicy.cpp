@@ -145,15 +145,12 @@ TEST(ModuleSettingsPolicyTest, HostCommandDescriptorsAreWellFormed) {
   };
   QStringList ids;
   for (const auto& d : all) {
-    const auto id = d.value(QStringLiteral("id")).toString();
+    const auto id = d.value(u"id"_s).toString();
     EXPECT_TRUE(id.startsWith("org.gpgfrontend.")) << id.toStdString();
     EXPECT_FALSE(ids.contains(id)) << id.toStdString();
     ids.append(id);
-    EXPECT_EQ(d.value(QStringLiteral("args")).toMap().value("type").toString(),
-              "object");
-    EXPECT_NE(d.value(QStringLiteral("flags")).toInteger() &
-                  gf::cmd::kNeedsGuiThread,
-              0)
+    EXPECT_EQ(d.value(u"args"_s).toMap().value("type").toString(), "object");
+    EXPECT_NE(d.value(u"flags"_s).toInteger() & gf::cmd::kNeedsGuiThread, 0)
         << id.toStdString() << ": every Host command touches the UI";
   }
 

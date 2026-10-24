@@ -41,10 +41,9 @@ namespace GpgFrontend::Test {
 TEST(DocumentReplaceTest, UndoableReplaceComesBackWithOneUndo) {
   QTextDocument doc;
   doc.setUndoRedoEnabled(true);
-  doc.setPlainText(QStringLiteral("hello"));
+  doc.setPlainText(u"hello"_s);
 
-  UI::ReplaceDocumentText(&doc, QStringLiteral("-----BEGIN PGP MESSAGE-----"),
-                          true);
+  UI::ReplaceDocumentText(&doc, u"-----BEGIN PGP MESSAGE-----"_s, true);
   ASSERT_EQ(doc.toPlainText(), "-----BEGIN PGP MESSAGE-----");
 
   doc.undo();
@@ -59,9 +58,9 @@ TEST(DocumentReplaceTest, UndoableReplaceKeepsEarlierHistory) {
   QTextDocument doc;
   doc.setUndoRedoEnabled(true);
   QTextCursor cursor(&doc);
-  cursor.insertText(QStringLiteral("typed"));
+  cursor.insertText(u"typed"_s);
 
-  UI::ReplaceDocumentText(&doc, QStringLiteral("result"), true);
+  UI::ReplaceDocumentText(&doc, u"result"_s, true);
   doc.undo();
   ASSERT_EQ(doc.toPlainText(), "typed");
 
@@ -75,9 +74,9 @@ TEST(DocumentReplaceTest, PlainReplaceDropsTheHistory) {
   QTextDocument doc;
   doc.setUndoRedoEnabled(true);
   QTextCursor cursor(&doc);
-  cursor.insertText(QStringLiteral("secret"));
+  cursor.insertText(u"secret"_s);
 
-  UI::ReplaceDocumentText(&doc, QStringLiteral("result"), false);
+  UI::ReplaceDocumentText(&doc, u"result"_s, false);
   doc.undo();
 
   EXPECT_EQ(doc.toPlainText(), "result");
@@ -85,8 +84,8 @@ TEST(DocumentReplaceTest, PlainReplaceDropsTheHistory) {
 }
 
 TEST(DocumentReplaceTest, NullDocumentIsIgnored) {
-  UI::ReplaceDocumentText(nullptr, QStringLiteral("x"), true);
-  UI::ReplaceDocumentText(nullptr, QStringLiteral("x"), false);
+  UI::ReplaceDocumentText(nullptr, u"x"_s, true);
+  UI::ReplaceDocumentText(nullptr, u"x"_s, false);
 }
 
 // What a crypto operation reads. toPlainText() turns a no-break space into a
@@ -94,7 +93,7 @@ TEST(DocumentReplaceTest, NullDocumentIsIgnored) {
 // signature over text the user never had.
 TEST(DocumentReplaceTest, DocumentTextKeepsEveryCharacterAsHeld) {
   QTextDocument doc;
-  const auto text = QStringLiteral("price:\u00A0100\u2028next\nline\t \n");
+  const auto text = u"price:\u00A0100\u2028next\nline\t \n"_s;
   QTextCursor(&doc).insertText(text);
 
   EXPECT_EQ(UI::DocumentText(&doc), text);

@@ -480,7 +480,7 @@ TEST(MemoryWipeTest, SecureWipeMemoryToleratesNullAndZeroLength) {
 }
 
 TEST(MemoryWipeTest, WipeStringOverwritesAnUnsharedStringWhereItLies) {
-  QString secret = QStringLiteral("correct horse battery staple");
+  QString secret = u"correct horse battery staple"_s;
   secret.detach();
 
   const auto* storage = secret.constData();
@@ -495,13 +495,13 @@ TEST(MemoryWipeTest, WipeStringOverwritesAnUnsharedStringWhereItLies) {
 }
 
 TEST(MemoryWipeTest, WipeStringReportsThatASharedStringCouldNotBeOverwritten) {
-  QString secret = QStringLiteral("shared secret");
+  QString secret = u"shared secret"_s;
   QString other = secret;  // implicit sharing: same storage
 
   // data() has to detach, so the wipe lands on a private copy and the original
   // characters survive in `other`. Saying so is the whole point of the bool.
   EXPECT_FALSE(WipeString(secret));
-  EXPECT_EQ(other, QStringLiteral("shared secret"));
+  EXPECT_EQ(other, u"shared secret"_s);
   EXPECT_TRUE(secret.isEmpty());
 }
 

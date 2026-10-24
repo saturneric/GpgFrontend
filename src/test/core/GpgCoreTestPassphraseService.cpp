@@ -66,7 +66,7 @@ constexpr auto kFprB = "2222222222222222222222222222222222222222";
 class FakePassphrasePrompt : public QObject {
  public:
   explicit FakePassphrasePrompt(int answer_delay_ms = 200,
-                                QString answer = QStringLiteral("secret"))
+                                QString answer = u"secret"_s)
       : answer_delay_ms_(answer_delay_ms), answer_(std::move(answer)) {
     // The real handler in ui/function/PassphrasePrompt.h is live in the test
     // runner too, but it opens no prompt in unit-test mode and leaves the

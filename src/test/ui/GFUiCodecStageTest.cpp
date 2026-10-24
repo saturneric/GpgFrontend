@@ -337,16 +337,12 @@ TEST(CodecStageTest, ABrokenDecoderIsPassedOver) {
                                          GF_CMD_E_FAILED, 0, {}, {}, "boom"};
                                    })),
             GF_CMD_OK);
-  ASSERT_EQ(Reg().Register(Decoder(m + ".b", m,
-                                   [](const QByteArray&) {
-                                     return gf::cmd::RawResult{
-                                         GF_CMD_OK,
-                                         0,
-                                         QCborMap{{QStringLiteral("nonsense"),
-                                                   1}},
-                                         {},
-                                         {}};
-                                   })),
+  ASSERT_EQ(Reg().Register(Decoder(
+                m + ".b", m,
+                [](const QByteArray&) {
+                  return gf::cmd::RawResult{
+                      GF_CMD_OK, 0, QCborMap{{u"nonsense"_s, 1}}, {}, {}};
+                })),
             GF_CMD_OK);
   ASSERT_EQ(Reg().Register(Decoder(m + ".c", m,
                                    [](const QByteArray&) {

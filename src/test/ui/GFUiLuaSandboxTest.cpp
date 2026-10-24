@@ -44,7 +44,7 @@ using UI::Lua::LuaState;
 
 auto Lua(LuaState& s, const char* code, QString* error = nullptr) -> bool {
   QString local;
-  return s.LoadAndRun(QByteArray(code), QStringLiteral("sandbox"),
+  return s.LoadAndRun(QByteArray(code), u"sandbox"_s,
                       error != nullptr ? error : &local);
 }
 

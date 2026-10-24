@@ -62,7 +62,7 @@ TEST(AppearanceFontTest, TheBundledMonospaceFamilyIsRegisteredAtStartup) {
   // Fails first, and loudest, if Q_INIT_RESOURCE(fonts) went missing or a qrc
   // alias was mistyped: everything else in this suite depends on it.
   ASSERT_FALSE(family.isEmpty());
-  EXPECT_TRUE(family.contains(QLatin1String(kBundledFamilyMarker)));
+  EXPECT_TRUE(family.contains(QLatin1StringView(kBundledFamilyMarker)));
   EXPECT_TRUE(ContainsFamily(QFontDatabase::families(), family));
 }
 
@@ -141,8 +141,7 @@ TEST(AppearanceFontTest, AnUninstalledStoredFamilyFallsBackToTheBundledFont) {
 
   // A family that was uninstalled after it was chosen must not be handed to
   // Qt, which would substitute an arbitrary -- often proportional -- font.
-  const auto missing =
-      QStringLiteral("NoSuchFamily-") + GenerateRandomString(12);
+  const auto missing = u"NoSuchFamily-"_s + GenerateRandomString(12);
   EXPECT_EQ(UI::ResolveAppearanceFont(missing, 11).family(), family);
 }
 

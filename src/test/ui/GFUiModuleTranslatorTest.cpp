@@ -263,8 +263,8 @@ TEST(ModuleTranslatorTest, HostDecidesWhichContextModuleTextIsIn) {
   UI::CommandProvider command;
   command.id = QString(kStranger) + ".borrower";
   command.owner = kStranger;
-  command.descriptor = QCborMap{{QStringLiteral("title"), "Mail Accounts"},
-                                {QStringLiteral("tr_context"), "ModuleEMail"}};
+  command.descriptor =
+      QCborMap{{u"title"_s, "Mail Accounts"}, {u"tr_context"_s, "ModuleEMail"}};
   command.run = [](const gf::cmd::CommandContext&, QCborMap,
                    std::vector<gf::cmd::Blob>, gf::cmd::Completer done) {
     done({GF_CMD_OK, 0, {}, {}, {}});
@@ -273,8 +273,7 @@ TEST(ModuleTranslatorTest, HostDecidesWhichContextModuleTextIsIn) {
   ASSERT_EQ(commands.Register(std::move(command)), GF_CMD_OK);
   const auto described = commands.Describe(QString(kStranger) + ".borrower");
   ASSERT_TRUE(described.has_value());
-  EXPECT_TRUE(
-      described->value(QStringLiteral("tr_context")).toString().isEmpty());
+  EXPECT_TRUE(described->value(u"tr_context"_s).toString().isEmpty());
   EXPECT_EQ(UI::CommandTitle(*described), QString("Mail Accounts"));
   EXPECT_EQ(commands.Unregister(QString(kStranger) + ".borrower", kStranger),
             GF_CMD_OK);

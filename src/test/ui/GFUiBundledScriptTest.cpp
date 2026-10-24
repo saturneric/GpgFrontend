@@ -99,7 +99,7 @@ TEST(BundledScriptTest, EveryBundledScriptLoadsWithoutTheHostsWindow) {
   ASSERT_FALSE(scripts.isEmpty()) << "no bundled module scripts found";
 
   static const QRegularExpression kCommandRef(
-      QStringLiteral(R"re(commands\.get\("([^"]+)"\))re"));
+      uR"re(commands\.get\("([^"]+)"\))re"_s);
   int loaded = 0;
   for (const auto& b : scripts) {
     SCOPED_TRACE(b.dir.toStdString());

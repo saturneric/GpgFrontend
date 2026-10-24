@@ -90,8 +90,8 @@ struct RevealFixture {
 
 TEST(GFUiInfoBoardRevealTest, EmptyPostingsAreNotResults) {
   EXPECT_FALSE(UI::IsMeaningfulInfoBoardResult(QString(), 0));
-  EXPECT_FALSE(UI::IsMeaningfulInfoBoardResult(QStringLiteral(" \n\t "), 0));
-  EXPECT_TRUE(UI::IsMeaningfulInfoBoardResult(QStringLiteral("done"), 0));
+  EXPECT_FALSE(UI::IsMeaningfulInfoBoardResult(u" \n\t "_s, 0));
+  EXPECT_TRUE(UI::IsMeaningfulInfoBoardResult(u"done"_s, 0));
   EXPECT_TRUE(UI::IsMeaningfulInfoBoardResult(QString(), 1));
 }
 
@@ -101,7 +101,7 @@ TEST(GFUiInfoBoardRevealTest, NewResultRevealsAClosedPanel) {
     f.UserCloses();
     ASSERT_TRUE(f.dock->isHidden());
 
-    f.board->SetInfoBoard(QStringLiteral("ok"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"ok"_s, kINFO_ERROR_OK);
 
     EXPECT_FALSE(f.dock->isHidden());
     EXPECT_EQ(f.posted, 1);
@@ -113,7 +113,7 @@ TEST(GFUiInfoBoardRevealTest, NewResultLeavesAnOpenPanelOpen) {
     RevealFixture f;
     ASSERT_FALSE(f.dock->isHidden());
 
-    f.board->SetInfoBoard(QStringLiteral("ok"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"ok"_s, kINFO_ERROR_OK);
 
     EXPECT_FALSE(f.dock->isHidden());
   });
@@ -122,7 +122,7 @@ TEST(GFUiInfoBoardRevealTest, NewResultLeavesAnOpenPanelOpen) {
 TEST(GFUiInfoBoardRevealTest, OldContentNeverOverridesAUserClose) {
   OnGuiThread([] {
     RevealFixture f;
-    f.board->SetInfoBoard(QStringLiteral("first"), kINFO_ERROR_WARN);
+    f.board->SetInfoBoard(u"first"_s, kINFO_ERROR_WARN);
     f.UserCloses();
 
     // Re-rendering what is already there is not news.
@@ -133,7 +133,7 @@ TEST(GFUiInfoBoardRevealTest, OldContentNeverOverridesAUserClose) {
     EXPECT_EQ(f.posted, 1);
 
     // The next result is.
-    f.board->SetInfoBoard(QStringLiteral("second"), kINFO_ERROR_CRITICAL);
+    f.board->SetInfoBoard(u"second"_s, kINFO_ERROR_CRITICAL);
     EXPECT_FALSE(f.dock->isHidden());
     EXPECT_EQ(f.posted, 2);
   });
@@ -142,7 +142,7 @@ TEST(GFUiInfoBoardRevealTest, OldContentNeverOverridesAUserClose) {
 TEST(GFUiInfoBoardRevealTest, ResetNeitherHidesNorShows) {
   OnGuiThread([] {
     RevealFixture f;
-    f.board->SetInfoBoard(QStringLiteral("ok"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"ok"_s, kINFO_ERROR_OK);
     const int posted = f.posted;
 
     f.board->SlotReset();
@@ -161,7 +161,7 @@ TEST(GFUiInfoBoardRevealTest, EmptyUpdatesDoNotReveal) {
     f.UserCloses();
 
     f.board->SetInfoBoard(QString(), kINFO_ERROR_OK);
-    f.board->SetInfoBoard(QStringLiteral("   "), kINFO_ERROR_WARN);
+    f.board->SetInfoBoard(u"   "_s, kINFO_ERROR_WARN);
     f.board->SetInfoBoardCards(QString(), kINFO_ERROR_NEUTRAL, {});
     f.board->SlotRefresh(QString(), kINFO_ERROR_CRITICAL);
 
@@ -176,8 +176,8 @@ TEST(GFUiInfoBoardRevealTest, CardsAloneAreAResult) {
     f.UserCloses();
 
     InfoBoardCard card;
-    card.title = QStringLiteral("SHA-256");
-    card.fields.append({QStringLiteral("File"), QStringLiteral("a.txt")});
+    card.title = u"SHA-256"_s;
+    card.fields.append({u"File"_s, u"a.txt"_s});
     f.board->SetInfoBoardCards(QString(), kINFO_ERROR_NEUTRAL, {card});
 
     EXPECT_FALSE(f.dock->isHidden());
@@ -192,18 +192,16 @@ TEST(GFUiInfoBoardRevealTest, MagnifierEnabledForDocumentPostedOffScreen) {
   OnGuiThread([] {
     RevealFixture f;
     // Status view, without persisting the choice to the settings.
-    f.board->findChild<QStackedWidget*>(QStringLiteral("stackedWidget"))
-        ->setCurrentIndex(0);
+    f.board->findChild<QStackedWidget*>(u"stackedWidget"_s)->setCurrentIndex(0);
     auto* magnifier =
-        f.board->findChild<QToolButton*>(QStringLiteral("magnifierToolButton"));
+        f.board->findChild<QToolButton*>(u"magnifierToolButton"_s);
     ASSERT_NE(magnifier, nullptr);
     EXPECT_FALSE(magnifier->isEnabled());
 
     InfoBoardCard card;
-    card.title = QStringLiteral("Signature");
-    card.fields.append({QStringLiteral("Status"), QStringLiteral("Good")});
-    f.board->SetInfoBoardCards(QStringLiteral("verified"), kINFO_ERROR_OK,
-                               {card});
+    card.title = u"Signature"_s;
+    card.fields.append({u"Status"_s, u"Good"_s});
+    f.board->SetInfoBoardCards(u"verified"_s, kINFO_ERROR_OK, {card});
     EXPECT_TRUE(magnifier->isEnabled());
 
     f.board->SlotReset();
@@ -216,14 +214,13 @@ TEST(GFUiInfoBoardRevealTest, StructuredPostingsAnnounceExactlyOnce) {
     RevealFixture f;
 
     GpgOpResultInfo info;
-    info.operation = QStringLiteral("Verify");
-    f.board->SetInfoBoardWithOpInfo(QStringLiteral("verified"), kINFO_ERROR_OK,
-                                    info);
+    info.operation = u"Verify"_s;
+    f.board->SetInfoBoardWithOpInfo(u"verified"_s, kINFO_ERROR_OK, info);
     EXPECT_EQ(f.posted, 1);
 
     f.UserCloses();
     f.board->SetInfoBoardFromResults(
-        QStringLiteral("2 files"), kINFO_ERROR_WARN,
+        u"2 files"_s, kINFO_ERROR_WARN,
         {UI::GpgOperaResult(info), UI::GpgOperaResult(info)});
     EXPECT_EQ(f.posted, 2);
     EXPECT_FALSE(f.dock->isHidden());
@@ -234,18 +231,17 @@ TEST(GFUiInfoBoardRevealTest, AnotherCurrentTabClearsTheLastTabsResult) {
   OnGuiThread([] {
     RevealFixture f;
     QTabWidget tabs;
-    tabs.addTab(new QWidget(), QStringLiteral("a"));
+    tabs.addTab(new QWidget(), u"a"_s);
     f.board->AssociateTabWidget(&tabs);
     auto raw = [&] {
-      return f.board->findChild<QTextBrowser*>(QStringLiteral("infoBoard"))
-          ->toPlainText();
+      return f.board->findChild<QTextBrowser*>(u"infoBoard"_s)->toPlainText();
     };
 
-    f.board->SetInfoBoard(QStringLiteral("decrypted"), kINFO_ERROR_OK);
+    f.board->SetInfoBoard(u"decrypted"_s, kINFO_ERROR_OK);
     ASSERT_FALSE(raw().isEmpty());
 
     // Opening a tab makes it current without any click on the tab bar.
-    tabs.setCurrentIndex(tabs.addTab(new QWidget(), QStringLiteral("b")));
+    tabs.setCurrentIndex(tabs.addTab(new QWidget(), u"b"_s));
 
     EXPECT_TRUE(raw().isEmpty()) << "the old result is not the new tab's";
     EXPECT_EQ(f.board->CurrentStatus(), kINFO_ERROR_NEUTRAL);

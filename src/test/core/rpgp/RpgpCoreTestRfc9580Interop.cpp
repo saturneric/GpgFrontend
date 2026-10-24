@@ -111,10 +111,10 @@ TEST_F(RpgpCoreTest, Rfc9580InteropStrongWeakSameKeyOnlyStrongValid) {
   for (const auto& s : out.sigs) {
     EXPECT_EQ(s.GetFingerprint(), QString(kAuxSha1Fpr));
     const auto hash = s.GetHashAlgo().toUpper();
-    if (hash == QStringLiteral("SHA256")) {
+    if (hash == u"SHA256"_s) {
       ++strong;
       EXPECT_TRUE(SignatureIsValid(s));
-    } else if (hash == QStringLiteral("SHA1")) {
+    } else if (hash == u"SHA1"_s) {
       ++weak;
       EXPECT_FALSE(SignatureIsValid(s));
     } else {

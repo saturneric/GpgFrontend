@@ -47,7 +47,7 @@ TEST(GFBufferTest, ConstructFromQByteArray) {
 }
 
 TEST(GFBufferTest, ConstructFromQString) {
-  QString str = QStringLiteral("hello world");
+  QString str = u"hello world"_s;
   GFBuffer buf(str);
   EXPECT_EQ(buf.Size(), str.toUtf8().size());
   EXPECT_EQ(buf.ConvertToQString(), str);
@@ -269,7 +269,7 @@ TEST(GFBufferTest, ConvertToQByteArray) {
 }
 
 TEST(GFBufferTest, ConvertToQString) {
-  QString s = QStringLiteral("你好world");
+  QString s = u"你好world"_s;
   GFBuffer buf(s);
   EXPECT_EQ(buf.ConvertToQString(), s);
 }

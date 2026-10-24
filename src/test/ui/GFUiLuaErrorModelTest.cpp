@@ -56,7 +56,7 @@ using UI::Lua::LuaState;
 
 auto Lua(LuaState& s, const char* code, QString* error = nullptr) -> bool {
   QString local;
-  return s.LoadAndRun(QByteArray(code), QStringLiteral("test"),
+  return s.LoadAndRun(QByteArray(code), u"test"_s,
                       error != nullptr ? error : &local);
 }
 

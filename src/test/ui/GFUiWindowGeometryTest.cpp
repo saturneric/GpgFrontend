@@ -104,8 +104,8 @@ auto SavedStateAfter(const QString& name, const QRect& rect,
 
 TEST(WindowGeometryTest, ADialogClosedFromItsTitleBarRemembersItsRect) {
   const QRect rect(120, 90, 640, 480);
-  const auto state = SavedStateAfter(QStringLiteral("gtest_geometry_close"),
-                                     rect, [](QDialog* d) { d->close(); });
+  const auto state = SavedStateAfter(u"gtest_geometry_close"_s, rect,
+                                     [](QDialog* d) { d->close(); });
   EXPECT_TRUE(state.window_save);
   EXPECT_EQ(QSize(state.width, state.height), rect.size());
 }
@@ -115,8 +115,8 @@ TEST(WindowGeometryTest, ADialogDismissedWithEscapeRemembersItsRect) {
   // dialog but swallows the close event, so a save in closeEvent() alone
   // never sees any of them.
   const QRect rect(140, 110, 700, 520);
-  const auto state = SavedStateAfter(QStringLiteral("gtest_geometry_reject"),
-                                     rect, [](QDialog* d) { d->reject(); });
+  const auto state = SavedStateAfter(u"gtest_geometry_reject"_s, rect,
+                                     [](QDialog* d) { d->reject(); });
   EXPECT_TRUE(state.window_save);
   EXPECT_EQ(QSize(state.width, state.height), rect.size());
 }

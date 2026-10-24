@@ -60,7 +60,7 @@ using UI::CommandRegistry;
 auto Reg() -> CommandRegistry& { return CommandRegistry::Instance(); }
 
 auto Module(const QString& id, uint32_t caps = 0) -> CommandCaller {
-  return CommandCaller{id, caps, QStringLiteral("module")};
+  return CommandCaller{id, caps, u"module"_s};
 }
 
 auto Host() -> CommandCaller { return CommandCaller{{}, 0, "host"}; }
@@ -75,7 +75,7 @@ auto Immediate(const QString& id, const QString& owner, uint32_t caps = 0,
   p.flags = flags;
   p.run = [](const gf::cmd::CommandContext&, QCborMap,
              std::vector<gf::cmd::Blob>, gf::cmd::Completer done) {
-    done({GF_CMD_OK, 0, QCborMap{{QStringLiteral("ok"), true}}, {}, {}});
+    done({GF_CMD_OK, 0, QCborMap{{u"ok"_s, true}}, {}, {}});
   };
   return p;
 }
@@ -122,7 +122,7 @@ auto Counted(const QString& command, const char* outcome) -> qint64 {
 TEST(CommandRegistryTest, RegistrationIsMirroredInTheRegisterTable) {
   const QString id = "com.example.grt.p.cmd";
   auto p = Immediate(id, "com.example.grt.p", GF_HOST_CAP_STORAGE);
-  p.descriptor.insert(QStringLiteral("title"), QStringLiteral("Mirrored"));
+  p.descriptor.insert(u"title"_s, u"Mirrored"_s);
   ASSERT_EQ(Reg().Register(p), GF_CMD_OK);
 
   EXPECT_EQ(Published(id, "owner"), QString("com.example.grt.p"));

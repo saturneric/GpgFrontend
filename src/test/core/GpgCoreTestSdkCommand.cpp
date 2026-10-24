@@ -78,8 +78,7 @@ void EchoHandler(void* user, uint64_t call_id, GFBufferView context_cbor,
   auto* st = static_cast<ProviderState*>(user);
   const auto ctx_map =
       QCborValue::fromCbor(Bytes(st->ctx, context_cbor)).toMap();
-  st->context_named_caller =
-      ctx_map.value(QStringLiteral("caller")).toString() == kCaller;
+  st->context_named_caller = ctx_map.value(u"caller"_s).toString() == kCaller;
 
   const auto args = QCborValue::fromCbor(Bytes(st->ctx, args_cbor)).toMap();
   GFBufferRelease(st->ctx, args_cbor);
@@ -90,10 +89,8 @@ void EchoHandler(void* user, uint64_t call_id, GFBufferView context_cbor,
     echo = blobs[0];  // forwarded as-is: the handle goes back to the Host
   }
   const auto result =
-      QCborValue(QCborMap{{QStringLiteral("text"),
-                           args.value(QStringLiteral("text"))},
-                          {QStringLiteral("blob"),
-                           QCborMap{{QStringLiteral("$blob"), 0}}}})
+      QCborValue(QCborMap{{u"text"_s, args.value(u"text"_s)},
+                          {u"blob"_s, QCborMap{{u"$blob"_s, 0}}}})
           .toCbor();
   GFBufferRef blob_out[1] = {echo};
   GFCommandComplete(st->ctx, call_id, GF_CMD_OK, Buffer(st->ctx, result),
@@ -116,7 +113,7 @@ void DoneHandler(void* user, uint64_t /*call_id*/, int status,
   if (result_cbor != nullptr) {
     st->text = QCborValue::fromCbor(Bytes(st->ctx, result_cbor))
                    .toMap()
-                   .value(QStringLiteral("text"))
+                   .value(u"text"_s)
                    .toString()
                    .toUtf8();
     GFBufferRelease(st->ctx, result_cbor);
@@ -129,10 +126,10 @@ void DoneHandler(void* user, uint64_t /*call_id*/, int status,
 }
 
 auto Descriptor(uint32_t required_caps) -> QByteArray {
-  return QCborValue(QCborMap{{QStringLiteral("id"), kEcho},
-                             {QStringLiteral("required_caps"),
-                              static_cast<qint64>(required_caps)},
-                             {QStringLiteral("flags"), 0}})
+  return QCborValue(
+             QCborMap{{u"id"_s, kEcho},
+                      {u"required_caps"_s, static_cast<qint64>(required_caps)},
+                      {u"flags"_s, 0}})
       .toCbor();
 }
 
@@ -161,9 +158,8 @@ TEST(SdkCommandTest, APayloadChangesOwnerAcrossModules) {
 
   CallerState cst;
   cst.ctx = caller();
-  auto* args = Buffer(caller(), QCborValue(QCborMap{{QStringLiteral("text"),
-                                                     "hello"}})
-                                    .toCbor());
+  auto* args =
+      Buffer(caller(), QCborValue(QCborMap{{u"text"_s, "hello"}}).toCbor());
   GFBufferRef blobs[1] = {Buffer(caller(), "s3cret")};
   uint64_t call_id = 0;
   ASSERT_EQ(GFCommandInvoke(caller(), kEcho, 0, args, blobs, 1, &DoneHandler,
