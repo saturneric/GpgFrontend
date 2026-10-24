@@ -42,7 +42,7 @@ auto LuaHost::Load(const QString& module, uint32_t caps,
   if (rt == nullptr) {
     rt = std::make_shared<LuaModuleRuntime>(module, caps);
     if (rt->State() == nullptr) {
-      if (error != nullptr) *error = QStringLiteral("no Lua state");
+      if (error != nullptr) *error = u"no Lua state"_s;
       return false;
     }
     connect(rt.get(), &LuaModuleRuntime::SignalChanged, this,

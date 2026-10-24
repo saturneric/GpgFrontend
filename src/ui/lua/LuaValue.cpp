@@ -149,15 +149,15 @@ auto FlattenAt(lua_State* L, int abs, LuaTree* out, int parent, int depth,
 }
 
 auto Type(const QCborMap& schema) -> QString {
-  return schema.value(QStringLiteral("type")).toString();
+  return schema.value(u"type"_s).toString();
 }
 
 auto IsOptional(const QCborMap& schema) -> bool {
-  return schema.value(QStringLiteral("optional")).toBool();
+  return schema.value(u"optional"_s).toBool();
 }
 
 auto Fields(const QCborMap& schema) -> QCborArray {
-  return schema.value(QStringLiteral("fields")).toArray();
+  return schema.value(u"fields"_s).toArray();
 }
 
 }  // namespace
@@ -225,7 +225,7 @@ auto NodeToCbor(const LuaTree& tree, int index, const QCborMap& schema,
 
   if (index < 0 || tree[index].type == LuaNode::Type::kNIL) {
     if (IsOptional(schema)) return QCborValue(QCborValue::Null);
-    return fail(QStringLiteral("a required value is missing"));
+    return fail(u"a required value is missing"_s);
   }
   const auto& n = tree[index];
 
@@ -267,9 +267,8 @@ auto NodeToCbor(const LuaTree& tree, int index, const QCborMap& schema,
   }
   if (type == "string_list" || type == "list") {
     if (n.type != LuaNode::Type::kTABLE) return fail("expected a list");
-    const auto item_schema =
-        type == "list" ? schema.value(QStringLiteral("item")).toMap()
-                       : QCborMap{{QStringLiteral("type"), "string"}};
+    const auto item_schema = type == "list" ? schema.value(u"item"_s).toMap()
+                                            : QCborMap{{u"type"_s, "string"}};
     QCborArray items;
     const auto children = ChildrenOf(tree, index);
     for (int i = 0; i < children.size(); ++i) {
@@ -293,7 +292,7 @@ auto NodeToCbor(const LuaTree& tree, int index, const QCborMap& schema,
       if (!v.has_value()) return std::nullopt;
       const auto m = v->toMap();
       for (const auto& f : Fields(schema)) {
-        if (!m.contains(f.toMap().value(QStringLiteral("name")))) {
+        if (!m.contains(f.toMap().value(u"name"_s))) {
           return fail("that handle is not what this field takes");
         }
       }
@@ -309,19 +308,17 @@ auto NodeToCbor(const LuaTree& tree, int index, const QCborMap& schema,
     int matched = 0;
     for (const auto& f : Fields(schema)) {
       const auto fm = f.toMap();
-      const auto name = fm.value(QStringLiteral("name")).toString().toUtf8();
+      const auto name = fm.value(u"name"_s).toString().toUtf8();
       int child = -1;
       for (const int c : children) {
         if (!tree[c].key_is_index && tree[c].key == name) child = c;
       }
       if (child >= 0) ++matched;
-      auto v = NodeToCbor(tree, child,
-                          fm.value(QStringLiteral("schema")).toMap(), resolve,
+      auto v = NodeToCbor(tree, child, fm.value(u"schema"_s).toMap(), resolve,
                           blobs, error);
       if (!v.has_value()) {
         if (error != nullptr) {
-          *error = QStringLiteral("field \"%1\": %2")
-                       .arg(QString::fromUtf8(name), *error);
+          *error = u"field \"%1\": %2"_s.arg(QString::fromUtf8(name), *error);
         }
         return std::nullopt;
       }
@@ -332,7 +329,7 @@ auto NodeToCbor(const LuaTree& tree, int index, const QCborMap& schema,
     }
     return QCborValue(out);
   }
-  return fail(QStringLiteral("a schema type Lua cannot supply: ") + type);
+  return fail(u"a schema type Lua cannot supply: "_s + type);
 }
 
 auto CborToPushTree(const QCborValue& value, const QCborMap& schema,
@@ -373,7 +370,7 @@ auto CborToPushTree(const QCborValue& value, const QCborMap& schema,
     node.type = PushNode::Type::kSTRING;
     node.text = value.toByteArray();
   } else if (type == "blob") {
-    const auto i = value.toMap().value(QStringLiteral("$blob"));
+    const auto i = value.toMap().value(u"$blob"_s);
     if (!i.isInteger() || i.toInteger() < 0 ||
         static_cast<size_t>(i.toInteger()) >= blobs.size()) {
       return fail("a blob reference out of range");
@@ -386,9 +383,8 @@ auto CborToPushTree(const QCborValue& value, const QCborMap& schema,
     node.type = PushNode::Type::kTABLE;
     node.children = static_cast<int>(items.size());
     out->push_back(node);
-    const auto item_schema =
-        type == "list" ? schema.value(QStringLiteral("item")).toMap()
-                       : QCborMap{{QStringLiteral("type"), "string"}};
+    const auto item_schema = type == "list" ? schema.value(u"item"_s).toMap()
+                                            : QCborMap{{u"type"_s, "string"}};
     for (qsizetype i = 0; i < items.size(); ++i) {
       const auto at = out->size();
       if (!CborToPushTree(items.at(i), item_schema, blobs, register_blob, out,
@@ -404,14 +400,14 @@ auto CborToPushTree(const QCborValue& value, const QCborMap& schema,
     const auto m = value.toMap();
     int present = 0;
     for (const auto& f : Fields(schema)) {
-      const auto name = f.toMap().value(QStringLiteral("name"));
+      const auto name = f.toMap().value(u"name"_s);
       if (m.contains(name) && !m.value(name).isNull()) ++present;
     }
     int declared = 0;
     for (auto it = m.constBegin(); it != m.constEnd(); ++it) {
       bool known = false;
       for (const auto& f : Fields(schema)) {
-        known = known || f.toMap().value(QStringLiteral("name")) == it.key();
+        known = known || f.toMap().value(u"name"_s) == it.key();
       }
       if (!known) return fail("a field the schema does not declare");
       ++declared;
@@ -421,18 +417,16 @@ auto CborToPushTree(const QCborValue& value, const QCborMap& schema,
     out->push_back(node);
     for (const auto& f : Fields(schema)) {
       const auto fm = f.toMap();
-      const auto name = fm.value(QStringLiteral("name"));
+      const auto name = fm.value(u"name"_s);
       const auto v = m.value(name);
       if (v.isNull() || v.isUndefined()) {
-        if (!fm.value(QStringLiteral("schema")).toMap().value("optional")
-                 .toBool()) {
-          return fail(QStringLiteral("missing field \"%1\"")
-                          .arg(name.toString()));
+        if (!fm.value(u"schema"_s).toMap().value("optional").toBool()) {
+          return fail(u"missing field \"%1\""_s.arg(name.toString()));
         }
         continue;
       }
       const auto at = out->size();
-      if (!CborToPushTree(v, fm.value(QStringLiteral("schema")).toMap(), blobs,
+      if (!CborToPushTree(v, fm.value(u"schema"_s).toMap(), blobs,
                           register_blob, out, error)) {
         return false;
       }
@@ -441,7 +435,7 @@ auto CborToPushTree(const QCborValue& value, const QCborMap& schema,
     (void)declared;
     return true;
   } else {
-    return fail(QStringLiteral("a schema type Lua cannot receive: ") + type);
+    return fail(u"a schema type Lua cannot receive: "_s + type);
   }
   out->push_back(node);
   return true;

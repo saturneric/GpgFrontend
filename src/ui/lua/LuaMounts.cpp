@@ -48,7 +48,7 @@ auto OpenDialogs() -> QHash<QString, QPointer<NativeDialog>>& {
 }  // namespace
 
 auto NativeDialogStateName(const QString& widget_id) -> QString {
-  return QStringLiteral("native_dialog.") + widget_id;
+  return u"native_dialog."_s + widget_id;
 }
 
 NativeDialog::NativeDialog(const QString& mount_id, const QString& widget_id,
@@ -241,10 +241,9 @@ auto BuildNativeSettingsPages() -> QList<NativeSettingsPageInfo> {
     // Marked as one comma-separated string, so translated as one: a piece
     // on its own is not in any .ts. A translation may use a full-width comma.
     QStringList keywords;
-    for (const auto& k :
-         entry->Translate(entry->keywords)
-             .split(QRegularExpression(QStringLiteral("[,\\x{FF0C}]")),
-                    Qt::SkipEmptyParts)) {
+    for (const auto& k : entry->Translate(entry->keywords)
+                             .split(QRegularExpression(u"[,\\x{FF0C}]"_s),
+                                    Qt::SkipEmptyParts)) {
       keywords << k.trimmed();
     }
     pages.append(

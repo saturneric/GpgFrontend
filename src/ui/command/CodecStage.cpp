@@ -58,7 +58,7 @@ class Run : public QObject {
   void Next() {
     if (index_ >= ids_.size()) {
       if (required_) {
-        return Finish(Failed(QStringLiteral("the encoder could not be used")));
+        return Finish(Failed(u"the encoder could not be used"_s));
       }
       return Finish({});
     }
@@ -125,9 +125,8 @@ class Run : public QObject {
       case CodecOutcome::kHandled: {
         if (!result.output.has_value()) {
           LOG_W() << "codec" << id << "claimed the input with no output";
-          return Finish(WithSource(
-              Failed(QStringLiteral("the codec returned nothing")), id,
-              result.cards));
+          return Finish(WithSource(Failed(u"the codec returned nothing"_s), id,
+                                   result.cards));
         }
         CodecStageResult out;
         out.kind = CodecStageResult::Kind::kHandled;
@@ -135,11 +134,11 @@ class Run : public QObject {
         return Finish(WithSource(out, id, result.cards));
       }
       case CodecOutcome::kFailed:
-        return Finish(WithSource(
-            Failed(result.error.isEmpty()
-                       ? QStringLiteral("the codec could not handle the input")
-                       : result.error),
-            id, result.cards));
+        return Finish(
+            WithSource(Failed(result.error.isEmpty()
+                                  ? u"the codec could not handle the input"_s
+                                  : result.error),
+                       id, result.cards));
       case CodecOutcome::kNotHandled:
       default:
         return Next();

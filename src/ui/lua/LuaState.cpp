@@ -243,7 +243,7 @@ auto LuaState::OpenSandbox() -> bool {
 auto LuaState::LoadAndRun(const QByteArray& source, const QString& chunk_name,
                           QString* error) -> bool {
   if (l_ == nullptr) {
-    if (error != nullptr) *error = QStringLiteral("no Lua state");
+    if (error != nullptr) *error = u"no Lua state"_s;
     return false;
   }
   const auto name = ("=" + chunk_name).toUtf8();

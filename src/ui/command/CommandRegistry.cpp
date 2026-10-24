@@ -95,16 +95,16 @@ auto CodecRefusal(const CommandProvider& p) -> QString {
   constexpr uint32_t kCodec = gf::cmd::kInputDecoder | gf::cmd::kOutputEncoder;
   if ((p.flags & kCodec) == 0) return {};
   if ((p.flags & gf::cmd::kNeedsGuiThread) != 0) {
-    return QStringLiteral("a codec does not run on the GUI thread");
+    return u"a codec does not run on the GUI thread"_s;
   }
   if (!p.owner.isEmpty() && (p.owner_caps & GF_HOST_CAP_EDITOR) == 0) {
-    return QStringLiteral("a codec's module needs the editor capability");
+    return u"a codec's module needs the editor capability"_s;
   }
   static const auto kShape = gf::cmd::Describe<CodecShape>();
   for (const auto* key : {"args", "result"}) {
     const auto k = QString::fromLatin1(key);
     if (p.descriptor.value(k) != kShape.value(k)) {
-      return QStringLiteral("its %1 are not the codec's").arg(k);
+      return u"its %1 are not the codec's"_s.arg(k);
     }
   }
   return {};
@@ -118,9 +118,9 @@ void PublishCommand(const CommandProvider& p) {
     Module::UpsertRTValue(Module::kGRTCoreNamespace,
                           Module::GRTCommandKey(p.id, field), value);
   };
-  publish("owner", p.owner.isEmpty() ? QStringLiteral("host") : p.owner);
+  publish("owner", p.owner.isEmpty() ? u"host"_s : p.owner);
   // untranslated: the table is read by modules, not shown to a person
-  publish("title", p.descriptor.value(QStringLiteral("title")).toString());
+  publish("title", p.descriptor.value(u"title"_s).toString());
   publish("flags", static_cast<qint64>(p.flags));
   publish("caps", Module::ModuleCapabilityMaskToString(p.required_caps));
 }
@@ -141,7 +141,7 @@ namespace {
 auto Translated(const QCborMap& d, const char* key) -> QString {
   const auto text = d.value(QString::fromLatin1(key)).toString();
   if (text.isEmpty()) return text;
-  const auto context = d.value(QStringLiteral("tr_context")).toString();
+  const auto context = d.value(u"tr_context"_s).toString();
   if (context.isEmpty()) return text;
   return QCoreApplication::translate(context.toUtf8().constData(),
                                      text.toUtf8().constData());
@@ -220,7 +220,7 @@ auto CommandRegistry::Register(CommandProvider provider,
 
   if (provider.owner.isEmpty()) {
     // The Host's own namespace, and only the Host's.
-    if (!provider.id.startsWith(QStringLiteral("org.gpgfrontend."))) {
+    if (!provider.id.startsWith(u"org.gpgfrontend."_s)) {
       return GF_CMD_E_DENIED;
     }
   } else {
@@ -238,7 +238,7 @@ auto CommandRegistry::Register(CommandProvider provider,
     // The owner's own context, whatever the descriptor claimed: its text was
     // marked with GTrC::Noop, which lupdate filed there.
     provider.descriptor.insert(
-        QStringLiteral("tr_context"),
+        u"tr_context"_s,
         Module::ModuleManager::GetInstance().GetModuleTranslationContext(
             provider.owner));
   }
@@ -267,13 +267,10 @@ auto CommandRegistry::RegisterHost(const gf::cmd::Binding& binding,
   CommandProvider p;
   p.id = QString::fromUtf8(binding.id);
   p.descriptor = binding.describe();
-  p.descriptor.insert(QStringLiteral("tr_context"),
-                      QString::fromLatin1(text.tr_context));
-  p.descriptor.insert(QStringLiteral("title"), QString::fromUtf8(text.title));
-  p.descriptor.insert(QStringLiteral("description"),
-                      QString::fromUtf8(text.description));
-  p.descriptor.insert(QStringLiteral("category"),
-                      QString::fromUtf8(text.category));
+  p.descriptor.insert(u"tr_context"_s, QString::fromLatin1(text.tr_context));
+  p.descriptor.insert(u"title"_s, QString::fromUtf8(text.title));
+  p.descriptor.insert(u"description"_s, QString::fromUtf8(text.description));
+  p.descriptor.insert(u"category"_s, QString::fromUtf8(text.category));
   Unregister(p.id, {});
   p.required_caps = ReadUInt(p.descriptor, "required_caps");
   p.flags = ReadUInt(p.descriptor, "flags");
@@ -373,7 +370,7 @@ auto CommandRegistry::Invoke(const QString& id, QCborMap args,
               0,
               {},
               {},
-              QStringLiteral("the command's provider went away")});
+              u"the command's provider went away"_s});
       return;
     }
     provider->run(context, std::move(args), std::move(blobs),
@@ -539,8 +536,8 @@ void CommandRegistry::RemoveAllFor(const QString& module) {
                    0,
                    {},
                    {},
-                   QStringLiteral("the module providing the command was "
-                                  "unloaded")});
+                   u"the module providing the command was "
+                   "unloaded"_s});
   }
 }
 

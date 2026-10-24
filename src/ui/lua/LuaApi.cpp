@@ -145,9 +145,9 @@ auto FieldsOf(const LuaTree& tree) -> QHash<QString, int> {
   if (tree.empty() || tree[0].type != LuaNode::Type::kTABLE) return fields;
   for (const int c : ChildrenOf(tree, 0)) {
     const auto& n = tree[static_cast<size_t>(c)];
-    fields.insert(n.key_is_index ? QStringLiteral("[%1]").arg(n.key_index)
-                                 : QString::fromUtf8(n.key),
-                  c);
+    fields.insert(
+        n.key_is_index ? u"[%1]"_s.arg(n.key_index) : QString::fromUtf8(n.key),
+        c);
   }
   return fields;
 }
@@ -161,8 +161,7 @@ auto UnknownField(const QHash<QString, int>& fields, const QStringList& known)
 }
 
 auto IdIsValid(const QString& id) -> bool {
-  static const QRegularExpression kId(
-      QStringLiteral("^[a-z0-9_][a-z0-9_.\\-]*$"));
+  static const QRegularExpression kId(u"^[a-z0-9_][a-z0-9_.\\-]*$"_s);
   return !id.isEmpty() && id.size() <= 64 && kId.match(id).hasMatch();
 }
 
@@ -171,12 +170,12 @@ auto OwnHandle(LuaModuleRuntime* rt, lua_State* L, int i, HandleKind kind,
                BindingOutcome& out, quint64 tag) -> std::optional<Handle> {
   const auto* h = HandleAt(L, i);
   if (h == nullptr || h->kind != kind) {
-    FailWith(out, QStringLiteral("expected a %1")
-                      .arg(QLatin1String(HandleTypeName(kind))));
+    FailWith(out,
+             u"expected a %1"_s.arg(QLatin1StringView(HandleTypeName(kind))));
     return std::nullopt;
   }
   if (h->state_tag != tag) {
-    FailWith(out, QStringLiteral("a handle from another module"));
+    FailWith(out, u"a handle from another module"_s);
     return std::nullopt;
   }
   (void)rt;
@@ -199,7 +198,7 @@ auto NodeToVariant(const LuaTree& tree, int index, QString* error)
     case LuaNode::Type::kSTRING:
       return QVariant(QString::fromUtf8(n.text));
     case LuaNode::Type::kHANDLE:
-      *error = QStringLiteral("a handle cannot be stored");
+      *error = u"a handle cannot be stored"_s;
       return std::nullopt;
     case LuaNode::Type::kTABLE:
       break;
@@ -223,7 +222,7 @@ auto NodeToVariant(const LuaTree& tree, int index, QString* error)
   for (const int c : children) {
     const auto& child = tree[static_cast<size_t>(c)];
     if (child.key_is_index) {
-      *error = QStringLiteral("a table is either a list or a map");
+      *error = u"a table is either a list or a map"_s;
       return std::nullopt;
     }
     auto v = NodeToVariant(tree, c, error);
@@ -396,7 +395,7 @@ auto LuaApi::Install(LuaModuleRuntime& rt, QString* error) -> bool {
       &out);
   if (!ok || !prelude_ok) {
     if (error != nullptr) {
-      *error = ok ? QStringLiteral("the UI prelude did not load")
+      *error = ok ? u"the UI prelude did not load"_s
                   : QString::fromUtf8(out.message.data());
     }
     return false;
@@ -410,24 +409,22 @@ void LuaApi::CommandsGet(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   const auto id = StringArg(L, 1);
   if (rt == nullptr || !id.has_value()) {
-    return FailWith(out, QStringLiteral("commands.get takes a command id"));
+    return FailWith(out, u"commands.get takes a command id"_s);
   }
   const auto d = CommandRegistry::Instance().Describe(*id);
   if (!d.has_value()) {
-    return FailWith(out, QStringLiteral("unknown command: %1").arg(*id));
+    return FailWith(out, u"unknown command: %1"_s.arg(*id));
   }
-  const auto flags =
-      static_cast<uint32_t>(d->value(QStringLiteral("flags")).toInteger());
-  const auto required = static_cast<uint32_t>(
-      d->value(QStringLiteral("required_caps")).toInteger());
+  const auto flags = static_cast<uint32_t>(d->value(u"flags"_s).toInteger());
+  const auto required =
+      static_cast<uint32_t>(d->value(u"required_caps"_s).toInteger());
   if ((flags & gf::cmd::kHostOnly) != 0) {
-    return FailWith(out,
-                    QStringLiteral("%1 is the Host's own command").arg(*id));
+    return FailWith(out, u"%1 is the Host's own command"_s.arg(*id));
   }
   if ((rt->caps_ & required) != required) {
-    return FailWith(out, QStringLiteral("%1 needs a capability this module "
-                                        "does not declare")
-                             .arg(*id));
+    return FailWith(out,
+                    u"%1 needs a capability this module "
+                    "does not declare"_s.arg(*id));
   }
   const auto h = rt->NextId();
   rt->commands_.insert(h, *id);
@@ -477,13 +474,12 @@ void LuaApi::CommandsInvoke(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   if (rt == nullptr) return FailWith(out, "no runtime");
   if (rt->phase_ != LuaModuleRuntime::Phase::kHANDLER) {
-    return FailWith(
-        out, rt->phase_ == LuaModuleRuntime::Phase::kPURE
-                 ? QStringLiteral("not allowed in update: update() computes "
-                                  "state; the Host invokes the command when "
-                                  "the user activates the action")
-                 : QStringLiteral("commands.invoke runs from event handlers "
-                                  "and continuations"));
+    return FailWith(out, rt->phase_ == LuaModuleRuntime::Phase::kPURE
+                             ? u"not allowed in update: update() computes "
+                               "state; the Host invokes the command when "
+                               "the user activates the action"_s
+                             : u"commands.invoke runs from event handlers "
+                               "and continuations"_s);
   }
   const auto h = OwnHandle(rt, L, 1, HandleKind::kCOMMAND, out, rt->state_tag_);
   if (!h.has_value()) return;
@@ -501,7 +497,7 @@ void LuaApi::CommandsInvoke(lua_State* L, BindingOutcome& out) {
       if (c.continuation != LUA_NOREF) ++owed;
     }
     if (owed >= kMaxContinuations) {
-      return FailWith(out, QStringLiteral("too many calls awaiting a result"));
+      return FailWith(out, u"too many calls awaiting a result"_s);
     }
     if (!Protected(
             L,
@@ -525,13 +521,12 @@ void LuaApi::CommandsInvoke(lua_State* L, BindingOutcome& out) {
   const auto d = CommandRegistry::Instance().Describe(command);
   if (!d.has_value()) {
     drop_continuation();
-    return FailWith(out, QStringLiteral("the command went away"));
+    return FailWith(out, u"the command went away"_s);
   }
-  const auto schema = d->value(QStringLiteral("args")).toMap();
+  const auto schema = d->value(u"args"_s).toMap();
   std::vector<gf::cmd::Blob> blobs;
   QCborMap args;
-  if (!tree.empty() ||
-      !schema.value(QStringLiteral("fields")).toArray().isEmpty()) {
+  if (!tree.empty() || !schema.value(u"fields"_s).toArray().isEmpty()) {
     QString error;
     const auto resolve = [rt](const Handle& hh, std::vector<gf::cmd::Blob>* b,
                               QString* e) { return rt->Resolve(hh, b, e); };
@@ -539,7 +534,7 @@ void LuaApi::CommandsInvoke(lua_State* L, BindingOutcome& out) {
                               &blobs, &error);
     if (!v.has_value()) {
       drop_continuation();
-      return FailWith(out, QStringLiteral("%1: %2").arg(command, error));
+      return FailWith(out, u"%1: %2"_s.arg(command, error));
     }
     args = v->toMap();
   }
@@ -613,7 +608,7 @@ void LuaApi::UiAnchor(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   const auto name = StringArg(L, 1);
   if (rt == nullptr || !name.has_value()) {
-    return FailWith(out, QStringLiteral("ui.anchor takes an anchor id"));
+    return FailWith(out, u"ui.anchor takes an anchor id"_s);
   }
   const auto* spec = FindAnchor(*name);
   if (spec == nullptr ||
@@ -621,12 +616,12 @@ void LuaApi::UiAnchor(lua_State* L, BindingOutcome& out) {
     QStringList valid;
     for (const auto* a : AllAnchors()) {
       if (a->kind == AnchorKind::kMENU || a->kind == AnchorKind::kBUTTONS) {
-        valid << QLatin1String(a->id);
+        valid << QLatin1StringView(a->id);
       }
     }
-    return FailWith(out, QStringLiteral("unknown anchor \"%1\"; actions "
-                                        "attach to: %2")
-                             .arg(*name, valid.join(", ")));
+    return FailWith(out,
+                    u"unknown anchor \"%1\"; actions "
+                    "attach to: %2"_s.arg(*name, valid.join(", ")));
   }
   if (spec->deprecated_since != 0) {
     LOG_W() << "module" << rt->Module() << "uses deprecated anchor" << *name;
@@ -649,7 +644,7 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
   LuaModuleRuntime::AnchorRef ref{spec, {}, {}, {}, false};
 
   const auto text = [&](const char* key) -> QString {
-    const auto it = fields.constFind(QLatin1String(key));
+    const auto it = fields.constFind(QLatin1StringView(key));
     if (it == fields.constEnd()) return {};
     const auto& n = tree[static_cast<size_t>(*it)];
     return n.type == LuaNode::Type::kSTRING ? QString::fromUtf8(n.text)
@@ -669,12 +664,11 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
     if (!IdIsValid(ref.document_type)) {
       return FailWith(out, "ui.anchor.editor{document_type = \"...\"}");
     }
-    const auto it = fields.constFind(QStringLiteral("extensions"));
+    const auto it = fields.constFind(u"extensions"_s);
     if (it != fields.constEnd()) {
       for (const int c : ChildrenOf(tree, *it)) {
         const auto& n = tree[static_cast<size_t>(c)];
-        static const QRegularExpression kExt(
-            QStringLiteral("^[a-z0-9]{1,16}$"));
+        static const QRegularExpression kExt(u"^[a-z0-9]{1,16}$"_s);
         const auto ext = QString::fromUtf8(n.text);
         if (n.type != LuaNode::Type::kSTRING || !kExt.match(ext).hasMatch()) {
           return FailWith(out, "extensions are lower-case, without the dot");
@@ -684,7 +678,7 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
     }
     // A layout hint for the host, off unless asked for: a document view with
     // its own chrome would rather keep the Status Panel as a bar.
-    if (const auto c = fields.constFind(QStringLiteral("compact_status"));
+    if (const auto c = fields.constFind(u"compact_status"_s);
         c != fields.constEnd()) {
       const auto& n = tree[static_cast<size_t>(*c)];
       if (n.type != LuaNode::Type::kBOOL) {
@@ -695,8 +689,8 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
   }
   const auto unknown = UnknownField(fields, known);
   if (!unknown.isEmpty()) {
-    return FailWith(out, QStringLiteral("ui.anchor.%1: unknown field \"%2\"")
-                             .arg(*kind, unknown));
+    return FailWith(
+        out, u"ui.anchor.%1: unknown field \"%2\""_s.arg(*kind, unknown));
   }
   const auto h = rt->NextId();
   rt->anchors_.insert(h, ref);
@@ -707,8 +701,9 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   if (rt == nullptr) return FailWith(out, "no runtime");
   if (rt->phase_ != LuaModuleRuntime::Phase::kLOAD) {
-    return FailWith(out, QStringLiteral("not allowed in update: ui.action "
-                                        "registers while the script loads"));
+    return FailWith(out,
+                    u"not allowed in update: ui.action "
+                    "registers while the script loads"_s);
   }
 
   // The fields, read raw; `update` becomes a registry reference.
@@ -742,7 +737,7 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
   };
   const auto fail = [&](const QString& why) {
     drop_update();
-    FailWith(out, QStringLiteral("ui.action: ") + why);
+    FailWith(out, u"ui.action: "_s + why);
   };
   if (update_not_function) return fail("\"update\" must be a function");
   if (!Flatten(L, 1, &tree, out)) return drop_update();
@@ -751,10 +746,10 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
   const auto unknown = UnknownField(
       fields, {"id", "anchor", "command", "order", "icon", "shortcut"});
   if (!unknown.isEmpty()) {
-    return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
+    return fail(u"unknown field \"%1\""_s.arg(unknown));
   }
   const auto node = [&](const char* key) -> const LuaNode* {
-    const auto it = fields.constFind(QLatin1String(key));
+    const auto it = fields.constFind(QLatin1StringView(key));
     return it == fields.constEnd() ? nullptr : &tree[static_cast<size_t>(*it)];
   };
 
@@ -815,17 +810,17 @@ void LuaApi::UiAction(lua_State* L, BindingOutcome& out) {
     if (seq.count() != 1 || shortcut.isEmpty()) {
       return fail("\"shortcut\" is a key sequence, e.g. \"Ctrl+M\"");
     }
-    if (!QLatin1String(aref.spec->id).startsWith(QLatin1String("main.menu."))) {
-      return fail(QStringLiteral("\"shortcut\" is for main menu anchors, "
-                                 "not \"%1\"")
-                      .arg(QLatin1String(aref.spec->id)));
+    if (!QLatin1StringView(aref.spec->id).startsWith("main.menu."_L1)) {
+      return fail(
+          u"\"shortcut\" is for main menu anchors, "
+          "not \"%1\""_s.arg(QLatin1StringView(aref.spec->id)));
     }
   }
 
   LuaModuleRuntime::ActionEntry entry;
   entry.info.id = full_id;
   entry.info.shortcut = shortcut;
-  entry.info.anchor = QLatin1String(aref.spec->id);
+  entry.info.anchor = QLatin1StringView(aref.spec->id);
   entry.info.command = command_id;
   entry.info.order = order;
   entry.info.icon = icon;
@@ -839,27 +834,29 @@ void LuaApi::UiMount(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   if (rt == nullptr) return FailWith(out, "no runtime");
   if ((rt->caps_ & GF_HOST_CAP_UI_CUSTOM) == 0) {
-    return FailWith(out, QStringLiteral("ui.mount needs the ui.custom "
-                                        "capability"));
+    return FailWith(out,
+                    u"ui.mount needs the ui.custom "
+                    "capability"_s);
   }
   if (rt->phase_ != LuaModuleRuntime::Phase::kLOAD) {
-    return FailWith(out, QStringLiteral("not allowed in update: ui.mount "
-                                        "registers while the script loads"));
+    return FailWith(out,
+                    u"not allowed in update: ui.mount "
+                    "registers while the script loads"_s);
   }
   LuaTree tree;
   if (lua_type(L, 1) != LUA_TTABLE) return FailWith(out, "ui.mount{...}");
   if (!Flatten(L, 1, &tree, out)) return;
   const auto fields = FieldsOf(tree);
   const auto fail = [&out](const QString& why) {
-    FailWith(out, QStringLiteral("ui.mount: ") + why);
+    FailWith(out, u"ui.mount: "_s + why);
   };
   const auto unknown =
       UnknownField(fields, {"id", "anchor", "widget", "order"});
   if (!unknown.isEmpty()) {
-    return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
+    return fail(u"unknown field \"%1\""_s.arg(unknown));
   }
   const auto node = [&](const char* key) -> const LuaNode* {
-    const auto it = fields.constFind(QLatin1String(key));
+    const auto it = fields.constFind(QLatin1StringView(key));
     return it == fields.constEnd() ? nullptr : &tree[static_cast<size_t>(*it)];
   };
 
@@ -912,8 +909,8 @@ void LuaApi::UiMount(lua_State* L, BindingOutcome& out) {
   if (aref.spec->kind == AnchorKind::kEDITOR) {
     const auto owner = LuaHost::Instance().EditorOwner(aref.document_type);
     if (!owner.isEmpty() && owner != rt->Module()) {
-      return fail(QStringLiteral("document type \"%1\" already belongs to %2")
-                      .arg(aref.document_type, owner));
+      return fail(u"document type \"%1\" already belongs to %2"_s.arg(
+          aref.document_type, owner));
     }
   }
 
@@ -945,8 +942,9 @@ void LuaApi::UiSubscribe(lua_State* L, BindingOutcome& out) {
   auto* rt = Rt(L);
   if (rt == nullptr) return FailWith(out, "no runtime");
   if (rt->phase_ != LuaModuleRuntime::Phase::kLOAD) {
-    return FailWith(out, QStringLiteral("ui.subscribe registers while the "
-                                        "script loads"));
+    return FailWith(out,
+                    u"ui.subscribe registers while the "
+                    "script loads"_s);
   }
   if (lua_type(L, 1) != LUA_TTABLE) return FailWith(out, "ui.subscribe{...}");
 
@@ -974,7 +972,7 @@ void LuaApi::UiSubscribe(lua_State* L, BindingOutcome& out) {
         return 0;
       });
     }
-    FailWith(out, QStringLiteral("ui.subscribe: ") + why);
+    FailWith(out, u"ui.subscribe: "_s + why);
   };
   if (handler == LUA_NOREF) return fail("\"handler\" must be a function");
 
@@ -984,17 +982,17 @@ void LuaApi::UiSubscribe(lua_State* L, BindingOutcome& out) {
   const auto fields = FieldsOf(tree);
   const auto unknown = UnknownField(fields, {"event", "id"});
   if (!unknown.isEmpty()) {
-    return fail(QStringLiteral("unknown field \"%1\"").arg(unknown));
+    return fail(u"unknown field \"%1\""_s.arg(unknown));
   }
-  const auto ev = fields.value(QStringLiteral("event"), -1);
+  const auto ev = fields.value(u"event"_s, -1);
   const auto event = ev >= 0
                          ? QString::fromUtf8(tree[static_cast<size_t>(ev)].text)
                          : QString();
   if (!LuaModuleRuntime::Events().contains(event)) {
-    return fail(QStringLiteral("\"%1\" is not a UI event; the events are: %2")
-                    .arg(event, LuaModuleRuntime::Events().join(", ")));
+    return fail(u"\"%1\" is not a UI event; the events are: %2"_s.arg(
+        event, LuaModuleRuntime::Events().join(", ")));
   }
-  const auto idn = fields.value(QStringLiteral("id"), -1);
+  const auto idn = fields.value(u"id"_s, -1);
   auto id = idn >= 0
                 ? QString::fromUtf8(tree[static_cast<size_t>(idn)].text)
                 : QString("subscription%1").arg(rt->subscriptions_.size() + 1);
@@ -1020,17 +1018,15 @@ void LuaApi::NativeRef(lua_State* L, BindingOutcome& out) {
   const auto full = rt->Module() + "." + *id;
   const auto entry = NativeWidgetRegistry::Instance().Find(full);
   if (!entry.has_value() || entry->owner != rt->Module()) {
-    return FailWith(out, QStringLiteral("no native widget \"%1\" is "
-                                        "registered by this module")
-                             .arg(*id));
+    return FailWith(out,
+                    u"no native widget \"%1\" is "
+                    "registered by this module"_s.arg(*id));
   }
   if (entry->multi_instance != factory) {
-    return FailWith(out, factory ? QStringLiteral("\"%1\" is a single widget: "
-                                                  "use native.widget")
-                                       .arg(*id)
-                                 : QStringLiteral("\"%1\" is a factory: use "
-                                                  "native.factory")
-                                       .arg(*id));
+    return FailWith(out, factory ? u"\"%1\" is a single widget: "
+                                   "use native.widget"_s.arg(*id)
+                                 : u"\"%1\" is a factory: use "
+                                   "native.factory"_s.arg(*id));
   }
   const auto h = rt->NextId();
   rt->natives_.insert(h, LuaModuleRuntime::NativeRef{full, factory});
@@ -1119,17 +1115,17 @@ void LuaApi::ThemeColor(lua_State* L, BindingOutcome& out) {
   const auto role = StringArg(L, 1);
   const auto p = QApplication::palette();
   QColor c;
-  if (role == QStringLiteral("muted_text")) {
+  if (role == u"muted_text"_s) {
     c = MutedTextColor(p);
-  } else if (role == QStringLiteral("border")) {
+  } else if (role == u"border"_s) {
     c = BorderColor(p);
-  } else if (role == QStringLiteral("warning")) {
+  } else if (role == u"warning"_s) {
     c = WarningColor(p);
-  } else if (role == QStringLiteral("danger")) {
+  } else if (role == u"danger"_s) {
     c = DangerColor(p);
-  } else if (role == QStringLiteral("accent_positive")) {
+  } else if (role == u"accent_positive"_s) {
     c = AccentColor(p, true);
-  } else if (role == QStringLiteral("accent_negative")) {
+  } else if (role == u"accent_negative"_s) {
     c = AccentColor(p, false);
   } else {
     return FailWith(out,
@@ -1318,7 +1314,7 @@ void LuaApi::MakeRef(lua_State* L, BindingOutcome& out) {
 // ------------------------------------------------------------------ reference
 
 auto LuaApiReference() -> QString {
-  return QStringLiteral(R"(Lua UI API v1
+  return uR"(Lua UI API v1
 
 commands.get(id) -> Command                       command must exist; caps checked
 commands.state(Command) -> {enabled, visible, checked}
@@ -1354,7 +1350,7 @@ handle lifetimes
 Context: .document .key .keys :has_selection() :has_key_group()
 Document: .type .modified :has_openpgp() :ref()
 Key: .fingerprint .key_id .has_secret .channel :ref()
-)");
+)"_s;
 }
 
 }  // namespace GpgFrontend::UI::Lua

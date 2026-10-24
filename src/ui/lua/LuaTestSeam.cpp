@@ -43,7 +43,7 @@ std::atomic<int> g_live{0};
 /// Non-trivially destructible, and owns heap memory ASan would see leak.
 class Sentinel {
  public:
-  Sentinel() : payload_(QStringLiteral("sentinel payload %1").arg(++g_live)) {}
+  Sentinel() : payload_(u"sentinel payload %1"_s.arg(++g_live)) {}
   ~Sentinel() { --g_live; }
   Sentinel(const Sentinel&) = delete;
   auto operator=(const Sentinel&) -> Sentinel& = delete;

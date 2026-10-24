@@ -83,7 +83,7 @@ auto KindName(AnchorKind k) -> const char* {
 
 auto FindAnchor(const QString& id) -> const AnchorSpec* {
   for (const auto& a : kAnchors) {
-    if (id == QLatin1String(a.id)) return &a;
+    if (id == QLatin1StringView(a.id)) return &a;
   }
   return nullptr;
 }
@@ -104,10 +104,10 @@ auto AnchorCatalogReference() -> QString {
     if ((a.context & kCTX_KEY) != 0) ctx << "key";
     if ((a.context & kCTX_KEYS) != 0) ctx << "keys";
     lines << QString("%1 | %2 | context: %3 | modules: %4 | since %5%6")
-                 .arg(QLatin1String(a.id), QLatin1String(KindName(a.kind)),
-                      ctx.isEmpty() ? QStringLiteral("none") : ctx.join(", "),
-                      a.multiple_modules ? QStringLiteral("many")
-                                         : QStringLiteral("one"))
+                 .arg(QLatin1StringView(a.id),
+                      QLatin1StringView(KindName(a.kind)),
+                      ctx.isEmpty() ? u"none"_s : ctx.join(", "),
+                      a.multiple_modules ? u"many"_s : u"one"_s)
                  .arg(a.since)
                  .arg(a.deprecated_since == 0
                           ? QString()
