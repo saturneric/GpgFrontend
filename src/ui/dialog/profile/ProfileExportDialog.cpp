@@ -70,8 +70,7 @@ void ProfileExportDialog::init_ui() {
   // whole profile deserves to look like the same class of act as unlocking one,
   // and sharing the furniture is what makes the two read as one family.
   layout->addLayout(CreateDialogHeader(
-      QStringLiteral(":/icons/lock.png"),
-      tr("Export \"%1\"").arg(display_name_),
+      u":/icons/lock.png"_s, tr("Export \"%1\"").arg(display_name_),
       tr("Everything below is written into a single file you can copy to "
          "another computer and import there."),
       this));

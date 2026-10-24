@@ -442,7 +442,7 @@ auto SettingsDialog::confirm_restart() -> bool {
   box.setInformativeText(
       tr("Pages with changes that need this: %1.\n\nChoose Cancel to discard "
          "everything you changed in this dialog and keep the current settings.")
-          .arg(restart_pages_.join(QStringLiteral(", "))));
+          .arg(restart_pages_.join(u", "_s)));
 
   auto* save_button =
       box.addButton(deep ? tr("Save and Restart") : tr("Save and Reload"),
@@ -602,7 +602,7 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   QHash<QString, QString> languages;
   languages.insert(QString(), tr("System Default"));
 
-  auto filenames = QDir(QLatin1String(":/i18n")).entryList();
+  auto filenames = QDir(":/i18n"_L1).entryList();
   for (const auto& file : filenames) {
     auto start = file.indexOf('.') + 1;
     auto end = file.lastIndexOf('.');

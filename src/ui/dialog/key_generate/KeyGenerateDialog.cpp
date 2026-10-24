@@ -621,7 +621,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
 }
 
 void KeyGenerateDialog::InitUi() {
-  setObjectName(QStringLiteral("KeyGenerateDialog"));
+  setObjectName(u"KeyGenerateDialog"_s);
 
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);

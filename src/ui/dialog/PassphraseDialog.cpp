@@ -330,14 +330,13 @@ void PassphraseDialog::update_passphrase_strength(const QString& text) {
 
   passphrase_strength_bar_->setValue(strength);
   passphrase_strength_bar_->setStyleSheet(
-      QStringLiteral(
-          "QProgressBar { border: none; border-radius: 4px; "
-          "background-color: rgba(128, 128, 128, 60); }"
-          "QProgressBar::chunk { border-radius: 4px; background-color: %1; }")
-          .arg(color));
+      u"QProgressBar { border: none; border-radius: 4px; "
+      "background-color: rgba(128, 128, 128, 60); }"
+      "QProgressBar::chunk { border-radius: 4px; background-color: %1; }"_s.arg(
+          color));
 
   passphrase_strength_label_->setStyleSheet(
-      QStringLiteral("color: %1; font-weight: 600;").arg(color));
+      u"color: %1; font-weight: 600;"_s.arg(color));
   passphrase_strength_label_->setText(PassphraseStrengthDescription(strength));
 }
 

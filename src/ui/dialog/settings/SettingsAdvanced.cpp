@@ -68,9 +68,8 @@ constexpr int kMaxRingCapacity = 65536;
  * @return rich-text tooltip that wraps
  */
 auto WrappingToolTip(const QString& text) -> QString {
-  return QStringLiteral("<p>%1</p>")
-      .arg(text.toHtmlEscaped().replace(QLatin1Char('\n'),
-                                        QLatin1String("<br/>")));
+  return u"<p>%1</p>"_s.arg(
+      text.toHtmlEscaped().replace(QLatin1Char('\n'), "<br/>"_L1));
 }
 
 /**
@@ -122,8 +121,7 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   };
   for (int level = 0; level <= 3; ++level) {
     secure_level_combo_->addItem(
-        QStringLiteral("%1 (%2)").arg(SecureLevelDisplayName(level),
-                                      level_hint(level)),
+        u"%1 (%2)"_s.arg(SecureLevelDisplayName(level), level_hint(level)),
         level);
   }
   secure_level_combo_->setToolTip(WrappingToolTip(

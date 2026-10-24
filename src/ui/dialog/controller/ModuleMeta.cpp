@@ -43,7 +43,7 @@ constexpr int kHashDisplayLength = 16;
 auto ShortHash(const QString &hash) -> QString {
   if (hash.isEmpty()) return QObject::tr("N/A");
   return hash.size() > kHashDisplayLength
-             ? hash.left(kHashDisplayLength) + QStringLiteral("...")
+             ? hash.left(kHashDisplayLength) + u"..."_s
              : hash;
 }
 
@@ -115,12 +115,11 @@ auto BuildModuleRows(const Module::ModuleProvenance &module)
   if (packaged) {
     const auto &manifest = module.manifest.value();
     if (!manifest.platform_os.isEmpty()) {
-      rows.append(
-          {.caption = QObject::tr("Built for"),
-           .value = manifest.platform_arch.isEmpty()
-                        ? manifest.platform_os
-                        : QStringLiteral("%1 %2").arg(manifest.platform_os,
-                                                      manifest.platform_arch)});
+      rows.append({.caption = QObject::tr("Built for"),
+                   .value = manifest.platform_arch.isEmpty()
+                                ? manifest.platform_os
+                                : u"%1 %2"_s.arg(manifest.platform_os,
+                                                 manifest.platform_arch)});
     }
     if (!manifest.platform_qt.isEmpty()) {
       rows.append({.caption = QObject::tr("Built against Qt"),
@@ -128,7 +127,7 @@ auto BuildModuleRows(const Module::ModuleProvenance &module)
     }
     if (!manifest.capabilities.isEmpty()) {
       rows.append({.caption = QObject::tr("Capabilities"),
-                   .value = manifest.capabilities.join(QStringLiteral(", "))});
+                   .value = manifest.capabilities.join(u", "_s)});
     }
   }
 

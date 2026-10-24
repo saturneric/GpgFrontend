@@ -159,10 +159,10 @@ void KeyImportDetailDialog::create_general_info_box() {
     QString color;
   };
 
-  static const auto kGreen = QStringLiteral("#43a047");
-  static const auto kBlue = QStringLiteral("#1e88e5");
-  static const auto kGray = QStringLiteral("#757575");
-  static const auto kRed = QStringLiteral("#e53935");
+  static const auto kGreen = u"#43a047"_s;
+  static const auto kBlue = u"#1e88e5"_s;
+  static const auto kGray = u"#757575"_s;
+  static const auto kRed = u"#e53935"_s;
 
   const QList<StatEntry> entries = {
       {tr("Considered"), m_result_->considered, kGray},
@@ -191,10 +191,10 @@ void KeyImportDetailDialog::create_general_info_box() {
     value_font.setPointSize(value_font.pointSize() + 4);
     value_font.setBold(true);
     value_label->setFont(value_font);
-    value_label->setStyleSheet(QStringLiteral("color: %1;").arg(entry.color));
+    value_label->setStyleSheet(u"color: %1;"_s.arg(entry.color));
 
     auto* caption_label = new QLabel(entry.label, cell);
-    caption_label->setStyleSheet(QStringLiteral("color: #888888;"));
+    caption_label->setStyleSheet(u"color: #888888;"_s);
 
     cell_layout->addWidget(value_label);
     cell_layout->addWidget(caption_label);

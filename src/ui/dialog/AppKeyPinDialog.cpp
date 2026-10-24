@@ -57,9 +57,8 @@ void AppKeyPinDialog::init_ui() {
   main_layout->setSpacing(16);
 
   // The badge, heading, explanation and rule every serious dialog opens with.
-  main_layout->addLayout(CreateDialogHeader(QStringLiteral(":/icons/lock.png"),
-                                            texts_.window_title,
-                                            texts_.subtitle, this));
+  main_layout->addLayout(CreateDialogHeader(
+      u":/icons/lock.png"_s, texts_.window_title, texts_.subtitle, this));
 
   // Which file this is about, when it is about one. Named before the field, so
   // nobody types a passphrase at a prompt they have not identified -- and named

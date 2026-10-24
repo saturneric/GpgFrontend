@@ -113,8 +113,8 @@ void KeyDatabaseEditDialog::init_ui() {
     // entry's row in the settings list, which is not the channel its context
     // runs on, so asking OpenPGPContext about it named some other database --
     // or none, and built a placeholder for it.
-    const auto engine = default_backend_.isEmpty() ? QStringLiteral("gnupg")
-                                                   : default_backend_.trimmed();
+    const auto engine =
+        default_backend_.isEmpty() ? u"gnupg"_s : default_backend_.trimmed();
     const auto engine_index =
         ui_->keyDBBackendTypeComboBox->findData(engine.toUpper());
     if (engine_index != -1) {
@@ -275,8 +275,7 @@ auto KeyDatabaseEditDialog::suggested_name() const -> QString {
   // Not translated, deliberately: this name becomes a directory, and the field
   // it goes into accepts only [a-zA-Z0-9\s\-_]. A localised suggestion could be
   // one the field itself then refuses.
-  const auto prefix = is_managed() ? QStringLiteral("Key DB")
-                                   : QStringLiteral("External Key DB");
+  const auto prefix = is_managed() ? u"Key DB"_s : u"External Key DB"_s;
 
   // The first unused number, rather than one more than the count. Removing the
   // first of two databases and adding another used to suggest the name the

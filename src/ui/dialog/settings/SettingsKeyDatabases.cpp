@@ -322,8 +322,9 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
     QGuiApplication::clipboard()->setText(ui_->builtInLocationEdit->text());
   });
 
-  connect(ui_->builtInUseAsDefaultButton, &QPushButton::clicked, this,
-          [this]() { use_as_default(QLatin1String(kDefaultKeyDatabaseId)); });
+  connect(
+      ui_->builtInUseAsDefaultButton, &QPushButton::clicked, this,
+      [this]() { use_as_default(QLatin1StringView(kDefaultKeyDatabaseId)); });
   connect(ui_->profileUseAsDefaultButton, &QPushButton::clicked, this,
           [this]() { use_as_default(selected_id()); });
   connect(ui_->externalUseAsDefaultButton, &QPushButton::clicked, this,
@@ -520,9 +521,9 @@ auto KeyDatabasesTab::OperationsLeftRunning() const -> QStringList {
     const bool kept =
         info != nullptr && !moved &&
         IsSameKeyDatabaseLocation(info->path, channel.path) &&
-        (info->backend_type.isEmpty() ? QStringLiteral("gnupg")
+        (info->backend_type.isEmpty() ? u"gnupg"_s
                                       : info->backend_type.toLower()) ==
-            (channel.backend_type.isEmpty() ? QStringLiteral("gnupg")
+            (channel.backend_type.isEmpty() ? u"gnupg"_s
                                             : channel.backend_type.toLower());
     if (kept) continue;
 
@@ -637,7 +638,7 @@ void KeyDatabasesTab::refresh_role_controls() {
 
   // The built-in section: the marker when it holds the role, the action when
   // it could, nothing about the role while it is turned off.
-  const auto builtin_id = QString(QLatin1String(kDefaultKeyDatabaseId));
+  const auto builtin_id = QString(QLatin1StringView(kDefaultKeyDatabaseId));
   const bool builtin_on = model_.builtin.has_value();
   const bool builtin_default = builtin_on && effective == builtin_id;
   ui_->builtInDefaultMarkerLabel->setVisible(builtin_default);
@@ -746,7 +747,7 @@ void KeyDatabasesTab::fill_table(QTableWidget* table,
         CreateTableItem(key_db.name, Qt::AlignLeft | Qt::AlignVCenter));
 
     const auto backend_type_display =
-        key_db.backend_type.isEmpty() ? QStringLiteral("GNUPG")
+        key_db.backend_type.isEmpty() ? u"GNUPG"_s
                                       : key_db.backend_type.toUpper().trimmed();
     table->setItem(index, 2,
                    CreateTableItem(backend_type_display, Qt::AlignCenter));
@@ -889,7 +890,7 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
     info.path = GetCanonicalKeyDatabasePath(app_path_, candidate.path);
     info.channel = 0;
     info.kind = KeyDatabaseKind::kDEFAULT;
-    info.id = QLatin1String(kDefaultKeyDatabaseId);
+    info.id = QLatin1StringView(kDefaultKeyDatabaseId);
 
     // An external entry may already point at this computer's own keyring.
     // Turning DEFAULT on beside it would open that directory twice.

@@ -62,7 +62,7 @@ auto Compact(const QCborMap& map) -> QString {
 
 void AppendLog(QPlainTextEdit* log, const QString& line) {
   log->appendPlainText(QString("[%1] %2").arg(
-      QTime::currentTime().toString(QStringLiteral("HH:mm:ss.zzz")), line));
+      QTime::currentTime().toString(u"HH:mm:ss.zzz"_s), line));
 }
 
 enum ModuleColumn {
@@ -141,7 +141,7 @@ auto DescribeEventAnswer(const QString& listener,
     parts << QString("%1(%2 bytes)").arg(it.key()).arg(it.value().Size());
   }
   return QString("%1: %2").arg(listener.isEmpty() ? QString("host") : listener,
-                               parts.join(QStringLiteral(" ")));
+                               parts.join(u" "_s));
 }
 
 auto DescribeCommandStatus(int status) -> QString {
@@ -234,10 +234,9 @@ void ModuleEventsPanel::slot_event_text_changed(const QString& text) {
   if (spec == nullptr) {
     event_summary_->setText(tr("Not an event this build fires."));
   } else {
-    event_summary_->setText(
-        QString("%1\n[%2]")
-            .arg(QString::fromUtf8(spec->summary),
-                 FlagWords(*spec).join(QStringLiteral(", "))));
+    event_summary_->setText(QString("%1\n[%2]")
+                                .arg(QString::fromUtf8(spec->summary),
+                                     FlagWords(*spec).join(u", "_s)));
   }
   // A pattern entry names a family, and only a concrete id can be fired: the
   // placeholder has to be filled in first.
@@ -246,7 +245,7 @@ void ModuleEventsPanel::slot_event_text_changed(const QString& text) {
   const auto listeners = Module::ModuleManager::GetInstance().ListenersOf(id);
   event_listeners_->setText(listeners.isEmpty()
                                 ? tr("No active module listens to it.")
-                                : listeners.join(QStringLiteral("\n")));
+                                : listeners.join(u"\n"_s));
 }
 
 void ModuleEventsPanel::slot_fire_event() {
@@ -328,11 +327,10 @@ void ModuleStatusPanel::slot_refresh_modules() {
     set(kGATE,
         Module::ModuleEntryGate(m.id).IsClosed() ? tr("Closed") : tr("Open"));
     set(kLISTENING, QString::number(m.listening.size()),
-        m.listening.join(QStringLiteral("\n")));
+        m.listening.join(u"\n"_s));
     set(kOWED, QString::number(m.owed_answers));
-    const auto commands = registry.List(m.id + QStringLiteral("."));
-    set(kCOMMANDS, QString::number(commands.size()),
-        commands.join(QStringLiteral("\n")));
+    const auto commands = registry.List(m.id + u"."_s);
+    set(kCOMMANDS, QString::number(commands.size()), commands.join(u"\n"_s));
     set(kCALLS, QString::number(registry.PendingCallsOf(m.id)));
     set(kWIDGETS, QString::number(NativeInstances::Instance().CountFor(m.id)));
   }
@@ -452,7 +450,7 @@ void ModuleCommandsPanel::slot_invoke_command() {
   // The result can arrive on the provider's thread; the log is this one's.
   QPointer<ModuleCommandsPanel> self(this);
   const auto ticket = CommandRegistry::Instance().Invoke(
-      id, *args, {}, CommandCaller{{}, 0, QStringLiteral("host")}, {},
+      id, *args, {}, CommandCaller{{}, 0, u"host"_s}, {},
       [self, id](gf::cmd::RawResult r) {
         QStringList blobs;
         for (const auto& b : r.blobs) {

@@ -89,18 +89,18 @@ auto PassphraseStrengthDescription(int strength) -> QString {
 
 auto PassphraseStrengthColor(int strength) -> QString {
   if (strength < 20) {
-    return QStringLiteral("#e53935");
+    return u"#e53935"_s;
   }
   if (strength < 40) {
-    return QStringLiteral("#fb8c00");
+    return u"#fb8c00"_s;
   }
   if (strength < 60) {
-    return QStringLiteral("#fbc02d");
+    return u"#fbc02d"_s;
   }
   if (strength < 80) {
-    return QStringLiteral("#7cb342");
+    return u"#7cb342"_s;
   }
-  return QStringLiteral("#43a047");
+  return u"#43a047"_s;
 }
 
 auto CalculatePassphraseStrength(const QString& text) -> int {

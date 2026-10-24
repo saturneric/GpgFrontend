@@ -45,8 +45,8 @@ MetaListDialog::MetaListDialog(const QString& title, const QString& subtitle,
   layout_->setContentsMargins(24, 22, 24, 18);
   layout_->setSpacing(16);
 
-  layout_->addLayout(CreateDialogHeader(QStringLiteral(":/icons/lock.png"),
-                                        title, subtitle, this));
+  layout_->addLayout(
+      CreateDialogHeader(u":/icons/lock.png"_s, title, subtitle, this));
 
   // Added now and kept last: everything else is inserted above it, so the
   // buttons stay at the bottom however many sections a caller adds.

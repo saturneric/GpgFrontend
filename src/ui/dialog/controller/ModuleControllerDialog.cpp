@@ -136,7 +136,7 @@ void ModuleControllerDialog::init_connections() {
   connect(ui_->moduleListView, &ModuleListView::SignalCountsChanged, this,
           [=](int total, int active) {
             ui_->countLabel->setText(tr("%n module(s)", nullptr, total) +
-                                     QStringLiteral(" · ") +
+                                     u" · "_s +
                                      tr("%n active", nullptr, active));
           });
 

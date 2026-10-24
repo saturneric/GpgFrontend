@@ -89,7 +89,7 @@ class ZoomGraphicsView final : public QGraphicsView {
 
 DocViewerDialog::DocViewerDialog(const QPixmap& doc, qreal source_scale,
                                  const QString& doc_id, QWidget* parent)
-    : GeneralDialog(QStringLiteral("doc_viewer_dialog"), parent) {
+    : GeneralDialog(u"doc_viewer_dialog"_s, parent) {
   setWindowTitle(doc_id.isEmpty() ? tr("Document Preview")
                                   : tr("Document Preview — %1").arg(doc_id));
 
@@ -104,7 +104,7 @@ DocViewerDialog::DocViewerDialog(const QPixmap& doc, qreal source_scale,
   zoom_label->setMinimumWidth(48);
   zoom_label->setAlignment(Qt::AlignCenter);
   view_->on_zoom_changed = [zoom_label](qreal zoom) {
-    zoom_label->setText(QStringLiteral("%1%").arg(qRound(zoom * 100)));
+    zoom_label->setText(u"%1%"_s.arg(qRound(zoom * 100)));
   };
 
   auto make_button = [this](const QString& icon, const QString& tip,
@@ -122,18 +122,15 @@ DocViewerDialog::DocViewerDialog(const QPixmap& doc, qreal source_scale,
   auto* toolbar = new QHBoxLayout();
   toolbar->setContentsMargins(4, 4, 4, 4);
   toolbar->setSpacing(4);
-  toolbar->addWidget(make_button(QStringLiteral(":/icons/zoomout.png"),
-                                 tr("Zoom out"),
+  toolbar->addWidget(make_button(u":/icons/zoomout.png"_s, tr("Zoom out"),
                                  [this]() { view_->ZoomBy(1.0 / 1.25); }));
   toolbar->addWidget(zoom_label);
-  toolbar->addWidget(make_button(QStringLiteral(":/icons/zoomin.png"),
-                                 tr("Zoom in"),
+  toolbar->addWidget(make_button(u":/icons/zoomin.png"_s, tr("Zoom in"),
                                  [this]() { view_->ZoomBy(1.25); }));
   toolbar->addSpacing(8);
-  toolbar->addWidget(make_button(QStringLiteral(":/icons/expand.png"),
-                                 tr("Fit to window"),
+  toolbar->addWidget(make_button(u":/icons/expand.png"_s, tr("Fit to window"),
                                  [this]() { view_->FitToWindow(); }));
-  toolbar->addWidget(make_button(QStringLiteral(":/icons/search.png"),
+  toolbar->addWidget(make_button(u":/icons/search.png"_s,
                                  tr("Actual size (100%)"),
                                  [this]() { view_->SetZoom(1.0); }));
   toolbar->addStretch(1);

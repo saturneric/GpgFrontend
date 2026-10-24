@@ -169,7 +169,7 @@ class KeyDatabaseSettingsModel {
    * fallback, when nothing else was chosen.
    */
   void SetBuiltIn(std::optional<KeyDatabaseInfo> info) {
-    if (!info && choice_id == QLatin1String(kDefaultKeyDatabaseId)) {
+    if (!info && choice_id == QLatin1StringView(kDefaultKeyDatabaseId)) {
       choice_id.clear();
     }
     builtin = std::move(info);
@@ -205,10 +205,9 @@ class KeyDatabaseSettingsModel {
    */
   [[nodiscard]] auto BuiltInEngine(bool gnupg_supported,
                                    bool rpgp_supported) const -> EngineChoice {
-    return ChooseChannelZeroEngine(
-        QLatin1String(kDefaultKeyDatabaseName),
-        builtin ? builtin->backend_type : QString{}, engine, gnupg_supported,
-        rpgp_supported);
+    return ChooseChannelZeroEngine(QLatin1StringView(kDefaultKeyDatabaseName),
+                                   builtin ? builtin->backend_type : QString{},
+                                   engine, gnupg_supported, rpgp_supported);
   }
 
  private:

@@ -49,7 +49,7 @@ class ChoiceTile : public QFrame {
   ChoiceTile(const QString& title, const QString& detail, const QString& chip,
              QWidget* parent)
       : QFrame(parent) {
-    setObjectName(QStringLiteral("GFChoiceTile"));
+    setObjectName(u"GFChoiceTile"_s);
     setCursor(Qt::PointingHandCursor);
 
     radio_ = new QRadioButton(this);
@@ -114,15 +114,13 @@ class ChoiceTile : public QFrame {
     tint.setAlpha(24);
 
     setStyleSheet(
-        QStringLiteral("QFrame#GFChoiceTile {"
-                       "  border: %1px solid %2;"
-                       "  border-radius: 8px;"
-                       "  background: %3;"
-                       "}")
-            .arg(selected ? 2 : 1)
+        u"QFrame#GFChoiceTile {"
+        "  border: %1px solid %2;"
+        "  border-radius: 8px;"
+        "  background: %3;"
+        "}"_s.arg(selected ? 2 : 1)
             .arg(selected ? accent.name() : BorderColor(palette()).name())
-            .arg(selected ? tint.name(QColor::HexArgb)
-                          : QStringLiteral("transparent")));
+            .arg(selected ? tint.name(QColor::HexArgb) : u"transparent"_s));
   }
 };
 
@@ -135,8 +133,8 @@ class ChoiceTile : public QFrame {
 auto DescribeGroup(SettingGroup group) -> QString {
   QStringList titles;
   for (const auto* meta : SettingsInGroup(group)) {
-    if (SettingInheritedByNewProfile(QLatin1String(meta->key))) {
-      titles << QStringLiteral("\u2022 ") + meta->Title();
+    if (SettingInheritedByNewProfile(QLatin1StringView(meta->key))) {
+      titles << u"\u2022 "_s + meta->Title();
     }
   }
   return titles.join("\n");
@@ -172,7 +170,7 @@ void ProfileCreateDialog::init_ui() {
   setMinimumWidth(560);
 
   layout->addLayout(CreateDialogHeader(
-      QStringLiteral(":/icons/keypairs.png"), tr("New Profile"),
+      u":/icons/keypairs.png"_s, tr("New Profile"),
       tr("Its own keys and settings, opened in a window of its own."), this));
 
   build_name(layout);
@@ -325,7 +323,7 @@ void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
   note->setSpacing(8);
   auto* note_icon = new QLabel(content);
   note_icon->setPixmap(
-      QPixmap(QStringLiteral(":/icons/info.png"))
+      QPixmap(u":/icons/info.png"_s)
           .scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   note_icon->setFixedSize(16, 16);
   note->addWidget(note_icon, 0, Qt::AlignTop);

@@ -107,24 +107,24 @@ void OpenExternalUrlWithFallback(QWidget* parent, const QString& url) {
 // wizard. The whole card is clickable; the URL is opened only on that click,
 // with a clipboard fallback, and nothing is fetched.
 auto CreateStarCard(QWidget* parent = nullptr) -> QFrame* {
-  const auto url = QStringLiteral("https://github.com/saturneric/GpgFrontend");
+  const auto url = u"https://github.com/saturneric/GpgFrontend"_s;
 
   auto* frame = new ClickableFrame(
       [parent, url]() { OpenExternalUrlWithFallback(parent, url); }, parent);
-  frame->setObjectName(QStringLiteral("AboutStarCard"));
+  frame->setObjectName(u"AboutStarCard"_s);
   frame->setFrameShape(QFrame::StyledPanel);
   frame->setCursor(Qt::PointingHandCursor);
   frame->setStyleSheet(
-      QStringLiteral("QFrame#AboutStarCard {"
-                     "  border: 1px solid #e3b341;"
-                     "  border-radius: 8px;"
-                     "}"));
+      u"QFrame#AboutStarCard {"
+      "  border: 1px solid #e3b341;"
+      "  border-radius: 8px;"
+      "}"_s);
 
   // The title looks like a link but isn't interactive itself: the parent frame
   // handles the click so the whole card is the hit target.
   auto* title_label = new QLabel(
-      QStringLiteral("<span style=\"color:#d29922;\">&#9733;</span> <b>%1</b>")
-          .arg(QObject::tr("Star GpgFrontend on GitHub")),
+      u"<span style=\"color:#d29922;\">&#9733;</span> <b>%1</b>"_s.arg(
+          QObject::tr("Star GpgFrontend on GitHub")),
       frame);
   title_label->setTextFormat(Qt::RichText);
   title_label->setWordWrap(true);
@@ -147,22 +147,22 @@ auto CreateStarCard(QWidget* parent = nullptr) -> QFrame* {
 }
 
 auto CreateBuildInfoText() -> QString {
-  return QStringLiteral(
-             "GpgFrontend: %1\n"
-             "Qt: %2\n"
-             "GPGME: %3\n"
-             "Assuan: %4\n"
-             "Libarchive: %5\n"
-             "OpenSSL: %6\n"
-             "Sodium: %7\n"
-             "Git Branch: %8\n"
-             "Git Commit: %9\n"
-             "Built at: %10")
-      .arg(GetProjectVersion(), GetProjectQtVersion(), GetProjectGpgMEVersion(),
-           GetProjectAssuanVersion(), GetProjectLibarchiveVersion(),
-           GetProjectOpenSSLVersion(), GetSodiumVersion(),
-           GetProjectBuildGitBranchName(), GetProjectBuildGitCommitHash(),
-           QLocale().toString(GetProjectBuildTimestamp()));
+  return u"GpgFrontend: %1\n"
+         "Qt: %2\n"
+         "GPGME: %3\n"
+         "Assuan: %4\n"
+         "Libarchive: %5\n"
+         "OpenSSL: %6\n"
+         "Sodium: %7\n"
+         "Git Branch: %8\n"
+         "Git Commit: %9\n"
+         "Built at: %10"_s.arg(
+             GetProjectVersion(), GetProjectQtVersion(),
+             GetProjectGpgMEVersion(), GetProjectAssuanVersion(),
+             GetProjectLibarchiveVersion(), GetProjectOpenSSLVersion(),
+             GetSodiumVersion(), GetProjectBuildGitBranchName(),
+             GetProjectBuildGitCommitHash(),
+             QLocale().toString(GetProjectBuildTimestamp()));
 }
 
 auto CreateCopyButton(const QString& text, const QString& content,
@@ -235,7 +235,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   main_layout->setSpacing(14);
 
   auto pixmap =
-      QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
+      QPixmap(u":/icons/gpgfrontend_logo.png"_s)
           .scaled(112, 112, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
   auto* pixmap_label = new QLabel(content);
@@ -243,22 +243,20 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   pixmap_label->setAlignment(Qt::AlignCenter);
 
   auto* title_label = new QLabel(
-      QStringLiteral(
-          "<div align=\"center\">"
-          "<span style=\"font-size:22px; font-weight:600;\">%1</span>"
-          "<br/>"
-          "<span style=\"font-size:14px;\">%2</span>"
-          "</div>")
-          .arg(qApp->applicationDisplayName(), GetProjectVersion()),
+      u"<div align=\"center\">"
+      "<span style=\"font-size:22px; font-weight:600;\">%1</span>"
+      "<br/>"
+      "<span style=\"font-size:14px;\">%2</span>"
+      "</div>"_s.arg(qApp->applicationDisplayName(), GetProjectVersion()),
       content);
   title_label->setTextFormat(Qt::RichText);
   title_label->setAlignment(Qt::AlignCenter);
   title_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   auto* tagline_label = CreateBodyLabel(
-      QStringLiteral("<div align=\"center\">%1</div>")
-          .arg(tr("A user-friendly OpenPGP tool for encryption, signing, and "
-                  "key management.")),
+      u"<div align=\"center\">%1</div>"_s.arg(
+          tr("A user-friendly OpenPGP tool for encryption, signing, and "
+             "key management.")),
       content);
   tagline_label->setAlignment(Qt::AlignCenter);
 
@@ -269,16 +267,14 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   main_layout->addWidget(CreateStarCard(content));
 
   auto* developer_label = CreateBodyLabel(
-      QStringLiteral(
-          "%1<br/><br/>"
-          "<a href=\"https://github.com/saturneric/GpgFrontend/issues\">%2</a>"
-          "<br/>"
-          "<a href=\"https://gpgfrontend.bktus.com/overview/contact/\">%3</a>"
-          "<br/>"
-          "<a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>")
-          .arg(tr("Developed and maintained by Saturneric."),
-               tr("Report an issue on GitHub"),
-               tr("About and contact information")),
+      u"%1<br/><br/>"
+      "<a href=\"https://github.com/saturneric/GpgFrontend/issues\">%2</a>"
+      "<br/>"
+      "<a href=\"https://gpgfrontend.bktus.com/overview/contact/\">%3</a>"
+      "<br/>"
+      "<a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>"_s.arg(
+          tr("Developed and maintained by Saturneric."),
+          tr("Report an issue on GitHub"), tr("About and contact information")),
       content);
 
   main_layout->addWidget(CreateCard(tr("Developer"), developer_label, content));
@@ -288,18 +284,17 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto* resources = new MetaListPanel(content);
   resources->SetRows({
       {.caption = tr("Website:"),
-       .value = QStringLiteral("gpgfrontend.bktus.com"),
-       .link = QStringLiteral("https://gpgfrontend.bktus.com")},
+       .value = u"gpgfrontend.bktus.com"_s,
+       .link = u"https://gpgfrontend.bktus.com"_s},
       {.caption = tr("Documentation:"),
        .value = tr("User guides and overview"),
-       .link = QStringLiteral("https://gpgfrontend.bktus.com/overview/glance")},
+       .link = u"https://gpgfrontend.bktus.com/overview/glance"_s},
       {.caption = tr("Source code:"),
-       .value = QStringLiteral("github.com/saturneric/GpgFrontend"),
-       .link = QStringLiteral("https://github.com/saturneric/GpgFrontend")},
+       .value = u"github.com/saturneric/GpgFrontend"_s,
+       .link = u"https://github.com/saturneric/GpgFrontend"_s},
       {.caption = tr("Release notes:"),
        .value = tr("Changelog and downloads"),
-       .link = QStringLiteral(
-           "https://github.com/saturneric/GpgFrontend/releases")},
+       .link = u"https://github.com/saturneric/GpgFrontend/releases"_s},
   });
 
   main_layout->addWidget(CreateCard(tr("Resources"), resources, content));
@@ -308,17 +303,16 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 
   // Footer: license notice and copyright, kept small and muted.
   auto* license_label = CreateBodyLabel(
-      QStringLiteral("<div align=\"center\" style=\"color:gray;\">%1</div>")
-          .arg(tr("GpgFrontend is free software, licensed under "
-                  "<a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">"
-                  "GPL-3.0-or-later</a>.")),
+      u"<div align=\"center\" style=\"color:gray;\">%1</div>"_s.arg(
+          tr("GpgFrontend is free software, licensed under "
+             "<a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">"
+             "GPL-3.0-or-later</a>.")),
       content);
   license_label->setAlignment(Qt::AlignCenter);
 
   auto* copyright_label = new QLabel(
-      QStringLiteral(
-          "<div align=\"center\" style=\"color:gray; font-size:12px;\">"
-          "&copy; 2021-2026 Saturneric &lt;eric@bktus.com&gt;</div>"),
+      u"<div align=\"center\" style=\"color:gray; font-size:12px;\">"
+      "&copy; 2021-2026 Saturneric &lt;eric@bktus.com&gt;</div>"_s,
       content);
   copyright_label->setTextFormat(Qt::RichText);
   copyright_label->setAlignment(Qt::AlignCenter);
@@ -336,7 +330,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   outer_layout->addWidget(content);
   setLayout(outer_layout);
 
-  setObjectName(QStringLiteral("InfoTab"));
+  setObjectName(u"InfoTab"_s);
 }
 
 BuildInfoTab::BuildInfoTab(QWidget* parent) : QWidget(parent) {
@@ -381,7 +375,7 @@ BuildInfoTab::BuildInfoTab(QWidget* parent) : QWidget(parent) {
   outer_layout->addWidget(CreateScrollArea(content, this));
   setLayout(outer_layout);
 
-  setObjectName(QStringLiteral("BuildInfoTab"));
+  setObjectName(u"BuildInfoTab"_s);
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
@@ -390,13 +384,13 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   main_layout->setSpacing(12);
 
   auto* title_label = CreateBodyLabel(
-      QStringLiteral("<b>%1</b>").arg(tr("Thanks to all translators")), this);
+      u"<b>%1</b>"_s.arg(tr("Thanks to all translators")), this);
 
   auto* browser = new QTextBrowser(this);
   browser->setOpenExternalLinks(true);
   browser->setReadOnly(true);
 
-  QFile translators_file(QStringLiteral(":/TRANSLATORS"));
+  QFile translators_file(u":/TRANSLATORS"_s);
   if (translators_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     browser->setPlainText(QString::fromUtf8(translators_file.readAll()));
   } else {
@@ -693,7 +687,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   outer_layout->addWidget(CreateScrollArea(content, this));
   setLayout(outer_layout);
 
-  setObjectName(QStringLiteral("StatusTab"));
+  setObjectName(u"StatusTab"_s);
 }
 
 RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
@@ -745,18 +739,16 @@ RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
 
   // Assemble a plain-text summary for the copy button.
   QStringList lines;
-  lines
-      << QStringLiteral("Rust Engine: %1").arg(or_unknown(info.engine_version))
-      << QStringLiteral("Rust Compiler: %1")
-             .arg(or_unknown(info.rustc_version));
+  lines << u"Rust Engine: %1"_s.arg(or_unknown(info.engine_version))
+        << u"Rust Compiler: %1"_s.arg(or_unknown(info.rustc_version));
   if (!info.target.isEmpty()) {
-    lines << QStringLiteral("Target: %1").arg(info.target);
+    lines << u"Target: %1"_s.arg(info.target);
   }
   if (!info.profile.isEmpty()) {
-    lines << QStringLiteral("Build Profile: %1").arg(info.profile);
+    lines << u"Build Profile: %1"_s.arg(info.profile);
   }
   for (const auto& dep : info.dependencies) {
-    lines << QStringLiteral("%1: %2").arg(dep.first, dep.second);
+    lines << u"%1: %2"_s.arg(dep.first, dep.second);
   }
 
   auto* copy_button = CreateCopyButton(tr("Copy Engine Information"),
@@ -770,7 +762,7 @@ RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
   outer_layout->addWidget(CreateScrollArea(content, this));
   setLayout(outer_layout);
 
-  setObjectName(QStringLiteral("RpgpEngineTab"));
+  setObjectName(u"RpgpEngineTab"_s);
 }
 
 }  // namespace GpgFrontend::UI

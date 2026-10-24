@@ -213,7 +213,7 @@ void SmartCardControllerDialog::init_actions() {
   });
   overflow_menu->addSeparator();
   overflow_menu->addAction(tr("Open GnuPG Smart Card HOWTO"), this, [=]() {
-    QDesktopServices::openUrl(QUrl(QLatin1String(kCardHowToUrl)));
+    QDesktopServices::openUrl(QUrl(QLatin1StringView(kCardHowToUrl)));
   });
   ui_->overflowButton->setMenu(overflow_menu);
 }
@@ -482,7 +482,7 @@ void SmartCardControllerDialog::reset_status() {
          "restarting the application.")
           .toHtmlEscaped(),
       QString(R"(<a href="%1">%2</a>)")
-          .arg(QLatin1String(kCardHowToUrl),
+          .arg(QLatin1StringView(kCardHowToUrl),
                tr("Read the GnuPG Smart Card HOWTO").toHtmlEscaped()),
   };
 

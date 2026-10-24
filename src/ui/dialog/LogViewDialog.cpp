@@ -100,7 +100,7 @@ void LogViewDialog::init_ui() {
   title_label->setFont(title_font);
 
   status_label_ = new QLabel(tr("No entries"), this);
-  status_label_->setStyleSheet(QStringLiteral("color: gray;"));
+  status_label_->setStyleSheet(u"color: gray;"_s);
 
   auto* header_layout = new QHBoxLayout();
   header_layout->addWidget(title_label);

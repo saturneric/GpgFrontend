@@ -102,11 +102,10 @@ auto CreateBrandHeader() -> BrandHeader {
   auto* widget = new QWidget;
 
   auto* name_label = new QLabel(
-      QStringLiteral(
-          "<span style=\"font-size:24px; font-weight:600;\">GpgFrontend</span>"
-          "&nbsp;&nbsp;"
-          "<span style=\"font-size:13px; color:gray;\">%1</span>")
-          .arg(GetProjectVersion()));
+      u"<span style=\"font-size:24px; font-weight:600;\">GpgFrontend</span>"
+      "&nbsp;&nbsp;"
+      "<span style=\"font-size:13px; color:gray;\">%1</span>"_s.arg(
+          GetProjectVersion()));
   name_label->setTextFormat(Qt::RichText);
   name_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
@@ -123,7 +122,7 @@ auto CreateBrandHeader() -> BrandHeader {
 
 auto CreateLinkCard(const QString& url) -> LinkCard {
   auto* frame = new QFrame;
-  frame->setObjectName(QStringLiteral("WizardLinkCard"));
+  frame->setObjectName(u"WizardLinkCard"_s);
   frame->setFrameShape(QFrame::StyledPanel);
   frame->setCursor(Qt::PointingHandCursor);
 
@@ -137,7 +136,7 @@ auto CreateLinkCard(const QString& url) -> LinkCard {
   layout->addWidget(desc_label);
 
   return {frame, title_label, desc_label, url,
-          QStringLiteral("<a href=\"%1\"><b>%2</b></a>")};
+          u"<a href=\"%1\"><b>%2</b></a>"_s};
 }
 
 // A highlighted variant of the link card used to invite the user to star the
@@ -146,14 +145,14 @@ auto CreateLinkCard(const QString& url) -> LinkCard {
 // reading as just another documentation link.
 auto CreateStarCard(const QString& url) -> LinkCard {
   auto* frame = new QFrame;
-  frame->setObjectName(QStringLiteral("WizardStarCard"));
+  frame->setObjectName(u"WizardStarCard"_s);
   frame->setFrameShape(QFrame::StyledPanel);
   frame->setCursor(Qt::PointingHandCursor);
   frame->setStyleSheet(
-      QStringLiteral("QFrame#WizardStarCard {"
-                     "  border: 1px solid #e3b341;"
-                     "  border-radius: 8px;"
-                     "}"));
+      u"QFrame#WizardStarCard {"
+      "  border: 1px solid #e3b341;"
+      "  border-radius: 8px;"
+      "}"_s);
 
   auto* title_label = CreateBodyLabel();
   auto* desc_label = CreateMutedLabel();
@@ -164,10 +163,9 @@ auto CreateStarCard(const QString& url) -> LinkCard {
   layout->addWidget(title_label);
   layout->addWidget(desc_label);
 
-  return {
-      frame, title_label, desc_label, url,
-      QStringLiteral("<a href=\"%1\" style=\"text-decoration:none;\">&#9733; "
-                     "<b>%2</b></a>")};
+  return {frame, title_label, desc_label, url,
+          u"<a href=\"%1\" style=\"text-decoration:none;\">&#9733; "
+          "<b>%2</b></a>"_s};
 }
 }  // namespace
 
@@ -207,15 +205,13 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   resize(680, 580);
 
   const auto logo =
-      QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
+      QPixmap(u":/icons/gpgfrontend_logo.png"_s)
           .scaled(72, 72, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
   setPixmap(QWizard::LogoPixmap, logo);
 
   const int next_page_id =
-      GetSettings()
-          .value(QStringLiteral("wizard.next_page"), kPAGE_INTRO)
-          .toInt();
+      GetSettings().value(u"wizard.next_page"_s, kPAGE_INTRO).toInt();
 
   if (next_page_id >= kPAGE_INTRO && next_page_id <= kPAGE_CONCLUSION) {
     setStartId(next_page_id);
@@ -250,11 +246,10 @@ void Wizard::changeEvent(QEvent* event) {
 void Wizard::slot_wizard_accepted() {
   auto settings = GetSettings();
 
-  SettingItems::kShowWizard.Write(
-      settings, !field(QStringLiteral("hideWizard")).toBool());
+  SettingItems::kShowWizard.Write(settings, !field(u"hideWizard"_s).toBool());
 
-  SettingItems::kProhibitUpdateCheck.Write(
-      settings, !field(QStringLiteral("checkUpdate")).toBool());
+  SettingItems::kProhibitUpdateCheck.Write(settings,
+                                           !field(u"checkUpdate"_s).toBool());
 
   const auto lang = intro_page_->SelectedLanguage();
   SettingItems::kLanguage.Write(settings, lang);
@@ -290,14 +285,14 @@ IntroPage::IntroPage(QWidget* parent) : WizardPage(parent) {
   auto* intro_label = CreateBodyLabel();
   auto* privacy_label = CreateMutedLabel();
 
-  const auto star_card = CreateStarCard(
-      QStringLiteral("https://github.com/saturneric/GpgFrontend"));
+  const auto star_card =
+      CreateStarCard(u"https://github.com/saturneric/GpgFrontend"_s);
 
-  const auto overview_card = CreateLinkCard(
-      QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"));
+  const auto overview_card =
+      CreateLinkCard(u"https://gpgfrontend.bktus.com/overview/glance"_s);
 
-  const auto concepts_card = CreateLinkCard(QStringLiteral(
-      "https://gpgfrontend.bktus.com/guides/fundamental-concepts/"));
+  const auto concepts_card = CreateLinkCard(
+      u"https://gpgfrontend.bktus.com/guides/fundamental-concepts/"_s);
 
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(8, 8, 8, 8);
@@ -382,17 +377,17 @@ ChoosePage::ChoosePage(QWidget* parent) : WizardPage(parent) {
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(10);
 
-  const auto generate_card = CreateLinkCard(
-      QStringLiteral("https://gpgfrontend.bktus.com/guides/generate-key/"));
+  const auto generate_card =
+      CreateLinkCard(u"https://gpgfrontend.bktus.com/guides/generate-key/"_s);
 
   const auto text_card = CreateLinkCard(
-      QStringLiteral("https://gpgfrontend.bktus.com/guides/text-operations/"));
+      u"https://gpgfrontend.bktus.com/guides/text-operations/"_s);
 
   const auto file_card = CreateLinkCard(
-      QStringLiteral("https://gpgfrontend.bktus.com/guides/file-operations/"));
+      u"https://gpgfrontend.bktus.com/guides/file-operations/"_s);
 
-  const auto keypair_card = CreateLinkCard(QStringLiteral(
-      "https://gpgfrontend.bktus.com/guides/view-keypair-info/"));
+  const auto keypair_card = CreateLinkCard(
+      u"https://gpgfrontend.bktus.com/guides/view-keypair-info/"_s);
 
   auto* hint_label = CreateMutedLabel();
 
@@ -464,11 +459,11 @@ ConclusionPage::ConclusionPage(QWidget* parent) : WizardPage(parent) {
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(10);
 
-  const auto contact_card = CreateLinkCard(
-      QStringLiteral("https://gpgfrontend.bktus.com/overview/contact/"));
+  const auto contact_card =
+      CreateLinkCard(u"https://gpgfrontend.bktus.com/overview/contact/"_s);
 
-  const auto issue_card = CreateLinkCard(
-      QStringLiteral("https://github.com/saturneric/GpgFrontend/issues"));
+  const auto issue_card =
+      CreateLinkCard(u"https://github.com/saturneric/GpgFrontend/issues"_s);
 
   check_updates_checkbox_ = new QCheckBox;
   check_updates_checkbox_->setChecked(false);
@@ -481,8 +476,8 @@ ConclusionPage::ConclusionPage(QWidget* parent) : WizardPage(parent) {
   dont_show_wizard_checkbox_ = new QCheckBox;
   dont_show_wizard_checkbox_->setChecked(true);
 
-  registerField(QStringLiteral("hideWizard"), dont_show_wizard_checkbox_);
-  registerField(QStringLiteral("checkUpdate"), check_updates_checkbox_);
+  registerField(u"hideWizard"_s, dont_show_wizard_checkbox_);
+  registerField(u"checkUpdate"_s, check_updates_checkbox_);
 
   layout->addWidget(contact_card.frame);
   layout->addWidget(issue_card.frame);
