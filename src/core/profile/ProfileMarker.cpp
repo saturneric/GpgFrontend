@@ -146,7 +146,7 @@ auto WriteProfileMarker(const QString& path, const ProfileMarker& marker)
   obj["last_writer_stable"] = marker.last_writer_stable;
 
   const auto put = [&obj](const char* key, const QString& value) {
-    if (!value.isEmpty()) obj[QLatin1String(key)] = value;
+    if (!value.isEmpty()) obj[QLatin1StringView(key)] = value;
   };
   put("profile_uuid", marker.profile_uuid);
   put("profile_id", marker.profile_id);

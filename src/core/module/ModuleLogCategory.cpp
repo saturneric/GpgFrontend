@@ -99,7 +99,7 @@ auto CategoryNamed(const QString& name) -> const QLoggingCategory& {
 
 auto ModuleLogCategoryName(const QString& module_id) -> QString {
   if (module_id.trimmed().isEmpty()) return kUnknownModuleCategory;
-  return QStringLiteral("module.") + ModuleIdLeaf(module_id);
+  return u"module."_s + ModuleIdLeaf(module_id);
 }
 
 auto ModuleLogCategory(const QString& module_id) -> const QLoggingCategory& {

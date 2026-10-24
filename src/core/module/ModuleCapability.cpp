@@ -79,7 +79,7 @@ auto Vocabulary() -> const QList<CapabilityEntry>& {
 
 auto Find(const QString& name) -> const CapabilityEntry* {
   for (const auto& entry : Vocabulary()) {
-    if (name == QLatin1String(entry.name)) return &entry;
+    if (name == QLatin1StringView(entry.name)) return &entry;
   }
   return nullptr;
 }
@@ -87,7 +87,7 @@ auto Find(const QString& name) -> const CapabilityEntry* {
 auto NamesOfKind(ModuleCapabilityKind kind) -> QStringList {
   QStringList names;
   for (const auto& entry : Vocabulary()) {
-    if (entry.kind == kind) names.append(QLatin1String(entry.name));
+    if (entry.kind == kind) names.append(QLatin1StringView(entry.name));
   }
   names.sort();
   return names;
@@ -133,12 +133,12 @@ auto ModuleCapabilityMaskToString(uint32_t mask) -> QString {
   QStringList granted;
   for (const auto& entry : Vocabulary()) {
     if (entry.bit != 0 && (mask & entry.bit) != 0) {
-      granted.append(QLatin1String(entry.name));
+      granted.append(QLatin1StringView(entry.name));
     }
   }
-  if (granted.isEmpty()) return QStringLiteral("none");
+  if (granted.isEmpty()) return u"none"_s;
   granted.sort();
-  return granted.join(QStringLiteral(", "));
+  return granted.join(u", "_s);
 }
 
 }  // namespace GpgFrontend::Module

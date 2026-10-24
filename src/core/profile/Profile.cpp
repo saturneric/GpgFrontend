@@ -557,12 +557,12 @@ auto SnapshotInheritedSettings(QSettings &settings,
   QMap<QString, QVariant> snapshot;
   for (const auto *meta : SettingItems::kAll) {
     if (!groups.contains(meta->group)) continue;
-    if (!SettingInheritedByNewProfile(QLatin1String(meta->key))) continue;
+    if (!SettingInheritedByNewProfile(QLatin1StringView(meta->key))) continue;
 
     // Only what this window actually set. An unset value is the default
     // here and will be the default there, and copying it would pin today's
     // default into a profile that should follow tomorrow's.
-    const auto key = QLatin1String(meta->key);
+    const auto key = QLatin1StringView(meta->key);
     if (settings.contains(key)) snapshot.insert(key, settings.value(key));
   }
   return snapshot;
@@ -609,7 +609,7 @@ namespace {
 /// An ephemeral profile's anchor: the given one when it is well formed, else
 /// minted at random.
 auto EphemeralAnchor(const QString &given) -> QString {
-  static const QRegularExpression kAnchor(QStringLiteral("^[0-9a-f]{16}$"));
+  static const QRegularExpression kAnchor(u"^[0-9a-f]{16}$"_s);
   if (kAnchor.match(given).hasMatch()) return given;
   return QUuid::createUuid().toString(QUuid::Id128).left(16);
 }
@@ -790,7 +790,7 @@ auto IsValidProfileId(const QString &id) -> bool {
   if (id.isEmpty() || id.size() > 64) return false;
   if (IsWindowsDeviceName(id)) return false;
 
-  static const QRegularExpression kPattern(QStringLiteral("^[a-z0-9_-]+$"));
+  static const QRegularExpression kPattern(u"^[a-z0-9_-]+$"_s);
   if (!kPattern.match(id).hasMatch()) return false;
 
   // "." and ".." cannot match the pattern above, but a leading hyphen would

@@ -84,8 +84,7 @@ class ScopedModuleLibrarySearchPath {
 }  // namespace
 
 auto IsModuleLibraryFileName(const QString& file_name) -> bool {
-  static const QRegularExpression kModuleFileNameRegex(
-      QStringLiteral("^libgf_mod_.+$"));
+  static const QRegularExpression kModuleFileNameRegex(u"^libgf_mod_.+$"_s);
   return kModuleFileNameRegex.match(file_name).hasMatch();
 }
 
@@ -512,7 +511,7 @@ class ModuleManager::Impl {
     triggers_.clear();
     // Taken under the lock on purpose: nothing may re-register in between.
     // RemoveKV only emits a queued-to-the-model signal, it calls nobody back.
-    grt_->RemoveKV(kGRTCoreNamespace, QStringLiteral("modules"));
+    grt_->RemoveKV(kGRTCoreNamespace, u"modules"_s);
     return modules;
   }
 
@@ -616,8 +615,8 @@ class ModuleManager::Impl {
     // a modal waiting dialog, say -- must hear that no one is coming.
     if (targets.isEmpty()) {
       LOG_I() << "event" << event_id << "has no active listeners";
-      event->ExecuteCallback(
-          {}, FailureParams(QStringLiteral("no active module handles this")));
+      event->ExecuteCallback({},
+                             FailureParams(u"no active module handles this"_s));
       return;
     }
 
@@ -631,13 +630,12 @@ class ModuleManager::Impl {
             ModuleDispatchScope scope(GlobalModuleDispatchGate());
             if (!scope.Entered()) {
               FailListener(trigger_id, listener,
-                           QStringLiteral("the host is shutting down"));
+                           u"the host is shutting down"_s);
               return kModuleUnloadingCode;
             }
             ModuleDispatchScope own(ModuleEntryGate(listener));
             if (!own.Entered()) {
-              FailListener(trigger_id, listener,
-                           QStringLiteral("the module is not active"));
+              FailListener(trigger_id, listener, u"the module is not active"_s);
               return kModuleUnloadingCode;
             }
 
@@ -646,7 +644,7 @@ class ModuleManager::Impl {
               LOG_W() << "module" << listener << "failed to handle event"
                       << event->GetIdentifier() << "- return code:" << rc;
               FailListener(trigger_id, listener,
-                           QStringLiteral("the module failed to handle it"));
+                           u"the module failed to handle it"_s);
             }
             return rc;
           });
@@ -858,9 +856,9 @@ class ModuleManager::Impl {
     // `err` is what the runtime's own failure answers carry; `error_msg` is
     // what the key-server callers read. Both, so neither kind of caller has
     // to know which side answered.
-    return {{QStringLiteral("ret"), GFBuffer(QStringLiteral("-1"))},
-            {QStringLiteral("err"), GFBuffer(reason)},
-            {QStringLiteral("error_msg"), GFBuffer(reason)}};
+    return {{u"ret"_s, GFBuffer(u"-1"_s)},
+            {u"err"_s, GFBuffer(reason)},
+            {u"error_msg"_s, GFBuffer(reason)}};
   }
 
   static void PostToRunner(const QString& name, std::function<int()> fn,
@@ -1017,7 +1015,7 @@ class ModuleManager::Impl {
     }
 
     // It can no longer answer what it was asked; its askers are told so.
-    fail_awaiting(id, QStringLiteral("the module was deactivated"));
+    fail_awaiting(id, u"the module was deactivated"_s);
     return true;
   }
 
@@ -1265,19 +1263,19 @@ auto ModuleManager::ListenersOf(const EventIdentifier& event_id)
 auto ModuleLifecycleStateName(ModuleLifecycleState state) -> QString {
   switch (state) {
     case ModuleLifecycleState::kREGISTERED:
-      return QStringLiteral("Registered");
+      return u"Registered"_s;
     case ModuleLifecycleState::kACTIVATING:
-      return QStringLiteral("Activating");
+      return u"Activating"_s;
     case ModuleLifecycleState::kACTIVE:
-      return QStringLiteral("Active");
+      return u"Active"_s;
     case ModuleLifecycleState::kDEACTIVATING:
-      return QStringLiteral("Deactivating");
+      return u"Deactivating"_s;
     case ModuleLifecycleState::kINACTIVE:
-      return QStringLiteral("Inactive");
+      return u"Inactive"_s;
     case ModuleLifecycleState::kFAILED:
-      return QStringLiteral("Failed");
+      return u"Failed"_s;
   }
-  return QStringLiteral("Unknown");
+  return u"Unknown"_s;
 }
 
 auto ModuleManager::IsEventListening(const EventIdentifier& event_id) -> bool {

@@ -146,7 +146,7 @@ auto ProtectedFsProfileAccessor::Provision(const QString &digest,
   // The plain-folder candidate is the anchor itself, unchanged from every
   // earlier build; every other candidate gets a directory of its own inside the
   // base that was chosen.
-  QString root = plan.driver == QLatin1String(kDriverDisk)
+  QString root = plan.driver == QLatin1StringView(kDriverDisk)
                      ? plan.path
                      : SessionDirIn(plan.path, digest);
 
@@ -156,7 +156,7 @@ auto ProtectedFsProfileAccessor::Provision(const QString &digest,
   }
 
 #ifdef Q_OS_WINDOWS
-  if (plan.driver == QLatin1String(kDriverEfs)) {
+  if (plan.driver == QLatin1StringView(kDriverEfs)) {
     QString reason;
     if (!Platform::EncryptDirectory(root, reason)) {
       // The protection did not happen, so the claim must not be made. Reported
@@ -174,7 +174,7 @@ auto ProtectedFsProfileAccessor::Provision(const QString &digest,
   QByteArray fscrypt_key_id;
 
 #ifdef Q_OS_LINUX
-  if (plan.driver == QLatin1String(kDriverFscrypt)) {
+  if (plan.driver == QLatin1StringView(kDriverFscrypt)) {
     // A policy can only be set on an empty directory, and mkpath() above
     // succeeds on one that was already there. A tree the sweep did not reach --
     // same package, same digest, a process killed outright -- would otherwise
@@ -258,14 +258,14 @@ auto ProtectedFsProfileAccessor::IsEncryptedAtRest() const -> bool {
 
 auto ProtectedFsProfileAccessor::AnchorState() const -> QJsonObject {
   QJsonObject state;
-  state[QLatin1String(kPointerDriver)] = plan_.driver;
-  state[QLatin1String(kPointerRoot)] = PathOf(ProfileArea::kRoot);
+  state[QLatin1StringView(kPointerDriver)] = plan_.driver;
+  state[QLatin1StringView(kPointerRoot)] = PathOf(ProfileArea::kRoot);
 
   if (!fscrypt_key_id_.isEmpty()) {
     // The base rather than the root, because a sweep needs an open directory on
     // the filesystem holding the key and the root is the thing it just deleted.
-    state[QLatin1String(kPointerBase)] = fscrypt_base_;
-    state[QLatin1String(kPointerFscryptKey)] =
+    state[QLatin1StringView(kPointerBase)] = fscrypt_base_;
+    state[QLatin1StringView(kPointerFscryptKey)] =
         FscryptIdentifierToHex(fscrypt_key_id_);
   }
 
@@ -427,7 +427,7 @@ auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
 
   auto done = true;
 
-  const auto root = pointer.value(QLatin1String(kPointerRoot)).toString();
+  const auto root = pointer.value(QLatin1StringView(kPointerRoot)).toString();
 
   // Absolute or nothing. This deletes what the pointer names, and the pointer
   // is a file on disk that some other process wrote.
@@ -443,14 +443,14 @@ auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
   }
 
   const auto key = FscryptIdentifierFromHex(
-      pointer.value(QLatin1String(kPointerFscryptKey)).toString());
+      pointer.value(QLatin1StringView(kPointerFscryptKey)).toString());
   if (key.isEmpty()) return done;
 
   // Outside the tree's guard on purpose. A key lives in the kernel, not in the
   // directory, so it can perfectly well still be there when the tree is
   // already gone — and that is precisely the case worth cleaning, because
   // nothing else will ever come back for it.
-  auto base = pointer.value(QLatin1String(kPointerBase)).toString();
+  auto base = pointer.value(QLatin1StringView(kPointerBase)).toString();
   if (base.isEmpty() && !root.isEmpty()) {
     base = QFileInfo(root).absolutePath();
   }

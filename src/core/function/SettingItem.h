@@ -155,17 +155,17 @@ struct SettingItem : SettingMeta {
 
   /// The stored value, or the default when there is none.
   [[nodiscard]] auto Read(const QSettings &settings) const -> T {
-    const auto value = settings.value(QLatin1String(key));
+    const auto value = settings.value(QLatin1StringView(key));
     if (!value.isValid()) return Default();
     return value.template value<T>();
   }
 
   void Write(QSettings &settings, const T &value) const {
-    settings.setValue(QLatin1String(key), value);
+    settings.setValue(QLatin1StringView(key), value);
   }
 
   /// The key as a QString, for APIs that take one.
-  [[nodiscard]] auto Key() const -> QString { return QLatin1String(key); }
+  [[nodiscard]] auto Key() const -> QString { return QLatin1StringView(key); }
 };
 
 using BoolSetting = SettingItem<bool>;

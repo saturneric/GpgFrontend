@@ -46,7 +46,7 @@ constexpr int kLinkHexDigits = 8;
 constexpr int kMintAttempts = 8;
 
 auto MintLinkName() -> QString {
-  return QLatin1String(kLinkPrefix) +
+  return QLatin1StringView(kLinkPrefix) +
          QString::number(QRandomGenerator::global()->generate(), 16)
              .rightJustified(kLinkHexDigits, QLatin1Char('0'));
 }
@@ -54,7 +54,7 @@ auto MintLinkName() -> QString {
 /// Every link name is the same length, so one sample settles whether a root can
 /// host a link at all, before any key database is in hand.
 auto SampleLinkPathIn(const QString& root) -> QString {
-  return root + "/" + QLatin1String(kLinkPrefix) +
+  return root + "/" + QLatin1StringView(kLinkPrefix) +
          QString(kLinkHexDigits, QLatin1Char('0'));
 }
 

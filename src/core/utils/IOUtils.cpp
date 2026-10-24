@@ -57,9 +57,7 @@ auto GetFileHashQt(const QString& file_path,
 // Prefix of the work directories staged outputs are written into. Each one is
 // created fresh, private and with an unpredictable suffix, so two GpgFrontend
 // instances never share one and nobody can create one in advance.
-auto SafeOutputWorkDirPrefix() -> QString {
-  return QStringLiteral(".gpgfrontend.tmp.");
-}
+auto SafeOutputWorkDirPrefix() -> QString { return u".gpgfrontend.tmp."_s; }
 
 // An unpredictable suffix for staging names that cannot live in a private
 // work directory.
@@ -182,20 +180,20 @@ auto CalculateFileHashInfo(const QString& file_path)
   // Read and hash the file exactly once; everything else is derived from these
   // fields so no consumer ever has to parse formatted text back into data.
   fields.append({QCoreApplication::tr("Filename"), info.fileName()});
-  fields.append({QCoreApplication::tr("File Size") + QStringLiteral("(bytes)"),
+  fields.append({QCoreApplication::tr("File Size") + u"(bytes)"_s,
                  QString::number(info.size())});
   fields.append({QCoreApplication::tr("File Size"),
                  GetHumanFriendlyFileSize(info.size())});
   fields.append(
-      {QStringLiteral("MD5"),
+      {u"MD5"_s,
        QString::fromLatin1(
            GetFileHashQt(file_path, QCryptographicHash::Md5).toHex())});
   fields.append(
-      {QStringLiteral("SHA1"),
+      {u"SHA1"_s,
        QString::fromLatin1(
            GetFileHashQt(file_path, QCryptographicHash::Sha1).toHex())});
   fields.append(
-      {QStringLiteral("SHA256"),
+      {u"SHA256"_s,
        QString::fromLatin1(
            GetFileHashQt(file_path, QCryptographicHash::Sha256).toHex())});
 

@@ -34,6 +34,12 @@
 static_assert(QT_VERSION >= QT_VERSION_CHECK(6, 5, 0),
               "GpgFrontend requires Qt 6.5 or later");
 
+// u"..."_s and "..."_L1 for every target that links gf_core. Global on
+// purpose: helpers outside namespace GpgFrontend use them too, and the Qt
+// literal operators cannot collide with anything of ours.
+// NOLINTNEXTLINE(google-build-using-namespace,google-global-names-in-headers)
+using namespace Qt::StringLiterals;
+
 // private declare area of core
 #ifdef GF_CORE_PRIVATE
 

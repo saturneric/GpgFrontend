@@ -718,7 +718,8 @@ auto DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
 
     // After the rewrite, travelling means carrying the token. Anything still
     // holding an absolute path is somewhere this package cannot reach.
-    entry.external = !item.path.startsWith(QLatin1String(kProfilePathToken));
+    entry.external =
+        !item.path.startsWith(QLatin1StringView(kProfilePathToken));
     out.append(entry);
   }
   return out;
@@ -1543,7 +1544,7 @@ auto AdoptExtractedProfile(const QString &staging_dir,
   // have recorded "keychain", which here would only strand the profile.
   const auto settings_path = profile_root + "/config/config.ini";
   QSettings settings(settings_path, QSettings::IniFormat);
-  SettingItems::kAppKeyProtection.Write(settings, QStringLiteral("none"));
+  SettingItems::kAppKeyProtection.Write(settings, u"none"_s);
   settings.sync();
 
   return {};

@@ -232,7 +232,7 @@ auto GFKeyDatabase::GetKeyByIdentifier(const QString& identifier)
 auto GFKeyDatabase::Init(const QString& path) -> bool {
   if (owner_ == nullptr) {
     owner_ = std::make_unique<QThread>();
-    owner_->setObjectName(QStringLiteral("GFKeyDatabase"));
+    owner_->setObjectName(u"GFKeyDatabase"_s);
     owner_anchor_ = new QObject();
     owner_anchor_->moveToThread(owner_.get());
     owner_->start();

@@ -66,7 +66,7 @@ auto HostAllowlist() -> const QMap<QString, HostSettingAccess>& {
 auto ModuleSettingsGroup(const QString& module_id) -> QString {
   const auto legacy = LegacyGroups().value(module_id);
   if (!legacy.isEmpty()) return legacy;
-  return QStringLiteral("modules/") + module_id;
+  return u"modules/"_s + module_id;
 }
 
 auto HostSettingAccessFor(const QString& key) -> HostSettingAccess {
@@ -74,8 +74,7 @@ auto HostSettingAccessFor(const QString& key) -> HostSettingAccess {
 }
 
 auto IsValidModuleSettingKey(const QString& key) -> bool {
-  static const QRegularExpression kSegment(
-      QStringLiteral("^[A-Za-z0-9_.\\-]+$"));
+  static const QRegularExpression kSegment(u"^[A-Za-z0-9_.\\-]+$"_s);
   if (key.isEmpty() || key.size() > 256) return false;
   for (const auto& segment : key.split('/')) {
     if (segment.isEmpty() || segment == "." || segment == "..") return false;

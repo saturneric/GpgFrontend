@@ -166,13 +166,13 @@ auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
 auto SignMode2SigType(Rust::GfrSignMode mode) -> QString {
   switch (mode) {
     case Rust::GfrSignMode::Inline:
-      return QStringLiteral("Normal");
+      return u"Normal"_s;
     case Rust::GfrSignMode::ClearText:
-      return QStringLiteral("Clear");
+      return u"Clear"_s;
     case Rust::GfrSignMode::Detached:
-      return QStringLiteral("Detach");
+      return u"Detach"_s;
     default:
-      return QStringLiteral("Unknown");
+      return u"Unknown"_s;
   }
 }
 

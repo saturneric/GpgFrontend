@@ -85,7 +85,7 @@ class Module::Impl {
 
   Impl(const GFModuleApi* api, QString module_hash)
       : module_hash_(std::move(module_hash)) {
-    if (api != nullptr) adopt(api, QStringLiteral("<in-process table>"));
+    if (api != nullptr) adopt(api, u"<in-process table>"_s);
   }
 
   [[nodiscard]] auto IsGood() const -> bool { return api_ != nullptr; }

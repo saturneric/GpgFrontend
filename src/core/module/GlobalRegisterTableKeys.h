@@ -66,7 +66,7 @@
 namespace GpgFrontend::Module {
 
 /// The namespace the host publishes into; modules may read it, never write.
-inline const QString kGRTCoreNamespace = QStringLiteral("core");
+inline const QString kGRTCoreNamespace = u"core"_s;
 
 /**
  * @brief Fold an id into one lower-case register table path segment.
@@ -79,15 +79,13 @@ inline auto GRTSegment(const QString& id) -> QString {
 
 inline auto GRTEngineKey(const QString& engine, const QString& field)
     -> QString {
-  return QStringLiteral("engine.%1.%2").arg(GRTSegment(engine), field);
+  return u"engine.%1.%2"_s.arg(GRTSegment(engine), field);
 }
 
-inline auto GRTDefaultEngineKey() -> QString {
-  return QStringLiteral("engine.default");
-}
+inline auto GRTDefaultEngineKey() -> QString { return u"engine.default"_s; }
 
 inline auto GRTModuleKey(const QString& module_id) -> QString {
-  return QStringLiteral("modules.%1").arg(GRTSegment(module_id));
+  return u"modules.%1"_s.arg(GRTSegment(module_id));
 }
 
 inline auto GRTModuleKey(const QString& module_id, const QString& field)
@@ -96,7 +94,7 @@ inline auto GRTModuleKey(const QString& module_id, const QString& field)
 }
 
 inline auto GRTCommandKey(const QString& command_id) -> QString {
-  return QStringLiteral("commands.%1").arg(GRTSegment(command_id));
+  return u"commands.%1"_s.arg(GRTSegment(command_id));
 }
 
 inline auto GRTCommandKey(const QString& command_id, const QString& field)
@@ -106,23 +104,21 @@ inline auto GRTCommandKey(const QString& command_id, const QString& field)
 
 inline auto GRTEventStatKey(const QString& event_id, const QString& field)
     -> QString {
-  return QStringLiteral("stats.events.%1.%2").arg(GRTSegment(event_id), field);
+  return u"stats.events.%1.%2"_s.arg(GRTSegment(event_id), field);
 }
 
 inline auto GRTCommandStatKey(const QString& command_id, const QString& field)
     -> QString {
-  return QStringLiteral("stats.commands.%1.%2")
-      .arg(GRTSegment(command_id), field);
+  return u"stats.commands.%1.%2"_s.arg(GRTSegment(command_id), field);
 }
 
 inline auto GRTOperationStatKey(const QString& operation, const QString& field)
     -> QString {
-  return QStringLiteral("stats.operations.%1.%2")
-      .arg(GRTSegment(operation), field);
+  return u"stats.operations.%1.%2"_s.arg(GRTSegment(operation), field);
 }
 
 inline auto GRTModuleLoadStatKey(const QString& field) -> QString {
-  return QStringLiteral("stats.module_load.%1").arg(field);
+  return u"stats.module_load.%1"_s.arg(field);
 }
 
 }  // namespace GpgFrontend::Module

@@ -122,28 +122,27 @@ auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
                        QString::fromUtf8(proc->readLine()).trimmed();
                    LOG_D() << "gpg revoke proc line:" << line;
 
-                   if (line ==
-                       QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+                   if (line == "[GNUPG:] GET_BOOL gen_revoke.okay"_L1) {
                      proc->write("y\n");
                    } else if (line ==
-                              QLatin1String("[GNUPG:] GET_LINE "
-                                            "ask_revocation_reason.code")) {
+                              "[GNUPG:] GET_LINE "
+                              "ask_revocation_reason.code"_L1) {
                      proc->write(QString("%1%\n").arg(reason_code).toLatin1());
                    } else if (line ==
-                              QLatin1String("[GNUPG:] GET_LINE "
-                                            "ask_revocation_reason.text")) {
+                              "[GNUPG:] GET_LINE "
+                              "ask_revocation_reason.text"_L1) {
                      if (!reason_text_lines->isEmpty()) {
                        proc->write(reason_text_lines->takeFirst().toUtf8());
                      }
                      proc->write("\n");
                    } else if (line ==
-                              QLatin1String("[GNUPG:] GET_BOOL "
-                                            "openfile.overwrite.okay")) {
+                              "[GNUPG:] GET_BOOL "
+                              "openfile.overwrite.okay"_L1) {
                      // We asked before
                      proc->write("y\n");
                    } else if (line ==
-                              QLatin1String("[GNUPG:] GET_BOOL "
-                                            "ask_revocation_reason.okay")) {
+                              "[GNUPG:] GET_BOOL "
+                              "ask_revocation_reason.okay"_L1) {
                      proc->write("y\n");
                    }
                  }

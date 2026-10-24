@@ -109,23 +109,23 @@ auto DeriveAppKeyWrapAccount(ProfileKind kind, const QString& profile_id,
 
 auto AppKeyProtectionFromString(const QString& s) -> AppKeyProtection {
   const auto token = s.trimmed().toLower();
-  if (token == QLatin1String(kProtectionKeychain)) {
+  if (token == QLatin1StringView(kProtectionKeychain)) {
     return AppKeyProtection::kKEYCHAIN;
   }
-  if (token == QLatin1String(kProtectionPin)) return AppKeyProtection::kPIN;
+  if (token == QLatin1StringView(kProtectionPin)) return AppKeyProtection::kPIN;
   return AppKeyProtection::kNONE;
 }
 
 auto AppKeyProtectionToString(AppKeyProtection p) -> QString {
   switch (p) {
     case AppKeyProtection::kKEYCHAIN:
-      return QLatin1String(kProtectionKeychain);
+      return QLatin1StringView(kProtectionKeychain);
     case AppKeyProtection::kPIN:
-      return QLatin1String(kProtectionPin);
+      return QLatin1StringView(kProtectionPin);
     case AppKeyProtection::kNONE:
       break;
   }
-  return QLatin1String(kProtectionNone);
+  return QLatin1StringView(kProtectionNone);
 }
 
 ProfileSecureKeyManager::ProfileSecureKeyManager(
@@ -475,7 +475,8 @@ auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
   // reference.
   QDir dir(key_dir);
   for (const auto& name : dir.entryList({"*.key"}, QDir::Files)) {
-    if (name == QLatin1String(kRootKeyName)) continue;  // already handled above
+    if (name == QLatin1StringView(kRootKeyName))
+      continue;  // already handled above
     if (!dir.remove(name)) {
       LOG_W() << "remove rotated key failed:" << dir.filePath(name);
     }

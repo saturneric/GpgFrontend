@@ -273,11 +273,10 @@ auto OpenPGPContext::Initialize() -> bool {
   // handle, so the ones after it keep theirs and a caller holding this one is
   // told it is unavailable rather than handed a placeholder.
   RegisterChannelHandle(GetChannel(), args.db_id, good_, args.generation);
-  DescribeChannelHandle(GetChannel(), args.db_name, args.db_path,
-                        args.engine == OpenPGPEngine::kGNUPG
-                            ? QStringLiteral("gnupg")
-                            : QStringLiteral("rpgp"),
-                        args.order);
+  DescribeChannelHandle(
+      GetChannel(), args.db_name, args.db_path,
+      args.engine == OpenPGPEngine::kGNUPG ? u"gnupg"_s : u"rpgp"_s,
+      args.order);
 
   // Published for the Runtime in use. A context built for a candidate that is
   // not yet published stays out of the register table, so a module never sees

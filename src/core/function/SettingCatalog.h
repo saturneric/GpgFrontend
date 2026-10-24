@@ -507,7 +507,7 @@ namespace GpgFrontend {
  */
 inline auto FindSetting(const QString &key) -> const SettingMeta * {
   for (const auto *meta : SettingItems::kAll) {
-    if (key == QLatin1String(meta->key)) return meta;
+    if (key == QLatin1StringView(meta->key)) return meta;
   }
   return nullptr;
 }

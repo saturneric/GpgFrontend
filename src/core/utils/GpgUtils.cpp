@@ -135,40 +135,40 @@ auto ChopSuffixIfEndsWith(QString path, const QString& suffix)
 }
 
 auto RemoveKnownArchiveEncryptedSuffix(const QString& input_path) -> QString {
-  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.gpg"))) {
+  if (auto out = ChopSuffixIfEndsWith(input_path, u".tar.gpg"_s)) {
     return *out;
   }
 
-  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.asc"))) {
+  if (auto out = ChopSuffixIfEndsWith(input_path, u".tar.asc"_s)) {
     return *out;
   }
 
-  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.pgp"))) {
+  if (auto out = ChopSuffixIfEndsWith(input_path, u".tar.pgp"_s)) {
     return *out;
   }
 
-  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".gpg"))) {
-    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
-      out->chop(QStringLiteral(".tar").size());
+  if (auto out = ChopSuffixIfEndsWith(input_path, u".gpg"_s)) {
+    if (out->endsWith(u".tar"_s, Qt::CaseInsensitive)) {
+      out->chop(u".tar"_s.size());
     }
     return *out;
   }
 
-  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".asc"))) {
-    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
-      out->chop(QStringLiteral(".tar").size());
+  if (auto out = ChopSuffixIfEndsWith(input_path, u".asc"_s)) {
+    if (out->endsWith(u".tar"_s, Qt::CaseInsensitive)) {
+      out->chop(u".tar"_s.size());
     }
     return *out;
   }
 
-  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".pgp"))) {
-    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
-      out->chop(QStringLiteral(".tar").size());
+  if (auto out = ChopSuffixIfEndsWith(input_path, u".pgp"_s)) {
+    if (out->endsWith(u".tar"_s, Qt::CaseInsensitive)) {
+      out->chop(u".tar"_s.size());
     }
     return *out;
   }
 
-  return input_path + QStringLiteral(".out");
+  return input_path + u".out"_s;
 }
 
 }  // namespace
@@ -181,44 +181,38 @@ auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
   switch (opera) {
     case kENCRYPT:
     case kENCRYPT_SIGN:
-      return input_path +
-             (ascii ? QStringLiteral(".asc") : QStringLiteral(".gpg"));
+      return input_path + (ascii ? u".asc"_s : u".gpg"_s);
 
     case kSIGN:
-      return input_path +
-             (ascii ? QStringLiteral(".asc") : QStringLiteral(".sig"));
+      return input_path + (ascii ? u".asc"_s : u".sig"_s);
 
     case kDECRYPT:
     case kDECRYPT_VERIFY: {
       auto out_path = input_path;
 
-      if (out_path.endsWith(QStringLiteral(".tar.gpg"), Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".gpg").size());
-      } else if (out_path.endsWith(QStringLiteral(".tar.asc"),
-                                   Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".asc").size());
-      } else if (out_path.endsWith(QStringLiteral(".gpg"),
-                                   Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".gpg").size());
-      } else if (out_path.endsWith(QStringLiteral(".pgp"),
-                                   Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".pgp").size());
-      } else if (out_path.endsWith(QStringLiteral(".asc"),
-                                   Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".asc").size());
+      if (out_path.endsWith(u".tar.gpg"_s, Qt::CaseInsensitive)) {
+        out_path.chop(u".gpg"_s.size());
+      } else if (out_path.endsWith(u".tar.asc"_s, Qt::CaseInsensitive)) {
+        out_path.chop(u".asc"_s.size());
+      } else if (out_path.endsWith(u".gpg"_s, Qt::CaseInsensitive)) {
+        out_path.chop(u".gpg"_s.size());
+      } else if (out_path.endsWith(u".pgp"_s, Qt::CaseInsensitive)) {
+        out_path.chop(u".pgp"_s.size());
+      } else if (out_path.endsWith(u".asc"_s, Qt::CaseInsensitive)) {
+        out_path.chop(u".asc"_s.size());
       } else {
-        out_path += QStringLiteral(".out");
+        out_path += u".out"_s;
       }
 
       if (out_path == input_path || out_path.isEmpty()) {
-        out_path = input_path + QStringLiteral(".out");
+        out_path = input_path + u".out"_s;
       }
 
       return out_path;
     }
 
     default:
-      return input_path + QStringLiteral(".out");
+      return input_path + u".out"_s;
   }
 }
 
@@ -232,12 +226,11 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
     case kENCRYPT_SIGN: {
       QString out_path = input_path;
 
-      if (!file_info.fileName().endsWith(QStringLiteral(".tar"),
-                                         Qt::CaseInsensitive)) {
-        out_path += QStringLiteral(".tar");
+      if (!file_info.fileName().endsWith(u".tar"_s, Qt::CaseInsensitive)) {
+        out_path += u".tar"_s;
       }
 
-      out_path += ascii ? QStringLiteral(".asc") : QStringLiteral(".gpg");
+      out_path += ascii ? u".asc"_s : u".gpg"_s;
       return out_path;
     }
 
@@ -247,7 +240,7 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
     }
 
     default:
-      return input_path + QStringLiteral(".out");
+      return input_path + u".out"_s;
   }
 }
 
@@ -338,7 +331,7 @@ auto SupportedKeyDatabaseBackends() -> QSet<QString> {
 auto DefaultKeyDatabaseCandidate() -> KeyDatabaseItemSO {
   KeyDatabaseItemSO key_db;
   key_db.channel = 0;
-  key_db.name = QLatin1String(kDefaultKeyDatabaseName);
+  key_db.name = QLatin1StringView(kDefaultKeyDatabaseName);
   key_db.kind = KeyDatabaseKind::kDEFAULT;
   key_db.backend_type = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)
                             ? QString("gnupg")
@@ -607,7 +600,7 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
 auto ReanchorKeyDatabasePath(const QString& stored_path,
                              const QString& profile_root) -> QString {
   if (profile_root.isEmpty() || stored_path.isEmpty()) return stored_path;
-  if (stored_path.startsWith(QLatin1String(kProfilePathToken))) {
+  if (stored_path.startsWith(QLatin1StringView(kProfilePathToken))) {
     return stored_path;
   }
 
@@ -615,7 +608,8 @@ auto ReanchorKeyDatabasePath(const QString& stored_path,
   // the hygiene an export used to do to the live list behind the user's back.
   const auto relative =
       ToProfileRelativeKeyDatabasePath(stored_path, profile_root);
-  if (relative.startsWith(QLatin1String(kProfilePathToken))) return relative;
+  if (relative.startsWith(QLatin1StringView(kProfilePathToken)))
+    return relative;
 
   if (QFileInfo(stored_path).isDir()) return stored_path;
 
@@ -790,10 +784,10 @@ auto ToProfileRelativeKeyDatabasePath(const QString& absolute_path,
 auto FromProfileRelativeKeyDatabasePath(const QString& stored_path,
                                         const QString& profile_root)
     -> QString {
-  if (stored_path == QLatin1String(kProfilePathToken)) {
+  if (stored_path == QLatin1StringView(kProfilePathToken)) {
     return QDir::cleanPath(profile_root);
   }
-  if (!stored_path.startsWith(QLatin1String(kProfilePathToken) + "/")) {
+  if (!stored_path.startsWith(QLatin1StringView(kProfilePathToken) + "/")) {
     return stored_path;
   }
 
@@ -814,7 +808,7 @@ auto FromProfileRelativeKeyDatabasePath(const QString& stored_path,
 
 auto ForeignKeyDatabasePathTail(const QString& stored_path) -> QString {
   if (stored_path.isEmpty()) return {};
-  if (stored_path.startsWith(QLatin1String(kProfilePathToken))) return {};
+  if (stored_path.startsWith(QLatin1StringView(kProfilePathToken))) return {};
 
   // Both separators, because a Windows path is not absolute to a POSIX build
   // and QDir::cleanPath() therefore leaves its backslashes alone.
@@ -850,7 +844,7 @@ auto AnchorKeyDatabasePath(const QDir& app_path, const QString& path)
   // spelling that survives a profile being moved or packaged, and it must not
   // fall through to the relative-to-the-executable branch below, whose anchor
   // is exactly the thing a relocatable profile cannot rely on.
-  if (target_path.startsWith(QLatin1String(kProfilePathToken))) {
+  if (target_path.startsWith(QLatin1StringView(kProfilePathToken))) {
     target_path = FromProfileRelativeKeyDatabasePath(
         target_path, GlobalSettingStation::GetInstance().GetAppDataPath());
     if (target_path.isEmpty()) return {};
@@ -943,7 +937,7 @@ auto MakeDefaultKeyDatabaseInfo() -> KeyDatabaseInfo {
   info.channel = 0;
   info.valid = !fs_path.isEmpty();
   info.kind = KeyDatabaseKind::kDEFAULT;
-  info.id = QLatin1String(kDefaultKeyDatabaseId);
+  info.id = QLatin1StringView(kDefaultKeyDatabaseId);
   return info;
 }
 
@@ -1034,7 +1028,7 @@ auto ResolveKeyDatabaseResourceId(const QString& backend_type,
   if (id.location.isEmpty()) return {};
 
   const auto backend = backend_type.trimmed().toLower();
-  id.backend = backend.isEmpty() ? QStringLiteral("gnupg") : backend;
+  id.backend = backend.isEmpty() ? u"gnupg"_s : backend;
   return id;
 }
 
@@ -1342,7 +1336,7 @@ auto AdoptLocalDefaultKeyDatabase(const QList<KeyDatabaseItemSO>& databases,
 }
 
 auto IsReservedKeyDatabaseName(const QString& name) -> bool {
-  return name.trimmed().compare(QLatin1String(kDefaultKeyDatabaseName),
+  return name.trimmed().compare(QLatin1StringView(kDefaultKeyDatabaseName),
                                 Qt::CaseInsensitive) == 0;
 }
 
@@ -1390,7 +1384,7 @@ auto ClassifyKeyDatabase(const QString& name, const QString& stored_path,
   // of which build wrote it.
   const auto relative =
       ToProfileRelativeKeyDatabasePath(stored_path, profile_root);
-  if (!relative.startsWith(QLatin1String(kProfilePathToken) + "/")) {
+  if (!relative.startsWith(QLatin1StringView(kProfilePathToken) + "/")) {
     return KeyDatabaseKind::kEXTERNAL;
   }
 
@@ -1443,13 +1437,13 @@ auto AssignKeyDatabaseIds(const QList<KeyDatabaseItemSO>& databases)
   QSet<QString> claimed;
   for (auto item : databases) {
     if (item.kind == KeyDatabaseKind::kDEFAULT) {
-      item.id = QLatin1String(kDefaultKeyDatabaseId);
+      item.id = QLatin1StringView(kDefaultKeyDatabaseId);
       out.push_back(item);
       continue;
     }
 
     const auto id = item.id.trimmed();
-    if (id.isEmpty() || id == QLatin1String(kDefaultKeyDatabaseId) ||
+    if (id.isEmpty() || id == QLatin1StringView(kDefaultKeyDatabaseId) ||
         claimed.contains(id)) {
       item.id = NewKeyDatabaseId();
       LOG_D() << "gave a key database a new identity:" << item.name << "->"

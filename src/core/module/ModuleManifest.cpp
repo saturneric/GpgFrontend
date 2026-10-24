@@ -308,8 +308,7 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     const auto v = root.value("commands");
     if (!v.isUndefined()) {
       if (!v.isArray()) return Malformed("\"commands\" is not an array");
-      static const QRegularExpression kShape(
-          QStringLiteral("^[a-z0-9_]+(\\.[a-z0-9_]+)*$"));
+      static const QRegularExpression kShape(u"^[a-z0-9_]+(\\.[a-z0-9_]+)*$"_s);
       for (const auto& c : v.toArray()) {
         if (!c.isString()) {
           return Malformed("a value in \"commands\" is not a string");

@@ -54,18 +54,18 @@ constexpr auto kAccessor = AreaPackSource::kAccessor;
 constexpr std::array kAreaTable{
     // profile.json lives here and is the only thing at the root that travels;
     // the tree walk admits the root itself so its children can be judged.
-    ProfileAreaTraits{QLatin1String(""), ProfileArea::kRoot, kPathRequired,
-                      kAlways, kTree, false},
+    ProfileAreaTraits{""_L1, ProfileArea::kRoot, kPathRequired, kAlways, kTree,
+                      false},
 
     // QSettings opens config.ini by path, so this cannot be virtualised. The
     // file that travels is regenerated from the live store rather than copied.
-    ProfileAreaTraits{QLatin1String("config"), ProfileArea::kConfig,
-                      kPathRequired, kAlways, kTree, false},
+    ProfileAreaTraits{"config"_L1, ProfileArea::kConfig, kPathRequired, kAlways,
+                      kTree, false},
 
     // Already sealed per object under a key derived from the profile key, with
     // HMAC'd filenames, so it is secret but not plaintext.
-    ProfileAreaTraits{QLatin1String("data_objs"), ProfileArea::kDataObjects,
-                      kPathRequired, kAlways, kTree, true},
+    ProfileAreaTraits{"data_objs"_L1, ProfileArea::kDataObjects, kPathRequired,
+                      kAlways, kTree, true},
 
     // The only virtualisable area, and the reason the column exists: nothing
     // outside this process opens these files. A packaged session therefore
@@ -73,25 +73,25 @@ constexpr std::array kAreaTable{
     //
     // kAccessor follows from that: once a driver may hold the area in memory,
     // a packer that walked the tree would silently ship nothing.
-    ProfileAreaTraits{QLatin1String("secure"), ProfileArea::kSecure,
-                      kVirtualisable, kAlways, kAccessor, true},
+    ProfileAreaTraits{"secure"_L1, ProfileArea::kSecure, kVirtualisable,
+                      kAlways, kAccessor, true},
 
     // This machine's history with the profile, not the profile.
-    ProfileAreaTraits{QLatin1String("logs"), ProfileArea::kLogs, kPathRequired,
-                      kNever, kTree, false},
+    ProfileAreaTraits{"logs"_L1, ProfileArea::kLogs, kPathRequired, kNever,
+                      kTree, false},
 
     // dlopen'd, and the recipient's platform may not even be able to load them.
-    ProfileAreaTraits{QLatin1String("mods"), ProfileArea::kModules,
-                      kPathRequired, kNever, kTree, false},
+    ProfileAreaTraits{"mods"_L1, ProfileArea::kModules, kPathRequired, kNever,
+                      kTree, false},
 
     // The user's own files: theirs to send or not, so the export asks.
-    ProfileAreaTraits{QLatin1String("workspace"), ProfileArea::kWorkspace,
-                      kPathRequired, kOptional, kTree, false},
+    ProfileAreaTraits{"workspace"_L1, ProfileArea::kWorkspace, kPathRequired,
+                      kOptional, kTree, false},
 
     // Staging for this session alone. Dot-prefixed so a profiles-folder scan
     // skips it, and never packed whatever it happens to hold at the time.
-    ProfileAreaTraits{QLatin1String(".scratch"), ProfileArea::kScratch,
-                      kPathRequired, kNever, kTree, false},
+    ProfileAreaTraits{".scratch"_L1, ProfileArea::kScratch, kPathRequired,
+                      kNever, kTree, false},
 
     // The key databases. Directories GnuPG and rPGP own rather than areas this
     // program addresses, so they carry no ProfileArea — but they are the most
@@ -99,12 +99,12 @@ constexpr std::array kAreaTable{
     //
     // A database the user pointed at by hand lands outside all three and
     // therefore does not travel; see ManagedKeyDatabaseDirs().
-    ProfileAreaTraits{QLatin1String("db"), std::nullopt, kPathRequired, kAlways,
-                      kTree, true},
-    ProfileAreaTraits{QLatin1String("dbs"), std::nullopt, kPathRequired,
-                      kAlways, kTree, true},
-    ProfileAreaTraits{QLatin1String("rpgp_db"), std::nullopt, kPathRequired,
-                      kAlways, kTree, true},
+    ProfileAreaTraits{"db"_L1, std::nullopt, kPathRequired, kAlways, kTree,
+                      true},
+    ProfileAreaTraits{"dbs"_L1, std::nullopt, kPathRequired, kAlways, kTree,
+                      true},
+    ProfileAreaTraits{"rpgp_db"_L1, std::nullopt, kPathRequired, kAlways, kTree,
+                      true},
 };
 
 }  // namespace

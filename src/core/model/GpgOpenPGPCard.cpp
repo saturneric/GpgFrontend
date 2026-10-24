@@ -41,7 +41,7 @@ void GpgFrontend::GpgOpenPGPCard::parse_card_info(const QString& name,
   } else if (name == "CARDVERSION") {
     card_version = ParseHexEncodedVersionTuple(value);
   } else if (name == "DISP-NAME") {
-    auto list = value.split(QStringLiteral("<<"), Qt::SkipEmptyParts);
+    auto list = value.split(u"<<"_s, Qt::SkipEmptyParts);
     std::reverse(list.begin(), list.end());
     card_holder =
         list.join(QLatin1Char(' ')).replace(QLatin1Char('<'), QLatin1Char(' '));

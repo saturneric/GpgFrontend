@@ -181,7 +181,7 @@ auto FindModuleEventSpec(const QString& event_id) -> const ModuleEventSpec* {
   // because the literal is the one that carries the real contract.
   for (const auto& spec : Catalog()) {
     if ((spec.flags & GF_EVENT_PATTERN) != 0) continue;
-    if (event_id == QLatin1String(spec.id)) return &spec;
+    if (event_id == QLatin1StringView(spec.id)) return &spec;
   }
 
   for (const auto& spec : Catalog()) {

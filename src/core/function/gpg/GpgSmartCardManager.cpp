@@ -483,11 +483,10 @@ auto GpgSmartCardManager::BuildKeyToCardCommand(const QString& hexgrip,
     -> QString {
   // --force overwrites a slot that already holds a key (the interactive
   // "Replace existing key?" confirmation is done by the UI instead).
-  auto command =
-      QString("KEYTOCARD --force %1 %2 OPENPGP.%3 %4")
-          .arg(hexgrip, serial.isEmpty() ? QStringLiteral("-") : serial)
-          .arg(slot)
-          .arg(timestamp);
+  auto command = QString("KEYTOCARD --force %1 %2 OPENPGP.%3 %4")
+                     .arg(hexgrip, serial.isEmpty() ? u"-"_s : serial)
+                     .arg(slot)
+                     .arg(timestamp);
   if (!ecdh.isEmpty()) command += " " + ecdh;
   return command;
 }

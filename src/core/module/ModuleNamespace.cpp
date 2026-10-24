@@ -49,16 +49,16 @@ constexpr qsizetype kSuffixHexChars = 20;  // 80 bits
 
 auto IsValidModuleId(const QString& module_id) -> bool {
   static const QRegularExpression kShape(
-      QStringLiteral(R"(^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$)"));
+      uR"(^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$)"_s);
   return module_id.size() <= 200 && kShape.match(module_id).hasMatch();
 }
 
 auto IsReservedModuleId(const QString& module_id) -> bool {
-  return module_id.startsWith(QStringLiteral("com.bktus.gpgfrontend."));
+  return module_id.startsWith(u"com.bktus.gpgfrontend."_s);
 }
 
 auto IsOwnedName(const QString& owner, const QString& id) -> bool {
-  static const QRegularExpression kLocal(QStringLiteral("^[a-z0-9_]+$"));
+  static const QRegularExpression kLocal(u"^[a-z0-9_]+$"_s);
   if (owner.isEmpty() || !id.startsWith(owner + '.')) return false;
   return kLocal.match(id.mid(owner.size() + 1)).hasMatch();
 }

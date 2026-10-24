@@ -181,7 +181,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     if (!key->Comment().isEmpty()) stream << "(" << key->Comment() << ")";
     if (!key->Email().isEmpty()) stream << "<" << key->Email() << ">";
   } else {
-    const auto kid = QStringLiteral("0x%1").arg(recipient.keyid);
+    const auto kid = u"0x%1"_s.arg(recipient.keyid);
     ri.keyFound = false;
     op_info_.details << kid;
     stream << tr("<unknown>") << " (" << kid << ")";

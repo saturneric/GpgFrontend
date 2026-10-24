@@ -120,10 +120,10 @@ auto Fail(const QString& reason) -> ModuleExternalizeResult {
 /// Exact rows first, so a named CHANGE row wins over the map's wildcard.
 auto RuleFor(const QString& path) -> std::optional<D> {
   for (const auto& row : kContract) {
-    if (path == QLatin1String(row.path)) return row.disposition;
+    if (path == QLatin1StringView(row.path)) return row.disposition;
   }
   for (const auto& row : kContract) {
-    const QString pattern = QLatin1String(row.path);
+    const QString pattern = QLatin1StringView(row.path);
     if (!pattern.endsWith(".*")) continue;
     const auto prefix = pattern.chopped(1);
     if (path.size() > prefix.size() && path.startsWith(prefix)) {
@@ -324,7 +324,7 @@ auto ExternalizeModule(const ModuleExternalizeSpec& spec)
     return Fail(QString("\"%1\" does not exist").arg(spec.input));
   }
   if (input_info.isFile() &&
-      input_info.fileName() != QLatin1String(kModuleDescriptorFileName)) {
+      input_info.fileName() != QLatin1StringView(kModuleDescriptorFileName)) {
     return Fail(QString("\"%1\" is not a module namespace or its %2")
                     .arg(spec.input, kModuleDescriptorFileName));
   }

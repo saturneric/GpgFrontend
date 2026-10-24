@@ -65,8 +65,7 @@ auto MigrateFilePanelDefaultPathMode(const QString&)
   // values as they were when it was written rather than following an enum that
   // may later be renamed underneath it.
   const auto legacy = settings.value(kOldKey, true).toBool();
-  settings.setValue(kNewKey,
-                    legacy ? QStringLiteral("home") : QStringLiteral("cwd"));
+  settings.setValue(kNewKey, legacy ? u"home"_s : u"cwd"_s);
   settings.sync();
 
   if (settings.status() != QSettings::NoError) {
