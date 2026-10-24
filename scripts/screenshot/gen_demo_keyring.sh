@@ -34,7 +34,8 @@
 #   2025-01-01  13:00 UTC: Alice adds her work user ID
 #   2025-01-02  Alice certifies Bob and Erin; Bob certifies Alice;
 #               Grace certifies Heidi
-#   2025-02-01  decrypt-verify fixture: encrypted to Alice, signed by Bob
+#   2025-02-01  decrypt-verify fixture: encrypted to Alice, signed by Bob;
+#               decrypt fixture: encrypted to Alice; verify fixture: Alice
 #   2025-03-01  clock probe fixture: signed by Dave
 #   2025-04-01  Carol's key revoked
 #   2025-06-01  Dave's key expires
@@ -54,6 +55,10 @@
 # Work database (GnuPG, resource/screenshot/demo-dbs/work):
 #   Grace  own key pair, ed25519 + cv25519, no expiry
 #   Heidi  public key, RSA 3072, certified by Grace
+#   Alice  her subkeys only, without the primary key ("sec#")
+#
+# Key server (resource/screenshot/keyserver): Grace's and Heidi's public keys
+# and their listing, served by the local mock key server at render time.
 #
 # Lab database (rPGP, resource/screenshot/demo-dbs/lab): armored RFC 9580
 # (OpenPGP v6) keys made with sq, imported by the screenshot mode at run time
@@ -143,6 +148,12 @@ mkdir -p "$OUT_DIR/fixtures"
 printf 'Hello Alice,\n\nthe quarterly report is attached as agreed.\n\nBob\n' |
   at "$H" "$T_FIXTURE" --armor --local-user "$BOB" --recipient "$ALICE" \
     --sign --encrypt >"$OUT_DIR/fixtures/decrypt-verify.asc"
+printf 'Hello Alice,\n\nthe meeting moved to Thursday at 10:00.\n\nBob\n' |
+  at "$H" "$T_FIXTURE" --armor --recipient "$ALICE" --encrypt \
+    >"$OUT_DIR/fixtures/decrypt.asc"
+printf 'The release notes for version 2.0 are final.\n\nAlice\n' |
+  at "$H" "$T_FIXTURE" --local-user "$ALICE" --clearsign \
+    >"$OUT_DIR/fixtures/verify.asc"
 printf 'Clock probe message signed by Dave.\n' |
   at "$H" "$T_PROBE" --local-user "$DAVE" --clearsign \
     >"$OUT_DIR/fixtures/clock-probe-dave.asc"
@@ -173,7 +184,24 @@ at "$W" "$T_CERTIFY" --local-user "$GRACE" --quick-sign-key "$HEIDI"
 at "$W" "$T_REVOKE" --delete-secret-keys "$HEIDI"
 printf '%s:6:\n' "$GRACE" | gpg --homedir "$W" --batch --import-ownertrust
 printf '%s:2:\n' "$HEIDI" | gpg --homedir "$W" --batch --import-ownertrust
+# Alice's subkeys without her primary key, as the subkey guide moves them:
+# the Work database lists her as "sec#".
+at "$H" "$T_REVOKE" --export-secret-subkeys "$ALICE" |
+  at "$W" "$T_REVOKE" --import
+printf '%s:6:\n' "$ALICE" | gpg --homedir "$W" --batch --import-ownertrust
 at "$W" "$T_REVOKE" --check-trustdb
+
+# --- Key server --------------------------------------------------------------
+# What the local mock key server offers: Grace's and Heidi's public keys and
+# the listing it builds its search answers from.
+KS="$OUT_DIR/keyserver"
+rm -rf "$KS"
+mkdir -p "$KS"
+for fpr in "$GRACE" "$HEIDI"; do
+  gpg --homedir "$W" --batch --armor --export "$fpr" >"$KS/$fpr.asc"
+done
+gpg --homedir "$W" --batch --with-colons --fixed-list-mode \
+  --list-keys "$GRACE" "$HEIDI" >"$KS/listing.colons"
 
 for home in "$H" "$W"; do gpgconf --homedir "$home" --kill all; done
 
@@ -244,6 +272,9 @@ CREATED="$(epoch 2025-01-01T12:00:00Z)"
   printf '  "fixtures": {\n'
   printf '    "decrypt-verify.asc": {"signer": "%s", "recipient": "%s", "signed": %s},\n' \
     "$BOB" "$ALICE" "$(epoch 2025-02-01T12:00:00Z)"
+  printf '    "decrypt.asc": {"recipient": "%s", "signed": null},\n' "$ALICE"
+  printf '    "verify.asc": {"signer": "%s", "signed": %s},\n' \
+    "$ALICE" "$(epoch 2025-02-01T12:00:00Z)"
   printf '    "clock-probe-dave.asc": {"signer": "%s", "signed": %s}\n' \
     "$DAVE" "$(epoch 2025-03-01T12:00:00Z)"
   printf '  },\n'

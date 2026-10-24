@@ -19,6 +19,8 @@
   },
   "fixtures": {
     "decrypt-verify.asc": {"signer": "E1AB797A6FF34ACCDD1AA1E980BA5E1D311D4847", "recipient": "875F70B6F2EEB84BB014D3735A5D0E0E460FE594", "signed": 1738411200},
+    "decrypt.asc": {"recipient": "875F70B6F2EEB84BB014D3735A5D0E0E460FE594", "signed": null},
+    "verify.asc": {"signer": "875F70B6F2EEB84BB014D3735A5D0E0E460FE594", "signed": 1738411200},
     "clock-probe-dave.asc": {"signer": "39A23B84DF52DB4EC3E79FD272745E9D5B24E8A5", "signed": 1740830400}
   },
   "newest_timestamp": 1743508800

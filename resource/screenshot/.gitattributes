@@ -6,3 +6,4 @@ demo-gnupghome/** -text -diff
 demo-dbs/work/** -text -diff
 *.key text eol=lf
 *.cert text eol=lf
+keyserver/** text eol=lf
