@@ -597,12 +597,15 @@ void MainWindow::create_tool_bars() {
   SetupToolBar(file_tool_bar_, icon_style_, icon_size_);
 
   open_button_ = new QToolButton(this);
+  // Named for the manual's screenshots, which point at these two.
+  open_button_->setObjectName(u"openButton"_s);
   SetupMenuToolButton(open_button_, open_menu_, QIcon(":/icons/open.png"),
                       tr("Open"), tr("Open a file or directory"), icon_style_,
                       icon_size_);
   file_tool_bar_->addWidget(open_button_);
 
   workspace_button_ = new QToolButton(this);
+  workspace_button_->setObjectName(u"workspaceButton"_s);
   SetupMenuToolButton(workspace_button_, workspace_menu_,
                       QIcon(":/icons/workspace.png"), tr("Workspace"),
                       tr("Open a text editor or file panel"), icon_style_,
