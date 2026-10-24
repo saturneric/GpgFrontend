@@ -60,7 +60,7 @@ auto KeyDatabaseTravelsWithProfile(const QString& path,
   // as the same directory; which of them reached the settings file is an
   // accident of which build wrote it.
   const auto relative = ToProfileRelativeKeyDatabasePath(path, profile_root);
-  const auto prefix = QLatin1String(kProfilePathToken) + QLatin1String("/");
+  const auto prefix = QLatin1StringView(kProfilePathToken) + "/"_L1;
   if (!relative.startsWith(prefix)) return false;
 
   return IsManagedKeyDatabasePath(relative.mid(prefix.size()));
@@ -76,7 +76,7 @@ auto KeyDatabaseDisplayPath(const QString& path, const QString& profile_root)
 }
 
 auto KeyDatabaseDisplayId(const QString& id) -> QString {
-  if (id.isEmpty()) return QStringLiteral("\u2013");
+  if (id.isEmpty()) return u"\u2013"_s;
   const auto group = id.indexOf('-');
   return group > 0 ? id.left(group) : id;
 }
@@ -93,7 +93,7 @@ auto KeyDatabaseChoiceLabel(const QString& database_id,
   QStringList parts{KeyDatabaseDisplayName(database_id, stored_name)};
   if (!engine.isEmpty()) parts.append(engine.toUpper());
   if (is_default) parts.append(QObject::tr("Default"));
-  return parts.join(QStringLiteral("  ·  "));
+  return parts.join(u"  ·  "_s);
 }
 
 }  // namespace GpgFrontend::UI

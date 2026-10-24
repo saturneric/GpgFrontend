@@ -729,7 +729,8 @@ void KeyMgmt::init_window_style() {
   // happens to be parented to the MainWindow and a style sheet cascades down
   // the parent chain — and, as the note beside the status-bar hookup says,
   // nothing enforces that parenting.
-  setStyleSheet(MainWindowChromeStyleSheet() + QStringLiteral(R"(
+  setStyleSheet(MainWindowChromeStyleSheet() +
+                uR"(
 /* The key list's tool row is the lower half of this window's chrome, not
    content: same surface as the tool bar above it, with a single hairline under
    the pair, so the two strips read as one block instead of two competing bars.
@@ -739,7 +740,7 @@ QWidget#KeyListMenu {
   background: palette(window);
   border-bottom: 1px solid palette(mid);
 }
-)"));
+)"_s);
 }
 
 void KeyMgmt::align_chrome_insets() {

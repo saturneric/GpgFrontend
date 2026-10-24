@@ -270,7 +270,7 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
 
 auto ProfilePackageNameFilter() -> QString {
   return QObject::tr("GpgFrontend Profile File") + " (*" +
-         QLatin1String(kProfilePackageExtension) + ")";
+         QLatin1StringView(kProfilePackageExtension) + ")";
 }
 
 auto BuildLaunchArgs(const QStringList& args, const ProfileTarget& target)
@@ -841,7 +841,7 @@ void ShowTemporaryProfileRestartRefusal(QWidget* parent,
           : QObject::tr("Pages with changes that need this: %1.\n\nUndo "
                         "those changes, or choose Cancel to discard everything "
                         "you changed in this dialog.")
-                .arg(pages.join(QStringLiteral(", "))));
+                .arg(pages.join(u", "_s)));
   box.setStandardButtons(QMessageBox::Ok);
   box.exec();
 }

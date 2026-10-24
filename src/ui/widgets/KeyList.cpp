@@ -301,14 +301,14 @@ void KeyList::init_ui_visibility() {
 }
 
 void KeyList::init_ui_style() {
-  setObjectName(QStringLiteral("KeyList"));
+  setObjectName(u"KeyList"_s);
 
-  ui_->menuWidget->setObjectName(QStringLiteral("KeyListMenu"));
+  ui_->menuWidget->setObjectName(u"KeyListMenu"_s);
 
   // A bare QWidget paints no background of its own, so a host styling
   // #KeyListMenu as part of its window chrome would be silently ignored.
   ui_->menuWidget->setAttribute(Qt::WA_StyledBackground, true);
-  ui_->categoryList->setObjectName(QStringLiteral("KeyCategoryList"));
+  ui_->categoryList->setObjectName(u"KeyCategoryList"_s);
 
   ui_->searchBarEdit->setClearButtonEnabled(true);
   ui_->searchBarEdit->setMinimumHeight(30);

@@ -162,7 +162,7 @@ StatusDockPresenter::StatusDockPresenter(QMainWindow* window, QDockWidget* dock,
 
   build_compact_bar();
   empty_content_ = new QWidget(dock_);
-  empty_content_->setObjectName(QStringLiteral("statusDockCollapsedContent"));
+  empty_content_->setObjectName(u"statusDockCollapsedContent"_s);
   empty_content_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   empty_content_->setFixedHeight(0);
   empty_content_->hide();
@@ -532,10 +532,10 @@ void StatusDockPresenter::build_compact_bar() {
   // it the way the dock's own edge would.
   auto* bar = new QFrame(dock_);
   compact_bar_ = bar;
-  compact_bar_->setObjectName(QStringLiteral("statusDockBar"));
+  compact_bar_->setObjectName(u"statusDockBar"_s);
   compact_bar_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  bar->setStyleSheet(QStringLiteral(
-      "QFrame#statusDockBar { border-top: 1px solid palette(mid); }"));
+  bar->setStyleSheet(
+      u"QFrame#statusDockBar { border-top: 1px solid palette(mid); }"_s);
   compact_bar_->setToolTip(tr("Expand Status Panel"));
   compact_bar_->installEventFilter(this);
   compact_bar_->hide();
@@ -545,20 +545,20 @@ void StatusDockPresenter::build_compact_bar() {
   row->setSpacing(6);
 
   bar_dot_ = new QLabel(compact_bar_);
-  bar_dot_->setObjectName(QStringLiteral("statusDockBarIndicator"));
+  bar_dot_->setObjectName(u"statusDockBarIndicator"_s);
   bar_dot_->setFixedSize(kDotSize, kDotSize);
 
   bar_title_ = new QLabel(compact_bar_);
-  bar_title_->setObjectName(QStringLiteral("statusDockBarTitle"));
+  bar_title_->setObjectName(u"statusDockBarTitle"_s);
 
   bar_status_ = new QLabel(compact_bar_);
-  bar_status_->setObjectName(QStringLiteral("statusDockBarStatus"));
+  bar_status_->setObjectName(u"statusDockBarStatus"_s);
   auto status_font = bar_status_->font();
   status_font.setWeight(QFont::DemiBold);
   bar_status_->setFont(status_font);
 
   auto* expand = new QToolButton(compact_bar_);
-  expand->setObjectName(QStringLiteral("statusDockBarExpand"));
+  expand->setObjectName(u"statusDockBarExpand"_s);
   expand->setDefaultAction(toggle_);
   expand->setAutoRaise(true);
   expand->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -566,7 +566,7 @@ void StatusDockPresenter::build_compact_bar() {
 
   // The dock's own X, drawn the way the native title bar draws it.
   bar_close_ = new QToolButton(compact_bar_);
-  bar_close_->setObjectName(QStringLiteral("statusDockBarClose"));
+  bar_close_->setObjectName(u"statusDockBarClose"_s);
   bar_close_->setAutoRaise(true);
   bar_close_->setFocusPolicy(Qt::NoFocus);
   bar_close_->setIcon(dock_->style()->standardIcon(
@@ -587,9 +587,8 @@ void StatusDockPresenter::refresh_compact_bar() {
   const auto status = board_->CurrentStatus();
 
   bar_dot_->setStyleSheet(
-      QStringLiteral("QLabel#statusDockBarIndicator { background-color: %1; "
-                     "border-radius: %2px; }")
-          .arg(board_->IndicatorColor(status).name())
+      u"QLabel#statusDockBarIndicator { background-color: %1; "
+      "border-radius: %2px; }"_s.arg(board_->IndicatorColor(status).name())
           .arg(kDotSize / 2));
   bar_dot_->setToolTip(board_->StatusIndicatorToolTip(status));
   bar_title_->setText(dock_ != nullptr ? dock_->windowTitle() : QString());

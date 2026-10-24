@@ -105,16 +105,15 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   // every explanation written below would otherwise never be shown.
   option_popup_menu_->setToolTipsVisible(true);
 
-  auto* new_dir_act = new QAction(
-      QIcon::fromTheme(QStringLiteral("folder-new")), tr("New Folder"), this);
+  auto* new_dir_act =
+      new QAction(QIcon::fromTheme(u"folder-new"_s), tr("New Folder"), this);
   new_dir_act->setToolTip(tr("Create a new folder in the current folder."));
   connect(new_dir_act, &QAction::triggered, ui_->treeView,
           &FileTreeView::SlotMkdir);
   option_popup_menu_->addAction(new_dir_act);
 
-  auto* new_file_act =
-      new QAction(QIcon::fromTheme(QStringLiteral("document-new")),
-                  tr("New Empty File"), this);
+  auto* new_file_act = new QAction(QIcon::fromTheme(u"document-new"_s),
+                                   tr("New Empty File"), this);
   new_file_act->setToolTip(tr("Create an empty file in the current folder."));
   connect(new_file_act, &QAction::triggered, ui_->treeView,
           &FileTreeView::SlotTouch);
@@ -232,7 +231,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
 }
 
 void FilePage::init_ui_style() {
-  setObjectName(QStringLiteral("FilePage"));
+  setObjectName(u"FilePage"_s);
 
   ui_->filterEdit->setPlaceholderText(tr("Filter"));
   ui_->filterEdit->setToolTip(
@@ -240,9 +239,9 @@ void FilePage::init_ui_style() {
          "filter applies to the current folder and is cleared when you open "
          "another one."));
   ui_->filterEdit->setMinimumHeight(30);
-  ui_->filterEdit->addAction(QIcon::fromTheme(QStringLiteral("edit-find"),
-                                              QIcon(":/icons/search.png")),
-                             QLineEdit::LeadingPosition);
+  ui_->filterEdit->addAction(
+      QIcon::fromTheme(u"edit-find"_s, QIcon(":/icons/search.png")),
+      QLineEdit::LeadingPosition);
 
   // Auto-raised buttons read as one toolbar; the separators between them carry
   // the grouping, so nothing has to be drawn with a stylesheet.
@@ -484,7 +483,7 @@ void FilePage::update_status_strip() {
     segments.append(tr("%1 selected").arg(selected_count_));
   }
 
-  ui_->statusLabel->setText(segments.join(QStringLiteral("  ·  ")));
+  ui_->statusLabel->setText(segments.join(u"  ·  "_s));
 
   // Capacity belongs to the volume rather than to the folder, so it sits at
   // the far end of the strip instead of in the same run of counters.

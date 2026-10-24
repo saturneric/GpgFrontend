@@ -258,11 +258,10 @@ void FileTreeView::paintEvent(QPaintEvent* event) {
   QPainter painter(viewport());
   painter.setRenderHint(QPainter::Antialiasing, true);
 
-  const auto icon =
-      QIcon::fromTheme(!readable  ? QStringLiteral("dialog-warning")
-                       : filtered ? QStringLiteral("edit-find")
-                                  : QStringLiteral("folder"),
-                       QIcon(":/icons/folder.png"));
+  const auto icon = QIcon::fromTheme(!readable  ? u"dialog-warning"_s
+                                     : filtered ? u"edit-find"_s
+                                                : u"folder"_s,
+                                     QIcon(":/icons/folder.png"));
 
   constexpr int kIconSide = 48;
   constexpr int kIconTextGap = 12;
@@ -582,8 +581,8 @@ void FileTreeView::slot_create_popup_menu() {
   // Without this, Qt silently discards every action tooltip set below.
   popup_menu_->setToolTipsVisible(true);
 
-  action_open_file_ = new QAction(
-      QIcon::fromTheme(QStringLiteral("document-open")), tr("Open"), this);
+  action_open_file_ =
+      new QAction(QIcon::fromTheme(u"document-open"_s), tr("Open"), this);
   action_open_file_->setToolTip(
       tr("Open the file in a GpgFrontend editor tab (Enter)."));
   connect(action_open_file_, &QAction::triggered, this, [this](bool) {
@@ -591,65 +590,62 @@ void FileTreeView::slot_create_popup_menu() {
   });
 
   action_open_with_system_default_application_ =
-      new QAction(QIcon::fromTheme(QStringLiteral("system-run")),
+      new QAction(QIcon::fromTheme(u"system-run"_s),
                   tr("Open with Default Application"), this);
   action_open_with_system_default_application_->setToolTip(
       tr("Hand the item to the application your system uses for it."));
   connect(action_open_with_system_default_application_, &QAction::triggered,
           this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
 
-  action_rename_file_ = new QAction(
-      QIcon::fromTheme(QStringLiteral("edit-rename")), tr("Rename"), this);
+  action_rename_file_ =
+      new QAction(QIcon::fromTheme(u"edit-rename"_s), tr("Rename"), this);
   action_rename_file_->setToolTip(tr("Give the item a new name (F2)."));
   connect(action_rename_file_, &QAction::triggered, this,
           &FileTreeView::SlotRenameSelectedItem);
 
   action_delete_file_ =
-      new QAction(QIcon::fromTheme(QStringLiteral("user-trash")),
-                  tr("Move to Trash"), this);
+      new QAction(QIcon::fromTheme(u"user-trash"_s), tr("Move to Trash"), this);
   action_delete_file_->setToolTip(
       tr("Move the selected items to the system Trash, where they can still "
          "be recovered (Delete)."));
   connect(action_delete_file_, &QAction::triggered, this,
           &FileTreeView::SlotDeleteSelectedItem);
 
-  action_calculate_hash_ =
-      new QAction(QIcon::fromTheme(QStringLiteral("document-properties")),
-                  tr("Calculate Hash"), this);
+  action_calculate_hash_ = new QAction(
+      QIcon::fromTheme(u"document-properties"_s), tr("Calculate Hash"), this);
   action_calculate_hash_->setToolTip(
       tr("Compute checksums of the file and show them on the information "
          "board, to compare it against a published value."));
   connect(action_calculate_hash_, &QAction::triggered, this,
           &FileTreeView::slot_calculate_hash);
 
-  action_make_directory_ = new QAction(
-      QIcon::fromTheme(QStringLiteral("folder-new")), tr("Folder"), this);
+  action_make_directory_ =
+      new QAction(QIcon::fromTheme(u"folder-new"_s), tr("Folder"), this);
   action_make_directory_->setToolTip(
       tr("Create a new folder inside the selected folder."));
   connect(action_make_directory_, &QAction::triggered, this,
           &FileTreeView::SlotMkdirBelowAtSelectedItem);
 
-  action_create_empty_file_ = new QAction(
-      QIcon::fromTheme(QStringLiteral("document-new")), tr("Empty File"), this);
+  action_create_empty_file_ =
+      new QAction(QIcon::fromTheme(u"document-new"_s), tr("Empty File"), this);
   action_create_empty_file_->setToolTip(
       tr("Create an empty file inside the selected folder."));
   connect(action_create_empty_file_, &QAction::triggered, this,
           &FileTreeView::SlotTouchBelowAtSelectedItem);
 
-  action_compress_files_ =
-      new QAction(QIcon::fromTheme(QStringLiteral("archive-insert")),
-                  tr("Compress..."), this);
+  action_compress_files_ = new QAction(QIcon::fromTheme(u"archive-insert"_s),
+                                       tr("Compress..."), this);
   action_compress_files_->setVisible(false);
 
-  action_copy_path_ = new QAction(QIcon::fromTheme(QStringLiteral("edit-copy")),
-                                  tr("Copy Path"), this);
+  action_copy_path_ =
+      new QAction(QIcon::fromTheme(u"edit-copy"_s), tr("Copy Path"), this);
   action_copy_path_->setToolTip(
       tr("Copy the full path of the selected items to the clipboard."));
   connect(action_copy_path_, &QAction::triggered, this,
           &FileTreeView::SlotCopyPath);
 
-  action_refresh_ = new QAction(
-      QIcon::fromTheme(QStringLiteral("view-refresh")), tr("Refresh"), this);
+  action_refresh_ =
+      new QAction(QIcon::fromTheme(u"view-refresh"_s), tr("Refresh"), this);
   action_refresh_->setToolTip(tr("Read this folder from disk again."));
   connect(action_refresh_, &QAction::triggered, this,
           &FileTreeView::SlotRefresh);
@@ -658,7 +654,7 @@ void FileTreeView::slot_create_popup_menu() {
   new_item_action_menu_->setToolTipsVisible(true);
   new_item_action_menu_->setToolTip(
       tr("Create a new item in the current folder."));
-  new_item_action_menu_->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
+  new_item_action_menu_->setIcon(QIcon::fromTheme(u"list-add"_s));
   new_item_action_menu_->addAction(action_create_empty_file_);
   new_item_action_menu_->addAction(action_make_directory_);
 

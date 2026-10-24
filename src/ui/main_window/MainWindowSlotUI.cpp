@@ -547,7 +547,8 @@ auto CryptoOperationTable() -> const std::array<CryptoOperation, 6>& {
 auto MaskFromOperationNames(const QStringList& names) -> unsigned int {
   unsigned int mask = MainWindow::OperationMenu::kNone;
   for (const auto& operation : CryptoOperationTable()) {
-    if (names.contains(QLatin1String(operation.name))) mask |= operation.bit;
+    if (names.contains(QLatin1StringView(operation.name)))
+      mask |= operation.bit;
   }
   return mask;
 }

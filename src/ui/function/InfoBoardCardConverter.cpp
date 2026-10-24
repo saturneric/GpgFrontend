@@ -39,20 +39,20 @@ namespace {
 auto status_to_string(InfoBoardStatus status) -> QString {
   switch (status) {
     case kINFO_ERROR_OK:
-      return QStringLiteral("ok");
+      return u"ok"_s;
     case kINFO_ERROR_WARN:
-      return QStringLiteral("warn");
+      return u"warn"_s;
     case kINFO_ERROR_CRITICAL:
-      return QStringLiteral("critical");
+      return u"critical"_s;
     default:
-      return QStringLiteral("neutral");
+      return u"neutral"_s;
   }
 }
 
 auto status_from_string(const QString& s) -> InfoBoardStatus {
-  if (s == QLatin1String("ok")) return kINFO_ERROR_OK;
-  if (s == QLatin1String("warn")) return kINFO_ERROR_WARN;
-  if (s == QLatin1String("critical")) return kINFO_ERROR_CRITICAL;
+  if (s == "ok"_L1) return kINFO_ERROR_OK;
+  if (s == "warn"_L1) return kINFO_ERROR_WARN;
+  if (s == "critical"_L1) return kINFO_ERROR_CRITICAL;
   return kINFO_ERROR_NEUTRAL;
 }
 
@@ -61,17 +61,16 @@ auto card_to_json(const InfoBoardCard& card) -> QJsonObject {
   for (const auto& f : card.fields) {
     fields.append(QJsonArray{f.first, f.second});
   }
-  return QJsonObject{{QStringLiteral("title"), card.title},
-                     {QStringLiteral("status"), status_to_string(card.status)},
-                     {QStringLiteral("fields"), fields}};
+  return QJsonObject{{u"title"_s, card.title},
+                     {u"status"_s, status_to_string(card.status)},
+                     {u"fields"_s, fields}};
 }
 
 auto card_from_json(const QJsonObject& obj) -> InfoBoardCard {
   InfoBoardCard card;
-  card.title = obj.value(QStringLiteral("title")).toString();
-  card.status =
-      status_from_string(obj.value(QStringLiteral("status")).toString());
-  for (const auto& fv : obj.value(QStringLiteral("fields")).toArray()) {
+  card.title = obj.value(u"title"_s).toString();
+  card.status = status_from_string(obj.value(u"status"_s).toString());
+  for (const auto& fv : obj.value(u"fields"_s).toArray()) {
     const auto pair = fv.toArray();
     if (pair.size() != 2) continue;
     card.fields.append({pair.at(0).toString(), pair.at(1).toString()});
@@ -130,7 +129,7 @@ void add_signer_fields(InfoBoardCard& card, const GpgSignerInfo& signer) {
   if (!signer.pubkeyAlgo.isEmpty() || !signer.hashAlgo.isEmpty()) {
     QString algo = signer.pubkeyAlgo;
     if (!signer.hashAlgo.isEmpty()) {
-      algo += QStringLiteral(" / ") + signer.hashAlgo;
+      algo += u" / "_s + signer.hashAlgo;
     }
     card.fields.append({QObject::tr("Algorithm"), algo});
   }
@@ -175,7 +174,7 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
                                    : sig_validity_to_status(sig.validity);
     add_signer_fields(sig_card, sig.signer);
     for (const auto& w : sig.warnings) {
-      sig_card.fields.append({QStringLiteral("⚠"), w});
+      sig_card.fields.append({u"⚠"_s, w});
     }
     cards.append(sig_card);
   }
@@ -256,14 +255,13 @@ auto decode_info_board_cards(const QByteArray& json) -> InfoBoardCardsPayload {
   if (err.error != QJsonParseError::NoError || !doc.isObject()) return payload;
 
   const auto obj = doc.object();
-  payload.operation = obj.value(QStringLiteral("operation")).toString();
-  payload.description = obj.value(QStringLiteral("description")).toString();
-  payload.details_title = obj.value(QStringLiteral("details_title")).toString();
-  for (const auto& item :
-       obj.value(QStringLiteral("details_items")).toArray()) {
+  payload.operation = obj.value(u"operation"_s).toString();
+  payload.description = obj.value(u"description"_s).toString();
+  payload.details_title = obj.value(u"details_title"_s).toString();
+  for (const auto& item : obj.value(u"details_items"_s).toArray()) {
     payload.details_items.append(item.toString());
   }
-  for (const auto& cv : obj.value(QStringLiteral("cards")).toArray()) {
+  for (const auto& cv : obj.value(u"cards"_s).toArray()) {
     if (cv.isObject()) payload.cards.append(card_from_json(cv.toObject()));
   }
 

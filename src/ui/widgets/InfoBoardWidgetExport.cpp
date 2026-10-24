@@ -88,44 +88,43 @@ void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
   }
 
   QImage image = pm.toImage();
-  image.setText(QStringLiteral("Software"), QStringLiteral("GpgFrontend"));
-  image.setText(QStringLiteral("Title"), tr("GpgFrontend Security Report"));
-  image.setText(QStringLiteral("Description"),
-                tr("Cryptographic operation result report"));
-  image.setText(QStringLiteral("Creation Time"),
+  image.setText(u"Software"_s, u"GpgFrontend"_s);
+  image.setText(u"Title"_s, tr("GpgFrontend Security Report"));
+  image.setText(u"Description"_s, tr("Cryptographic operation result report"));
+  image.setText(u"Creation Time"_s,
                 QDateTime::currentDateTime().toString(Qt::ISODate));
 
   if (!current_id_.isEmpty()) {
-    image.setText(QStringLiteral("Document ID"), current_id_);
+    image.setText(u"Document ID"_s, current_id_);
   }
 
   if (hash_label_ != nullptr && !hash_label_->text().isEmpty()) {
     const QString hash_text = hash_label_->text();
     const QString prefix = tr("Hash: ");
-    image.setText(QStringLiteral("Document Hash"),
+    image.setText(u"Document Hash"_s,
                   hash_text.startsWith(prefix)
                       ? hash_text.mid(static_cast<int>(prefix.length()))
                       : hash_text);
   }
 
   if (val_status_ != nullptr && !val_status_->text().isEmpty()) {
-    image.setText(QStringLiteral("Status"), val_status_->text());
+    image.setText(u"Status"_s, val_status_->text());
   }
 
   if (val_operation_ != nullptr && !val_operation_->text().isEmpty()) {
-    image.setText(QStringLiteral("Operation"), val_operation_->text());
+    image.setText(u"Operation"_s, val_operation_->text());
   }
 
   if (val_engine_ != nullptr && !val_engine_->text().isEmpty()) {
-    image.setText(QStringLiteral("Engine"), val_engine_->text());
+    image.setText(u"Engine"_s, val_engine_->text());
   }
 
   if (!current_input_hash_.isEmpty()) {
-    image.setText(QStringLiteral("Input Hash"), current_input_hash_);
+    image.setText(u"Input Hash"_s, current_input_hash_);
   }
 
   if (!current_copy_text_.isEmpty()) {
-    image.setText(QStringLiteral("Comment"), current_copy_text_);
+    image.setText(u"Comment"_s, current_copy_text_);
   }
 
   if (!image.save(file_path)) {
@@ -137,16 +136,14 @@ void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
 void InfoBoardWidget::slot_save() {
   if (doc_scroll_ != nullptr && doc_scroll_->isVisible() &&
       doc_frame_ != nullptr) {
-    const QString suggested =
-        QStringLiteral("GpgFrontend_%1")
-            .arg(current_id_.isEmpty() ? QStringLiteral("Document")
-                                       : current_id_);
+    const QString suggested = u"GpgFrontend_%1"_s.arg(
+        current_id_.isEmpty() ? u"Document"_s : current_id_);
     QString file_path =
         QFileDialog::getSaveFileName(this, tr("Export Certificate"), suggested,
                                      tr("PNG Image (*.png);;All Files (*)"));
     if (file_path.isEmpty()) return;
-    if (!file_path.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive)) {
-      file_path += QStringLiteral(".png");
+    if (!file_path.endsWith(u".png"_s, Qt::CaseInsensitive)) {
+      file_path += u".png"_s;
     }
     export_doc_as_png(file_path);
     return;

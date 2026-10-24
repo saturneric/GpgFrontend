@@ -97,7 +97,7 @@ auto MetaListSummaryText(const QList<MetaListRow>& rows) -> QString {
         continue;
       case MetaRowKind::kSection:
         if (!lines.isEmpty()) lines << QString();
-        lines << QStringLiteral("[%1]").arg(row.caption);
+        lines << u"[%1]"_s.arg(row.caption);
         continue;
       case MetaRowKind::kNote:
         lines << row.caption;
@@ -108,13 +108,12 @@ auto MetaListSummaryText(const QList<MetaListRow>& rows) -> QString {
 
     auto value = row.value;
     if (row.bytes >= 0) {
-      value = value.isEmpty()
-                  ? HumanSize(row.bytes)
-                  : QStringLiteral("%1 %2").arg(value, HumanSize(row.bytes));
+      value = value.isEmpty() ? HumanSize(row.bytes)
+                              : u"%1 %2"_s.arg(value, HumanSize(row.bytes));
     }
-    lines << QStringLiteral("%1 %2").arg(row.caption, value).trimmed();
+    lines << u"%1 %2"_s.arg(row.caption, value).trimmed();
     if (!row.detail.isEmpty()) {
-      lines << QStringLiteral("    %1").arg(row.detail);
+      lines << u"    %1"_s.arg(row.detail);
     }
   }
 
@@ -364,8 +363,7 @@ void MetaListPanel::rebuild() {
       // Opened only when the reader clicks it; nothing is ever fetched to
       // render the row.
       auto* label = new QLabel(
-          QStringLiteral("<a href=\"%1\">%2</a>").arg(row.link, row.value),
-          tree_);
+          u"<a href=\"%1\">%2</a>"_s.arg(row.link, row.value), tree_);
       label->setTextInteractionFlags(Qt::TextBrowserInteraction);
       label->setOpenExternalLinks(true);
       tree_->setItemWidget(item, 1, label);

@@ -65,7 +65,7 @@ auto IsProfilePackageFile(const QFileInfo& info) -> bool {
 }
 
 auto SanitizedDocumentTitle(const QString& title) -> QString {
-  static const QRegularExpression kWhitespace(QStringLiteral("\\s+"));
+  static const QRegularExpression kWhitespace(u"\\s+"_s);
   QString out;
   out.reserve(title.size());
   for (const auto c : title) {
@@ -80,7 +80,7 @@ auto SanitizedDocumentTitle(const QString& title) -> QString {
     }
     out.append(c == u'/' || c == u'\\' || c == u':' ? QChar(u'_') : c);
   }
-  out = out.replace(kWhitespace, QStringLiteral(" ")).trimmed();
+  out = out.replace(kWhitespace, u" "_s).trimmed();
   // Leading dots would make a hidden file, or "..".
   while (out.startsWith(u'.')) out.remove(0, 1);
   return out.left(120).trimmed();

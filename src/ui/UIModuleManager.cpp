@@ -271,13 +271,11 @@ auto CurrentDocumentInfo() -> std::optional<QCborMap> {
         auto* page = edit->CurTextPage();
         if (page == nullptr) return std::nullopt;
         QCborMap m;
-        m.insert(QStringLiteral("id"), TextEditTabWidget::DocumentIdOf(page));
-        m.insert(QStringLiteral("type"), page->property("type").toString());
-        m.insert(QStringLiteral("title"),
-                 page->property("base_title").toString());
-        m.insert(QStringLiteral("path"), page->GetFilePath());
-        m.insert(QStringLiteral("modified"),
-                 page->GetTextPage()->document()->isModified());
+        m.insert(u"id"_s, TextEditTabWidget::DocumentIdOf(page));
+        m.insert(u"type"_s, page->property("type").toString());
+        m.insert(u"title"_s, page->property("base_title").toString());
+        m.insert(u"path"_s, page->GetFilePath());
+        m.insert(u"modified"_s, page->GetTextPage()->document()->isModified());
         return m;
       },
       std::nullopt);

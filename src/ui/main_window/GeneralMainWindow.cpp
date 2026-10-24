@@ -36,7 +36,7 @@
 namespace GpgFrontend::UI {
 
 auto MainWindowChromeStyleSheet() -> QString {
-  return QStringLiteral(R"(
+  return uR"(
 QToolBar {
   spacing: 3px;
   padding: 2px;
@@ -54,7 +54,7 @@ QStatusBar {
   border-top: 1px solid palette(mid);
   background: palette(window);
 }
-)");
+)"_s;
 }
 
 GeneralMainWindow::GeneralMainWindow(QString id, QWidget *parent)

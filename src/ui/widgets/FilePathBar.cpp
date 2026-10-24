@@ -63,11 +63,11 @@ auto ToDisplayUserPath(const QString& path) -> QString {
   const auto home_path = QDir::cleanPath(QDir::homePath());
 
   if (clean_path == home_path) {
-    return QStringLiteral("~");
+    return u"~"_s;
   }
 
   if (clean_path.startsWith(home_path + "/")) {
-    return QStringLiteral("~") + clean_path.mid(home_path.size());
+    return u"~"_s + clean_path.mid(home_path.size());
   }
 
   return clean_path;
@@ -98,7 +98,7 @@ auto SplitPathSegments(const QString& path) -> QList<PathSegment> {
   } else if (clean.startsWith("/")) {
     base = "/";
     remainder = clean.mid(1);
-    segments.append({QStringLiteral("/"), QStringLiteral("/"), false});
+    segments.append({u"/"_s, u"/"_s, false});
   } else {
     // Windows volume roots such as "C:/".
     const auto slash = clean.indexOf('/');
@@ -140,7 +140,7 @@ FilePathBar::FilePathBar(QWidget* parent) : QWidget(parent) {
          "folder, and a relative path is resolved against the current one. "
          "Press Escape to go back to the path buttons."));
   path_edit_->addAction(
-      QIcon::fromTheme(QStringLiteral("folder"), QIcon(":/icons/folder.png")),
+      QIcon::fromTheme(u"folder"_s, QIcon(":/icons/folder.png")),
       QLineEdit::LeadingPosition);
   path_edit_->installEventFilter(this);
 
@@ -303,7 +303,7 @@ auto FilePathBar::make_crumb_button(const QString& text, const QString& path,
 }
 
 auto FilePathBar::make_chevron() -> QLabel* {
-  auto* label = new QLabel(QStringLiteral("›"), crumb_page_);
+  auto* label = new QLabel(u"›"_s, crumb_page_);
   label->setForegroundRole(QPalette::Dark);
   label->setAlignment(Qt::AlignCenter);
   label->setFixedWidth(kChevronWidth);
@@ -320,8 +320,8 @@ void FilePathBar::rebuild_crumbs() {
     return;
   }
 
-  const auto home_icon = QIcon::fromTheme(QStringLiteral("user-home"),
-                                          QIcon(":/icons/folder.png"));
+  const auto home_icon =
+      QIcon::fromTheme(u"user-home"_s, QIcon(":/icons/folder.png"));
 
   QList<QToolButton*> buttons;
   buttons.reserve(static_cast<int>(segments.size()));
@@ -387,7 +387,7 @@ auto FilePathBar::make_edit_button() -> QToolButton* {
 
   if (icon.isNull()) {
     // A blank button would hide the only always-available way in.
-    button->setText(QStringLiteral("✎"));
+    button->setText(u"✎"_s);
   } else {
     button->setIcon(icon);
     button->setIconSize(QSize(14, 14));
@@ -413,7 +413,7 @@ auto FilePathBar::make_overflow_button(const QList<PathSegment>& segments,
   auto* overflow = new QToolButton(crumb_page_);
   overflow->setAutoRaise(true);
   overflow->setFocusPolicy(Qt::NoFocus);
-  overflow->setText(QStringLiteral("…"));
+  overflow->setText(u"…"_s);
   overflow->setToolTip(tr("Show parent folders"));
   overflow->setPopupMode(QToolButton::InstantPopup);
   overflow->setCursor(Qt::PointingHandCursor);

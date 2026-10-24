@@ -41,8 +41,7 @@ class DocFrame final : public QFrame {
   void SetWatermark(const QString& /*text*/, const QColor& /*color*/) {
     watermark_active_ = true;
     if (watermark_pixmap_.isNull()) {
-      watermark_pixmap_ =
-          QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"));
+      watermark_pixmap_ = QPixmap(u":/icons/gpgfrontend_logo.png"_s);
     }
     update();
   }

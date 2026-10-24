@@ -96,9 +96,9 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
 }
 
 void PlainTextEditorPage::init_editor_style() {
-  setObjectName(QStringLiteral("PlainTextEditorPage"));
+  setObjectName(u"PlainTextEditorPage"_s);
 
-  ui_->textPage->setObjectName(QStringLiteral("PlainTextEditor"));
+  ui_->textPage->setObjectName(u"PlainTextEditor"_s);
   ui_->textPage->setAcceptDrops(false);
   ui_->textPage->setLineWrapMode(QPlainTextEdit::WidgetWidth);
   // Lines wrap at the viewport's width, so a scrollbar that comes and goes
@@ -152,13 +152,12 @@ void PlainTextEditorPage::init_editor_style() {
   ui_->encodingLabel->setToolTip(tr("Text encoding."));
 
   setup_status_label(ui_->characterLabel,
-                     QStringLiteral("Ln 9999, Col 999 · 999999 chars · *"));
-  setup_status_label(ui_->lfLabel, QStringLiteral("CRLF"));
-  setup_status_label(ui_->encodingLabel, QStringLiteral("UTF-8"));
-  setup_status_label(ui_->sha256Label,
-                     QStringLiteral("SHA256: a1b2c3d4e5f67890…"));
+                     u"Ln 9999, Col 999 · 999999 chars · *"_s);
+  setup_status_label(ui_->lfLabel, u"CRLF"_s);
+  setup_status_label(ui_->encodingLabel, u"UTF-8"_s);
+  setup_status_label(ui_->sha256Label, u"SHA256: a1b2c3d4e5f67890…"_s);
 
-  ui_->sha256Label->setText(QStringLiteral("SHA256: —"));
+  ui_->sha256Label->setText(u"SHA256: —"_s);
   ui_->sha256Label->setToolTip(tr("SHA-256 checksum of editor content."));
 
   setAcceptDrops(false);
@@ -227,9 +226,8 @@ void PlainTextEditorPage::update_status_bar() {
   const auto cursor = ui_->textPage->textCursor();
   const int line = cursor.blockNumber() + 1;
   const int column = cursor.positionInBlock() + 1;
-  const auto modified_mark = ui_->textPage->document()->isModified()
-                                 ? QStringLiteral(" · *")
-                                 : QString();
+  const auto modified_mark =
+      ui_->textPage->document()->isModified() ? u" · *"_s : QString();
 
   ui_->characterLabel->setText(tr("Ln %1, Col %2 · %3 chars%4")
                                    .arg(line)
@@ -412,9 +410,8 @@ void PlainTextEditorPage::slot_update_sha256() {
   if (!result) return;
 
   const auto hex = result->ConvertToQByteArray().toHex();
-  ui_->sha256Label->setText(
-      QStringLiteral("SHA256: %1…").arg(QString(hex.left(16))));
-  ui_->sha256Label->setToolTip(QStringLiteral("SHA256: %1").arg(QString(hex)));
+  ui_->sha256Label->setText(u"SHA256: %1…"_s.arg(QString(hex.left(16))));
+  ui_->sha256Label->setToolTip(u"SHA256: %1"_s.arg(QString(hex)));
 }
 
 namespace {

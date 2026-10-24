@@ -143,18 +143,18 @@ void SetLabelTextColor(QLabel* label, const QColor& color) {
 auto CreateCard(const QString& title, QWidget* content, QWidget* parent)
     -> QFrame* {
   auto* frame = new QFrame(parent);
-  frame->setObjectName(QStringLiteral("GFCard"));
+  frame->setObjectName(u"GFCard"_s);
   frame->setFrameShape(QFrame::StyledPanel);
 
   // A hairline drawn from the palette rather than the platform's StyledPanel
   // groove, which is a bevel on some styles and nothing at all on others.
-  frame->setStyleSheet(QStringLiteral("QFrame#GFCard {"
-                                      "  border: 1px solid %1;"
-                                      "  border-radius: 8px;"
-                                      "}")
-                           .arg(BorderColor(frame->palette()).name()));
+  frame->setStyleSheet(
+      u"QFrame#GFCard {"
+      "  border: 1px solid %1;"
+      "  border-radius: 8px;"
+      "}"_s.arg(BorderColor(frame->palette()).name()));
 
-  auto* title_label = new QLabel(QStringLiteral("<b>%1</b>").arg(title), frame);
+  auto* title_label = new QLabel(u"<b>%1</b>"_s.arg(title), frame);
   title_label->setTextFormat(Qt::RichText);
   title_label->setWordWrap(true);
 

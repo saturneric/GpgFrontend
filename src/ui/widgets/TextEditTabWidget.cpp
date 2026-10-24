@@ -450,8 +450,7 @@ auto TextEditTabWidget::CurPageTextEdit() const -> PlainTextEditorPage* {
 
 auto TextEditTabWidget::CurPageIsPlainText() const -> bool {
   auto* page = CurTextPage();
-  return page != nullptr &&
-         page->property("type").toString() == QLatin1String("text");
+  return page != nullptr && page->property("type").toString() == "text"_L1;
 }
 
 auto TextEditTabWidget::CurPageCryptoOperations(bool& has_opinion) const
@@ -713,7 +712,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
 
     auto icon_name = target_page->property("icon_name").toString().trimmed();
     if (icon_name.isEmpty()) {
-      icon_name = QStringLiteral(":/icons/file.png");
+      icon_name = u":/icons/file.png"_s;
     }
 
     unsaved_pages.push_back({
@@ -861,7 +860,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
       icon_name = json["icon"].toString().trimmed();
     }
     if (icon_name.isEmpty()) {
-      icon_name = QStringLiteral(":/icons/file.png");
+      icon_name = u":/icons/file.png"_s;
     }
 
     auto page_type = json["type"].toString().trimmed();
@@ -1069,9 +1068,8 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
   }
 
   const bool has_explicit_icon_name = !icon_name.trimmed().isEmpty();
-  const auto effective_icon_name = has_explicit_icon_name
-                                       ? icon_name.trimmed()
-                                       : QStringLiteral(":/icons/file.png");
+  const auto effective_icon_name =
+      has_explicit_icon_name ? icon_name.trimmed() : u":/icons/file.png"_s;
 
   const QIcon effective_icon =
       has_explicit_icon_name ? QIcon(effective_icon_name) : icon;

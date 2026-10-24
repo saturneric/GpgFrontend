@@ -67,8 +67,7 @@ void MainWindow::create_actions() {
     invoke_host_command(
         "org.gpgfrontend.document.new",
         gf::cmd::EncodeMap(
-            gf::cmd::host::DocumentNew::Args{QStringLiteral("text"), QString()},
-            st));
+            gf::cmd::host::DocumentNew::Args{u"text"_s, QString()}, st));
   });
 
   browser_act_ = create_action(
@@ -717,7 +716,7 @@ void MainWindow::create_status_bar() {
 
 void MainWindow::create_dock_windows() {
   key_list_dock_ = new QDockWidget(tr("Key ToolBox"), this);
-  key_list_dock_->setObjectName(QStringLiteral("keyListDock"));
+  key_list_dock_->setObjectName(u"keyListDock"_s);
   key_list_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
                                   Qt::RightDockWidgetArea);
   // Wider default so the vertical category tab column leaves the key table
@@ -794,7 +793,7 @@ void MainWindow::create_dock_windows() {
   view_menu_->addAction(key_list_dock_->toggleViewAction());
 
   info_board_dock_ = new QDockWidget(tr("Status Panel"), this);
-  info_board_dock_->setObjectName(QStringLiteral("infoBoardDock"));
+  info_board_dock_->setObjectName(u"infoBoardDock"_s);
   info_board_dock_->setAllowedAreas(Qt::BottomDockWidgetArea);
   info_board_dock_->setMinimumHeight(120);
   info_board_dock_->setMaximumHeight(QWIDGETSIZE_MAX);
@@ -806,9 +805,8 @@ void MainWindow::create_dock_windows() {
   RevealOnNewResult(info_board_, info_board_dock_);
   // Expanded / Collapsed is a presentation of a visible panel, never a
   // stand-in for hiding it.
-  status_dock_presenter_ =
-      new StatusDockPresenter(this, info_board_dock_, info_board_,
-                              QStringLiteral("status_dock_state"));
+  status_dock_presenter_ = new StatusDockPresenter(
+      this, info_board_dock_, info_board_, u"status_dock_state"_s);
   info_board_->AddBarAction(status_dock_presenter_->ToggleAction());
 
   if (info_board_dock_->widget() != nullptr &&

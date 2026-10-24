@@ -143,7 +143,7 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(GpgFrontend::Thread::TaskRunnerGetter::kTaskRunnerType_IO)
       ->PostTask(
-          QStringLiteral("ComputeFileSha256"),
+          u"ComputeFileSha256"_s,
           [path, hash_holder](const GpgFrontend::DataObjectPtr&) -> int {
             QFile file(path);
             if (!file.open(QIODevice::ReadOnly)) return 0;

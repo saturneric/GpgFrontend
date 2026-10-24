@@ -128,7 +128,7 @@ constexpr int kStartupStatusSpacing = 12;
 auto CreateStartupHeader(QWidget* parent) -> QLayout* {
   auto* logo_label = new QLabel(parent);
   const auto dpr = parent->devicePixelRatioF();
-  auto logo = QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
+  auto logo = QPixmap(u":/icons/gpgfrontend_logo.png"_s)
                   .scaled(QSize(kStartupLogoSize, kStartupLogoSize) * dpr,
                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
   logo.setDevicePixelRatio(dpr);
@@ -142,9 +142,8 @@ auto CreateStartupHeader(QWidget* parent) -> QLayout* {
   title_font.setPointSizeF(title_font.pointSizeF() * 1.3);
   title_label->setFont(title_font);
 
-  auto* version_label = new QLabel(
-      QStringLiteral("%1 %2").arg(GetProjectName(), GetProjectVersion()),
-      parent);
+  auto* version_label =
+      new QLabel(u"%1 %2"_s.arg(GetProjectName(), GetProjectVersion()), parent);
   version_label->setTextFormat(Qt::PlainText);
   SetLabelTextColor(version_label, MutedTextColor(version_label->palette()));
 
@@ -192,11 +191,10 @@ void WaitEnvCheckingProcess() {
   progress_bar->setFixedHeight(kStartupProgressHeight);
   const auto radius = kStartupProgressHeight / 2;
   progress_bar->setStyleSheet(
-      QStringLiteral("QProgressBar { border: none; border-radius: %1px;"
-                     " background: %2; }"
-                     "QProgressBar::chunk { border-radius: %1px;"
-                     " background: %3; }")
-          .arg(radius)
+      u"QProgressBar { border: none; border-radius: %1px;"
+      " background: %2; }"
+      "QProgressBar::chunk { border-radius: %1px;"
+      " background: %3; }"_s.arg(radius)
           .arg(BorderColor(progress_bar->palette()).name(),
                progress_bar->palette().color(QPalette::Highlight).name()));
 
@@ -217,17 +215,17 @@ void WaitEnvCheckingProcess() {
 
   // Wide enough for "100%" from the start, so the step line beside it never
   // shifts as the number grows a digit.
-  auto* percent_label = new QLabel(QStringLiteral("0%"));
+  auto* percent_label = new QLabel(u"0%"_s);
   percent_label->setTextFormat(Qt::PlainText);
   percent_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   percent_label->setFixedWidth(
-      percent_label->fontMetrics().horizontalAdvance(QStringLiteral("100%")));
+      percent_label->fontMetrics().horizontalAdvance(u"100%"_s));
   SetLabelTextColor(percent_label, MutedTextColor(percent_label->palette()));
   // Follows the bar rather than the report, so the number counts up with the
   // glide instead of racing ahead of it.
   QObject::connect(progress_bar, &QProgressBar::valueChanged, percent_label,
                    [percent_label](int value) {
-                     percent_label->setText(QStringLiteral("%1%").arg(value));
+                     percent_label->setText(u"%1%"_s.arg(value));
                    });
 
   auto* status_layout = new QHBoxLayout;
@@ -565,23 +563,21 @@ void InitUITranslations() {
   registered_translators.clear();
 
   auto* translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
-                       QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
+  if (translator->load(QLocale(), "qt"_L1, "_"_L1, ":/i18n_qt"_L1, ".qm"_L1)) {
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }
 
   translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(QLocale(), QLatin1String("qtbase"), QLatin1String("_"),
-                       QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
+  if (translator->load(QLocale(), "qtbase"_L1, "_"_L1, ":/i18n_qt"_L1,
+                       ".qm"_L1)) {
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }
 
   translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(QLocale(), QLatin1String(PROJECT_NAME),
-                       QLatin1String("."), QLatin1String(":/i18n"),
-                       QLatin1String(".qm"))) {
+  if (translator->load(QLocale(), QLatin1StringView(PROJECT_NAME), "."_L1,
+                       ":/i18n"_L1, ".qm"_L1)) {
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }

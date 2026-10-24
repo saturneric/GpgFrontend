@@ -170,7 +170,7 @@ void InfoBoardWidget::apply_text_direction() {
 }
 
 void InfoBoardWidget::InitUI() {
-  setObjectName(QStringLiteral("InfoBoardWidget"));
+  setObjectName(u"InfoBoardWidget"_s);
 
   setup_tool_buttons();
   setup_info_board();
@@ -285,14 +285,14 @@ auto InfoBoardWidget::StatusColor(InfoBoardStatus status) const -> QColor {
 auto InfoBoardWidget::StatusIconPath(InfoBoardStatus status) const -> QString {
   switch (status) {
     case kINFO_ERROR_OK:
-      return QStringLiteral(":/icons/stamp_success.png");
+      return u":/icons/stamp_success.png"_s;
     case kINFO_ERROR_WARN:
-      return QStringLiteral(":/icons/stamp_warning.png");
+      return u":/icons/stamp_warning.png"_s;
     case kINFO_ERROR_CRITICAL:
-      return QStringLiteral(":/icons/stamp_failed.png");
+      return u":/icons/stamp_failed.png"_s;
     case kINFO_ERROR_NEUTRAL:
     default:
-      return QStringLiteral(":/icons/stamp_info.png");
+      return u":/icons/stamp_info.png"_s;
   }
 }
 
@@ -383,11 +383,11 @@ auto InfoBoardWidget::build_status_symbol(InfoBoardStatus status) const
     -> QString {
   switch (status) {
     case kINFO_ERROR_OK:
-      return QStringLiteral("✓  ") + StatusTitle(status).toUpper();
+      return u"✓  "_s + StatusTitle(status).toUpper();
     case kINFO_ERROR_WARN:
-      return QStringLiteral("⚠  ") + StatusTitle(status).toUpper();
+      return u"⚠  "_s + StatusTitle(status).toUpper();
     case kINFO_ERROR_CRITICAL:
-      return QStringLiteral("✗  ") + StatusTitle(status).toUpper();
+      return u"✗  "_s + StatusTitle(status).toUpper();
     default:
       return StatusTitle(status).toUpper();
   }
@@ -418,13 +418,13 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
   const auto status_name = [&]() -> QString {
     switch (status) {
       case kINFO_ERROR_OK:
-        return QStringLiteral("ok");
+        return u"ok"_s;
       case kINFO_ERROR_WARN:
-        return QStringLiteral("warn");
+        return u"warn"_s;
       case kINFO_ERROR_CRITICAL:
-        return QStringLiteral("critical");
+        return u"critical"_s;
       default:
-        return QStringLiteral("neutral");
+        return u"neutral"_s;
     }
   }();
 
@@ -442,9 +442,8 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
   // this widget's tooltip in the status color, and the tooltip should keep
   // the platform's own look.
   ui_->statusIndicatorLabel->setStyleSheet(
-      QStringLiteral("QLabel#statusIndicatorLabel { background-color: %1; "
-                     "border-radius: 7px; }")
-          .arg(indicator_color.name()));
+      u"QLabel#statusIndicatorLabel { background-color: %1; "
+      "border-radius: 7px; }"_s.arg(indicator_color.name()));
   ui_->statusIndicatorLabel->setToolTip(StatusIndicatorToolTip(status));
 
   current_status_ = status;

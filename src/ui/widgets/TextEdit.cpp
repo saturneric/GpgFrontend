@@ -538,13 +538,13 @@ void TextEdit::SlotAppendText2CurTextPage(const QString& text, bool reveal) {
   const auto current_text = edit->toPlainText();
   if (!current_text.isEmpty() && !current_text.endsWith('\n') &&
       !text.startsWith('\n')) {
-    append_cursor.insertText(QStringLiteral("\n"));
+    append_cursor.insertText(u"\n"_s);
   }
 
   append_cursor.insertText(text);
 
   if (!text.endsWith('\n')) {
-    append_cursor.insertText(QStringLiteral("\n"));
+    append_cursor.insertText(u"\n"_s);
   }
 
   append_cursor.endEditBlock();
@@ -860,7 +860,7 @@ auto TextEdit::OpenDocument(const QString& type, const QString& title,
                             const QString& path, const GFBuffer& content,
                             bool saved, bool modified) -> qint64 {
   auto* page = qobject_cast<PlainTextEditorPage*>(tab_widget_->SlotNewTab(
-      type.isEmpty() ? QStringLiteral("text") : type, title, QIcon(), {}));
+      type.isEmpty() ? u"text"_s : type, title, QIcon(), {}));
   if (page == nullptr) return 0;
 
   page->SetContentFromBytes(content.ConvertToQByteArray());

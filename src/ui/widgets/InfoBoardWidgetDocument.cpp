@@ -45,57 +45,49 @@ auto InfoBoardWidget::build_header_html(InfoBoardStatus status,
   const int base_px = ReportFontPixelSize(0);
   const int small_px = ReportFontPixelSize(-1);
   const int large_px = ReportFontPixelSize(3);
-  QString html = QStringLiteral(
-                     "<span style='font-size:%3px; color:%1; "
-                     "letter-spacing:2px;'>%2</span>")
-                     .arg(text_color, tr("GPGFRONTEND SECURITY REPORT"),
-                          QString::number(small_px));
+  QString html =
+      u"<span style='font-size:%3px; color:%1; "
+      "letter-spacing:2px;'>%2</span>"_s.arg(text_color,
+                                             tr("GPGFRONTEND SECURITY REPORT"),
+                                             QString::number(small_px));
   if (!subtitle.isEmpty()) {
-    html +=
-        QStringLiteral("<br/><span style='font-size:%3px; color:%1;'>%2</span>")
-            .arg(text_color, subtitle, QString::number(base_px));
+    html += u"<br/><span style='font-size:%3px; color:%1;'>%2</span>"_s.arg(
+        text_color, subtitle, QString::number(base_px));
   }
   const QString symbol = build_status_symbol(status);
-  html += QStringLiteral(
-              "<br/><br/><span style='font-size:%3px; font-weight:bold; "
-              "color:%1;'>%2</span>")
-              .arg(accent, symbol, QString::number(large_px));
+  html +=
+      u"<br/><br/><span style='font-size:%3px; font-weight:bold; "
+      "color:%1;'>%2</span>"_s.arg(accent, symbol, QString::number(large_px));
   return html;
 }
 
 auto InfoBoardWidget::build_card_stylesheet(const QColor& color) const
     -> QString {
-  return QStringLiteral(
-             "#DocResultRow { background-color: rgba(%1,%2,%3,10);"
-             " border: 1px solid rgba(%1,%2,%3,35);"
-             " border-left: 3px solid %4; border-radius: 4px; }")
-      .arg(color.red())
-      .arg(color.green())
-      .arg(color.blue())
-      .arg(color.name());
+  return u"#DocResultRow { background-color: rgba(%1,%2,%3,10);"
+         " border: 1px solid rgba(%1,%2,%3,35);"
+         " border-left: 3px solid %4; border-radius: 4px; }"_s.arg(color.red())
+             .arg(color.green())
+             .arg(color.blue())
+             .arg(color.name());
 }
 
 auto InfoBoardWidget::build_chip_stylesheet(const QColor& color) const
     -> QString {
-  const QString chip_bg = QStringLiteral("rgba(%1,%2,%3,12)")
-                              .arg(color.red())
+  const QString chip_bg = u"rgba(%1,%2,%3,12)"_s.arg(color.red())
                               .arg(color.green())
                               .arg(color.blue());
-  const QString chip_border = QStringLiteral("rgba(%1,%2,%3,35)")
-                                  .arg(color.red())
+  const QString chip_border = u"rgba(%1,%2,%3,35)"_s.arg(color.red())
                                   .arg(color.green())
                                   .arg(color.blue());
-  return QStringLiteral(
-             "background-color: %1; border: 1px solid %2;"
-             " border-radius: 4px; padding: 3px 8px;")
-      .arg(chip_bg, chip_border);
+  return u"background-color: %1; border: 1px solid %2;"
+         " border-radius: 4px; padding: 3px 8px;"_s.arg(chip_bg, chip_border);
 }
 
 auto InfoBoardWidget::create_card(QWidget* parent, InfoBoardStatus status) const
     -> QFrame* {
   const QColor ic = StatusColor(status);
   auto* card = new QFrame(parent);
-  card->setObjectName(QStringLiteral("DocResultRow"));
+  card->setObjectName(u"DocResultRow"_s);
   card->setStyleSheet(build_card_stylesheet(ic));
   auto* cl = new QVBoxLayout(card);
   cl->setContentsMargins(10, 6, 10, 6);
@@ -121,7 +113,7 @@ void InfoBoardWidget::add_card_header(QVBoxLayout* card_layout, QWidget* parent,
   // resolves down a different path into the font database -- and can drop the
   // pixel size the document set. The stylesheet keeps only the colour.
   lbl->setFont(ReportFont(0, true));
-  lbl->setStyleSheet(QStringLiteral("color: %1;").arg(ic.name()));
+  lbl->setStyleSheet(u"color: %1;"_s.arg(ic.name()));
   hdr->addWidget(icon, 0, Qt::AlignVCenter);
   hdr->addWidget(lbl, 1);
   card_layout->addLayout(hdr);
@@ -149,10 +141,10 @@ void InfoBoardWidget::setup_status_page_layout(QVBoxLayout* page_layout) {
   placeholder_label_->setAlignment(Qt::AlignCenter);
   placeholder_label_->setWordWrap(true);
   placeholder_label_->setStyleSheet(
-      QStringLiteral("color: palette(windowText); font-style: italic;"));
+      u"color: palette(windowText); font-style: italic;"_s);
 
   doc_frame_ = new DocFrame(ui_->page_1);
-  doc_frame_->setObjectName(QStringLiteral("DocFrame"));
+  doc_frame_->setObjectName(u"DocFrame"_s);
 
   // The whole report is monospaced, not just its hash rows. It is rendered
   // straight to a PNG that people file and share (see render_doc_pixmap), so
@@ -192,7 +184,7 @@ void InfoBoardWidget::create_field_rows(QWidget* parent,
     lbl->setFixedWidth(StyleConstants::kKeyColumnWidth);
     lbl->setAlignment(Qt::AlignRight | Qt::AlignTop);
     lbl->setFont(ReportFont(-1, true));
-    lbl->setStyleSheet(QStringLiteral("color: palette(text);"));
+    lbl->setStyleSheet(u"color: palette(text);"_s);
     return lbl;
   };
 
@@ -201,7 +193,7 @@ void InfoBoardWidget::create_field_rows(QWidget* parent,
     s->setFrameShape(QFrame::VLine);
     s->setFrameShadow(QFrame::Plain);
     s->setFixedWidth(1);
-    s->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    s->setStyleSheet(u"color: palette(mid);"_s);
     return s;
   };
 
@@ -251,14 +243,14 @@ void InfoBoardWidget::create_footer(QVBoxLayout* doc_layout) {
   auto* sep_bot = new QFrame(doc_frame_);
   sep_bot->setFrameShape(QFrame::HLine);
   sep_bot->setFrameShadow(QFrame::Plain);
-  sep_bot->setStyleSheet(QStringLiteral("color: palette(mid);"));
+  sep_bot->setStyleSheet(u"color: palette(mid);"_s);
 
   auto* footer_row = new QHBoxLayout();
   footer_row->setContentsMargins(0, 0, 0, 0);
   footer_row->setSpacing(8);
 
   const QFont footer_font = ReportFont(-3);
-  const QString footer_style = QStringLiteral("color: palette(text);");
+  const QString footer_style = u"color: palette(text);"_s;
 
   id_label_ = new QLabel(doc_frame_);
   id_label_->setFont(footer_font);
@@ -313,7 +305,7 @@ void InfoBoardWidget::init_status_page() {
   sep_top_ = new QFrame(doc_frame_);
   sep_top_->setFrameShape(QFrame::HLine);
   sep_top_->setFrameShadow(QFrame::Plain);
-  sep_top_->setStyleSheet(QStringLiteral("color: palette(mid);"));
+  sep_top_->setStyleSheet(u"color: palette(mid);"_s);
 
   // Field rows
   auto* fields_widget = new QWidget(doc_frame_);
@@ -323,7 +315,7 @@ void InfoBoardWidget::init_status_page() {
   extra_sep_ = new QFrame(doc_frame_);
   extra_sep_->setFrameShape(QFrame::HLine);
   extra_sep_->setFrameShadow(QFrame::Plain);
-  extra_sep_->setStyleSheet(QStringLiteral("color: palette(mid);"));
+  extra_sep_->setStyleSheet(u"color: palette(mid);"_s);
   extra_sep_->setVisible(false);
 
   extra_widget_ = new QWidget(doc_frame_);
@@ -461,7 +453,7 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
 
       auto* kl = new QLabel(field.first, card);
       kl->setFont(kf);
-      kl->setStyleSheet(QStringLiteral("color: palette(text);"));
+      kl->setStyleSheet(u"color: palette(text);"_s);
       kl->setFixedWidth(key_w);
       // Wrap rather than clip the rare key that still exceeds the max column.
       kl->setWordWrap(true);
@@ -473,7 +465,7 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
       // No hash-column special case: the whole document is monospaced, so
       // every value in it already is.
       vl->setFont(ReportFont(-1));
-      vl->setStyleSheet(QStringLiteral("color: palette(text);"));
+      vl->setStyleSheet(u"color: palette(text);"_s);
 
       row->addWidget(kl);
       row->addWidget(vl, 1);

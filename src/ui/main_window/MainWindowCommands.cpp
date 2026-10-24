@@ -69,12 +69,11 @@ auto Ok() -> Outcome<Unit> { return Outcome<Unit>::Success({}); }
 
 auto NoWindow() -> Outcome<Unit> {
   return Outcome<Unit>::Failure(GF_CMD_E_UNAVAILABLE,
-                                QStringLiteral("the main window is gone"));
+                                u"the main window is gone"_s);
 }
 
 auto NoDocument() -> Outcome<Unit> {
-  return Outcome<Unit>::Failure(GF_CMD_E_BAD_ARGS,
-                                QStringLiteral("no such document"));
+  return Outcome<Unit>::Failure(GF_CMD_E_BAD_ARGS, u"no such document"_s);
 }
 
 }  // namespace
@@ -102,8 +101,8 @@ struct HostCommandHandlers {
     using R = Outcome<host::DocumentNew::Result>;
     if (window.isNull()) return R::Failure(GF_CMD_E_UNAVAILABLE, {});
     auto* page = window->edit_->TabWidget()->SlotNewTab(
-        a.type.isEmpty() ? QStringLiteral("text") : a.type,
-        SanitizedDocumentTitle(a.title), QIcon(), {});
+        a.type.isEmpty() ? u"text"_s : a.type, SanitizedDocumentTitle(a.title),
+        QIcon(), {});
     return R::Success({TextEditTabWidget::DocumentIdOf(page)});
   }
 
@@ -227,14 +226,13 @@ struct HostCommandHandlers {
       -> Outcome<Unit> {
     if (window.isNull()) return NoWindow();
     if (!ctx.caller.isEmpty() && !Module::IsOwnedName(ctx.caller, a.encoder)) {
-      return Outcome<Unit>::Failure(
-          GF_CMD_E_DENIED, QStringLiteral("not the caller's own encoder"));
+      return Outcome<Unit>::Failure(GF_CMD_E_DENIED,
+                                    u"not the caller's own encoder"_s);
     }
     if (!CommandRegistry::Instance()
              .ProvidersWithFlag(gf::cmd::kOutputEncoder)
              .contains(a.encoder)) {
-      return Outcome<Unit>::Failure(GF_CMD_E_UNKNOWN,
-                                    QStringLiteral("no such encoder"));
+      return Outcome<Unit>::Failure(GF_CMD_E_UNKNOWN, u"no such encoder"_s);
     }
     if (Focus(a.target) == nullptr) return NoDocument();
     window->exec_encoded_encrypt_helper(a.encoder, a.sign);
@@ -287,7 +285,7 @@ struct HostCommandHandlers {
     if (window.isNull()) return NoWindow();
     const auto status = Lua::OpenDialogMount(ctx.caller, a.view.id, {}, window);
     if (status != GF_CMD_OK) {
-      return Outcome<Unit>::Failure(status, QStringLiteral("no such view"));
+      return Outcome<Unit>::Failure(status, u"no such view"_s);
     }
     return Ok();
   }
@@ -411,9 +409,9 @@ void MainWindow::invoke_host_command(const char* id) {
   // them by its caller, through the overload below.
   const auto descriptor = CommandRegistry::Instance().Describe(command);
   const auto declares_args =
-      descriptor.has_value() && !descriptor->value(QStringLiteral("args"))
+      descriptor.has_value() && !descriptor->value(u"args"_s)
                                      .toMap()
-                                     .value(QStringLiteral("fields"))
+                                     .value(u"fields"_s)
                                      .toArray()
                                      .isEmpty();
   invoke_host_command(id, declares_args ? target : QCborMap{});
@@ -422,7 +420,7 @@ void MainWindow::invoke_host_command(const char* id) {
 void MainWindow::invoke_host_command(const char* id, const QCborMap& args) {
   const auto command = QString::fromLatin1(id);
   const auto ticket = CommandRegistry::Instance().Invoke(
-      command, args, {}, CommandCaller{{}, 0, QStringLiteral("host")}, {},
+      command, args, {}, CommandCaller{{}, 0, u"host"_s}, {},
       [command](gf::cmd::RawResult r) {
         if (r.status != GF_CMD_OK) {
           LOG_W() << "host command" << command << "failed:" << r.status
