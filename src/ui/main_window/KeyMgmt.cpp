@@ -866,8 +866,12 @@ void KeyMgmt::SlotExportKeyToKeyPackage() {
 
   auto* dialog = new ExportKeyPackageDialog(
       key_list_->GetCurrentGpgContextChannel(), keys, this);
-  dialog->exec();
-  emit SignalStatusBarChanged(tr("key(s) exported"));
+  // Modal and deleted on close by itself; show() rather than exec() spares
+  // the nested event loop, and the status line waits for a real export.
+  connect(dialog, &QDialog::accepted, this,
+          [this]() { emit SignalStatusBarChanged(tr("key(s) exported")); });
+  dialog->setModal(true);
+  dialog->show();
 }
 
 void KeyMgmt::SlotExportKeyToClipboard() {
@@ -1066,8 +1070,13 @@ void KeyMgmt::backup_all_private_keys() {
 
   auto* dialog = new ExportKeyPackageDialog(
       key_list_->GetCurrentGpgContextChannel(), keys, this);
-  dialog->exec();
-  emit SignalStatusBarChanged(tr("private key(s) backed up"));
+  // Modal and deleted on close by itself; show() rather than exec() spares
+  // the nested event loop, and the status line waits for a real export.
+  connect(dialog, &QDialog::accepted, this, [this]() {
+    emit SignalStatusBarChanged(tr("private key(s) backed up"));
+  });
+  dialog->setModal(true);
+  dialog->show();
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {

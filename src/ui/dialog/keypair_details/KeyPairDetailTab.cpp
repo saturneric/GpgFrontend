@@ -99,6 +99,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   algorithm_detail_var_label_->setObjectName(u"algorithmDetailValue"_s);
   key_version_var_label_ = new QLabel();
   primary_key_exist_var_label_ = new QLabel();
+  primary_key_exist_var_label_->setObjectName(u"primaryKeyExistenceValue"_s);
 
   auto* mvbox = new QVBoxLayout();
   auto* vbox_kd = new QGridLayout();

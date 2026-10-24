@@ -88,6 +88,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   auto* uid_buttons_layout = new QGridLayout();
 
   auto* add_subkey_button = new QPushButton(tr("New Subkey"));
+  // Named for the manual's screenshots, which point at these two.
+  add_subkey_button->setObjectName(u"newSubkeyButton"_s);
   auto* add_adsk_button = new QPushButton(tr("Add ADSK(s)"));
 
   const bool can_add_subkey =
@@ -108,6 +110,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   uid_buttons_layout->addWidget(add_adsk_button, 0, 1);
 
   export_subkey_button_ = new QPushButton(tr("Export Subkey"));
+  export_subkey_button_->setObjectName(u"exportSubkeyButton"_s);
   export_subkey_button_->setFlat(true);
   if (!export_subkey_supported_) export_subkey_button_->hide();
   export_subkey_button_->setEnabled(export_subkey_supported_);
