@@ -143,7 +143,7 @@ auto RevokeModulePublisherKey(const QByteArray& publisher_key) -> bool {
   if (!LoadList(kModuleTrustedPublisherKeysObject, stored)) return false;
 
   const auto text = KeyText(publisher_key);
-  QContainer<ModuleTrustedPublisherKeySO> kept;
+  QList<ModuleTrustedPublisherKeySO> kept;
   for (const auto& k : stored.keys) {
     if (k.publisher_key != text) kept.append(k);
   }

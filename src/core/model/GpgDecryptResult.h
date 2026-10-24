@@ -39,7 +39,7 @@ class GF_CORE_EXPORT GpgDecryptResult {
 
   auto GetRaw() -> gpgme_decrypt_result_t;
 
-  auto Recipients() -> QContainer<GpgRecipient>;
+  auto Recipients() -> QList<GpgRecipient>;
 
   auto UnsupportedAlgorithm() -> QString;
 

@@ -52,10 +52,11 @@ namespace GpgFrontend {
  * @param support_ifs engine capability requirements that must be satisfied
  * @return TaskHandler for the scheduled task, or a null handler if unsupported
  */
-auto GF_CORE_EXPORT
-RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
-                 const GpgOperationCallback& callback, const QString& operation,
-                 const QContainer<EngineSupportIf>& support_ifs)
+auto GF_CORE_EXPORT RunGpgOperaAsync(int channel,
+                                     const GpgOperaRunnable& runnable,
+                                     const GpgOperationCallback& callback,
+                                     const QString& operation,
+                                     const QList<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler;
 
 /**
@@ -70,9 +71,10 @@ RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
  * @param support_ifs engine capability requirements that must be satisfied
  * @return tuple of (GpgError, DataObjectPtr) with the operation result
  */
-auto GF_CORE_EXPORT RunGpgOperaSync(
-    int channel, const GpgOperaRunnable& runnable, const QString& operation,
-    const QContainer<EngineSupportIf>& support_ifs)
+auto GF_CORE_EXPORT RunGpgOperaSync(int channel,
+                                    const GpgOperaRunnable& runnable,
+                                    const QString& operation,
+                                    const QList<EngineSupportIf>& support_ifs)
     -> std::tuple<GpgError, DataObjectPtr>;
 
 /**

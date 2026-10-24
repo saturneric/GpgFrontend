@@ -54,9 +54,8 @@ auto GpgSignResult::GetRaw() -> gpgme_sign_result_t {
   return result_ref_.get();
 }
 
-auto GpgSignResult::InvalidSigners()
-    -> QContainer<std::pair<QString, GpgError>> {
-  QContainer<std::pair<QString, GpgError>> result;
+auto GpgSignResult::InvalidSigners() -> QList<std::pair<QString, GpgError>> {
+  QList<std::pair<QString, GpgError>> result;
 
   if (gf_result_ref_ != nullptr) {
     return result;
@@ -95,8 +94,8 @@ auto GpgSignResult::ErrorDetail() -> QString {
   return {};
 }
 
-auto GpgSignResult::Signatures() -> QContainer<GpgSignature> {
-  QContainer<GpgSignature> signatures;
+auto GpgSignResult::Signatures() -> QList<GpgSignature> {
+  QList<GpgSignature> signatures;
 
   if (gf_result_ref_ != nullptr) {
     for (const auto& sig : gf_result_ref_->signatures) {

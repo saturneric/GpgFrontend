@@ -44,7 +44,7 @@ class Event;
 using EventReference = QSharedPointer<Event>;
 using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
-using Events = QContainer<Event>;
+using Events = QList<Event>;
 
 /**
  * @brief A named, parameterized event in the module system.

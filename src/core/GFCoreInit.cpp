@@ -1207,7 +1207,7 @@ void ReopenKeyDatabasesInUse(const QSet<QString>& ids,
 
 }  // namespace
 
-auto PrepareKeyDatabaseRuntime(const QContainer<KeyDatabaseInfo>& key_dbs,
+auto PrepareKeyDatabaseRuntime(const QList<KeyDatabaseInfo>& key_dbs,
                                int default_index,
                                const KeyDatabaseRuntimeOptions& options,
                                KeyDatabaseApplyResult& result)
@@ -1286,7 +1286,7 @@ void InstallKeyDatabaseRuntimeReclaimer() {
   });
 }
 
-auto ApplyKeyDatabaseRuntime(const QContainer<KeyDatabaseMove>& moves)
+auto ApplyKeyDatabaseRuntime(const QList<KeyDatabaseMove>& moves)
     -> KeyDatabaseApplyResult {
   std::lock_guard<std::mutex> lock(g_key_db_apply_lock);
 

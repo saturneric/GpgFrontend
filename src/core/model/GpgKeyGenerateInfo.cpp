@@ -40,7 +40,7 @@ namespace GpgFrontend {
 
 namespace {
 
-auto FindAlgoByIdAndType(const QContainer<KeyAlgo> &algos, const QString &id,
+auto FindAlgoByIdAndType(const QList<KeyAlgo> &algos, const QString &id,
                          const QString &type) -> KeyAlgo {
   const auto it =
       std::find_if(algos.cbegin(), algos.cend(), [&](const KeyAlgo &algo) {
@@ -64,8 +64,8 @@ auto FindPrimaryAlgo(const QString &id, const QString &type) -> KeyAlgo {
 // use, by allowed operations). Generate them from a single source of truth
 // instead of repeating near-identical entries.
 
-auto RsaFamily(int opera) -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos;
+auto RsaFamily(int opera) -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos;
   for (int bits : {1024, 2048, 3072, 4096}) {
     EngineSupportList support{{OpenPGPEngine::kGNUPG, "2.2.0"}};
     // RFC 9580 §12.4: "MUST NOT generate RSA keys of a size less than 3072
@@ -82,8 +82,8 @@ auto RsaFamily(int opera) -> QContainer<KeyAlgo> {
   return algos;
 }
 
-auto DsaFamily(int opera) -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos;
+auto DsaFamily(int opera) -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos;
   for (int bits : {1024, 2048, 3072}) {
     // RFC 9580 §12.5: implementations MUST NOT generate DSA keys. The rPGP
     // engine does not offer DSA generation (GnuPG keeps it for legacy use).
@@ -97,8 +97,8 @@ auto DsaFamily(int opera) -> QContainer<KeyAlgo> {
   return algos;
 }
 
-auto ElgamalFamily() -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos;
+auto ElgamalFamily() -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos;
   for (int bits : {1024, 2048, 3072, 4096}) {
     algos.append(KeyAlgoSpec{.id = QString("elg%1").arg(bits),
                              .name = "ELG-E",
@@ -121,9 +121,8 @@ struct EccCurveSpec {
   EngineSupportList support;
 };
 
-auto EccFamily(int opera, const QContainer<EccCurveSpec> &curves)
-    -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos;
+auto EccFamily(int opera, const QList<EccCurveSpec> &curves) -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos;
   algos.reserve(curves.size());
   for (const auto &c : curves) {
     algos.append(KeyAlgoSpec{.id = c.id,
@@ -137,7 +136,7 @@ auto EccFamily(int opera, const QContainer<EccCurveSpec> &curves)
   return algos;
 }
 
-auto SlhDsaFamily(int opera) -> QContainer<KeyAlgo> {
+auto SlhDsaFamily(int opera) -> QList<KeyAlgo> {
   struct Variant {
     const char *id;
     const char *name;
@@ -149,7 +148,7 @@ auto SlhDsaFamily(int opera) -> QContainer<KeyAlgo> {
       Variant{"slhdsashake256s", "SLH-DSA-SHAKE-256S", 256},
   };
 
-  QContainer<KeyAlgo> algos;
+  QList<KeyAlgo> algos;
   for (const auto &v : kVariants) {
     algos.append(KeyAlgoSpec{.id = v.id,
                              .name = v.name,
@@ -166,7 +165,7 @@ auto SlhDsaFamily(int opera) -> QContainer<KeyAlgo> {
 // the cv25519 and x448 partners differ in engine support between key sizes.
 auto KyberHybridCurves(const EngineSupportList &cv25519_support,
                        const EngineSupportList &x448_support)
-    -> QContainer<QPair<KeyAlgo, EngineSupportList>> {
+    -> QList<QPair<KeyAlgo, EngineSupportList>> {
   const EngineSupportList gnupg_only{{OpenPGPEngine::kGNUPG, "2.5.0"}};
   return {
       {FindSubAlgo("cv25519", "ECDH"), cv25519_support},
@@ -191,9 +190,9 @@ const KeyAlgo KeyGenerateInfo::kNoneAlgo =
                 .support = {{OpenPGPEngine::kGNUPG, "0.0.0"},
                             {OpenPGPEngine::kRPGP, "0.0.0"}}};
 
-const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos =
-    []() -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos{kNoneAlgo};
+const QList<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos =
+    []() -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos{kNoneAlgo};
 
   algos += RsaFamily(kENCRYPT | kSIGN | kAUTH | kCERT);
   algos += DsaFamily(kSIGN | kAUTH | kCERT);
@@ -226,7 +225,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos =
   return algos;
 }();
 
-const QContainer<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
+const QList<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
     KeyAlgoSpec{.id = "mldsa65",
                 .name = "ML-DSA",
                 .type = "HYBRID-SIGN",
@@ -247,9 +246,8 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
                 .traits = kPQC},
 };
 
-const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos =
-    []() -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos{kNoneAlgo};
+const QList<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = []() -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos{kNoneAlgo};
 
   algos += RsaFamily(kENCRYPT | kSIGN | kAUTH);
   algos += DsaFamily(kSIGN | kAUTH);
@@ -295,7 +293,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos =
 }();
 
 // Refer: https://lists.gnupg.org/pipermail/gnupg-devel/2024-May/035537.html
-const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
+const QList<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
     KeyAlgoSpec{
         .id = "ky768",
         .name = "Kyber",
@@ -340,8 +338,8 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
                 .traits = kPQC},
 };
 
-auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos;
+auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos;
 
   for (const auto &algo : kPrimaryKeyAlgos) {
     if (!GpgContextSupportIf(channel, algo.SupportedVersion())) continue;
@@ -368,9 +366,8 @@ auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
   return algos;
 }
 
-auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
-    -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> algos;
+auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel) -> QList<KeyAlgo> {
+  QList<KeyAlgo> algos;
 
   for (const auto &algo : kSubKeyAlgos) {
     if (!GpgContextSupportIf(channel, algo.SupportedVersion())) continue;
@@ -396,7 +393,7 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
 }
 
 auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel, const GpgKey &key)
-    -> QContainer<KeyAlgo> {
+    -> QList<KeyAlgo> {
   auto algos = GetSupportedSubkeyAlgo(channel);
   auto &ctx = OpenPGPContext::GetInstance(channel);
   return RunRegisteredForward<FilterKeyAlgoByKeyTag>(ctx, key, algos);
@@ -785,7 +782,7 @@ auto KeyAlgo::MatchesAlgoId(const QString &algo_id) const -> bool {
                      });
 }
 
-auto KeyAlgo::SupportedVersion() const -> QContainer<EngineSupportIf> {
+auto KeyAlgo::SupportedVersion() const -> QList<EngineSupportIf> {
   return support_ifs_;
 }
 
@@ -797,8 +794,8 @@ auto KeyAlgo::operator!=(const KeyAlgo &o) const -> bool {
   return !(*this == o);
 }
 
-[[nodiscard]] auto KeyAlgo::SubAlgos(int channel) const -> QContainer<KeyAlgo> {
-  auto result = QContainer<KeyAlgo>();
+[[nodiscard]] auto KeyAlgo::SubAlgos(int channel) const -> QList<KeyAlgo> {
+  auto result = QList<KeyAlgo>();
   for (const auto &sub_algo : sub_algos_) {
     if (GpgContextSupportIf(channel, sub_algo.second)) {
       result.append(sub_algo.first);

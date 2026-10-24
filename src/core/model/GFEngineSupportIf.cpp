@@ -51,8 +51,8 @@ auto EngineSupportIf::IsSupport(const OpenPGPContext& ctx) const -> bool {
   return true;
 }
 
-auto GpgContextSupportIf(int channel,
-                         const QContainer<EngineSupportIf>& if_cond) -> bool {
+auto GpgContextSupportIf(int channel, const QList<EngineSupportIf>& if_cond)
+    -> bool {
   return std::any_of(
       if_cond.begin(), if_cond.end(), [=](const EngineSupportIf& cond) -> bool {
         return cond.IsSupport(OpenPGPContext::GetInstance(channel));
@@ -60,8 +60,7 @@ auto GpgContextSupportIf(int channel,
 }
 
 auto GpgContextSupportIfWithLog(int channel, const QString& log,
-                                const QContainer<EngineSupportIf>& if_cond)
-    -> bool {
+                                const QList<EngineSupportIf>& if_cond) -> bool {
   auto supported = GpgContextSupportIf(channel, if_cond);
   if (!supported) {
     auto& ctx = OpenPGPContext::GetInstance(channel);

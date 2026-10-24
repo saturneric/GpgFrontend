@@ -74,8 +74,9 @@ class GF_CORE_EXPORT EngineSupportIf {
  * @return true
  * @return false
  */
-auto GF_CORE_EXPORT GpgContextSupportIf(
-    int channel, const QContainer<EngineSupportIf>& if_cond) -> bool;
+auto GF_CORE_EXPORT GpgContextSupportIf(int channel,
+                                        const QList<EngineSupportIf>& if_cond)
+    -> bool;
 
 /**
  * @brief
@@ -87,7 +88,7 @@ auto GF_CORE_EXPORT GpgContextSupportIf(
  * @return false
  */
 auto GF_CORE_EXPORT GpgContextSupportIfWithLog(
-    int channel, const QString& log, const QContainer<EngineSupportIf>& if_cond)
+    int channel, const QString& log, const QList<EngineSupportIf>& if_cond)
     -> bool;
 
 // a helper macro to check engine support in a more convenient way, it will be
@@ -112,6 +113,6 @@ auto GF_CORE_EXPORT GpgContextSupportIfWithLog(
 // GFConstants.h
 #define GPG_CTX_MIN_SUPPORT() GPG_CTX_SUPPORT_IF(kGpgMinimalSupportVersion)
 
-using EngineSupportList = QContainer<EngineSupportIf>;
+using EngineSupportList = QList<EngineSupportIf>;
 
 }  // namespace GpgFrontend

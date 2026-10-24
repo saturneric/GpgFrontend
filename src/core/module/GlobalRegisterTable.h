@@ -134,7 +134,7 @@ class GlobalRegisterTable : public QObject {
    * @param k parent key string
    * @return list of child key strings
    */
-  auto ListChildKeys(Namespace n, Key k) -> QContainer<Key>;
+  auto ListChildKeys(Namespace n, Key k) -> QList<Key>;
 
  signals:
   /**

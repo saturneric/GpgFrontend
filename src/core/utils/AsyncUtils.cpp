@@ -97,7 +97,7 @@ void CountOperation(const QString& operation, GpgError err) {
 auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                       const GpgOperationCallback& callback,
                       const QString& operation,
-                      const QContainer<EngineSupportIf>& support_ifs)
+                      const QList<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler {
   // Held by both closures below, so the context and everything on its channel
   // outlive the runnable and the callback even if the key database is replaced
@@ -152,7 +152,7 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
 
 auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
                      const QString& operation,
-                     const QContainer<EngineSupportIf>& support_ifs)
+                     const QList<EngineSupportIf>& support_ifs)
     -> std::tuple<GpgError, DataObjectPtr> {
   std::optional<EngineLease> lease;
   if (!AdmitChannel(channel, &lease)) {

@@ -325,8 +325,8 @@ class Module::Impl {
     return out;
   }
 
-  static auto Pointers(const QList<QByteArray>& list) -> QVector<const char*> {
-    QVector<const char*> out;
+  static auto Pointers(const QList<QByteArray>& list) -> QList<const char*> {
+    QList<const char*> out;
     out.reserve(list.size());
     for (const auto& s : list) out.append(s.constData());
     return out;

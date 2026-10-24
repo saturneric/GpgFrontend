@@ -222,9 +222,8 @@ auto GF_CORE_EXPORT DefaultKeyDatabaseCandidate() -> KeyDatabaseItemSO;
  * @param databases the stored list
  * @return the list with any DEFAULT after the first removed, order preserved
  */
-auto GF_CORE_EXPORT
-DropDuplicateDefaultKeyDatabases(const QContainer<KeyDatabaseItemSO>& databases)
-    -> QContainer<KeyDatabaseItemSO>;
+auto GF_CORE_EXPORT DropDuplicateDefaultKeyDatabases(
+    const QList<KeyDatabaseItemSO>& databases) -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Give every key database a unique, ascending channel.
@@ -239,7 +238,7 @@ DropDuplicateDefaultKeyDatabases(const QContainer<KeyDatabaseItemSO>& databases)
  * @param key_dbs the list, renumbered and reordered in place
  */
 void GF_CORE_EXPORT
-NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs);
+NormalizeKeyDatabaseChannels(QList<KeyDatabaseItemSO>& key_dbs);
 
 /**
  * @brief Point the DEFAULT entry at this computer's own default keyring.
@@ -269,8 +268,8 @@ NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs);
  * @return the list with the DEFAULT entry re-pointed, order preserved
  */
 auto GF_CORE_EXPORT AdoptLocalDefaultKeyDatabase(
-    const QContainer<KeyDatabaseItemSO>& databases, const QString& local_path,
-    const QString& local_backend) -> QContainer<KeyDatabaseItemSO>;
+    const QList<KeyDatabaseItemSO>& databases, const QString& local_path,
+    const QString& local_backend) -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Which of the three kinds a stored entry is.
@@ -329,8 +328,8 @@ auto GF_CORE_EXPORT ClassifyKeyDatabase(const QString& name,
  * @return the list with every kind settled, order preserved
  */
 auto GF_CORE_EXPORT ResolveKeyDatabaseKinds(
-    const QContainer<KeyDatabaseItemSO>& databases, const QString& profile_root)
-    -> QContainer<KeyDatabaseItemSO>;
+    const QList<KeyDatabaseItemSO>& databases, const QString& profile_root)
+    -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief A fresh identity for a key database the user has just made.
@@ -356,9 +355,8 @@ auto GF_CORE_EXPORT NewKeyDatabaseId() -> QString;
  * @param databases the reconciled list
  * @return the list with every id settled, order preserved
  */
-auto GF_CORE_EXPORT
-AssignKeyDatabaseIds(const QContainer<KeyDatabaseItemSO>& databases)
-    -> QContainer<KeyDatabaseItemSO>;
+auto GF_CORE_EXPORT AssignKeyDatabaseIds(
+    const QList<KeyDatabaseItemSO>& databases) -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Where a managed key database of this name lives.
@@ -397,11 +395,10 @@ auto GF_CORE_EXPORT ManagedKeyDatabasePath(const QString& app_data_path,
  * @param external this computer's databases, in the order they should appear
  * @return one list, channels 0..n-1 in that order
  */
-auto GF_CORE_EXPORT
-ComposeKeyDatabaseList(const std::optional<KeyDatabaseItemSO>& default_db,
-                       const QContainer<KeyDatabaseItemSO>& managed,
-                       const QContainer<KeyDatabaseItemSO>& external)
-    -> QContainer<KeyDatabaseItemSO>;
+auto GF_CORE_EXPORT ComposeKeyDatabaseList(
+    const std::optional<KeyDatabaseItemSO>& default_db,
+    const QList<KeyDatabaseItemSO>& managed,
+    const QList<KeyDatabaseItemSO>& external) -> QList<KeyDatabaseItemSO>;
 
 /// What renaming a managed database should do to its directory.
 enum class ManagedRenameAction {
@@ -546,8 +543,7 @@ auto GF_CORE_EXPORT BuiltInKeyDatabaseStoredPath() -> QString;
  *
  * @return list of KeyDatabaseInfo for every configured database
  */
-auto GF_CORE_EXPORT GetAllKeyDatabaseInfoBySettings()
-    -> QContainer<KeyDatabaseInfo>;
+auto GF_CORE_EXPORT GetAllKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief The key database list exactly as it is stored.
@@ -561,7 +557,7 @@ auto GF_CORE_EXPORT GetAllKeyDatabaseInfoBySettings()
  * @return the stored entries, in stored order, kinds unsettled where the
  * writing build had none
  */
-auto GF_CORE_EXPORT LoadKeyDatabaseList() -> QContainer<KeyDatabaseItemSO>;
+auto GF_CORE_EXPORT LoadKeyDatabaseList() -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Make a stored list usable on this computer.
@@ -590,10 +586,10 @@ auto GF_CORE_EXPORT LoadKeyDatabaseList() -> QContainer<KeyDatabaseItemSO>;
  * @return the usable list, channels 0..n-1, never empty
  */
 auto GF_CORE_EXPORT ReconcileKeyDatabaseList(
-    const QContainer<KeyDatabaseItemSO>& stored,
+    const QList<KeyDatabaseItemSO>& stored,
     const KeyDatabaseItemSO& local_default, const KeyDatabaseItemSO& fallback,
     const QString& profile_root, const QString& app_data_path)
-    -> QContainer<KeyDatabaseItemSO>;
+    -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Write a key database list back to settings.
@@ -607,7 +603,7 @@ auto GF_CORE_EXPORT ReconcileKeyDatabaseList(
  * @param key_dbs the list to store
  */
 void GF_CORE_EXPORT
-PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs);
+PersistKeyDatabaseList(const QList<KeyDatabaseItemSO>& key_dbs);
 
 /**
  * @brief The stored key database list, made usable, and written back.
@@ -628,8 +624,7 @@ PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs);
  *
  * @return the usable list, channels 0..n-1, never empty
  */
-auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
-    -> QContainer<KeyDatabaseItemSO>;
+auto GF_CORE_EXPORT GetKeyDatabasesBySettings() -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Which database is the default one.
@@ -645,8 +640,7 @@ auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
  * @return the default database's id, empty only for an empty list
  */
 auto GF_CORE_EXPORT ResolveDefaultKeyDatabaseId(
-    const QString& chosen, const QContainer<KeyDatabaseItemSO>& key_dbs)
-    -> QString;
+    const QString& chosen, const QList<KeyDatabaseItemSO>& key_dbs) -> QString;
 
 /**
  * @brief The default database's id for this profile, from settings.
@@ -674,9 +668,9 @@ auto GF_CORE_EXPORT GetDefaultKeyDatabaseId() -> QString;
  * @return the reconciled, channel-normalized key database list
  */
 auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
-    KeyDatabaseItemSO default_db, QContainer<KeyDatabaseItemSO> discovered,
-    const QContainer<KeyDatabaseItemSO>& stored,
-    const QSet<QString>& supported_backends) -> QContainer<KeyDatabaseItemSO>;
+    KeyDatabaseItemSO default_db, QList<KeyDatabaseItemSO> discovered,
+    const QList<KeyDatabaseItemSO>& stored,
+    const QSet<QString>& supported_backends) -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief How (or whether) to materialise a key database directory.
@@ -732,9 +726,9 @@ auto GF_CORE_EXPORT DecideKeyDatabasePathAction(bool exists_as_dir,
  * @param fallback freshly derived DEFAULT entry; ignored when itself invalid
  * @return the valid subset in order, or just @p fallback, or empty
  */
-auto GF_CORE_EXPORT SelectUsableKeyDatabases(
-    const QContainer<KeyDatabaseInfo>& all, const KeyDatabaseInfo& fallback)
-    -> QContainer<KeyDatabaseInfo>;
+auto GF_CORE_EXPORT SelectUsableKeyDatabases(const QList<KeyDatabaseInfo>& all,
+                                             const KeyDatabaseInfo& fallback)
+    -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief The directory a key database path actually is.
@@ -787,7 +781,7 @@ auto GF_CORE_EXPORT IsSameKeyDatabaseLocation(const QString& a,
  * @return the same list without later entries at an earlier one's location
  */
 auto GF_CORE_EXPORT DropDuplicateKeyDatabaseLocations(
-    const QContainer<KeyDatabaseInfo>& infos) -> QContainer<KeyDatabaseInfo>;
+    const QList<KeyDatabaseInfo>& infos) -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief Return key database infos for custom (non-GPG) databases from
@@ -795,8 +789,7 @@ auto GF_CORE_EXPORT DropDuplicateKeyDatabaseLocations(
  *
  * @return list of KeyDatabaseInfo for custom databases
  */
-auto GF_CORE_EXPORT GetKeyDatabaseInfoBySettings()
-    -> QContainer<KeyDatabaseInfo>;
+auto GF_CORE_EXPORT GetKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief Assemble the key database list out of what the contexts reported.
@@ -813,7 +806,7 @@ auto GF_CORE_EXPORT GetKeyDatabaseInfoBySettings()
  * @return the usable subset, ascending by channel
  */
 auto GF_CORE_EXPORT BuildGpgKeyDatabaseInfos(
-    const QContainer<KeyDatabaseInfo>& reported) -> QContainer<KeyDatabaseInfo>;
+    const QList<KeyDatabaseInfo>& reported) -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief Return key database infos for all GPG key databases.
@@ -822,7 +815,7 @@ auto GF_CORE_EXPORT BuildGpgKeyDatabaseInfos(
  *
  * @return list of KeyDatabaseInfo for GPG databases
  */
-auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo>;
+auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief Return the name of the key database associated with @p channel.
@@ -864,7 +857,7 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
  */
 auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
                                        const GpgAbstractKeyPtrList& keys)
-    -> QContainer<GpgKey>;
+    -> QList<GpgKey>;
 
 /**
  * @brief Return a string describing the usage flags of an abstract key (e.g.
@@ -1146,8 +1139,7 @@ auto GF_CORE_EXPORT DescribeKeyStatus(GpgKeyStatus status) -> QString;
  * @param levels owner-trust level of each member, as GpgKey::OwnerTrustLevel()
  * @return rank, ascending by trust; -1 when mixed or empty
  */
-auto GF_CORE_EXPORT AggregateOwnerTrustRank(const QContainer<int>& levels)
-    -> int;
+auto GF_CORE_EXPORT AggregateOwnerTrustRank(const QList<int>& levels) -> int;
 
 /**
  * @brief Classify a key, reading the four conditions off the key itself.
@@ -1176,8 +1168,8 @@ auto GF_CORE_EXPORT GetKeyStatus(const GpgAbstractKey* key) -> GpgKeyStatus;
  * post-quantum
  * @return bool
  */
-auto GF_CORE_EXPORT MixesPostQuantumAndClassical(
-    const QContainer<QContainer<bool>>& recipients) -> bool;
+auto GF_CORE_EXPORT
+MixesPostQuantumAndClassical(const QList<QList<bool>>& recipients) -> bool;
 
 /**
  * @brief MixesPostQuantumAndClassical() for recipient keys, judged by each

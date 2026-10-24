@@ -643,10 +643,10 @@ auto CheckPackageHeaderAgainstManifest(const ProfilePackageHeader &header,
   return {};
 }
 
-auto RewriteKeyDatabaseListForPacking(
-    const QContainer<KeyDatabaseItemSO> &databases, const QString &profile_root)
-    -> QContainer<KeyDatabaseItemSO> {
-  QContainer<KeyDatabaseItemSO> out;
+auto RewriteKeyDatabaseListForPacking(const QList<KeyDatabaseItemSO> &databases,
+                                      const QString &profile_root)
+    -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> out;
   out.reserve(databases.size());
 
   for (auto item : databases) {
@@ -706,8 +706,7 @@ auto RewriteKeyDatabaseListForPacking(
   return out;
 }
 
-auto DescribeKeyDatabasesForManifest(
-    const QContainer<KeyDatabaseItemSO> &databases)
+auto DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
     -> QList<ProfilePackageKeyDatabaseEntry> {
   QList<ProfilePackageKeyDatabaseEntry> out;
 
@@ -725,8 +724,7 @@ auto DescribeKeyDatabasesForManifest(
   return out;
 }
 
-auto MakeTravellingKeyDatabaseMember(
-    const QContainer<KeyDatabaseItemSO> &databases)
+auto MakeTravellingKeyDatabaseMember(const QList<KeyDatabaseItemSO> &databases)
     -> std::optional<ProfileMember> {
   KeyDatabaseListSO travelling;
   travelling.key_databases = databases;

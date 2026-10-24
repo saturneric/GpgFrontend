@@ -286,8 +286,8 @@ class StagingGuard {
 
 }  // namespace
 
-auto ModuleExternalizeContract() -> QVector<ModuleExternalizeField> {
-  QVector<ModuleExternalizeField> rows;
+auto ModuleExternalizeContract() -> QList<ModuleExternalizeField> {
+  QList<ModuleExternalizeField> rows;
   rows.reserve(static_cast<qsizetype>(kContract.size()));
   for (const auto& row : kContract) {
     rows.append({QString::fromLatin1(row.path), row.disposition});

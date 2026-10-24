@@ -395,8 +395,7 @@ class GF_CORE_EXPORT ModuleManager
   auto ListenRTPublish(QObject* obj, Namespace ns, Key key, LPCallback callback)
       -> bool;
 
-  auto ListRTChildKeys(const QString& ns, const QString& key)
-      -> QContainer<Key>;
+  auto ListRTChildKeys(const QString& ns, const QString& key) -> QList<Key>;
 
   /// The register table; never null after construction.
   auto GRT() -> GlobalRegisterTable*;
@@ -536,7 +535,7 @@ auto GF_CORE_EXPORT IncrementRTValue(const QString& namespace_,
  * @return list of child key strings
  */
 auto GF_CORE_EXPORT ListRTChildKeys(const QString& namespace_,
-                                    const QString& key) -> QContainer<Key>;
+                                    const QString& key) -> QList<Key>;
 
 /**
  * @brief Retrieve a typed value from the singleton register table.

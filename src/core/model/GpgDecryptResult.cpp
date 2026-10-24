@@ -53,8 +53,8 @@ auto GpgDecryptResult::GetRaw() -> gpgme_decrypt_result_t {
   return result_ref_.get();
 }
 
-auto GpgDecryptResult::Recipients() -> QContainer<GpgRecipient> {
-  QContainer<GpgRecipient> result;
+auto GpgDecryptResult::Recipients() -> QList<GpgRecipient> {
+  QList<GpgRecipient> result;
 
   if (gf_result_ref_ != nullptr) {
     for (const auto& rec : gf_result_ref_->recipients) {

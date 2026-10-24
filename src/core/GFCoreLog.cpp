@@ -99,10 +99,10 @@ void GFLogRingBuffer::Push(GFLogEntry entry) {
   }
 }
 
-auto GFLogRingBuffer::Snapshot() const -> QVector<GFLogEntry> {
+auto GFLogRingBuffer::Snapshot() const -> QList<GFLogEntry> {
   QMutexLocker locker(&mutex_);
 
-  QVector<GFLogEntry> result;
+  QList<GFLogEntry> result;
   result.reserve(size_);
 
   if (size_ == 0) return result;
@@ -239,7 +239,7 @@ void GFLogManager::Push(const GFLogEntry& entry) {
   WriteEntryToFileUnlocked(entry);
 }
 
-auto GFLogManager::Snapshot() const -> QVector<GFLogEntry> {
+auto GFLogManager::Snapshot() const -> QList<GFLogEntry> {
   QMutexLocker locker(&mutex_);
   if (ring_buffer_ == nullptr) return {};
   return ring_buffer_->Snapshot();

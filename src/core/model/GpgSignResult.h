@@ -41,9 +41,9 @@ class GF_CORE_EXPORT GpgSignResult {
 
   auto HashAlgo() -> QString;
 
-  auto Signatures() -> QContainer<GpgSignature>;
+  auto Signatures() -> QList<GpgSignature>;
 
-  auto InvalidSigners() -> QContainer<std::pair<QString, GpgError>>;
+  auto InvalidSigners() -> QList<std::pair<QString, GpgError>>;
 
   /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
   /// GnuPG engine, where `gpgme_strerror` already provides the description.

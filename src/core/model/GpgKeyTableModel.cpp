@@ -201,7 +201,7 @@ auto GpgKeyTableModel::sort_key_by_key(const QModelIndex &index,
       // keys differently in every language.
       if (gpg_key != nullptr) return gpg_key->OwnerTrustLevel();
 
-      QContainer<int> levels;
+      QList<int> levels;
       for (const auto &member :
            ConvertKey2GpgKeyList(gpg_context_channel_, {key})) {
         levels.push_back(member->OwnerTrustLevel());

@@ -98,7 +98,7 @@ struct GF_CORE_EXPORT ModuleExternalizeField {
  * the trust boundary does to it.
  */
 auto GF_CORE_EXPORT ModuleExternalizeContract()
-    -> QVector<ModuleExternalizeField>;
+    -> QList<ModuleExternalizeField>;
 
 /**
  * @brief Every key path in a manifest, as the contract spells them.

@@ -328,16 +328,16 @@ class GF_CORE_EXPORT GpgKey : public GpgAbstractKey {
   /**
    * @brief
    *
-   * @return std::unique_ptr<QContainer<GpgSubKey>>
+   * @return std::unique_ptr<QList<GpgSubKey>>
    */
-  [[nodiscard]] auto SubKeys() const -> QContainer<GpgSubKey>;
+  [[nodiscard]] auto SubKeys() const -> QList<GpgSubKey>;
 
   /**
    * @brief
    *
-   * @return std::unique_ptr<QContainer<GpgUID>>
+   * @return std::unique_ptr<QList<GpgUID>>
    */
-  [[nodiscard]] auto UIDs() const -> QContainer<GpgUID>;
+  [[nodiscard]] auto UIDs() const -> QList<GpgUID>;
 
   /**
    * @brief  the Primary Key object

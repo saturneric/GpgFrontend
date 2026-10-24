@@ -47,7 +47,7 @@ namespace GpgFrontend {
  * These carry the per-tab colour and ordering that used to live in QSettings.
  */
 struct KeyCategoriesCO {
-  QContainer<KeyCategoryCO> categories;
+  QList<KeyCategoryCO> categories;
   QString key_db_name;
   QMap<QString, QString> tab_colors;
   QMap<QString, QStringList> tab_orders;

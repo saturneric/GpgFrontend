@@ -61,7 +61,7 @@ class GF_CORE_EXPORT DataObject {
   auto Check() -> bool {
     if (sizeof...(Args) != GetObjectSize()) return false;
 
-    QContainer<std::type_info const*> type_list = {&typeid(Args)...};
+    QList<std::type_info const*> type_list = {&typeid(Args)...};
     for (qsizetype i = 0; i < type_list.size(); ++i) {
       if (std::type_index(*type_list[i]) !=
           std::type_index((*this)[i].type())) {

@@ -50,7 +50,7 @@ class DataObject::Impl {
   auto GetObjectSize() -> size_t { return params_.size(); }
 
  private:
-  QContainer<std::any> params_;
+  QList<std::any> params_;
 };
 
 DataObject::DataObject() : p_(SecureCreateSharedObject<Impl>()) {}

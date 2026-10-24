@@ -749,7 +749,7 @@ class ModuleManager::Impl {
     return grt_->ListenPublish(o, std::move(n), std::move(k), std::move(c));
   }
 
-  auto ListRTChildKeys(const QString& n, const QString& k) -> QContainer<Key> {
+  auto ListRTChildKeys(const QString& n, const QString& k) -> QList<Key> {
     return grt_->ListChildKeys(n, k);
   }
 
@@ -1079,7 +1079,7 @@ auto IncrementRTValue(const QString& namespace_, const QString& key,
 }
 
 auto ListRTChildKeys(const QString& namespace_, const QString& key)
-    -> QContainer<Key> {
+    -> QList<Key> {
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
@@ -1193,7 +1193,7 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
 }
 
 auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
-    -> QContainer<Key> {
+    -> QList<Key> {
   return p_->ListRTChildKeys(n, k);
 }
 

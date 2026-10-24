@@ -219,7 +219,7 @@ struct GF_CORE_EXPORT ModuleManifest {
   /// Non-executable members carried inside the package. May be empty: no
   /// module ships one today, and the field exists so the first that does
   /// needs no schema change.
-  QVector<ModuleManifestResource> resources;
+  QList<ModuleManifestResource> resources;
 };
 
 /**

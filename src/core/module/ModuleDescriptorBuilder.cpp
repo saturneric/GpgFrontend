@@ -209,7 +209,7 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
   naming.reject_duplicate_paths = true;
 
   QJsonArray resources_json;
-  QVector<ModuleResourceSource> staged;
+  QList<ModuleResourceSource> staged;
   QSet<QString> seen;
 
   for (const auto& source : spec.resources) {
@@ -407,7 +407,7 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
     return Fail("the manifest could not be signed");
   }
 
-  QVector<ModuleResourceSource> members;
+  QList<ModuleResourceSource> members;
   members.append({kModuleDescriptorManifestPath, {}, manifest_bytes});
   members.append({kModuleDescriptorSignaturePath,
                   {},

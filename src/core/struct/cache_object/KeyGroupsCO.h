@@ -34,7 +34,7 @@
 namespace GpgFrontend {
 
 struct KeyGroupsCO {
-  QContainer<KeyGroupCO> key_groups;
+  QList<KeyGroupCO> key_groups;
   QString key_db_name;
 
   KeyGroupsCO() = default;

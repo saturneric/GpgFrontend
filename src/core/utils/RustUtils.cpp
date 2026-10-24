@@ -200,7 +200,7 @@ struct SniffedRecipient {
 // parse and copy the results out of Rust-owned memory. Kept in one place so
 // the FFI ownership rules are stated once rather than at every call site.
 auto sniff_recipients_raw(const GFBuffer& in_buffer)
-    -> QContainer<SniffedRecipient> {
+    -> QList<SniffedRecipient> {
   Rust::GfrRecipientResultC* out_recipients = nullptr;
   size_t recipient_count = 0;
   auto err = Rust::gfr_crypto_get_recipients(
@@ -212,7 +212,7 @@ auto sniff_recipients_raw(const GFBuffer& in_buffer)
     return {};
   }
 
-  QContainer<SniffedRecipient> sniffed;
+  QList<SniffedRecipient> sniffed;
   for (size_t i = 0; i < recipient_count; ++i) {
     const auto& rec = out_recipients[i];
     sniffed.push_back(SniffedRecipient{
@@ -359,8 +359,8 @@ auto GfrKeyAlgo2KeyAlgoId(Rust::GfrKeyAlgo algo) -> QString {
 }
 
 auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
-    -> QContainer<GFRecipient> {
-  QContainer<GFRecipient> recipients;
+    -> QList<GFRecipient> {
+  QList<GFRecipient> recipients;
   for (const auto& rec : sniff_recipients_raw(in_buffer)) {
     auto recipient = GFRecipient{rec.key_id, rec.pub_algo};
 
@@ -415,8 +415,8 @@ auto InspectOpenPGPData(const GFBuffer& in_buffer) -> QByteArray {
 }
 auto GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                  const QStringList& key_ids)
-    -> QContainer<GFBuffer> {
-  QContainer<GFBuffer> verified_keys_utf8;
+    -> QList<GFBuffer> {
+  QList<GFBuffer> verified_keys_utf8;
   for (const auto& issuer_id : key_ids) {
     auto key = key_db.GetKeyBlocks(issuer_id);
     if (key && !key->public_key.Empty()) {
@@ -428,8 +428,8 @@ auto GetKeyBlocksForVerification(GFKeyDatabase& key_db,
 
 auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
                                 const QStringList& key_ids, bool secret)
-    -> QContainer<GFBuffer> {
-  QContainer<GFBuffer> key_blocks;
+    -> QList<GFBuffer> {
+  QList<GFBuffer> key_blocks;
 
   for (const auto& key_id : key_ids) {
     auto key_block = key_db.GetKeyBlocks(key_id);

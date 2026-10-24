@@ -82,7 +82,7 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
 
   /// Non-executable members carried inside the descriptor. May be empty, and
   /// is in every descriptor the tree currently produces.
-  QVector<ModuleResourceSource> resources;
+  QList<ModuleResourceSource> resources;
 
   /// The logical name of the module's entry native, matching
   /// `[a-z][a-z0-9_]{0,63}` and not beginning with `lib`. This is what the

@@ -120,7 +120,7 @@ class GF_CORE_EXPORT KeyAlgo {
 
   [[nodiscard]] auto SupportedVersion() const -> EngineSupportList;
 
-  [[nodiscard]] auto SubAlgos(int channel) const -> QContainer<KeyAlgo>;
+  [[nodiscard]] auto SubAlgos(int channel) const -> QList<KeyAlgo>;
 
  private:
   QString id_;
@@ -134,7 +134,7 @@ class GF_CORE_EXPORT KeyAlgo {
   EngineSupportList support_ifs_;
 
   // for hybrid algorithms
-  QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos_;
+  QList<QPair<KeyAlgo, EngineSupportList>> sub_algos_;
 
   int traits_ =
       kALGO_TRAIT_NONE;  ///< intrinsic algorithm traits (KeyAlgoTrait)
@@ -153,8 +153,7 @@ struct KeyAlgoSpec {
   int length = 0;             ///< key length in bits
   int opera = 0;              ///< GpgOperation capability bitmask
   EngineSupportList support;  ///< per-engine minimum versions
-  QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos =
-      {};                         ///< for hybrids
+  QList<QPair<KeyAlgo, EngineSupportList>> sub_algos = {};  ///< for hybrids
   int traits = kALGO_TRAIT_NONE;  ///< KeyAlgoTrait bitmask
 };
 
@@ -162,10 +161,10 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
   Q_OBJECT
  public:
   static const KeyAlgo kNoneAlgo;
-  static const QContainer<KeyAlgo> kPrimaryKeyAlgos;
-  static const QContainer<KeyAlgo> kHybridPrimaryKeyAlgo;
-  static const QContainer<KeyAlgo> kSubKeyAlgos;
-  static const QContainer<KeyAlgo> kHybridSubKeyAlgos;
+  static const QList<KeyAlgo> kPrimaryKeyAlgos;
+  static const QList<KeyAlgo> kHybridPrimaryKeyAlgo;
+  static const QList<KeyAlgo> kSubKeyAlgos;
+  static const QList<KeyAlgo> kHybridSubKeyAlgos;
 
   /**
    * @brief Construct a new Gen Key Info object
@@ -178,16 +177,16 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
   /**
    * @brief Get the Supported Key Algo object
    *
-   * @return const QContainer<KeyGenAlgo>&
+   * @return const QList<KeyGenAlgo>&
    */
-  static auto GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo>;
+  static auto GetSupportedKeyAlgo(int channel) -> QList<KeyAlgo>;
 
   /**
    * @brief get supported subkey algorithms without considering the primary key
    *
-   * @return const QContainer<KeyGenAlgo>&
+   * @return const QList<KeyGenAlgo>&
    */
-  static auto GetSupportedSubkeyAlgo(int channel) -> QContainer<KeyAlgo>;
+  static auto GetSupportedSubkeyAlgo(int channel) -> QList<KeyAlgo>;
 
   /**
    * @brief get supported subkey algorithms based on the primary key
@@ -197,7 +196,7 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
    * @return auto
    */
   static auto GetSupportedSubkeyAlgo(int channel, const GpgKey &key)
-      -> QContainer<KeyAlgo>;
+      -> QList<KeyAlgo>;
 
   /**
    * @brief

@@ -165,7 +165,7 @@ class GF_CORE_EXPORT GpgKeyTreeItem {
   [[nodiscard]] auto SharedKey() const -> GpgAbstractKeyPtr;
 
  private:
-  QContainer<QSharedPointer<GpgKeyTreeItem>> children_;
+  QList<QSharedPointer<GpgKeyTreeItem>> children_;
   QVariantList data_;
   bool checked_ = false;
   bool checkable_;
@@ -368,9 +368,9 @@ class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   /**
    * @brief Get the All Checked Sub Key object
    *
-   * @return QContainer<GpgSubKey>
+   * @return QList<GpgSubKey>
    */
-  auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
+  auto GetAllCheckedSubKey() -> QList<GpgSubKey>;
 
   /**
    * @brief Get the All Checked Keys object
@@ -403,7 +403,7 @@ class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   GpgKeyTreeBuildMode build_mode_;
 
   QSharedPointer<GpgKeyTreeItem> root_;
-  QContainer<QSharedPointer<GpgKeyTreeItem>> cached_items_;
+  QList<QSharedPointer<GpgKeyTreeItem>> cached_items_;
 
   /**
    * @brief

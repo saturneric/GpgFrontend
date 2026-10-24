@@ -68,8 +68,7 @@ void GFExecuteCommandBatchSync(const QByteArray& module,
   // Everything here is borrowed: the module built the array, the contexts and
   // their strings, and it releases them after this returns. Copy what is
   // needed and free nothing -- gf::sdk::RunCommand passes stack memory.
-  GpgFrontend::QContainer<GpgFrontend::GpgCommandExecutor::ExecuteContext>
-      core_contexts;
+  QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> core_contexts;
   if (contexts == nullptr || contexts_size <= 0) return;
 
   for (int32_t i = 0; i < contexts_size; ++i) {

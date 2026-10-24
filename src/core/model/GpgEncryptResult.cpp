@@ -51,8 +51,8 @@ auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
 }
 
 auto GpgEncryptResult::InvalidRecipients()
-    -> QContainer<std::tuple<QString, GpgError>> {
-  QContainer<std::tuple<QString, GpgError>> result;
+    -> QList<std::tuple<QString, GpgError>> {
+  QList<std::tuple<QString, GpgError>> result;
 
   if (gf_result_ref_ != nullptr) {
     for (const auto& r : gf_result_ref_->invalid_recipients) {
@@ -81,8 +81,8 @@ auto GpgEncryptResult::InvalidRecipients()
   return result;
 }
 
-auto GpgEncryptResult::Recipients() -> QContainer<GpgRecipient> {
-  QContainer<GpgRecipient> result;
+auto GpgEncryptResult::Recipients() -> QList<GpgRecipient> {
+  QList<GpgRecipient> result;
 
   if (gf_result_ref_ != nullptr) {
     for (const auto& r : gf_result_ref_->recipients) {

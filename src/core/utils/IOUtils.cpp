@@ -173,8 +173,8 @@ auto WriteFileGFBuffer(const QString& file_name, GFBuffer data) -> bool {
 }
 
 auto CalculateFileHashInfo(const QString& file_path)
-    -> QContainer<QPair<QString, QString>> {
-  QContainer<QPair<QString, QString>> fields;
+    -> QList<QPair<QString, QString>> {
+  QList<QPair<QString, QString>> fields;
 
   QFileInfo const info(file_path);
   if (!info.isFile() || !info.isReadable()) return fields;
@@ -202,7 +202,7 @@ auto CalculateFileHashInfo(const QString& file_path)
   return fields;
 }
 
-auto FormatFileHashInfo(const QContainer<QPair<QString, QString>>& fields)
+auto FormatFileHashInfo(const QList<QPair<QString, QString>>& fields)
     -> QString {
   QString buffer;
   QTextStream ss(&buffer);

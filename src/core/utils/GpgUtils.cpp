@@ -55,7 +55,7 @@ namespace GpgFrontend {
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
 auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {
-  QContainer<char> buffer(buffer_size);
+  QList<char> buffer(buffer_size);
 
   gpgme_error_t const ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
   if (ret == ERANGE && buffer_size < 1024) {
@@ -251,11 +251,9 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
   }
 }
 
-
-auto GF_CORE_EXPORT
-BuildGpgKeyDatabaseInfos(const QContainer<KeyDatabaseInfo>& reported)
-    -> QContainer<KeyDatabaseInfo> {
-  QContainer<KeyDatabaseInfo> infos;
+auto GF_CORE_EXPORT BuildGpgKeyDatabaseInfos(
+    const QList<KeyDatabaseInfo>& reported) -> QList<KeyDatabaseInfo> {
+  QList<KeyDatabaseInfo> infos;
   QSet<int> seen_channels;
 
   for (const auto& info : reported) {
@@ -290,13 +288,13 @@ BuildGpgKeyDatabaseInfos(const QContainer<KeyDatabaseInfo>& reported)
   return infos;
 }
 
-auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
+auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo> {
   // Asked of the channel handle registry, which knows which Runtime is current:
   // after a reload the previous one's databases are retired, and listing them
   // would hand out channels that refuse every operation. Only databases that
   // actually opened are listed, as the published register table entries only
   // ever were.
-  QContainer<KeyDatabaseInfo> reported;
+  QList<KeyDatabaseInfo> reported;
   for (const auto& handle : ListRuntimeChannels()) {
     if (handle.state != ChannelHandleState::kAVAILABLE) continue;
 
@@ -370,7 +368,7 @@ auto DefaultKeyDatabaseCandidate() -> KeyDatabaseItemSO {
 // Sort entries by channel, then resolve duplicate channels by incrementing so
 // every key database ends up with a unique, ascending channel.
 void GF_CORE_EXPORT
-NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
+NormalizeKeyDatabaseChannels(QList<KeyDatabaseItemSO>& key_dbs) {
   // Stable, because two entries may legitimately arrive holding the same
   // channel -- a list that has never been normalised, or one just given a
   // DEFAULT at channel 0 -- and an unstable sort would decide between them
@@ -393,11 +391,11 @@ NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
 namespace {
 
 std::mutex g_pending_moves_lock;
-QContainer<KeyDatabaseMove> g_pending_moves;
+QList<KeyDatabaseMove> g_pending_moves;
 
 }  // namespace
 
-void NotePendingKeyDatabaseMoves(const QContainer<KeyDatabaseMove>& moves) {
+void NotePendingKeyDatabaseMoves(const QList<KeyDatabaseMove>& moves) {
   std::lock_guard<std::mutex> lock(g_pending_moves_lock);
   for (const auto& move : moves) {
     auto it = std::find_if(g_pending_moves.begin(), g_pending_moves.end(),
@@ -422,14 +420,14 @@ void ForgetPendingKeyDatabaseMove(const QString& database_id) {
       g_pending_moves.end());
 }
 
-auto PendingKeyDatabaseMoves() -> QContainer<KeyDatabaseMove> {
+auto PendingKeyDatabaseMoves() -> QList<KeyDatabaseMove> {
   std::lock_guard<std::mutex> lock(g_pending_moves_lock);
   return g_pending_moves;
 }
 
-auto ApplyPendingMovesToScan(QContainer<KeyDatabaseItemSO> discovered,
-                             const QContainer<KeyDatabaseMove>& moves)
-    -> QContainer<KeyDatabaseItemSO> {
+auto ApplyPendingMovesToScan(QList<KeyDatabaseItemSO> discovered,
+                             const QList<KeyDatabaseMove>& moves)
+    -> QList<KeyDatabaseItemSO> {
   for (auto& key_db : discovered) {
     const auto location = QDir::cleanPath(key_db.path);
     for (const auto& move : moves) {
@@ -491,8 +489,8 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
 
 // Scan the fixed sandbox directory (<app-data>/dbs) for user key databases,
 // returning a name/path entry per subdirectory found.
-auto ScanSandboxKeyDatabaseDir() -> QContainer<KeyDatabaseItemSO> {
-  QContainer<KeyDatabaseItemSO> discovered;
+auto ScanSandboxKeyDatabaseDir() -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> discovered;
 
   const auto dbs_root =
       GlobalSettingStation::GetInstance().GetAppDataPath() + "/dbs";
@@ -536,9 +534,9 @@ auto BuiltInKeyDatabaseStoredPath() -> QString {
 // available, else rpgp) - this is what keeps the rpgp-only macOS lite build
 // from honouring a stale "gnupg" type carried over in settings.
 auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
-    KeyDatabaseItemSO default_db, QContainer<KeyDatabaseItemSO> discovered,
-    const QContainer<KeyDatabaseItemSO>& stored,
-    const QSet<QString>& supported_backends) -> QContainer<KeyDatabaseItemSO> {
+    KeyDatabaseItemSO default_db, QList<KeyDatabaseItemSO> discovered,
+    const QList<KeyDatabaseItemSO>& stored,
+    const QSet<QString>& supported_backends) -> QList<KeyDatabaseItemSO> {
   const auto pick_default_backend = [&]() -> QString {
     return supported_backends.contains("gnupg") ? "gnupg" : "rpgp";
   };
@@ -552,7 +550,7 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
     if (!db.name.isEmpty()) stored_by_name.insert(db.name, db);
   }
 
-  QContainer<KeyDatabaseItemSO> key_dbs;
+  QList<KeyDatabaseItemSO> key_dbs;
 
   // channel-0 DEFAULT database keeps its derived path; recover/validate backend
   if (const auto it = stored_by_name.constFind(default_db.name);
@@ -632,17 +630,17 @@ auto ReanchorKeyDatabasePath(const QString& stored_path,
   return QString::fromLatin1(kProfilePathToken) + "/" + tail;
 }
 
-auto LoadKeyDatabaseList() -> QContainer<KeyDatabaseItemSO> {
+auto LoadKeyDatabaseList() -> QList<KeyDatabaseItemSO> {
   return KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject))
       .key_databases;
 }
 
-auto ReconcileKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& stored,
+auto ReconcileKeyDatabaseList(const QList<KeyDatabaseItemSO>& stored,
                               const KeyDatabaseItemSO& local_default,
                               const KeyDatabaseItemSO& fallback,
                               const QString& profile_root,
                               const QString& app_data_path)
-    -> QContainer<KeyDatabaseItemSO> {
+    -> QList<KeyDatabaseItemSO> {
   // Two things answering to one identity is not a state anything below can make
   // sense of, and a stored list is not only ever written by the dialog: it can
   // arrive in a package, be hand-edited, or come from a build older than the
@@ -662,7 +660,7 @@ auto ReconcileKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& stored,
   // derived the way those builds inferred it.
   key_dbs = ResolveKeyDatabaseKinds(key_dbs, app_data_path);
 
-  QContainer<KeyDatabaseItemSO> kept;
+  QList<KeyDatabaseItemSO> kept;
   for (auto key_db : key_dbs) {
     if (key_db.path.isEmpty() || key_db.name.isEmpty()) {
       LOG_W() << "invalid key db info, skip, name:" << key_db.name
@@ -683,7 +681,7 @@ auto ReconcileKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& stored,
   return AssignKeyDatabaseIds(kept);
 }
 
-void PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs) {
+void PersistKeyDatabaseList(const QList<KeyDatabaseItemSO>& key_dbs) {
   auto so = SettingsObject(kKeyDatabaseListObject);
 
   // Read first so the user's choice of default survives a rewrite that is only
@@ -694,7 +692,7 @@ void PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs) {
 }
 
 auto ResolveDefaultKeyDatabaseId(const QString& chosen,
-                                 const QContainer<KeyDatabaseItemSO>& key_dbs)
+                                 const QList<KeyDatabaseItemSO>& key_dbs)
     -> QString {
   if (key_dbs.isEmpty()) return {};
 
@@ -716,7 +714,7 @@ auto GetDefaultKeyDatabaseId() -> QString {
   return ResolveDefaultKeyDatabaseId(chosen, GetKeyDatabasesBySettings());
 }
 
-auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
+auto GetKeyDatabasesBySettings() -> QList<KeyDatabaseItemSO> {
   const auto stored = LoadKeyDatabaseList();
 
   // In the macOS app sandbox the stored settings paths may not match the
@@ -951,10 +949,10 @@ auto MakeDefaultKeyDatabaseInfo() -> KeyDatabaseInfo {
 
 }  // namespace
 
-auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
+auto GetAllKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo> {
   auto key_dbs = GetKeyDatabasesBySettings();
 
-  QContainer<KeyDatabaseInfo> key_db_infos;
+  QList<KeyDatabaseInfo> key_db_infos;
 
   const auto app_path = QDir(GlobalSettingStation::GetInstance().GetAppDir());
 
@@ -988,10 +986,10 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   return key_db_infos;
 }
 
-auto SelectUsableKeyDatabases(const QContainer<KeyDatabaseInfo>& all,
+auto SelectUsableKeyDatabases(const QList<KeyDatabaseInfo>& all,
                               const KeyDatabaseInfo& fallback)
-    -> QContainer<KeyDatabaseInfo> {
-  QContainer<KeyDatabaseInfo> usable;
+    -> QList<KeyDatabaseInfo> {
+  QList<KeyDatabaseInfo> usable;
 
   for (const auto& key_db_info : all) {
     if (key_db_info.valid) usable.append(key_db_info);
@@ -1045,9 +1043,9 @@ auto IsSameKeyDatabaseLocation(const QString& a, const QString& b) -> bool {
   return !la.isEmpty() && la == KeyDatabasePhysicalLocation(b);
 }
 
-auto DropDuplicateKeyDatabaseLocations(const QContainer<KeyDatabaseInfo>& infos)
-    -> QContainer<KeyDatabaseInfo> {
-  QContainer<KeyDatabaseInfo> out;
+auto DropDuplicateKeyDatabaseLocations(const QList<KeyDatabaseInfo>& infos)
+    -> QList<KeyDatabaseInfo> {
+  QList<KeyDatabaseInfo> out;
   out.reserve(infos.size());
 
   QSet<QString> seen;
@@ -1065,7 +1063,7 @@ auto DropDuplicateKeyDatabaseLocations(const QContainer<KeyDatabaseInfo>& infos)
   return out;
 }
 
-auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
+auto GetKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo> {
   auto fallback = MakeDefaultKeyDatabaseInfo();
   auto key_db_infos = DropDuplicateKeyDatabaseLocations(
       SelectUsableKeyDatabases(GetAllKeyDatabaseInfoBySettings(), fallback));
@@ -1113,8 +1111,8 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
 
 auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
                                        const GpgAbstractKeyPtrList& keys)
-    -> QContainer<GpgKey> {
-  QContainer<GpgKey> recipients;
+    -> QList<GpgKey> {
+  QList<GpgKey> recipients;
 
   auto g_keys = ConvertKey2GpgKeyList(channel, keys);
   for (const auto& key : g_keys) {
@@ -1299,10 +1297,9 @@ auto ChooseKeyDatabaseEngine(const QString& backend_type,
       gnupg_supported, rpgp_supported);
 }
 
-auto DropDuplicateDefaultKeyDatabases(
-    const QContainer<KeyDatabaseItemSO>& databases)
-    -> QContainer<KeyDatabaseItemSO> {
-  QContainer<KeyDatabaseItemSO> out;
+auto DropDuplicateDefaultKeyDatabases(const QList<KeyDatabaseItemSO>& databases)
+    -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> out;
   out.reserve(databases.size());
 
   auto seen_default = false;
@@ -1323,12 +1320,13 @@ auto DropDuplicateDefaultKeyDatabases(
   return out;
 }
 
-auto AdoptLocalDefaultKeyDatabase(
-    const QContainer<KeyDatabaseItemSO>& databases, const QString& local_path,
-    const QString& local_backend) -> QContainer<KeyDatabaseItemSO> {
+auto AdoptLocalDefaultKeyDatabase(const QList<KeyDatabaseItemSO>& databases,
+                                  const QString& local_path,
+                                  const QString& local_backend)
+    -> QList<KeyDatabaseItemSO> {
   if (local_path.isEmpty()) return databases;
 
-  QContainer<KeyDatabaseItemSO> out;
+  QList<KeyDatabaseItemSO> out;
   out.reserve(databases.size());
 
   for (auto item : databases) {
@@ -1402,10 +1400,10 @@ auto ClassifyKeyDatabase(const QString& name, const QString& stored_path,
                                         : KeyDatabaseKind::kEXTERNAL;
 }
 
-auto ResolveKeyDatabaseKinds(const QContainer<KeyDatabaseItemSO>& databases,
+auto ResolveKeyDatabaseKinds(const QList<KeyDatabaseItemSO>& databases,
                              const QString& profile_root)
-    -> QContainer<KeyDatabaseItemSO> {
-  QContainer<KeyDatabaseItemSO> out;
+    -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> out;
   out.reserve(databases.size());
 
   for (auto item : databases) {
@@ -1437,9 +1435,9 @@ auto NewKeyDatabaseId() -> QString {
   return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
-auto AssignKeyDatabaseIds(const QContainer<KeyDatabaseItemSO>& databases)
-    -> QContainer<KeyDatabaseItemSO> {
-  QContainer<KeyDatabaseItemSO> out;
+auto AssignKeyDatabaseIds(const QList<KeyDatabaseItemSO>& databases)
+    -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> out;
   out.reserve(databases.size());
 
   QSet<QString> claimed;
@@ -1475,10 +1473,10 @@ auto ManagedKeyDatabasePath(const QString& app_data_path, const QString& name)
 }
 
 auto ComposeKeyDatabaseList(const std::optional<KeyDatabaseItemSO>& default_db,
-                            const QContainer<KeyDatabaseItemSO>& managed,
-                            const QContainer<KeyDatabaseItemSO>& external)
-    -> QContainer<KeyDatabaseItemSO> {
-  QContainer<KeyDatabaseItemSO> out;
+                            const QList<KeyDatabaseItemSO>& managed,
+                            const QList<KeyDatabaseItemSO>& external)
+    -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> out;
   out.reserve((default_db ? 1 : 0) + managed.size() + external.size());
 
   if (default_db) out.push_back(*default_db);
@@ -1580,7 +1578,7 @@ auto DescribeKeyStatus(GpgKeyStatus status) -> QString {
   return {};
 }
 
-auto AggregateOwnerTrustRank(const QContainer<int>& levels) -> int {
+auto AggregateOwnerTrustRank(const QList<int>& levels) -> int {
   if (levels.isEmpty()) return -1;
 
   const auto first = levels.front();
@@ -1595,8 +1593,8 @@ auto GetKeyStatus(const GpgAbstractKey* key) -> GpgKeyStatus {
   return ClassifyKeyStatus(key->IsRevoked(), key->IsDisabled(),
                            key->IsExpired(), IsKeyExpiringSoon(key));
 }
-auto MixesPostQuantumAndClassical(
-    const QContainer<QContainer<bool>>& recipients) -> bool {
+auto MixesPostQuantumAndClassical(const QList<QList<bool>>& recipients)
+    -> bool {
   bool any_pq = false;
   bool any_classical = false;
   for (const auto& subkeys : recipients) {
@@ -1613,7 +1611,7 @@ auto MixesPostQuantumAndClassical(
 
 auto RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys)
     -> bool {
-  QContainer<QContainer<bool>> recipients;
+  QList<QList<bool>> recipients;
   for (const auto& key : keys) {
     if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
       continue;
@@ -1622,8 +1620,8 @@ auto RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys)
     if (gpg_key == nullptr) continue;
 
     // A pinned subkey is the one used; otherwise any usable one may be.
-    QContainer<bool> usable;
-    QContainer<bool> pinned;
+    QList<bool> usable;
+    QList<bool> pinned;
     for (const auto& s_key : gpg_key->SubKeys()) {
       if (!s_key.IsHasEncrCap() || s_key.IsRevoked() || s_key.IsExpired()) {
         continue;

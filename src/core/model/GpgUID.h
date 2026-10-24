@@ -86,18 +86,18 @@ class GF_CORE_EXPORT GpgUID {
   /**
    * @brief
    *
-   * @return std::unique_ptr<QContainer<GpgTOFUInfo>>
+   * @return std::unique_ptr<QList<GpgTOFUInfo>>
    */
   [[nodiscard]] auto GetTofuInfos() const
-      -> std::unique_ptr<QContainer<GpgTOFUInfo>>;
+      -> std::unique_ptr<QList<GpgTOFUInfo>>;
 
   /**
    * @brief
    *
-   * @return std::unique_ptr<QContainer<GpgKeySignature>>
+   * @return std::unique_ptr<QList<GpgKeySignature>>
    */
   [[nodiscard]] auto GetSignatures() const
-      -> std::unique_ptr<QContainer<GpgKeySignature>>;
+      -> std::unique_ptr<QList<GpgKeySignature>>;
 
   /**
    * @brief Construct a new Gpg U I D object

@@ -107,9 +107,9 @@ class GFLogRingBuffer {
    * @brief Returns a chronological snapshot of all entries currently stored
    * in the buffer.
    *
-   * @return QVector<GFLogEntry> ordered copy of buffered log entries
+   * @return QList<GFLogEntry> ordered copy of buffered log entries
    */
-  auto Snapshot() const -> QVector<GFLogEntry>;
+  auto Snapshot() const -> QList<GFLogEntry>;
 
   /**
    * @brief Returns the current number of entries in the buffer.
@@ -128,7 +128,7 @@ class GFLogRingBuffer {
  private:
   int capacity_ = 0;
   mutable QMutex mutex_;
-  QVector<GFLogEntry> buffer_;
+  QList<GFLogEntry> buffer_;
   int write_index_ = 0;
   int size_ = 0;
   bool full_ = false;
@@ -210,9 +210,9 @@ class GF_CORE_EXPORT GFLogManager {
   /**
    * @brief Thread-safe snapshot of all buffered log entries.
    *
-   * @return QVector<GFLogEntry> ordered copy of buffered log entries
+   * @return QList<GFLogEntry> ordered copy of buffered log entries
    */
-  auto Snapshot() const -> QVector<GFLogEntry>;
+  auto Snapshot() const -> QList<GFLogEntry>;
 
  private:
   GFLogManager() = default;

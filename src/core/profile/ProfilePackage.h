@@ -295,8 +295,8 @@ auto GF_CORE_EXPORT CheckPackageHeaderAgainstManifest(
  * @p databases, and may be empty
  */
 auto GF_CORE_EXPORT RewriteKeyDatabaseListForPacking(
-    const QContainer<KeyDatabaseItemSO> &databases, const QString &profile_root)
-    -> QContainer<KeyDatabaseItemSO>;
+    const QList<KeyDatabaseItemSO> &databases, const QString &profile_root)
+    -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Describe a stored key database list for the manifest.
@@ -310,7 +310,7 @@ auto GF_CORE_EXPORT RewriteKeyDatabaseListForPacking(
  * @return one entry per database
  */
 auto GF_CORE_EXPORT
-DescribeKeyDatabasesForManifest(const QContainer<KeyDatabaseItemSO> &databases)
+DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
     -> QList<ProfilePackageKeyDatabaseEntry>;
 
 /**
@@ -331,9 +331,8 @@ DescribeKeyDatabasesForManifest(const QContainer<KeyDatabaseItemSO> &databases)
  * RewriteKeyDatabaseListForPacking()
  * @return the member to pack, or nothing if the key material is unavailable
  */
-auto GF_CORE_EXPORT
-MakeTravellingKeyDatabaseMember(const QContainer<KeyDatabaseItemSO> &databases)
-    -> std::optional<ProfileMember>;
+auto GF_CORE_EXPORT MakeTravellingKeyDatabaseMember(
+    const QList<KeyDatabaseItemSO> &databases) -> std::optional<ProfileMember>;
 
 /**
  * @brief Sizes of the areas a package would carry, in bytes.

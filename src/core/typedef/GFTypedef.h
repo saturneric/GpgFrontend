@@ -147,7 +147,7 @@ struct GFKeyMetadata {
   QString fpr;
   QString key_id;
 
-  QContainer<GFUserId> user_ids;
+  QList<GFUserId> user_ids;
 
   int algo = 0;
   unsigned key_length = 0;
@@ -163,7 +163,7 @@ struct GFKeyMetadata {
   bool can_auth = false;
   bool can_certify = false;
 
-  QContainer<GFSubKeyMetadata> subkeys;
+  QList<GFSubKeyMetadata> subkeys;
 };
 
 struct GFKeyBlocks {
@@ -208,10 +208,10 @@ struct GFInvalidRecipient {
 
 struct GFEncryptResult {
   GFBuffer data;
-  QContainer<GFInvalidRecipient> invalid_recipients;
+  QList<GFInvalidRecipient> invalid_recipients;
   /// Subkeys the session key was actually encrypted to (rPGP). Empty for GPGME,
   /// which does not report the recipient subkey used.
-  QContainer<GFRecipient> recipients;
+  QList<GFRecipient> recipients;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
@@ -222,21 +222,21 @@ struct GFDecryptResult {
   QString symkey_algo;  ///< Cipher and mode, as gpgme's (e.g. "AES256.OCB").
   QString cipher_warning;  ///< Why the cipher deserves a warning (RFC 9580
                            ///< §9.3, §12.2), or empty.
-  QContainer<GFRecipient> recipients;
+  QList<GFRecipient> recipients;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
 
 struct GFSignResult {
   GFBuffer data;
-  QContainer<GFSignature> signatures;
+  QList<GFSignature> signatures;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
 
 struct GFVerifyResult {
   QByteArray data;
-  QContainer<GFSignature> signatures;
+  QList<GFSignature> signatures;
   bool is_verified = false;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.

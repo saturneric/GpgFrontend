@@ -73,8 +73,8 @@ auto GpgUID::GetInvalid() const -> bool {
   return uid_ref_->invalid;
 }
 
-auto GpgUID::GetTofuInfos() const -> std::unique_ptr<QContainer<GpgTOFUInfo>> {
-  auto infos = std::make_unique<QContainer<GpgTOFUInfo>>();
+auto GpgUID::GetTofuInfos() const -> std::unique_ptr<QList<GpgTOFUInfo>> {
+  auto infos = std::make_unique<QList<GpgTOFUInfo>>();
   if (um_ref_ != nullptr) return infos;
 
   auto *info_next = uid_ref_->tofu;
@@ -85,9 +85,8 @@ auto GpgUID::GetTofuInfos() const -> std::unique_ptr<QContainer<GpgTOFUInfo>> {
   return infos;
 }
 
-auto GpgUID::GetSignatures() const
-    -> std::unique_ptr<QContainer<GpgKeySignature>> {
-  auto sigs = std::make_unique<QContainer<GpgKeySignature>>();
+auto GpgUID::GetSignatures() const -> std::unique_ptr<QList<GpgKeySignature>> {
+  auto sigs = std::make_unique<QList<GpgKeySignature>>();
   if (um_ref_ != nullptr) return sigs;
 
   auto *sig_next = uid_ref_->signatures;

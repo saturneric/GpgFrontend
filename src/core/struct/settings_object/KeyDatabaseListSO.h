@@ -42,7 +42,7 @@ namespace GpgFrontend {
 inline constexpr auto kKeyDatabaseListObject = "key_database_list";
 
 struct KeyDatabaseListSO {
-  QContainer<KeyDatabaseItemSO> key_databases;
+  QList<KeyDatabaseItemSO> key_databases;
 
   /// Which database is the default one -- opened first, and the one the key
   /// list starts on -- kept apart from the order, which is only how the list

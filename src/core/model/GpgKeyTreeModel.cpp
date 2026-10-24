@@ -366,8 +366,8 @@ auto GpgKeyTreeModel::create_key_group_tree_items(const GpgAbstractKeyPtr &key,
   return i_key_group;
 }
 
-auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
-  QContainer<GpgSubKey> ret;
+auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QList<GpgSubKey> {
+  QList<GpgSubKey> ret;
   for (const auto &i : cached_items_) {
     if (i->Key()->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY ||
         !i->Checkable() || !i->Checked()) {

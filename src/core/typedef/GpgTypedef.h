@@ -45,14 +45,14 @@ using KeyId = QString;
 using SubkeyId = QString;
 using KeyIdArgsList = QStringList;                            ///<
 using UIDArgsList = QStringList;                              ///<
-using SignIdArgsList = QContainer<QPair<QString, QString>>;   ///<
-using KeyArgsList = QContainer<GpgKey>;                       ///<
-using GpgKeyLinkList = QContainer<GpgKey>;                    ///<
-using GpgKeyList = QContainer<GpgKey>;                        ///<
+using SignIdArgsList = QList<QPair<QString, QString>>;        ///<
+using KeyArgsList = QList<GpgKey>;                            ///<
+using GpgKeyLinkList = QList<GpgKey>;                         ///<
+using GpgKeyList = QList<GpgKey>;                             ///<
 using GpgAbstractKeyPtr = QSharedPointer<GpgAbstractKey>;     ///<
-using GpgAbstractKeyPtrList = QContainer<GpgAbstractKeyPtr>;  ///<
+using GpgAbstractKeyPtrList = QList<GpgAbstractKeyPtr>;       ///<
 using GpgKeyPtr = QSharedPointer<GpgKey>;                     ///<
-using GpgKeyPtrList = QContainer<GpgKeyPtr>;                  ///<
+using GpgKeyPtrList = QList<GpgKeyPtr>;                       ///<
 
 using GpgSignMode = gpgme_sig_mode_t;
 

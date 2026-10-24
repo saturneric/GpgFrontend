@@ -92,7 +92,7 @@ auto GF_CORE_EXPORT CalculateHash(const QString& file_path) -> QString;
  * @return ordered list of (key, value) pairs, empty if the file is unreadable
  */
 auto GF_CORE_EXPORT CalculateFileHashInfo(const QString& file_path)
-    -> QContainer<QPair<QString, QString>>;
+    -> QList<QPair<QString, QString>>;
 
 /**
  * @brief Render the structured fields from CalculateFileHashInfo() into the
@@ -101,8 +101,8 @@ auto GF_CORE_EXPORT CalculateFileHashInfo(const QString& file_path)
  * @param fields field pairs produced by CalculateFileHashInfo()
  * @return formatted report text
  */
-auto GF_CORE_EXPORT FormatFileHashInfo(
-    const QContainer<QPair<QString, QString>>& fields) -> QString;
+auto GF_CORE_EXPORT
+FormatFileHashInfo(const QList<QPair<QString, QString>>& fields) -> QString;
 
 /**
  * @brief Calculate a checksum of the data behind an already open device.

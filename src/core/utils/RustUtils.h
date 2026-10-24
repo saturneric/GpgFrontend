@@ -101,7 +101,7 @@ struct RpgpEngineInfo {
   QString profile;         ///< Cargo build profile (e.g. "release")
 
   /// Key dependency versions as (crate name, version) pairs, in display order.
-  QContainer<QPair<QString, QString>> dependencies;
+  QList<QPair<QString, QString>> dependencies;
 };
 
 /**
@@ -237,7 +237,7 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoId(Rust::GfrKeyAlgo algo) -> QString;
  */
 auto GF_CORE_EXPORT SniffRecipients(GFKeyDatabase& key_db,
                                     const GFBuffer& in_buffer)
-    -> QContainer<GFRecipient>;
+    -> QList<GFRecipient>;
 
 /**
  * @brief Extract issuer key IDs from a signed data buffer.
@@ -256,7 +256,7 @@ auto GF_CORE_EXPORT SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList;
  */
 auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                                 const QStringList& key_ids)
-    -> QContainer<GFBuffer>;
+    -> QList<GFBuffer>;
 
 /**
  * @brief Retrieve armored key blocks for the given key IDs.
@@ -269,8 +269,7 @@ auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
  */
 auto GF_CORE_EXPORT GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
                                                const QStringList& key_ids,
-                                               bool secret)
-    -> QContainer<GFBuffer>;
+                                               bool secret) -> QList<GFBuffer>;
 
 }  // namespace GpgFrontend
 

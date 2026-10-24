@@ -80,12 +80,12 @@ struct GF_CORE_EXPORT ModuleSetVerification {
   QMap<QString, QString> entries;
 
   /// Anything that makes the tree unshippable.
-  QVector<ModuleSetFinding> problems;
+  QList<ModuleSetFinding> problems;
 
   /// Worth saying, not worth failing over: a stale helper left by a rename,
   /// for instance. Reported so it is visible, not fatal so it cannot invent a
   /// requirement nothing actually has.
-  QVector<ModuleSetFinding> warnings;
+  QList<ModuleSetFinding> warnings;
 };
 
 /// What checking ONE integrated module namespace concluded.

@@ -326,7 +326,7 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
                                      const GpgAbstractKeyPtr &key) const
       -> QVariant;
 
-  QContainer<GpgKeyTableItem> cached_items_;
+  QList<GpgKeyTableItem> cached_items_;
   bool exclusive_check_ = false;
 
   /**

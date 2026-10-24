@@ -140,7 +140,7 @@ struct ModuleAuthorizationSO {
 /// which a trust store has to be able to do: listing what the user has
 /// decided, and revoking it, are the whole point.
 struct ModuleTrustedPublisherKeyListSO {
-  QContainer<ModuleTrustedPublisherKeySO> keys;
+  QList<ModuleTrustedPublisherKeySO> keys;
 
   ModuleTrustedPublisherKeyListSO() = default;
 
@@ -163,7 +163,7 @@ struct ModuleTrustedPublisherKeyListSO {
 };
 
 struct ModuleAuthorizationListSO {
-  QContainer<ModuleAuthorizationSO> authorizations;
+  QList<ModuleAuthorizationSO> authorizations;
 
   ModuleAuthorizationListSO() = default;
 

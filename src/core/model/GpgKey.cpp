@@ -230,8 +230,8 @@ auto GpgKey::IsHasMasterKey() const -> bool {
   return key_ref_->subkeys->secret;
 }
 
-auto GpgKey::SubKeys() const -> QContainer<GpgSubKey> {
-  QContainer<GpgSubKey> ret;
+auto GpgKey::SubKeys() const -> QList<GpgSubKey> {
+  QList<GpgSubKey> ret;
 
   if (km_ref_ != nullptr) {
     for (const auto &sub : km_ref_->subkeys) {
@@ -248,8 +248,8 @@ auto GpgKey::SubKeys() const -> QContainer<GpgSubKey> {
   return ret;
 }
 
-auto GpgKey::UIDs() const -> QContainer<GpgUID> {
-  QContainer<GpgUID> uids;
+auto GpgKey::UIDs() const -> QList<GpgUID> {
+  QList<GpgUID> uids;
 
   if (km_ref_ != nullptr) {
     for (const auto &uid : km_ref_->user_ids) {

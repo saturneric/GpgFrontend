@@ -57,8 +57,8 @@ auto GpgVerifyResult::GetRaw() const -> gpgme_verify_result_t {
   return result_ref_.get();
 }
 
-auto GpgVerifyResult::GetSignature() const -> QContainer<GpgSignature> {
-  QContainer<GpgSignature> signatures;
+auto GpgVerifyResult::GetSignature() const -> QList<GpgSignature> {
+  QList<GpgSignature> signatures;
 
   if (gf_result_ref_ != nullptr) {
     for (const auto& sig : gf_result_ref_->signatures) {
