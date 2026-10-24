@@ -33,6 +33,7 @@
 
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyGenerationTraits.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -404,7 +405,7 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel, const GpgKey &key)
 KeyGenerateInfo::KeyGenerateInfo(bool is_subkey)
     : subkey_(is_subkey),
       algo_(kNoneAlgo),
-      expired_(QDateTime::currentDateTime().toLocalTime().addYears(2)) {}
+      expired_(CurrentDateTime().toLocalTime().addYears(2)) {}
 
 auto KeyGenerateInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
     -> std::tuple<bool, KeyAlgo> {

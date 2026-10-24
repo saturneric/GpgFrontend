@@ -29,6 +29,7 @@
 #include "core/model/GpgKeyGroup.h"
 
 #include "core/function/openpgp/KeyGroupRepository.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
 
@@ -91,7 +92,7 @@ GpgKeyGroup::GpgKeyGroup(QString name, QString email, QString comment,
       email_(std::move(email)),
       comment_(std::move(comment)),
       key_ids_(std::move(key_ids)),
-      creation_time_(QDateTime::currentDateTime()) {}
+      creation_time_(CurrentDateTime()) {}
 
 GpgKeyGroup::GpgKeyGroup(const KeyGroupCO &kg_co)
     : id_(kg_co.id),

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GpgKeyGenerateInfo.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_KeyGenDialog;
@@ -160,34 +161,31 @@ class KeyGenerateDialog : public GeneralDialog {
   };
 
   const ExpireOption k_default_expire_option_ = {
-      "2y", tr("2 Years"), false,
-      [] { return QDateTime::currentDateTime().addYears(2); }};
+      "2y", tr("2 Years"), false, [] { return CurrentDateTime().addYears(2); }};
 
   const ExpireOption k_custom_expire_option_ = {
-      "custom", tr("Custom"), false,
-      [] { return QDateTime::currentDateTime(); }};
+      "custom", tr("Custom"), false, [] { return CurrentDateTime(); }};
 
   const QMap<QString, ExpireOption> k_expire_options_ = {
       {"custom", k_custom_expire_option_},
       {"3m",
        {"3m", tr("3 Months"), false,
-        [] { return QDateTime::currentDateTime().addMonths(3); }}},
+        [] { return CurrentDateTime().addMonths(3); }}},
       {"6m",
        {"6m", tr("6 Months"), false,
-        [] { return QDateTime::currentDateTime().addMonths(6); }}},
+        [] { return CurrentDateTime().addMonths(6); }}},
       {"1y",
        {"1y", tr("1 Year"), false,
-        [] { return QDateTime::currentDateTime().addYears(1); }}},
+        [] { return CurrentDateTime().addYears(1); }}},
       {"2y", k_default_expire_option_},
       {"5y",
        {"5y", tr("5 Years"), false,
-        [] { return QDateTime::currentDateTime().addYears(5); }}},
+        [] { return CurrentDateTime().addYears(5); }}},
       {"10y",
        {"10y", tr("10 Years"), false,
-        [] { return QDateTime::currentDateTime().addYears(10); }}},
+        [] { return CurrentDateTime().addYears(10); }}},
       {"forever",
-       {"forever", tr("Non Expired"), true,
-        [] { return QDateTime::currentDateTime(); }}},
+       {"forever", tr("Non Expired"), true, [] { return CurrentDateTime(); }}},
   };
 
   const QList<ExpireOption> k_expire_options_list_ = {

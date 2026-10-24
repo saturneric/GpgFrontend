@@ -27,6 +27,7 @@
  */
 
 #include "core/function/result_analyse/GpgOpResultInfo.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
@@ -136,7 +137,7 @@ void InfoBoardWidget::update_status_page(
     if (extra_sep_ != nullptr) extra_sep_->setVisible(false);
   }
 
-  const auto now = QDateTime::currentDateTime();
+  const auto now = CurrentDateTime();
   time_label_->setText(
       tr("Issued:  %1").arg(QLocale().toString(now, QLocale::ShortFormat)));
 
@@ -559,8 +560,7 @@ void InfoBoardWidget::update_status_page_from_results(
   extra_sep_->setVisible(has_any);
   extra_widget_->setVisible(has_any);
 
-  const auto now =
-      QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat);
+  const auto now = QLocale().toString(CurrentDateTime(), QLocale::ShortFormat);
   time_label_->setText(tr("Issued:  %1").arg(now));
 
   // Build plain-text copy of document content

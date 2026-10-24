@@ -198,6 +198,13 @@ auto IsCoreEnvInitialized() -> bool {
   return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
 }
 
+auto CurrentDateTime() -> QDateTime {
+  const auto fixed = Module::RetrieveRTValueTypedOrDefault<qint64>(
+      "core", kFixedClockRTKey, -1);
+  if (fixed < 0) return QDateTime::currentDateTime();
+  return QDateTime::fromSecsSinceEpoch(fixed);
+}
+
 auto EnsureSodiumInit() -> bool {
   static const int kRc = sodium_init();
   if (kRc < 0) {

@@ -143,6 +143,23 @@ auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString& a,
 auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
 
 /**
+ * @brief Runtime value that pins CurrentDateTime(), in seconds since the
+ * epoch. Only the screenshot mode publishes it, so its renders do not depend
+ * on when they were made.
+ */
+constexpr auto kFixedClockRTKey = "env.state.screenshot_clock";
+
+/**
+ * @brief The current date and time for anything shown to the user.
+ *
+ * Exactly QDateTime::currentDateTime() unless kFixedClockRTKey is set in the
+ * "core" namespace.
+ *
+ * @return the local date and time
+ */
+auto GF_CORE_EXPORT CurrentDateTime() -> QDateTime;
+
+/**
  * @brief Ensure that the Sodium library is initialised.
  *
  * @return true if Sodium is initialised successfully or was already

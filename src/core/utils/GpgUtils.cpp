@@ -1531,7 +1531,7 @@ auto IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool {
   if (key->IsRevoked() || key->IsDisabled() || key->IsExpired()) return false;
   if (IsKeyNeverExpires(key)) return false;
 
-  const auto now = QDateTime::currentDateTime();
+  const auto now = CurrentDateTime();
   const auto expires = key->ExpirationTime();
   return expires > now && now.daysTo(expires) <= GetKeyExpiringSoonDays();
 }

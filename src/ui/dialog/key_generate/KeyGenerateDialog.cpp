@@ -556,7 +556,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
 
   ui_->generateButton->setText(tr("Generate"));
 
-  const auto min_date_time = QDateTime::currentDateTime().addDays(3);
+  const auto min_date_time = CurrentDateTime().addDays(3);
   ui_->pExpireDateTimeEdit->setMinimumDateTime(min_date_time);
   ui_->sExpireDateTimeEdit->setMinimumDateTime(min_date_time);
 
@@ -748,7 +748,7 @@ void KeyGenerateDialog::slot_key_gen_accept() {
                << Qt::endl;
   }
 
-  const auto min_expire_date = QDateTime::currentDateTime().addSecs(120);
+  const auto min_expire_date = CurrentDateTime().addSecs(120);
 
   if (!gen_key_info_->IsNonExpired() &&
       gen_key_info_->GetExpireTime() < min_expire_date) {
@@ -874,7 +874,7 @@ void KeyGenerateDialog::refresh_widgets_state() {
     ui_->sAuthCheckBox->blockSignals(false);
 
     ui_->sExpireDateTimeEdit->blockSignals(true);
-    ui_->sExpireDateTimeEdit->setDateTime(QDateTime::currentDateTime());
+    ui_->sExpireDateTimeEdit->setDateTime(CurrentDateTime());
     ui_->sExpireDateTimeEdit->setDisabled(true);
     ui_->sExpireDateTimeEdit->blockSignals(false);
 
@@ -1002,7 +1002,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
       ui_->pExpireCheckBox, &QCheckBox::checkStateChanged, this,
       [this](Qt::CheckState state) {
         gen_key_info_->SetNonExpired(state == Qt::Checked);
-        gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(2));
+        gen_key_info_->SetExpireTime(CurrentDateTime().addYears(2));
         slot_set_easy_valid_date_2_custom();
         refresh_widgets_state();
       });
@@ -1010,7 +1010,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
   connect(
       ui_->pExpireCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
         gen_key_info_->SetNonExpired(state == Qt::Checked);
-        gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(2));
+        gen_key_info_->SetExpireTime(CurrentDateTime().addYears(2));
         slot_set_easy_valid_date_2_custom();
         refresh_widgets_state();
       });
@@ -1021,7 +1021,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
           [this](Qt::CheckState state) {
             gen_subkey_info_->SetNonExpired(state == Qt::Checked);
             gen_subkey_info_->SetExpireTime(
-                QDateTime::currentDateTime().addYears(2));
+                CurrentDateTime().addYears(2));
             slot_set_easy_valid_date_2_custom();
             refresh_widgets_state();
           });
@@ -1030,7 +1030,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
           [this](int state) {
             gen_subkey_info_->SetNonExpired(state == Qt::Checked);
             gen_subkey_info_->SetExpireTime(
-                QDateTime::currentDateTime().addYears(2));
+                CurrentDateTime().addYears(2));
             slot_set_easy_valid_date_2_custom();
             refresh_widgets_state();
           });
@@ -1370,7 +1370,7 @@ void KeyGenerateDialog::sync_gen_subkey_algo_info() {
 
 namespace {
 auto ParseValidityString(const QString& v) -> QDateTime {
-  QDateTime now = QDateTime::currentDateTime();
+  QDateTime now = CurrentDateTime();
   if (v == "forever" || v == "none") return now.addYears(100);
   if (v.endsWith("y")) return now.addYears(v.left(v.length() - 1).toInt());
   if (v.endsWith("m")) return now.addMonths(v.left(v.length() - 1).toInt());
@@ -1727,7 +1727,7 @@ void KeyGenerateDialog::slot_save_as_easy_profile_config() {
   if (conf.key_validity == "custom") {
     conf.key_validity =
         QString::number(gen_key_info_->GetExpireTime().toSecsSinceEpoch() -
-                        QDateTime::currentDateTime().toSecsSinceEpoch()) +
+                        CurrentDateTime().toSecsSinceEpoch()) +
         "t";
   }
 
@@ -1741,7 +1741,7 @@ void KeyGenerateDialog::slot_save_as_easy_profile_config() {
   if (conf.s_key_validity == "custom") {
     conf.s_key_validity =
         QString::number(gen_subkey_info_->GetExpireTime().toSecsSinceEpoch() -
-                        QDateTime::currentDateTime().toSecsSinceEpoch()) +
+                        CurrentDateTime().toSecsSinceEpoch()) +
         "t";
   }
 

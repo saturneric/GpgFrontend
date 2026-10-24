@@ -28,6 +28,7 @@
 #include "GpgSubKey.h"
 
 #include "core/model/GpgKey.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "core/utils/RustUtils.h"
 namespace GpgFrontend {
@@ -140,7 +141,7 @@ auto GpgSubKey::IsExpired() const -> bool {
   if (skm_ref_ != nullptr) {
     return skm_ref_->expires_at != 0 &&
            QDateTime::fromSecsSinceEpoch(skm_ref_->expires_at) <
-               QDateTime::currentDateTime();
+               CurrentDateTime();
   }
   return s_key_ref_->expired;
 }
