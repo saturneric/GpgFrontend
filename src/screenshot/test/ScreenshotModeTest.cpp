@@ -132,11 +132,13 @@ TEST(ScreenshotModeTest, RegistryHasThePhaseOneScenarios) {
   EXPECT_FALSE(FindScenario("key-generate-dialog")->default_size.isValid());
   EXPECT_EQ(FindScenario("no-such-scenario"), nullptr);
 
-  // Only the scenarios about key databases ask for the extra ones; every
-  // other render keeps the database list startup derives.
+  // Only the scenarios about key databases, and those set in the Work one,
+  // ask for the extra ones; every other render keeps the database list
+  // startup derives.
   for (const auto& s : Scenarios()) {
     const bool about_databases = s.name == "key-database-menu"_L1 ||
-                                 s.name == "settings-key-databases"_L1;
+                                 s.name == "settings-key-databases"_L1 ||
+                                 s.name.startsWith("work-"_L1);
     EXPECT_EQ(s.key_databases.isEmpty(), !about_databases)
         << s.name.toStdString();
   }

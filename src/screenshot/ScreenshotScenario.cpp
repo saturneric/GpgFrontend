@@ -197,6 +197,10 @@ auto Scenarios() -> const QList<Scenario>& {
   static const QList<Scenario> kScenarios = [] {
     QList<Scenario> scenarios;
     RegisterMainWindowScenarios(scenarios);
+    RegisterKeyDetailsScenarios(scenarios);
+    RegisterKeyManagementScenarios(scenarios);
+    RegisterOperationScenarios(scenarios);
+    RegisterKeyTransferScenarios(scenarios);
     RegisterSelfTestScenarios(scenarios);
     return scenarios;
   }();

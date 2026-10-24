@@ -167,6 +167,10 @@ auto WaitingDialogVisible() -> bool;
 
 // Registration, one function per scenarios/ file.
 void RegisterMainWindowScenarios(QList<Scenario>& scenarios);
+void RegisterKeyDetailsScenarios(QList<Scenario>& scenarios);
+void RegisterKeyManagementScenarios(QList<Scenario>& scenarios);
+void RegisterOperationScenarios(QList<Scenario>& scenarios);
+void RegisterKeyTransferScenarios(QList<Scenario>& scenarios);
 void RegisterSelfTestScenarios(QList<Scenario>& scenarios);
 
 }  // namespace GpgFrontend::Screenshot

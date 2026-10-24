@@ -48,6 +48,7 @@
 #include "screenshot/ScreenshotEnv.h"
 #include "screenshot/ScreenshotScenario.h"
 #include "screenshot/ScreenshotSeed.h"
+#include "screenshot/scenarios/ScenarioHelpers.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
@@ -60,141 +61,9 @@ using UI::InfoBoardWidget;
 using UI::MainWindow;
 using UI::TextEdit;
 
-/// The keys the scenarios work with. The main window's default tab hides
-/// expired and revoked keys, so Carol and Dave are never listed there.
-constexpr auto kAliceEmail = "alice@example.com";
-constexpr auto kBobEmail = "bob@example.com";
-/// Window size behind dialog-only captures, which never shows.
-const QSize kBackdropSize(1100, 680);
-/// The split the application's own default layout uses: the Key ToolBox
-/// takes this share of the window's width, the Status Panel this share of
-/// its height.
-constexpr double kKeyDockShare = 0.35;
-constexpr double kStatusPanelShare = 0.30;
-const auto kContractText =
-    u"Hello Bob,\n\nplease find the signed contract below.\n\nAlice\n"_s;
-
-auto KeyTable(MainWindow* window) -> QTableView* {
-  return window->findChild<QTableView*>(u"default"_s);
-}
-
-auto RowOf(QTableView* table, const QString& needle) -> int {
-  auto* model = table->model();
-  for (int row = 0; row < model->rowCount(); ++row) {
-    for (int col = 0; col < model->columnCount(); ++col) {
-      if (model->index(row, col).data().toString().contains(needle)) return row;
-    }
-  }
-  return -1;
-}
-
-auto ModelHooks(QAbstractItemModel* model) -> QList<ScenarioContext::Hook> {
-  return {ScenarioContext::On(model, &QAbstractItemModel::modelReset),
-          ScenarioContext::On(model, &QAbstractItemModel::rowsInserted),
-          ScenarioContext::On(model, &QAbstractItemModel::layoutChanged)};
-}
-
-auto CurrentEditor(MainWindow* window) -> QPlainTextEdit* {
-  for (auto* editor :
-       window->findChildren<QPlainTextEdit*>(u"PlainTextEditor"_s)) {
-    if (editor->isVisible()) return editor;
-  }
-  return nullptr;
-}
-
-/**
- * @brief Create, show and activate the main window, wait for the demo keys
- *        to be listed, and open a text tab holding @p tab_content.
- */
-auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
-                    const QString& tab_content) -> MainWindow* {
-  // Owned as a QObject: deleting through the virtual destructor keeps this
-  // file from emitting MainWindow's, whose base class gf_ui does not export.
-  auto* window_ptr = new MainWindow();
-  ctx.Keep(QSharedPointer<QObject>(window_ptr));
-  const QPointer<MainWindow> window(window_ptr);
-  window->Init();
-  window->resize(size);
-  // Init() queues its default layout as a zero timer, which resizes and
-  // re-centres the window. Zero timers fire in the order they were started,
-  // so once this one has fired, that layout has run too.
-  const auto init_layout_done = QSharedPointer<bool>::create(false);
-  QTimer::singleShot(0, window_ptr,
-                     [init_layout_done]() { *init_layout_done = true; });
-
-  auto* table = KeyTable(window_ptr);
-  if (table == nullptr) {
-    ctx.Fail(kEXIT_USAGE, u"no-key-table"_s);
-    return nullptr;
-  }
-
-  const auto ready = [&]() {
-    return *init_layout_done && window->isVisible() &&
-           window->isActiveWindow() && RowOf(table, kAliceEmail) >= 0 &&
-           RowOf(table, kBobEmail) >= 0;
-  };
-  auto hooks = ModelHooks(table->model());
-  hooks.append(ScenarioContext::On(window_ptr, &MainWindow::SignalLoaded));
-  const auto shown = ctx.WaitUntil(
-      [&]() {
-        window->show();
-        window->raise();
-        window->activateWindow();
-      },
-      ready, hooks, u"main-window-keys-listed-and-active"_s,
-      [&]() {
-        return u"visible=%1 active=%2 rows=%3"_s.arg(window->isVisible())
-            .arg(window->isActiveWindow())
-            .arg(table->model()->rowCount());
-      });
-  if (!shown) return nullptr;
-
-  // Size, place and dock width are applied only now that the default layout
-  // has run, and always: the window may still read the requested size from
-  // before that layout, which would make a wait on the size alone skip them.
-  // A size the platform still refuses is the size gate's to report.
-  auto* key_dock = window->findChild<QDockWidget*>(u"keyListDock"_s);
-  auto* status_dock = window->findChild<QDockWidget*>(u"infoBoardDock"_s);
-  const auto top_left =
-      QApplication::primaryScreen() != nullptr
-          ? QApplication::primaryScreen()->availableGeometry().topLeft()
-          : QPoint(0, 0);
-  window->resize(size);
-  window->move(top_left);
-  if (key_dock != nullptr) {
-    window->resizeDocks({key_dock},
-                        {static_cast<int>(size.width() * kKeyDockShare)},
-                        Qt::Horizontal);
-  }
-  if (status_dock != nullptr) {
-    window->resizeDocks({status_dock},
-                        {static_cast<int>(size.height() * kStatusPanelShare)},
-                        Qt::Vertical);
-  }
-  ctx.WaitUntil(
-      {}, [&]() { return window->size() == size && window->pos() == top_left; },
-      {}, u"main-window-resized"_s,
-      [&]() {
-        return u"size=%1x%2 pos=%3,%4"_s.arg(window->width())
-            .arg(window->height())
-            .arg(window->x())
-            .arg(window->y());
-      });
-  if (ctx.GetFailure()) return nullptr;
-  if (const auto bad = SizeGateFailure(size, window->size())) {
-    ctx.Fail(kEXIT_ENVIRONMENT, u"gate"_s, *bad);
-    return nullptr;
-  }
-  // A text tab in front: a fresh profile starts on the file browser, whose
-  // free-space line describes the machine rendering rather than the demo.
-  window_ptr->findChild<TextEdit*>()->SlotNewTabWithContent(tab_title,
-                                                            tab_content);
-  return window_ptr;
-}
-
 auto MainWindowScenario(ScenarioContext& ctx) -> bool {
   auto* window =
-      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, ContractText());
   if (window == nullptr) return false;
 
   auto* table = KeyTable(window);
@@ -216,6 +85,8 @@ auto MainWindowScenario(ScenarioContext& ctx) -> bool {
   ctx.AddHighlight(u"cryptToolBar"_s,
                    window->findChild<QWidget*>(u"cryptToolBar"_s));
   ctx.AddHighlight(u"PlainTextEditor"_s, CurrentEditor(window));
+  ctx.AddHighlight(u"importKeyButton"_s,
+                   window->findChild<QWidget*>(u"importKeyButton"_s));
 
   return ctx.WaitSettled(
       window,
@@ -229,7 +100,7 @@ auto MainWindowScenario(ScenarioContext& ctx) -> bool {
 
 auto KeyGenerateDialogScenario(ScenarioContext& ctx) -> bool {
   auto* window =
-      OpenMainWindow(ctx, kBackdropSize, u"contract.txt"_s, kContractText);
+      OpenMainWindow(ctx, kBackdropSize, u"contract.txt"_s, ContractText());
   if (window == nullptr) return false;
 
   auto* action = window->findChild<QAction*>(u"generate_key_pair"_s);
@@ -331,19 +202,6 @@ auto DecryptVerifyResultScenario(ScenarioContext& ctx) -> bool {
 }
 
 /**
- * @brief The menu that holds @p action, among @p menus' own actions.
- */
-auto MenuHolding(const QList<QAction*>& actions, const QAction* action)
-    -> std::pair<QMenu*, QAction*> {
-  for (auto* entry : actions) {
-    if (entry->menu() != nullptr && entry->menu()->actions().contains(action)) {
-      return {entry->menu(), entry};
-    }
-  }
-  return {nullptr, nullptr};
-}
-
-/**
  * @brief Keys > Import Key > Key Server, as the manual walks through it.
  *
  * "Key Server" is not the Host's: the key server module places it in the
@@ -351,7 +209,7 @@ auto MenuHolding(const QList<QAction*>& actions, const QAction* action)
  */
 auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
   auto* window =
-      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, ContractText());
   if (window == nullptr) return false;
 
   auto* bar = window->menuBar();
@@ -432,7 +290,7 @@ auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
  */
 auto KeyGroupsScenario(ScenarioContext& ctx) -> bool {
   auto* window =
-      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, ContractText());
   if (window == nullptr) return false;
 
   auto* categories = window->findChild<QListWidget*>(u"KeyCategoryList"_s);
@@ -482,7 +340,7 @@ auto KeyGroupsScenario(ScenarioContext& ctx) -> bool {
  */
 auto KeyDatabaseMenuScenario(ScenarioContext& ctx) -> bool {
   auto* window =
-      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, ContractText());
   if (window == nullptr) return false;
 
   auto* button = window->findChild<QToolButton*>(u"switchContextButton"_s);
@@ -532,75 +390,12 @@ auto KeyDatabaseMenuScenario(ScenarioContext& ctx) -> bool {
  */
 auto SettingsKeyDatabasesScenario(ScenarioContext& ctx) -> bool {
   auto* window =
-      OpenMainWindow(ctx, kBackdropSize, u"contract.txt"_s, kContractText);
+      OpenMainWindow(ctx, kBackdropSize, u"contract.txt"_s, ContractText());
   if (window == nullptr) return false;
 
-  auto* action = window->findChild<QAction*>(u"settings"_s);
-  if (action == nullptr) {
-    ctx.Fail(kEXIT_USAGE, u"settings-unavailable"_s);
-    return false;
-  }
-
-  QWidget* dialog = nullptr;
-  if (!ctx.WaitUntil([&]() { action->trigger(); },
-                     [&]() {
-                       for (auto* w : QApplication::topLevelWidgets()) {
-                         if (w->isVisible() &&
-                             w->inherits("GpgFrontend::UI::SettingsDialog")) {
-                           dialog = w;
-                           return true;
-                         }
-                       }
-                       return false;
-                     },
-                     {}, u"settings-dialog-shown"_s)) {
-    return false;
-  }
-
-  // The page is selected the way a click does: through the navigation row
-  // whose page index is the Key Databases page's place in the stack.
-  QWidget* page = nullptr;
-  for (auto* w : dialog->findChildren<QWidget*>()) {
-    if (w->inherits("GpgFrontend::UI::KeyDatabasesTab")) page = w;
-  }
-  // Each page sits in the stack inside a scroll area, so the stack entry is
-  // the one that holds the page.
-  QStackedWidget* stack = nullptr;
-  int page_index = -1;
-  for (auto* candidate : dialog->findChildren<QStackedWidget*>()) {
-    for (int i = 0; page != nullptr && i < candidate->count(); ++i) {
-      auto* entry = candidate->widget(i);
-      if (entry == page || entry->isAncestorOf(page)) {
-        stack = candidate;
-        page_index = i;
-      }
-    }
-  }
-  QListWidget* nav = nullptr;
-  int nav_row = -1;
-  for (auto* candidate : dialog->findChildren<QListWidget*>()) {
-    for (int i = 0; stack != nullptr && i < candidate->count(); ++i) {
-      const auto data = candidate->item(i)->data(Qt::UserRole);
-      if (data.isValid() && data.toInt() == page_index) {
-        nav = candidate;
-        nav_row = i;
-      }
-    }
-  }
-  if (nav == nullptr) {
-    ctx.Fail(kEXIT_USAGE, u"key-databases-page-missing"_s);
-    return false;
-  }
-
-  if (ctx.GetSize().isValid()) dialog->resize(ctx.GetSize());
-  if (!ctx.WaitUntil(
-          [&]() { nav->setCurrentRow(nav_row); },
-          [&]() { return stack->currentIndex() == page_index; },
-          {ScenarioContext::On(stack, &QStackedWidget::currentChanged)},
-          u"key-databases-page-shown"_s)) {
-    return false;
-  }
-  nav->setFocus();
+  const auto [dialog, page] =
+      OpenSettingsPage(ctx, window, "GpgFrontend::UI::KeyDatabasesTab");
+  if (page == nullptr) return false;
 
   ctx.SetTarget(dialog, CaptureMode::kDIALOG);
   ctx.AddHighlight(u"KeyDatabasesTab"_s, page);
