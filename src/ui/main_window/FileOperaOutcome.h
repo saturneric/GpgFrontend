@@ -29,6 +29,8 @@
 #pragma once
 
 #include "core/typedef/CoreTypedef.h"
+#include "core/utils/IOUtils.h"
+#include "ui/function/InfoBoardReport.h"
 #include "ui/struct/GpgOperaResult.h"
 
 namespace GpgFrontend::UI {
@@ -52,5 +54,50 @@ namespace GpgFrontend::UI {
  */
 auto GF_UI_EXPORT IsFileOperaSuccessful(const QList<GpgOperaResult>& results,
                                         qsizetype operation_count) -> bool;
+
+/**
+ * @brief Give a file batch's results their batch identity.
+ *
+ * Each input is the output staged for it: a result's index in the batch is
+ * the position of its staged path in @p staged_paths, which is unique even
+ * where the per-category operation indices are not. Every input becomes an
+ * expected source, so one that never reports is still listed.
+ *
+ * @param results the snapshot of results; their input_index is rewritten
+ * @param staged_paths each input's staged output path, in batch order
+ * @param input_paths each input's own path, in the same order
+ */
+auto GF_UI_EXPORT AssignFileBatchIdentity(QList<GpgOperaResult>& results,
+                                          const QStringList& staged_paths,
+                                          const QStringList& input_paths)
+    -> InfoBoardBatchContext;
+
+/**
+ * @brief Record what the cleanup of a batch that is not committed did.
+ *
+ * @param removed DiscardSafeOutput()'s answer per staged path, in batch order;
+ *        only a confirmed removal is reported as one
+ */
+void GF_UI_EXPORT RecordDiscardedOutputs(InfoBoardBatchContext& context,
+                                         const QList<GpgOperaResult>& results,
+                                         const QStringList& staged_paths,
+                                         const QList<bool>& removed);
+
+/**
+ * @brief Record what committing a batch did.
+ *
+ * @param final_paths each input's final output path, in batch order
+ * @param failed_index the output whose commit failed; -1 when all were
+ * @param failed_step which step of that commit failed
+ * @param staged_paths each input's staged path, for the cleanup's errors
+ * @param removed DiscardSafeOutput()'s answer per staged path after a failed
+ *        commit; empty when nothing was cleaned up
+ */
+void GF_UI_EXPORT RecordCommittedOutputs(InfoBoardBatchContext& context,
+                                         const QStringList& final_paths,
+                                         qsizetype failed_index,
+                                         SafeOutputCommitStep failed_step,
+                                         const QStringList& staged_paths,
+                                         const QList<bool>& removed);
 
 }  // namespace GpgFrontend::UI

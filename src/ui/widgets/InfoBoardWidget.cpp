@@ -34,6 +34,7 @@
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/SecureWipe.h"
 #include "ui/function/TextDirection.h"
+#include "ui/function/UIStyle.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui_InfoBoard.h"
@@ -47,6 +48,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   ui_->externalLayout->addStretch();
 
   InitUI();
+  qApp->installEventFilter(this);
 
   connect(ui_->copyToolButton, &QToolButton::clicked, this,
           &InfoBoardWidget::slot_copy);
@@ -269,13 +271,15 @@ void InfoBoardWidget::UpdateActionButtons() {
 }
 
 auto InfoBoardWidget::StatusColor(InfoBoardStatus status) const -> QColor {
+  // The application's semantic colours, each tuned per theme, so status text
+  // stays readable on a dark panel as on a light one.
   switch (status) {
     case kINFO_ERROR_OK:
-      return {46, 125, 50};
+      return AccentColor(palette(), true);
     case kINFO_ERROR_WARN:
-      return {239, 108, 0};
+      return WarningColor(palette());
     case kINFO_ERROR_CRITICAL:
-      return {198, 40, 40};
+      return DangerColor(palette());
     case kINFO_ERROR_NEUTRAL:
     default:
       return palette().text().color();
@@ -293,30 +297,6 @@ auto InfoBoardWidget::StatusIconPath(InfoBoardStatus status) const -> QString {
     case kINFO_ERROR_NEUTRAL:
     default:
       return u":/icons/stamp_info.png"_s;
-  }
-}
-
-auto InfoBoardWidget::StatusDescription(InfoBoardStatus status,
-                                        const QString& operation) const
-    -> QString {
-  const QString op = operation.trimmed();
-  switch (status) {
-    case kINFO_ERROR_OK:
-      return op.isEmpty() ? tr("The operation completed successfully.")
-                          : tr("%1 completed successfully.").arg(op);
-    case kINFO_ERROR_WARN:
-      return op.isEmpty()
-                 ? tr("Completed with warnings — please review the details.")
-                 : tr("%1 completed with warnings — please review the details.")
-                       .arg(op);
-    case kINFO_ERROR_CRITICAL:
-      return op.isEmpty()
-                 ? tr("The operation failed. See the details for more "
-                      "information.")
-                 : tr("%1 failed. See the details for more information.")
-                       .arg(op);
-    default:
-      return {};
   }
 }
 
@@ -379,17 +359,18 @@ auto InfoBoardWidget::StatusIndicatorToolTip(InfoBoardStatus status) const
       .join('\n');
 }
 
-auto InfoBoardWidget::build_status_symbol(InfoBoardStatus status) const
+auto InfoBoardWidget::build_status_symbol(InfoBoardStatus status,
+                                          const QString& word) const
     -> QString {
   switch (status) {
     case kINFO_ERROR_OK:
-      return u"✓  "_s + StatusTitle(status).toUpper();
+      return u"✓ "_s + word;
     case kINFO_ERROR_WARN:
-      return u"⚠  "_s + StatusTitle(status).toUpper();
+      return u"⚠ "_s + word;
     case kINFO_ERROR_CRITICAL:
-      return u"✗  "_s + StatusTitle(status).toUpper();
+      return u"✗ "_s + word;
     default:
-      return StatusTitle(status).toUpper();
+      return word;
   }
 }
 
@@ -398,15 +379,16 @@ void InfoBoardWidget::set_info_board_text(const QString& text,
   ApplyStatusStyle(status);
   ui_->infoBoard->clear();
 
-  const auto title = StatusTitle(status);
   const auto body = text.trimmed();
 
   info_board_body_ = body;
   apply_text_direction();
 
-  const auto final_text = body.isEmpty()
-                              ? tr("[%1] No details available.").arg(title)
-                              : QString("[%1] %2").arg(title, body);
+  // The text carries its own heading with the outcome; only an empty one
+  // needs saying so.
+  const auto final_text =
+      body.isEmpty() ? tr("[%1] No details available.").arg(StatusTitle(status))
+                     : body;
 
   ui_->infoBoard->setPlainText(final_text);
   ui_->infoBoard->moveCursor(QTextCursor::Start);
@@ -458,18 +440,6 @@ auto InfoBoardWidget::IndicatorColor(InfoBoardStatus status) const -> QColor {
                                        : StatusColor(status);
 }
 
-void InfoBoardWidget::apply_info_board(const QString& text,
-                                       InfoBoardStatus status,
-                                       const QString& content_hash) {
-  set_info_board_text(text, status);
-
-  if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
-    update_status_page(text, status, content_hash);
-  }
-
-  UpdateActionButtons();
-}
-
 void InfoBoardWidget::announce_result(const QString& text,
                                       InfoBoardStatus status,
                                       qsizetype structured_items) {
@@ -480,8 +450,11 @@ void InfoBoardWidget::announce_result(const QString& text,
 
 void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,
                                    const QString& content_hash) {
-  apply_info_board(text, status, content_hash);
-  announce_result(text, status, 0);
+  auto report = BuildReportFromText(text, status);
+  if (!content_hash.isEmpty() && !report.objects.isEmpty()) {
+    report.objects.first().input_hash = content_hash;
+  }
+  post_report(std::move(report), IsMeaningfulInfoBoardResult(text, 0));
 }
 
 void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
@@ -494,15 +467,14 @@ void InfoBoardWidget::SetInfoBoardCards(
     const QList<InfoBoardCard>& cards, const QString& operation,
     const QString& description, const QString& details_title,
     const QStringList& details_items, const QString& content_hash) {
-  set_info_board_text(text, status);
-
-  if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
-    update_status_page(text, status, content_hash, operation, description,
-                       cards, details_title, details_items);
+  auto report = BuildReportFromCards(text, status, cards, operation,
+                                     description, details_title, details_items);
+  if (!content_hash.isEmpty() && report.objects.size() == 1 &&
+      report.objects.first().input_hash.isEmpty()) {
+    report.objects.first().input_hash = content_hash;
   }
-
-  UpdateActionButtons();
-  announce_result(text, status, cards.size());
+  post_report(std::move(report),
+              IsMeaningfulInfoBoardResult(text, cards.size()));
 }
 
 void InfoBoardWidget::SlotRefreshWithCards(const QString& text,
@@ -540,33 +512,31 @@ void InfoBoardWidget::ResetOptionActionsMenu() {
 }
 
 void InfoBoardWidget::clear_document_fields() {
-  if (val_operation_ != nullptr) val_operation_->clear();
-  if (val_status_ != nullptr) val_status_->clear();
-  if (val_engine_ != nullptr) val_engine_->clear();
+  if (operation_label_ != nullptr) operation_label_->clear();
+  if (status_label_ != nullptr) status_label_->clear();
+  if (meta_label_ != nullptr) meta_label_->clear();
+  if (summary_label_ != nullptr) summary_label_->clear();
   if (time_label_ != nullptr) time_label_->clear();
   if (id_label_ != nullptr) id_label_->clear();
   if (hash_label_ != nullptr) hash_label_->clear();
-  // Not plaintext — this board shows operation metadata (signer identities,
-  // fingerprints, key ids, paths, hashes) and, on a decoded message's path,
-  // the ciphertext encoding. The labels above are left to plain clear():
-  // overwriting a QLabel's text before clearing it is theatre one indirection
-  // further out than the strings themselves.
-  WipeString(current_id_);
-  WipeString(current_input_hash_);
+  // Not plaintext -- this board shows operation metadata (signer identities,
+  // fingerprints, key ids, paths, hashes, engine messages). The labels above
+  // are left to plain clear(): overwriting a QLabel's text before clearing it
+  // is theatre one indirection further out than the strings themselves.
   WipeString(current_copy_text_);
+  current_report_ = {};
+  show_all_groups_ = false;
+  expanded_groups_.clear();
 
   if (doc_frame_ != nullptr)
     static_cast<DocFrame*>(doc_frame_)->ClearWatermark();
-
-  if (row_operation_ != nullptr) row_operation_->setVisible(false);
-  if (row_engine_ != nullptr) row_engine_->setVisible(false);
 
   if (details_container_ != nullptr) {
     if (auto* l = qobject_cast<QVBoxLayout*>(details_container_->layout())) {
       delete_widgets_in_layout(l, 0);
     }
   }
-  if (key_details_ != nullptr) key_details_->setText(tr("DETAILS"));
+  if (key_details_ != nullptr) key_details_->clear();
   if (row_details_ != nullptr) row_details_->setVisible(false);
   if (sep_top_ != nullptr) sep_top_->setVisible(false);
   if (extra_sep_ != nullptr) extra_sep_->setVisible(false);
@@ -600,6 +570,51 @@ void InfoBoardWidget::SlotReset() {
   clear_document_fields();
   // After the document view is gone, or the magnifier stays enabled.
   UpdateActionButtons();
+}
+
+auto InfoBoardWidget::eventFilter(QObject* watched, QEvent* event) -> bool {
+  // An application theme switch does not reach this subtree on its own: the
+  // board carries a style sheet, whose style gives it a palette of its own,
+  // so the application's new one is not propagated down. The application
+  // object hears of the switch; taking its palette explicitly hands it to
+  // every child (the document's scroll area included) and arrives back here
+  // as a PaletteChange.
+  if (watched == qApp && event->type() == QEvent::ApplicationPaletteChange) {
+    // Each descendant too: the style-sheet style holds their palettes the
+    // same way, the document's scroll viewport (the panel behind the cards)
+    // among them. ApplyStatusStyle then puts the text pane's status colour
+    // back on top.
+    const auto app_palette = QApplication::palette(this);
+    setPalette(app_palette);
+    for (auto* child : findChildren<QWidget*>()) child->setPalette(app_palette);
+    ApplyStatusStyle(current_status_);
+  }
+  return QWidget::eventFilter(watched, event);
+}
+
+void InfoBoardWidget::changeEvent(QEvent* event) {
+  QWidget::changeEvent(event);
+  const auto type = event->type();
+  if (type != QEvent::PaletteChange && type != QEvent::StyleChange) return;
+  // Restyling below changes child stylesheets, which must not loop back here.
+  if (restyling_) return;
+  restyling_ = true;
+  apply_report_palette();
+  restyling_ = false;
+}
+
+void InfoBoardWidget::apply_report_palette() {
+  if (doc_frame_ == nullptr) return;
+  // Every label that carries a tone takes its colour again from the new
+  // palette; the report itself is rendered again for its frames, cards and
+  // status colours.
+  for (auto* w : doc_frame_->findChildren<QWidget*>()) {
+    const auto tone = w->property("reportTone");
+    if (!tone.isValid()) continue;
+    ApplyTone(w, static_cast<ReportTone>(tone.toInt()), palette());
+  }
+  if (!current_report_.IsEmpty()) render_report();
+  ApplyStatusStyle(current_status_);
 }
 
 void InfoBoardWidget::AddBarAction(QAction* action) {

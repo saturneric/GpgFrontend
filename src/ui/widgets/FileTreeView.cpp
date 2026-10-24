@@ -771,7 +771,7 @@ void FileTreeView::slot_calculate_hash() {
               data_object->Swap({CalculateFileHashInfo(selected_path)});
               return 0;
             },
-            [hd](int rtn, const DataObjectPtr& data_object) {
+            [hd, selected_path](int rtn, const DataObjectPtr& data_object) {
               hd();
               using HashFields = QList<QPair<QString, QString>>;
               if (rtn < 0 || !data_object->Check<HashFields>()) {
@@ -783,7 +783,15 @@ void FileTreeView::slot_calculate_hash() {
               InfoBoardCard card;
               card.title = tr("File Hash Information");
               card.status = InfoBoardStatus::kINFO_ERROR_OK;
-              card.fields = fields;
+              // Digests: shown in the monospaced face.
+              for (const auto& field : fields) {
+                card.AddField(field.first, field.second,
+                              {{}, true, InfoBoardFieldGroup::kDETAIL});
+              }
+              card.kind = InfoBoardCardKind::kFILE_HASH;
+              card.source = {
+                  InfoBoardSource::kFILE, u"file:0:"_s + selected_path,
+                  QFileInfo(selected_path).fileName(), selected_path};
 
               QList<InfoBoardCard> cards;
               cards.append(card);

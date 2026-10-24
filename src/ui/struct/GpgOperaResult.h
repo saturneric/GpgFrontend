@@ -37,6 +37,13 @@ struct GF_UI_EXPORT GpgOperaResult {
   QString tag;  ///< Display tag (e.g., filename for file operations)
   GFBuffer o_buffer;  ///< Output buffer (for message operations)
   GpgFrontend::GpgOpResultInfo op_info;  ///< Structured operation result info
+  /// Position of the input in its batch; -1 when not part of one.
+  int input_index = -1;
+  /// Full path of the input file; empty for a buffer operation.
+  QString source_path;
+  /// Where a file operation wrote its output: the staged path its batch
+  /// commits or discards. Empty for a buffer operation.
+  QString staged_output_path;
 
   /// Construct from GpgOpResultInfo and optional display tag
   explicit GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag = {});

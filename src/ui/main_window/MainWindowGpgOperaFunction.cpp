@@ -62,14 +62,16 @@ void RemoveSafeOutputWorkDirs(const QList<SafeOutputPath>& outputs) {
 
 // Discard every staged output, files and staged directories (an archive
 // extraction) alike, so a failed operation leaves no plaintext behind.
-void CleanupSafeOutputFiles(const QList<SafeOutputPath>& outputs) {
+auto CleanupSafeOutputFiles(const QList<SafeOutputPath>& outputs)
+    -> QList<bool> {
+  QList<bool> removed;
   for (const auto& output : outputs) {
-    if (!DiscardSafeOutput(output.temp_path)) {
-      LOG_E() << "cannot discard staged output:" << output.temp_path;
-    }
+    const bool ok = DiscardSafeOutput(output.temp_path);
+    if (!ok) LOG_E() << "cannot discard staged output:" << output.temp_path;
+    removed.append(ok);
   }
+  return removed;
 }
-
 auto PrepareSafeOutputPath(const QString& final_path,
                            QStringList* final_output_paths,
                            QList<SafeOutputPath>* safe_outputs) -> QString {
@@ -95,9 +97,15 @@ auto CodecCards(const CodecStageResult& r) -> InfoBoardCardsPayload {
 }  // namespace
 
 auto MainWindow::commit_safe_output_files(const QList<SafeOutputPath>& outputs,
-                                          QStringList& committed) -> bool {
-  for (const auto& output : outputs) {
-    if (!CommitSafeOutputFile(output.temp_path, output.final_path)) {
+                                          QStringList& committed,
+                                          qsizetype* failed_index,
+                                          SafeOutputCommitStep* failed_step)
+    -> bool {
+  for (qsizetype i = 0; i < outputs.size(); ++i) {
+    const auto& output = outputs.at(i);
+    if (!CommitSafeOutputFile(output.temp_path, output.final_path,
+                              failed_step)) {
+      if (failed_index != nullptr) *failed_index = i;
       QMessageBox::critical(
           this, tr("Error"),
           tr("Failed to finalize output file:\n\n%1").arg(output.final_path));
@@ -108,7 +116,6 @@ auto MainWindow::commit_safe_output_files(const QList<SafeOutputPath>& outputs,
 
   return true;
 }
-
 void MainWindow::exec_file_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts,
@@ -125,43 +132,58 @@ void MainWindow::exec_file_operas_helper(
 
   // A snapshot: an operation that was still in flight when the wait ended can
   // append one more result, and that must not happen while the list below is
-  // being iterated.
-  const auto opera_results = contexts->opera_results;
+  // being iterated. The report is built from this snapshot only and posted
+  // once, after cleanup or commit has settled: a result arriving later is not
+  // in it, and its object stays "not reported" with nothing claimed about its
+  // output.
+  auto opera_results = contexts->opera_results;
 
   const bool success = IsFileOperaSuccessful(opera_results, operation_count);
+
+  // Each input is the output staged for it; that is the batch's identity.
+  QHash<QString, QString> input_of_stage;
+  for (const auto& category : contexts->categories) {
+    for (qsizetype i = 0; i < category.o_paths.size(); ++i) {
+      input_of_stage.insert(category.o_paths.at(i), category.paths.value(i));
+    }
+  }
+  QStringList staged_paths;
+  QStringList final_paths;
+  QStringList input_paths;
+  for (const auto& output : safe_outputs) {
+    staged_paths.append(output.temp_path);
+    final_paths.append(output.final_path);
+    input_paths.append(input_of_stage.value(output.temp_path));
+  }
+  auto batch =
+      AssignFileBatchIdentity(opera_results, staged_paths, input_paths);
 
   if (!success) {
     LOG_E()
         << "One or more file operations failed. Cleaning up temporary files.";
-    CleanupSafeOutputFiles(safe_outputs);
+    const auto removed = CleanupSafeOutputFiles(safe_outputs);
     RemoveSafeOutputWorkDirs(safe_outputs);
-    slot_result_analyse_show_helper(opera_results);
+    RecordDiscardedOutputs(batch, opera_results, staged_paths, removed);
+    slot_result_analyse_show_helper(opera_results, batch);
     return;
   }
 
   QStringList committed;
-  if (!commit_safe_output_files(safe_outputs, committed)) {
+  qsizetype failed_index = -1;
+  auto failed_step = SafeOutputCommitStep::kMOVE_INTO_PLACE;
+  if (!commit_safe_output_files(safe_outputs, committed, &failed_index,
+                                &failed_step)) {
     LOG_E() << "Failed to commit output files. Temporary files have been "
                "cleaned up, already committed outputs:"
             << committed.size();
-    CleanupSafeOutputFiles(safe_outputs);
+    const auto removed = CleanupSafeOutputFiles(safe_outputs);
     RemoveSafeOutputWorkDirs(safe_outputs);
 
-    // Outputs committed before the failure are in place: only claim the
-    // originals were kept when none of them was replaced.
-    slot_refresh_info_board(
-        -1, committed.isEmpty()
-                ? tr("The operation succeeded, but GpgFrontend failed to "
-                     "finalize one or more output files.\n\n"
-                     "Temporary output files have been cleaned up. Original "
-                     "files were kept unchanged.")
-                : tr("The operation succeeded, but GpgFrontend failed to "
-                     "finalize one or more output files.\n\n"
-                     "These output files were already written before the "
-                     "failure:\n%1\n\n"
-                     "The remaining temporary output files have been cleaned "
-                     "up.")
-                      .arg(committed.join('\n')));
+    // The engine results stay as they were; what the report adds is that
+    // the outputs from the failed one on were not written.
+    RecordCommittedOutputs(batch, final_paths, failed_index, failed_step,
+                           staged_paths, removed);
+    slot_result_analyse_show_helper(opera_results, batch);
     return;
   }
 
@@ -170,7 +192,8 @@ void MainWindow::exec_file_operas_helper(
   LOG_D() << "All file operations completed successfully. Output files have "
              "been finalized.";
 
-  slot_result_analyse_show_helper(opera_results);
+  RecordCommittedOutputs(batch, final_paths, -1, failed_step, staged_paths, {});
+  slot_result_analyse_show_helper(opera_results, batch);
 }
 
 auto MainWindow::encrypt_operation_key_validate(
@@ -752,16 +775,29 @@ void MainWindow::exec_encoded_encrypt_helper(const QString& encoder,
     show_codec_failure_helper(op_name, not_text);
     return;
   }
-  edit_->SlotFillTextEditWithText(text);
+  // The encoded text replaces the document: that is this operation's
+  // output, and the report says whether it got there.
+  InfoBoardBatchContext context;
+  context.document_target = true;
+  if (edit_->CurTextPage() == nullptr) {
+    context.fates.insert(result.input_index, OutputFate::kAPPLY_FAILED);
+    context.output_errors[result.input_index].append(
+        {OutputAction::kAPPLY_TO_DOCUMENT,
+         {},
+         std::nullopt,
+         tr("The current tab has no text document to receive the result."),
+         OutputErrorOrigin::kAPPLICATION});
+  } else {
+    edit_->SlotFillTextEditWithText(text);
+    context.fates.insert(result.input_index, OutputFate::kAPPLIED);
+  }
 
-  const auto codec = CodecCards(*encoded);
-  QList<InfoBoardCard> cards = codec.cards;
-  cards.append(convert_op_info_to_cards(result.op_info));
+  // The encoder's section belongs to the same object as the OpenPGP result.
+  auto codec_cards = CodecCards(*encoded).cards;
+  for (auto& card : codec_cards) card.kind = InfoBoardCardKind::kCODEC;
+  context.extra_cards.insert(result.input_index, codec_cards);
 
-  info_board_->SetInfoBoardCards(
-      sign ? tr("Message encrypted, signed and encoded.")
-           : tr("Message encrypted and encoded."),
-      kINFO_ERROR_OK, cards, op_name, codec.description);
+  slot_result_analyse_show_helper({result}, context);
 }
 
 auto MainWindow::exec_decoder_stage_helper(const QString& text)
@@ -785,16 +821,23 @@ auto MainWindow::exec_decoder_stage_helper(const QString& text)
 
 void MainWindow::show_codec_failure_helper(const QString& operation,
                                            const CodecStageResult& failed) {
+  // The codec's own section, about the document it worked on; the board adds
+  // the Outcome card with the reason. Red because the stage failed: styling,
+  // not what the report says happened.
   const auto codec = CodecCards(failed);
   QList<InfoBoardCard> cards = codec.cards;
-  for (auto& card : cards) card.status = kINFO_ERROR_CRITICAL;
+  for (auto& card : cards) {
+    card.status = kINFO_ERROR_CRITICAL;
+    card.kind = InfoBoardCardKind::kCODEC;
+    card.source = CurrentDocumentSource();
+  }
 
   const auto reason =
       failed.error.isEmpty() ? tr("The message could not be decoded.")
                              : failed.error;
   info_board_->SlotReset();
-  info_board_->SetInfoBoardCards(reason, kINFO_ERROR_CRITICAL, cards,
-                                 operation, codec.description);
+  info_board_->SetInfoBoardCards(reason, kINFO_ERROR_CRITICAL, cards, operation,
+                                 reason);
   QMessageBox::warning(this, operation, reason);
 }
 
@@ -810,49 +853,41 @@ auto MainWindow::exec_decoded_decrypt_helper(
   // this session keeps its plaintext buffer alive until the process exits.
   contexts->operas.clear();
 
+  // A snapshot, as everywhere: a late result does not change this report.
+  const auto opera_results = contexts->opera_results;
+
   // Overall status like the standard path: the minimum across results. A
   // status of 0 is a warning (e.g. Decrypt & Verify on an encrypt-only
   // message, which has no signature) -- not an error.
-  int overall = contexts->opera_results.empty() ? -1 : 1;
-  for (const auto& result : contexts->opera_results) {
+  int overall = opera_results.empty() ? -1 : 1;
+  for (const auto& result : opera_results) {
     overall = std::min(overall, result.op_info.status);
   }
 
-  // Write the recovered plaintext to the editor (skips failed results).
-  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+  // Write the recovered plaintext to the editor (skips failed results), and
+  // record what became of it.
+  InfoBoardBatchContext context;
+  context.document_target = true;
+  slot_gpg_opera_buffer_show_helper(opera_results, &context);
 
-  InfoBoardStatus status = kINFO_ERROR_OK;
-  if (overall < 0) {
-    status = kINFO_ERROR_CRITICAL;
-  } else if (overall == 0) {
-    status = kINFO_ERROR_WARN;
+  // The decoder's section first, in the same object as the OpenPGP result.
+  auto codec_cards = CodecCards(decoded).cards;
+  for (auto& card : codec_cards) {
+    card.kind = InfoBoardCardKind::kCODEC;
+    if (overall < 0) card.status = kINFO_ERROR_CRITICAL;
   }
 
-  // The decoder's section first, then the OpenPGP result.
-  const auto codec = CodecCards(decoded);
-  QList<InfoBoardCard> cards = codec.cards;
-  if (status == kINFO_ERROR_CRITICAL) {
-    for (auto& card : cards) card.status = kINFO_ERROR_CRITICAL;
+  if (opera_results.empty()) {
+    for (auto& card : codec_cards) card.source = CurrentDocumentSource();
+    info_board_->SlotReset();
+    info_board_->SetInfoBoardCards(
+        tr("No operation result available."), kINFO_ERROR_CRITICAL, codec_cards,
+        GpgOperationName(GpgOperation::kDECRYPT), {});
+    return false;
   }
 
-  QString op_name = tr("Decrypt");
-  if (!contexts->opera_results.empty()) {
-    const auto& op_info = contexts->opera_results.first().op_info;
-    if (!op_info.operation.isEmpty()) op_name = op_info.operation;
-    cards.append(convert_op_info_to_cards(op_info));
-  }
-
-  QString summary;
-  if (overall < 0) {
-    summary = tr("Failed to decrypt the decoded message.");
-  } else if (overall == 0) {
-    summary = tr("Decoded message decrypted (not signed).");
-  } else {
-    summary = tr("Decoded message decrypted.");
-  }
-
-  info_board_->SetInfoBoardCards(summary, status, cards, op_name,
-                                 codec.description);
+  context.extra_cards.insert(opera_results.first().input_index, codec_cards);
+  slot_result_analyse_show_helper(opera_results, context);
 
   return overall >= 0;
 }

@@ -61,6 +61,7 @@
 #include "ui/UIModuleManager.h"
 #include "ui/function/ImportKey.h"
 #include "ui/function/InfoBoardCardConverter.h"
+#include "ui/function/InfoBoardReport.h"
 
 //
 #include "GFHostImpl.h"
@@ -70,12 +71,17 @@
 namespace {
 
 // Convert an analysed result into the Info Board card JSON modules forward to
-// the UI, reusing the same converter the native (non-module) operations use so
-// emailed results render identically.
+// the UI, reusing the same builder the native (non-module) operations use so
+// emailed results render identically: the Outcome card with the result's
+// errors and input hash, then its domain cards.
 void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
                      const char** cards) {
   if (cards == nullptr) return;
-  const auto card_list = GpgFrontend::UI::convert_op_info_to_cards(info);
+  const auto label = info.operation;
+  const GpgFrontend::UI::InfoBoardSource source{
+      GpgFrontend::UI::InfoBoardSource::kOPERATION, u"op:"_s + label, label,
+      label};
+  const auto card_list = GpgFrontend::UI::BuildOpInfoCards(info, source);
   *cards = GFStrDup(
       QString::fromUtf8(GpgFrontend::UI::encode_info_board_cards(card_list)));
 }
@@ -183,9 +189,25 @@ auto SignerToJson(const GpgFrontend::GpgSignerInfo& signer) -> QJsonObject {
 }
 
 auto OpInfoToJson(const GpgFrontend::GpgOpResultInfo& info) -> QByteArray {
+  QJsonArray stage_errors;
+  for (const auto& e : info.stageErrors) {
+    QJsonArray details;
+    for (const auto& d : e.engineDetails) details.append(d.second);
+    stage_errors.append(
+        QJsonObject{{"scope", GpgFrontend::GpgOperationName(e.scope)},
+                    {"origin", e.origin == GpgFrontend::GpgErrorOrigin::kENGINE
+                                   ? "engine"
+                                   : "application"},
+                    {"code", static_cast<qint64>(e.code)},
+                    {"codeText", e.codeText},
+                    {"engineDetails", details}});
+  }
+
   QJsonObject root{
       {"status", info.status},
       {"operation", info.operation},
+      {"opId", static_cast<int>(info.op)},
+      {"stageErrors", stage_errors},
       {"engine", info.engine},
       {"description", info.description},
       {"inputHash", info.inputHash},

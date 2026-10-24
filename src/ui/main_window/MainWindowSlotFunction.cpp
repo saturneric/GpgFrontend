@@ -302,103 +302,18 @@ void MainWindow::slot_verifying_unknown_signature_helper(
 }
 
 void MainWindow::slot_result_analyse_show_helper(
-    const GpgResultAnalyse& result_analyse) {
+    const QList<GpgOperaResult>& opera_results,
+    const InfoBoardBatchContext& context) {
   info_board_->SlotReset();
-  const auto info = result_analyse.GetOpInfo();
-  InfoBoardStatus status_enum = kINFO_ERROR_WARN;
-  if (info.status < 0) {
-    status_enum = kINFO_ERROR_CRITICAL;
-  } else if (info.status > 0) {
-    status_enum = kINFO_ERROR_OK;
-  }
-  info_board_->SetInfoBoardWithOpInfo(info.report, status_enum, info);
-}
 
-void MainWindow::slot_result_analyse_show_helper(
-    const QList<GpgOperaResult>& opera_results) {
-  if (opera_results.empty()) {
-    slot_refresh_info_board(0, tr("No operation result available."));
+  if (opera_results.empty() && context.expected.isEmpty()) {
+    info_board_->SetInfoBoard(tr("No operation result available."),
+                              kINFO_ERROR_WARN);
     return;
   }
 
-  int overall_status = 1;
-
-  QStringList detail_sections;
-  QStringList failed_tags;
-  QStringList warning_tags;
-
-  int success_count = 0;
-  int fail_count = 0;
-  int warn_count = 0;
-
-  for (const auto& opera_result : opera_results) {
-    overall_status = std::min(overall_status, opera_result.op_info.status);
-
-    QString status_text;
-    if (opera_result.op_info.status < 0) {
-      status_text = tr("FAILED");
-      failed_tags << opera_result.tag;
-      fail_count++;
-    } else if (opera_result.op_info.status > 0) {
-      status_text = tr("OK");
-      success_count++;
-    } else {
-      status_text = tr("WARNING");
-      warning_tags << opera_result.tag;
-      warn_count++;
-    }
-
-    QString section;
-    section += tr("Object: %1").arg(opera_result.tag) + "\n";
-
-    const auto report_text = opera_result.op_info.report.trimmed();
-    if (!report_text.isEmpty()) {
-      section += "\n";
-      section += report_text;
-      section += "\n";
-    }
-
-    detail_sections << section.trimmed();
-  }
-
-  QString final_report;
-
-  if (opera_results.size() > 1) {
-    QStringList summary;
-    summary << tr("Summary");
-    summary << QString(40, QLatin1Char('-'));
-    summary << tr("Total operations: %1").arg(opera_results.size());
-    summary << tr("Successful: %1").arg(success_count);
-    summary << tr("Warnings: %1").arg(warn_count);
-    summary << tr("Failures: %1").arg(fail_count);
-
-    if (!failed_tags.isEmpty()) {
-      summary << tr("Failed objects: %1").arg(failed_tags.join(", "));
-    }
-
-    if (!warning_tags.isEmpty()) {
-      summary << tr("Warning objects: %1").arg(warning_tags.join(", "));
-    }
-
-    final_report += summary.join("\n");
-    final_report += "\n\n";
-    final_report += tr("Details");
-    final_report += "\n";
-    final_report += QString(40, QLatin1Char('-'));
-    final_report += "\n";
-  }
-
-  final_report += detail_sections.join("\n\n");
-
-  info_board_->SlotReset();
-  InfoBoardStatus status_enum = kINFO_ERROR_WARN;
-  if (overall_status < 0) {
-    status_enum = kINFO_ERROR_CRITICAL;
-  } else if (overall_status > 0) {
-    status_enum = kINFO_ERROR_OK;
-  }
-  info_board_->SetInfoBoardFromResults(final_report.trimmed(), status_enum,
-                                       opera_results);
+  info_board_->SetInfoBoardReport(
+      BuildReportFromResults(opera_results, context));
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
@@ -430,9 +345,11 @@ void MainWindow::slot_refresh_info_board_from_module(
         params.value("result_cards").ConvertToQByteArray());
   }
 
-  // Prefer the structured card payload the module provides; the Info Board
-  // itself never parses the report text.
-  if (payload.valid && !payload.cards.isEmpty()) {
+  // The structured payload, cards or not, goes through the same model as
+  // everything else: a failure without cards still gets its Outcome card,
+  // with the module's own report as its reason. The board never parses the
+  // report text.
+  if (payload.valid) {
     info_board_->SlotReset();
     info_board_->SetInfoBoardCards(
         text, status_enum, payload.cards, payload.operation,
@@ -440,42 +357,7 @@ void MainWindow::slot_refresh_info_board_from_module(
     return;
   }
 
-  // A failure without structured cards: still render the card document so the
-  // Status view explains why the operation failed instead of appearing empty.
-  // The module's report already carries the reason and suggested solutions.
-  if (status < 0) {
-    const QString operation = payload.operation.isEmpty()
-                                  ? tr("Operation Failed")
-                                  : payload.operation;
-    const QString report = text.trimmed();
-    info_board_->SlotReset();
-    info_board_->SetInfoBoardCards(
-        text, kINFO_ERROR_CRITICAL, {}, operation,
-        tr("The operation could not be completed. See the reason and suggested "
-           "solutions below."),
-        report.isEmpty() ? QString() : tr("Report"),
-        report.isEmpty() ? QStringList{} : QStringList{report});
-    return;
-  }
-
   slot_refresh_info_board(status, text);
-}
-
-void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
-                                                 const GpgResultAnalyse& r_b) {
-  info_board_->SlotReset();
-
-  auto combined = r_a.GetOpInfo();
-  combined.Merge(r_b.GetOpInfo());
-
-  InfoBoardStatus status_enum = kINFO_ERROR_WARN;
-  if (combined.status < 0) {
-    status_enum = kINFO_ERROR_CRITICAL;
-  } else if (combined.status > 0) {
-    status_enum = kINFO_ERROR_OK;
-  }
-
-  info_board_->SetInfoBoardWithOpInfo(combined.report, status_enum, combined);
 }
 
 void MainWindow::SlotCustomDecrypt(const QString& type) {
@@ -905,17 +787,52 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 }
 
 void MainWindow::slot_gpg_opera_buffer_show_helper(
-    const QList<GpgOperaResult>& results) {
+    const QList<GpgOperaResult>& results, InfoBoardBatchContext* context) {
+  const auto record = [context](const GpgOperaResult& result, OutputFate fate,
+                                const QString& error = {}) {
+    if (context == nullptr) return;
+    context->fates.insert(result.input_index, fate);
+    if (!error.isEmpty()) {
+      context->output_errors[result.input_index].append(
+          {OutputAction::kAPPLY_TO_DOCUMENT,
+           {},
+           std::nullopt,
+           error,
+           OutputErrorOrigin::kAPPLICATION});
+    }
+  };
+
+  bool applied = false;
   for (const auto& result : results) {
     // Never replace the editor content with the output of a failed operation.
     // A failed decrypt can still carry a non-empty buffer (e.g. gpg extracts
     // the cleartext payload of a clear-signed message), and writing it back
     // would silently overwrite the user's input with leaked plaintext.
-    if (result.op_info.status < 0) continue;
-    if (result.o_buffer.Empty()) continue;
+    if (result.o_buffer.Empty()) {
+      // A verification has nothing to put back by design.
+      record(result, result.op_info.op == GpgOperation::kVERIFY
+                         ? OutputFate::kNOT_APPLICABLE
+                         : OutputFate::kNOT_PRODUCED);
+      continue;
+    }
+    if (result.op_info.status < 0) {
+      record(result, OutputFate::kWITHHELD);
+      continue;
+    }
+    // Only the first usable output goes in; nothing is claimed of the rest.
+    if (applied) continue;
+    applied = true;
 
+    // The current tab can have changed during the wait to one with no text
+    // to replace; filling it then does nothing, and that is a failure.
+    if (edit_->CurTextPage() == nullptr) {
+      record(result, OutputFate::kAPPLY_FAILED,
+             tr("The current tab has no text document to receive the "
+                "result."));
+      continue;
+    }
     edit_->SlotFillTextEditWithText(result.o_buffer);
-    return;
+    record(result, OutputFate::kAPPLIED);
   }
 }
 
@@ -942,9 +859,15 @@ auto MainWindow::exec_operas_helper(
     }
   }
 
-  slot_gpg_opera_buffer_show_helper(opera_results);
+  InfoBoardBatchContext context;
+  // A buffer operation works on the current document; a file one here (file
+  // Verify) produces nothing to put anywhere.
+  context.document_target = std::any_of(
+      opera_results.cbegin(), opera_results.cend(),
+      [](const GpgOperaResult& r) { return r.source_path.isEmpty(); });
+  slot_gpg_opera_buffer_show_helper(opera_results, &context);
 
-  slot_result_analyse_show_helper(opera_results);
+  slot_result_analyse_show_helper(opera_results, context);
   return all_success;
 }
 

@@ -29,10 +29,13 @@
 #pragma once
 
 #include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "ui/widgets/InfoBoardWidget.h"
+#include "ui/struct/InfoBoardTypes.h"
 
 namespace GpgFrontend::UI {
 
+// The domain cards of an analysed result: signatures, signers, recipients and
+// message metadata, each with its kind set. The result's own outcome, errors
+// and input hash are its Outcome card's (see BuildOpInfoCards).
 auto GF_UI_EXPORT convert_op_info_to_cards(
     const GpgFrontend::GpgOpResultInfo& info) -> QList<InfoBoardCard>;
 
@@ -57,6 +60,12 @@ struct InfoBoardCardsPayload {
 
 // Decode a `result_cards` JSON object (see encode_info_board_cards for the card
 // shape; the object also carries operation/description/details metadata).
-auto decode_info_board_cards(const QByteArray& json) -> InfoBoardCardsPayload;
+//
+// A card's `kind`, `source` and `outcome` keys are optional: a card without
+// them decodes as an ordinary card of the posting's own source, which is what
+// every payload written before they existed means. `source` is an object
+// {id, label, full} or a plain string standing for all three.
+auto GF_UI_EXPORT decode_info_board_cards(const QByteArray& json)
+    -> InfoBoardCardsPayload;
 
 }  // namespace GpgFrontend::UI

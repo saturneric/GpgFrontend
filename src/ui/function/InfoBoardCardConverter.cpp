@@ -32,6 +32,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "ui/function/InfoBoardReport.h"
+
 namespace GpgFrontend::UI {
 
 namespace {
@@ -56,24 +58,109 @@ auto status_from_string(const QString& s) -> InfoBoardStatus {
   return kINFO_ERROR_NEUTRAL;
 }
 
+auto source_kind_to_string(InfoBoardSource::Kind kind) -> QString {
+  switch (kind) {
+    case InfoBoardSource::kFILE:
+      return u"file"_s;
+    case InfoBoardSource::kDOCUMENT:
+      return u"document"_s;
+    case InfoBoardSource::kGENERIC:
+      return u"generic"_s;
+    case InfoBoardSource::kOPERATION:
+    default:
+      return u"operation"_s;
+  }
+}
+
+auto source_kind_from_string(const QString& s) -> InfoBoardSource::Kind {
+  if (s == "file"_L1) return InfoBoardSource::kFILE;
+  if (s == "document"_L1) return InfoBoardSource::kDOCUMENT;
+  if (s == "generic"_L1) return InfoBoardSource::kGENERIC;
+  return InfoBoardSource::kOPERATION;
+}
+
 auto card_to_json(const InfoBoardCard& card) -> QJsonObject {
   QJsonArray fields;
   for (const auto& f : card.fields) {
     fields.append(QJsonArray{f.first, f.second});
   }
-  return QJsonObject{{u"title"_s, card.title},
-                     {u"status"_s, status_to_string(card.status)},
-                     {u"fields"_s, fields}};
+  QJsonObject obj{{u"title"_s, card.title},
+                  {u"status"_s, status_to_string(card.status)},
+                  {u"fields"_s, fields},
+                  {u"kind"_s, CardKindId(card.kind)}};
+  // Presentation hints, only when a field has any.
+  QJsonArray meta;
+  bool any_meta = false;
+  for (qsizetype i = 0; i < card.fields.size(); ++i) {
+    const auto m = card.MetaAt(i);
+    any_meta = any_meta || !m.note.isEmpty() || m.technical ||
+               m.group != InfoBoardFieldGroup::kDETAIL;
+    meta.append(QJsonObject{{u"note"_s, m.note},
+                            {u"technical"_s, m.technical},
+                            {u"group"_s, static_cast<int>(m.group)}});
+  }
+  if (any_meta) obj.insert(u"meta"_s, meta);
+  if (!card.source.IsEmpty()) {
+    obj.insert(u"source"_s,
+               QJsonObject{{u"kind"_s, source_kind_to_string(card.source.kind)},
+                           {u"id"_s, card.source.id},
+                           {u"label"_s, card.source.label},
+                           {u"full"_s, card.source.full}});
+  }
+  if (card.outcome.has_value()) {
+    obj.insert(u"outcome"_s, OutcomeId(*card.outcome));
+  }
+  return obj;
+}
+
+auto source_from_json(const QJsonValue& value) -> InfoBoardSource {
+  InfoBoardSource source;
+  if (value.isString()) {
+    const auto s = value.toString();
+    if (s.isEmpty()) return {};
+    source.kind = InfoBoardSource::kOPERATION;
+    source.id = source.label = source.full = s;
+    return source;
+  }
+  if (!value.isObject()) return {};
+
+  const auto obj = value.toObject();
+  source.kind = source_kind_from_string(obj.value(u"kind"_s).toString());
+  source.id = obj.value(u"id"_s).toString();
+  source.label = obj.value(u"label"_s).toString();
+  source.full = obj.value(u"full"_s).toString();
+  // Whichever is given stands in for what is missing.
+  if (source.id.isEmpty())
+    source.id = source.full.isEmpty() ? source.label : source.full;
+  if (source.label.isEmpty()) source.label = source.id;
+  if (source.full.isEmpty()) source.full = source.label;
+  return source;
 }
 
 auto card_from_json(const QJsonObject& obj) -> InfoBoardCard {
   InfoBoardCard card;
   card.title = obj.value(u"title"_s).toString();
   card.status = status_from_string(obj.value(u"status"_s).toString());
+  card.kind = CardKindFromId(obj.value(u"kind"_s).toString());
+  card.source = source_from_json(obj.value(u"source"_s));
+  // Only a recognized outcome counts; anything else is no outcome at all.
+  card.outcome = OutcomeFromId(obj.value(u"outcome"_s).toString());
   for (const auto& fv : obj.value(u"fields"_s).toArray()) {
     const auto pair = fv.toArray();
     if (pair.size() != 2) continue;
     card.fields.append({pair.at(0).toString(), pair.at(1).toString()});
+  }
+  const auto meta = obj.value(u"meta"_s).toArray();
+  for (qsizetype i = 0; i < meta.size() && i < card.fields.size(); ++i) {
+    const auto m = meta.at(i).toObject();
+    const auto group =
+        m.value(u"group"_s)
+            .toInt(static_cast<int>(InfoBoardFieldGroup::kDETAIL));
+    card.field_meta.append(
+        {m.value(u"note"_s).toString(), m.value(u"technical"_s).toBool(),
+         group >= 0 && group <= static_cast<int>(InfoBoardFieldGroup::kDETAIL)
+             ? static_cast<InfoBoardFieldGroup>(group)
+             : InfoBoardFieldGroup::kDETAIL});
   }
   return card;
 }
@@ -123,9 +210,11 @@ void add_signer_fields(InfoBoardCard& card, const GpgSignerInfo& signer) {
   if (!signer.uid.isEmpty()) {
     card.fields.append({QObject::tr("Signer"), signer.uid});
   } else if (!signer.fingerprint.isEmpty()) {
-    card.fields.append({QObject::tr("Fingerprint"), signer.fingerprint});
+    card.AddField(QObject::tr("Fingerprint"), signer.fingerprint,
+                  {{}, true, InfoBoardFieldGroup::kDETAIL});
   }
-  card.fields.append({QObject::tr("Key ID"), signer.keyId});
+  card.AddField(QObject::tr("Key ID"), signer.keyId,
+                {{}, true, InfoBoardFieldGroup::kDETAIL});
   if (!signer.pubkeyAlgo.isEmpty() || !signer.hashAlgo.isEmpty()) {
     QString algo = signer.pubkeyAlgo;
     if (!signer.hashAlgo.isEmpty()) {
@@ -144,9 +233,11 @@ void add_recipient_fields(InfoBoardCard& card, const GpgRecipientInfo& reci) {
   if (!reci.uid.isEmpty()) {
     card.fields.append({QObject::tr("Recipient"), reci.uid});
   } else if (!reci.fingerprint.isEmpty()) {
-    card.fields.append({QObject::tr("Fingerprint"), reci.fingerprint});
+    card.AddField(QObject::tr("Fingerprint"), reci.fingerprint,
+                  {{}, true, InfoBoardFieldGroup::kDETAIL});
   }
-  card.fields.append({QObject::tr("Key ID"), reci.keyId});
+  card.AddField(QObject::tr("Key ID"), reci.keyId,
+                {{}, true, InfoBoardFieldGroup::kDETAIL});
   card.fields.append({reci.algoIsPrimaryKey
                           ? QObject::tr("Primary Key Algorithm")
                           : QObject::tr("Algorithm"),
@@ -159,17 +250,12 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
     -> QList<InfoBoardCard> {
   QList<InfoBoardCard> cards;
 
-  if (!info.inputHash.isEmpty()) {
-    InfoBoardCard hash_card;
-    hash_card.title = QObject::tr("Input Material Hash");
-    hash_card.status = kINFO_ERROR_NEUTRAL;
-    hash_card.fields.append({QObject::tr("SHA-256"), info.inputHash});
-    cards.append(hash_card);
-  }
-
   for (const auto& sig : info.signatures) {
     InfoBoardCard sig_card;
-    sig_card.title = sig_validity_to_text(sig.validity);
+    sig_card.kind = InfoBoardCardKind::kSIGNATURE;
+    // Say what the card is, then its verdict.
+    sig_card.title =
+        QObject::tr("Signature · %1").arg(sig_validity_to_text(sig.validity));
     sig_card.status = sig.rejected ? kINFO_ERROR_CRITICAL
                                    : sig_validity_to_status(sig.validity);
     add_signer_fields(sig_card, sig.signer);
@@ -181,6 +267,7 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
 
   for (const auto& ns : info.newSignatures) {
     InfoBoardCard ns_card;
+    ns_card.kind = InfoBoardCardKind::kNEW_SIGNATURE;
     ns_card.title = QObject::tr("Signature Created");
     ns_card.status = kINFO_ERROR_OK;
     add_signer_fields(ns_card, ns.signer);
@@ -190,19 +277,26 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
 
   for (const auto& inv : info.invalidSigners) {
     InfoBoardCard inv_card;
+    inv_card.kind = InfoBoardCardKind::kINVALID_SIGNER;
     inv_card.title = QObject::tr("Invalid Signer");
     inv_card.status = kINFO_ERROR_WARN;
-    inv_card.fields.append({QObject::tr("Fingerprint"), inv.first});
+    inv_card.AddField(QObject::tr("Fingerprint"), inv.first,
+                      {{}, true, InfoBoardFieldGroup::kDETAIL});
     inv_card.fields.append({QObject::tr("Reason"), inv.second});
     cards.append(inv_card);
   }
 
+  const bool is_decrypt = info.op == GpgOperation::kDECRYPT ||
+                          info.op == GpgOperation::kDECRYPT_VERIFY;
+  const bool is_encrypt = info.op == GpgOperation::kENCRYPT ||
+                          info.op == GpgOperation::kENCRYPT_SIGN;
+
   const bool is_decrypt_with_data =
       info.newSignatures.isEmpty() && info.invalidSigners.isEmpty() &&
-      (!info.recipients.isEmpty() || !info.details.isEmpty()) &&
-      info.operation.contains(QObject::tr("Decrypt"));
+      (!info.recipients.isEmpty() || !info.details.isEmpty()) && is_decrypt;
   if (is_decrypt_with_data) {
     InfoBoardCard meta_card;
+    meta_card.kind = InfoBoardCardKind::kMESSAGE_METADATA;
     meta_card.title = QObject::tr("Message Metadata");
     meta_card.status =
         info.messageIntegrityProtected ? kINFO_ERROR_OK : kINFO_ERROR_WARN;
@@ -218,9 +312,10 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
     cards.append(meta_card);
   }
 
-  if (info.operation.contains(QObject::tr("Encrypt"))) {
+  if (is_encrypt) {
     for (const auto& reci : info.recipients) {
       InfoBoardCard reci_card;
+      reci_card.kind = InfoBoardCardKind::kRECIPIENT;
       reci_card.title = QObject::tr("Encryption Recipient");
       reci_card.status = kINFO_ERROR_OK;
       add_recipient_fields(reci_card, reci);
@@ -228,9 +323,10 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
     }
   }
 
-  if (info.operation.contains(QObject::tr("Decrypt"))) {
+  if (is_decrypt) {
     for (const auto& reci : info.recipients) {
       InfoBoardCard reci_card;
+      reci_card.kind = InfoBoardCardKind::kRECIPIENT;
       reci_card.title = QObject::tr("Decryption Recipient");
       reci_card.status = reci.keyFound ? kINFO_ERROR_OK : kINFO_ERROR_WARN;
       add_recipient_fields(reci_card, reci);

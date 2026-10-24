@@ -33,7 +33,9 @@
 #include "core/module/Event.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
+#include "core/utils/IOUtils.h"
 #include "ui/command/CodecStage.h"
+#include "ui/function/InfoBoardReport.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/GpgOperaResult.h"
 
@@ -487,28 +489,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_verifying_unknown_signature_helper(const QStringList& fprs);
 
   /**
-   * @brief
+   * @brief Post analysed results to the Status Panel as one report.
    *
-   * @param result_analyse
-   */
-  void slot_result_analyse_show_helper(const GpgResultAnalyse& r);
-
-  /**
-   * @brief
-   *
-   * @param r_a
-   * @param r_b
-   */
-  void slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
-                                       const GpgResultAnalyse& r_b);
-
-  /**
-   * @brief
-   *
-   * @param opera_results
+   * @param opera_results the results, as snapshotted after the wait
+   * @param context what the call site knows beyond them: every expected
+   *        input, and what became of each output
    */
   void slot_result_analyse_show_helper(
-      const QList<GpgOperaResult>& opera_results);
+      const QList<GpgOperaResult>& opera_results,
+      const InfoBoardBatchContext& context = {});
 
   /**
    * @brief
@@ -529,11 +518,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_refresh_info_board_from_module(const Module::Event::Params& params);
 
   /**
-   * @brief
+   * @brief Put the first usable output into the current document.
    *
-   * @param results
+   * @param results the operation's results
+   * @param context when given, receives what became of each result's output
+   *        (applied, withheld, not produced, or could not be applied)
    */
-  void slot_gpg_opera_buffer_show_helper(const QList<GpgOperaResult>& results);
+  void slot_gpg_opera_buffer_show_helper(
+      const QList<GpgOperaResult>& results,
+      InfoBoardBatchContext* context = nullptr);
 
   /**
    * @details refresh and enable specify crypto-menu actions.
@@ -1039,10 +1032,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @param outputs
    * @param committed receives the final paths that were already committed
    *        before a failure; those are in place and cannot be rolled back
+   * @param failed_index receives the index of the output that failed
+   * @param failed_step receives which step of its commit failed
    * @return true if every output was committed
    */
   auto commit_safe_output_files(const QList<SafeOutputPath>& outputs,
-                                QStringList& committed) -> bool;
+                                QStringList& committed,
+                                qsizetype* failed_index = nullptr,
+                                SafeOutputCommitStep* failed_step = nullptr)
+      -> bool;
 
   /**
    * @brief

@@ -33,6 +33,7 @@
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
@@ -88,8 +89,8 @@ auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog)
 //      QApplication::activeWindow() is null exactly when no GpgFrontend window
 //      is active, i.e. another app (pinentry) owns focus.
 //   2. A foreign modal dialog is up (passphrase prompt, a module's input dialog
-//      such as a message header editor): the waiting window would stack above it
-//      and block its input. See ForeignModalDialogIsActive().
+//      such as a message header editor): the waiting window would stack above
+//      it and block its input. See ForeignModalDialogIsActive().
 auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
   auto* timer = new QTimer(dialog);
   timer->setSingleShot(true);
@@ -173,6 +174,62 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
 }  // namespace
 
 namespace GpgFrontend::UI {
+
+auto MakeAbortedOpInfo(
+    GpgOperation scope, GpgError err, const QString& engine,
+    const QList<QPair<GpgOperation, QString>>& engine_details)
+    -> GpgOpResultInfo {
+  GpgOpResultInfo info;
+  info.status = -1;
+  info.op = scope;
+  info.operation = GpgOperationName(scope);
+  info.engine = engine;
+
+  GpgOpStageError e;
+  e.scope = scope;
+  e.engineDetails = engine_details;
+
+  const auto code = gpg_err_code(err);
+  if (code == GPG_ERR_USER_1) {
+    // GpgFrontend's own marker for a task that failed before the engine
+    // answered: the code is kept, but it is not the engine's message.
+    e.origin = GpgErrorOrigin::kAPPLICATION;
+    e.code = code;
+    e.codeText = QCoreApplication::translate(
+        "GpgFrontend::UI::GpgOperaHelper",
+        "The operation stopped before the engine returned a result.");
+  } else if (code != GPG_ERR_NO_ERROR) {
+    e.origin = GpgErrorOrigin::kENGINE;
+    e.code = code;
+    e.codeText = QString::fromUtf8(gpgme_strerror(err));
+  } else {
+    // No code at all, and no usable result: nothing the engine said explains
+    // it, so this is recorded as GpgFrontend's own finding.
+    e.origin = GpgErrorOrigin::kAPPLICATION;
+    e.code = GPG_ERR_GENERAL;
+    e.codeText =
+        QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                    "The engine returned no usable result.");
+  }
+  info.stageErrors.append(e);
+
+  // The headings keep the context they were always translated in; each is
+  // spelled out in full, which is all lupdate can read.
+  if (code == GPG_ERR_NOT_SUPPORTED) {
+    info.report =
+        "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                           "Operation Not Supported");
+  } else if (code == GPG_ERR_CANCELED) {
+    info.report =
+        "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                           "Operation Cancelled");
+  } else {
+    info.report =
+        "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                           "Critical Error");
+  }
+  return info;
+}
 
 auto OperaStartContext(QWidget* parent) -> QObject* {
   return parent != nullptr ? static_cast<QObject*>(parent)
@@ -296,31 +353,27 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
         [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
           op_hd();
 
-          if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-            GpgOpResultInfo info;
-            info.status = -1;
-            info.report = "# " + tr("Operation Not Supported");
-            opera_results.append(
-                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
-            return;
-          }
-
-          if (CheckGpgError(err) == GPG_ERR_CANCELED) {
-            GpgOpResultInfo info;
-            info.status = -1;
-            info.report = "# " + tr("Operation Cancelled");
-            opera_results.append(
-                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
-            return;
-          }
-
-          if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+          // Stopped before it could be analysed: cancelled, not supported, or
+          // no usable result. The error is kept as recorded either way.
+          if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED ||
+              CheckGpgError(err) == GPG_ERR_CANCELED ||
+              CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultType>()) {
-            GpgOpResultInfo info;
-            info.status = -1;
-            info.report = "# " + tr("Critical Error");
-            opera_results.append(
-                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
+            QList<QPair<GpgOperation, QString>> details;
+            if (data_obj != nullptr && data_obj->Check<ResultType>()) {
+              auto result = ExtractParams<ResultType>(data_obj, 0);
+              if (!result.ErrorDetail().isEmpty()) {
+                details.append({AnalyseType::kOperation, result.ErrorDetail()});
+              }
+            }
+            auto aborted = GpgOperaResult{
+                MakeAbortedOpInfo(AnalyseType::kOperation, err,
+                                  DescribeOpenPGPEngine(channel), details),
+                QFileInfo(path).fileName()};
+            aborted.input_index = index;
+            aborted.source_path = path;
+            aborted.staged_output_path = o_path;
+            opera_results.append(aborted);
             return;
           }
 
@@ -332,6 +385,9 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
               result_analyse.GetOpInfo(),
               QFileInfo(path.isEmpty() ? o_path : path).fileName()};
           opera_result.op_info.inputHash = *input_hash;
+          opera_result.input_index = index;
+          opera_result.source_path = path.isEmpty() ? o_path : path;
+          opera_result.staged_output_path = o_path;
           HandleExtraLogicIfNeeded<AnalyseType>(context, result_analyse,
                                                 opera_result.op_info);
 
@@ -366,31 +422,36 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
         [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
           op_hd();
 
-          if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-            GpgOpResultInfo info;
-            info.status = -1;
-            info.report = "# " + tr("Operation Not Supported");
-            opera_results.append(
-                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
-            return;
-          }
-
-          if (CheckGpgError(err) == GPG_ERR_CANCELED) {
-            GpgOpResultInfo info;
-            info.status = -1;
-            info.report = "# " + tr("Operation Cancelled");
-            opera_results.append(
-                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
-            return;
-          }
-
-          if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+          // Stopped before it could be analysed: cancelled, not supported, or
+          // no usable result. The error is kept as recorded either way.
+          if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED ||
+              CheckGpgError(err) == GPG_ERR_CANCELED ||
+              CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultTypeA, ResultTypeB>()) {
-            GpgOpResultInfo info;
-            info.status = -1;
-            info.report = "# " + tr("Critical Error");
-            opera_results.append(
-                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
+            QList<QPair<GpgOperation, QString>> details;
+            if (data_obj != nullptr &&
+                data_obj->Check<ResultTypeA, ResultTypeB>()) {
+              auto stage_a = ExtractParams<ResultTypeA>(data_obj, 0);
+              auto stage_b = ExtractParams<ResultTypeB>(data_obj, 1);
+              if (!stage_a.ErrorDetail().isEmpty()) {
+                details.append(
+                    {AnalyseTypeA::kOperation, stage_a.ErrorDetail()});
+              }
+              if (!stage_b.ErrorDetail().isEmpty()) {
+                details.append(
+                    {AnalyseTypeB::kOperation, stage_b.ErrorDetail()});
+              }
+            }
+            auto aborted = GpgOperaResult{
+                MakeAbortedOpInfo(
+                    CombineGpgOperations(AnalyseTypeA::kOperation,
+                                         AnalyseTypeB::kOperation),
+                    err, DescribeOpenPGPEngine(channel), details),
+                QFileInfo(path).fileName()};
+            aborted.input_index = index;
+            aborted.source_path = path;
+            aborted.staged_output_path = o_path;
+            opera_results.append(aborted);
             return;
           }
 
@@ -410,10 +471,20 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
           HandleExtraLogicIfNeeded<AnalyseTypeB>(context, result_analyse_2,
                                                  info);
           info.inputHash = *input_hash;
+          // Both analysers saw the one engine call's error; it is one failure
+          // of the combined call, not one per stage.
+          info.CollapseSharedCallError(
+              gpg_err_code(err),
+              CombineGpgOperations(AnalyseTypeA::kOperation,
+                                   AnalyseTypeB::kOperation));
 
-          opera_results.append(GpgOperaResult{
+          auto opera_result = GpgOperaResult{
               std::move(info),
-              QFileInfo(path.isEmpty() ? o_path : path).fileName()});
+              QFileInfo(path.isEmpty() ? o_path : path).fileName()};
+          opera_result.input_index = index;
+          opera_result.source_path = path.isEmpty() ? o_path : path;
+          opera_result.staged_output_path = o_path;
+          opera_results.append(opera_result);
         });
   };
 }
@@ -440,28 +511,24 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
       // stop waiting
       op_hd();
 
-      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-        GpgOpResultInfo info;
-        info.status = -1;
-        info.report = "# " + tr("Operation Not Supported");
-        opera_results.append(GpgOperaResult{std::move(info)});
-        return;
-      }
-
-      if (CheckGpgError(err) == GPG_ERR_CANCELED) {
-        GpgOpResultInfo info;
-        info.status = -1;
-        info.report = "# " + tr("Operation Cancelled");
-        opera_results.append(GpgOperaResult{std::move(info)});
-        return;
-      }
-
-      if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+      // Stopped before it could be analysed: cancelled, not supported, or no
+      // usable result. The error is kept as recorded either way.
+      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED ||
+          CheckGpgError(err) == GPG_ERR_CANCELED ||
+          CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultType, GFBuffer>()) {
-        GpgOpResultInfo info;
-        info.status = -1;
-        info.report = "# " + tr("Critical Error");
-        opera_results.append(GpgOperaResult{std::move(info)});
+        QList<QPair<GpgOperation, QString>> details;
+        if (data_obj != nullptr && data_obj->Check<ResultType, GFBuffer>()) {
+          auto result = ExtractParams<ResultType>(data_obj, 0);
+          if (!result.ErrorDetail().isEmpty()) {
+            details.append({AnalyseType::kOperation, result.ErrorDetail()});
+          }
+        }
+        auto aborted = GpgOperaResult{
+            MakeAbortedOpInfo(AnalyseType::kOperation, err,
+                              DescribeOpenPGPEngine(channel), details)};
+        aborted.input_index = index;
+        opera_results.append(aborted);
         return;
       }
 
@@ -472,6 +539,7 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
 
       auto opera_result = GpgOperaResult{result_analyse.GetOpInfo()};
       opera_result.op_info.inputHash = input_hash;
+      opera_result.input_index = index;
       HandleExtraLogicIfNeeded<AnalyseType>(context, result_analyse,
                                             opera_result.op_info);
 
@@ -506,28 +574,30 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       // stop waiting
       op_hd();
 
-      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-        GpgOpResultInfo info;
-        info.status = -1;
-        info.report = "# " + tr("Operation Not Supported");
-        opera_results.append(GpgOperaResult{std::move(info)});
-        return;
-      }
-
-      if (CheckGpgError(err) == GPG_ERR_CANCELED) {
-        GpgOpResultInfo info;
-        info.status = -1;
-        info.report = "# " + tr("Operation Cancelled");
-        opera_results.append(GpgOperaResult{std::move(info)});
-        return;
-      }
-
-      if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+      // Stopped before it could be analysed: cancelled, not supported, or no
+      // usable result. The error is kept as recorded either way.
+      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED ||
+          CheckGpgError(err) == GPG_ERR_CANCELED ||
+          CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
-        GpgOpResultInfo info;
-        info.status = -1;
-        info.report = "# " + tr("Critical Error");
-        opera_results.append(GpgOperaResult{std::move(info)});
+        QList<QPair<GpgOperation, QString>> details;
+        if (data_obj != nullptr &&
+            data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
+          auto stage_a = ExtractParams<ResultTypeA>(data_obj, 0);
+          auto stage_b = ExtractParams<ResultTypeB>(data_obj, 1);
+          if (!stage_a.ErrorDetail().isEmpty()) {
+            details.append({AnalyseTypeA::kOperation, stage_a.ErrorDetail()});
+          }
+          if (!stage_b.ErrorDetail().isEmpty()) {
+            details.append({AnalyseTypeB::kOperation, stage_b.ErrorDetail()});
+          }
+        }
+        auto aborted = GpgOperaResult{
+            MakeAbortedOpInfo(CombineGpgOperations(AnalyseTypeA::kOperation,
+                                                   AnalyseTypeB::kOperation),
+                              err, DescribeOpenPGPEngine(channel), details)};
+        aborted.input_index = index;
+        opera_results.append(aborted);
         return;
       }
 
@@ -545,8 +615,14 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       info.Merge(result_analyse_2.GetOpInfo());
       HandleExtraLogicIfNeeded<AnalyseTypeB>(context, result_analyse_2, info);
       info.inputHash = input_hash;
+      // Both analysers saw the one engine call's error; it is one failure of
+      // the combined call, not one per stage.
+      info.CollapseSharedCallError(
+          gpg_err_code(err), CombineGpgOperations(AnalyseTypeA::kOperation,
+                                                  AnalyseTypeB::kOperation));
 
       auto opera_result = GpgOperaResult{std::move(info)};
+      opera_result.input_index = index;
 
       auto o_buffer = ExtractParams<GFBuffer>(data_obj, 2);
       opera_result.o_buffer = o_buffer;

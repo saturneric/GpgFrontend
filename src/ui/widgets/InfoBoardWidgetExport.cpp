@@ -70,64 +70,53 @@ void InfoBoardWidget::slot_open_magnifier() {
   const QPixmap pm = render_doc_pixmap(kViewerScale);
   if (pm.isNull()) return;
 
-  auto* dialog = new DocViewerDialog(pm, kViewerScale, current_id_, this);
+  auto* dialog =
+      new DocViewerDialog(pm, kViewerScale, current_report_.ref_id, this);
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->show();
   dialog->raise();
   dialog->activateWindow();
 }
 
-void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
+auto InfoBoardWidget::ExportReportPng(const QString& file_path) const -> bool {
   const qreal export_scale = 3.0;
   const QPixmap pm = render_doc_pixmap(export_scale);
+  if (pm.isNull()) return false;
 
-  if (pm.isNull()) {
-    QMessageBox::warning(this, tr("Unable to Save"),
-                         tr("The content could not be captured."));
-    return;
-  }
+  const auto& report = current_report_;
 
+  // The image is the document as it is on screen; the text chunks carry the
+  // whole report, so nothing a collapsed view leaves out is lost.
   QImage image = pm.toImage();
   image.setText(u"Software"_s, u"GpgFrontend"_s);
   image.setText(u"Title"_s, tr("GpgFrontend Security Report"));
   image.setText(u"Description"_s, tr("Cryptographic operation result report"));
   image.setText(u"Creation Time"_s,
-                QDateTime::currentDateTime().toString(Qt::ISODate));
+                report.issued_at.toUTC().toString(Qt::ISODate));
+  image.setText(u"Truncated"_s, IsReportCollapsed() ? u"true"_s : u"false"_s);
 
-  if (!current_id_.isEmpty()) {
-    image.setText(u"Document ID"_s, current_id_);
+  if (!report.ref_id.isEmpty()) image.setText(u"Document ID"_s, report.ref_id);
+  if (!report.report_hash.isEmpty()) {
+    image.setText(u"Document Hash"_s, report.report_hash);
   }
-
-  if (hash_label_ != nullptr && !hash_label_->text().isEmpty()) {
-    const QString hash_text = hash_label_->text();
-    const QString prefix = tr("Hash: ");
-    image.setText(u"Document Hash"_s,
-                  hash_text.startsWith(prefix)
-                      ? hash_text.mid(static_cast<int>(prefix.length()))
-                      : hash_text);
+  image.setText(u"Status"_s, HeadlineText(report.headline));
+  if (!report.operation_label.isEmpty()) {
+    image.setText(u"Operation"_s, report.operation_label);
   }
-
-  if (val_status_ != nullptr && !val_status_->text().isEmpty()) {
-    image.setText(u"Status"_s, val_status_->text());
+  if (!report.engine.isEmpty()) image.setText(u"Engine"_s, report.engine);
+  if (report.objects.size() == 1 &&
+      !report.objects.first().input_hash.isEmpty()) {
+    image.setText(u"Input Hash"_s, report.objects.first().input_hash);
   }
-
-  if (val_operation_ != nullptr && !val_operation_->text().isEmpty()) {
-    image.setText(u"Operation"_s, val_operation_->text());
-  }
-
-  if (val_engine_ != nullptr && !val_engine_->text().isEmpty()) {
-    image.setText(u"Engine"_s, val_engine_->text());
-  }
-
-  if (!current_input_hash_.isEmpty()) {
-    image.setText(u"Input Hash"_s, current_input_hash_);
-  }
-
   if (!current_copy_text_.isEmpty()) {
     image.setText(u"Comment"_s, current_copy_text_);
   }
 
-  if (!image.save(file_path)) {
+  return image.save(file_path, "PNG");
+}
+
+void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
+  if (!ExportReportPng(file_path)) {
     QMessageBox::warning(this, tr("Unable to Save"),
                          tr("The image could not be saved."));
   }
@@ -137,7 +126,8 @@ void InfoBoardWidget::slot_save() {
   if (doc_scroll_ != nullptr && doc_scroll_->isVisible() &&
       doc_frame_ != nullptr) {
     const QString suggested = u"GpgFrontend_%1"_s.arg(
-        current_id_.isEmpty() ? u"Document"_s : current_id_);
+        current_report_.ref_id.isEmpty() ? u"Document"_s
+                                         : current_report_.ref_id);
     QString file_path =
         QFileDialog::getSaveFileName(this, tr("Export Certificate"), suggested,
                                      tr("PNG Image (*.png);;All Files (*)"));

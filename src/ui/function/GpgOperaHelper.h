@@ -47,6 +47,24 @@ namespace GpgFrontend::UI {
  */
 auto GF_UI_EXPORT OperaStartContext(QWidget* parent) -> QObject*;
 
+/**
+ * @brief The result of an operation that stopped before it was analysed.
+ *
+ * Status -1, with the error recorded as data: a non-zero @p err is kept with
+ * its exact code (cancelled, not supported or any other), whether or not a
+ * result object came back. Only when there is no code at all is an
+ * application error recorded instead, so it is never shown as the engine's.
+ *
+ * @param scope the single stage, or the combined operation when only the
+ *        combined engine call is known to have failed
+ * @param engine_details detail text from any result object that did come
+ *        back, tagged by the stage whose result held it
+ */
+auto GF_UI_EXPORT MakeAbortedOpInfo(
+    GpgOperation scope, GpgError err, const QString& engine,
+    const QList<QPair<GpgOperation, QString>>& engine_details = {})
+    -> GpgOpResultInfo;
+
 class GpgOperaHelper : QObject {
   Q_OBJECT
  public:

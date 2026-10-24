@@ -30,28 +30,17 @@
 
 #include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/typedef/CoreTypedef.h"
+#include "ui/function/InfoBoardReport.h"
 #include "ui/function/TextDirection.h"
 #include "ui/struct/GpgOperaResult.h"
+#include "ui/struct/InfoBoardTypes.h"
 
 class Ui_InfoBoard;
 
 namespace GpgFrontend::UI {
 
 class TextEditTabWidget;
-struct InfoBoardCard;
-
-// NOTE: keep this typed enum immediately before InfoBoardWidget, and do not
-// insert any braced declaration (struct/class definition) between the two.
-// lupdate's C++ parser mis-tracks the namespace scope across a typed enum
-// followed by a braced declaration, which strips the GpgFrontend::UI:: prefix
-// from this class's translation context and breaks every tr() lookup at
-// runtime. InfoBoardCard is therefore defined below the class instead of here.
-enum InfoBoardStatus : uint8_t {
-  kINFO_ERROR_OK = 0,
-  kINFO_ERROR_WARN = 1,
-  kINFO_ERROR_CRITICAL = 2,
-  kINFO_ERROR_NEUTRAL = 3,
-};
+class ReportSeal;
 
 class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   Q_OBJECT
@@ -76,6 +65,32 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
                                const QList<GpgOperaResult>& results);
   void SetInfoBoardWithOpInfo(const QString& text, InfoBoardStatus status,
                               const GpgFrontend::GpgOpResultInfo& info);
+
+  /**
+   * @brief Show @p report: the one path every posting ends in.
+   *
+   * The other setters normalize their input into a report and call this. It
+   * stamps the report (issue time, hash, reference), logs its notes once, and
+   * renders it.
+   */
+  void SetInfoBoardReport(InfoBoardReport report);
+
+  /// The report on the board now; empty after a reset.
+  [[nodiscard]] auto CurrentReport() const -> const InfoBoardReport& {
+    return current_report_;
+  }
+
+  /// Whether any object or card of the current report is collapsed.
+  [[nodiscard]] auto IsReportCollapsed() const -> bool;
+
+  /**
+   * @brief Save the document as shown, with the full report as text chunks.
+   *
+   * The image is the current screen, collapsed or expanded; `Comment` holds
+   * the whole report and `Truncated` says whether the image leaves anything
+   * out. No dialog: the caller reports a failure.
+   */
+  auto ExportReportPng(const QString& file_path) const -> bool;
 
   void InitUI();
   void UpdateActionButtons();
@@ -109,9 +124,6 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   [[nodiscard]] auto StatusIconPath(InfoBoardStatus status) const -> QString;
   [[nodiscard]] auto StatusIndicatorToolTip(InfoBoardStatus status) const
       -> QString;
-  [[nodiscard]] auto StatusDescription(InfoBoardStatus status,
-                                       const QString& operation) const
-      -> QString;
 
  public slots:
   void SlotReset();
@@ -142,6 +154,12 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
    */
   void SignalStatusStyleChanged(InfoBoardStatus status);
 
+ protected:
+  /// Follows an application theme switch (see changeEvent).
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+  /// A theme switch recolours the report already on the board.
+  void changeEvent(QEvent* event) override;
+
  private slots:
   void slot_copy();
   void slot_save();
@@ -149,12 +167,11 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
 
  private:
   struct StyleConstants {
-    static constexpr int kStampSize = 60;
     static constexpr int kIndicatorSize = 14;
-    static constexpr int kKeyColumnWidth = 86;
-    static constexpr int kCardKeyWidth = 76;
-    static constexpr int kCardKeyMaxWidth = 160;
-    static constexpr int kMaxResultCards = 6;
+    /// Object groups shown before the rest collapse behind "Show all".
+    static constexpr int kMaxShownGroups = 6;
+    /// Cards shown per group besides its Outcome card.
+    static constexpr int kMaxShownDomainCards = 4;
     static constexpr int kToolButtonSide = 24;
     static constexpr int kToolIconSize = 16;
     static constexpr int kSegButtonPadding = 16;
@@ -185,27 +202,34 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   QLabel* placeholder_label_{nullptr};
   QScrollArea* doc_scroll_{nullptr};
   QFrame* doc_frame_{nullptr};
-  QLabel* stamp_label_{nullptr};
-  QLabel* header_label_{nullptr};
+  QLabel* header_label_{nullptr};     ///< the report's name, quiet
+  QLabel* operation_label_{nullptr};  ///< what was requested
+  QLabel* meta_label_{nullptr};       ///< engine and counts, quiet
+  QLabel* status_label_{nullptr};
+  ReportSeal* seal_{nullptr};  ///< GF branding and a status mark     ///< the
+                               ///< final outcome, the focal point
   QFrame* sep_top_{nullptr};
 
-  QFrame* row_operation_{nullptr};
-  QLabel* val_operation_{nullptr};
-  QFrame* row_status_{nullptr};
-  QLabel* val_status_{nullptr};
-  QFrame* row_details_{nullptr};
+  QLabel* summary_label_{nullptr};
+  QWidget* row_details_{nullptr};
   QLabel* key_details_{nullptr};
   QWidget* details_container_{nullptr};
-  QFrame* row_engine_{nullptr};
-  QLabel* val_engine_{nullptr};
 
   QFrame* extra_sep_{nullptr};
   QWidget* extra_widget_{nullptr};
   QLabel* time_label_{nullptr};
   QLabel* id_label_{nullptr};
   QLabel* hash_label_{nullptr};
-  QString current_id_;
-  QString current_input_hash_;
+
+  /// The report on the board, and how much of it is expanded.
+  InfoBoardReport current_report_;
+  bool show_all_groups_ = false;
+  QSet<QString> expanded_groups_;
+  /// Inside changeEvent's restyle: the restyle's own changes are ignored.
+  bool restyling_ = false;
+  /// Colour every toned label, and the report, from the current palette.
+  void apply_report_palette();
+  /// RenderReportText() of the current report: what Copy puts out.
   QString current_copy_text_;
 
   void setup_view_switcher();
@@ -213,26 +237,17 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   [[nodiscard]] auto load_persisted_view() const -> int;
   void persist_view(int index) const;
 
+  /// Stamp, show and (when @p meaningful) announce a report.
+  void post_report(InfoBoardReport report, bool meaningful);
   void init_status_page();
-  void update_status_page(const QString& text, InfoBoardStatus status,
-                          const QString& content_hash = {},
-                          const QString& operation = {},
-                          const QString& description = {},
-                          const QList<InfoBoardCard>& cards = {},
-                          const QString& details_title = {},
-                          const QStringList& details_items = {});
-  void update_doc_header(InfoBoardStatus status, const QString& operation,
-                         const QString& engine, const QString& count_summary);
-  void update_status_page_from_results(InfoBoardStatus status,
-                                       const QList<GpgOperaResult>& results);
-  auto populate_extra_from_op_info(QVBoxLayout* layout, QWidget* parent,
-                                   const GpgFrontend::GpgOpResultInfo& info)
-      -> bool;
-  void render_cards(QVBoxLayout* layout, QWidget* parent,
-                    const QList<InfoBoardCard>& cards);
+  void render_report();
+  void render_objects();
+  void render_card(QVBoxLayout* layout, QWidget* parent,
+                   const InfoBoardCard& card);
+  void add_expander(QVBoxLayout* layout, QWidget* parent, const QString& text,
+                    const QString& action_text,
+                    const std::function<void()>& on_click);
 
-  static auto make_stamp_pixmap(const QColor& color, const QString& icon_path,
-                                int size) -> QPixmap;
   static void delete_widgets_in_layout(QLayout* layout, int start_index = 0);
 
   void setup_tool_buttons();
@@ -242,55 +257,22 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   void create_field_rows(QWidget* parent, QVBoxLayout* fields_layout);
   void create_footer(QVBoxLayout* doc_layout);
 
-  [[nodiscard]] auto build_status_symbol(InfoBoardStatus status) const
-      -> QString;
-  [[nodiscard]] auto build_header_html(InfoBoardStatus status,
-                                       const QString& subtitle,
-                                       const QString& accent) const -> QString;
+  [[nodiscard]] auto build_status_symbol(InfoBoardStatus status,
+                                         const QString& word) const -> QString;
   [[nodiscard]] auto build_card_stylesheet(const QColor& color) const
       -> QString;
-  [[nodiscard]] auto build_chip_stylesheet(const QColor& color) const
-      -> QString;
-
-  void populate_details_section(const GpgFrontend::GpgOpResultInfo& info,
-                                InfoBoardStatus status);
-  void populate_details_section_generic(const QString& title,
-                                        const QStringList& items,
-                                        InfoBoardStatus status,
-                                        const QString& description = {});
-  void populate_extra_section(const GpgFrontend::GpgOpResultInfo& info,
-                              InfoBoardStatus status);
 
   [[nodiscard]] auto render_doc_pixmap(qreal scale) const -> QPixmap;
   void export_doc_as_png(const QString& file_path);
 
   void set_info_board_text(const QString& text, InfoBoardStatus status);
 
-  /// Shows @p text as the board's content without announcing it; every public
-  /// posting call builds on this and announces exactly once when it is done.
-  void apply_info_board(const QString& text, InfoBoardStatus status,
-                        const QString& content_hash);
   void announce_result(const QString& text, InfoBoardStatus status,
                        qsizetype structured_items);
   auto create_card(QWidget* parent, InfoBoardStatus status) const -> QFrame*;
-  void add_card_header(QVBoxLayout* card_layout, QWidget* parent,
-                       InfoBoardStatus status, const QString& title) const;
-  auto create_detail_chip(QWidget* parent, const QString& text,
-                          InfoBoardStatus status) const -> QLabel*;
-
-  [[nodiscard]] auto build_op_info_copy_lines(
-      const GpgFrontend::GpgOpResultInfo& info) const -> QStringList;
 
   void reset_document_view();
   void clear_document_fields();
-};
-
-// Defined here (rather than above the class) to keep the typed InfoBoardStatus
-// enum adjacent to InfoBoardWidget; see the note on that enum.
-struct InfoBoardCard {
-  QString title;
-  InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
-  QList<QPair<QString, QString>> fields;
 };
 
 /**
