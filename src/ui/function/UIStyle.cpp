@@ -54,6 +54,25 @@ auto MixTextTowardsWindow(const QPalette& palette, double strength) -> QColor {
 
 }  // namespace
 
+auto DarkFusionPalette() -> QPalette {
+  QPalette dark_palette;
+  dark_palette.setColor(QPalette::Window, QColor(53, 53, 53));
+  dark_palette.setColor(QPalette::WindowText, Qt::white);
+  dark_palette.setColor(QPalette::Base, QColor(25, 25, 25));
+  dark_palette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+  dark_palette.setColor(QPalette::ToolTipBase, Qt::black);
+  dark_palette.setColor(QPalette::ToolTipText, Qt::white);
+  dark_palette.setColor(QPalette::Text, Qt::white);
+  dark_palette.setColor(QPalette::PlaceholderText, QColor(150, 150, 150));
+  dark_palette.setColor(QPalette::Button, QColor(53, 53, 53));
+  dark_palette.setColor(QPalette::ButtonText, Qt::white);
+  dark_palette.setColor(QPalette::BrightText, Qt::red);
+  dark_palette.setColor(QPalette::Link, QColor(42, 130, 218));
+  dark_palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+  dark_palette.setColor(QPalette::HighlightedText, Qt::black);
+  return dark_palette;
+}
+
 auto AccentColor(const QPalette& palette, bool positive) -> QColor {
   if (!positive) {
     auto color = palette.color(QPalette::Text);

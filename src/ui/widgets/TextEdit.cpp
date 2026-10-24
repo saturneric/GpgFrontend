@@ -622,7 +622,11 @@ void TextEdit::SlotQuote() const {
 }
 
 void TextEdit::SlotFillTextEditWithText(const QString& text) const {
-  auto* edit = this->CurTextPage()->GetTextPage();
+  // The current tab can be a file browser or a module's page, which has no
+  // text to replace.
+  auto* page = this->CurTextPage();
+  if (page == nullptr) return;
+  auto* edit = page->GetTextPage();
   if (IsOperationUndoEnabled()) {
     ReplaceDocumentText(edit->document(), text, true);
   } else {
@@ -635,6 +639,7 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
 
 void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
   auto* page = this->CurTextPage();
+  if (page == nullptr) return;
   auto* edit = page->GetTextPage();
   // Toggling undo off discards the history, which is exactly what an
   // undoable result must keep; SetOperationResultBytes handles both modes.

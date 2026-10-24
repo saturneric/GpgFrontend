@@ -59,6 +59,17 @@ auto GF_UI_EXPORT AccentColor(const QPalette& palette, bool positive) -> QColor;
 auto GF_UI_EXPORT MutedTextColor(const QPalette& palette) -> QColor;
 
 /**
+ * @brief The palette Fusion is given when the system theme is dark.
+ *
+ * QPalette's own placeholder colour is a fixed grey meant for light bases;
+ * on this palette's near-black Base it all but disappears, so the
+ * placeholder is set here too.
+ *
+ * @return the dark palette
+ */
+auto GF_UI_EXPORT DarkFusionPalette() -> QPalette;
+
+/**
  * @brief Hairline colour for a card border.
  *
  * Far enough towards the background to draw a boundary without drawing a box.

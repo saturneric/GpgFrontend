@@ -102,4 +102,23 @@ TEST(UIStyleTest, MutedTextStaysNearerTheTextThanTheBorderDoes) {
   }
 }
 
+TEST(UIStyleTest, TheDarkFusionPaletteKeepsPlaceholdersReadable) {
+  // A search box's hint text was drawn with QPalette's default placeholder
+  // grey on a near-black base, and could barely be read.
+  const auto p = UI::DarkFusionPalette();
+  const auto base = p.color(QPalette::Base).lightness();
+  const auto placeholder = p.color(QPalette::PlaceholderText).lightness();
+  const auto text = p.color(QPalette::Text).lightness();
+
+  EXPECT_GE(placeholder - base, 100);
+  EXPECT_LT(placeholder, text) << "a hint must stay quieter than real text";
+}
+
+TEST(UIStyleTest, TheDarkFusionPaletteIsDark) {
+  const auto p = UI::DarkFusionPalette();
+  EXPECT_GT(p.color(QPalette::WindowText).lightness(),
+            p.color(QPalette::Window).lightness());
+  EXPECT_LT(p.color(QPalette::Base).lightness(), 128);
+}
+
 }  // namespace GpgFrontend::Test

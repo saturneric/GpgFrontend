@@ -116,8 +116,8 @@ TEST(GFUiCurrentEditorContentTest, ReturnsWhatTheCurrentTabHolds) {
   OnGuiThread([&] {
     edit = new UI::TextEdit(nullptr);
     UI::RegisterNamedQObject("main_window_edit", edit);
-    // The default workspace tab is not a plain-text page, and the fill slot
-    // dereferences CurTextPage() unconditionally.
+    // The default workspace tab is not a plain-text page; the fill slot
+    // writes only into one.
     edit->SlotNewTab();
     edit->SlotFillTextEditWithText(QString("-----BEGIN PGP MESSAGE-----"));
     bytes = UI::CurrentEditorContent().value_or(QByteArray());
@@ -125,6 +125,24 @@ TEST(GFUiCurrentEditorContentTest, ReturnsWhatTheCurrentTabHolds) {
 
   EXPECT_TRUE(bytes.contains("BEGIN PGP MESSAGE"))
       << "got: " << bytes.toStdString();
+
+  OnGuiThread([&] { delete edit; });
+}
+
+TEST(GFUiCurrentEditorContentTest, FillWithNoTextTabIsIgnoredNotACrash) {
+  // A result filled in while the file browser is the current tab: there is
+  // no text page to write to, which used to be a null dereference.
+  UI::TextEdit* edit = nullptr;
+  bool has_text_page = true;
+  OnGuiThread([&] {
+    edit = new UI::TextEdit(nullptr);
+    has_text_page = edit->CurTextPage() != nullptr;
+    edit->SlotFillTextEditWithText(QString("plain"));
+    edit->SlotFillTextEditWithText(GFBuffer(QByteArray("bytes")));
+  });
+
+  EXPECT_FALSE(has_text_page)
+      << "the default workspace tab is expected not to be a text page";
 
   OnGuiThread([&] { delete edit; });
 }
