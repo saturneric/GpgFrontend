@@ -31,6 +31,9 @@
 // qt
 #include <QtCore>
 
+static_assert(QT_VERSION >= QT_VERSION_CHECK(6, 5, 0),
+              "GpgFrontend requires Qt 6.5 or later");
+
 // private declare area of core
 #ifdef GF_CORE_PRIVATE
 

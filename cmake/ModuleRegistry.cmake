@@ -99,11 +99,7 @@ function(_gf_module_package_command)
     set(package_os "linux")
   endif()
 
-  if(GPGFRONTEND_QT5_BUILD)
-    set(gf_qt_version "${Qt5_VERSION}")
-  else()
-    set(gf_qt_version "${Qt6_VERSION}")
-  endif()
+  set(gf_qt_version "${Qt6_VERSION}")
 
   # One namespace per module, and the dev tree IS the deployment tree:
   #

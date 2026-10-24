@@ -62,66 +62,26 @@ set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
 # every module ship the same set of languages.
 gpgfrontend_collect_ts_files(TS_FILES "GpgFrontend" "${LOCALE_TS_PATH}")
 
-if(GPGFRONTEND_QT5_BUILD)
-  # TODO
-  qt5_add_translation(GF_TRANSLATIONS_QM ${TS_FILES})
-  message(STATUS "GF_TRANSLATIONS_QM ${GF_TRANSLATIONS_QM}")
+add_custom_target(gftranslations ALL)
 
-  # Name the generated qrc "gftranslations.qrc" so the init symbol is
-  # qInitResources_gftranslations, matching the Qt6 path and the shim in
-  # GpgFrontendResource.cpp. The internal prefix stays "i18n", so the runtime
-  # ":/i18n" paths are unchanged.
-  set(GF_QM_TRANSLATIONS_RESOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/gftranslations.qrc")
-  file(WRITE ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"i18n\">\n")
+qt_add_lrelease(gftranslations
+  TS_FILES ${TS_FILES}
+  QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
 
-  foreach(QM_FILE ${GF_TRANSLATIONS_QM})
-    file(RELATIVE_PATH QM_FILENAME ${CMAKE_CURRENT_BINARY_DIR} ${QM_FILE})
-    file(APPEND ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "    <file alias=\"${QM_FILENAME}\">${QM_FILE}</file>\n")
-  endforeach()
+qt_add_resources(${LIBRARY_TARGET} "gftranslations"
+  PREFIX "/i18n"
+  BASE ${CMAKE_CURRENT_BINARY_DIR}
+  FILES ${GF_TRANSLATIONS_QM})
 
-  file(APPEND ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "  </qresource>\n</RCC>\n")
-  qt5_add_resources(GF_I18N_RESOURCES ${GF_QM_TRANSLATIONS_RESOURCE_FILE})
+add_custom_target(qttranslations ALL)
 
-  # Absolute paths (current source dir is src/res, not the qttranslations dir).
-  file(GLOB QT_TRANSLATIONS_TS ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
-  list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
-  qt5_add_translation(QT_TRANSLATIONS_QM ${QT_TRANSLATIONS_TS})
-
-  set(QT_QM_TRANSLATIONS_RESOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/qttranslations.qrc")
-  file(WRITE ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"qt_i18n\">\n")
-
-  foreach(QM_FILE ${QT_TRANSLATIONS_QM})
-    file(RELATIVE_PATH QM_FILENAME ${CMAKE_CURRENT_BINARY_DIR} ${QM_FILE})
-    file(APPEND ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "    <file alias=\"${QM_FILENAME}\">${QM_FILE}</file>\n")
-  endforeach()
-
-  file(APPEND ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "  </qresource>\n</RCC>\n")
-  qt5_add_resources(GF_I18N_RESOURCES ${QT_QM_TRANSLATIONS_RESOURCE_FILE})
-
-  message(STATUS "GF_I18N_RESOURCES ${GF_I18N_RESOURCES}")
-  target_sources(${LIBRARY_TARGET} PRIVATE ${GF_I18N_RESOURCES})
-else()
-  add_custom_target(gftranslations ALL)
-
-  qt_add_lrelease(gftranslations
-    TS_FILES ${TS_FILES}
-    QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
-
-  qt_add_resources(${LIBRARY_TARGET} "gftranslations"
-    PREFIX "/i18n"
-    BASE ${CMAKE_CURRENT_BINARY_DIR}
-    FILES ${GF_TRANSLATIONS_QM})
-
-  add_custom_target(qttranslations ALL)
-
-  # Absolute paths (current source dir is src/res, not the qttranslations dir).
-  file(GLOB QT_TRANSLATIONS_TS ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
-  list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
-  qt_add_lrelease(qttranslations
-    TS_FILES ${QT_TRANSLATIONS_TS}
-    QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
-  qt_add_resources(${LIBRARY_TARGET} "qttranslations"
-    PREFIX "/i18n_qt"
-    BASE ${CMAKE_CURRENT_BINARY_DIR}
-    FILES ${QT_TRANSLATIONS_QM})
-endif()
+# Absolute paths (current source dir is src/res, not the qttranslations dir).
+file(GLOB QT_TRANSLATIONS_TS ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
+list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
+qt_add_lrelease(qttranslations
+  TS_FILES ${QT_TRANSLATIONS_TS}
+  QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
+qt_add_resources(${LIBRARY_TARGET} "qttranslations"
+  PREFIX "/i18n_qt"
+  BASE ${CMAKE_CURRENT_BINARY_DIR}
+  FILES ${QT_TRANSLATIONS_QM})

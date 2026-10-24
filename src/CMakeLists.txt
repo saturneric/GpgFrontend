@@ -304,35 +304,19 @@ if(MINGW)
   # dll with only name
   set(ALL_RUNTIME_DLL_FILES "")
 
-  if(GPGFRONTEND_QT5_BUILD)
-    list(APPEND ALL_RUNTIME_DLL_FILES
-      "Qt5Core.dll"
-      "Qt5Gui.dll"
-      "Qt5Network.dll"
-      "Qt5PrintSupport.dll"
-      "Qt5Widgets.dll"
-      "Qt5Xml.dll"
-      "libbrotlicommon.dll"
-      "libbrotlidec.dll"
-      "libdouble-conversion.dll"
-      "libzstd.dll"
-      "libmd4c.dll"
-    )
-  else()
-    list(APPEND ALL_RUNTIME_DLL_FILES
-      "Qt6Core.dll"
-      "Qt6Gui.dll"
-      "Qt6Network.dll"
-      "Qt6PrintSupport.dll"
-      "Qt6Widgets.dll"
-      "Qt6Xml.dll"
-      "libbrotlicommon.dll"
-      "libbrotlidec.dll"
-      "libdouble-conversion.dll"
-      "libzstd.dll"
-      "libmd4c.dll"
-    )
-  endif()
+  list(APPEND ALL_RUNTIME_DLL_FILES
+    "Qt6Core.dll"
+    "Qt6Gui.dll"
+    "Qt6Network.dll"
+    "Qt6PrintSupport.dll"
+    "Qt6Widgets.dll"
+    "Qt6Xml.dll"
+    "libbrotlicommon.dll"
+    "libbrotlidec.dll"
+    "libdouble-conversion.dll"
+    "libzstd.dll"
+    "libmd4c.dll"
+  )
 
   # find the other dlls
   foreach(_dllFileName ${ALL_RUNTIME_DLL_FILES})

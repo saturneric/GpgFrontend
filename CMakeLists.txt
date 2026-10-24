@@ -54,7 +54,6 @@ include(CheckCXXSourceCompiles)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # general build options
-option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
 option(GPGFRONTEND_BUILD_APP_IMAGE "Deprecated; the AppImage job installs" OFF)
@@ -375,13 +374,8 @@ if(LINUX)
   set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
 endif()
 
-if(GPGFRONTEND_QT5_BUILD)
-  # Support Qt version: 5.15.x
-  find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools Xml Sql REQUIRED)
-else()
-  # Support Qt version: 6.x
-  find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools Xml Sql REQUIRED)
-endif()
+# Minimum supported Qt version: 6.5 (LTS)
+find_package(Qt6 6.5 COMPONENTS Core Widgets PrintSupport Network LinguistTools Xml Sql REQUIRED)
 
 # Qt configuration
 set(CMAKE_AUTOMOC ON)
@@ -498,11 +492,7 @@ else()
   set(_gf_build_os "linux")
 endif()
 
-if(GPGFRONTEND_QT5_BUILD)
-  set(_gf_build_qt "${Qt5_VERSION}")
-else()
-  set(_gf_build_qt "${Qt6_VERSION}")
-endif()
+set(_gf_build_qt "${Qt6_VERSION}")
 
 # Newline-joined and hashed, so adding an input later cannot silently collide
 # with an existing key by concatenating differently.
@@ -716,8 +706,7 @@ add_subdirectory(third_party)
 # single source of truth for the UI locales shared by the app and all modules
 include(${CMAKE_SOURCE_DIR}/cmake/Translations.cmake)
 
-# modules are only for qt6
-if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
+if(BUILD_MODULES)
   # Before modules/, because every module links it.
   add_subdirectory(src/module_runtime)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)

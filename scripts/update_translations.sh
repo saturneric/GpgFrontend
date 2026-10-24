@@ -117,8 +117,7 @@ fi
 find_lupdate() {
   if [[ -n "${LUPDATE:-}" ]]; then echo "${LUPDATE}"; return; fi
   for c in lupdate lupdate-qt6 \
-           /usr/lib/qt6/bin/lupdate /usr/lib/qt6/libexec/lupdate \
-           /usr/lib/qt5/bin/lupdate; do
+           /usr/lib/qt6/bin/lupdate /usr/lib/qt6/libexec/lupdate; do
     if command -v "$c" >/dev/null 2>&1; then command -v "$c"; return; fi
     [[ -x "$c" ]] && { echo "$c"; return; }
   done
