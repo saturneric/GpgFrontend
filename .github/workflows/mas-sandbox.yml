@@ -102,7 +102,7 @@ permissions:
   contents: read
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Release
 
 
 jobs:
@@ -138,11 +138,7 @@ jobs:
           #                            re-tagging
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_MODE="${BUILD_MODE_INPUT}"
-            if [[ "${BUILD_MODE}" == "release" ]]; then
-              BUILD_TYPE_EFFECTIVE="Release"
-            else
-              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-            fi
+            BUILD_TYPE_EFFECTIVE="Release"
 
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             BUILD_MODE="release"
@@ -150,7 +146,7 @@ jobs:
 
           else
             BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            BUILD_TYPE_EFFECTIVE="Release"
           fi
 
           # Stable release builds drop the "Testing" suffix from the app name.
@@ -520,7 +516,7 @@ jobs:
       - name: Resolve Artifact Metadata
         id: meta
         env:
-          BUILD_TYPE_LOWER: ${{ (github.ref_type == 'tag' || github.event.inputs.build_mode == 'release') && 'release' || 'relwithdebinfo' }}
+          BUILD_TYPE_LOWER: release
         run: |
           set -euo pipefail
           # Every name this job produces comes from GitHub context and runner

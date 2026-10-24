@@ -63,8 +63,15 @@ jobs:
           sudo apt-get -y install autoconf automake gettext texinfo
           # gnupg and sq drive the Rust interop tests, which fail rather than
           # skip when either is missing (testutil::interop::require).
-          sudo apt-get -y install gcc g++ ninja-build gnupg sq qtchooser qt6-base-dev qt6-base-dev-tools qt6-l10n-tools qt6-tools-dev qt6-tools-dev-tools libqt6svg6
+          sudo apt-get -y install gcc g++ ninja-build gnupg sq
           sudo apt-get -y install libarchive-dev libssl-dev libgpgme-dev libgl1-mesa-dev libfuse2 libsodium-dev
+          # System libraries the aqt-installed Qt links against.
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
+
+      # The distro Qt is older than the CMake floor, so take Qt from aqt like
+      # the GitHub workflows do; the version lives in the shared action.
+      - name: Install Qt6
+        uses: ./.github/actions/install-qt6
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -116,7 +123,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             -DGPGFRONTEND_MODULES_BUILD_TESTS=ON
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -v
 
       - name: Run Unit Tests
         # Hard timeout so a hung test can never stall the pipeline forever.

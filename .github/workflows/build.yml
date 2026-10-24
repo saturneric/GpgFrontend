@@ -110,7 +110,7 @@ permissions:
   contents: read
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Release
   GNUPG_VERSION: "2.5.21"
 
 jobs:
@@ -210,11 +210,7 @@ jobs:
           #   - workflow_dispatch   -> honour the chosen input
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_MODE="${BUILD_MODE_INPUT}"
-            if [[ "${BUILD_MODE}" == "release" ]]; then
-              BUILD_TYPE_EFFECTIVE="Release"
-            else
-              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-            fi
+            BUILD_TYPE_EFFECTIVE="Release"
 
           elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
             BUILD_MODE="pr"
@@ -226,7 +222,7 @@ jobs:
 
           else
             BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            BUILD_TYPE_EFFECTIVE="Release"
           fi
 
           # Stable release builds drop the "Testing" suffix from the app name.
@@ -1240,11 +1236,7 @@ jobs:
           #   - workflow_dispatch   -> honour the chosen input
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_MODE="${BUILD_MODE_INPUT}"
-            if [[ "${BUILD_MODE}" == "release" ]]; then
-              BUILD_TYPE_EFFECTIVE="Release"
-            else
-              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
-            fi
+            BUILD_TYPE_EFFECTIVE="Release"
 
           elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
             BUILD_MODE="pr"
@@ -1256,7 +1248,7 @@ jobs:
 
           else
             BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            BUILD_TYPE_EFFECTIVE="Release"
           fi
 
           # Stable release builds drop the "Testing" suffix from the app name.
@@ -1746,9 +1738,9 @@ jobs:
       - name: Resolve Artifact Metadata
         id: meta
         env:
-          # github.ref_type == 'tag' covers v* pushes; the dispatch input covers
-          # a manual release build. Pull requests never reach this job.
-          BUILD_TYPE_LOWER: ${{ (github.ref_type == 'tag' || github.event.inputs.build_mode == 'release') && 'release' || 'relwithdebinfo' }}
+          # Nightly and stable builds are both Release; only pull requests use
+          # RelWithDebInfo, and they never reach this job.
+          BUILD_TYPE_LOWER: release
         run: |
           set -euo pipefail
           # Every name this job produces comes from GitHub context and runner
