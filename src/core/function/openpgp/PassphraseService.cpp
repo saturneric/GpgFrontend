@@ -154,9 +154,8 @@ struct InFlightKey {
   }
 };
 
-auto qHash(const InFlightKey& key, uint seed = 0) -> uint {
-  return ::qHash(key.channel, seed) ^ ::qHash(key.fpr, seed) ^
-         ::qHash(key.info, seed);
+auto qHash(const InFlightKey& key, size_t seed = 0) noexcept -> size_t {
+  return qHashMulti(seed, key.channel, key.fpr, key.info);
 }
 
 QMutex g_in_flight_mutex;

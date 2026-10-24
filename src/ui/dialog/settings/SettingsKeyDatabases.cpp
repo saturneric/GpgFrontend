@@ -307,8 +307,8 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   connect(ui_->builtInKeyDatabaseBox, &QGroupBox::toggled, this,
           &KeyDatabasesTab::slot_toggle_default_key_database);
 
-  connect(ui_->builtInEngineComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this, [this]() {
+  connect(ui_->builtInEngineComboBox, &QComboBox::currentIndexChanged, this,
+          [this]() {
             if (loading_) return;
             model_.engine =
                 ui_->builtInEngineComboBox->currentData().toString();

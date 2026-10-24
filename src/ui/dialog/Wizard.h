@@ -89,7 +89,6 @@ class IntroPage;
  */
 class Wizard : public QWizard {
   Q_OBJECT
-  Q_ENUMS(WizardPages)
 
  public:
   enum WizardPages {
@@ -98,6 +97,7 @@ class Wizard : public QWizard {
     kPAGE_GEN_KEY,
     kPAGE_CONCLUSION,
   };
+  Q_ENUM(WizardPages)
 
   /**
    * @brief Construct a new Wizard object

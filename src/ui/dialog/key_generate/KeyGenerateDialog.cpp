@@ -1130,8 +1130,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
             refresh_widgets_state();
           });
 
-  connect(ui_->pKeyFormatComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(ui_->pKeyFormatComboBox, &QComboBox::currentIndexChanged, this,
           [this](int) -> void {
             const auto data = ui_->pKeyFormatComboBox->currentData();
             if (data.isValid()) gen_key_info_->SetKeyVersion(data.toInt());
@@ -1165,24 +1164,23 @@ void KeyGenerateDialog::set_signal_slot_config() {
         refresh_hybrid_algo_widgets_state();
       });
 
-  connect(
-      ui_->pScndAlgoComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
-      this, [this](int index) -> void {
-        if (index < 0) {
-          gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-          return;
-        }
+  connect(ui_->pScndAlgoComboBox, &QComboBox::currentIndexChanged, this,
+          [this](int index) -> void {
+            if (index < 0) {
+              gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+              return;
+            }
 
-        const auto sub_algos = gen_key_info_->GetAlgo().SubAlgos(channel_);
-        const auto algo = ComboCurrentAlgo(ui_->pScndAlgoComboBox, sub_algos);
+            const auto sub_algos = gen_key_info_->GetAlgo().SubAlgos(channel_);
+            const auto algo =
+                ComboCurrentAlgo(ui_->pScndAlgoComboBox, sub_algos);
 
-        gen_key_info_->SetSubAlgo(algo);
-        slot_set_easy_key_algo_2_custom();
-        refresh_primary_hybrid_algo_widgets_state();
-      });
+            gen_key_info_->SetSubAlgo(algo);
+            slot_set_easy_key_algo_2_custom();
+            refresh_primary_hybrid_algo_widgets_state();
+          });
 
-  connect(ui_->easyProfileComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(ui_->easyProfileComboBox, &QComboBox::currentIndexChanged, this,
           &KeyGenerateDialog::slot_easy_profile_changed);
 
   connect(ui_->easyValidityPeriodComboBox, &QComboBox::currentTextChanged, this,
@@ -1204,8 +1202,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
             slot_set_easy_valid_date_2_custom();
           });
 
-  connect(ui_->keyDBIndexComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this,
+  connect(ui_->keyDBIndexComboBox, &QComboBox::currentIndexChanged, this,
           [=](int index) -> void { channel_ = index; });
 
   connect(ui_->easyCombinationComboBox, &QComboBox::currentTextChanged, this,
@@ -1302,8 +1299,8 @@ void KeyGenerateDialog::set_signal_slot_config() {
           &KeyGenerateDialog::slot_reset_easy_profile_config_to_default);
 
   connect(
-      ui_->scndAlgoComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
-      this, [this](int index) -> void {
+      ui_->scndAlgoComboBox, &QComboBox::currentIndexChanged, this,
+      [this](int index) -> void {
         if (gen_subkey_info_ == nullptr) return;
 
         if (index < 0) {

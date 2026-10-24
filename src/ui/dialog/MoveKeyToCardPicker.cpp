@@ -166,16 +166,15 @@ MoveKeyToCardPicker::MoveKeyToCardPicker(QWidget* parent)
       db_combo_->findData(LookupChannelHandle(channel_).database_id);
   if (current_db >= 0) db_combo_->setCurrentIndex(current_db);
 
-  connect(db_combo_, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [this](int index) {
-            if (index < 0) return;
-            const auto channel =
-                ResolveDatabaseHandle(db_combo_->itemData(index).toString());
-            if (channel < 0) return;  // gone since the list was filled
-            channel_ = channel;
-            tree_view_->SetChannel(channel_);
-            update_confirm_button_state();
-          });
+  connect(db_combo_, &QComboBox::currentIndexChanged, this, [this](int index) {
+    if (index < 0) return;
+    const auto channel =
+        ResolveDatabaseHandle(db_combo_->itemData(index).toString());
+    if (channel < 0) return;  // gone since the list was filled
+    channel_ = channel;
+    tree_view_->SetChannel(channel_);
+    update_confirm_button_state();
+  });
 
   auto* db_row = new QHBoxLayout();
   db_row->addWidget(db_label);

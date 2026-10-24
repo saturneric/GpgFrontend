@@ -54,7 +54,7 @@ auto GetFileSizeByPath(const QString &path,
                        const QString &filename_pattern) -> int64_t {
   auto dir = QDir(path);
   QFileInfoList const file_list =
-      dir.entryInfoList(QStringList() << filename_pattern, QDir::Files);
+      dir.entryInfoList(QStringList{filename_pattern}, QDir::Files);
   qint64 total_size = 0;
 
   for (const QFileInfo &file_info : file_list) {
@@ -91,7 +91,7 @@ void DeleteAllFilesByPattern(const QString &path,
   auto dir = QDir(path);
 
   QStringList const log_files =
-      dir.entryList(QStringList() << filename_pattern, QDir::Files);
+      dir.entryList(QStringList{filename_pattern}, QDir::Files);
 
   for (const auto &file : log_files) {
     QFile::remove(dir.absoluteFilePath(file));

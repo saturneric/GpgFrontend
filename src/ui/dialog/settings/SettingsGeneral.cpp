@@ -140,8 +140,8 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
 
-  connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
-          this, &GeneralTab::SignalRestartNeeded);
+  connect(ui_->langSelectBox, &QComboBox::currentIndexChanged, this,
+          &GeneralTab::SignalRestartNeeded);
 
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;

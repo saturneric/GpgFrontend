@@ -342,15 +342,13 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
         validate_generate_button();
       };
 
-  connect(ui_->algoComboBox,
-          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+  connect(ui_->algoComboBox, &QComboBox::currentIndexChanged, this,
           on_primary_algo_changed);
 
   connect(ui_->keyLengthComboBox, &QComboBox::currentTextChanged, this,
           on_primary_length_changed);
 
-  connect(ui_->scndAlgoComboBox,
-          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+  connect(ui_->scndAlgoComboBox, &QComboBox::currentIndexChanged, this,
           on_secondary_algo_changed);
 
   connect(ui_->scndKeyLengthComboBox, &QComboBox::currentTextChanged, this,

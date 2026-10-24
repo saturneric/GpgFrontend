@@ -75,8 +75,8 @@ class ClickableFrame : public QFrame {
 
  protected:
   void mouseReleaseEvent(QMouseEvent* event) override {
-    if (event->button() == Qt::LeftButton && rect().contains(event->pos()) &&
-        on_click_) {
+    if (event->button() == Qt::LeftButton &&
+        rect().contains(event->position().toPoint()) && on_click_) {
       on_click_();
     }
     QFrame::mouseReleaseEvent(event);

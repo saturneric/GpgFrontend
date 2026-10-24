@@ -152,8 +152,8 @@ AppearanceTab::AppearanceTab(QWidget* parent)
 
   SetSettings();
 
-  connect(ui_->themeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
-          this, &AppearanceTab::SignalRestartNeeded);
+  connect(ui_->themeComboBox, &QComboBox::currentIndexChanged, this,
+          &AppearanceTab::SignalRestartNeeded);
 }
 
 void AppearanceTab::apply_font_filters(bool show_all_fonts) {

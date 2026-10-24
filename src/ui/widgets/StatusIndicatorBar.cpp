@@ -102,7 +102,8 @@ void StatusIndicatorSegment::mouseReleaseEvent(QMouseEvent* e) {
 
   // Released outside means the click was taken back, which is what every other
   // button on screen does.
-  if (e->button() == Qt::LeftButton && rect().contains(e->pos())) {
+  if (e->button() == Qt::LeftButton &&
+      rect().contains(e->position().toPoint())) {
     emit SignalClicked();
   }
 }
