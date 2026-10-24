@@ -429,9 +429,37 @@ void ExpectMissingSignerIsOnlyAWarning(int channel, GpgError err,
 
   info.Merge(verify_analyse.GetOpInfo());
   ExpectValidOutputWithWarning(info);
+  EXPECT_EQ(info.op, GpgOperation::kDECRYPT_VERIFY);
+  // A missing key is a verdict about a signature, not an engine error.
+  EXPECT_TRUE(info.stageErrors.isEmpty());
 }
 
 }  // namespace
+
+TEST_P(GpgCoreEngineTest, AnalysedFailureRecordsTheEngineErrorAsData) {
+  // The Status Panel shows engine errors from these fields, not from the
+  // Markdown report: a failure must leave its code and text here.
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(Channel()).DecryptSync(
+          GFBuffer(QString("not openpgp")));
+  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  // An engine may hand back no result object for input it cannot parse; the
+  // error must be recorded either way.
+  const auto result = data_object->Check<GpgDecryptResult, GFBuffer>()
+                          ? ExtractParams<GpgDecryptResult>(data_object, 0)
+                          : GpgDecryptResult();
+  const auto info = AnalyseDecrypt(Channel(), err, result);
+  EXPECT_LT(info.status, 0);
+  EXPECT_EQ(info.op, GpgOperation::kDECRYPT);
+  EXPECT_EQ(info.operation, GpgOperationName(GpgOperation::kDECRYPT));
+  ASSERT_EQ(info.stageErrors.size(), 1);
+  const auto& e = info.stageErrors.first();
+  EXPECT_EQ(e.scope, GpgOperation::kDECRYPT);
+  EXPECT_EQ(e.origin, GpgErrorOrigin::kENGINE);
+  EXPECT_EQ(e.code, static_cast<unsigned int>(gpg_err_code(err)));
+  EXPECT_EQ(e.codeText, QString::fromUtf8(gpgme_strerror(err)));
+}
 
 TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
   auto recipient = GenerateFullKey("missing-signer-rcpt");

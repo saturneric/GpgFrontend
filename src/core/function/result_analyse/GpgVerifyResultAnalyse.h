@@ -47,6 +47,9 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
+  /// The operation this analyser describes.
+  static constexpr GpgOperation kOperation = GpgOperation::kVERIFY;
+
   /**
    * @brief Construct the analyser with the verification result to examine.
    *

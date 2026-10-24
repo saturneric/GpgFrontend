@@ -37,8 +37,8 @@ GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   auto recipients = this->result_.Recipients();
 
-  op_info_.operation = tr("Decrypt");
-  op_info_.engine = EngineInfo();
+  setOperation(kOperation);
+  recordEngineError(error_, result_.ErrorDetail());
 
   stream_ << "# " << tr("Decrypt Operation") << " (" << EngineInfo() << ") ";
 

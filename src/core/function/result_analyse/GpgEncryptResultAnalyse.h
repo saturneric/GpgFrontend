@@ -44,6 +44,9 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
+  /// The operation this analyser describes.
+  static constexpr GpgOperation kOperation = GpgOperation::kENCRYPT;
+
   /**
    * @brief Construct the analyser with the encryption result to examine.
    *

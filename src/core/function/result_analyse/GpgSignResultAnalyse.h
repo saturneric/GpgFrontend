@@ -44,6 +44,9 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
+  /// The operation this analyser describes.
+  static constexpr GpgOperation kOperation = GpgOperation::kSIGN;
+
   /**
    * @brief Construct the analyser with the signing result to examine.
    *

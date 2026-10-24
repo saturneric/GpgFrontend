@@ -41,8 +41,8 @@ void GpgSignResultAnalyse::doAnalyse() {
   auto signatures = this->result_.Signatures();
   auto invalid_signers = this->result_.InvalidSigners();
 
-  op_info_.operation = tr("Sign");
-  op_info_.engine = EngineInfo();
+  setOperation(kOperation);
+  recordEngineError(error_, result_.ErrorDetail());
 
   stream_ << "# " << tr("Sign Operation") << " (" << EngineInfo() << ") ";
 

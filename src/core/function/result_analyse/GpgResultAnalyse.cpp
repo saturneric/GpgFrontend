@@ -47,6 +47,27 @@ void GpgFrontend::GpgResultAnalyse::setStatus(int m_status) {
   status_ = std::min(m_status, status_);
 }
 
+void GpgFrontend::GpgResultAnalyse::setOperation(GpgOperation op) {
+  op_info_.op = op;
+  op_info_.operation = GpgOperationName(op);
+  op_info_.engine = EngineInfo();
+}
+
+void GpgFrontend::GpgResultAnalyse::recordEngineError(
+    GpgError err, const QString& engine_detail) {
+  const auto code = gpgme_err_code(err);
+  if (code == GPG_ERR_NO_ERROR) return;
+
+  GpgOpStageError e;
+  e.scope = op_info_.op;
+  e.origin = GpgErrorOrigin::kENGINE;
+  e.code = code;
+  e.codeText = QString::fromUtf8(gpgme_strerror(err));
+  if (!engine_detail.isEmpty())
+    e.engineDetails.append({op_info_.op, engine_detail});
+  op_info_.stageErrors.append(e);
+}
+
 void GpgFrontend::GpgResultAnalyse::Analyse() {
   if (!analysed_) {
     doAnalyse();
@@ -60,12 +81,16 @@ auto GpgFrontend::GpgResultAnalyse::GetChannel() const -> int {
   return current_gpg_context_channel_;
 }
 
-auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {
-  auto& ctx = OpenPGPContext::GetInstance(current_gpg_context_channel_);
+auto GpgFrontend::DescribeOpenPGPEngine(int channel) -> QString {
+  auto& ctx = OpenPGPContext::GetInstance(channel);
   auto version = ctx.EngineVersion();
   auto engine = ctx.Engine();
 
   return QString("%1 v%2")
       .arg(ConvertOpenPGPEngine2String(engine))
       .arg(version);
+}
+
+auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {
+  return DescribeOpenPGPEngine(current_gpg_context_channel_);
 }

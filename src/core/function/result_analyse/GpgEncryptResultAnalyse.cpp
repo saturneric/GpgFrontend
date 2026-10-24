@@ -37,8 +37,8 @@ GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(int channel, GpgError error,
     : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
 void GpgEncryptResultAnalyse::doAnalyse() {
-  op_info_.operation = tr("Encrypt");
-  op_info_.engine = EngineInfo();
+  setOperation(kOperation);
+  recordEngineError(error_, result_.ErrorDetail());
 
   stream_ << "# " << tr("Encrypt Operation") << " (" << EngineInfo() << ") ";
 

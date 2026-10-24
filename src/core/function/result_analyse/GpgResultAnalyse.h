@@ -29,8 +29,17 @@
 
 #include "GFCoreExport.h"
 #include "GpgOpResultInfo.h"
+#include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief Engine name and version of a channel's context, e.g. "GPG v2.4.1".
+ *
+ * What GpgResultAnalyse::EngineInfo() reports, for results built without an
+ * analyser.
+ */
+auto GF_CORE_EXPORT DescribeOpenPGPEngine(int channel) -> QString;
 
 /**
  * @brief Abstract base class for accumulating a formatted report of an OpenPGP
@@ -128,6 +137,20 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    * @param m_status new candidate status value
    */
   void setStatus(int m_status);
+
+  /**
+   * @brief Name the operation being analysed: its stable id, its display
+   * name and the engine that ran it.
+   */
+  void setOperation(GpgOperation op);
+
+  /**
+   * @brief Record the engine call's error as data, verbatim.
+   *
+   * Does nothing for GPG_ERR_NO_ERROR. The entry is scoped to the operation
+   * set by setOperation(); @p engine_detail is the result's own detail text.
+   */
+  void recordEngineError(GpgError err, const QString& engine_detail);
 
   // Structured result info populated by doAnalyse()
   GpgOpResultInfo op_info_;

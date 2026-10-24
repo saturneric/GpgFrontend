@@ -39,8 +39,8 @@ GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   auto signatures = this->result_.GetSignature();
 
-  op_info_.operation = tr("Verify");
-  op_info_.engine = EngineInfo();
+  setOperation(kOperation);
+  recordEngineError(error_, result_.ErrorDetail());
 
   stream_ << "# " << tr("Verify Operation") << " (" << EngineInfo() << ") ";
 

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GFCoreExport.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -54,6 +55,41 @@ enum class GpgSigValidity : std::uint8_t {
                              ///<   does not authorize the key to sign
                              ///<   (appended so the values modules already
                              ///<   know keep their meaning)
+};
+
+/**
+ * @brief The operation two merged results describe together.
+ *
+ * {Encrypt, Sign} and {Decrypt, Verify} combine; an operation merged with
+ * itself or with kUNKNOWN stays itself; any other pair is kUNKNOWN.
+ */
+auto GF_CORE_EXPORT CombineGpgOperations(GpgOperation a, GpgOperation b)
+    -> GpgOperation;
+
+/// Display name of @p op, for presentation only.
+auto GF_CORE_EXPORT GpgOperationName(GpgOperation op) -> QString;
+
+/// Where a recorded error came from.
+enum class GpgErrorOrigin : std::uint8_t {
+  kENGINE,       ///< the code an engine call returned
+  kAPPLICATION,  ///< synthesized by GpgFrontend: no code and no usable result
+};
+
+/**
+ * @brief One error recorded for an operation, kept verbatim.
+ *
+ * @ref scope is the single stage the error is known to belong to, or a combined
+ * operation when only the combined engine call is known to have failed.
+ */
+struct GF_CORE_EXPORT GpgOpStageError {
+  GpgOperation scope = GpgOperation::kNONE;
+  GpgErrorOrigin origin = GpgErrorOrigin::kENGINE;
+  unsigned int code = 0;  ///< gpg_err_code_t; non-zero for kENGINE
+  QString codeText;  ///< kENGINE: text derived from the code (gpgme_strerror);
+                     ///< kAPPLICATION: GpgFrontend's own message
+  /// Detail text an engine result carried, verbatim, tagged with the stage
+  /// whose result held it.
+  QList<QPair<GpgOperation, QString>> engineDetails;
 };
 
 /**
@@ -154,7 +190,11 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
   int status = 1;
   QString report;  ///< Formatted text report for display
 
-  QString operation;    ///< Human-readable operation name, e.g. "Sign", "Verify"
+  /// Stable identity of the operation; what logic compares.
+  GpgOperation op = GpgOperation::kNONE;
+  /// Display name of @ref op, e.g. "Sign"; kept for the SDK's JSON. Never
+  /// compared.
+  QString operation;
   QString description;  ///< Plain-language summary set by result analyse for UI display
   QString engine;       ///< Engine version string, e.g. "GPG v2.4.1"
 
@@ -202,10 +242,26 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
   /// Populated for Sign/Verify operations to identify the processed data.
   QString inputHash;
 
+  /// Every error recorded for this operation, as reported. Never collapsed to
+  /// one: a combined operation keeps each stage's error.
+  QList<GpgOpStageError> stageErrors;
+
   /// Merge another GpgOpResultInfo into this one.
   /// Used by combined operations (Encrypt+Sign, Decrypt+Verify) to combine
   /// results from two sub-operations into a single displayable info.
   void Merge(const GpgOpResultInfo& other);
+
+  /**
+   * @brief Re-attribute an error both stages received from one engine call.
+   *
+   * Each stage's analyser records the call's error as its own, which would
+   * claim two failures where the evidence shows one. Entries with
+   * @p call_error_code collapse into one entry scoped to @p combined; the
+   * detail text each stage's result held is kept, still tagged by stage.
+   * Entries with any other code are left as they are.
+   */
+  void CollapseSharedCallError(unsigned int call_error_code,
+                               GpgOperation combined);
 };
 
 }  // namespace GpgFrontend
