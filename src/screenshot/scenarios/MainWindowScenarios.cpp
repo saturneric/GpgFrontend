@@ -42,6 +42,7 @@
 #include <QScreen>
 #include <QStackedWidget>
 #include <QTableView>
+#include <QTimer>
 #include <QToolButton>
 
 #include "screenshot/ScreenshotEnv.h"
@@ -111,6 +112,12 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
   const QPointer<MainWindow> window(window_ptr);
   window->Init();
   window->resize(size);
+  // Init() queues its default layout as a zero timer, which resizes and
+  // re-centres the window. Zero timers fire in the order they were started,
+  // so once this one has fired, that layout has run too.
+  const auto init_layout_done = QSharedPointer<bool>::create(false);
+  QTimer::singleShot(0, window_ptr,
+                     [init_layout_done]() { *init_layout_done = true; });
 
   auto* table = KeyTable(window_ptr);
   if (table == nullptr) {
@@ -119,8 +126,9 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
   }
 
   const auto ready = [&]() {
-    return window->isVisible() && window->isActiveWindow() &&
-           RowOf(table, kAliceEmail) >= 0 && RowOf(table, kBobEmail) >= 0;
+    return *init_layout_done && window->isVisible() &&
+           window->isActiveWindow() && RowOf(table, kAliceEmail) >= 0 &&
+           RowOf(table, kBobEmail) >= 0;
   };
   auto hooks = ModelHooks(table->model());
   hooks.append(ScenarioContext::On(window_ptr, &MainWindow::SignalLoaded));
@@ -138,24 +146,30 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
       });
   if (!shown) return nullptr;
 
-  // Init() defers its default layout to the event loop, and that resizes and
-  // re-centres the window; size, place and dock width are applied once it
-  // has run. A size the platform still refuses is the size gate's to report.
+  // Size, place and dock width are applied only now that the default layout
+  // has run, and always: the window may still read the requested size from
+  // before that layout, which would make a wait on the size alone skip them.
+  // A size the platform still refuses is the size gate's to report.
   auto* key_dock = window->findChild<QDockWidget*>(u"keyListDock"_s);
   const auto top_left =
       QApplication::primaryScreen() != nullptr
           ? QApplication::primaryScreen()->availableGeometry().topLeft()
           : QPoint(0, 0);
+  window->resize(size);
+  window->move(top_left);
+  // Wide enough that a name and an email address are read whole.
+  if (key_dock != nullptr) {
+    window->resizeDocks({key_dock}, {kKeyDockWidth}, Qt::Horizontal);
+  }
   ctx.WaitUntil(
+      {}, [&]() { return window->size() == size && window->pos() == top_left; },
+      {}, u"main-window-resized"_s,
       [&]() {
-        window->resize(size);
-        window->move(top_left);
-        // Wide enough that a name and an email address are read whole.
-        if (key_dock != nullptr) {
-          window->resizeDocks({key_dock}, {kKeyDockWidth}, Qt::Horizontal);
-        }
-      },
-      [&]() { return window->size() == size; }, {}, u"main-window-resized"_s);
+        return u"size=%1x%2 pos=%3,%4"_s.arg(window->width())
+            .arg(window->height())
+            .arg(window->x())
+            .arg(window->y());
+      });
   if (ctx.GetFailure()) return nullptr;
   if (const auto bad = SizeGateFailure(size, window->size())) {
     ctx.Fail(kEXIT_ENVIRONMENT, u"gate"_s, *bad);

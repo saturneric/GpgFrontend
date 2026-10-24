@@ -695,6 +695,14 @@ auto RenderScenario(const Run& run) -> int {
     return Report(run, {kEXIT_USAGE, "scenario-failed", run.scenario->name});
   }
 
+  // Anything that resizes the target after the scenario's own size check
+  // would otherwise be captured at the wrong size and still pass.
+  if (run.size.isValid()) {
+    if (const auto bad = SizeGateFailure(run.size, ctx.Target()->size())) {
+      return Report(run, {kEXIT_ENVIRONMENT, "gate", *bad});
+    }
+  }
+
   const auto capture =
       ctx.Mode() == CaptureMode::kCOMPOSITE && !ctx.Popups().isEmpty()
           ? CaptureComposite(ctx.Target(), ctx.Popups(), ctx.Highlights())
