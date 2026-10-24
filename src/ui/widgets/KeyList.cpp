@@ -75,8 +75,9 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
   const auto profile_root = GetGSS().GetAppDataPath();
   const auto kind = ClassifyKeyDatabase(info.name, info.path, profile_root);
 
-  auto text = QString("<b>%1</b>").arg(
-      KeyDatabaseDisplayName(info.id, info.name).toHtmlEscaped());
+  auto text =
+      QString("<b>%1</b>")
+          .arg(KeyDatabaseDisplayName(info.id, info.name).toHtmlEscaped());
 
   // The role, in words: which one is the default is not the same question as
   // which one is built in, and it can change without the name changing.
@@ -253,6 +254,10 @@ auto SingleRecipientModeEnabled() -> bool {
   return SettingItems::kSingleRecipientMode.Read(GetSettings());
 }
 
+/// The colour a category row was given, kept so a redraw keeps it even when
+/// the repository of the database now shown does not know the category.
+constexpr int kCategoryColorRole = Qt::UserRole + 1;
+
 }  // namespace
 
 KeyList::KeyList(QWidget* parent)
@@ -408,9 +413,9 @@ void KeyList::SetCategoryRailCompact(bool compact) {
     const auto id = item->data(Qt::UserRole).toString();
     const auto name = item->toolTip();
 
-    item->setIcon(make_category_icon(resolve_category_color(id, {}),
-                                     IsCustomCategoryId(id),
-                                     marked_categories_.contains(id)));
+    item->setIcon(make_category_icon(
+        resolve_category_color(id, item->data(kCategoryColorRole).toString()),
+        IsCustomCategoryId(id), marked_categories_.contains(id)));
     item->setText(compact_rail_ ? QString() : name);
   }
 }
@@ -538,9 +543,17 @@ auto KeyList::resolve_category_color(const QString& id,
     return QColor(*it);
   }
 
-  // Stable, well-spread colour derived from the id for custom categories with
-  // no explicit colour.
-  const auto hue = static_cast<int>(qHash(id) % 360U);
+  return CategoryFallbackColor(id);
+}
+
+auto CategoryFallbackColor(const QString& id) -> QColor {
+  // Well spread over the hues. Not qHash(): its seed is random per process,
+  // so the colour would change on every launch.
+  const auto digest =
+      QCryptographicHash::hash(id.toUtf8(), QCryptographicHash::Sha256);
+  const auto bits = (static_cast<quint8>(digest.at(0)) << 8) |
+                    static_cast<quint8>(digest.at(1));
+  const auto hue = static_cast<int>(static_cast<unsigned>(bits) % 360U);
   return QColor::fromHsv(hue, 160, 205);
 }
 
@@ -689,10 +702,10 @@ void KeyList::init_context_menu() {
     const auto engine = ConvertOpenPGPEngine2String(
         OpenPGPContext::GetInstance(channel).Engine());
 
-    auto* action = new QAction(
-        KeyDatabaseChoiceLabel(key_db_info.id, key_db_info.name, engine,
-                               is_default),
-        gpg_context_menu);
+    auto* action =
+        new QAction(KeyDatabaseChoiceLabel(key_db_info.id, key_db_info.name,
+                                           engine, is_default),
+                    gpg_context_menu);
 
     const auto tooltip = BuildKeyDatabaseToolTip(key_db_info, engine);
     action->setToolTip(tooltip);
@@ -1135,6 +1148,7 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
 
   auto* item = new QListWidgetItem(ui_->categoryList);
   item->setData(Qt::UserRole, id);
+  item->setData(kCategoryColorRole, color_hint);
   // The name lives in the tooltip so it is available in both strip modes (the
   // compact rail hides the text) and for the delete-category prompt.
   item->setToolTip(name);
@@ -1232,6 +1246,7 @@ void KeyList::RebuildCategoryTabs() {
     if (auto* item = item_for_id(c.id); item != nullptr) {
       item->setToolTip(c.name);
       if (!compact_rail_) item->setText(c.name);
+      item->setData(kCategoryColorRole, c.color);
       item->setIcon(make_category_icon(resolve_category_color(c.id, c.color),
                                        true,
                                        marked_categories_.contains(c.id)));
@@ -1498,7 +1513,10 @@ void KeyList::slot_category_context_menu(const QPoint& pos) {
 void KeyList::choose_category_color(const QString& id) {
   if (id.isEmpty()) return;
 
-  const QColor current = resolve_category_color(id, {});
+  auto* row = item_for_id(id);
+  const QColor current = resolve_category_color(
+      id,
+      row != nullptr ? row->data(kCategoryColorRole).toString() : QString());
   const QColor picked =
       QColorDialog::getColor(current, this, tr("Choose Category Colour"));
   if (!picked.isValid()) return;
@@ -1527,9 +1545,9 @@ void KeyList::refresh_category_icons() {
   for (int i = 0; i < ui_->categoryList->count(); ++i) {
     auto* item = ui_->categoryList->item(i);
     const auto id = item->data(Qt::UserRole).toString();
-    item->setIcon(make_category_icon(resolve_category_color(id, {}),
-                                     IsCustomCategoryId(id),
-                                     marked_categories_.contains(id)));
+    item->setIcon(make_category_icon(
+        resolve_category_color(id, item->data(kCategoryColorRole).toString()),
+        IsCustomCategoryId(id), marked_categories_.contains(id)));
   }
 }
 

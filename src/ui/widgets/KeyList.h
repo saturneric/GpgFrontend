@@ -79,6 +79,12 @@ inline auto operator~(KeyMenuAbility hs) -> KeyMenuAbility {
 }
 
 /**
+ * @brief The colour of a custom category that has none of its own, derived
+ *        from its id: the same on every launch and every machine.
+ */
+auto GF_UI_EXPORT CategoryFallbackColor(const QString& id) -> QColor;
+
+/**
  * @brief
  *
  */
