@@ -604,14 +604,30 @@ auto DecodeInheritedSettings(const QString &token) -> QMap<QString, QVariant> {
   return settings;
 }
 
+namespace {
+
+/// An ephemeral profile's anchor: the given one when it is well formed, else
+/// minted at random.
+auto EphemeralAnchor(const QString &given) -> QString {
+  static const QRegularExpression kAnchor(QStringLiteral("^[0-9a-f]{16}$"));
+  if (kAnchor.match(given).hasMatch()) return given;
+  return QUuid::createUuid().toString(QUuid::Id128).left(16);
+}
+
+}  // namespace
+
 EphemeralProfile::EphemeralProfile(const QString &profiles_root,
                                    const QMap<QString, QVariant> &inherited)
+    : EphemeralProfile(profiles_root, inherited, QString()) {}
+
+EphemeralProfile::EphemeralProfile(const QString &profiles_root,
+                                   const QMap<QString, QVariant> &inherited,
+                                   const QString &anchor)
     : TransientProfile(
           profiles_root,
           // Dot-prefixed like a package's anchor, so the registry scan skips
           // it and the sweep finds it once the process that made it is gone.
-          profiles_root + "/.tmp-" +
-              QUuid::createUuid().toString(QUuid::Id128).left(16)) {
+          profiles_root + "/.tmp-" + EphemeralAnchor(anchor)) {
   policy_.self_contained = true;
 
   // Filtered here as well as when decoded, so no caller can construct one that

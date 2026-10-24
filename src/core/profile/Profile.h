@@ -85,8 +85,8 @@ auto GF_CORE_EXPORT SettingInheritedByNewProfile(const QString &key) -> bool;
  * @param groups which groups to take; see InheritableSettingGroups()
  * @return each inherited key and its value
  */
-auto GF_CORE_EXPORT SnapshotInheritedSettings(
-    QSettings &settings, const QList<SettingGroup> &groups)
+auto GF_CORE_EXPORT SnapshotInheritedSettings(QSettings &settings,
+                                              const QList<SettingGroup> &groups)
     -> QMap<QString, QVariant>;
 
 /**
@@ -664,6 +664,17 @@ class GF_CORE_EXPORT EphemeralProfile final : public TransientProfile {
    */
   explicit EphemeralProfile(const QString &profiles_root,
                             const QMap<QString, QVariant> &inherited = {});
+
+  /**
+   * @brief As above, with the anchor given rather than minted, for a caller
+   * that needs the same paths on every launch.
+   *
+   * @param anchor 16 lowercase hex characters; anything else is ignored and
+   * an anchor minted at random as usual
+   */
+  EphemeralProfile(const QString &profiles_root,
+                   const QMap<QString, QVariant> &inherited,
+                   const QString &anchor);
 
   /// What this profile starts with beyond the defaults.
   [[nodiscard]] auto InheritedSettings() const

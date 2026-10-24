@@ -320,4 +320,31 @@ TEST(ProfileKindsTest, APackageHandsOutOneStorageDriver) {
   EXPECT_EQ(first->PathOf(ProfileArea::kRoot), packaged->Root());
 }
 
+TEST(ProfileKindsTest, AnEphemeralProfileMintsItsAnchorUnlessGivenOne) {
+  // The anchor is the lock root; Root() stays empty until storage exists.
+  const QString root = "/x/profiles";
+  static const QRegularExpression kMinted(
+      QStringLiteral("^/x/profiles/\\.tmp-[0-9a-f]{16}$"));
+
+  // Every launch a new one, as before.
+  const EphemeralProfile first(root);
+  const EphemeralProfile second(root);
+  EXPECT_TRUE(kMinted.match(first.LockRoot()).hasMatch())
+      << first.LockRoot().toStdString();
+  EXPECT_NE(first.LockRoot(), second.LockRoot());
+
+  // A well-formed anchor is kept, so the same paths come back every launch.
+  const EphemeralProfile fixed(root, {}, "0123456789abcdef");
+  EXPECT_EQ(fixed.LockRoot(), "/x/profiles/.tmp-0123456789abcdef");
+  EXPECT_EQ(fixed.Id(), ".tmp-0123456789abcdef");
+
+  // Anything else cannot steer the path: it is minted instead.
+  for (const auto* bad : {"", "0123456789ABCDEF", "0123456789abcde",
+                          "../../../etc/xx", "0123456789abcdefg"}) {
+    const EphemeralProfile minted(root, {}, bad);
+    EXPECT_TRUE(kMinted.match(minted.LockRoot()).hasMatch())
+        << bad << " -> " << minted.LockRoot().toStdString();
+  }
+}
+
 }  // namespace GpgFrontend::Test
