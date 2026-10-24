@@ -35,8 +35,7 @@
 namespace GpgFrontend::Screenshot {
 
 auto ParseSize(const QString& text) -> std::optional<QSize> {
-  static const QRegularExpression kRe(
-      QStringLiteral("^(\\d{1,5})x(\\d{1,5})$"));
+  static const QRegularExpression kRe(u"^(\\d{1,5})x(\\d{1,5})$"_s);
   const auto m = kRe.match(text.trimmed());
   if (!m.hasMatch()) return std::nullopt;
   const auto w = m.captured(1).toInt();
@@ -46,19 +45,18 @@ auto ParseSize(const QString& text) -> std::optional<QSize> {
 }
 
 auto ParseTheme(const QString& text) -> std::optional<Theme> {
-  if (text == QLatin1String("light")) return Theme::kLIGHT;
-  if (text == QLatin1String("dark")) return Theme::kDARK;
+  if (text == "light"_L1) return Theme::kLIGHT;
+  if (text == "dark"_L1) return Theme::kDARK;
   return std::nullopt;
 }
 
 auto ThemeName(Theme theme) -> QString {
-  return theme == Theme::kDARK ? QStringLiteral("dark")
-                               : QStringLiteral("light");
+  return theme == Theme::kDARK ? u"dark"_s : u"light"_s;
 }
 
 auto ParseClock(const QString& text) -> std::optional<QDateTime> {
-  static const QRegularExpression kRe(QStringLiteral(
-      "^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})Z$"));
+  static const QRegularExpression kRe(
+      u"^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})Z$"_s);
   const auto m = kRe.match(text);
   if (!m.hasMatch()) return std::nullopt;
 
@@ -80,13 +78,12 @@ auto ParseFontFamilies(const QString& text) -> QStringList {
 }
 
 auto GpgFakedSystemTime(const QDateTime& clock) -> QString {
-  return clock.toUTC().toString(QStringLiteral("yyyyMMdd'T'HHmmss")) +
-         QLatin1Char('!');
+  return clock.toUTC().toString(u"yyyyMMdd'T'HHmmss"_s) + QLatin1Char('!');
 }
 
 auto GeometryJsonPath(const QString& png_path) -> QString {
   const QFileInfo info(png_path);
-  return info.dir().filePath(info.completeBaseName() + QStringLiteral(".json"));
+  return info.dir().filePath(info.completeBaseName() + u".json"_s);
 }
 
 }  // namespace GpgFrontend::Screenshot

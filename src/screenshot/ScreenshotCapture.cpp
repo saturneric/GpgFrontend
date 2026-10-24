@@ -79,12 +79,12 @@ void PlaceHighlights(Capture& capture, const QList<Highlight>& highlights) {
 auto CaptureModeName(CaptureMode mode) -> QString {
   switch (mode) {
     case CaptureMode::kDIALOG:
-      return QStringLiteral("dialog");
+      return u"dialog"_s;
     case CaptureMode::kCOMPOSITE:
-      return QStringLiteral("composite");
+      return u"composite"_s;
     case CaptureMode::kWINDOW:
     default:
-      return QStringLiteral("window");
+      return u"window"_s;
   }
 }
 
@@ -116,7 +116,7 @@ auto CaptureWidget(QWidget* target, CaptureMode mode,
   capture.dpr = capture.image.devicePixelRatio();
   capture.origin = target->mapToGlobal(QPoint(0, 0));
   capture.layers.append(
-      {QStringLiteral("window"), QRect(QPoint(0, 0), capture.image.size())});
+      {u"window"_s, QRect(QPoint(0, 0), capture.image.size())});
   PlaceHighlights(capture, highlights);
   return capture;
 }
@@ -157,9 +157,9 @@ auto CaptureComposite(QWidget* window, const QList<QWidget*>& popups,
                                    capture.image.size());
     if (placed) capture.layers.append({name, placed->rect});
   };
-  add_layer(QStringLiteral("window"), window_global);
+  add_layer(u"window"_s, window_global);
   for (qsizetype i = 0; i < popups_global.size(); ++i) {
-    add_layer(QStringLiteral("popup%1").arg(i + 1), popups_global.at(i));
+    add_layer(u"popup%1"_s.arg(i + 1), popups_global.at(i));
   }
 
   PlaceHighlights(capture, highlights);

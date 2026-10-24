@@ -42,9 +42,9 @@ namespace GpgFrontend::Screenshot {
 namespace {
 
 auto ShowPlainWindow(ScenarioContext& ctx) -> QWidget* {
-  auto label = QSharedPointer<QLabel>::create(QStringLiteral("self-test"));
+  auto label = QSharedPointer<QLabel>::create(u"self-test"_s);
   ctx.Keep(label);
-  label->setObjectName(QStringLiteral("SelfTestWindow"));
+  label->setObjectName(u"SelfTestWindow"_s);
   label->setAlignment(Qt::AlignCenter);
   label->resize(ctx.GetSize());
   label->show();
@@ -54,43 +54,41 @@ auto ShowPlainWindow(ScenarioContext& ctx) -> QWidget* {
 auto SettledPlainWindow(ScenarioContext& ctx) -> bool {
   auto* window = ShowPlainWindow(ctx);
   ctx.SetTarget(window, CaptureMode::kWINDOW);
-  ctx.AddHighlight(QStringLiteral("SelfTestWindow"), window);
-  return ctx.WaitSettled(window, {}, QStringLiteral("self-test-window"));
+  ctx.AddHighlight(u"SelfTestWindow"_s, window);
+  return ctx.WaitSettled(window, {}, u"self-test-window"_s);
 }
 
 }  // namespace
 
 void RegisterSelfTestScenarios(QList<Scenario>& scenarios) {
-  const QStringList plain{QStringLiteral("QLabel")};
+  const QStringList plain{u"QLabel"_s};
 
   // Waits on something that never happens: exit 3, naming the wait.
-  scenarios.append(
-      {QStringLiteral("selftest-timeout"), QSize(320, 200),
-       CaptureMode::kWINDOW, plain, false, false, [](ScenarioContext& ctx) {
-         ShowPlainWindow(ctx);
-         return ctx.WaitUntil(
-             {}, [] { return false; }, {}, QStringLiteral("selftest-never"));
-       }});
-
-  // A message box nobody asked for: exit 5, naming it.
-  scenarios.append({QStringLiteral("selftest-modal"), QSize(320, 200),
+  scenarios.append({u"selftest-timeout"_s, QSize(320, 200),
                     CaptureMode::kWINDOW, plain, false, false,
                     [](ScenarioContext& ctx) {
+                      ShowPlainWindow(ctx);
+                      return ctx.WaitUntil(
+                          {}, [] { return false; }, {}, u"selftest-never"_s);
+                    }});
+
+  // A message box nobody asked for: exit 5, naming it.
+  scenarios.append({u"selftest-modal"_s, QSize(320, 200), CaptureMode::kWINDOW,
+                    plain, false, false, [](ScenarioContext& ctx) {
                       auto box = QSharedPointer<QMessageBox>::create(
-                          QMessageBox::Warning, QStringLiteral("Unexpected"),
-                          QStringLiteral("self-test"));
+                          QMessageBox::Warning, u"Unexpected"_s,
+                          u"self-test"_s);
                       ctx.Keep(box);
                       box->show();
                       return SettledPlainWindow(ctx);
                     }});
 
   // Fails the environment gates on purpose: exit 6 "selftest-injected".
-  scenarios.append({QStringLiteral("selftest-gate"), QSize(320, 200),
-                    CaptureMode::kWINDOW, plain, false, false,
-                    SettledPlainWindow});
+  scenarios.append({u"selftest-gate"_s, QSize(320, 200), CaptureMode::kWINDOW,
+                    plain, false, false, SettledPlainWindow});
 
   // Depends on the agent clock: exit 6 when gpg-agent.conf was refused.
-  scenarios.append({QStringLiteral("selftest-agent-clock"), QSize(320, 200),
+  scenarios.append({u"selftest-agent-clock"_s, QSize(320, 200),
                     CaptureMode::kWINDOW, plain, true, false,
                     SettledPlainWindow});
 }

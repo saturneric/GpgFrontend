@@ -75,8 +75,8 @@ auto ParseCheckOptions(const QString& output, const QString& component)
   for (const auto& line : output.split(QLatin1Char('\n'))) {
     const auto fields = line.trimmed().split(QLatin1Char(':'));
     if (fields.size() < 5 || fields.at(0) != component) continue;
-    if (fields.at(4) == QLatin1String("1")) return true;
-    if (fields.at(4) == QLatin1String("0")) return false;
+    if (fields.at(4) == "1"_L1) return true;
+    if (fields.at(4) == "0"_L1) return false;
     return std::nullopt;
   }
   return std::nullopt;
@@ -93,7 +93,7 @@ auto ParseDemoData(const QByteArray& json, QString* error)
 
   const auto root = doc.object();
   if (root.value("schema").toInt() != 1) {
-    if (error != nullptr) *error = QStringLiteral("unsupported schema");
+    if (error != nullptr) *error = u"unsupported schema"_s;
     return std::nullopt;
   }
 
@@ -110,8 +110,7 @@ auto ParseDemoData(const QByteArray& json, QString* error)
       }
       key.revoked = o.value("revoked").toBool();
       if (key.fingerprint.isEmpty()) {
-        if (error != nullptr)
-          *error = QStringLiteral("key without fingerprint");
+        if (error != nullptr) *error = u"key without fingerprint"_s;
         return false;
       }
       keys->append(key);
@@ -136,11 +135,10 @@ auto ParseDemoData(const QByteArray& json, QString* error)
       db.imports.append(file.toString());
     }
     if (db.name.isEmpty() ||
-        (db.backend != QLatin1String("gnupg") &&
-         db.backend != QLatin1String("rpgp")) ||
+        (db.backend != "gnupg"_L1 && db.backend != "rpgp"_L1) ||
         !parse_keys(o.value("keys").toArray(), &db.keys)) {
       if (error != nullptr && error->isEmpty()) {
-        *error = QStringLiteral("invalid database: ") + db.id;
+        *error = u"invalid database: "_s + db.id;
       }
       return std::nullopt;
     }
@@ -148,8 +146,7 @@ auto ParseDemoData(const QByteArray& json, QString* error)
   }
 
   if (data.keys.isEmpty() || data.newest_timestamp < 0) {
-    if (error != nullptr)
-      *error = QStringLiteral("no keys or no newest_timestamp");
+    if (error != nullptr) *error = u"no keys or no newest_timestamp"_s;
     return std::nullopt;
   }
   return data;
@@ -177,13 +174,12 @@ auto ExpectedKeyStates(const QList<DemoKey>& keys, const QDateTime& clock)
 auto EvaluateGates(const GateInputs& inputs) -> QStringList {
   QStringList failures;
   if (std::lround(inputs.dpr * 100) != kRequiredDpr * 100) {
-    failures.append(QStringLiteral("dpr"));
+    failures.append(u"dpr"_s);
   }
   if (inputs.logical_dpi != kRequiredLogicalDpi) {
-    failures.append(QStringLiteral("logical-dpi"));
+    failures.append(u"logical-dpi"_s);
   }
-  if (inputs.tz_offset_seconds != 0)
-    failures.append(QStringLiteral("timezone"));
+  if (inputs.tz_offset_seconds != 0) failures.append(u"timezone"_s);
 
   for (qsizetype i = 0; i < inputs.requested_families.size(); ++i) {
     const auto& requested = inputs.requested_families.at(i);
@@ -191,11 +187,11 @@ auto EvaluateGates(const GateInputs& inputs) -> QStringList {
                               ? inputs.resolved_families.at(i)
                               : QString();
     if (resolved.compare(requested, Qt::CaseInsensitive) != 0) {
-      failures.append(QStringLiteral("font:") + requested);
+      failures.append(u"font:"_s + requested);
     }
   }
   if (inputs.requested_families.isEmpty()) {
-    failures.append(QStringLiteral("font:none-requested"));
+    failures.append(u"font:none-requested"_s);
   }
   return failures;
 }
@@ -203,8 +199,7 @@ auto EvaluateGates(const GateInputs& inputs) -> QStringList {
 auto SizeGateFailure(const QSize& requested, const QSize& actual)
     -> std::optional<QString> {
   if (requested == actual) return std::nullopt;
-  return QStringLiteral("size:%1x%2!=%3x%4")
-      .arg(actual.width())
+  return u"size:%1x%2!=%3x%4"_s.arg(actual.width())
       .arg(actual.height())
       .arg(requested.width())
       .arg(requested.height());

@@ -99,9 +99,8 @@ auto ScenarioContext::WaitUntil(const std::function<void()>& trigger,
   for (const auto& c : connections) QObject::disconnect(c);
 
   if (!done) {
-    Fail(kEXIT_TIMEOUT, QStringLiteral("timeout"),
-         describe ? label + QStringLiteral(" (") + describe() + QLatin1Char(')')
-                  : label);
+    Fail(kEXIT_TIMEOUT, u"timeout"_s,
+         describe ? label + u" ("_s + describe() + QLatin1Char(')') : label);
   }
   return done;
 }
@@ -142,7 +141,7 @@ auto ScenarioContext::WaitSettled(QWidget* target,
     previous = std::move(current);
   }
 
-  Fail(kEXIT_TIMEOUT, QStringLiteral("frame-unstable"), label);
+  Fail(kEXIT_TIMEOUT, u"frame-unstable"_s, label);
   return false;
 }
 

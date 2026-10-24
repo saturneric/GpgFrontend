@@ -138,8 +138,8 @@ class ScreenshotClockTest : public ::testing::Test {
   }
 
   void set_clock(const QString& clock) {
-    const auto line = QStringLiteral("faked-system-time %1\n")
-                          .arg(GpgFakedSystemTime(*ParseClock(clock)));
+    const auto line =
+        u"faked-system-time %1\n"_s.arg(GpgFakedSystemTime(*ParseClock(clock)));
     QFile file(QDir(home_).filePath("gpg.conf"));
     ASSERT_TRUE(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
     file.write(line.toUtf8());

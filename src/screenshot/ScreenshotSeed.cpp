@@ -66,15 +66,13 @@ auto FindKey(int channel, const QList<DemoKey>& keys, const QString& name)
 auto ScreenshotDatabaseId(const QString& demo_id) -> QString {
   // The settings page lists database ids, which are UUIDs everywhere else; a
   // name-based one is shaped the same and comes out the same every run.
-  static const QUuid kNamespace(
-      QStringLiteral("6ba7b811-9dad-11d1-80b4-00c04fd430c8"));
-  return QUuid::createUuidV5(
-             kNamespace, QStringLiteral("gpgfrontend-screenshot:") + demo_id)
+  static const QUuid kNamespace(u"6ba7b811-9dad-11d1-80b4-00c04fd430c8"_s);
+  return QUuid::createUuidV5(kNamespace, u"gpgfrontend-screenshot:"_s + demo_id)
       .toString(QUuid::WithoutBraces);
 }
 
 auto ScreenshotDatabaseDir(const DemoDatabase& db) -> QString {
-  return QStringLiteral("dbs/") + db.name;
+  return u"dbs/"_s + db.name;
 }
 
 auto BuildKeyDatabaseList(const QList<DemoDatabase>& requested) -> QJsonObject {
@@ -84,11 +82,11 @@ auto BuildKeyDatabaseList(const QList<DemoDatabase>& requested) -> QJsonObject {
   // path is stored; the path is written the way a self-contained profile
   // stores it anyway.
   KeyDatabaseItemSO builtin;
-  builtin.id = QLatin1String(kDefaultKeyDatabaseId);
-  builtin.name = QLatin1String(kDefaultKeyDatabaseName);
-  builtin.path = QString::fromLatin1(kProfilePathToken) + QStringLiteral("/db");
+  builtin.id = QLatin1StringView(kDefaultKeyDatabaseId);
+  builtin.name = QLatin1StringView(kDefaultKeyDatabaseName);
+  builtin.path = QString::fromLatin1(kProfilePathToken) + u"/db"_s;
   builtin.channel = 0;
-  builtin.backend_type = QStringLiteral("gnupg");
+  builtin.backend_type = u"gnupg"_s;
   builtin.kind = KeyDatabaseKind::kDEFAULT;
   list.key_databases.append(builtin);
 
@@ -105,7 +103,7 @@ auto BuildKeyDatabaseList(const QList<DemoDatabase>& requested) -> QJsonObject {
     list.key_databases.append(item);
   }
 
-  list.default_database_id = QLatin1String(kDefaultKeyDatabaseId);
+  list.default_database_id = QLatin1StringView(kDefaultKeyDatabaseId);
   return list.ToJson();
 }
 
@@ -118,13 +116,12 @@ auto ImportDemoKeys(int channel, const QString& directory,
                     const DemoDatabase& db) -> QString {
   for (const auto& file_name : db.imports) {
     QFile file(QDir(directory).filePath(file_name));
-    if (!file.open(QIODevice::ReadOnly))
-      return QStringLiteral("unreadable:") + file_name;
+    if (!file.open(QIODevice::ReadOnly)) return u"unreadable:"_s + file_name;
 
     const auto info = KeyImportExportOperation::GetInstance(channel).ImportKey(
         GFBuffer(file.readAll()));
     if (info == nullptr || info->imported == 0) {
-      return QStringLiteral("not-imported:") + file_name;
+      return u"not-imported:"_s + file_name;
     }
   }
 
@@ -132,7 +129,7 @@ auto ImportDemoKeys(int channel, const QString& directory,
   repo.FlushCache();
   for (const auto& key : db.keys) {
     if (repo.GetKey(key.fingerprint) == nullptr) {
-      return QStringLiteral("missing-after-import:") + key.name;
+      return u"missing-after-import:"_s + key.name;
     }
   }
   return {};
@@ -140,33 +137,34 @@ auto ImportDemoKeys(int channel, const QString& directory,
 
 auto SeedGroupsAndCategories(int channel, const DemoData& demo,
                              const QDateTime& created) -> QString {
-  const auto alice = FindKey(channel, demo.keys, QStringLiteral("Alice"));
-  const auto bob = FindKey(channel, demo.keys, QStringLiteral("Bob"));
-  const auto erin = FindKey(channel, demo.keys, QStringLiteral("Erin"));
+  const auto alice = FindKey(channel, demo.keys, u"Alice"_s);
+  const auto bob = FindKey(channel, demo.keys, u"Bob"_s);
+  const auto erin = FindKey(channel, demo.keys, u"Erin"_s);
   if (alice == nullptr || bob == nullptr || erin == nullptr) {
-    return QStringLiteral("demo-key-missing");
+    return u"demo-key-missing"_s;
   }
 
   KeyGroupCO group;
-  group.id = QLatin1String(kDemoGroupId);
-  group.name = QLatin1String(kDemoGroupName);
-  group.email = QStringLiteral("team@example.com");
-  group.comment = QStringLiteral("Alice and Bob");
+  group.id = QLatin1StringView(kDemoGroupId);
+  group.name = QLatin1StringView(kDemoGroupName);
+  group.email = u"team@example.com"_s;
+  group.comment = u"Alice and Bob"_s;
   group.creation_time = created;
 
   auto& groups = KeyGroupRepository::GetInstance(channel);
   groups.AddKeyGroup(GpgKeyGroup(group));
   if (!groups.AddKey2KeyGroup(group.id, alice) ||
       !groups.AddKey2KeyGroup(group.id, bob)) {
-    return QStringLiteral("group-members-refused");
+    return u"group-members-refused"_s;
   }
 
   auto& categories = KeyCategoryRepository::GetInstance(channel);
-  const auto category = categories.AddCategory(
-      QLatin1String(kDemoCategoryName), QLatin1String(kDemoCategoryColor));
+  const auto category =
+      categories.AddCategory(QLatin1StringView(kDemoCategoryName),
+                             QLatin1StringView(kDemoCategoryColor));
   if (category.isEmpty() || !categories.AddKey2Category(category, bob->ID()) ||
       !categories.AddKey2Category(category, erin->ID())) {
-    return QStringLiteral("category-refused");
+    return u"category-refused"_s;
   }
 
   AbstractKeyRepository::GetInstance(channel).FlushCache();

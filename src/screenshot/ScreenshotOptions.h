@@ -66,7 +66,7 @@ enum class Theme : std::uint8_t { kLIGHT, kDARK };
 struct Options {
   QString scenario;  ///< empty for an environment probe
   bool env_probe = false;
-  QString locale = QStringLiteral("en_US");
+  QString locale = u"en_US"_s;
   QString out;  ///< the PNG, or the env record JSON for a probe
   std::optional<QSize>
       size;  ///< logical pixels; the scenario's default if unset

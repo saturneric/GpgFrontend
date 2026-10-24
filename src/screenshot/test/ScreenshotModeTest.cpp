@@ -134,9 +134,8 @@ TEST(ScreenshotModeTest, RegistryHasThePhaseOneScenarios) {
   // Only the scenarios about key databases ask for the extra ones; every
   // other render keeps the database list startup derives.
   for (const auto& s : Scenarios()) {
-    const bool about_databases =
-        s.name == QLatin1String("key-database-menu") ||
-        s.name == QLatin1String("settings-key-databases");
+    const bool about_databases = s.name == "key-database-menu"_L1 ||
+                                 s.name == "settings-key-databases"_L1;
     EXPECT_EQ(s.key_databases.isEmpty(), !about_databases)
         << s.name.toStdString();
   }
@@ -335,7 +334,7 @@ TEST(ScreenshotModeTest, DemoDataPredictsKeyStatesAtAClock) {
               "Erin")
           .expired);
   for (const auto& key : demo->keys) {
-    if (key.name != QLatin1String("Erin")) continue;
+    if (key.name != "Erin"_L1) continue;
     ASSERT_TRUE(key.expires);
     const auto days = Utc(kDefaultClock)
                           .daysTo(QDateTime::fromSecsSinceEpoch(

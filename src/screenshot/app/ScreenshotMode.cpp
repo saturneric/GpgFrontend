@@ -143,8 +143,8 @@ struct Run {
   QList<DemoDatabase> databases;
   QMap<QString, QString> database_paths;
   QJsonObject gpg_clock{{"gpg_conf", "unchecked"}, {"agent_conf", "unchecked"}};
-  QString ui_clock_probe = QStringLiteral("unchecked");
-  QString gpg_clock_probe = QStringLiteral("unchecked");
+  QString ui_clock_probe = u"unchecked"_s;
+  QString gpg_clock_probe = u"unchecked"_s;
   QString color_scheme_method;
   QStringList gate_failures;
   QJsonObject env;
@@ -316,8 +316,8 @@ auto Seed(Run& run) -> Failure {
   // leak into this render; it is not reused.
   if (QFileInfo::exists(run.db_path)) {
     return {kEXIT_USAGE, "stale-session",
-            QStringLiteral("remove %1 and try again")
-                .arg(GlobalSettingStation::GetInstance().GetAppDataPath())};
+            u"remove %1 and try again"_s.arg(
+                GlobalSettingStation::GetInstance().GetAppDataPath())};
   }
   if (!CopyTree(run.options.demo_gnupghome, run.db_path)) {
     return {kEXIT_USAGE, "seed-failed", run.db_path};
@@ -333,7 +333,7 @@ auto Seed(Run& run) -> Failure {
     if (db == nullptr) return {kEXIT_USAGE, "unknown-demo-database", id};
 
     const auto path = app_data.filePath(ScreenshotDatabaseDir(*db));
-    const auto seeded = db->backend == QLatin1String("gnupg")
+    const auto seeded = db->backend == "gnupg"_L1
                             ? CopyTree(QDir(demo_root).filePath(id), path)
                             : QDir().mkpath(path);
     if (!seeded) return {kEXIT_USAGE, "seed-failed", path};
@@ -372,12 +372,11 @@ void RequestColorScheme(Theme theme) {
  */
 auto EnforceColorScheme(Theme theme) -> QString {
   const bool want_dark = theme == Theme::kDARK;
-  if (IsDark(QApplication::palette()) == want_dark)
-    return QStringLiteral("hint");
+  if (IsDark(QApplication::palette()) == want_dark) return u"hint"_s;
   QApplication::setPalette(want_dark
                                ? UI::DarkFusionPalette()
                                : QApplication::style()->standardPalette());
-  return QStringLiteral("palette");
+  return u"palette"_s;
 }
 
 void FixUiEnvironment(const Options& o) {
@@ -473,11 +472,10 @@ auto PinGnuPGClock(const QString& home, const QDateTime& clock)
   // Written only now, after core startup has listed the keys: a conf gpg
   // refuses makes that listing fail. gpg reads gpg.conf on every invocation,
   // so the cache startup filled is listed again before anything reads it.
-  const auto line =
-      QStringLiteral("faked-system-time %1\n").arg(GpgFakedSystemTime(clock));
+  const auto line = u"faked-system-time %1\n"_s.arg(GpgFakedSystemTime(clock));
   auto conf = line;
   if (Injected("gpg-reject")) {
-    conf += QStringLiteral("no-such-option-injected\n");
+    conf += u"no-such-option-injected\n"_s;
   }
   WriteConf(QDir(home).filePath("gpg.conf"), conf);
 
@@ -502,9 +500,8 @@ auto PinGnuPGClock(const QString& home, const QDateTime& clock)
   // An agent that refuses its config does not start, and decryption with it;
   // the file goes unless a scenario needs the agent's clock.
   QFile::remove(agent_conf);
-  return {
-      gpg_ok, false,
-      Injected("agent-reject") ? QStringLiteral("injected") : output.trimmed()};
+  return {gpg_ok, false,
+          Injected("agent-reject") ? u"injected"_s : output.trimmed()};
 }
 
 /**
@@ -519,18 +516,16 @@ auto ProbeKeyStates(int channel, const QList<DemoKey>& keys,
         expected.fingerprint);
     const auto name = prefix + expected.name;
     if (key == nullptr) {
-      mismatches.append(name + QStringLiteral(":missing"));
+      mismatches.append(name + u":missing"_s);
       continue;
     }
     if (key->IsExpired() != expected.expired) {
-      mismatches.append(QStringLiteral("%1:expired=%2,want=%3")
-                            .arg(name)
+      mismatches.append(u"%1:expired=%2,want=%3"_s.arg(name)
                             .arg(key->IsExpired())
                             .arg(expected.expired));
     }
     if (key->IsRevoked() != expected.revoked) {
-      mismatches.append(QStringLiteral("%1:revoked=%2,want=%3")
-                            .arg(name)
+      mismatches.append(u"%1:revoked=%2,want=%3"_s.arg(name)
                             .arg(key->IsRevoked())
                             .arg(expected.revoked));
     }
@@ -548,7 +543,7 @@ auto ValidateClock(Run& run) -> QStringList {
   // Every GnuPG homedir of the run: the built-in one and any extra.
   QList<std::pair<QString, QString>> homes{{QString(), run.db_path}};
   for (const auto& db : run.databases) {
-    if (db.backend == QLatin1String("gnupg")) {
+    if (db.backend == "gnupg"_L1) {
       homes.append({db.id, run.database_paths.value(db.id)});
     }
   }
@@ -566,14 +561,12 @@ auto ValidateClock(Run& run) -> QStringList {
     }
   }
   run.gpg_clock.insert("gpg_conf", all_gpg ? "applied" : "rejected");
-  run.gpg_clock.insert("agent_conf",
-                       all_agent ? QStringLiteral("applied")
-                                 : QStringLiteral("rejected:") + agent_detail);
-  if (!all_gpg)
-    failures.append(QStringLiteral("gpg-clock-option-rejected:gpg"));
+  run.gpg_clock.insert(
+      "agent_conf", all_agent ? u"applied"_s : u"rejected:"_s + agent_detail);
+  if (!all_gpg) failures.append(u"gpg-clock-option-rejected:gpg"_s);
   if (!all_agent && run.scenario != nullptr &&
       run.scenario->needs_agent_clock) {
-    failures.append(QStringLiteral("gpg-clock-option-rejected:gpg-agent"));
+    failures.append(u"gpg-clock-option-rejected:gpg-agent"_s);
   }
   if (!failures.isEmpty()) return failures;
 
@@ -585,10 +578,10 @@ auto ValidateClock(Run& run) -> QStringList {
   for (const auto& db : run.databases) {
     const auto channel = ResolveDatabaseHandle(ScreenshotDatabaseId(db.id));
     if (channel < 0) {
-      mismatches.append(db.id + QStringLiteral(":not-open"));
+      mismatches.append(db.id + u":not-open"_s);
       continue;
     }
-    if (db.backend == QLatin1String("rpgp")) {
+    if (db.backend == "rpgp"_L1) {
       const auto demo_root =
           QDir(run.options.demo_gnupghome).filePath("../demo-dbs/" + db.id);
       if (const auto err = ImportDemoKeys(channel, demo_root, db);
@@ -603,18 +596,17 @@ auto ValidateClock(Run& run) -> QStringList {
                                  db.id + QLatin1Char('/'));
   }
 
-  run.gpg_clock_probe =
-      mismatches.isEmpty() ? QStringLiteral("ok") : mismatches.join(';');
+  run.gpg_clock_probe = mismatches.isEmpty() ? u"ok"_s : mismatches.join(';');
   if (!mismatches.isEmpty()) {
-    failures.append(QStringLiteral("gpg-clock-not-effective"));
+    failures.append(u"gpg-clock-not-effective"_s);
   }
 
   const auto ui_now = CurrentDateTime().toSecsSinceEpoch();
   run.ui_clock_probe = ui_now == run.options.clock.toSecsSinceEpoch()
-                           ? QStringLiteral("ok")
+                           ? u"ok"_s
                            : QString::number(ui_now);
-  if (run.ui_clock_probe != QLatin1String("ok")) {
-    failures.append(QStringLiteral("ui-clock-mismatch"));
+  if (run.ui_clock_probe != "ok"_L1) {
+    failures.append(u"ui-clock-mismatch"_s);
   }
   return failures;
 }
@@ -637,7 +629,7 @@ auto EvaluateEnvironment(Run& run) -> QStringList {
   failures += ValidateClock(run);
   if (Injected("gate") ||
       (run.scenario != nullptr && run.scenario->name == "selftest-gate")) {
-    failures.append(QStringLiteral("selftest-injected"));
+    failures.append(u"selftest-injected"_s);
   }
   return failures;
 }
@@ -728,7 +720,7 @@ auto ProbeEnvironment(Run& run) -> int {
         return probe.windowHandle() != nullptr &&
                probe.windowHandle()->isExposed();
       },
-      {}, QStringLiteral("probe-window-exposed"));
+      {}, u"probe-window-exposed"_s);
   if (!shown) return Report(run, *ctx.GetFailure());
 
   if (run.options.size) {
@@ -755,10 +747,9 @@ auto PrepareScreenshotEnvironment(int argc, char** argv) -> std::optional<int> {
     for (const auto& s : Scenarios()) {
       if (!s.listed) continue;
       const auto size = s.default_size.isValid()
-                            ? QStringLiteral("%1x%2")
-                                  .arg(s.default_size.width())
+                            ? u"%1x%2"_s.arg(s.default_size.width())
                                   .arg(s.default_size.height())
-                            : QStringLiteral("auto");
+                            : u"auto"_s;
       out << s.name << '\t' << size << '\t' << CaptureModeName(s.mode) << '\n';
     }
     return kEXIT_OK;
@@ -810,7 +801,7 @@ auto MakeScreenshotProfile(const ProfileSelection& selection,
   // session a hard exit left behind is swept like any abandoned one.
   return QSharedPointer<EphemeralProfile>::create(
       selection.profiles_root, selection.inherited_settings,
-      QLatin1String(kScreenshotProfileAnchor));
+      QLatin1StringView(kScreenshotProfileAnchor));
 }
 
 auto IsScreenshotRun(const QCommandLineParser& parser) -> bool {
@@ -882,9 +873,9 @@ auto RunScreenshotMode(const GFCxtSPtr& ctx, const QCommandLineParser& parser)
 
     ModalGuard guard(run.scenario->allowed_windows, [&run](QWidget* w) {
       HardExit(run, {kEXIT_UNEXPECTED_MODAL, "unexpected-window",
-                     QStringLiteral("%1 \"%2\"")
-                         .arg(QString::fromLatin1(w->metaObject()->className()),
-                              w->windowTitle())});
+                     u"%1 \"%2\""_s.arg(
+                         QString::fromLatin1(w->metaObject()->className()),
+                         w->windowTitle())});
     });
     app->installEventFilter(&guard);
 

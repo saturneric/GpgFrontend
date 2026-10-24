@@ -67,11 +67,11 @@ constexpr auto kBobEmail = "bob@example.com";
 const QSize kBackdropSize(1100, 680);
 /// Logical width of the Key ToolBox dock.
 constexpr int kKeyDockWidth = 480;
-const auto kContractText = QStringLiteral(
-    "Hello Bob,\n\nplease find the signed contract below.\n\nAlice\n");
+const auto kContractText =
+    u"Hello Bob,\n\nplease find the signed contract below.\n\nAlice\n"_s;
 
 auto KeyTable(MainWindow* window) -> QTableView* {
-  return window->findChild<QTableView*>(QStringLiteral("default"));
+  return window->findChild<QTableView*>(u"default"_s);
 }
 
 auto RowOf(QTableView* table, const QString& needle) -> int {
@@ -91,8 +91,8 @@ auto ModelHooks(QAbstractItemModel* model) -> QList<ScenarioContext::Hook> {
 }
 
 auto CurrentEditor(MainWindow* window) -> QPlainTextEdit* {
-  for (auto* editor : window->findChildren<QPlainTextEdit*>(
-           QStringLiteral("PlainTextEditor"))) {
+  for (auto* editor :
+       window->findChildren<QPlainTextEdit*>(u"PlainTextEditor"_s)) {
     if (editor->isVisible()) return editor;
   }
   return nullptr;
@@ -114,7 +114,7 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
 
   auto* table = KeyTable(window_ptr);
   if (table == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("no-key-table"));
+    ctx.Fail(kEXIT_USAGE, u"no-key-table"_s);
     return nullptr;
   }
 
@@ -130,10 +130,9 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
         window->raise();
         window->activateWindow();
       },
-      ready, hooks, QStringLiteral("main-window-keys-listed-and-active"),
+      ready, hooks, u"main-window-keys-listed-and-active"_s,
       [&]() {
-        return QStringLiteral("visible=%1 active=%2 rows=%3")
-            .arg(window->isVisible())
+        return u"visible=%1 active=%2 rows=%3"_s.arg(window->isVisible())
             .arg(window->isActiveWindow())
             .arg(table->model()->rowCount());
       });
@@ -142,8 +141,7 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
   // Init() defers its default layout to the event loop, and that resizes and
   // re-centres the window; size, place and dock width are applied once it
   // has run. A size the platform still refuses is the size gate's to report.
-  auto* key_dock =
-      window->findChild<QDockWidget*>(QStringLiteral("keyListDock"));
+  auto* key_dock = window->findChild<QDockWidget*>(u"keyListDock"_s);
   const auto top_left =
       QApplication::primaryScreen() != nullptr
           ? QApplication::primaryScreen()->availableGeometry().topLeft()
@@ -157,11 +155,10 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
           window->resizeDocks({key_dock}, {kKeyDockWidth}, Qt::Horizontal);
         }
       },
-      [&]() { return window->size() == size; }, {},
-      QStringLiteral("main-window-resized"));
+      [&]() { return window->size() == size; }, {}, u"main-window-resized"_s);
   if (ctx.GetFailure()) return nullptr;
   if (const auto bad = SizeGateFailure(size, window->size())) {
-    ctx.Fail(kEXIT_ENVIRONMENT, QStringLiteral("gate"), *bad);
+    ctx.Fail(kEXIT_ENVIRONMENT, u"gate"_s, *bad);
     return nullptr;
   }
   // A text tab in front: a fresh profile starts on the file browser, whose
@@ -172,15 +169,15 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
 }
 
 auto MainWindowScenario(ScenarioContext& ctx) -> bool {
-  auto* window = OpenMainWindow(ctx, ctx.GetSize(),
-                                QStringLiteral("contract.txt"), kContractText);
+  auto* window =
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
   if (window == nullptr) return false;
 
   auto* table = KeyTable(window);
   const auto alice = RowOf(table, kAliceEmail);
   const auto bob = RowOf(table, kBobEmail);
   if (alice < 0 || bob < 0) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("demo-key-missing"));
+    ctx.Fail(kEXIT_USAGE, u"demo-key-missing"_s);
     return false;
   }
 
@@ -190,11 +187,11 @@ auto MainWindowScenario(ScenarioContext& ctx) -> bool {
   model->setData(model->index(bob, 0), Qt::Checked, Qt::CheckStateRole);
 
   ctx.SetTarget(window, CaptureMode::kWINDOW);
-  ctx.AddHighlight(QStringLiteral("keyListDock"),
-                   window->findChild<QWidget*>(QStringLiteral("keyListDock")));
-  ctx.AddHighlight(QStringLiteral("cryptToolBar"),
-                   window->findChild<QWidget*>(QStringLiteral("cryptToolBar")));
-  ctx.AddHighlight(QStringLiteral("PlainTextEditor"), CurrentEditor(window));
+  ctx.AddHighlight(u"keyListDock"_s,
+                   window->findChild<QWidget*>(u"keyListDock"_s));
+  ctx.AddHighlight(u"cryptToolBar"_s,
+                   window->findChild<QWidget*>(u"cryptToolBar"_s));
+  ctx.AddHighlight(u"PlainTextEditor"_s, CurrentEditor(window));
 
   return ctx.WaitSettled(
       window,
@@ -203,18 +200,17 @@ auto MainWindowScenario(ScenarioContext& ctx) -> bool {
                model->index(bob, 0).data(Qt::CheckStateRole).toInt() ==
                    Qt::Checked;
       },
-      QStringLiteral("main-window-selection"));
+      u"main-window-selection"_s);
 }
 
 auto KeyGenerateDialogScenario(ScenarioContext& ctx) -> bool {
-  auto* window = OpenMainWindow(ctx, kBackdropSize,
-                                QStringLiteral("contract.txt"), kContractText);
+  auto* window =
+      OpenMainWindow(ctx, kBackdropSize, u"contract.txt"_s, kContractText);
   if (window == nullptr) return false;
 
-  auto* action =
-      window->findChild<QAction*>(QStringLiteral("generate_key_pair"));
+  auto* action = window->findChild<QAction*>(u"generate_key_pair"_s);
   if (action == nullptr || !action->isEnabled()) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("generate-key-unavailable"));
+    ctx.Fail(kEXIT_USAGE, u"generate-key-unavailable"_s);
     return false;
   }
 
@@ -231,56 +227,53 @@ auto KeyGenerateDialogScenario(ScenarioContext& ctx) -> bool {
                       }
                       return false;
                     },
-                    {}, QStringLiteral("key-generate-dialog-shown"));
+                    {}, u"key-generate-dialog-shown"_s);
   if (!opened) return false;
 
   if (ctx.GetSize().isValid()) {
     dialog->resize(ctx.GetSize());
   }
 
-  auto* name = dialog->findChild<QLineEdit*>(QStringLiteral("nameEdit"));
-  auto* email = dialog->findChild<QLineEdit*>(QStringLiteral("emailEdit"));
-  auto* comment = dialog->findChild<QLineEdit*>(QStringLiteral("commentEdit"));
-  auto* generate =
-      dialog->findChild<QPushButton*>(QStringLiteral("generateButton"));
+  auto* name = dialog->findChild<QLineEdit*>(u"nameEdit"_s);
+  auto* email = dialog->findChild<QLineEdit*>(u"emailEdit"_s);
+  auto* comment = dialog->findChild<QLineEdit*>(u"commentEdit"_s);
+  auto* generate = dialog->findChild<QPushButton*>(u"generateButton"_s);
   if (name == nullptr || email == nullptr || comment == nullptr ||
       generate == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-generate-fields-missing"));
+    ctx.Fail(kEXIT_USAGE, u"key-generate-fields-missing"_s);
     return false;
   }
 
-  name->setText(QStringLiteral("Alice Example"));
-  email->setText(QStringLiteral("alice@example.com"));
-  comment->setText(QStringLiteral("Work"));
+  name->setText(u"Alice Example"_s);
+  email->setText(u"alice@example.com"_s);
+  comment->setText(u"Work"_s);
   generate->setFocus();
 
   ctx.SetTarget(dialog, CaptureMode::kDIALOG);
-  ctx.AddHighlight(QStringLiteral("nameEdit"), name);
-  ctx.AddHighlight(QStringLiteral("emailEdit"), email);
-  ctx.AddHighlight(QStringLiteral("commentEdit"), comment);
-  ctx.AddHighlight(QStringLiteral("generateButton"), generate);
+  ctx.AddHighlight(u"nameEdit"_s, name);
+  ctx.AddHighlight(u"emailEdit"_s, email);
+  ctx.AddHighlight(u"commentEdit"_s, comment);
+  ctx.AddHighlight(u"generateButton"_s, generate);
 
   return ctx.WaitSettled(
       dialog,
       [&]() {
         return dialog->isActiveWindow() &&
                (!ctx.GetSize().isValid() || dialog->size() == ctx.GetSize()) &&
-               name->text() == QLatin1String("Alice Example");
+               name->text() == "Alice Example"_L1;
       },
-      QStringLiteral("key-generate-dialog-filled"));
+      u"key-generate-dialog-filled"_s);
 }
 
 auto DecryptVerifyResultScenario(ScenarioContext& ctx) -> bool {
-  QFile fixture(ctx.FixturePath(QStringLiteral("decrypt-verify.asc")));
+  QFile fixture(ctx.FixturePath(u"decrypt-verify.asc"_s));
   if (!fixture.open(QIODevice::ReadOnly)) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("fixture-missing"),
-             fixture.fileName());
+    ctx.Fail(kEXIT_USAGE, u"fixture-missing"_s, fixture.fileName());
     return false;
   }
   const auto armored = QString::fromUtf8(fixture.readAll());
 
-  auto* window = OpenMainWindow(ctx, ctx.GetSize(),
-                                QStringLiteral("message.asc"), armored);
+  auto* window = OpenMainWindow(ctx, ctx.GetSize(), u"message.asc"_s, armored);
   if (window == nullptr) return false;
 
   auto* board = window->findChild<InfoBoardWidget*>();
@@ -292,7 +285,7 @@ auto DecryptVerifyResultScenario(ScenarioContext& ctx) -> bool {
         auto* editor = CurrentEditor(window);
         return posted && editor != nullptr &&
                editor->toPlainText().contains(
-                   QLatin1String("the quarterly report is attached"));
+                   "the quarterly report is attached"_L1);
       },
       {[&](const std::function<void()>& check) {
         return QObject::connect(board, &InfoBoardWidget::SignalResultPosted,
@@ -301,16 +294,16 @@ auto DecryptVerifyResultScenario(ScenarioContext& ctx) -> bool {
                                   check();
                                 });
       }},
-      QStringLiteral("decrypt-verify-result-posted"));
+      u"decrypt-verify-result-posted"_s);
   if (!done) return false;
 
   // The result is what the reader looks at; no caret in the editor.
   board->setFocus();
   ctx.SetTarget(window, CaptureMode::kWINDOW);
-  ctx.AddHighlight(QStringLiteral("InfoBoardWidget"), board);
-  ctx.AddHighlight(QStringLiteral("PlainTextEditor"), CurrentEditor(window));
+  ctx.AddHighlight(u"InfoBoardWidget"_s, board);
+  ctx.AddHighlight(u"PlainTextEditor"_s, CurrentEditor(window));
 
-  return ctx.WaitSettled(window, {}, QStringLiteral("decrypt-verify-settled"));
+  return ctx.WaitSettled(window, {}, u"decrypt-verify-settled"_s);
 }
 
 /**
@@ -333,27 +326,26 @@ auto MenuHolding(const QList<QAction*>& actions, const QAction* action)
  * Import Key menu, so it is whatever entry there the Host did not add.
  */
 auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
-  auto* window = OpenMainWindow(ctx, ctx.GetSize(),
-                                QStringLiteral("contract.txt"), kContractText);
+  auto* window =
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
   if (window == nullptr) return false;
 
   auto* bar = window->menuBar();
-  const auto* generate =
-      window->findChild<QAction*>(QStringLiteral("generate_key_pair"));
+  const auto* generate = window->findChild<QAction*>(u"generate_key_pair"_s);
   const QList<QAction*> host_imports{
-      window->findChild<QAction*>(QStringLiteral("import_key_from_file")),
-      window->findChild<QAction*>(QStringLiteral("import_key_from_edit")),
-      window->findChild<QAction*>(QStringLiteral("import_key_from_clipboard"))};
+      window->findChild<QAction*>(u"import_key_from_file"_s),
+      window->findChild<QAction*>(u"import_key_from_edit"_s),
+      window->findChild<QAction*>(u"import_key_from_clipboard"_s)};
 
   auto [keys_menu, keys_entry] = MenuHolding(bar->actions(), generate);
   if (keys_menu == nullptr || host_imports.contains(nullptr)) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("keys-menu-missing"));
+    ctx.Fail(kEXIT_USAGE, u"keys-menu-missing"_s);
     return false;
   }
   auto [import_menu, import_entry] =
       MenuHolding(keys_menu->actions(), host_imports.front());
   if (import_menu == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("import-key-menu-missing"));
+    ctx.Fail(kEXIT_USAGE, u"import-key-menu-missing"_s);
     return false;
   }
 
@@ -366,7 +358,7 @@ auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
     }
   }
   if (key_server == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-server-action-missing"));
+    ctx.Fail(kEXIT_USAGE, u"key-server-action-missing"_s);
     return false;
   }
 
@@ -374,7 +366,7 @@ auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
   if (!ctx.WaitUntil([&]() { bar->setActiveAction(keys_entry); },
                      [&]() { return keys_menu->isVisible(); },
                      {ScenarioContext::On(keys_menu, &QMenu::aboutToShow)},
-                     QStringLiteral("keys-menu-shown"))) {
+                     u"keys-menu-shown"_s)) {
     return false;
   }
 
@@ -388,7 +380,7 @@ auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
           },
           [&]() { return import_menu->isVisible(); },
           {ScenarioContext::On(import_menu, &QMenu::aboutToShow)},
-          QStringLiteral("import-key-menu-shown"))) {
+          u"import-key-menu-shown"_s)) {
     return false;
   }
   import_menu->setActiveAction(key_server);
@@ -396,9 +388,9 @@ auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
   ctx.SetTarget(window, CaptureMode::kCOMPOSITE);
   ctx.AddPopup(keys_menu);
   ctx.AddPopup(import_menu);
-  ctx.AddHighlight(QStringLiteral("keysMenu"), keys_menu);
-  ctx.AddHighlight(QStringLiteral("importKeyMenu"), import_menu);
-  ctx.AddHighlight(QStringLiteral("importKeyFromKeyServer"), import_menu,
+  ctx.AddHighlight(u"keysMenu"_s, keys_menu);
+  ctx.AddHighlight(u"importKeyMenu"_s, import_menu);
+  ctx.AddHighlight(u"importKeyFromKeyServer"_s, import_menu,
                    import_menu->actionGeometry(key_server));
 
   return ctx.WaitSettled(
@@ -408,58 +400,56 @@ auto MenuPopupScenario(ScenarioContext& ctx) -> bool {
                keys_menu->activeAction() == import_entry &&
                import_menu->activeAction() == key_server;
       },
-      QStringLiteral("import-key-menu-settled"));
+      u"import-key-menu-settled"_s);
 }
 
 /**
  * @brief The key list's Key Groups tab, with the demo group selected.
  */
 auto KeyGroupsScenario(ScenarioContext& ctx) -> bool {
-  auto* window = OpenMainWindow(ctx, ctx.GetSize(),
-                                QStringLiteral("contract.txt"), kContractText);
+  auto* window =
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
   if (window == nullptr) return false;
 
-  auto* categories =
-      window->findChild<QListWidget*>(QStringLiteral("KeyCategoryList"));
-  auto* groups = window->findChild<QTableView*>(QStringLiteral("key_group"));
+  auto* categories = window->findChild<QListWidget*>(u"KeyCategoryList"_s);
+  auto* groups = window->findChild<QTableView*>(u"key_group"_s);
   if (categories == nullptr || groups == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-group-tab-missing"));
+    ctx.Fail(kEXIT_USAGE, u"key-group-tab-missing"_s);
     return false;
   }
 
   int row = -1;
   for (int i = 0; i < categories->count(); ++i) {
-    if (categories->item(i)->data(Qt::UserRole).toString() ==
-        QLatin1String("key_group")) {
+    if (categories->item(i)->data(Qt::UserRole).toString() == "key_group"_L1) {
       row = i;
     }
   }
   if (row < 0) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-group-tab-missing"));
+    ctx.Fail(kEXIT_USAGE, u"key-group-tab-missing"_s);
     return false;
   }
 
   int group_row = -1;
   if (!ctx.WaitUntil([&]() { categories->setCurrentRow(row); },
                      [&]() {
-                       group_row = RowOf(groups, QLatin1String(kDemoGroupName));
+                       group_row =
+                           RowOf(groups, QLatin1StringView(kDemoGroupName));
                        return groups->isVisible() && group_row >= 0;
                      },
-                     ModelHooks(groups->model()),
-                     QStringLiteral("key-group-listed"))) {
+                     ModelHooks(groups->model()), u"key-group-listed"_s)) {
     return false;
   }
   groups->setFocus();
   groups->selectRow(group_row);
 
   ctx.SetTarget(window, CaptureMode::kWINDOW);
-  ctx.AddHighlight(QStringLiteral("KeyCategoryList"), categories);
-  ctx.AddHighlight(QStringLiteral("key_group"), groups);
+  ctx.AddHighlight(u"KeyCategoryList"_s, categories);
+  ctx.AddHighlight(u"key_group"_s, groups);
 
   return ctx.WaitSettled(
       window,
       [&]() { return groups->selectionModel()->isRowSelected(group_row, {}); },
-      QStringLiteral("key-group-selected"));
+      u"key-group-selected"_s);
 }
 
 /**
@@ -467,24 +457,23 @@ auto KeyGroupsScenario(ScenarioContext& ctx) -> bool {
  *        under the pointer's place.
  */
 auto KeyDatabaseMenuScenario(ScenarioContext& ctx) -> bool {
-  auto* window = OpenMainWindow(ctx, ctx.GetSize(),
-                                QStringLiteral("contract.txt"), kContractText);
+  auto* window =
+      OpenMainWindow(ctx, ctx.GetSize(), u"contract.txt"_s, kContractText);
   if (window == nullptr) return false;
 
-  auto* button =
-      window->findChild<QToolButton*>(QStringLiteral("switchContextButton"));
+  auto* button = window->findChild<QToolButton*>(u"switchContextButton"_s);
   auto* menu = button != nullptr ? button->menu() : nullptr;
   if (menu == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-database-menu-missing"));
+    ctx.Fail(kEXIT_USAGE, u"key-database-menu-missing"_s);
     return false;
   }
 
   QAction* work = nullptr;
   for (auto* action : menu->actions()) {
-    if (action->text().contains(QLatin1String("Work"))) work = action;
+    if (action->text().contains("Work"_L1)) work = action;
   }
   if (work == nullptr || menu->actions().size() < 3) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-databases-not-listed"),
+    ctx.Fail(kEXIT_USAGE, u"key-databases-not-listed"_s,
              QString::number(menu->actions().size()));
     return false;
   }
@@ -499,33 +488,32 @@ auto KeyDatabaseMenuScenario(ScenarioContext& ctx) -> bool {
           },
           [&]() { return menu->isVisible(); },
           {ScenarioContext::On(menu, &QMenu::aboutToShow)},
-          QStringLiteral("key-database-menu-shown"))) {
+          u"key-database-menu-shown"_s)) {
     return false;
   }
   menu->setActiveAction(work);
 
   ctx.SetTarget(window, CaptureMode::kCOMPOSITE);
   ctx.AddPopup(menu);
-  ctx.AddHighlight(QStringLiteral("switchContextButton"), button);
-  ctx.AddHighlight(QStringLiteral("keyDatabaseWork"), menu,
-                   menu->actionGeometry(work));
+  ctx.AddHighlight(u"switchContextButton"_s, button);
+  ctx.AddHighlight(u"keyDatabaseWork"_s, menu, menu->actionGeometry(work));
 
   return ctx.WaitSettled(
       window, [&]() { return menu->activeAction() == work; },
-      QStringLiteral("key-database-menu-settled"));
+      u"key-database-menu-settled"_s);
 }
 
 /**
  * @brief Settings, on the Key Databases page, with three databases.
  */
 auto SettingsKeyDatabasesScenario(ScenarioContext& ctx) -> bool {
-  auto* window = OpenMainWindow(ctx, kBackdropSize,
-                                QStringLiteral("contract.txt"), kContractText);
+  auto* window =
+      OpenMainWindow(ctx, kBackdropSize, u"contract.txt"_s, kContractText);
   if (window == nullptr) return false;
 
-  auto* action = window->findChild<QAction*>(QStringLiteral("settings"));
+  auto* action = window->findChild<QAction*>(u"settings"_s);
   if (action == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("settings-unavailable"));
+    ctx.Fail(kEXIT_USAGE, u"settings-unavailable"_s);
     return false;
   }
 
@@ -541,7 +529,7 @@ auto SettingsKeyDatabasesScenario(ScenarioContext& ctx) -> bool {
                        }
                        return false;
                      },
-                     {}, QStringLiteral("settings-dialog-shown"))) {
+                     {}, u"settings-dialog-shown"_s)) {
     return false;
   }
 
@@ -576,7 +564,7 @@ auto SettingsKeyDatabasesScenario(ScenarioContext& ctx) -> bool {
     }
   }
   if (nav == nullptr) {
-    ctx.Fail(kEXIT_USAGE, QStringLiteral("key-databases-page-missing"));
+    ctx.Fail(kEXIT_USAGE, u"key-databases-page-missing"_s);
     return false;
   }
 
@@ -585,13 +573,13 @@ auto SettingsKeyDatabasesScenario(ScenarioContext& ctx) -> bool {
           [&]() { nav->setCurrentRow(nav_row); },
           [&]() { return stack->currentIndex() == page_index; },
           {ScenarioContext::On(stack, &QStackedWidget::currentChanged)},
-          QStringLiteral("key-databases-page-shown"))) {
+          u"key-databases-page-shown"_s)) {
     return false;
   }
   nav->setFocus();
 
   ctx.SetTarget(dialog, CaptureMode::kDIALOG);
-  ctx.AddHighlight(QStringLiteral("KeyDatabasesTab"), page);
+  ctx.AddHighlight(u"KeyDatabasesTab"_s, page);
 
   return ctx.WaitSettled(
       dialog,
@@ -599,40 +587,35 @@ auto SettingsKeyDatabasesScenario(ScenarioContext& ctx) -> bool {
         return dialog->isActiveWindow() && page->isVisible() &&
                (!ctx.GetSize().isValid() || dialog->size() == ctx.GetSize());
       },
-      QStringLiteral("key-databases-page-settled"));
+      u"key-databases-page-settled"_s);
 }
 
 }  // namespace
 
 void RegisterMainWindowScenarios(QList<Scenario>& scenarios) {
-  const QStringList main_window{QStringLiteral("GpgFrontend::UI::MainWindow")};
-  const QStringList with_waiting{
-      QStringLiteral("GpgFrontend::UI::MainWindow"),
-      QStringLiteral("GpgFrontend::UI::WaitingDialog")};
-  const QStringList with_keygen{
-      QStringLiteral("GpgFrontend::UI::MainWindow"),
-      QStringLiteral("GpgFrontend::UI::KeyGenerateDialog")};
+  const QStringList main_window{u"GpgFrontend::UI::MainWindow"_s};
+  const QStringList with_waiting{u"GpgFrontend::UI::MainWindow"_s,
+                                 u"GpgFrontend::UI::WaitingDialog"_s};
+  const QStringList with_keygen{u"GpgFrontend::UI::MainWindow"_s,
+                                u"GpgFrontend::UI::KeyGenerateDialog"_s};
 
-  scenarios.append({QStringLiteral("main-window"), QSize(1100, 680),
-                    CaptureMode::kWINDOW, main_window, false, true,
-                    MainWindowScenario});
-  scenarios.append({QStringLiteral("key-generate-dialog"), QSize(),
-                    CaptureMode::kDIALOG, with_keygen, false, true,
-                    KeyGenerateDialogScenario});
-  scenarios.append({QStringLiteral("text-decrypt-verify-result"),
-                    QSize(1100, 680), CaptureMode::kWINDOW, with_waiting, false,
-                    true, DecryptVerifyResultScenario});
-  scenarios.append({QStringLiteral("main-window-menu-popup"), QSize(1100, 680),
+  scenarios.append({u"main-window"_s, QSize(1100, 680), CaptureMode::kWINDOW,
+                    main_window, false, true, MainWindowScenario});
+  scenarios.append({u"key-generate-dialog"_s, QSize(), CaptureMode::kDIALOG,
+                    with_keygen, false, true, KeyGenerateDialogScenario});
+  scenarios.append({u"text-decrypt-verify-result"_s, QSize(1100, 680),
+                    CaptureMode::kWINDOW, with_waiting, false, true,
+                    DecryptVerifyResultScenario});
+  scenarios.append({u"main-window-menu-popup"_s, QSize(1100, 680),
                     CaptureMode::kCOMPOSITE, main_window, false, true,
                     MenuPopupScenario});
-  scenarios.append({QStringLiteral("main-window-key-groups"), QSize(1100, 680),
+  scenarios.append({u"main-window-key-groups"_s, QSize(1100, 680),
                     CaptureMode::kWINDOW, main_window, false, true,
                     KeyGroupsScenario});
 
   // The two below ask for the Work (GnuPG) and Lab (rPGP) databases.
-  const QStringList extra_databases{QStringLiteral("work"),
-                                    QStringLiteral("lab")};
-  Scenario menu{QStringLiteral("key-database-menu"),
+  const QStringList extra_databases{u"work"_s, u"lab"_s};
+  Scenario menu{u"key-database-menu"_s,
                 QSize(1100, 680),
                 CaptureMode::kCOMPOSITE,
                 main_window,
@@ -644,14 +627,14 @@ void RegisterMainWindowScenarios(QList<Scenario>& scenarios) {
 
   // Wide enough for the database table's columns, which the dialog's own
   // size cuts off.
-  Scenario settings{QStringLiteral("settings-key-databases"),
-                    QSize(900, 660),
-                    CaptureMode::kDIALOG,
-                    {QStringLiteral("GpgFrontend::UI::MainWindow"),
-                     QStringLiteral("GpgFrontend::UI::SettingsDialog")},
-                    false,
-                    true,
-                    SettingsKeyDatabasesScenario};
+  Scenario settings{
+      u"settings-key-databases"_s,
+      QSize(900, 660),
+      CaptureMode::kDIALOG,
+      {u"GpgFrontend::UI::MainWindow"_s, u"GpgFrontend::UI::SettingsDialog"_s},
+      false,
+      true,
+      SettingsKeyDatabasesScenario};
   settings.key_databases = extra_databases;
   scenarios.append(settings);
 }
