@@ -131,4 +131,23 @@ auto GF_UI_EXPORT ReportFontPixelSize(int delta_px) -> int;
  */
 auto GF_UI_EXPORT ReportFont(int delta_px = 0, bool bold = false) -> QFont;
 
+/**
+ * @brief The report's body size: the application's own font size, so the
+ * report follows the user's font settings, never below the readable minimum.
+ */
+auto GF_UI_EXPORT ReportBodyPixelSize() -> int;
+
+/**
+ * @brief The application's face at @p scale times the report body size.
+ *
+ * What the report sets anything meant to be read in: headings, labels,
+ * explanations, messages.
+ */
+auto GF_UI_EXPORT ReportUiFont(double scale = 1.0, bool bold = false) -> QFont;
+
+/// The bundled monospaced face at @p scale times the report body size: for
+/// hashes, codes and identifiers.
+auto GF_UI_EXPORT ReportMonoFont(double scale = 1.0, bool bold = false)
+    -> QFont;
+
 }  // namespace GpgFrontend::UI

@@ -168,4 +168,32 @@ auto ReportFont(int delta_px, bool bold) -> QFont {
   return font;
 }
 
+auto ReportBodyPixelSize() -> int {
+  return std::max(kReportMinFontPx,
+                  QFontInfo(QApplication::font()).pixelSize());
+}
+
+namespace {
+
+auto ScaledPixelSize(double scale) -> int {
+  return std::max(kReportMinFontPx,
+                  static_cast<int>(std::lround(ReportBodyPixelSize() * scale)));
+}
+
+}  // namespace
+
+auto ReportUiFont(double scale, bool bold) -> QFont {
+  QFont font = QApplication::font();
+  font.setPixelSize(ScaledPixelSize(scale));
+  font.setBold(bold);
+  return font;
+}
+
+auto ReportMonoFont(double scale, bool bold) -> QFont {
+  QFont font = DefaultMonospaceFont();
+  font.setPixelSize(ScaledPixelSize(scale));
+  font.setBold(bold);
+  return font;
+}
+
 }  // namespace GpgFrontend::UI

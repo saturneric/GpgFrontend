@@ -44,6 +44,14 @@ namespace GpgFrontend::UI {
 auto GF_UI_EXPORT AccentColor(const QPalette& palette, bool positive) -> QColor;
 
 /**
+ * @brief Whether @p palette is a dark one.
+ *
+ * Shared by every palette-derived colour, so they all agree about which theme
+ * they are painting into.
+ */
+auto GF_UI_EXPORT IsDarkPalette(const QPalette& palette) -> bool;
+
+/**
  * @brief The secondary text colour: a caption beside a value, a sentence under
  * one.
  *

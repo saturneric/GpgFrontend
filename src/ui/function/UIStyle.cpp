@@ -30,13 +30,11 @@
 
 namespace GpgFrontend::UI {
 
-namespace {
-
-/// Whether the palette is a dark one. Shared by every colour below so they all
-/// agree about which theme they are painting into.
 auto IsDarkPalette(const QPalette& palette) -> bool {
   return palette.color(QPalette::Base).lightness() < 128;
 }
+
+namespace {
 
 /// The ordinary text colour mixed @p strength of the way towards the window
 /// background. Opaque rather than translucent because a label drawing through
