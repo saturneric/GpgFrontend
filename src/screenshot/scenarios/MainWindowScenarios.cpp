@@ -66,8 +66,11 @@ constexpr auto kAliceEmail = "alice@example.com";
 constexpr auto kBobEmail = "bob@example.com";
 /// Window size behind dialog-only captures, which never shows.
 const QSize kBackdropSize(1100, 680);
-/// Logical width of the Key ToolBox dock.
-constexpr int kKeyDockWidth = 480;
+/// The split the application's own default layout uses: the Key ToolBox
+/// takes this share of the window's width, the Status Panel this share of
+/// its height.
+constexpr double kKeyDockShare = 0.35;
+constexpr double kStatusPanelShare = 0.30;
 const auto kContractText =
     u"Hello Bob,\n\nplease find the signed contract below.\n\nAlice\n"_s;
 
@@ -151,15 +154,22 @@ auto OpenMainWindow(ScenarioContext& ctx, QSize size, const QString& tab_title,
   // before that layout, which would make a wait on the size alone skip them.
   // A size the platform still refuses is the size gate's to report.
   auto* key_dock = window->findChild<QDockWidget*>(u"keyListDock"_s);
+  auto* status_dock = window->findChild<QDockWidget*>(u"infoBoardDock"_s);
   const auto top_left =
       QApplication::primaryScreen() != nullptr
           ? QApplication::primaryScreen()->availableGeometry().topLeft()
           : QPoint(0, 0);
   window->resize(size);
   window->move(top_left);
-  // Wide enough that a name and an email address are read whole.
   if (key_dock != nullptr) {
-    window->resizeDocks({key_dock}, {kKeyDockWidth}, Qt::Horizontal);
+    window->resizeDocks({key_dock},
+                        {static_cast<int>(size.width() * kKeyDockShare)},
+                        Qt::Horizontal);
+  }
+  if (status_dock != nullptr) {
+    window->resizeDocks({status_dock},
+                        {static_cast<int>(size.height() * kStatusPanelShare)},
+                        Qt::Vertical);
   }
   ctx.WaitUntil(
       {}, [&]() { return window->size() == size && window->pos() == top_left; },
@@ -613,24 +623,24 @@ void RegisterMainWindowScenarios(QList<Scenario>& scenarios) {
   const QStringList with_keygen{u"GpgFrontend::UI::MainWindow"_s,
                                 u"GpgFrontend::UI::KeyGenerateDialog"_s};
 
-  scenarios.append({u"main-window"_s, QSize(1100, 680), CaptureMode::kWINDOW,
+  scenarios.append({u"main-window"_s, QSize(1280, 960), CaptureMode::kWINDOW,
                     main_window, false, true, MainWindowScenario});
   scenarios.append({u"key-generate-dialog"_s, QSize(), CaptureMode::kDIALOG,
                     with_keygen, false, true, KeyGenerateDialogScenario});
-  scenarios.append({u"text-decrypt-verify-result"_s, QSize(1100, 680),
+  scenarios.append({u"text-decrypt-verify-result"_s, QSize(1280, 960),
                     CaptureMode::kWINDOW, with_waiting, false, true,
                     DecryptVerifyResultScenario});
-  scenarios.append({u"main-window-menu-popup"_s, QSize(1100, 680),
+  scenarios.append({u"main-window-menu-popup"_s, QSize(1280, 960),
                     CaptureMode::kCOMPOSITE, main_window, false, true,
                     MenuPopupScenario});
-  scenarios.append({u"main-window-key-groups"_s, QSize(1100, 680),
+  scenarios.append({u"main-window-key-groups"_s, QSize(1280, 960),
                     CaptureMode::kWINDOW, main_window, false, true,
                     KeyGroupsScenario});
 
   // The two below ask for the Work (GnuPG) and Lab (rPGP) databases.
   const QStringList extra_databases{u"work"_s, u"lab"_s};
   Scenario menu{u"key-database-menu"_s,
-                QSize(1100, 680),
+                QSize(1280, 960),
                 CaptureMode::kCOMPOSITE,
                 main_window,
                 false,

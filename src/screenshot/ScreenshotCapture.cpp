@@ -28,8 +28,11 @@
 
 #include "screenshot/ScreenshotCapture.h"
 
+#include <QApplication>
+#include <QDialog>
 #include <QJsonArray>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPixmap>
 #include <cmath>
 #include <cstring>
@@ -74,7 +77,93 @@ void PlaceHighlights(Capture& capture, const QList<Highlight>& highlights) {
   }
 }
 
+constexpr int kCaptionButtonWidth = 46;
+constexpr int kCaptionGlyph = 10;
+constexpr int kCaptionIcon = 16;
+constexpr int kCaptionInset = 12;
+
+auto CaptionTitle(const QWidget* window) -> QString {
+  const auto title = window->windowTitle();
+  return title.isEmpty() ? QGuiApplication::applicationDisplayName() : title;
+}
+
+/// Dialogs get a close button only, as their native frame does.
+auto HasMinMaxButtons(const QWidget* window) -> bool {
+  const auto flags = window->windowFlags();
+  if (flags & (Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint)) {
+    return true;
+  }
+  return window->windowType() != Qt::Dialog &&
+         qobject_cast<const QDialog*>(window) == nullptr;
+}
+
+/// Places @p client under a caption for @p window, both at @p dpr.
+auto WithCaption(const QWidget* window, const QImage& client) -> QImage {
+  const auto dpr = client.devicePixelRatio();
+  const auto caption = RenderCaption(window, window->width(), dpr);
+  QImage framed(client.width(), caption.height() + client.height(),
+                QImage::Format_ARGB32);
+  framed.setDevicePixelRatio(dpr);
+  framed.fill(Qt::transparent);
+  QPainter painter(&framed);
+  painter.drawImage(QPoint(0, 0), caption);
+  painter.drawImage(QPoint(0, kCaptionHeight), client);
+  return framed;
+}
+
 }  // namespace
+
+auto RenderCaption(const QWidget* window, int width, qreal dpr) -> QImage {
+  const auto palette = window->palette();
+  QImage image(QSize(width, kCaptionHeight) * dpr, QImage::Format_ARGB32);
+  image.setDevicePixelRatio(dpr);
+  image.fill(palette.color(QPalette::Window));
+
+  QPainter painter(&image);
+  const auto icon = window->windowIcon().isNull() ? QApplication::windowIcon()
+                                                  : window->windowIcon();
+  const QRect icon_rect(kCaptionInset, (kCaptionHeight - kCaptionIcon) / 2,
+                        kCaptionIcon, kCaptionIcon);
+  if (!icon.isNull()) icon.paint(&painter, icon_rect);
+
+  const auto buttons = HasMinMaxButtons(window) ? 3 : 1;
+  const auto buttons_left = width - (buttons * kCaptionButtonWidth);
+
+  auto font = QApplication::font();
+  font.setPixelSize(12);
+  painter.setFont(font);
+  painter.setPen(palette.color(QPalette::WindowText));
+  const QRect title_rect(icon_rect.right() + 1 + kCaptionInset, 0,
+                         buttons_left - icon_rect.right() - kCaptionInset * 2,
+                         kCaptionHeight);
+  painter.drawText(
+      title_rect, Qt::AlignLeft | Qt::AlignVCenter,
+      painter.fontMetrics().elidedText(CaptionTitle(window), Qt::ElideRight,
+                                       title_rect.width()));
+
+  // One glyph per button, centred in it: minimise, maximise, close.
+  QPen pen(palette.color(QPalette::WindowText));
+  pen.setWidthF(1.0);
+  pen.setCapStyle(Qt::FlatCap);
+  painter.setPen(pen);
+  const auto glyph_at = [&](int index) {
+    const auto left = buttons_left + (index * kCaptionButtonWidth) +
+                      ((kCaptionButtonWidth - kCaptionGlyph) / 2);
+    return QRectF(left, (kCaptionHeight - kCaptionGlyph) / 2.0, kCaptionGlyph,
+                  kCaptionGlyph);
+  };
+  if (buttons == 3) {
+    const auto min = glyph_at(0);
+    painter.drawLine(
+        QLineF(min.left(), min.center().y(), min.right(), min.center().y()));
+    painter.drawRect(glyph_at(1).adjusted(0.5, 0.5, -0.5, -0.5));
+  }
+  const auto close = glyph_at(buttons - 1);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.drawLine(close.topLeft(), close.bottomRight());
+  painter.drawLine(close.topRight(), close.bottomLeft());
+  return image;
+}
 
 auto CaptureModeName(CaptureMode mode) -> QString {
   switch (mode) {
@@ -112,11 +201,17 @@ auto CaptureWidget(QWidget* target, CaptureMode mode,
                    const QList<Highlight>& highlights) -> Capture {
   Capture capture;
   capture.mode = mode;
-  capture.image = ToImage(target->grab());
-  capture.dpr = capture.image.devicePixelRatio();
-  capture.origin = target->mapToGlobal(QPoint(0, 0));
+  const auto client = ToImage(target->grab());
+  capture.dpr = client.devicePixelRatio();
+  capture.image = WithCaption(target, client);
+  capture.origin =
+      target->mapToGlobal(QPoint(0, 0)) - QPoint(0, kCaptionHeight);
+  const auto caption_pixels =
+      static_cast<int>(std::lround(kCaptionHeight * capture.dpr));
   capture.layers.append(
-      {u"window"_s, QRect(QPoint(0, 0), capture.image.size())});
+      {u"caption"_s, QRect(0, 0, client.width(), caption_pixels)});
+  capture.layers.append(
+      {u"window"_s, QRect(QPoint(0, caption_pixels), client.size())});
   PlaceHighlights(capture, highlights);
   return capture;
 }
@@ -126,6 +221,9 @@ auto CaptureComposite(QWidget* window, const QList<QWidget*>& popups,
   const auto window_image = ToImage(window->grab());
   const auto dpr = window_image.devicePixelRatio();
   const QRect window_global(window->mapToGlobal(QPoint(0, 0)), window->size());
+  const QRect caption_global(
+      window_global.topLeft() - QPoint(0, kCaptionHeight),
+      QSize(window_global.width(), kCaptionHeight));
 
   QList<std::pair<QImage, QRect>> layers;
   QList<QRect> popups_global;
@@ -134,7 +232,8 @@ auto CaptureComposite(QWidget* window, const QList<QWidget*>& popups,
     layers.append({ToImage(popup->grab()), global});
     popups_global.append(global);
   }
-  const auto canvas = CompositeBounds(window_global, popups_global);
+  const auto canvas =
+      CompositeBounds(window_global.united(caption_global), popups_global);
 
   Capture capture;
   capture.mode = CaptureMode::kCOMPOSITE;
@@ -146,6 +245,8 @@ auto CaptureComposite(QWidget* window, const QList<QWidget*>& popups,
 
   {
     QPainter painter(&capture.image);
+    painter.drawImage(caption_global.topLeft() - canvas.topLeft(),
+                      RenderCaption(window, window_global.width(), dpr));
     painter.drawImage(window_global.topLeft() - canvas.topLeft(), window_image);
     for (const auto& [image, global] : layers) {
       painter.drawImage(global.topLeft() - canvas.topLeft(), image);
@@ -157,6 +258,7 @@ auto CaptureComposite(QWidget* window, const QList<QWidget*>& popups,
                                    capture.image.size());
     if (placed) capture.layers.append({name, placed->rect});
   };
+  add_layer(u"caption"_s, caption_global);
   add_layer(u"window"_s, window_global);
   for (qsizetype i = 0; i < popups_global.size(); ++i) {
     add_layer(u"popup%1"_s.arg(i + 1), popups_global.at(i));

@@ -348,6 +348,10 @@ auto Seed(Run& run) -> Failure {
   auto settings = GetSettings();
   SettingItems::kLanguage.Write(settings, run.options.locale);
   SettingItems::kShowWizard.Write(settings, false);
+  // The file panel opens on the profile's workspace, not on the home folder:
+  // Windows resolves that from the account rather than USERPROFILE, so its
+  // tab would carry the name of whoever renders.
+  SettingItems::kFilePanelDefaultPathMode.Write(settings, u"workspace"_s);
   settings.sync();
   return {kEXIT_OK, {}, {}};
 }

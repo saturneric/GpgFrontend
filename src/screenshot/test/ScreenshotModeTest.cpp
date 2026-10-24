@@ -33,6 +33,7 @@
 
 #include <gtest/gtest.h>
 
+#include <QDialog>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QJsonArray>
@@ -217,18 +218,45 @@ TEST(ScreenshotModeTest, CaptureWidgetPlacesChildrenAndReportsHidden) {
                                         {"hidden", hidden, std::nullopt},
                                         {"gone", nullptr, std::nullopt}});
 
+    // The drawn title bar sits above the client area and shifts it down.
     const auto dpr = capture.dpr;
-    EXPECT_EQ(capture.image.size(), QSize(200, 100) * dpr);
+    EXPECT_EQ(capture.image.size(), QSize(200, 100 + kCaptionHeight) * dpr);
+    ASSERT_EQ(capture.layers.size(), 2);
+    EXPECT_EQ(capture.layers[0].name, "caption");
+    EXPECT_EQ(capture.layers[0].rect,
+              QRect(QPoint(0, 0), QSize(200, kCaptionHeight) * dpr));
+    EXPECT_EQ(capture.layers[1].name, "window");
+    EXPECT_EQ(capture.layers[1].rect,
+              QRect(QPoint(0, kCaptionHeight) * dpr, QSize(200, 100) * dpr));
     ASSERT_TRUE(capture.widgets.contains("child"));
-    EXPECT_EQ(capture.widgets["child"].rect,
-              QRect(QPoint(10, 20) * dpr, QSize(30, 40) * dpr));
-    EXPECT_EQ(capture.widgets["part"].rect,
-              QRect(QPoint(15, 25) * dpr, QSize(10, 10) * dpr));
+    EXPECT_EQ(
+        capture.widgets["child"].rect,
+        QRect(QPoint(10, 20 + kCaptionHeight) * dpr, QSize(30, 40) * dpr));
+    EXPECT_EQ(
+        capture.widgets["part"].rect,
+        QRect(QPoint(15, 25 + kCaptionHeight) * dpr, QSize(10, 10) * dpr));
     EXPECT_EQ(capture.missing, QStringList({"hidden", "gone"}));
 
     const auto json = GeometryJson(capture, "unit");
     EXPECT_EQ(json["capture_mode"].toString(), "window");
     EXPECT_EQ(json["missing"].toArray().size(), 2);
+  });
+}
+
+TEST(ScreenshotModeTest, CaptionIsDeterministicAndSizedToTheWindow) {
+  RunOnMainThread([]() {
+    QWidget window;
+    window.setWindowTitle("Unit");
+    const auto a = RenderCaption(&window, 300, 2.0);
+    EXPECT_EQ(a.size(), QSize(300, kCaptionHeight) * 2);
+    EXPECT_EQ(a.devicePixelRatio(), 2.0);
+    EXPECT_TRUE(SameImage(a, RenderCaption(&window, 300, 2.0)));
+
+    // A dialog has a close button only, so the area left of it stays empty
+    // where a window draws its minimise and maximise glyphs.
+    QDialog dialog;
+    dialog.setWindowTitle("Unit");
+    EXPECT_FALSE(SameImage(a, RenderCaption(&dialog, 300, 2.0)));
   });
 }
 

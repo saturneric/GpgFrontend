@@ -408,8 +408,10 @@ set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
 # release builds set -DGPGFRONTEND_BUILD_STABLE=ON. This is decoupled from the
 # git branch name on purpose: with a single-branch (trunk + release tags) model,
 # `main` produces both nightlies and, via tags, releases, so the branch name can
-# no longer distinguish the two.
-if(NOT GPGFRONTEND_BUILD_STABLE)
+# no longer distinguish the two. A screenshot build shows the name users see:
+# the manual's images are of the release, and only the display name changes,
+# never the profile name below.
+if(NOT GPGFRONTEND_BUILD_STABLE AND NOT GPGFRONTEND_BUILD_SCREENSHOT_MODE)
   set(GPGFRONTEND_APP_DISPLAY_NAME
     "${GPGFRONTEND_APP_BASE_DISPLAY_NAME} Testing")
 endif()

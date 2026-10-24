@@ -93,6 +93,18 @@ struct Capture {
  *
  * @return nullopt when nothing of it is inside the image
  */
+/// Logical height of the title bar drawn above every capture.
+inline constexpr int kCaptionHeight = 32;
+
+/**
+ * @brief A Windows 11 style title bar for @p window, @p width logical pixels
+ *        wide: icon, title and the caption buttons the window would have.
+ *
+ * Drawn, never grabbed: the real frame belongs to the desktop compositor and
+ * carries the accent colour, focus state and whatever lies behind it.
+ */
+auto RenderCaption(const QWidget* window, int width, qreal dpr) -> QImage;
+
 auto MapToImage(const QRect& logical, qreal dpr, const QSize& image_pixels)
     -> std::optional<PlacedRect>;
 
