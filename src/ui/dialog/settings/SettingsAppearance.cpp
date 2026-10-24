@@ -60,6 +60,52 @@ constexpr std::array<ToolBarOperaEntry, 7> kToolBarOperas{{
     {kSYMMETRIC_ENCRYPT, &Ui_AppearanceSettings::symmetricEncrCheckBox},
 }};
 
+/// The grid rows whose actions share one toolbar button, with the picker for
+/// the one a click runs; kNONE pads the shorter family.
+struct ToolBarDefaultEntry {
+  QComboBox* Ui_AppearanceSettings::* combo;
+  std::array<GpgOperation, 3> operas;
+};
+
+constexpr std::array<ToolBarDefaultEntry, 2> kToolBarDefaults{{
+    // No Sym. Encrypt: it is never a default (kNeverDefaultOperas).
+    {&Ui_AppearanceSettings::encrDefaultComboBox,
+     {kENCRYPT, kENCRYPT_SIGN, kNONE}},
+    {&Ui_AppearanceSettings::decrDefaultComboBox,
+     {kDECRYPT, kDECRYPT_VERIFY, kNONE}},
+}};
+
+auto OperaBox(Ui_AppearanceSettings* ui, GpgOperation opera) -> QCheckBox* {
+  for (const auto& entry : kToolBarOperas) {
+    if (entry.opera == opera) return ui->*entry.box;
+  }
+  return nullptr;
+}
+
+/// Offer only the row's ticked actions, keeping @p preferred selected while it
+/// is one of them. A picker is hidden while there is nothing to choose
+/// between, and the "On click" line with it once no row has a choice: that is
+/// the default setup, which so looks exactly as it did before.
+void RefreshDefaultPicker(Ui_AppearanceSettings* ui,
+                          const ToolBarDefaultEntry& entry, int preferred) {
+  auto* combo = ui->*entry.combo;
+  const QSignalBlocker blocker(combo);
+  combo->clear();
+  for (const auto opera : entry.operas) {
+    if (opera == kNONE || !OperaBox(ui, opera)->isChecked()) continue;
+    combo->addItem(OperaBox(ui, opera)->text(), static_cast<int>(opera));
+    if ((preferred & opera) != 0) combo->setCurrentIndex(combo->count() - 1);
+  }
+
+  combo->setHidden(combo->count() < 2);
+
+  bool any_choice = false;
+  for (const auto& e : kToolBarDefaults) {
+    any_choice = any_choice || !(ui->*e.combo)->isHidden();
+  }
+  ui->toolbarDefaultsLabel->setHidden(!any_choice);
+}
+
 // A count larger than the rows leaves zeroed entries whose null member
 // pointer the page would dereference.
 constexpr auto EveryToolBarRowIsFilled() -> bool {
@@ -116,6 +162,26 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->textAndIconsRadioButton->setText(tr("text and icons"));
 
   ui_->toolbarOperasLabel->setText(tr("Actions"));
+
+  // The actions of one row share a toolbar button; its picker chooses the one
+  // a click runs, and the rest stay in the button's right-click list.
+  ui_->toolbarDefaultsLabel->setText(tr("On click"));
+  ui_->toolbarDefaultsLabel->setToolTip(
+      tr("What a click on the Encrypt and Decrypt toolbar buttons does. The "
+         "other ticked actions of the row stay in the list shown on "
+         "right-click."));
+  for (const auto& entry : kToolBarDefaults) {
+    auto* combo = ui_.get()->*entry.combo;
+    combo->setToolTip(ui_->toolbarDefaultsLabel->toolTip());
+    for (const auto opera : entry.operas) {
+      if (opera == kNONE) continue;
+      connect(OperaBox(ui_.get(), opera), &QCheckBox::toggled, this,
+              [this, entry, combo]() {
+                RefreshDefaultPicker(ui_.get(), entry,
+                                     combo->currentData().toInt());
+              });
+    }
+  }
 
   ui_->textEditorBox->setTitle(tr("Text Editor"));
   ui_->textEditorFontLabel->setText(tr("Font Family"));
@@ -264,6 +330,11 @@ void AppearanceTab::SetSettings() {
         ->setChecked((appearance.tool_bar_crypto_operas_type & entry.opera) !=
                      0);
   }
+
+  for (const auto& entry : kToolBarDefaults) {
+    RefreshDefaultPicker(ui_.get(), entry,
+                         appearance.tool_bar_crypto_default_operas);
+  }
 }
 
 void AppearanceTab::ApplySettings() {
@@ -320,6 +391,12 @@ void AppearanceTab::ApplySettings() {
   for (const auto& entry : kToolBarOperas) {
     appearance.tool_bar_crypto_operas_type |=
         (ui_.get()->*entry.box)->isChecked() ? entry.opera : kNONE;
+  }
+
+  appearance.tool_bar_crypto_default_operas = kNONE;
+  for (const auto& entry : kToolBarDefaults) {
+    appearance.tool_bar_crypto_default_operas |=
+        (ui_.get()->*entry.combo)->currentData().toInt();
   }
 
   general_settings_state.Store(appearance.ToJson());

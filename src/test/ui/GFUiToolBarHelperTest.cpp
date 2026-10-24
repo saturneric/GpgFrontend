@@ -60,6 +60,54 @@ TEST(GFUiToolBarHelperTest, VariantsWithoutTheirPlainOperaStayInOrder) {
             (Groups{{kDECRYPT_VERIFY}, {kVERIFY}}));
 }
 
+TEST(GFUiToolBarHelperTest, ChosenDefaultLeadsItsFamily) {
+  const int all = kENCRYPT | kDECRYPT | kSIGN | kVERIFY | kENCRYPT_SIGN |
+                  kDECRYPT_VERIFY | kSYMMETRIC_ENCRYPT;
+
+  EXPECT_EQ(GroupCryptoOperas(all, kENCRYPT_SIGN | kDECRYPT_VERIFY),
+            (Groups{{kENCRYPT_SIGN, kENCRYPT, kSYMMETRIC_ENCRYPT},
+                    {kDECRYPT_VERIFY, kDECRYPT},
+                    {kSIGN},
+                    {kVERIFY}}));
+  // Never a default, even from an older stored setting: it stays last.
+  EXPECT_EQ(
+      GroupCryptoOperas(all, kSYMMETRIC_ENCRYPT).front(),
+      (std::vector<GpgOperation>{kENCRYPT, kENCRYPT_SIGN, kSYMMETRIC_ENCRYPT}));
+  EXPECT_EQ(
+      GroupCryptoOperas(kENCRYPT_SIGN | kSYMMETRIC_ENCRYPT, kSYMMETRIC_ENCRYPT)
+          .front()
+          .front(),
+      kENCRYPT_SIGN);
+}
+
+TEST(GFUiToolBarHelperTest, UntickedDefaultFallsBackToFirstTicked) {
+  // A default the user later unticked must not resurrect its button.
+  EXPECT_EQ(GroupCryptoOperas(kENCRYPT | kSYMMETRIC_ENCRYPT, kENCRYPT_SIGN),
+            (Groups{{kENCRYPT, kSYMMETRIC_ENCRYPT}}));
+}
+
+TEST(GFUiToolBarHelperTest, OneLongLabelDoesNotWidenTheRow) {
+  // "Encrypt & Sign" next to Decrypt / Sign / Verify: the short ones even out
+  // among themselves instead of growing to the long one.
+  EXPECT_EQ(UI::EvenButtonWidth({120, 70, 50, 64}), 70);
+  EXPECT_EQ(UI::EvenButtonWidth({60, 60, 60}), 60);
+  EXPECT_EQ(UI::EvenButtonWidth({80}), 80);
+  EXPECT_EQ(UI::EvenButtonWidth({}), 0);
+}
+
+TEST(GFUiToolBarHelperTest, FaceIsTheDefaultOnlyWhileItIsUsable) {
+  using UI::FamilyFaceIndex;
+  // Encrypt & Sign (default), Encrypt, then Sym. Encrypt which may not show.
+  EXPECT_EQ(FamilyFaceIndex({true, true, true}, 2), 0U);
+  EXPECT_EQ(FamilyFaceIndex({false, true, true}, 2), 1U);
+  // Nothing showable is usable: the default again, even with Sym. Encrypt
+  // enabled (a click then opens the list that holds it).
+  EXPECT_EQ(FamilyFaceIndex({false, false, true}, 2), 0U);
+  EXPECT_EQ(FamilyFaceIndex({false, false, false}, 2), 0U);
+  // More faces than members is no out-of-range read.
+  EXPECT_EQ(FamilyFaceIndex({false, true}, 5), 1U);
+}
+
 TEST(GFUiToolBarHelperTest, NonToolBarBitsAreDropped) {
   EXPECT_TRUE(GroupCryptoOperas(kNONE).empty());
   // kAUTH / kCERT, and the retired IM toolbar bits 1 << 9 and 1 << 10 that an

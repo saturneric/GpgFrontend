@@ -51,7 +51,8 @@ void SetupMenuToolButton(QToolButton* button, QMenu* menu, const QIcon& icon,
   button->setIconSize(size);
 }
 
-auto GroupCryptoOperas(int mask) -> std::vector<std::vector<GpgOperation>> {
+auto GroupCryptoOperas(int mask, int defaults)
+    -> std::vector<std::vector<GpgOperation>> {
   const std::array<std::vector<GpgOperation>, 4> families{{
       {kENCRYPT, kENCRYPT_SIGN, kSYMMETRIC_ENCRYPT},
       {kDECRYPT, kDECRYPT_VERIFY},
@@ -65,14 +66,29 @@ auto GroupCryptoOperas(int mask) -> std::vector<std::vector<GpgOperation>> {
     for (const auto opera : family) {
       if ((mask & opera) != 0) ticked.push_back(opera);
     }
+    std::stable_partition(ticked.begin(), ticked.end(),
+                          [defaults](GpgOperation o) {
+                            return (defaults & ~kNeverDefaultOperas & o) != 0;
+                          });
     if (!ticked.empty()) groups.push_back(std::move(ticked));
   }
   return groups;
 }
 
+auto FamilyFaceIndex(const std::vector<bool>& enabled, std::size_t faces)
+    -> std::size_t {
+  const auto end = enabled.cbegin() +
+                   static_cast<std::ptrdiff_t>(std::min(faces, enabled.size()));
+  const auto it = std::find(enabled.cbegin(), end, true);
+  return it == end
+             ? 0
+             : static_cast<std::size_t>(std::distance(enabled.cbegin(), it));
+}
+
 void SetupActionFamilyToolButton(QToolButton* button,
                                  const QList<QAction*>& actions,
-                                 Qt::ToolButtonStyle style, QSize size) {
+                                 qsizetype faces, Qt::ToolButtonStyle style,
+                                 QSize size) {
   auto* menu = new QMenu(button);
   menu->addActions(actions);
 
@@ -87,14 +103,20 @@ void SetupActionFamilyToolButton(QToolButton* button,
   button->setToolButtonStyle(style);
   button->setIconSize(size);
 
-  // The face is always the first member: a label that changed with the
-  // document would make the button jump around and read as a different one.
-  auto* face = actions.front();
+  const auto face = [actions, faces]() -> QAction* {
+    std::vector<bool> enabled;
+    for (const auto* act : actions) enabled.push_back(act->isEnabled());
+    return actions.at(static_cast<qsizetype>(
+        FamilyFaceIndex(enabled, static_cast<std::size_t>(faces))));
+  };
 
   const auto sync = [button, face]() {
-    button->setIcon(face->icon());
-    button->setText(face->iconText());
-    button->setToolTip(face->toolTip());
+    auto* act = face();
+    button->setIcon(act->icon());
+    // iconText() has already resolved "&&" to "&", which a button would read
+    // as a mnemonic and draw "Encrypt & Sign" as "Encrypt _Sign".
+    button->setText(act->iconText().replace(u'&', u"&&"_s));
+    button->setToolTip(act->toolTip());
     button->setEnabled(std::any_of(
         button->menu()->actions().cbegin(), button->menu()->actions().cend(),
         [](const QAction* a) { return a->isEnabled(); }));
@@ -103,11 +125,10 @@ void SetupActionFamilyToolButton(QToolButton* button,
   for (auto* act : actions) {
     QObject::connect(act, &QAction::changed, button, sync);
   }
-  // With the face disabled but a variant enabled, a click still leads
-  // somewhere.
+  // E.g. no key checked: Encrypt is off, Sym. Encrypt is in the list.
   QObject::connect(button, &QToolButton::clicked, button, [button, face]() {
-    if (face->isEnabled()) {
-      face->trigger();
+    if (auto* act = face(); act->isEnabled()) {
+      act->trigger();
     } else {
       button->showMenu();
     }
@@ -117,19 +138,26 @@ void SetupActionFamilyToolButton(QToolButton* button,
   sync();
 }
 
-void EqualizeToolBarButtonWidths(QToolBar* toolbar) {
+auto EvenButtonWidth(std::vector<int> widths) -> int {
+  if (widths.empty()) return 0;
+  const auto mid =
+      widths.begin() + static_cast<std::ptrdiff_t>(widths.size() / 2);
+  std::nth_element(widths.begin(), mid, widths.end());
+  return *mid;
+}
+
+void EvenToolBarButtonWidths(QToolBar* toolbar) {
   QList<QWidget*> buttons;
+  std::vector<int> widths;
   for (auto* act : toolbar->actions()) {
     auto* widget = toolbar->widgetForAction(act);
     if (qobject_cast<QToolButton*>(widget) == nullptr) continue;
     widget->setMinimumWidth(0);
     buttons.append(widget);
+    widths.push_back(widget->sizeHint().width());
   }
 
-  int width = 0;
-  for (auto* widget : buttons) {
-    width = std::max(width, widget->sizeHint().width());
-  }
+  const auto width = EvenButtonWidth(std::move(widths));
   for (auto* widget : buttons) widget->setMinimumWidth(width);
 }
 

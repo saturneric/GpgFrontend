@@ -936,7 +936,7 @@ void MainWindow::apply_tool_bar_appearance() {
   setToolButtonStyle(tool_button_style);
   setIconSize(icon_size);
 
-  if (crypt_tool_bar_ != nullptr) EqualizeToolBarButtonWidths(crypt_tool_bar_);
+  if (crypt_tool_bar_ != nullptr) EvenToolBarButtonWidths(crypt_tool_bar_);
 }
 
 }  // namespace GpgFrontend::UI

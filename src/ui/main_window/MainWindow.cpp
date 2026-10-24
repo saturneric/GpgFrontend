@@ -334,7 +334,8 @@ void MainWindow::restore_settings() {
   };
 
   for (const auto& family :
-       GroupCryptoOperas(appearance.tool_bar_crypto_operas_type)) {
+       GroupCryptoOperas(appearance.tool_bar_crypto_operas_type,
+                         appearance.tool_bar_crypto_default_operas)) {
     QList<QAction*> actions;
     for (const auto opera : family) actions.append(action_of(opera));
 
@@ -343,8 +344,14 @@ void MainWindow::restore_settings() {
       continue;
     }
 
+    // GroupCryptoOperas() keeps them last, so they are the tail.
+    const auto faces = std::count_if(
+        family.cbegin(), family.cend(),
+        [](GpgOperation o) { return (kNeverDefaultOperas & o) == 0; });
+
     auto* button = new QToolButton(this);
-    SetupActionFamilyToolButton(button, actions, icon_style_, icon_size_);
+    SetupActionFamilyToolButton(button, actions, faces, icon_style_,
+                                icon_size_);
     crypt_tool_bar_->addWidget(button);
     crypt_family_buttons_.append(button);
   }

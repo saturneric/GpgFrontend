@@ -60,6 +60,11 @@ void GF_UI_EXPORT SetupMenuToolButton(QToolButton* button, QMenu* menu,
                                       const QString& tooltip,
                                       Qt::ToolButtonStyle style, QSize size);
 
+/// Operations that never become a button's face, nor its click: symmetric
+/// encryption takes a passphrase instead of the checked keys, so it is not a
+/// way of doing what an "Encrypt" button promises. It stays in the list.
+constexpr int kNeverDefaultOperas = kSYMMETRIC_ENCRYPT;
+
 /**
  * @brief Split the crypto operations ticked in @p mask into tool bar families.
  *
@@ -67,31 +72,57 @@ void GF_UI_EXPORT SetupMenuToolButton(QToolButton* button, QMenu* menu,
  * Encrypt (plain, & Sign, Symmetric), Decrypt (plain, & Verify), Sign, Verify.
  * Families come back in that order, each listing its ticked members in that
  * order; empty families and bits that are no tool bar operation are dropped.
+ * A ticked member also set in @p defaults moves to the front of its family,
+ * which is the one its button runs on a click; kNeverDefaultOperas are
+ * ignored there, and come last in their family.
  */
-auto GF_UI_EXPORT GroupCryptoOperas(int mask)
+auto GF_UI_EXPORT GroupCryptoOperas(int mask, int defaults = kNONE)
     -> std::vector<std::vector<GpgOperation>>;
+
+/**
+ * @brief Which member of a family its button shows, given which are enabled.
+ *
+ * Only the first @p faces members may be shown, the rest (kNeverDefaultOperas)
+ * are reachable from the list alone. Of those, the first (the user's default)
+ * while it is enabled, else the first enabled one, else the first again.
+ */
+auto GF_UI_EXPORT FamilyFaceIndex(const std::vector<bool>& enabled,
+                                  std::size_t faces) -> std::size_t;
 
 /**
  * @brief Turn @p button into one tool bar button standing for @p actions.
  *
- * The face always shows the first action, and a click triggers it; holding the
- * button or right-clicking it lists them all. The button is enabled while any
- * action is, and a click on a disabled face opens the list instead, so a
- * disabled first member never hides an enabled variant: that is why this is
- * not QToolButton::setDefaultAction(). @p actions must not be empty.
+ * The face shows the action FamilyFaceIndex() picks among the first @p faces,
+ * and a click triggers it; holding the button or right-clicking it lists them
+ * all. The button is enabled while any action is, and a click on a disabled
+ * face opens the list, so an enabled variant is never out of reach: that is
+ * why this is not QToolButton::setDefaultAction(). @p actions must not be
+ * empty.
  */
 void GF_UI_EXPORT SetupActionFamilyToolButton(QToolButton* button,
                                               const QList<QAction*>& actions,
+                                              qsizetype faces,
                                               Qt::ToolButtonStyle style,
                                               QSize size);
 
 /**
- * @brief Give every button on @p toolbar the width of the widest one.
+ * @brief The width a row of buttons with these natural @p widths is evened to.
+ *
+ * The median, not the maximum: one long label ("Encrypt & Sign") would
+ * otherwise pad every short one into a wide gap, and stretch a menu button
+ * until its arrow, drawn in the corner, drifts away from the label. 0 for an
+ * empty row.
+ */
+auto GF_UI_EXPORT EvenButtonWidth(std::vector<int> widths) -> int;
+
+/**
+ * @brief Bring the buttons on @p toolbar up to one common width.
  *
  * With text under the icon a button is as wide as its label, so a row of
- * labels of different lengths leaves the icons on no rhythm. Call it again
- * after the button style or icon size changes.
+ * labels of different lengths leaves the icons on no rhythm. Buttons narrower
+ * than EvenButtonWidth() grow to it; wider ones keep their own width. Call it
+ * again after the button style or icon size changes.
  */
-void GF_UI_EXPORT EqualizeToolBarButtonWidths(QToolBar* toolbar);
+void GF_UI_EXPORT EvenToolBarButtonWidths(QToolBar* toolbar);
 
 }  // namespace GpgFrontend::UI
