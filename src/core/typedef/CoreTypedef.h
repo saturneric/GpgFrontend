@@ -30,13 +30,8 @@
 
 namespace GpgFrontend {
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-template <typename T>
-using QContainer = QVector<T>;
-#else
 template <typename T>
 using QContainer = QList<T>;
-#endif
 
 using GFError = uint32_t;
 using ByteArray = QByteArray;                ///<
@@ -45,10 +40,6 @@ using BypeArrayConstRef = const ByteArray&;  ///<
 using StringArgsPtr = QStringList;           ///<
 using StringArgsRef = QStringList&;          ///<
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#define QCS2QSL(vec) (QStringList(vec.begin(), vec.end()))
-#else
 #define QCS2QSL(vec) (vec)
-#endif
 
 }  // namespace GpgFrontend

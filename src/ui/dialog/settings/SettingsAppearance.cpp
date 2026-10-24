@@ -253,13 +253,8 @@ void AppearanceTab::SetSettings() {
 
   auto target_theme_index = ui_->themeComboBox->findText(theme);
   if (theme.isEmpty() || target_theme_index == -1) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 1, 0)
     ui_->themeComboBox->setCurrentIndex(
         ui_->themeComboBox->findText(QApplication::style()->name()));
-#else
-    ui_->themeComboBox->setCurrentIndex(ui_->themeComboBox->findText(
-        QApplication::style()->metaObject()->className()));
-#endif
   } else {
     ui_->themeComboBox->setCurrentIndex(target_theme_index);
   }

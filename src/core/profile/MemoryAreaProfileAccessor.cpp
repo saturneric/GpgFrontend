@@ -164,16 +164,9 @@ auto MemoryAreaProfileAccessor::List(ProfileArea area,
   // the names in this area -- was listed here and not by the filesystem driver,
   // then fed to the trial-decrypt loops that walk this listing.
   const auto wildcard = pattern.isEmpty() ? QString("*") : pattern;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   const auto matcher = QRegularExpression::fromWildcard(
       wildcard, Qt::CaseSensitive,
       QRegularExpression::DefaultWildcardConversion);
-#else
-  // Qt 5 has no fromWildcard(); its wildcardToRegularExpression() is what that
-  // became, already anchored and case-sensitive unless told otherwise.
-  const QRegularExpression matcher(
-      QRegularExpression::wildcardToRegularExpression(wildcard));
-#endif
 
   const QMutexLocker locker(&lock_);
   QStringList names;

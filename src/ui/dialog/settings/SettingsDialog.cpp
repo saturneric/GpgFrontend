@@ -611,11 +611,7 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
     auto locale = file.mid(start, end - start);
     QLocale const q_locale(locale);
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
     if (q_locale.nativeTerritoryName().isEmpty()) continue;
-#else
-    if (q_locale.nativeCountryName().isEmpty()) continue;
-#endif
 
     auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
     languages.insert(q_locale.name(), language);

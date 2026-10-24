@@ -42,22 +42,10 @@ namespace {
 /// break every assertion here.
 constexpr auto kBundledFamilyMarker = "JetBrains Mono";
 
-auto InstalledFamilies() -> QStringList {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-  return QFontDatabase::families();
-#else
-  QFontDatabase font_database;
-  return font_database.families();
-#endif
-}
+auto InstalledFamilies() -> QStringList { return QFontDatabase::families(); }
 
 auto StylesOf(const QString& family) -> QStringList {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   return QFontDatabase::styles(family);
-#else
-  QFontDatabase font_database;
-  return font_database.styles(family);
-#endif
 }
 
 auto ContainsFamily(const QStringList& families, const QString& family)

@@ -119,12 +119,7 @@ void ApplyMonospaceFamily(QFont& font) {
 }
 
 auto IsFixedPitchFontFamily(const QString& family) -> bool {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   return QFontDatabase::isFixedPitch(family);
-#else
-  QFontDatabase font_database;
-  return font_database.isFixedPitch(family);
-#endif
 }
 
 auto ResolveAppearanceFont(const QString& family, int point_size) -> QFont {
@@ -138,12 +133,7 @@ auto ResolveAppearanceFont(const QString& family, int point_size) -> QFont {
     // startup refactor can quietly break. call_once makes it free after boot.
     RegisterBundledFonts();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     return QFontDatabase::families();
-#else
-    QFontDatabase font_database;
-    return font_database.families();
-#endif
   }();
 
   QFont font = DefaultMonospaceFont();

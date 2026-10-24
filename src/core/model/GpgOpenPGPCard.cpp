@@ -178,11 +178,7 @@ void GpgOpenPGPCard::parse_card_key_info(const QString& name,
       int no = tokens.front().toInt();
       qint64 ts = tokens.back().toLongLong();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
       auto dt = QDateTime::fromSecsSinceEpoch(ts, QTimeZone::UTC);
-#else
-      auto dt = QDateTime::fromSecsSinceEpoch(ts, QTimeZone::utc());
-#endif
       card_keys_info[no].created = dt;
     }
   } else if (name == "KEYPAIRINFO") {

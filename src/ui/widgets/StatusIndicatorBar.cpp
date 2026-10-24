@@ -85,11 +85,7 @@ void StatusIndicatorSegment::changeEvent(QEvent* e) {
   if (e->type() == QEvent::PaletteChange) render_info();
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void StatusIndicatorSegment::enterEvent(QEnterEvent* e) {
-#else
-void StatusIndicatorSegment::enterEvent(QEvent* e) {
-#endif
   QLabel::enterEvent(e);
   hovered_ = true;
   render_info();

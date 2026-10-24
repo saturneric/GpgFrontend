@@ -58,17 +58,7 @@ void NotifyStatus(const QString& text, int timeout = 3000) {
 }
 
 auto MovePathToTrash(const QString& path) -> bool {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
   return QFile::moveToTrash(path);
-#else
-  QFileInfo info(path);
-  if (info.isDir()) {
-    QDir dir(path);
-    return dir.removeRecursively();
-  }
-
-  return QFile::remove(path);
-#endif
 }
 }  // namespace
 
@@ -816,11 +806,7 @@ void FileTreeView::slot_calculate_hash() {
 }
 
 void FileTreeView::mousePressEvent(QMouseEvent* event) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   auto pos = event->position().toPoint();
-#else
-  auto pos = event->pos();
-#endif
 
   if (!indexAt(pos).isValid() && event->button() == Qt::LeftButton) {
     clearSelection();
@@ -945,11 +931,7 @@ void FileTreeView::dragMoveEvent(QDragMoveEvent* event) {
     return;
   }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   auto pos = event->position().toPoint();
-#else
-  auto pos = event->pos();
-#endif
 
   const auto target_dir = get_drop_target_directory(pos);
 
@@ -1037,11 +1019,7 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
   const bool internal_drag = event->source() == this;
   const auto operation = internal_drag ? Qt::MoveAction : Qt::CopyAction;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   auto pos = event->position().toPoint();
-#else
-  auto pos = event->pos();
-#endif
 
   const auto target_dir = get_drop_target_directory(pos);
   if (target_dir.isEmpty()) {
