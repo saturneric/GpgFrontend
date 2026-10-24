@@ -30,16 +30,11 @@
 
 namespace GpgFrontend {
 
-template <typename T>
-using QContainer = QList<T>;
-
 using GFError = uint32_t;
 using ByteArray = QByteArray;                ///<
 using BypeArrayRef = ByteArray&;             ///<
 using BypeArrayConstRef = const ByteArray&;  ///<
 using StringArgsPtr = QStringList;           ///<
 using StringArgsRef = QStringList&;          ///<
-
-#define QCS2QSL(vec) (vec)
 
 }  // namespace GpgFrontend

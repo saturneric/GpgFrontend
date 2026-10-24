@@ -79,7 +79,7 @@ TEST(KeyStatusTest, EachConditionAloneClassifiesAsItself) {
 }
 
 TEST(KeyStatusTest, SortRankIsStrictlyOrderedBySeverity) {
-  const QVector<GpgKeyStatus> ascending = {
+  const QList<GpgKeyStatus> ascending = {
       GpgKeyStatus::kOk, GpgKeyStatus::kExpiringSoon, GpgKeyStatus::kExpired,
       GpgKeyStatus::kRevoked, GpgKeyStatus::kDisabled};
 

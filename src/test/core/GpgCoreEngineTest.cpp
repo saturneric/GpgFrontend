@@ -120,7 +120,7 @@ auto EnsureEngine(const EngineTestParam& p) -> bool {
 
 /// @brief First algo from @p algos whose id appears earliest in @p prefs;
 /// falls back to the first supported algo.
-auto SelectAlgo(const QContainer<KeyAlgo>& algos, const QStringList& prefs)
+auto SelectAlgo(const QList<KeyAlgo>& algos, const QStringList& prefs)
     -> KeyAlgo {
   for (const auto& pref : prefs) {
     for (const auto& algo : algos) {

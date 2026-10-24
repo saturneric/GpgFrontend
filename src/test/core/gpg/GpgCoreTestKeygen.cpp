@@ -124,9 +124,9 @@ TEST(KeyAlgoLookupTest, GnuPGNamesBecomeKeyAlgoIds) {
 // a quantum attacker as its weakest recipient. A recipient that may be
 // encrypted to classically counts as classical; the engine picks the subkey.
 TEST(KeyAlgoLookupTest, MixingIsReportedOnlyForPostQuantumBesideClassical) {
-  const QContainer<bool> pq{true};
-  const QContainer<bool> classical{false};
-  const QContainer<bool> both{false, true};
+  const QList<bool> pq{true};
+  const QList<bool> classical{false};
+  const QList<bool> both{false, true};
 
   EXPECT_TRUE(MixesPostQuantumAndClassical({pq, classical}));
   EXPECT_TRUE(MixesPostQuantumAndClassical({pq, both}));

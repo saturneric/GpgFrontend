@@ -114,7 +114,7 @@ auto RefetchTestKey() -> GpgKeyPtr {
   return GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).GetKeyPtr(kKeyFpr);
 }
 
-auto HasUID(const QContainer<GpgUID>& uids, const QString& uid) -> bool {
+auto HasUID(const QList<GpgUID>& uids, const QString& uid) -> bool {
   return std::any_of(uids.begin(), uids.end(),
                      [&](const GpgUID& u) { return u.GetUID() == uid; });
 }

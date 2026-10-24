@@ -60,7 +60,7 @@ auto MakeItem(const QString& name, const QString& path,
   return item;
 }
 
-auto FindByName(const QContainer<KeyDatabaseItemSO>& list, const QString& name)
+auto FindByName(const QList<KeyDatabaseItemSO>& list, const QString& name)
     -> const KeyDatabaseItemSO* {
   for (const auto& item : list) {
     if (item.name == name) return &item;
@@ -107,7 +107,7 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileEmpty) {
 // Databases discovered on disk but absent from settings get sequential channels
 // and the default supported backend.
 TEST_F(GFCoreTest, KeyDatabaseReconcileDiscoverNew) {
-  QContainer<KeyDatabaseItemSO> discovered{
+  QList<KeyDatabaseItemSO> discovered{
       MakeItem("alpha", "/app-data/dbs/alpha"),
       MakeItem("beta", "/app-data/dbs/beta"),
   };
@@ -136,10 +136,10 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileDiscoverNew) {
 // Metadata (backend type + channel) is recovered from settings by name for a
 // database that still exists on disk.
 TEST_F(GFCoreTest, KeyDatabaseReconcileRecoverMetadata) {
-  QContainer<KeyDatabaseItemSO> discovered{
+  QList<KeyDatabaseItemSO> discovered{
       MakeItem("work", "/app-data/dbs/work"),
   };
-  QContainer<KeyDatabaseItemSO> stored{
+  QList<KeyDatabaseItemSO> stored{
       MakeItem("work", "/stale/old/path", "rpgp", 5),
   };
 
@@ -156,7 +156,7 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileRecoverMetadata) {
 
 // A stored database whose directory no longer exists on disk is dropped.
 TEST_F(GFCoreTest, KeyDatabaseReconcileDropMissing) {
-  QContainer<KeyDatabaseItemSO> stored{
+  QList<KeyDatabaseItemSO> stored{
       MakeItem("ghost", "/app-data/dbs/ghost", "rpgp", 1),
   };
 
@@ -171,10 +171,10 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileDropMissing) {
 // In the rpgp-only lite build a stale "gnupg" backend type carried over in
 // settings must be replaced with a supported backend.
 TEST_F(GFCoreTest, KeyDatabaseReconcileUnsupportedBackendLite) {
-  QContainer<KeyDatabaseItemSO> discovered{
+  QList<KeyDatabaseItemSO> discovered{
       MakeItem("legacy", "/app-data/dbs/legacy"),
   };
-  QContainer<KeyDatabaseItemSO> stored{
+  QList<KeyDatabaseItemSO> stored{
       MakeItem("legacy", "/app-data/dbs/legacy", "gnupg", 2),
   };
 
@@ -190,10 +190,10 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileUnsupportedBackendLite) {
 // default database prefers gnupg.
 TEST_F(GFCoreTest, KeyDatabaseReconcileSupportedBackendFull) {
   auto default_db = MakeItem("DEFAULT", "/app-data/db", "gnupg", 0);
-  QContainer<KeyDatabaseItemSO> discovered{
+  QList<KeyDatabaseItemSO> discovered{
       MakeItem("legacy", "/app-data/dbs/legacy"),
   };
-  QContainer<KeyDatabaseItemSO> stored{
+  QList<KeyDatabaseItemSO> stored{
       MakeItem("legacy", "/app-data/dbs/legacy", "gnupg", 2),
   };
 
@@ -207,7 +207,7 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileSupportedBackendFull) {
 // A directory accidentally named "DEFAULT" must not shadow the channel-0
 // default database.
 TEST_F(GFCoreTest, KeyDatabaseReconcileNoDefaultShadow) {
-  QContainer<KeyDatabaseItemSO> discovered{
+  QList<KeyDatabaseItemSO> discovered{
       MakeItem("DEFAULT", "/app-data/dbs/DEFAULT"),
   };
 
@@ -222,10 +222,10 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileNoDefaultShadow) {
 // Duplicate channels (DEFAULT at 0 plus a stored entry also at 0) are resolved
 // to unique, ascending channels.
 TEST_F(GFCoreTest, KeyDatabaseReconcileChannelCollision) {
-  QContainer<KeyDatabaseItemSO> discovered{
+  QList<KeyDatabaseItemSO> discovered{
       MakeItem("dup", "/app-data/dbs/dup"),
   };
-  QContainer<KeyDatabaseItemSO> stored{
+  QList<KeyDatabaseItemSO> stored{
       MakeItem("dup", "/app-data/dbs/dup", "rpgp", 0),
   };
 
@@ -240,7 +240,7 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileChannelCollision) {
 
 // Valid entries are kept as-is and no fallback is injected alongside them.
 TEST_F(GFCoreTest, KeyDatabaseSelectUsableKeepsValidOnly) {
-  const QContainer<KeyDatabaseInfo> all{
+  const QList<KeyDatabaseInfo> all{
       MakeInfo("gone", "/mnt/detached/db", false),
       MakeInfo("alive", "/home/u/.gnupg", true),
       MakeInfo("also-gone", "/mnt/other/db", false),
@@ -255,7 +255,7 @@ TEST_F(GFCoreTest, KeyDatabaseSelectUsableKeepsValidOnly) {
 // The Leg C regression test. A non-empty list whose every entry is invalid used
 // to filter down to nothing and abort startup with "No valid Key Database".
 TEST_F(GFCoreTest, KeyDatabaseSelectUsableReseedsWhenAllInvalid) {
-  const QContainer<KeyDatabaseInfo> all{
+  const QList<KeyDatabaseInfo> all{
       MakeInfo("gone", "/mnt/detached/db", false, 0),
       MakeInfo("also-gone", "/mnt/other/db", false, 1),
   };
@@ -278,7 +278,7 @@ TEST_F(GFCoreTest, KeyDatabaseSelectUsableEmptyInputUsesFallback) {
 // A genuinely dead environment must still be reported as such, so startup can
 // fail with an accurate message rather than pretending a database exists.
 TEST_F(GFCoreTest, KeyDatabaseSelectUsableGivesUpWhenFallbackInvalid) {
-  const QContainer<KeyDatabaseInfo> all{
+  const QList<KeyDatabaseInfo> all{
       MakeInfo("gone", "/mnt/detached/db", false),
   };
   const auto bad_fallback = MakeInfo("DEFAULT", "", false);
@@ -288,7 +288,7 @@ TEST_F(GFCoreTest, KeyDatabaseSelectUsableGivesUpWhenFallbackInvalid) {
 
 // The front entry becomes channel 0, so ordering is load-bearing.
 TEST_F(GFCoreTest, KeyDatabaseSelectUsablePreservesOrder) {
-  const QContainer<KeyDatabaseInfo> all{
+  const QList<KeyDatabaseInfo> all{
       MakeInfo("first", "/a", true, 0),
       MakeInfo("broken", "/mnt/detached/db", false, 1),
       MakeInfo("second", "/b", true, 2),
@@ -350,7 +350,7 @@ TEST_F(GFCoreTest, KeyDatabaseInfoChannelDefaultsToUnassigned) {
 // A context that reported no channel is not a key database anything can be
 // asked about, so it does not enter the list at all.
 TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosDropsUnassignedChannel) {
-  QContainer<KeyDatabaseInfo> reported{
+  QList<KeyDatabaseInfo> reported{
       MakeInfo("alpha", "/db/alpha", true, 0),
       KeyDatabaseInfo(),
       MakeInfo("beta", "/db/beta", true, 1),
@@ -367,7 +367,7 @@ TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosDropsUnassignedChannel) {
 // One channel is one context: the second claim on it is dropped instead of
 // replacing the first.
 TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosDropsDuplicateChannel) {
-  QContainer<KeyDatabaseInfo> reported{
+  QList<KeyDatabaseInfo> reported{
       MakeInfo("first", "/db/first", true, 1),
       MakeInfo("second", "/db/second", true, 1),
   };
@@ -380,7 +380,7 @@ TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosDropsDuplicateChannel) {
 }
 
 TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosOrdersByChannel) {
-  QContainer<KeyDatabaseInfo> reported{
+  QList<KeyDatabaseInfo> reported{
       MakeInfo("two", "/db/two", true, 2),
       MakeInfo("zero", "/db/zero", true, 0),
       MakeInfo("one", "/db/one", true, 1),
@@ -399,7 +399,7 @@ TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosOrdersByChannel) {
 // used to be written past the end of a list sized by context count -- or
 // skipped, and so missing from every menu that lists databases.
 TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosKeepsSparseChannels) {
-  QContainer<KeyDatabaseInfo> reported{
+  QList<KeyDatabaseInfo> reported{
       MakeInfo("zero", "/db/zero", true, 0),
       MakeInfo("far", "/db/far", true, 7),
   };
@@ -504,7 +504,7 @@ TEST_F(GFCoreTest, ASecondDefaultIsDroppedAndTheFirstIsKept) {
   // databases answering to one identity is not a state anything downstream can
   // make sense of -- every lookup by name finds whichever comes first, and the
   // default engine follows the name.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("DEFAULT", "/first", "gnupg", 0));
   databases.push_back(MakeItem("Work", "/work", "rpgp", 1));
   databases.push_back(MakeItem("Default", "/second", "rpgp", 2));
@@ -521,7 +521,7 @@ TEST_F(GFCoreTest, ASecondDefaultIsDroppedAndTheFirstIsKept) {
 TEST_F(GFCoreTest, AListWithNoDefaultIsLeftAlone) {
   // Zero is as legitimate as one: a profile that arrived in a package has none,
   // because a package never carries a database that lived outside it.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("Key DB 2", "@profile/dbs/Key DB 2", "rpgp", 0));
   databases.push_back(
       MakeItem("Key DB 3", "@profile/dbs/Key DB 3", "gnupg", 1));
@@ -534,7 +534,7 @@ TEST_F(GFCoreTest, AListWithNoDefaultIsLeftAlone) {
 }
 
 TEST_F(GFCoreTest, DroppingDuplicateDefaultsIsIdempotent) {
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("DEFAULT", "/first", "gnupg", 0));
   databases.push_back(MakeItem("DEFAULT", "/second", "gnupg", 1));
 
@@ -551,7 +551,7 @@ TEST_F(GFCoreTest, ChannelsSharedByTwoEntriesAreBrokenInListOrder) {
   // coin toss. Adding the DEFAULT database puts it at channel 0 while another
   // entry still holds 0, and an unstable sort would decide between them
   // differently from one run to the next.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("DEFAULT", "/default", "gnupg", 0));
   databases.push_back(MakeItem("Work", "/work", "rpgp", 0));
   databases.push_back(MakeItem("Spare", "/spare", "rpgp", 0));
@@ -576,7 +576,7 @@ TEST_F(GFCoreTest, ADefaultPathFromAnotherSystemIsReplacedNotRepaired) {
   // -- the sender's keyring never travelled, because a package carries nothing
   // from outside the profile root -- and what the recipient wants under that
   // name is their own default keyring.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(
       MakeItem("DEFAULT", "C:/Users/eric/AppData/Roaming/gnupg", "gnupg", 0));
   databases.push_back(MakeItem("Key DB 2", "@profile/dbs/Key DB 2", "rpgp", 1));
@@ -595,7 +595,7 @@ TEST_F(GFCoreTest, TheBackendTravelsWithTheDefaultPath) {
   // recorded as gnupg by a machine that had it, opened on a build that does
   // not, has to become that build's default rather than name an engine that is
   // not there.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("Default", "C:/Users/eric/gnupg", "gnupg", 0));
 
   const auto adopted =
@@ -609,7 +609,7 @@ TEST_F(GFCoreTest, TheBackendTravelsWithTheDefaultPath) {
 TEST_F(GFCoreTest, WithNoLocalDefaultNothingIsTakenAway) {
   // An engine reporting no database is not a reason to blank the entry: the
   // stored path is still the best thing known about it.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("DEFAULT", "/home/eric/.gnupg", "gnupg", 0));
 
   const auto adopted = AdoptLocalDefaultKeyDatabase(databases, {}, {});
@@ -619,7 +619,7 @@ TEST_F(GFCoreTest, WithNoLocalDefaultNothingIsTakenAway) {
 }
 
 TEST_F(GFCoreTest, AdoptingTheLocalDefaultIsIdempotent) {
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
   databases.push_back(MakeItem("DEFAULT", "C:/Users/eric/gnupg", "gnupg", 0));
 
   const auto once =
@@ -1416,7 +1416,7 @@ TEST_F(GFCoreTest, UnitTestModeFlagIsPublishedToRuntime) {
 TEST(KeyDatabaseReconcileTest, TheStoredListIsHealedWithoutBeingWritten) {
   // The whole pass in one: a duplicate DEFAULT, a DEFAULT path from another
   // machine, an entry naming nothing, and channels that collide.
-  const QContainer<KeyDatabaseItemSO> stored = {
+  const QList<KeyDatabaseItemSO> stored = {
       MakeItem("DEFAULT", "C:/Users/someone/AppData/Roaming/gnupg", "gnupg", 0),
       MakeItem("DEFAULT", "/somewhere/else", "rpgp", 0),
       MakeItem("", "/app-data/dbs/nameless", "gnupg", 1),
@@ -1449,7 +1449,7 @@ TEST(KeyDatabaseReconcileTest, TheStoredListIsHealedWithoutBeingWritten) {
 TEST(KeyDatabaseReconcileTest, ReconcilingIsIdempotent) {
   // Running it over its own output must change nothing. It runs on every read,
   // so a pass that kept editing would rewrite settings forever.
-  const QContainer<KeyDatabaseItemSO> stored = {
+  const QList<KeyDatabaseItemSO> stored = {
       MakeItem("DEFAULT", "/stale", "gnupg", 0),
       MakeItem("work", "@profile/dbs/work", "rpgp", 3),
   };
@@ -1477,7 +1477,7 @@ TEST(KeyDatabaseReconcileTest, AnEmptyResultIsSeededRatherThanReturned) {
   // Handing back nothing would leave the program with no key list to open. The
   // fallback is used rather than the candidate, because the candidate may
   // legitimately name no database at all.
-  const QContainer<KeyDatabaseItemSO> stored = {
+  const QList<KeyDatabaseItemSO> stored = {
       MakeItem("", "", "gnupg", 0),
   };
 
@@ -1495,7 +1495,7 @@ TEST(KeyDatabaseReconcileTest, AnEmptyResultIsSeededRatherThanReturned) {
 TEST(KeyDatabaseReconcileTest, AnEmptyLocalDefaultTakesNothingAway) {
   // An engine reporting no database this run must not blank a stored path. The
   // database may be on a volume that is simply not mounted this morning.
-  const QContainer<KeyDatabaseItemSO> stored = {
+  const QList<KeyDatabaseItemSO> stored = {
       MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg", 0),
   };
 
@@ -1512,7 +1512,7 @@ TEST(KeyDatabaseReconcileTest, AnEmptyLocalDefaultTakesNothingAway) {
 TEST(KeyDatabaseReconcileTest, WithoutARootNothingIsReanchored) {
   // The shape a profile with no root has. Re-anchoring against nothing would
   // have to invent a location.
-  const QContainer<KeyDatabaseItemSO> stored = {
+  const QList<KeyDatabaseItemSO> stored = {
       MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg", 0),
       MakeItem("work", "/elsewhere/dbs/work", "rpgp", 1),
   };
@@ -1651,7 +1651,7 @@ TEST(KeyDatabaseIdTest, ReconcilingSettlesEveryIdAndKeepsStoredOnes) {
   auto work = MakeItem("work", "@profile/dbs/work", "rpgp", 1);
   work.id = work_id;
 
-  const QContainer<KeyDatabaseItemSO> stored = {
+  const QList<KeyDatabaseItemSO> stored = {
       MakeItem("DEFAULT", "/stale", "gnupg", 0),
       work,
       MakeItem("ext", "/elsewhere/ext", "gnupg", 2),
@@ -2485,7 +2485,7 @@ TEST(KeyDatabaseRuntimeTest, ACandidateIsBuiltBesideTheRuntimeInUse) {
   ASSERT_TRUE(QDir(root.path()).mkpath("a"));
   ASSERT_TRUE(QDir(root.path()).mkpath("b"));
 
-  const QContainer<KeyDatabaseInfo> key_dbs = {
+  const QList<KeyDatabaseInfo> key_dbs = {
       RpgpDatabase("id-rt-a", "rt-a", root.path() + "/a"),
       RpgpDatabase("id-rt-b", "rt-b", root.path() + "/b"),
   };

@@ -93,8 +93,7 @@ auto ListTree(const QString& root) -> QStringList {
 
 /// The contract row a key path falls under, spelled as the row is.
 auto RowFor(const QString& path,
-            const QVector<Module::ModuleExternalizeField>& contract)
-    -> QString {
+            const QList<Module::ModuleExternalizeField>& contract) -> QString {
   for (const auto& row : contract) {
     if (row.path == path) return row.path;
   }
@@ -338,7 +337,7 @@ TEST_F(ModuleExternalizeTest, AFieldWithNoDecisionStopsExternalization) {
   // integrated -- and must still not cross, because nobody decided what
   // crossing does to it.
   const auto descriptor = Namespace() + "/module.gfmodule";
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(descriptor, members));
 
   QByteArray manifest;
@@ -626,7 +625,7 @@ TEST_F(ModuleExternalizeTest, AForgedPackageNamesNobody) {
   ASSERT_TRUE(result.ok) << result.reason.toStdString();
   const auto descriptor = result.output_namespace + "/module.gfmodule";
 
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(descriptor, members));
   for (auto& m : members) {
     if (m.first == Module::kModuleDescriptorManifestPath) {

@@ -45,7 +45,7 @@ auto Page(const QString& title, const QString& section)
   return UI::SettingsPageDescriptor{nullptr, title, section, {}};
 }
 
-auto TitlesOf(const QVector<UI::SettingsPageDescriptor>& pages) -> QStringList {
+auto TitlesOf(const QList<UI::SettingsPageDescriptor>& pages) -> QStringList {
   QStringList titles;
   for (const auto& page : pages) titles << page.title;
   return titles;
@@ -57,7 +57,7 @@ TEST(SettingsPageOrderTest, LatePageJoinsItsOwnSection) {
   // The regression this exists for: a module page is registered while its
   // module activates, so it always arrives after every built-in page. Left
   // where it landed it would show up under "system", the last header emitted.
-  const QVector<UI::SettingsPageDescriptor> pages{
+  const QList<UI::SettingsPageDescriptor> pages{
       Page("General", "application"), Page("Key Databases", "keys_engines"),
       Page("GnuPG", "keys_engines"),  Page("Instant Messaging", "features"),
       Page("Advanced", "system"),     Page("Key Servers", "keys_engines"),
@@ -70,7 +70,7 @@ TEST(SettingsPageOrderTest, LatePageJoinsItsOwnSection) {
 }
 
 TEST(SettingsPageOrderTest, SectionsFollowTheCanonicalOrder) {
-  const QVector<UI::SettingsPageDescriptor> pages{
+  const QList<UI::SettingsPageDescriptor> pages{
       Page("Advanced", "system"),
       Page("Instant Messaging", "features"),
       Page("GnuPG", "keys_engines"),
@@ -85,7 +85,7 @@ TEST(SettingsPageOrderTest, SectionsFollowTheCanonicalOrder) {
 TEST(SettingsPageOrderTest, OrderWithinASectionIsPreserved) {
   // Registration order is the only thing expressing intent inside a section, so
   // the sort has to be stable.
-  const QVector<UI::SettingsPageDescriptor> pages{
+  const QList<UI::SettingsPageDescriptor> pages{
       Page("General", "application"),
       Page("Appearance", "application"),
       Page("Network", "application"),
@@ -99,7 +99,7 @@ TEST(SettingsPageOrderTest, OrderWithinASectionIsPreserved) {
 TEST(SettingsPageOrderTest, UnknownSectionsComeAfterKnownOnes) {
   // A module naming a section we do not know still has to end up somewhere
   // predictable rather than being folded into another group.
-  const QVector<UI::SettingsPageDescriptor> pages{
+  const QList<UI::SettingsPageDescriptor> pages{
       Page("Experimental", "labs"),
       Page("General", "application"),
       Page("Advanced", "system"),
@@ -111,7 +111,7 @@ TEST(SettingsPageOrderTest, UnknownSectionsComeAfterKnownOnes) {
 }
 
 TEST(SettingsPageOrderTest, UnknownSectionsStayGroupedInFirstSeenOrder) {
-  const QVector<UI::SettingsPageDescriptor> pages{
+  const QList<UI::SettingsPageDescriptor> pages{
       Page("Zebra One", "zebra"),     Page("Labs One", "labs"),
       Page("Zebra Two", "zebra"),     Page("Labs Two", "labs"),
       Page("General", "application"),

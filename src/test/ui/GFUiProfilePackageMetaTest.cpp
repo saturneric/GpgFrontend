@@ -44,14 +44,14 @@ auto SealedHeader() -> ProfilePackageHeader {
   return header;
 }
 
-auto IndexOf(const QVector<MetaListRow>& rows, const QString& caption) -> int {
+auto IndexOf(const QList<MetaListRow>& rows, const QString& caption) -> int {
   for (int i = 0; i < rows.size(); ++i) {
     if (rows.at(i).caption == caption) return i;
   }
   return -1;
 }
 
-auto CaptionOf(const QVector<MetaListRow>& rows, const QString& caption)
+auto CaptionOf(const QList<MetaListRow>& rows, const QString& caption)
     -> std::optional<MetaListRow> {
   const auto at = IndexOf(rows, caption);
   return at < 0 ? std::optional<MetaListRow>{} : rows.at(at);

@@ -193,7 +193,7 @@ class ModuleExternalTrustTest : public ::testing::Test {
                                      const QString& key_path,
                                      const QByteArray& key_member,
                                      const QString& out) const -> bool {
-    const QVector<QPair<QString, QByteArray>> members{
+    const QList<QPair<QString, QByteArray>> members{
         {kManifestPath, manifest_bytes_},
         {kSignaturePath, SignWith(kp.secret_key, manifest_bytes_)},
         {key_path, key_member},
@@ -333,7 +333,7 @@ TEST_F(ModuleExternalTrustTest, TheBuilderRefusesAnUnboundExternalEntry) {
 }
 
 TEST_F(ModuleExternalTrustTest, TheExternalBuilderCarriesThePublisherKey) {
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
 
   QByteArray carried;
@@ -361,7 +361,7 @@ TEST_F(ModuleExternalTrustTest, TheOldKeyMemberIsRefusedByName) {
 }
 
 TEST_F(ModuleExternalTrustTest, AnUnknownMetaInfMemberIsRefused) {
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
   members.append({"META-INF/extra", QByteArray("x")});
   const auto out = dir_.path() + "/extra.gfmodule";
@@ -377,7 +377,7 @@ TEST_F(ModuleExternalTrustTest, AnUnknownMetaInfMemberIsRefused) {
 TEST_F(ModuleExternalTrustTest, ATamperedExternalDescriptorIsRefused) {
   // Self-signed does not mean unchecked: the signature still has to match the
   // key that is sitting next to it.
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
   for (auto& m : members) {
     if (m.first == kManifestPath) m.second.replace("1.0.0", "9.9.9");
@@ -395,7 +395,7 @@ TEST_F(ModuleExternalTrustTest, ASubstitutedKeyDoesNotRescueASignature) {
   // Swapping in a different key next to an unchanged signature must fail.
   // Otherwise "carries its own key" really would mean "verifies itself".
   const auto other = MakeForeignKeypair();
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(external_path_, members));
   for (auto& m : members) {
     if (m.first == kPublisherKeyPath) m.second = other.public_key;

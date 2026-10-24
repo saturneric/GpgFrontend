@@ -101,7 +101,7 @@ class FakePassphrasePrompt : public QObject {
     return static_cast<int>(close_requests_.size());
   }
   [[nodiscard]] auto Contexts() const
-      -> QContainer<QSharedPointer<GpgPassphraseContext>> {
+      -> QList<QSharedPointer<GpgPassphraseContext>> {
     return contexts_;
   }
 
@@ -138,9 +138,9 @@ class FakePassphrasePrompt : public QObject {
   int prompt_count_ = 0;
   int open_ = 0;
   int max_concurrent_ = 0;
-  QContainer<QSharedPointer<GpgPassphraseContext>> contexts_;
-  QContainer<QSharedPointer<GpgPassphraseContext>> answered_;
-  QContainer<QSharedPointer<GpgPassphraseContext>> close_requests_;
+  QList<QSharedPointer<GpgPassphraseContext>> contexts_;
+  QList<QSharedPointer<GpgPassphraseContext>> answered_;
+  QList<QSharedPointer<GpgPassphraseContext>> close_requests_;
   QMetaObject::Connection connection_;
   QMetaObject::Connection close_connection_;
 };

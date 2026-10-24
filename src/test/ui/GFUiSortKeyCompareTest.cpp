@@ -87,12 +87,12 @@ TEST(SortKeyCompareTest, TwoInvalidsAreEquivalent) {
 }
 
 TEST(SortKeyCompareTest, ComparisonIsAntisymmetric) {
-  const QVector<QVariant> values = {QVariant(),
-                                    QVariant(0),
-                                    QVariant(42),
-                                    QVariant(QString("alice")),
-                                    QVariant(QString("zoe")),
-                                    QVariant(QDateTime(QDate(2020, 1, 1), {}))};
+  const QList<QVariant> values = {QVariant(),
+                                  QVariant(0),
+                                  QVariant(42),
+                                  QVariant(QString("alice")),
+                                  QVariant(QString("zoe")),
+                                  QVariant(QDateTime(QDate(2020, 1, 1), {}))};
 
   // A comparator that is not antisymmetric makes std::sort undefined, and the
   // failure shows up as a crash far from here.

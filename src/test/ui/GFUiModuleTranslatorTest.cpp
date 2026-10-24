@@ -60,7 +60,7 @@ constexpr auto kProbeContext = "ModuleKeyServerSync";
 constexpr auto kProbeSource = "Public Key Upload Successful";
 
 struct Round {
-  QContainer<QPointer<QTranslator>> installed;
+  QList<QPointer<QTranslator>> installed;
   QString probe;
 };
 

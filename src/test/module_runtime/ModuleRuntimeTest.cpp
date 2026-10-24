@@ -185,9 +185,9 @@ class Payload {
   QStringList commands_;
   QByteArray id_, version_, context_, locale_;
   QList<QByteArray> event_utf8_;
-  QVector<const char*> event_ptrs_;
+  QList<const char*> event_ptrs_;
   QList<QByteArray> command_utf8_;
-  QVector<const char*> command_ptrs_;
+  QList<const char*> command_ptrs_;
   GFModuleBootstrapInfo info_{};
 };
 

@@ -322,7 +322,7 @@ TEST(KeyDatabaseSettingsModelTest, SavingAndReopeningRestoresChoiceAndEngine) {
   model.ApplyTo(saved);
   const auto reread = KeyDatabaseListSO(saved.ToJson());
 
-  QContainer<KeyDatabaseInfo> infos;
+  QList<KeyDatabaseInfo> infos;
   for (const auto& item : reread.key_databases) {
     auto info = Database(item.id, item.name,
                          item.kind.value_or(KeyDatabaseKind::kEXTERNAL));

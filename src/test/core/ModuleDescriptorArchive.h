@@ -30,10 +30,10 @@
 
 #include <QByteArray>
 #include <QFile>
+#include <QList>
 #include <QPair>
 #include <QString>
 #include <QTemporaryDir>
-#include <QVector>
 #include <array>
 #include <thread>
 
@@ -52,7 +52,7 @@ namespace GpgFrontend::Test {
  */
 inline auto WriteDescriptorArchive(
     const QString& destination,
-    const QVector<QPair<QString, QByteArray>>& members) -> bool {
+    const QList<QPair<QString, QByteArray>>& members) -> bool {
   QFile out(destination);
   if (!out.open(QIODevice::WriteOnly)) return false;
 
@@ -84,7 +84,7 @@ inline auto WriteDescriptorArchive(
 
 /// Read every member of a descriptor out, in order.
 inline auto ReadDescriptorMembers(const QString& source,
-                                  QVector<QPair<QString, QByteArray>>& members)
+                                  QList<QPair<QString, QByteArray>>& members)
     -> bool {
   QTemporaryDir nowhere;
   if (!nowhere.isValid()) return false;

@@ -73,7 +73,7 @@ auto LooseView() -> Module::ModuleProvenance {
   return view;
 }
 
-auto Find(const QVector<MetaListRow>& rows, const QString& caption)
+auto Find(const QList<MetaListRow>& rows, const QString& caption)
     -> std::optional<MetaListRow> {
   for (const auto& row : rows) {
     if (row.caption == caption) return row;
@@ -81,7 +81,7 @@ auto Find(const QVector<MetaListRow>& rows, const QString& caption)
   return std::nullopt;
 }
 
-auto IndexOf(const QVector<MetaListRow>& rows, const QString& caption) -> int {
+auto IndexOf(const QList<MetaListRow>& rows, const QString& caption) -> int {
   for (int i = 0; i < rows.size(); ++i) {
     if (rows.at(i).caption == caption) return i;
   }

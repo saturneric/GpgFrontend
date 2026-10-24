@@ -62,7 +62,7 @@ auto Ready() -> ProfileExportChoice {
   return choice;
 }
 
-auto Contains(const QVector<ProfileExportWarning>& warnings,
+auto Contains(const QList<ProfileExportWarning>& warnings,
               ProfileExportWarning warning) -> bool {
   return warnings.contains(warning);
 }

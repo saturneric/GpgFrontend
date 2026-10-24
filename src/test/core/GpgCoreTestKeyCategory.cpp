@@ -33,8 +33,8 @@ namespace GpgFrontend::Test {
 
 namespace {
 
-auto ContainsCategoryId(const QContainer<KeyCategoryCO>& cats,
-                        const QString& id) -> bool {
+auto ContainsCategoryId(const QList<KeyCategoryCO>& cats, const QString& id)
+    -> bool {
   for (const auto& c : cats) {
     if (c.id == id) return true;
   }

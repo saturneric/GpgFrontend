@@ -850,7 +850,7 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
   // is still writing files to disk after the gpg opera reports completion --
   // exactly the window the race exploited. A few MB of payload makes that
   // window large enough to catch deterministically.
-  const QContainer<QPair<QString, QByteArray>> files = {
+  const QList<QPair<QString, QByteArray>> files = {
       {"A.txt", "plain content"},
       {"A.txt.gpg", "pretend ciphertext"},
       {"A.txt.sig", "pretend signature"},

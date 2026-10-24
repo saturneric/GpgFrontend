@@ -155,12 +155,12 @@ auto ListMembers(const QString& package) -> QStringList {
 auto RepackWith(const QString& source, const QString& destination,
                 const QMap<QString, QByteArray>& replacements,
                 const QStringList& removals = {},
-                const QVector<QPair<QString, QByteArray>>& additions = {})
+                const QList<QPair<QString, QByteArray>>& additions = {})
     -> bool {
-  QVector<QPair<QString, QByteArray>> read;
+  QList<QPair<QString, QByteArray>> read;
   if (!ReadDescriptorMembers(source, read)) return false;
 
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   for (const auto& m : read) {
     if (removals.contains(m.first)) continue;
     const auto it = replacements.constFind(m.first);
@@ -317,7 +317,7 @@ TEST_F(ModuleDescriptorTest, ADescriptorIsVerifiedWithTheHostsOwnKey) {
   // An integrated-SHAPED descriptor -- it carries no build key of its own --
   // signed by somebody else. Exactly the artifact an attacker would have to
   // produce, and the one the embedded trust root exists to refuse.
-  QVector<QPair<QString, QByteArray>> members;
+  QList<QPair<QString, QByteArray>> members;
   ASSERT_TRUE(ReadDescriptorMembers(Package(), members));
 
   QByteArray manifest;

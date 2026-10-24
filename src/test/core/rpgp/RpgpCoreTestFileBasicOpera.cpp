@@ -263,8 +263,7 @@ constexpr auto kDefaultSigningSubkeyFpr =
 // subkey of it (primary excluded), each pinned the way the GUI pins it:
 // "<fpr>!". Whichever one the engine would pick by itself, the other one
 // shows whether a pin is honored.
-auto PinEachSigningSubkey()
-    -> QContainer<std::pair<GpgAbstractKeyPtr, QString>> {
+auto PinEachSigningSubkey() -> QList<std::pair<GpgAbstractKeyPtr, QString>> {
   auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
                  .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
   if (key == nullptr) return {};
@@ -288,7 +287,7 @@ auto PinEachSigningSubkey()
             .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
   if (key == nullptr) return {};
 
-  QContainer<std::pair<GpgAbstractKeyPtr, QString>> pinned;
+  QList<std::pair<GpgAbstractKeyPtr, QString>> pinned;
   for (const auto& s : key->SubKeys()) {
     if (s.IsHasCertCap() || !s.IsHasSignCap() || s.IsRevoked()) continue;
     pinned.push_back(

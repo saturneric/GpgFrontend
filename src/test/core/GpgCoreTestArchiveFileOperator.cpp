@@ -834,7 +834,7 @@ TEST(ArchiveFileOperatorTest, AMemberShorterThanItsDeclaredSizeFailsThePack) {
 namespace {
 
 /// Build an archive in memory from bytes in hand, in the given format.
-auto PackMembers(const QVector<QPair<QString, QByteArray>>& members,
+auto PackMembers(const QList<QPair<QString, QByteArray>>& members,
                  GpgFrontend::ArchiveFormat format, const QString& out_path)
     -> bool {
   QFile out(out_path);

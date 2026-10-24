@@ -55,7 +55,7 @@ TEST(MetaListTest, AClaimAlwaysBringsItsCaveat) {
 }
 
 TEST(MetaListTest, TheCopiedTextSaysWhatTheListSaid) {
-  const QVector<MetaListRow> rows = {
+  const QList<MetaListRow> rows = {
       {.kind = MetaRowKind::kSection, .caption = "Profile"},
       {.caption = "Profile:",
        .value = "work",
@@ -89,7 +89,7 @@ TEST(MetaListTest, AnInfoBoardCardBecomesRows) {
   // The report document paints its own cards, because it paints into a text
   // document rather than into widgets. It need not disagree about what a field
   // is, and an empty value is a row nobody wants either way.
-  const QContainer<QPair<QString, QString>> fields = {
+  const QList<QPair<QString, QString>> fields = {
       {"Signed by", "Eric"}, {"Key", ""}, {"Status", "Good"}};
 
   const auto rows = ToMetaListRows(fields);

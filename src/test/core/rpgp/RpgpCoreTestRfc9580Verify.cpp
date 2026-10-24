@@ -49,7 +49,7 @@ namespace {
 
 struct VerifyOutcome {
   GpgError err;
-  QContainer<GpgSignature> sigs;
+  QList<GpgSignature> sigs;
   QString detail;
 };
 
@@ -69,12 +69,12 @@ auto RunVerify(const GFBuffer& data, const GFBuffer& sig) -> VerifyOutcome {
   return out;
 }
 
-auto AnyValid(const QContainer<GpgSignature>& sigs) -> bool {
+auto AnyValid(const QList<GpgSignature>& sigs) -> bool {
   return std::any_of(sigs.cbegin(), sigs.cend(),
                      [](const auto& s) { return SignatureIsValid(s); });
 }
 
-auto CountValid(const QContainer<GpgSignature>& sigs) -> int {
+auto CountValid(const QList<GpgSignature>& sigs) -> int {
   return static_cast<int>(
       std::count_if(sigs.cbegin(), sigs.cend(),
                     [](const auto& s) { return SignatureIsValid(s); }));

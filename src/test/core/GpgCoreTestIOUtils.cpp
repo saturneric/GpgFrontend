@@ -50,8 +50,8 @@ auto WriteTempFile(const QString& dir, const QString& name,
   return path;
 }
 
-auto FindField(const QContainer<QPair<QString, QString>>& fields,
-               const QString& key) -> QString {
+auto FindField(const QList<QPair<QString, QString>>& fields, const QString& key)
+    -> QString {
   for (const auto& f : fields) {
     if (f.first == key) return f.second;
   }

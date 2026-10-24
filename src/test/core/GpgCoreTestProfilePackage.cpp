@@ -344,7 +344,7 @@ TEST(ProfilePackageManifestTest, AVersionThatDisagreesIsTampering) {
 // ------------------------------------------------------- key database paths
 
 TEST(ProfilePackagePathTest, PathsInsideTheProfileAreMadeToTravel) {
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO inside;
   inside.name = "Default";
@@ -366,7 +366,7 @@ TEST(ProfilePackagePathTest, PathsOutsideTheProfileDoNotTravelAtAll) {
   // other -- and a missing database shifts every database after it up a
   // channel. That is how a package whose DEFAULT lived outside the profile got
   // an rPGP keyring opened with GnuPG on the machine it was imported to.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO outside;
   outside.name = "System";
@@ -385,7 +385,7 @@ TEST(ProfilePackagePathTest, PathsOutsideTheProfileDoNotTravelAtAll) {
 TEST(ProfilePackagePathTest, NothingThatTravelsIsEverMarkedExternal) {
   // The manifest field survives for packages older builds wrote; nothing this
   // build packs can set it any more.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO inside;
   inside.name = "Default";
@@ -408,7 +408,7 @@ TEST(ProfilePackagePathTest, NothingThatTravelsIsEverMarkedExternal) {
 TEST(ProfilePackagePathTest, ADatabaseMarkedAsThisComputersDoesNotTravel) {
   // The path would have carried it: it is inside the profile, in a directory
   // the packer walks. What keeps it home is the user having said what it is.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO external;
   external.name = "Stick";
@@ -429,7 +429,7 @@ TEST(ProfilePackagePathTest, ADatabaseMarkedAsThisComputersDoesNotTravel) {
 TEST(ProfilePackagePathTest, AKindCannotTalkAPathIntoTravelling) {
   // The kind may only ever exclude. A database claiming to be managed while
   // sitting outside the profile is still one the package cannot carry.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO lying;
   lying.name = "System";
@@ -448,7 +448,7 @@ TEST(ProfilePackagePathTest, AKindCannotTalkAPathIntoTravelling) {
 }
 
 TEST(ProfilePackagePathTest, AManagedDatabaseStillTravelsWithItsKindRecorded) {
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO managed;
   managed.name = "Work";
@@ -466,7 +466,7 @@ TEST(ProfilePackagePathTest, AManagedDatabaseStillTravelsWithItsKindRecorded) {
 }
 
 TEST(ProfilePackagePathTest, RewritingIsIdempotent) {
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO already;
   already.name = "Default";
@@ -904,7 +904,7 @@ TEST(ProfilePackageRoundTripTest,
   // claim contents it does not have -- and the recipient creates a missing key
   // database directory rather than complaining, so they would find a keyring
   // with no keys and no error anywhere.
-  QContainer<KeyDatabaseItemSO> databases;
+  QList<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO managed;
   managed.name = "DEFAULT";
