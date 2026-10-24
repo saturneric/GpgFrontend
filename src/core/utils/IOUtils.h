@@ -203,6 +203,17 @@ auto GF_CORE_EXPORT MakeSafeOutputTempPath(const QString& final_path)
     -> QString;
 
 /**
+ * @brief Which step of CommitSafeOutputFile() failed.
+ *
+ * QDir::rename reports no system error, so the step is all that is known.
+ */
+enum class SafeOutputCommitStep : std::uint8_t {
+  kSTAGED_OUTPUT_MISSING,  ///< nothing was staged at the temporary path
+  kMOVE_EXISTING_ASIDE,    ///< the existing final file could not be renamed
+  kMOVE_INTO_PLACE,        ///< the staged output could not be renamed
+};
+
+/**
  * @brief Move a staged output file to its final path.
  *
  * An existing final file is renamed aside first and only removed once the new
@@ -210,10 +221,13 @@ auto GF_CORE_EXPORT MakeSafeOutputTempPath(const QString& final_path)
  *
  * @param temp_path staged output produced by MakeSafeOutputTempPath()
  * @param final_path path the output belongs at
+ * @param failed_step set to the step that failed when this returns false;
+ *        untouched otherwise
  * @return true if the output is in place, false if nothing was changed
  */
-auto GF_CORE_EXPORT CommitSafeOutputFile(const QString& temp_path,
-                                         const QString& final_path) -> bool;
+auto GF_CORE_EXPORT
+CommitSafeOutputFile(const QString& temp_path, const QString& final_path,
+                     SafeOutputCommitStep* failed_step = nullptr) -> bool;
 
 /**
  * @brief Remove a staged output that will not be committed.

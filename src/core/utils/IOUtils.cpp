@@ -301,9 +301,16 @@ auto MakeSafeOutputTempPath(const QString& final_path) -> QString {
       QString(".%1.gpgfrontend.tmp.%2").arg(base_name, UnpredictableSuffix()));
 }
 
-auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
-    -> bool {
-  if (!QFileInfo::exists(temp_path)) return false;
+auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path,
+                          SafeOutputCommitStep* failed_step) -> bool {
+  const auto fail = [failed_step](SafeOutputCommitStep step) -> bool {
+    if (failed_step != nullptr) *failed_step = step;
+    return false;
+  };
+
+  if (!QFileInfo::exists(temp_path)) {
+    return fail(SafeOutputCommitStep::kSTAGED_OUTPUT_MISSING);
+  }
 
   const QFileInfo final_info(final_path);
   const auto backup_path =
@@ -317,14 +324,16 @@ auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
   // QDir::rename moves files and directories alike (an archive decryption
   // stages a directory).
   if (QFileInfo::exists(final_path) || QFileInfo(final_path).isSymLink()) {
-    if (!QDir().rename(final_path, backup_path)) return false;
+    if (!QDir().rename(final_path, backup_path)) {
+      return fail(SafeOutputCommitStep::kMOVE_EXISTING_ASIDE);
+    }
 
     has_backup = true;
   }
 
   if (!QDir().rename(temp_path, final_path)) {
     if (has_backup) QDir().rename(backup_path, final_path);
-    return false;
+    return fail(SafeOutputCommitStep::kMOVE_INTO_PLACE);
   }
 
   if (has_backup && !RemoveStagedPath(backup_path)) {

@@ -208,6 +208,59 @@ TEST(IOUtilsSafeOutputTest, CommitOfAMissingStagedFileKeepsTheOriginal) {
   EXPECT_EQ(content, QByteArray("original"));
 }
 
+TEST(IOUtilsSafeOutputTest, ACommitFailureNamesTheStepThatFailed) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  const QString staged = MakeSafeOutputTempPath(final_path);
+
+  auto step = SafeOutputCommitStep::kMOVE_INTO_PLACE;
+  EXPECT_FALSE(CommitSafeOutputFile(staged, final_path, &step));
+  EXPECT_EQ(step, SafeOutputCommitStep::kSTAGED_OUTPUT_MISSING);
+}
+
+#ifndef _WIN32
+TEST(IOUtilsSafeOutputTest, ACommitIntoAReadOnlyDirectoryNamesTheRename) {
+  // Permissions do not stop root, so there is nothing to observe there.
+  if (geteuid() == 0) GTEST_SKIP() << "running as root";
+
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const QString out_dir = temp_dir.path() + "/out";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+
+  const QString fresh = out_dir + "/fresh.txt.gpg";
+  const QString fresh_staged = MakeSafeOutputTempPath(fresh);
+  ASSERT_TRUE(WriteFile(fresh_staged, QByteArray("new")));
+
+  const QString existing = out_dir + "/existing.txt.gpg";
+  ASSERT_TRUE(WriteFile(existing, QByteArray("original")));
+  const QString existing_staged = MakeSafeOutputTempPath(existing);
+  ASSERT_TRUE(WriteFile(existing_staged, QByteArray("new")));
+
+  ASSERT_TRUE(QFile::setPermissions(
+      out_dir, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  auto step = SafeOutputCommitStep::kSTAGED_OUTPUT_MISSING;
+  EXPECT_FALSE(CommitSafeOutputFile(existing_staged, existing, &step));
+  EXPECT_EQ(step, SafeOutputCommitStep::kMOVE_EXISTING_ASIDE);
+
+  // Nothing to move aside: the staged output's own rename is what fails. Its
+  // work directory stays writable; the destination directory does not.
+  step = SafeOutputCommitStep::kSTAGED_OUTPUT_MISSING;
+  EXPECT_FALSE(CommitSafeOutputFile(fresh_staged, fresh, &step));
+  EXPECT_EQ(step, SafeOutputCommitStep::kMOVE_INTO_PLACE);
+
+  QFile::setPermissions(out_dir, QFileDevice::ReadOwner |
+                                     QFileDevice::WriteOwner |
+                                     QFileDevice::ExeOwner);
+  QByteArray content;
+  ASSERT_TRUE(ReadFile(existing, content));
+  EXPECT_EQ(content, QByteArray("original"));
+}
+#endif
+
 TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
   // An archive decryption stages a directory. Replacing an existing output
   // directory must not leave the old one behind as a hidden backup.
