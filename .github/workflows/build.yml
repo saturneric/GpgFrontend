@@ -678,8 +678,12 @@ jobs:
             readelf -d "$elf" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p'
           done < <(find "$APP_DIR" -type f \( -name '*.so*' -o -perm -u+x \)) \
             | sort -u > "$RUNNER_TEMP/needed.txt"
+          # The dynamic loader is always the host's and can never be bundled.
+          # The excludelist only names the x86 ones, so aarch64's
+          # ld-linux-aarch64.so.1 is matched by pattern rather than listed.
           unbundled="$(comm -23 "$RUNNER_TEMP/needed.txt" "$RUNNER_TEMP/bundled.txt" \
-                         | comm -23 - "$RUNNER_TEMP/excluded.txt")"
+                         | comm -23 - "$RUNNER_TEMP/excluded.txt" \
+                         | grep -v -E '^ld-linux' || true)"
           if [ -n "$unbundled" ]; then
             echo "needed by the AppDir but neither bundled nor excluded:" >&2
             echo "$unbundled" >&2
