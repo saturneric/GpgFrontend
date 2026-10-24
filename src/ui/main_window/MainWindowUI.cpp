@@ -624,6 +624,8 @@ void MainWindow::create_tool_bars() {
   SetupToolBar(key_tool_bar_, icon_style_, icon_size_);
 
   import_button_ = new QToolButton(this);
+  // Named for the manual's screenshots, which point at it.
+  import_button_->setObjectName(u"importKeyButton"_s);
   SetupMenuToolButton(import_button_, import_key_menu_,
                       QIcon(":/icons/key_import.png"), tr("Import"),
                       tr("Import a key from file, editor, or clipboard"),

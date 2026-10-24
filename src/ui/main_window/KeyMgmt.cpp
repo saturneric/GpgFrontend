@@ -677,12 +677,15 @@ void KeyMgmt::create_tool_bars() {
 
   // add button with popup menu for import
   import_tool_button_ = new QToolButton(this);
+  // Named for the manual's screenshots, which point at these two.
+  import_tool_button_->setObjectName(u"importKeyButton"_s);
   SetupMenuToolButton(import_tool_button_, import_key_menu_,
                       QIcon(":/icons/key_import.png"), tr("Import Key"),
                       tr("Import key"), icon_style_, icon_size_);
   key_tool_bar_->addWidget(import_tool_button_);
 
   export_tool_button_ = new QToolButton(this);
+  export_tool_button_->setObjectName(u"exportKeyButton"_s);
   SetupMenuToolButton(export_tool_button_, export_key_menu_,
                       QIcon(":/icons/key_export.png"), tr("Export Key"),
                       tr("Export Key"), icon_style_, icon_size_);

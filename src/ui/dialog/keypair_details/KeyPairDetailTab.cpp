@@ -70,6 +70,10 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   key_box_ = new QGroupBox(tr("Primary Key"));
   fingerprint_box_ = new QGroupBox(tr("Fingerprint"));
   additional_uid_box_ = new QGroupBox(tr("Additional UIDs"));
+  // Named for the manual's screenshots, which crop to these boxes.
+  owner_box_->setObjectName(u"ownerBox"_s);
+  key_box_->setObjectName(u"primaryKeyBox"_s);
+  fingerprint_box_->setObjectName(u"fingerprintBox"_s);
 
   name_var_label_ = new QLabel();
   name_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -92,6 +96,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   last_update_var_label_ = new QLabel();
   algorithm_var_label_ = new QLabel();
   algorithm_detail_var_label_ = new QLabel();
+  algorithm_detail_var_label_->setObjectName(u"algorithmDetailValue"_s);
   key_version_var_label_ = new QLabel();
   primary_key_exist_var_label_ = new QLabel();
 

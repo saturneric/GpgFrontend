@@ -96,10 +96,12 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   const bool can_add_adsk =
       key_->IsPrivateKey() && key_->IsHasMasterKey() && add_adsk_supported_;
 
-  add_subkey_button->setVisible(can_add_subkey);
+  // Hidden or left alone, never shown: these have no parent yet, and showing
+  // a parentless widget opens it as a window of its own.
+  if (!can_add_subkey) add_subkey_button->hide();
   add_subkey_button->setEnabled(can_add_subkey);
 
-  add_adsk_button->setVisible(can_add_adsk);
+  if (!can_add_adsk) add_adsk_button->hide();
   add_adsk_button->setEnabled(can_add_adsk);
 
   uid_buttons_layout->addWidget(add_subkey_button, 0, 0);
@@ -107,7 +109,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   export_subkey_button_ = new QPushButton(tr("Export Subkey"));
   export_subkey_button_->setFlat(true);
-  export_subkey_button_->setVisible(export_subkey_supported_);
+  if (!export_subkey_supported_) export_subkey_button_->hide();
   export_subkey_button_->setEnabled(export_subkey_supported_);
   if (!export_subkey_supported_) {
     export_subkey_button_->setToolTip(tr(

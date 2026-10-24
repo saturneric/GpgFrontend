@@ -77,12 +77,15 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   vbox_p_k->addLayout(export_h_box_layout);
 
   auto* export_public_button = new QPushButton(tr("Export Public Key"));
+  // Named for the manual's screenshots, which point at the export buttons.
+  export_public_button->setObjectName(u"exportPublicKeyButton"_s);
   export_h_box_layout->addWidget(export_public_button);
   connect(export_public_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_export_public_key);
 
   if (m_key_->IsPrivateKey()) {
     auto* export_private_button = new QPushButton(tr("Export Private Key"));
+    export_private_button->setObjectName(u"exportPrivateKeyButton"_s);
     export_private_button->setStyleSheet("text-align:center;");
     export_private_button->setMenu(secret_key_export_opera_menu_);
     export_h_box_layout->addWidget(export_private_button);
@@ -109,6 +112,8 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   if (m_key_->IsPrivateKey() && m_key_->IsHasMasterKey()) {
     auto* revoke_cert_opera_button =
         new QPushButton(tr("Revoke Certificate Operation"));
+    // Named for the manual's screenshots, which point at it.
+    revoke_cert_opera_button->setObjectName(u"revokeCertificateButton"_s);
     revoke_cert_opera_button->setStyleSheet("text-align:center;");
     revoke_cert_opera_button->setMenu(rev_cert_opera_menu_);
     vbox_p_k->addWidget(revoke_cert_opera_button);

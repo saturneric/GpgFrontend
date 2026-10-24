@@ -1870,7 +1870,9 @@ void KeyList::slot_new_key_group() {
 
   auto* dialog =
       new KeyGroupCreationDialog(current_gpg_context_channel_, proper_key_ids);
-  dialog->exec();
+  // Modal and deleted on close by itself; show() rather than exec() spares
+  // the nested event loop.
+  dialog->show();
 }
 
 void KeyList::UpdateKeyTableFilter(

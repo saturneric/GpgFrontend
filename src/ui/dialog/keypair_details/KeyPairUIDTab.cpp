@@ -88,11 +88,15 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
   auto* sign_group_box = new QGroupBox();
   sign_group_box->setLayout(sign_grid_layout);
   sign_group_box->setTitle(tr("Signature of Selected UID"));
-  sign_group_box->setHidden(!if_sign_key_supported);
+  // Named for the manual's screenshots, which crop to this box.
+  sign_group_box->setObjectName(u"uidSignatureBox"_s);
 
   auto* vbox_layout = new QVBoxLayout();
   vbox_layout->addWidget(uid_group_box);
   vbox_layout->addWidget(sign_group_box);
+  // Hidden or left alone, never shown: it has no parent yet, and showing a
+  // parentless widget opens it as a window of its own.
+  if (!if_sign_key_supported) sign_group_box->hide();
 
   vbox_layout->setContentsMargins(0, 0, 0, 0);
 
