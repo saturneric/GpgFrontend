@@ -17,6 +17,12 @@
 # Re-running on an already normalized icon is a no-op up to a pixel of
 # rounding.
 #
+# Not for the badge composites (encr-sign.png, decr-verify.png,
+# keypair-new.png): their glyph is drawn at exactly its normalized size
+# (lock.png, unlock.png, key.png) with the badge overlapping its corner, and
+# the wider outline would make this rule shrink the glyph below its
+# neighbours'.
+#
 # Usage: scripts/normalize_icons.sh resource/lfs/icons/lock.png [...]
 # Requires ImageMagick (convert).
 

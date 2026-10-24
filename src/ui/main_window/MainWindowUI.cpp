@@ -296,7 +296,7 @@ void MainWindow::create_actions() {
 
   generate_key_pair_act_ =
       create_action("generate_key_pair", tr("New Keypair"),
-                    ":/icons/keypairs.png", tr("Generate KeyPair"));
+                    ":/icons/keypair-new.png", tr("Generate KeyPair"));
   connect(generate_key_pair_act_, &QAction::triggered, this, [=]() -> void {
     new KeyGenerateDialog(m_key_list_->GetCurrentGpgContextChannel(), this);
   });

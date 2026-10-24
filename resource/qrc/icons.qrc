@@ -124,6 +124,7 @@
         <file alias="workspace.png">../lfs/icons/workspace.png</file>
         <file alias="symmetric_encryption.png">../lfs/icons/symmetric_encryption.png</file>
         <file alias="keypairs.png">../lfs/icons/keypairs.png</file>
+        <file alias="keypair-new.png">../lfs/icons/keypair-new.png</file>
         <file alias="open.png">../lfs/icons/open.png</file>
         <file alias="harddisk.png">../lfs/icons/harddisk.png</file>
         <file alias="stamp_success.png">../lfs/icons/stamp_success.png</file>
