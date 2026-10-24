@@ -96,7 +96,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
 }
 }  // namespace
 
-auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
+auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QList<GFKey> {
   size_t out_meta_count = 0;
   Rust::GfrKeyMetadataC* out_meta_array = nullptr;
   auto key_block_data = buffer.ConvertToQByteArray();
@@ -112,7 +112,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
     return {};  // Return an empty container on error
   }
 
-  QContainer<GFKey> keys;
+  QList<GFKey> keys;
 
   for (size_t i = 0; i < out_meta_count; ++i) {
     const auto& out_metadata = out_meta_array[i];
@@ -297,8 +297,8 @@ auto PinMarkedSubkey(const GpgAbstractKey& key, const GFBuffer& key_block)
 
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
                                         const GpgKeyList& keys)
-    -> QContainer<GFBuffer> {
-  QContainer<GFBuffer> result;
+    -> QList<GFBuffer> {
+  QList<GFBuffer> result;
 
   for (const auto& key : keys) {
     auto key_block = key_db.GetKeyBlocks(key.Fingerprint());
@@ -317,8 +317,8 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
 
 auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
                                     const GpgAbstractKeyPtrList& key)
-    -> QContainer<GFBuffer> {
-  QContainer<GFBuffer> result;
+    -> QList<GFBuffer> {
+  QList<GFBuffer> result;
 
   for (const auto& k : key) {
     auto key_block = key_db.GetKeyBlocks(k->Fingerprint());

@@ -67,9 +67,9 @@ class SingletonStorage::Impl {
     }
   }
 
-  auto GetAllChannelId() -> QContainer<int> {
+  auto GetAllChannelId() -> QList<int> {
     std::shared_lock<std::shared_mutex> lock(instances_mutex_);
-    QContainer<int> channels;
+    QList<int> channels;
     channels.reserve(instances_map_.size());
     for (const auto& [key, value] : instances_map_) {
       channels.push_back(key);
@@ -131,7 +131,7 @@ auto SingletonStorage::FindObjectInChannel(int channel)
   return p_->FindObjectInChannel(channel);
 }
 
-auto SingletonStorage::GetAllChannelId() -> QContainer<int> {
+auto SingletonStorage::GetAllChannelId() -> QList<int> {
   return p_->GetAllChannelId();
 }
 

@@ -69,7 +69,7 @@ auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
 
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
-  QContainer<gpgme_key_t> gpg_recipients;
+  QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
     gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
@@ -174,7 +174,7 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
   auto& g_ctx = GpgCtx(ctx_);
 
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
-  QContainer<gpgme_key_t> gpg_recipients;
+  QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
     gpg_recipients.push_back(static_cast<gpgme_key_t>(key));

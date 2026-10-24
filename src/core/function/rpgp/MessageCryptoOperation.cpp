@@ -55,7 +55,7 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   // 1. Vector to hold the actual memory of the UTF-8 strings
-  QContainer<GFBuffer> key_blocks_utf8 =
+  QList<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
@@ -124,8 +124,8 @@ auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
 namespace {
 auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
                               const GpgAbstractKeyPtrList& keys)
-    -> std::tuple<GpgError, QContainer<GFBuffer>> {
-  QContainer<GFBuffer> skey_utf8_list;
+    -> std::tuple<GpgError, QList<GFBuffer>> {
+  QList<GFBuffer> skey_utf8_list;
   // Fetch key blocks and safely store memory
   for (const auto& signer : keys) {
     auto blocks = key_db.GetKeyBlocks(signer->Fingerprint());
@@ -255,7 +255,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), keys);
 
-  QContainer<GFBuffer> key_blocks_utf8 =
+  QList<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";

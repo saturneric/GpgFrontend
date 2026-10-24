@@ -277,7 +277,7 @@ auto GF_CORE_EXPORT CurrentRuntimeGeneration() -> int;
  * @return the handles that were retired
  */
 auto GF_CORE_EXPORT PublishRuntimeGeneration(int generation, int default_handle)
-    -> QContainer<int>;
+    -> QList<int>;
 
 /**
  * @brief Retire every handle of @p generation, without changing which one is
@@ -289,7 +289,7 @@ auto GF_CORE_EXPORT PublishRuntimeGeneration(int generation, int default_handle)
  * @param generation the generation to retire
  * @return the handles that were retired
  */
-auto GF_CORE_EXPORT RetireRuntimeGeneration(int generation) -> QContainer<int>;
+auto GF_CORE_EXPORT RetireRuntimeGeneration(int generation) -> QList<int>;
 
 /**
  * @brief A generation number no Runtime has used yet.
@@ -303,7 +303,7 @@ auto GF_CORE_EXPORT AllocateRuntimeGeneration() -> int;
  * @return every handle issued for it, available or not
  */
 auto GF_CORE_EXPORT ListRuntimeChannels(int generation = -1)
-    -> QContainer<ChannelHandleInfo>;
+    -> QList<ChannelHandleInfo>;
 
 /**
  * @brief The current Runtime's handle for the database @p database_id.
@@ -349,8 +349,7 @@ auto GF_CORE_EXPORT ReclaimChannelAgainIfReclaimed(int handle) -> bool;
  * @param path a key database directory
  * @return the handles that were still in use and are now retired
  */
-auto GF_CORE_EXPORT RetireChannelsAtLocation(const QString& path)
-    -> QContainer<int>;
+auto GF_CORE_EXPORT RetireChannelsAtLocation(const QString& path) -> QList<int>;
 
 /**
  * @brief Whether anything at @p path is still open or not yet reclaimed.

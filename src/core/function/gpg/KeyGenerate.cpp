@@ -162,8 +162,8 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
 }
 
 auto FilterKeyAlgoByKeyGnuPGImpl(OpenPGPContext&, const GpgKey&,
-                                 const QContainer<KeyAlgo>& algos)
-    -> QContainer<KeyAlgo> {
+                                 const QList<KeyAlgo>& algos)
+    -> QList<KeyAlgo> {
   // GnuPG does not have the limitation on subkey algorithms based on primary
   // key version, return all algos directly
 

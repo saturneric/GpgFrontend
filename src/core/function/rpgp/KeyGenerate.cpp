@@ -266,10 +266,9 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 }
 
 auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
-                                const QContainer<KeyAlgo>& algos)
-    -> QContainer<KeyAlgo> {
+                                const QList<KeyAlgo>& algos) -> QList<KeyAlgo> {
   auto key_ver = key.KeyVersion();
-  QContainer<KeyAlgo> filtered_algos;
+  QList<KeyAlgo> filtered_algos;
 
   if (key_ver == 0) {
     LOG_E() << "invalid primary key version: " << key_ver;

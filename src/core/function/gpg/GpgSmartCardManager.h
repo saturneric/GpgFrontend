@@ -183,7 +183,7 @@ class GF_CORE_EXPORT GpgSmartCardManager
       SingletonFunctionObject::GetChannel());  ///<
 
   QString cached_scd_serialno_status_hash_;
-  QContainer<QString> cache_scd_card_serial_numbers_;
+  QList<QString> cache_scd_card_serial_numbers_;
 };
 
 }  // namespace GpgFrontend

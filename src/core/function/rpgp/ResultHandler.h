@@ -71,7 +71,7 @@ auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString;
  * @param recipients the recipients that were asked for
  * @return GFEncryptResult
  */
-auto NoUsableRecipientsResult(const QContainer<GpgKey>& recipients)
+auto NoUsableRecipientsResult(const QList<GpgKey>& recipients)
     -> GFEncryptResult;
 
 /**

@@ -42,8 +42,8 @@ KeyGroupRepository::KeyGroupRepository(int channel)
   fetch_key_groups();
 }
 
-auto KeyGroupRepository::Fetch() -> QContainer<QSharedPointer<GpgKeyGroup>> {
-  QContainer<QSharedPointer<GpgKeyGroup>> ret;
+auto KeyGroupRepository::Fetch() -> QList<QSharedPointer<GpgKeyGroup>> {
+  QList<QSharedPointer<GpgKeyGroup>> ret;
   for (const auto& node : key_groups_forest_) {
     ret.push_back(node->key_group);
   }
@@ -124,7 +124,7 @@ auto KeyGroupRepository::IsAncestorOf(const QString& ancestor_id,
   // Iterative, with a visited set: GpgKeyGroupTreeNode::HasAncestor() recurses
   // without one and degrades badly on a wide DAG.
   QSet<GpgKeyGroupTreeNode*> seen;
-  QContainer<GpgKeyGroupTreeNode*> pending;
+  QList<GpgKeyGroupTreeNode*> pending;
   pending.push_back(key_groups_forest_.value(descendant_id).get());
 
   while (!pending.isEmpty()) {

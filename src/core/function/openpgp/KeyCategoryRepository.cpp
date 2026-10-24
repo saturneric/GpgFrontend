@@ -41,7 +41,7 @@ KeyCategoryRepository::KeyCategoryRepository(int channel)
   fetch_categories();
 }
 
-auto KeyCategoryRepository::Fetch() -> QContainer<KeyCategoryCO> {
+auto KeyCategoryRepository::Fetch() -> QList<KeyCategoryCO> {
   return categories_;
 }
 

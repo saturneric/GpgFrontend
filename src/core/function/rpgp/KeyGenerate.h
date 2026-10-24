@@ -77,9 +77,8 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  *
  * @param ctx
  * @param key
- * @return QContainer<KeyAlgo>
+ * @return QList<KeyAlgo>
  */
 auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
-                                const QContainer<KeyAlgo>& algos)
-    -> QContainer<KeyAlgo>;
+                                const QList<KeyAlgo>& algos) -> QList<KeyAlgo>;
 }  // namespace GpgFrontend

@@ -133,7 +133,7 @@ auto GetOpSupportRequirements() -> const auto& {
   struct OpSupportTraits<TAG> : OpSupportTraitsBase<OpSupportTraits<TAG>> { \
     static constexpr const char* kOpName = OPNAME;                          \
     static auto Versions() -> const auto& {                                 \
-      static const QContainer<EngineSupportIf> kVersions = {__VA_ARGS__};   \
+      static const QList<EngineSupportIf> kVersions = {__VA_ARGS__};        \
       return kVersions;                                                     \
     }                                                                       \
   };

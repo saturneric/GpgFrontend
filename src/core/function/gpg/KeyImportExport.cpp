@@ -72,7 +72,7 @@ auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), keys);
-  QContainer<gpgme_key_t> gpg_recipients;
+  QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
     gpg_recipients.push_back(static_cast<gpgme_key_t>(key));

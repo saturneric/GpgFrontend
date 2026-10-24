@@ -46,7 +46,7 @@ using EngineOpImpl = QPair<OpenPGPEngine, ImplFn>;
 
 // An ordered list of EngineOpImpl entries forming a dispatch table for one op.
 template <typename ImplFn>
-using EngineOpImplTable = QContainer<EngineOpImpl<ImplFn>>;
+using EngineOpImplTable = QList<EngineOpImpl<ImplFn>>;
 
 /**
  * @brief CRTP base adding engine-availability checks to OpSupportTraits.
@@ -272,15 +272,15 @@ struct DispatchOpTraitsRaw<Derived, OpTag, R (*)(Args...)>
  *     {OpenPGPEngine::kRPGP,  &MyOpRpgpImpl});
  * @endcode
  */
-#define GF_DEF_OP_IMPL_TRAITS(TAG, FN_REF, ...)                             \
-  template <>                                                               \
-  struct OpTraits<TAG>                                                      \
-      : DispatchOpTraitsBase<OpTraits<TAG>, TAG, decltype(FN_REF)> {        \
-    using ImplFn = decltype(FN_REF);                                        \
-    static auto ImplTable() -> const auto& {                                \
-      static const QContainer<EngineOpImpl<ImplFn>> kTable = {__VA_ARGS__}; \
-      return kTable;                                                        \
-    }                                                                       \
+#define GF_DEF_OP_IMPL_TRAITS(TAG, FN_REF, ...)                        \
+  template <>                                                          \
+  struct OpTraits<TAG>                                                 \
+      : DispatchOpTraitsBase<OpTraits<TAG>, TAG, decltype(FN_REF)> {   \
+    using ImplFn = decltype(FN_REF);                                   \
+    static auto ImplTable() -> const auto& {                           \
+      static const QList<EngineOpImpl<ImplFn>> kTable = {__VA_ARGS__}; \
+      return kTable;                                                   \
+    }                                                                  \
   };
 
 /**
@@ -290,15 +290,15 @@ struct DispatchOpTraitsRaw<Derived, OpTag, R (*)(Args...)>
  * Same as GF_DEF_OP_IMPL_TRAITS but uses DispatchOpTraitsRaw and dispatches
  * by OpenPGPEngine enum rather than by context.
  */
-#define GF_DEF_OP_IMPL_TRAITS_RAW(TAG, FN_REF, ...)                         \
-  template <>                                                               \
-  struct OpTraits<TAG>                                                      \
-      : DispatchOpTraitsRaw<OpTraits<TAG>, TAG, decltype(FN_REF)> {         \
-    using ImplFn = decltype(FN_REF);                                        \
-    static auto ImplTable() -> const auto& {                                \
-      static const QContainer<EngineOpImpl<ImplFn>> kTable = {__VA_ARGS__}; \
-      return kTable;                                                        \
-    }                                                                       \
+#define GF_DEF_OP_IMPL_TRAITS_RAW(TAG, FN_REF, ...)                    \
+  template <>                                                          \
+  struct OpTraits<TAG>                                                 \
+      : DispatchOpTraitsRaw<OpTraits<TAG>, TAG, decltype(FN_REF)> {    \
+    using ImplFn = decltype(FN_REF);                                   \
+    static auto ImplTable() -> const auto& {                           \
+      static const QList<EngineOpImpl<ImplFn>> kTable = {__VA_ARGS__}; \
+      return kTable;                                                   \
+    }                                                                  \
   };
 
 }  // namespace GpgFrontend

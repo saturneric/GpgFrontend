@@ -45,9 +45,9 @@ namespace GpgFrontend {
  */
 struct GF_CORE_EXPORT GpgKeyGroupTreeNode {
   // Parent nodes in the key group hierarchy.
-  QContainer<GpgKeyGroupTreeNode*> parents;
+  QList<GpgKeyGroupTreeNode*> parents;
   // Child nodes in the key group hierarchy.
-  QContainer<GpgKeyGroupTreeNode*> children;
+  QList<GpgKeyGroupTreeNode*> children;
   // The key group this node represents.
   QSharedPointer<GpgKeyGroup> key_group;
 
@@ -154,7 +154,7 @@ class GF_CORE_EXPORT KeyGroupRepository
    *
    * @return list of shared pointers to all GpgKeyGroup objects
    */
-  auto Fetch() -> QContainer<QSharedPointer<GpgKeyGroup>>;
+  auto Fetch() -> QList<QSharedPointer<GpgKeyGroup>>;
 
   /**
    * @brief Flush the key group cache, reloading from persistent storage on the

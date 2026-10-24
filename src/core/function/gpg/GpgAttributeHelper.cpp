@@ -31,7 +31,7 @@
 #include "core/model/GFEngineSupportIf.h"
 
 namespace {
-auto StripHeader(QVector<GpgFrontend::GpgAttrInfo>& infos) -> void {
+auto StripHeader(QList<GpgFrontend::GpgAttrInfo>& infos) -> void {
   for (auto& a : infos) {
     if (a.blob.size() < 16) continue;
     const auto* p = reinterpret_cast<const uchar*>(a.blob.constData());
@@ -63,7 +63,7 @@ GpgAttributeHelper::GpgAttributeHelper(int channel)
 GpgAttributeHelper::~GpgAttributeHelper() = default;
 
 auto GpgAttributeHelper::GetAttributes(const QString& key_id)
-    -> QContainer<GpgAttrInfo> {
+    -> QList<GpgAttrInfo> {
   if (!GPG_CTX_MIN_SUPPORT()) return {};
 
   auto [exit_code, out, err] = gce_.GpgExecuteSync({{},
@@ -88,7 +88,7 @@ auto GpgAttributeHelper::GetAttributes(const QString& key_id)
   LOG_D() << "GPG attribute binary data size: " << attr_bin_data.size()
           << " bytes.";
 
-  QVector<GpgFrontend::GpgAttrInfo> v;
+  QList<GpgFrontend::GpgAttrInfo> v;
   const QStringList lines =
       QString::fromUtf8(attr_status_data).split('\n', Qt::SkipEmptyParts);
 

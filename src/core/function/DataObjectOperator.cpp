@@ -591,8 +591,8 @@ auto SaveOrRemoveGcState(const QString& path, const QJsonObject& state)
 // state); everything else is returned for the caller to act on once the tally
 // is known.
 auto ClassifyDataObjects(const QDir& dir, DataObjectGCContext* ctx)
-    -> GpgFrontend::QContainer<DataObjectCheckResult> {
-  GpgFrontend::QContainer<DataObjectCheckResult> pending;
+    -> QList<DataObjectCheckResult> {
+  QList<DataObjectCheckResult> pending;
 
   if (!dir.exists()) return pending;
 

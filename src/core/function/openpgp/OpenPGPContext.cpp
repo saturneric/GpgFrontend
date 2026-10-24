@@ -538,8 +538,8 @@ namespace {
 /// Under the lock: retire every handle of @p generation, collecting the ones
 /// already due for reclamation into @p due.
 auto RetireGenerationLocked(ChannelHandleRegistry& registry, int generation,
-                            QContainer<int>& due) -> QContainer<int> {
-  QContainer<int> retired;
+                            QList<int>& due) -> QList<int> {
+  QList<int> retired;
   for (auto& [handle, info] : registry.handles) {
     if (info.generation != generation) continue;
     if (info.state == ChannelHandleState::kRETIRED) continue;
@@ -554,10 +554,10 @@ auto RetireGenerationLocked(ChannelHandleRegistry& registry, int generation,
 
 }  // namespace
 
-auto RetireRuntimeGeneration(int generation) -> QContainer<int> {
+auto RetireRuntimeGeneration(int generation) -> QList<int> {
   auto& registry = Registry();
-  QContainer<int> retired;
-  QContainer<int> due;
+  QList<int> retired;
+  QList<int> due;
   std::function<void(int)> reclaimer;
   {
     std::lock_guard<std::mutex> lock(registry.mutex);
@@ -569,10 +569,10 @@ auto RetireRuntimeGeneration(int generation) -> QContainer<int> {
 }
 
 auto PublishRuntimeGeneration(int generation, int default_handle)
-    -> QContainer<int> {
+    -> QList<int> {
   auto& registry = Registry();
-  QContainer<int> retired;
-  QContainer<int> due;
+  QList<int> retired;
+  QList<int> due;
   std::function<void(int)> reclaimer;
   {
     std::lock_guard<std::mutex> lock(registry.mutex);
@@ -590,9 +590,9 @@ auto PublishRuntimeGeneration(int generation, int default_handle)
   return retired;
 }
 
-auto ListRuntimeChannels(int generation) -> QContainer<ChannelHandleInfo> {
+auto ListRuntimeChannels(int generation) -> QList<ChannelHandleInfo> {
   auto& registry = Registry();
-  QContainer<ChannelHandleInfo> out;
+  QList<ChannelHandleInfo> out;
   {
     std::lock_guard<std::mutex> lock(registry.mutex);
     const auto wanted =
@@ -655,11 +655,11 @@ auto ReclaimChannelAgainIfReclaimed(int handle) -> bool {
   return true;
 }
 
-auto RetireChannelsAtLocation(const QString& path) -> QContainer<int> {
+auto RetireChannelsAtLocation(const QString& path) -> QList<int> {
   const auto location = KeyDatabasePhysicalLocation(path);
   if (location.isEmpty()) return {};
 
-  QContainer<int> candidates;
+  QList<int> candidates;
   {
     auto& registry = Registry();
     std::lock_guard<std::mutex> lock(registry.mutex);
@@ -671,7 +671,7 @@ auto RetireChannelsAtLocation(const QString& path) -> QContainer<int> {
     }
   }
 
-  QContainer<int> retired;
+  QList<int> retired;
   for (const auto handle : candidates) {
     if (RetireChannelHandle(handle)) retired.push_back(handle);
   }

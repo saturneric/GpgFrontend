@@ -151,10 +151,10 @@ class GpgKeyRepository::Impl
     return keys;
   }
 
-  auto Fetch() -> QContainer<QSharedPointer<GpgKey>> {
+  auto Fetch() -> QList<QSharedPointer<GpgKey>> {
     auto keys = FetchKey();
 
-    auto ret = QContainer<QSharedPointer<GpgKey>>();
+    auto ret = QList<QSharedPointer<GpgKey>>();
     for (const auto& key : keys) {
       ret.append(key);
     }

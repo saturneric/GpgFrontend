@@ -127,11 +127,11 @@ auto GFKeyDatabase::connect_db(const QString& path) -> bool {
   return true;
 }
 
-auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
+auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
   if (!on_owner_thread()) {
     return run_on_owner([this]() { return GetMetadataList(); });
   }
-  QContainer<GFKeyMetadata> list;
+  QList<GFKeyMetadata> list;
   QSqlQuery query(db_);
 
   if (query.exec(R"(
@@ -591,8 +591,8 @@ auto GFKeyDatabase::create_schema_latest() -> bool {
 }
 
 auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
-    -> QContainer<GFSubKeyMetadata> {
-  QContainer<GFSubKeyMetadata> subkeys;
+    -> QList<GFSubKeyMetadata> {
+  QList<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
     SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length, can_sign, can_encrypt, can_auth, can_certify, key_ver, expires_at
@@ -710,7 +710,7 @@ auto GFKeyDatabase::DisableKey(const QString& fpr) -> bool {
 }
 
 auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
-    -> QContainer<GFUserId> {
+    -> QList<GFUserId> {
   auto real_primary_fpr = ResolvePrimaryFpr(fpr);
   if (real_primary_fpr.isEmpty()) {
     LOG_W()
@@ -719,7 +719,7 @@ auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
     return {};
   }
 
-  QContainer<GFUserId> uids;
+  QList<GFUserId> uids;
   QSqlQuery query(db_);
   query.prepare(
       "SELECT user_id, is_primary, is_revoked FROM user_ids WHERE fpr = :fpr");

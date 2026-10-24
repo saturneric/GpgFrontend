@@ -313,7 +313,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), enc_keys);
 
-  QContainer<GFBuffer> key_blocks_utf8 =
+  QList<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";

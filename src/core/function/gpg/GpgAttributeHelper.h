@@ -70,9 +70,9 @@ class GF_CORE_EXPORT GpgAttributeHelper
    * @brief Get the Attributes object
    *
    * @param key_id
-   * @return QContainer<GpgAttrInfo>
+   * @return QList<GpgAttrInfo>
    */
-  auto GetAttributes(const QString& key_id) -> QContainer<GpgAttrInfo>;
+  auto GetAttributes(const QString& key_id) -> QList<GpgAttrInfo>;
 
  private:
   GpgCommandExecutor& gce_ = GpgCommandExecutor::GetInstance(GetChannel());

@@ -87,7 +87,7 @@ class GF_CORE_EXPORT SingletonStorage {
    *
    * @return list of active channel IDs
    */
-  auto GetAllChannelId() -> QContainer<int>;
+  auto GetAllChannelId() -> QList<int>;
 
   /**
    * @brief Store a new singleton instance for the given channel.

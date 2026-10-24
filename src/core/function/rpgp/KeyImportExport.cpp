@@ -37,14 +37,14 @@
 namespace GpgFrontend {
 
 namespace {
-auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
+auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret)
     -> std::optional<GFKey> {
   if (gf_keys.empty()) {
     LOG_E() << "no gf key provided for merging";
     return std::nullopt;
   }
 
-  QContainer<GFBuffer> blocks_to_merge;
+  QList<GFBuffer> blocks_to_merge;
   bool has_any_secret = false;
 
   for (const auto& gf_key : gf_keys) {

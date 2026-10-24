@@ -294,7 +294,7 @@ class SingletonFunctionObject : public ChannelObject {
    *
    * @return list of active channel IDs for type T
    */
-  static auto GetAllChannelId() -> QContainer<int> {
+  static auto GetAllChannelId() -> QList<int> {
     return SingletonStorageCollection::GetInstance()
         ->GetSingletonStorage(typeid(T))
         ->GetAllChannelId();

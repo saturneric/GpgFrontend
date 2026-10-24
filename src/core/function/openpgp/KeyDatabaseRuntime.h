@@ -60,8 +60,8 @@ struct KeyDatabaseMove {
  *
  * @param moves the moves about to be applied
  */
-void GF_CORE_EXPORT NotePendingKeyDatabaseMoves(
-    const QContainer<KeyDatabaseMove>& moves);
+void GF_CORE_EXPORT
+NotePendingKeyDatabaseMoves(const QList<KeyDatabaseMove>& moves);
 
 /**
  * @brief The move of @p database_id was made or given up.
@@ -71,7 +71,7 @@ void GF_CORE_EXPORT ForgetPendingKeyDatabaseMove(const QString& database_id);
 /**
  * @brief The moves noted and not yet made.
  */
-auto GF_CORE_EXPORT PendingKeyDatabaseMoves() -> QContainer<KeyDatabaseMove>;
+auto GF_CORE_EXPORT PendingKeyDatabaseMoves() -> QList<KeyDatabaseMove>;
 
 /**
  * @brief Read a scan of the folders as it will be once @p moves are made.
@@ -83,9 +83,9 @@ auto GF_CORE_EXPORT PendingKeyDatabaseMoves() -> QContainer<KeyDatabaseMove>;
  * @param moves the pending moves
  * @return the scan, with every pending move applied
  */
-auto GF_CORE_EXPORT ApplyPendingMovesToScan(
-    QContainer<KeyDatabaseItemSO> discovered,
-    const QContainer<KeyDatabaseMove>& moves) -> QContainer<KeyDatabaseItemSO>;
+auto GF_CORE_EXPORT ApplyPendingMovesToScan(QList<KeyDatabaseItemSO> discovered,
+                                            const QList<KeyDatabaseMove>& moves)
+    -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief What applying the stored key database configuration did.
@@ -135,7 +135,7 @@ struct KeyDatabaseRuntimeCandidate {
  * @return the candidate
  */
 auto GF_CORE_EXPORT PrepareKeyDatabaseRuntime(
-    const QContainer<KeyDatabaseInfo>& key_dbs, int default_index,
+    const QList<KeyDatabaseInfo>& key_dbs, int default_index,
     const KeyDatabaseRuntimeOptions& options, KeyDatabaseApplyResult& result)
     -> KeyDatabaseRuntimeCandidate;
 
@@ -167,7 +167,7 @@ auto GF_CORE_EXPORT PrepareKeyDatabaseRuntime(
  * @return what happened
  */
 auto GF_CORE_EXPORT ApplyKeyDatabaseRuntime(
-    const QContainer<KeyDatabaseMove>& moves = {}) -> KeyDatabaseApplyResult;
+    const QList<KeyDatabaseMove>& moves = {}) -> KeyDatabaseApplyResult;
 
 /**
  * @brief Install what reclaims a retired channel once nothing holds it.

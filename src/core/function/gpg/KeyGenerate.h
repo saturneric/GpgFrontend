@@ -77,10 +77,9 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
  *
  * @param ctx
  * @param key
- * @return QContainer<KeyAlgo>
+ * @return QList<KeyAlgo>
  */
-auto FilterKeyAlgoByKeyGnuPGImpl(
-    OpenPGPContext& ctx, const GpgKey& key, const QContainer<KeyAlgo>& algos)
-    -> QContainer<KeyAlgo>;
+auto FilterKeyAlgoByKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKey& key,
+                                 const QList<KeyAlgo>& algos) -> QList<KeyAlgo>;
 
 }  // namespace GpgFrontend

@@ -65,7 +65,7 @@ class GF_CORE_EXPORT KeyCategoryRepository
    *
    * @return ordered list of category cache objects
    */
-  auto Fetch() -> QContainer<KeyCategoryCO>;
+  auto Fetch() -> QList<KeyCategoryCO>;
 
   /**
    * @brief Reload categories from persistent storage.
@@ -187,7 +187,7 @@ class GF_CORE_EXPORT KeyCategoryRepository
   CacheManager& cm_ = CacheManager::GetInstance();
 
   // All custom categories for the active key database.
-  QContainer<KeyCategoryCO> categories_;
+  QList<KeyCategoryCO> categories_;
   // Per-tab colour overrides (tab id -> "#RRGGBB").
   QMap<QString, QString> tab_colors_;
   // Per-scope tab orders (scope -> ordered tab ids).

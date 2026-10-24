@@ -44,7 +44,7 @@ namespace GpgFrontend {
  * @param buffer
  * @return std::optional<GFKeyMetadata>
  */
-auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey>;
+auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QList<GFKey>;
 
 /**
  * @brief Creates or updates a GFKey in the database based on the provided
@@ -132,22 +132,22 @@ auto PinMarkedSubkey(const GpgAbstractKey& key, const GFBuffer& key_block)
  *
  * @param key_db
  * @param key_ids
- * @return QContainer<GFBuffer>
+ * @return QList<GFBuffer>
  */
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
                                         const GpgKeyList& keys)
-    -> QContainer<GFBuffer>;
+    -> QList<GFBuffer>;
 
 /**
  * @brief Get the Secret Keys By Key Id For Signing object
  *
  * @param key_db
  * @param key
- * @return QContainer<GFBuffer>
+ * @return QList<GFBuffer>
  */
 auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
                                     const GpgAbstractKeyPtrList& key)
-    -> QContainer<GFBuffer>;
+    -> QList<GFBuffer>;
 
 /**
  * @brief

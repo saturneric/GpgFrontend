@@ -88,7 +88,7 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return list of GFKeyMetadata, each including associated user IDs and
    * subkeys
    */
-  auto GetMetadataList() -> QContainer<GFKeyMetadata>;
+  auto GetMetadataList() -> QList<GFKeyMetadata>;
 
   /**
    * @brief Return the armored public and secret key blocks for a given key.
@@ -226,7 +226,7 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return list of GFSubKeyMetadata for that primary key
    */
   auto load_subkeys_for_parent(const QString& parent_fpr)
-      -> QContainer<GFSubKeyMetadata>;
+      -> QList<GFSubKeyMetadata>;
 
   /**
    * @brief Load all user IDs belonging to the primary key identified by @p fpr.
@@ -235,7 +235,7 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * internally
    * @return list of GFUserId, primary UID first
    */
-  auto load_user_ids_for_parent(const QString& fpr) -> QContainer<GFUserId>;
+  auto load_user_ids_for_parent(const QString& fpr) -> QList<GFUserId>;
 
   /**
    * @brief Enable recommended SQLite pragmas: foreign keys, WAL journal mode,

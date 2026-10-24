@@ -94,7 +94,7 @@ class GF_CORE_EXPORT GpgCommandExecutor
         GpgCommandExecutorInterator int_func = [](QProcess *) {});
   };
 
-  using ExecuteContexts = QContainer<ExecuteContext>;
+  using ExecuteContexts = QList<ExecuteContext>;
 
   explicit GpgCommandExecutor(int channel = kGpgFrontendDefaultChannel);
 

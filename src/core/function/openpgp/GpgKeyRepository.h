@@ -128,7 +128,7 @@ class GF_CORE_EXPORT GpgKeyRepository
    *
    * @return list of shared pointers to all GpgKey objects
    */
-  auto Fetch() -> QContainer<QSharedPointer<GpgKey>>;
+  auto Fetch() -> QList<QSharedPointer<GpgKey>>;
 
   /**
    * @brief Flush the key cache, forcing the next lookup to reload from the

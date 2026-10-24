@@ -303,7 +303,7 @@ auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString {
   return detail;
 }
 
-auto NoUsableRecipientsResult(const QContainer<GpgKey>& recipients)
+auto NoUsableRecipientsResult(const QList<GpgKey>& recipients)
     -> GFEncryptResult {
   GFEncryptResult result;
   for (const auto& recipient : recipients) {
