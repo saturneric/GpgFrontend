@@ -347,7 +347,9 @@ void LuaPlacements::BuildButtons(const QString& anchor, QBoxLayout* layout,
       button->setText(action->text());
       button->setToolTip(action->toolTip());
       button->setEnabled(action->isEnabled());
-      button->setVisible(action->isVisible());
+      // Hidden or left alone, never shown: the button has no parent yet,
+      // and showing a parentless widget opens it as a window of its own.
+      if (!action->isVisible()) button->hide();
       QObject::connect(button, &QPushButton::clicked, action,
                        &QAction::trigger);
     } else {
@@ -362,7 +364,7 @@ void LuaPlacements::BuildButtons(const QString& anchor, QBoxLayout* layout,
         menu->addAction(action);
       }
       button->setMenu(menu);
-      button->setVisible(any);
+      if (!any) button->hide();
       QObject::connect(menu, &QMenu::aboutToShow, menu, [menu, group, ctx]() {
         const auto fresh = ctx();
         const auto actions = menu->actions();
