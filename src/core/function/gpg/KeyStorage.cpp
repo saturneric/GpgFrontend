@@ -85,11 +85,13 @@ auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
   auto& g_ctx = GpgCtx(ctx);
   GpgError err = gpgme_op_keylist_start(g_ctx.DefaultContext(), nullptr, 0);
 
-  // for debug
-  assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
-
-  // return when error
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
+  // A listing fails for ordinary reasons -- an option the homedir's gpg.conf
+  // has that this gpg refuses, a homedir gone missing -- so it is reported,
+  // not asserted on.
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    LOG_W() << "key listing could not start:" << DescribeGpgErrCode(err).second;
+    return false;
+  }
 
   gpgme_key_t key;
   while ((err = gpgme_op_keylist_next(g_ctx.DefaultContext(), &key)) ==
@@ -97,12 +99,19 @@ auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
     SecureCreateSharedObject<GpgKey>(key);
   }
 
-  // for debug
-  assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
-
+  const auto list_err = err;
   err = gpgme_op_keylist_end(g_ctx.DefaultContext());
-  assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
+  if (CheckGpgError2ErrCode(list_err, GPG_ERR_EOF) != GPG_ERR_EOF) {
+    LOG_W() << "key listing stopped early:"
+            << DescribeGpgErrCode(list_err).second;
+    return false;
+  }
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    LOG_W() << "key listing did not end cleanly:"
+            << DescribeGpgErrCode(err).second;
+    return false;
+  }
   return true;
 }
 
@@ -114,11 +123,13 @@ auto FlushKeyCacheGnuPGImpl(
   auto& g_ctx = GpgCtx(ctx);
   GpgError err = gpgme_op_keylist_start(g_ctx.DefaultContext(), nullptr, 0);
 
-  // for debug
-  assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
-
-  // return when error
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
+  // A listing fails for ordinary reasons -- an option the homedir's gpg.conf
+  // has that this gpg refuses, a homedir gone missing -- so it is reported,
+  // not asserted on.
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    LOG_W() << "key listing could not start:" << DescribeGpgErrCode(err).second;
+    return false;
+  }
 
   gpgme_key_t key;
   while ((err = gpgme_op_keylist_next(g_ctx.DefaultContext(), &key)) ==
@@ -151,12 +162,19 @@ auto FlushKeyCacheGnuPGImpl(
     }
   }
 
-  // for debug
-  assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
-
+  const auto list_err = err;
   err = gpgme_op_keylist_end(g_ctx.DefaultContext());
-  assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
+  if (CheckGpgError2ErrCode(list_err, GPG_ERR_EOF) != GPG_ERR_EOF) {
+    LOG_W() << "key listing stopped early:"
+            << DescribeGpgErrCode(list_err).second;
+    return false;
+  }
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    LOG_W() << "key listing did not end cleanly:"
+            << DescribeGpgErrCode(err).second;
+    return false;
+  }
   return true;
 }
 

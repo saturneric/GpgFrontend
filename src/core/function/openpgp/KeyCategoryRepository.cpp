@@ -32,6 +32,7 @@
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/helper/KeyDatabaseScopedCache.h"
 #include "core/struct/cache_object/KeyCategoriesCO.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
 
@@ -92,7 +93,7 @@ auto KeyCategoryRepository::AddCategory(const QString& name,
   c.name = name;
   c.color = color;
   c.builtin = false;
-  c.creation_time = QDateTime::currentDateTime();
+  c.creation_time = CurrentDateTime();
 
   categories_.push_back(c);
   persist_categories();

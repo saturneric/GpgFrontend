@@ -28,6 +28,8 @@
 
 #include "core/function/CoreSignalStation.h"
 
+#include <mutex>
+
 #include "core/model/GpgPassphraseContext.h"
 
 std::unique_ptr<GpgFrontend::CoreSignalStation>
@@ -35,7 +37,11 @@ std::unique_ptr<GpgFrontend::CoreSignalStation>
 
 auto GpgFrontend::CoreSignalStation::GetInstance()
     -> GpgFrontend::CoreSignalStation* {
-  if (instance == nullptr) {
+  // Reached from the GUI thread and from the module loader's task runners
+  // during startup, so the first call is a race: an unguarded check would
+  // let both build an instance and one replace the other while in use.
+  static std::once_flag created;
+  std::call_once(created, [] {
     // Registered here rather than at UI startup because the first connection to
     // SignalBadOpenPGPEnv can be made before that point. The name must match
     // the parameter spelling moc writes into the signal signature exactly,
@@ -54,6 +60,12 @@ auto GpgFrontend::CoreSignalStation::GetInstance()
         "QSharedPointer<GpgPassphraseContext>");
 
     instance = std::make_unique<CoreSignalStation>();
-  }
+    // Whichever thread got here first owns it now; it belongs with the
+    // application, which every receiver of its signals lives on.
+    if (auto* app = QCoreApplication::instance();
+        app != nullptr && instance->thread() != app->thread()) {
+      instance->moveToThread(app->thread());
+    }
+  });
   return instance.get();
 }
