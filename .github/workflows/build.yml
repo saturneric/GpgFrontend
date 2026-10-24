@@ -620,9 +620,17 @@ jobs:
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           # Deliberately no -appimage: the image is built at the end, after the
           # descriptors have been regenerated against the deployed natives.
+          #
+          # -appimage also switched on bundling of every non-Qt library, as a
+          # side effect. Dropping it alone shipped an image carrying Qt and
+          # nothing else -- no libsodium, libarchive, glib, xcb -- that died
+          # before main() on any desktop without them. -bundle-non-qt-libs is
+          # that side effect on its own, and has to stay while -appimage is
+          # absent.
           ./linuxdeployqt-continuous.AppImage \
             "$APP_DIR/usr/share/applications"/*.desktop \
             $EXTRA_ARGS \
+            -bundle-non-qt-libs \
             -no-translations \
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
             -executable=$APP_DIR/usr/lib/libsecret-1.so.0 \
@@ -652,6 +660,32 @@ jobs:
             patchelf --set-rpath "$want" "$native"
             echo "$(basename "$native"): $want"
           done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
+
+          # Every library anything in the AppDir needs must be in the AppDir,
+          # or be one the AppImage deliberately takes from the host (the
+          # excludelist linuxdeployqt itself honours). The smoke test cannot
+          # see this: this runner has all of them installed, so a missing one
+          # resolves against the host there and nowhere else.
+          wget -nv -O "$RUNNER_TEMP/excludelist" \
+            https://raw.githubusercontent.com/AppImage/pkg2appimage/master/excludelist
+          sed 's/#.*//' "$RUNNER_TEMP/excludelist" | awk 'NF { print $1 }' \
+            | sort -u > "$RUNNER_TEMP/excluded.txt"
+          test -s "$RUNNER_TEMP/excluded.txt" \
+            || { echo "the AppImage excludelist came back empty" >&2; exit 1; }
+          find "$APP_DIR" -name '*.so*' -printf '%f\n' | sort -u > "$RUNNER_TEMP/bundled.txt"
+          while IFS= read -r elf; do
+            readelf -h "$elf" >/dev/null 2>&1 || continue
+            readelf -d "$elf" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p'
+          done < <(find "$APP_DIR" -type f \( -name '*.so*' -o -perm -u+x \)) \
+            | sort -u > "$RUNNER_TEMP/needed.txt"
+          unbundled="$(comm -23 "$RUNNER_TEMP/needed.txt" "$RUNNER_TEMP/bundled.txt" \
+                         | comm -23 - "$RUNNER_TEMP/excluded.txt")"
+          if [ -n "$unbundled" ]; then
+            echo "needed by the AppDir but neither bundled nor excluded:" >&2
+            echo "$unbundled" >&2
+            exit 1
+          fi
+          echo "dependency closure complete: $(wc -l < "$RUNNER_TEMP/needed.txt") NEEDED entries"
         if: runner.os == 'Linux'
 
       # The natives were just rewritten, so the descriptors that bind them
