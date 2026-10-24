@@ -4,27 +4,27 @@
 <context>
     <name>GpgFrontend</name>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1570"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1562"/>
         <source>OK</source>
         <translation>Tamam</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1572"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1564"/>
         <source>Expiring Soon</source>
         <translation>Yakında sona eriyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1574"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1566"/>
         <source>Expired</source>
         <translation>Süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1576"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1568"/>
         <source>Revoked</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1578"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1570"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
@@ -32,7 +32,7 @@
 <context>
     <name>GpgFrontend::GpgDecryptResultAnalyse</name>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="40"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="57"/>
         <source>Decrypt</source>
         <translation>Şifresini çöz</translation>
     </message>
@@ -183,7 +183,7 @@
 <context>
     <name>GpgFrontend::GpgEncryptResultAnalyse</name>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="40"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="53"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
@@ -262,13 +262,13 @@
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="253"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="247"/>
         <source>Usage</source>
         <translation>Kullanım</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="254"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="248"/>
         <source>Trust</source>
         <translation>Güven</translation>
     </message>
@@ -299,7 +299,7 @@
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="255"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="249"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
@@ -309,33 +309,33 @@
         <translation>Durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="114"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="174"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="108"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="168"/>
         <source>Never</source>
         <translation>Hiçbir zaman</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="251"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="245"/>
         <source>ID</source>
         <translation>Kimlik</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="252"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="246"/>
         <source>Algo</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="256"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="250"/>
         <source>No Comment</source>
         <translation>Yorum yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="262"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="256"/>
         <source>SubKeys (up to 8):</source>
         <translation>Alt anahtarlar (en fazla 8):</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="268"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="262"/>
         <source>ID: %1 | Algo: %2 | Usage: %3</source>
         <translation>Kimlik: %1 | Algoritma: %2 | Kullanım: %3</translation>
     </message>
@@ -386,7 +386,7 @@
 <context>
     <name>GpgFrontend::GpgSignResultAnalyse</name>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="44"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="61"/>
         <source>Sign</source>
         <translation>İmzala</translation>
     </message>
@@ -535,7 +535,7 @@
 <context>
     <name>GpgFrontend::GpgVerifyResultAnalyse</name>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="42"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgOpResultInfo.cpp" line="65"/>
         <source>Verify</source>
         <translation>Doğrula</translation>
     </message>
@@ -1370,12 +1370,12 @@
         <translation>Dosya açılamadı: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="241"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="237"/>
         <source>Short Name</source>
         <translation>Kısa ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="242"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="238"/>
         <source>The name &quot;%1&quot; is shorter than five characters. Short names are allowed, but they are often a typo and make the key harder for others to recognise.
 
 Do you want to continue?</source>
@@ -1632,7 +1632,7 @@ Devam etmek istiyor musunuz?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="205"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="703"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="701"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
@@ -1743,245 +1743,245 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::AdvancedTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="99"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="98"/>
         <source>Security</source>
         <translation>Güvenlik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="113"/>
         <source>wipe freed memory</source>
         <translation>serbest bırakılan belleği sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="115"/>
         <source>also lock memory pages</source>
         <translation>ayrıca bellek sayfalarını kilitle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="117"/>
         <source>also rotate keys weekly</source>
         <translation>ayrıca anahtarları haftalık döndür</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="119"/>
         <source>no extra hardening</source>
         <translation>ek sıkılaştırma yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="130"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="128"/>
         <source>How aggressively the application protects your secrets. Higher levels cost some performance.</source>
         <translation>Uygulamanın gizli bilgilerinizi ne kadar sıkı koruduğu. Daha yüksek düzeyler biraz performansa mal olur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="130"/>
         <source>Secure Level:</source>
         <translation>Güvenlik düzeyi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="136"/>
         <source>No extra protection (default)</source>
         <translation>Ek koruma yok (varsayılan)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="139"/>
         <source>System keychain</source>
         <translation>Sistem anahtar zinciri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="143"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="141"/>
         <source>PIN at startup</source>
         <translation>Başlangıçta PIN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="146"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="144"/>
         <source>How the application key file is protected on disk. The system keychain keeps a secret on this computer and never asks you for a password; a PIN is asked for each time the application starts.</source>
         <translation>Uygulama anahtarı dosyasının diskte nasıl korunduğu. Sistem anahtar zinciri bu bilgisayarda bir sır saklar ve sizden hiçbir zaman parola istemez; uygulama her başladığında bir PIN istenir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="150"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="148"/>
         <source>Change PIN…</source>
         <translation>PIN&apos;i değiştir…</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="155"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="153"/>
         <source>Application Key Protection:</source>
         <translation>Uygulama anahtarı koruması:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="158"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="156"/>
         <source>Weekly key rotation offers little protection while the application key itself is stored unprotected on disk. Consider using the system keychain or a PIN.</source>
         <translation>Uygulama anahtarının kendisi diskte korumasız dururken haftalık anahtar döndürme az koruma sağlar. Sistem anahtar zincirini veya bir PIN kullanmayı düşünün.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="166"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="164"/>
         <source>Diagnostics</source>
         <translation>Tanılama</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="171"/>
         <source>Trace</source>
         <translation>İzleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="174"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="172"/>
         <source>Debug</source>
         <translation>Hata ayıklama</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="175"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="173"/>
         <source>Info</source>
         <translation>Bilgi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="174"/>
         <source>Warning</source>
         <translation>Uyarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="176"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="180"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="178"/>
         <source>Fatal</source>
         <translation>Ölümcül</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="182"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="180"/>
         <source>The least severe message that still gets written to the log. Trace is the most detailed and writes the most to disk; it adds detailed per-item output from modules that Debug leaves out.</source>
         <translation>Günlüğe yine de yazılan en düşük önemdeki ileti. İzleme en ayrıntılı düzeydir ve diske en fazla şeyi yazar; Hata ayıklamanın atladığı modüllerden ayrıntılı öğe çıktısı ekler.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="185"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="183"/>
         <source>Log Level:</source>
         <translation>Günlük düzeyi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="187"/>
         <source> entries</source>
         <translation> kayıt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="191"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="189"/>
         <source>How many recent log messages are kept in memory for crash reports and the log viewer. Larger values use more memory.</source>
         <translation>Çökme raporları ve günlük görüntüleyici için bellekte kaç güncel günlük iletisinin tutulduğu. Daha büyük değerler daha fazla bellek kullanır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="191"/>
         <source>Log Ring Buffer:</source>
         <translation>Günlük halka arabelleği:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="196"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="194"/>
         <source>These settings are read once while the application starts, so a change only takes effect after a restart.</source>
         <translation>Bu ayarlar uygulama başlarken bir kez okunur, bu nedenle bir değişiklik yalnızca yeniden başlatmadan sonra etkili olur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="202"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="200"/>
         <source>Some settings on this page are fixed by the ENV.ini file next to the application and cannot be changed here. Edit that file to change them.</source>
         <translation>Bu sayfadaki bazı ayarlar uygulamanın yanındaki ENV.ini dosyasıyla sabitlenir ve burada değiştirilemez. Değiştirmek için o dosyayı düzenleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="251"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="520"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="249"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="517"/>
         <source>System Keychain Unavailable</source>
         <translation>Sistem anahtar zinciri kullanılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="252"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="250"/>
         <source>The system credential store could not be used, so the application key cannot be protected with it.</source>
         <translation>Sistem kimlik bilgisi deposu kullanılamadı, bu nedenle uygulama anahtarı onunla korunamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="255"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="253"/>
         <source>On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and it must be unlocked.</source>
         <translation>Linux&apos;ta bunun için GNOME Keyring veya KWallet gibi çalışan bir Secret Service gerekir ve kilidi açık olmalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="283"/>
         <source>Turn Off Weekly Key Rotation?</source>
         <translation>Haftalık anahtar döndürme kapatılsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="284"/>
         <source>At the %1 level the application saves your data with a key that changes every week. Choosing a lower level stops loading those keys, so anything saved while this level was on can no longer be read and is deleted after a short grace period.</source>
         <translation>%1 düzeyinde uygulama verilerinizi her hafta değişen bir anahtarla kaydeder. Daha düşük bir düzey seçmek bu anahtarların yüklenmesini durdurur, bu nedenle bu düzey açıkken kaydedilenler artık okunamaz ve kısa bir ek süreden sonra silinir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="290"/>
         <source>Lower the level anyway?</source>
         <translation>Düzey yine de düşürülsün mü?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="319"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="316"/>
         <source>Fixed by ENV.ini and cannot be changed here.</source>
         <translation>ENV.ini ile sabitlenmiştir ve burada değiştirilemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="391"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="388"/>
         <source>This profile was opened from a file, and the passphrase that opens that file also protects its key. To change it, export the profile again with a new passphrase.</source>
         <translation>Bu profil bir dosyadan açıldı ve o dosyayı açan parola ifadesi anahtarını da korur. Değiştirmek için profili yeni bir parola ifadesiyle yeniden dışa aktarın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="403"/>
         <source>This is a temporary profile. Its key is held in memory only and is destroyed when the window closes, so there is nothing to protect.</source>
         <translation>Bu geçici bir profildir. Anahtarı yalnızca bellekte tutulur ve pencere kapanınca yok edilir, bu nedenle korunacak bir şey yoktur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="421"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="418"/>
         <source>Not available for a profile file: the file is meant to be opened on another computer, possibly running another operating system, where a secret stored in this computer&apos;s credential store cannot be read. Use a PIN, or no protection.</source>
         <translation>Profil dosyası için kullanılamaz: dosyanın başka bir bilgisayarda, belki başka bir işletim sisteminde açılması amaçlanır ve bu bilgisayarın kimlik bilgisi deposundaki bir sır orada okunamaz. Bir PIN kullanın veya koruma kullanmayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="426"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="423"/>
         <source>Not available in portable mode: a portable installation must not depend on secrets stored on one particular computer.</source>
         <translation>Taşınabilir modda kullanılamaz: taşınabilir bir kurulum, belirli bir bilgisayarda saklanan sırlara bağlı olmamalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="434"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="431"/>
         <source>No system credential store is available on this computer. On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and the libsecret client library (libsecret-1-0 on Debian and Ubuntu, libsecret on Fedora).</source>
         <translation>Bu bilgisayarda sistem kimlik bilgisi deposu yok. Linux&apos;ta bunun için GNOME Keyring veya KWallet gibi çalışan bir Secret Service ve libsecret istemci kitaplığı gerekir (Debian ve Ubuntu&apos;da libsecret-1-0, Fedora&apos;da libsecret).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="521"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="518"/>
         <source>The application key could not be protected with the system keychain, so it has been left exactly as it was.</source>
         <translation>Uygulama anahtarı sistem anahtar zinciriyle korunamadı, bu nedenle olduğu gibi bırakıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="525"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="575"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="522"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="572"/>
         <source>Application Key Error</source>
         <translation>Uygulama anahtarı hatası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="526"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="523"/>
         <source>The application key could not be re-protected: %1.</source>
         <translation>Uygulama anahtarı yeniden korunamadı: %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="529"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="577"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="526"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="574"/>
         <source>It has been left exactly as it was, so nothing has been lost.</source>
         <translation>Olduğu gibi bırakıldı, bu nedenle hiçbir şey kaybolmadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="558"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="555"/>
         <source>The current PIN is not correct.</source>
         <translation>Geçerli PIN doğru değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="569"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="566"/>
         <source>PIN Changed</source>
         <translation>PIN değiştirildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="570"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="567"/>
         <source>The application PIN has been changed.</source>
         <translation>Uygulama PIN&apos;i değiştirildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="576"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="573"/>
         <source>The PIN could not be changed: %1.</source>
         <translation>PIN değiştirilemedi: %1.</translation>
     </message>
@@ -1989,7 +1989,7 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::AppKeyPinDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="122"/>
         <source>Forgot PIN? Reset…</source>
         <translation>PIN&apos;i mi unuttunuz? Sıfırla…</translation>
     </message>
@@ -2093,95 +2093,105 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::AppearanceTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="103"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="150"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="152"/>
         <source>Toolbar</source>
         <translation>Araç çubuğu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="154"/>
         <source>Icon Size</source>
         <translation>Simge boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="155"/>
         <source>small</source>
         <translation>küçük</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="156"/>
         <source>medium</source>
         <translation>orta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="111"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="157"/>
         <source>large</source>
         <translation>büyük</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="159"/>
         <source>Icon Style</source>
         <translation>Simge biçemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="160"/>
         <source>just text</source>
         <translation>yalnızca metin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="161"/>
         <source>just icons</source>
         <translation>yalnızca simgeler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="162"/>
         <source>text and icons</source>
         <translation>metin ve simgeler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="164"/>
         <source>Actions</source>
         <translation>Eylemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="168"/>
+        <source>On click</source>
+        <translation>Tıklamada</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="170"/>
+        <source>What a click on the Encrypt and Decrypt toolbar buttons does. The other ticked actions of the row stay in the list shown on right-click.</source>
+        <translation>Şifrele ve Şifre Çöz araç çubuğu düğmelerine tıklandığında ne yapılacağını belirler. Satırdaki diğer işaretli eylemler, sağ tıklandığında gösterilen listede kalır.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="186"/>
         <source>Text Editor</source>
         <translation>Metin düzenleyici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="121"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="133"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="187"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="199"/>
         <source>Font Family</source>
         <translation>Yazı tipi ailesi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="122"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="188"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="200"/>
         <source>Font Size</source>
         <translation>Yazı tipi boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="189"/>
         <source>Tab Size</source>
         <translation>Sekme boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="191"/>
         <source>Show all fonts</source>
         <translation>Tüm yazı tiplerini göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="127"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="193"/>
         <source>Also offer proportional fonts for both surfaces below. They line up best with a monospaced one, but scripts such as Arabic are only shaped correctly by a font that covers them, and the monospaced font shipped with GpgFrontend covers Latin, Greek and Cyrillic only.</source>
         <translation>Aşağıdaki her iki yüzey için orantılı yazı tiplerini de sunun. Eş aralıklı bir yazı tipiyle en iyi hizalanırlar, ancak Arapça gibi yazı sistemleri yalnızca onları kapsayan bir yazı tipiyle doğru şekillenir ve GpgFrontend ile gelen eş aralıklı yazı tipi yalnızca Latince, Yunanca ve Kiril&apos;i kapsar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="198"/>
         <source>Status Panel</source>
         <translation>Durum paneli</translation>
     </message>
@@ -2189,62 +2199,62 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::BuildInfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="349"/>
         <source>GpgFrontend:</source>
         <translation>GpgFrontend:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="356"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="350"/>
         <source>Qt:</source>
         <translation>Qt:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="357"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
         <source>GPGME:</source>
         <translation>GPGME:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="358"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="352"/>
         <source>Assuan:</source>
         <translation>Assuan:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="359"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="353"/>
         <source>Libarchive:</source>
         <translation>Libarchive:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="360"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
         <source>OpenSSL:</source>
         <translation>OpenSSL:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="355"/>
         <source>Sodium:</source>
         <translation>Sodium:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="362"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="356"/>
         <source>Git Branch:</source>
         <translation>Git dalı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="363"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="357"/>
         <source>Git Commit:</source>
         <translation>Git işlemesi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="358"/>
         <source>Built at:</source>
         <translation>Derlenme zamanı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="368"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="362"/>
         <source>Copy Build Information</source>
         <translation>Derleme bilgisini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="375"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="369"/>
         <source>Build Information</source>
         <translation>Derleme bilgisi</translation>
     </message>
@@ -2252,57 +2262,57 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::ChoosePage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="411"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="406"/>
         <source>Choose a guide</source>
         <translation>Bir kılavuz seçin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="412"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="407"/>
         <source>Pick a topic if you want to learn the basics first.</source>
         <translation>Önce temelleri öğrenmek istiyorsanız bir konu seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="414"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="409"/>
         <source>Generate a new Key Pair</source>
         <translation>Yeni bir anahtar çifti oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="415"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="410"/>
         <source>Learn how to create your own key pairs.</source>
         <translation>Kendi anahtar çiftlerinizi nasıl oluşturacağınızı öğrenin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="418"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="413"/>
         <source>Text operations</source>
         <translation>Metin işlemleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="419"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="414"/>
         <source>Learn how to encrypt, decrypt, sign, and verify text messages.</source>
         <translation>Metin iletilerini nasıl şifreleyeceğinizi, şifresini çözeceğinizi, imzalayacağınızı ve doğrulayacağınızı öğrenin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="422"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="417"/>
         <source>File operations</source>
         <translation>Dosya işlemleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="423"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="418"/>
         <source>Learn how to encrypt, decrypt, sign, and verify files securely.</source>
         <translation>Dosyaları güvenli biçimde nasıl şifreleyeceğinizi, şifresini çözeceğinizi, imzalayacağınızı ve doğrulayacağınızı öğrenin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="426"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="421"/>
         <source>View key pair information</source>
         <translation>Anahtar çifti bilgilerini görüntüle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="427"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="422"/>
         <source>Learn how to inspect key details, user IDs, fingerprints, and key capabilities.</source>
         <translation>Anahtar ayrıntılarını, kullanıcı kimliklerini, parmak izlerini ve anahtar yeteneklerini nasıl inceleyeceğinizi öğrenin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="431"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="426"/>
         <source>You can also skip these guides and start using GpgFrontend directly.</source>
         <translation>Bu kılavuzları atlayıp GpgFrontend&apos;i doğrudan kullanmaya da başlayabilirsiniz.</translation>
     </message>
@@ -2310,42 +2320,42 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::ConclusionPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="497"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="492"/>
         <source>Ready to use</source>
         <translation>Kullanıma hazır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="499"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="494"/>
         <source>GpgFrontend is ready. You can adjust these options before finishing.</source>
         <translation>GpgFrontend hazır. Bitirmeden önce bu seçenekleri ayarlayabilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="503"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="498"/>
         <source>Contact and feedback</source>
         <translation>İletişim ve geri bildirim</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="504"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="499"/>
         <source>Report issues, ask questions, or send feedback to help improve GpgFrontend.</source>
         <translation>GpgFrontend&apos;in iyileşmesine yardımcı olmak için sorun bildirin, soru sorun veya geri bildirim gönderin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="508"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="503"/>
         <source>Submit an issue on GitHub</source>
         <translation>GitHub&apos;da sorun bildirin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="509"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="504"/>
         <source>Use GitHub issues if you want to report a bug or track a technical problem.</source>
         <translation>Bir hata bildirmek veya teknik bir sorunu izlemek istiyorsanız GitHub sorunlarını kullanın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="512"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="507"/>
         <source>Check for updates on startup</source>
         <translation>Başlangıçta güncellemeleri kontrol et</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="514"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="509"/>
         <source>Don&apos;t show this setup wizard again</source>
         <translation>Bu kurulum sihirbazını bir daha göstermeyin</translation>
     </message>
@@ -2363,22 +2373,22 @@ Devam etmek istiyor musunuz?</translation>
         <translation>Belge önizlemesi - %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="125"/>
         <source>Zoom out</source>
         <translation>Uzaklaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="130"/>
+        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="128"/>
         <source>Zoom in</source>
         <translation>Yakınlaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="131"/>
         <source>Fit to window</source>
         <translation>Pencereye sığdır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="134"/>
         <source>Actual size (100%)</source>
         <translation>Gerçek boyut (%100)</translation>
     </message>
@@ -2642,6 +2652,29 @@ Devam etmek istiyor musunuz?</translation>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::FileOperaOutcome</name>
+    <message>
+        <location filename="../../../../src/ui/main_window/FileOperaOutcome.cpp" line="49"/>
+        <source>The staged output to save was missing.</source>
+        <translation>Kaydedilecek hazırlanmış çıktı eksikti.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/FileOperaOutcome.cpp" line="53"/>
+        <source>The existing file could not be moved aside to be replaced.</source>
+        <translation>Mevcut dosya değiştirilmek üzere kenara taşınamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/FileOperaOutcome.cpp" line="58"/>
+        <source>The output could not be moved into place.</source>
+        <translation>Çıktı hedef konumuna taşınamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/FileOperaOutcome.cpp" line="66"/>
+        <source>The staged output could not be removed.</source>
+        <translation>Hazırlanmış çıktı kaldırılamadı.</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::FilePage</name>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="109"/>
@@ -2654,156 +2687,156 @@ Devam etmek istiyor musunuz?</translation>
         <translation>Geçerli klasörde yeni bir klasör oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="117"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="116"/>
         <source>New Empty File</source>
         <translation>Yeni boş dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="118"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="117"/>
         <source>Create an empty file in the current folder.</source>
         <translation>Geçerli klasörde boş bir dosya oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="131"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="130"/>
         <source>Show</source>
         <translation>Göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="133"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="132"/>
         <source>Choose what the file list shows.</source>
         <translation>Dosya listesinin ne göstereceğini seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="136"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="135"/>
         <source>Hidden Files</source>
         <translation>Gizli dosyalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="139"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="138"/>
         <source>List files and folders whose name starts with a dot.</source>
         <translation>Adı noktayla başlayan dosya ve klasörleri listeleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="144"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="143"/>
         <source>System Files</source>
         <translation>Sistem dosyaları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="147"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="146"/>
         <source>List system files such as devices and sockets.</source>
         <translation>Aygıtlar ve soketler gibi sistem dosyalarını listeleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="152"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="151"/>
         <source>Type Column</source>
         <translation>Tür sütunu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="154"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="153"/>
         <source>Show the file type as its own column.</source>
         <translation>Dosya türünü kendi sütunu olarak gösterin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="166"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="165"/>
         <source>Use ASCII Armor</source>
         <translation>Okunabilir ASCII kullan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="168"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="167"/>
         <source>Write the result of encrypting or signing as printable text (.asc) instead of binary.</source>
         <translation>Şifreleme veya imzalama sonucunu ikili yerine yazdırılabilir metin (.asc) olarak yazın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="208"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="207"/>
         <source>Batch mode is enabled. No file is selected.</source>
         <translation>Toplu işlem modu etkin. Hiçbir dosya seçili değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="209"/>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="228"/>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="267"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="208"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="227"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="266"/>
         <source>Enable batch mode to select multiple files.</source>
         <translation>Birden fazla dosya seçmek için toplu işlem modunu etkinleştirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="214"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="213"/>
         <source>%1 item(s) selected.</source>
         <translation>%1 öğe seçili.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="227"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="226"/>
         <source>Batch mode is enabled. Multiple files can be selected.</source>
         <translation>Toplu işlem modu etkin. Birden fazla dosya seçilebilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="237"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="236"/>
         <source>Filter</source>
         <translation>Filtre</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="239"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="238"/>
         <source>List only the files and folders whose name contains this text. The filter applies to the current folder and is cleared when you open another one.</source>
         <translation>Yalnızca adı bu metni içeren dosya ve klasörleri listeleyin. Filtre geçerli klasöre uygulanır ve başka bir klasör açtığınızda temizlenir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="260"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="259"/>
         <source>Go to the parent folder (Backspace)</source>
         <translation>Üst klasöre gidin (Backspace)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="261"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="260"/>
         <source>Read this folder from disk again</source>
         <translation>Bu klasörü diskten yeniden okuyun</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="263"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="262"/>
         <source>Go to a mounted volume or removable drive</source>
         <translation>Bağlı bir birime veya çıkarılabilir bir sürücüye gidin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="265"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="264"/>
         <source>Create items and choose what the list shows</source>
         <translation>Öğeler oluşturun ve listenin ne göstereceğini seçin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="295"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="294"/>
         <source>Entries listed in this folder, and how many of them are selected. Entries hidden by the filter are not counted.</source>
         <translation>Bu klasörde listelenen girdiler ve bunlardan kaçının seçili olduğu. Filtreyle gizlenen girdiler sayılmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="298"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="297"/>
         <source>Space still available on the volume holding this folder.</source>
         <translation>Bu klasörü barındıran birimde kalan boş alan.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="317"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="316"/>
         <source>The folder does not exist or cannot be opened.</source>
         <translation>Klasör yok veya açılamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="433"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="432"/>
         <source>Profile Workspace</source>
         <translation>Profil çalışma alanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="466"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="465"/>
         <source>No Available Volumes</source>
         <translation>Kullanılabilir birim yok</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="481"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="480"/>
         <source>%n item(s)</source>
         <translation>
             <numerusform>%n öğe</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="484"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="483"/>
         <source>%1 selected</source>
         <translation>%1 seçili</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="498"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="497"/>
         <source>%1 free</source>
         <translation>%1 boş</translation>
     </message>
@@ -2811,27 +2844,27 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::FilePathBar</name>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="138"/>
+        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="137"/>
         <source>Type a folder path, e.g. ~/Documents</source>
         <translation>Bir klasör yolu yazın, örn. ~/Documents</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="140"/>
+        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="139"/>
         <source>Type a folder path and press Enter. &quot;~&quot; stands for your home folder, and a relative path is resolved against the current one. Press Escape to go back to the path buttons.</source>
         <translation>Bir klasör yolu yazın ve Enter tuşuna basın. &quot;~&quot; ev klasörünüzü temsil eder ve göreli bir yol geçerli yola göre çözülür. Yol düğmelerine dönmek için Escape tuşuna basın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="166"/>
+        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="165"/>
         <source>Click a folder in the path to go there, or click the edit button to type a path (Ctrl+L).</source>
         <translation>Oraya gitmek için yoldaki bir klasöre tıklayın veya bir yol yazmak için düzenle düğmesine tıklayın (Ctrl+L).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="398"/>
+        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="397"/>
         <source>Type a path instead (Ctrl+L)</source>
         <translation>Bunun yerine bir yol yazın (Ctrl+L)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="418"/>
+        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="417"/>
         <source>Show parent folders</source>
         <translation>Üst klasörleri gösterin</translation>
     </message>
@@ -2991,257 +3024,257 @@ Devam etmek istiyor musunuz?</translation>
 <context>
     <name>GpgFrontend::UI::FileTreeView</name>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="266"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="253"/>
         <source>This folder cannot be opened</source>
         <translation>Bu klasör açılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="268"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="255"/>
         <source>No file matches &quot;%1&quot;</source>
         <translation>&quot;%1&quot; ile eşleşen dosya yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="269"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="256"/>
         <source>This folder is empty</source>
         <translation>Bu klasör boş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="342"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="328"/>
         <source>Unable to Open File</source>
         <translation>Dosya açılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="343"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="329"/>
         <source>The file cannot be read.</source>
         <translation>Dosya okunamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="353"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="339"/>
         <source>Unable to Open Folder</source>
         <translation>Klasör açılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="354"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="340"/>
         <source>The folder cannot be opened. Please check permissions.</source>
         <translation>Klasör açılamıyor. Lütfen izinleri kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="412"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="622"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="398"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="607"/>
         <source>Move to Trash</source>
         <translation>Çöp kutusuna taşı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="414"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="400"/>
         <source>Move &quot;%1&quot; to Trash?</source>
         <translation>&quot;%1&quot; çöp kutusuna taşınsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="415"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="401"/>
         <source>Move %1 selected items to Trash?</source>
         <translation>%1 seçili öğe çöp kutusuna taşınsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="437"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="423"/>
         <source>Unable to Move to Trash</source>
         <translation>Çöp kutusuna taşınamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="439"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="425"/>
         <source>The item &quot;%1&quot; could not be moved to Trash.</source>
         <translation>&quot;%1&quot; öğesi çöp kutusuna taşınamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="441"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="427"/>
         <source>%1 item(s) could not be moved to Trash.</source>
         <translation>%1 öğe çöp kutusuna taşınamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="446"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="432"/>
         <source>Moved %1 item(s) to Trash.</source>
         <translation>%1 öğe çöp kutusuna taşındı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="469"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="477"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="455"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="463"/>
         <source>Unable to Create Folder</source>
         <translation>Klasör oluşturulamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="470"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="456"/>
         <source>The target folder is not available.</source>
         <translation>Hedef klasör kullanılamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="478"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="464"/>
         <source>The folder could not be created. Please check permissions.</source>
         <translation>Klasör oluşturulamadı. Lütfen izinleri kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="486"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="472"/>
         <source>Created folder: %1</source>
         <translation>Klasör oluşturuldu: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="507"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="493"/>
         <source>Unable to Create File</source>
         <translation>Dosya oluşturulamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="508"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="494"/>
         <source>The file could not be created. Please check permissions.</source>
         <translation>Dosya oluşturulamadı. Lütfen izinleri kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="522"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="508"/>
         <source>Created file: %1</source>
         <translation>Dosya oluşturuldu: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="579"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="565"/>
         <source>Unable to Rename</source>
         <translation>Yeniden adlandırılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="580"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="566"/>
         <source>The file or folder could not be renamed.</source>
         <translation>Dosya veya klasör yeniden adlandırılamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="586"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="572"/>
         <source>Renamed &quot;%1&quot; to &quot;%2&quot;.</source>
         <translation>&quot;%1&quot;, &quot;%2&quot; olarak yeniden adlandırıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="599"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="585"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="601"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="587"/>
         <source>Open the file in a GpgFrontend editor tab (Enter).</source>
         <translation>Dosyayı bir GpgFrontend düzenleyici sekmesinde açın (Enter).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="608"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="594"/>
         <source>Open with Default Application</source>
         <translation>Varsayılan uygulama ile aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="610"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="596"/>
         <source>Hand the item to the application your system uses for it.</source>
         <translation>Öğeyi, sisteminizin bunun için kullandığı uygulamaya verin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="615"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="601"/>
         <source>Rename</source>
         <translation>Yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="616"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="602"/>
         <source>Give the item a new name (F2).</source>
         <translation>Öğeye yeni bir ad verin (F2).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="624"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="609"/>
         <source>Move the selected items to the system Trash, where they can still be recovered (Delete).</source>
         <translation>Seçili öğeleri, hâlâ kurtarılabilecekleri sistem çöp kutusuna taşıyın (Delete).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="631"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="615"/>
         <source>Calculate Hash</source>
         <translation>Karma hesapla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="633"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="617"/>
         <source>Compute checksums of the file and show them on the information board, to compare it against a published value.</source>
         <translation>Dosyanın sağlama toplamlarını hesaplayın ve yayımlanmış bir değerle karşılaştırmak için bilgi panosunda gösterin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="639"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="623"/>
         <source>Folder</source>
         <translation>Klasör</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="641"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="625"/>
         <source>Create a new folder inside the selected folder.</source>
         <translation>Seçili klasörün içinde yeni bir klasör oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="646"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="630"/>
         <source>Empty File</source>
         <translation>Boş dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="648"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="632"/>
         <source>Create an empty file inside the selected folder.</source>
         <translation>Seçili klasörün içinde boş bir dosya oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="654"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="637"/>
         <source>Compress...</source>
         <translation>Sıkıştır...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="658"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="641"/>
         <source>Copy Path</source>
         <translation>Yolu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="660"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="643"/>
         <source>Copy the full path of the selected items to the clipboard.</source>
         <translation>Seçili öğelerin tam yolunu panoya kopyalayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="665"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="648"/>
         <source>Refresh</source>
         <translation>Yenile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="666"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="649"/>
         <source>Read this folder from disk again.</source>
         <translation>Bu klasörü diskten yeniden okuyun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="670"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="653"/>
         <source>New</source>
         <translation>Yeni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="673"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="656"/>
         <source>Create a new item in the current folder.</source>
         <translation>Geçerli klasörde yeni bir öğe oluşturun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="782"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="765"/>
         <source>Calculating</source>
         <translation>Hesaplanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="801"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="784"/>
         <source>File Hash Information</source>
         <translation>Dosya karma bilgisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="851"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="838"/>
         <source>Batch mode is enabled. Use Ctrl or Shift to select multiple items.</source>
         <translation>Toplu işlem modu etkin. Birden fazla öğe seçmek için Ctrl veya Shift kullanın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1014"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1022"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1056"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="997"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1005"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1035"/>
         <source>Move Failed</source>
         <translation>Taşıma başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1015"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1212"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="998"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1191"/>
         <source>A file or folder named &quot;%1&quot; already exists in the target folder.</source>
         <translation>Hedef klasörde &quot;%1&quot; adlı bir dosya veya klasör zaten var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1023"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1006"/>
         <source>Unable to move &quot;%1&quot;.
 
 The target may be on another volume, or you may not have sufficient permissions.</source>
@@ -3250,150 +3283,150 @@ The target may be on another volume, or you may not have sufficient permissions.
 Hedef başka bir birimde olabilir veya yeterli izniniz olmayabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1056"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1211"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1225"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1234"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1249"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1257"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1282"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1035"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1190"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1204"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1213"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1228"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1236"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1261"/>
         <source>Copy Failed</source>
         <translation>Kopyalama başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1057"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1036"/>
         <source>The target folder is not writable.</source>
         <translation>Hedef klasör yazılabilir değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1080"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1103"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1059"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1082"/>
         <source>The source and target folder are the same.</source>
         <translation>Kaynak ve hedef klasör aynı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1083"/>
         <source>Cannot put &quot;%1&quot; into itself or one of its subfolders.</source>
         <translation>&quot;%1&quot; kendi içine veya alt klasörlerinden birine konulamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1116"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1095"/>
         <source>Move Items</source>
         <translation>Öğeleri taşı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1119"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1098"/>
         <source>Move &quot;%1&quot; to &quot;%2&quot;?</source>
         <translation>&quot;%1&quot;, &quot;%2&quot; içine taşınsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1121"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1100"/>
         <source>Move %1 items to &quot;%2&quot;?</source>
         <translation>%1 öğe &quot;%2&quot; içine taşınsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1125"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
         <source>Copy Items</source>
         <translation>Öğeleri kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1128"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1107"/>
         <source>Copy &quot;%1&quot; to &quot;%2&quot;?</source>
         <translation>&quot;%1&quot;, &quot;%2&quot; içine kopyalansın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1130"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1109"/>
         <source>Copy %1 items to &quot;%2&quot;?</source>
         <translation>%1 öğe &quot;%2&quot; içine kopyalansın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1135"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1114"/>
         <source>Move</source>
         <translation>Taşı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1135"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1114"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1177"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1156"/>
         <source>Moved %1 item(s).</source>
         <translation>%1 öğe taşındı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1178"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1157"/>
         <source>Copied %1 item(s).</source>
         <translation>%1 öğe kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1184"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1163"/>
         <source>Move Partially Completed</source>
         <translation>Taşıma kısmen tamamlandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1185"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1164"/>
         <source>Copy Partially Completed</source>
         <translation>Kopyalama kısmen tamamlandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1187"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1166"/>
         <source>Some items could not be moved. Please check permissions or whether the target is on another volume.</source>
         <translation>Bazı öğeler taşınamadı. Lütfen izinleri veya hedefin başka bir birimde olup olmadığını kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1189"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1168"/>
         <source>Some items could not be copied. Please check permissions.</source>
         <translation>Bazı öğeler kopyalanamadı. Lütfen izinleri kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1226"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1205"/>
         <source>Unable to copy &quot;%1&quot;. Please check permissions.</source>
         <translation>&quot;%1&quot; kopyalanamıyor. Lütfen izinleri kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1235"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1214"/>
         <source>&quot;%1&quot; is not a regular file or folder.</source>
         <translation>&quot;%1&quot; normal bir dosya veya klasör değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1250"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1229"/>
         <source>The target folder &quot;%1&quot; already exists.</source>
         <translation>Hedef klasör &quot;%1&quot; zaten var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1258"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1237"/>
         <source>Unable to create target folder &quot;%1&quot;.</source>
         <translation>Hedef klasör &quot;%1&quot; oluşturulamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1283"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1262"/>
         <source>Unable to copy &quot;%1&quot;.</source>
         <translation>&quot;%1&quot; kopyalanamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1303"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1282"/>
         <source>Path copied to clipboard.</source>
         <translation>Yol panoya kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1304"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1283"/>
         <source>%1 paths copied to clipboard.</source>
         <translation>%1 yol panoya kopyalandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1315"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1333"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1294"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1312"/>
         <source>File list refreshed.</source>
         <translation>Dosya listesi yenilendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1323"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1302"/>
         <source>Unable to Refresh</source>
         <translation>Yenilenemiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1324"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1303"/>
         <source>The current folder no longer exists or cannot be opened.</source>
         <translation>Geçerli klasör artık yok veya açılamıyor.</translation>
     </message>
@@ -3933,257 +3966,727 @@ Hâlâ çalışan herhangi bir GnuPG işlemi kesilecek.</translation>
 <context>
     <name>GpgFrontend::UI::GpgOperaHelper</name>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="302"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="372"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="446"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="512"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="220"/>
         <source>Operation Not Supported</source>
         <translation>İşlem desteklenmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="311"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="381"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="454"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="520"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="224"/>
         <source>Operation Cancelled</source>
         <translation>İşlem iptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="321"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="391"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="463"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="529"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="228"/>
         <source>Critical Error</source>
         <translation>Kritik hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="759"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="198"/>
+        <source>The operation stopped before the engine returned a result.</source>
+        <translation>İşlem, motor bir sonuç döndürmeden önce durdu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="211"/>
+        <source>The engine returned no usable result.</source>
+        <translation>Motor kullanılabilir bir sonuç döndürmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="836"/>
         <source>Another operation is still running. Please wait for it to finish.</source>
         <translation>Başka bir işlem hâlâ çalışıyor. Lütfen bitmesini bekleyin.</translation>
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::InfoBoardReport</name>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="196"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="615"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1398"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1401"/>
+        <source>Result</source>
+        <translation>Sonuç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="270"/>
+        <source>Applied to the current document</source>
+        <translation>Geçerli belgeye uygulandı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="273"/>
+        <source>Not applied to the document</source>
+        <translation>Belgeye uygulanmadı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="277"/>
+        <source>Written</source>
+        <translation>Yazıldı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="279"/>
+        <source>Written to %1</source>
+        <translation>%1 konumuna yazıldı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="283"/>
+        <source>Not written: saving failed</source>
+        <translation>Yazılmadı: kaydetme başarısız oldu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="286"/>
+        <source>Not written: saving stopped before this file</source>
+        <translation>Yazılmadı: kaydetme bu dosyadan önce durdu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="290"/>
+        <source>Not saved: the staged output was removed</source>
+        <translation>Kaydedilmedi: hazırlanan çıktı kaldırıldı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="294"/>
+        <source>Not saved: the staged output could not be removed</source>
+        <translation>Kaydedilmedi: hazırlanan çıktı kaldırılamadı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="298"/>
+        <source>Withheld: a failed result&apos;s output is not used</source>
+        <translation>Alıkonuldu: başarısız bir sonucun çıktısı kullanılmaz</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="302"/>
+        <source>Not produced</source>
+        <translation>Üretilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="314"/>
+        <source>apply to document</source>
+        <translation>belgeye uygula</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="317"/>
+        <source>remove staged output</source>
+        <translation>hazırlanan çıktıyı kaldır</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="321"/>
+        <source>save file</source>
+        <translation>dosyayı kaydet</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="331"/>
+        <source>%1 call</source>
+        <translation>%1 çağrısı</translation>
+    </message>
+    <message>
+        <source> (code %1)</source>
+        <translation type="vanished">(kod %1)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="357"/>
+        <source>The signer&apos;s public key is not in this key database, so the signature could not be checked.</source>
+        <translation>İmzalayanın açık anahtarı bu anahtar veritabanında olmadığından imza denetlenemedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="362"/>
+        <source>The signature does not match the data.</source>
+        <translation>İmza verilerle eşleşmiyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="366"/>
+        <source>The signature is valid, but the signer&apos;s key is not fully trusted.</source>
+        <translation>İmza geçerli, ancak imzalayanın anahtarına tam olarak güvenilmiyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="371"/>
+        <source>The signature is valid, but the signer&apos;s key has issues.</source>
+        <translation>İmza geçerli, ancak imzalayanın anahtarında sorunlar var.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="375"/>
+        <source>The signing key has been revoked.</source>
+        <translation>İmzalama anahtarı iptal edilmiş.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="378"/>
+        <source>The signature has expired.</source>
+        <translation>İmzanın süresi dolmuş.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="381"/>
+        <source>The signing key has expired.</source>
+        <translation>İmzalama anahtarının süresi dolmuş.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="384"/>
+        <source>The signing key is not authorized to make signatures.</source>
+        <translation>İmzalama anahtarı imza oluşturmaya yetkili değil.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="388"/>
+        <source>The signature could not be verified because of an error.</source>
+        <translation>Bir hata nedeniyle imza doğrulanamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="395"/>
+        <source>The signature has an unrecognized status.</source>
+        <translation>İmzanın tanınmayan bir durumu var.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="433"/>
+        <source>The operation was cancelled.</source>
+        <translation>İşlem iptal edildi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="439"/>
+        <source>The active engine does not support this operation.</source>
+        <translation>Etkin motor bu işlemi desteklemiyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="443"/>
+        <source>The active engine (%1) does not support this operation.</source>
+        <translation>Etkin motor (%1) bu işlemi desteklemiyor.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="450"/>
+        <source>No result was received for this item before the report was issued.</source>
+        <translation>Rapor yayımlanmadan önce bu öğe için sonuç alınmadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="456"/>
+        <source>The engine finished, but the output was not saved because another item in the batch did not succeed.</source>
+        <translation>Motor tamamlandı, ancak toplu işlemdeki başka bir öğe başarılı olmadığı için çıktı kaydedilmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="465"/>
+        <source>The engine finished, but the output could not be applied to the document.</source>
+        <translation>Motor tamamlandı, ancak çıktı belgeye uygulanamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="470"/>
+        <source>The output was not saved, and its staged copy could not be removed.</source>
+        <translation>Çıktı kaydedilmedi ve hazırlanan kopyası kaldırılamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="475"/>
+        <source>The engine finished, but the output could not be saved.</source>
+        <translation>Motor tamamlandı, ancak çıktı kaydedilemedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="480"/>
+        <source>The engine reported an error.</source>
+        <translation>Motor bir hata bildirdi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="484"/>
+        <source>The engine returned no usable result.</source>
+        <translation>Motor kullanılabilir bir sonuç döndürmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="489"/>
+        <source>The operation failed without a reported reason.</source>
+        <translation>İşlem, bildirilen bir neden olmadan başarısız oldu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="496"/>
+        <source>The engine reported an error, but the output was kept.</source>
+        <translation>Motor bir hata bildirdi, ancak çıktı korundu.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="524"/>
+        <source>%n key(s) could not be used.</source>
+        <translation>
+            <numerusform>%n anahtar kullanılamadı.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="537"/>
+        <source>Review the items below.</source>
+        <translation>Aşağıdaki öğeleri gözden geçirin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="551"/>
+        <source>Run the operation again when ready.</source>
+        <translation>İşlem hazır olduğunda yeniden çalıştırın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="554"/>
+        <source>Use a key database with an engine that supports this operation.</source>
+        <translation>Bu işlemi destekleyen bir motora sahip anahtar veritabanı kullanın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="566"/>
+        <source>Check that the destination is writable and has free space, then run the operation again.</source>
+        <translation>Hedefin yazılabilir olduğunu ve boş alanı bulunduğunu kontrol edin, ardından işlemi yeniden çalıştırın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="579"/>
+        <source>Import the signer&apos;s public key and verify again.</source>
+        <translation>İmzalayanın açık anahtarını içe aktarın ve yeniden doğrulayın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="591"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1765"/>
+        <source>Outcome</source>
+        <translation>Sonuç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="619"/>
+        <source>Engine result</source>
+        <translation>Motor sonucu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="625"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1396"/>
+        <source>Reason</source>
+        <translation>Sebep</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="642"/>
+        <source>Output</source>
+        <translation>Çıktı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1212"/>
+        <source>Output error</source>
+        <translation>Çıktı hatası</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1760"/>
+        <source>Operation</source>
+        <translation>İşlem</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1770"/>
+        <source>Items</source>
+        <translation>Öğeler</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1776"/>
+        <source>Engine</source>
+        <translation>Motor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1785"/>
+        <source>Reference</source>
+        <translation>Referans</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1791"/>
+        <source>Issued</source>
+        <translation>Düzenlenme</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1798"/>
+        <source>Report hash</source>
+        <translation>Rapor karması</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1829"/>
+        <source>Engine report</source>
+        <translation>Motor raporu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="631"/>
+        <source>Message</source>
+        <translation>Mesaj</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="339"/>
+        <source>code %1</source>
+        <translation>kod %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="647"/>
+        <source>Suggestion</source>
+        <translation>Öneri</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="653"/>
+        <source>Input SHA-256</source>
+        <translation>Girdi SHA-256</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="690"/>
+        <source>Details</source>
+        <translation>Ayrıntılar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="724"/>
+        <source>Some staged output could not be removed; its location is listed below.</source>
+        <translation>Bazı hazırlanmış çıktılar kaldırılamadı; konumu aşağıda listelenmiştir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="748"/>
+        <source>All output files were written.</source>
+        <translation>Tüm çıktı dosyaları yazıldı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="751"/>
+        <source>No output files were written.</source>
+        <translation>Hiçbir çıktı dosyası yazılmadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="760"/>
+        <source>The current document was not changed.</source>
+        <translation>Geçerli belge değiştirilmedi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="804"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="836"/>
+        <source>%1 of %2 items completed.</source>
+        <translation>%2 öğeden %1 tanesi tamamlandı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="874"/>
+        <source>Current document</source>
+        <translation>Geçerli belge</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="997"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1024"/>
+        <source>Succeeded</source>
+        <translation>Başarılı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1000"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1027"/>
+        <source>Completed with warnings</source>
+        <translation>Uyarılarla tamamlandı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1003"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1042"/>
+        <source>Failed</source>
+        <translation>Başarısız</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1006"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1030"/>
+        <source>Cancelled</source>
+        <translation>İptal edildi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1009"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1039"/>
+        <source>Not supported</source>
+        <translation>Desteklenmiyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1012"/>
+        <source>Not reported</source>
+        <translation>Bildirilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1016"/>
+        <source>Not saved</source>
+        <translation>Kaydedilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1033"/>
+        <source>Partially completed</source>
+        <translation>Kısmen tamamlandı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1036"/>
+        <source>Incomplete</source>
+        <translation>Tamamlanmadı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1045"/>
+        <source>Partially failed</source>
+        <translation>Kısmen başarısız</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1058"/>
+        <source>%1 completed (%2 with warnings)</source>
+        <translation>%1 tamamlandı (%2 uyarıyla)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1063"/>
+        <source>%1 completed</source>
+        <translation>%1 tamamlandı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1068"/>
+        <source>%1 not saved</source>
+        <translation>%1 kaydedilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1073"/>
+        <source>%1 failed</source>
+        <translation>%1 başarısız oldu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1078"/>
+        <source>%1 cancelled</source>
+        <translation>%1 iptal edildi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1083"/>
+        <source>%1 not supported</source>
+        <translation>%1 desteklenmiyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1088"/>
+        <source>%1 not reported</source>
+        <translation>%1 bildirilmedi</translation>
+    </message>
+    <message>
+        <source>Engine error (%1)</source>
+        <translation type="vanished">Motor hatası (%1)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1183"/>
+        <source>Engine error</source>
+        <translation>Motor hatası</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1188"/>
+        <source>Application error</source>
+        <translation>Uygulama hatası</translation>
+    </message>
+    <message>
+        <source>Engine detail (%1)</source>
+        <translation type="vanished">Motor ayrıntısı (%1)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1195"/>
+        <source>Engine detail</source>
+        <translation>Motor ayrıntısı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1205"/>
+        <source>System: %1</source>
+        <translation>Sistem: %1</translation>
+    </message>
+    <message>
+        <source>Output error (%1)</source>
+        <translation type="vanished">Çıktı hatası (%1)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1307"/>
+        <source>The operation failed. The message below is all that was reported.</source>
+        <translation>İşlem başarısız oldu. Aşağıdaki mesaj bildirilen tek bilgidir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1311"/>
+        <source>The operation completed with warnings. The message below is all that was reported.</source>
+        <translation>İşlem uyarılarla tamamlandı. Aşağıdaki mesaj bildirilen tek bilgidir.</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::InfoBoardWidget</name>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="73"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="74"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
         <source>Save</source>
         <translation>Kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="77"/>
         <source>Magnify</source>
         <translation>Büyüt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="78"/>
         <source>Clear</source>
         <translation>Temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="78"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="80"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="46"/>
         <source>Copy status text</source>
         <translation>Durum metnini kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="79"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="81"/>
         <source>Save status text to file</source>
         <translation>Durum metnini dosyaya kaydedin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="80"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="82"/>
         <source>Magnify the generated document</source>
         <translation>Oluşturulan belgeyi büyütün</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="81"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="83"/>
         <source>Clear status panel</source>
         <translation>Durum panelini temizleyin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="128"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="594"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="130"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="565"/>
         <source>Operation status will appear here.</source>
         <translation>İşlem durumu burada görünecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="195"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="197"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="196"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="198"/>
         <source>Details</source>
         <translation>Ayrıntılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="197"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="199"/>
         <source>Show the summary report</source>
         <translation>Özet raporu gösterin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="198"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="200"/>
         <source>Show the raw status text</source>
         <translation>Ham durum metnini gösterin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="305"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="696"/>
         <source>The operation completed successfully.</source>
         <translation>İşlem başarıyla tamamlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="306"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="699"/>
         <source>%1 completed successfully.</source>
         <translation>%1 başarıyla tamamlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="309"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1754"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="349"/>
+        <source>SECURITY OPERATION REPORT</source>
+        <translation>GÜVENLİK İŞLEMİ RAPORU</translation>
+    </message>
+    <message>
         <source>Completed with warnings — please review the details.</source>
-        <translation>Uyarılarla tamamlandı. Lütfen ayrıntıları gözden geçirin.</translation>
+        <translation type="vanished">Uyarılarla tamamlandı. Lütfen ayrıntıları gözden geçirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="310"/>
         <source>%1 completed with warnings — please review the details.</source>
-        <translation>%1 uyarılarla tamamlandı. Lütfen ayrıntıları gözden geçirin.</translation>
+        <translation type="vanished">%1 uyarılarla tamamlandı. Lütfen ayrıntıları gözden geçirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="314"/>
         <source>The operation failed. See the details for more information.</source>
-        <translation>İşlem başarısız oldu. Daha fazla bilgi için ayrıntılara bakın.</translation>
+        <translation type="vanished">İşlem başarısız oldu. Daha fazla bilgi için ayrıntılara bakın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="316"/>
         <source>%1 failed. See the details for more information.</source>
-        <translation>%1 başarısız oldu. Daha fazla bilgi için ayrıntılara bakın.</translation>
+        <translation type="vanished">%1 başarısız oldu. Daha fazla bilgi için ayrıntılara bakın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="326"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="306"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="328"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="476"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="308"/>
         <source>Warning</source>
         <translation>Uyarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="330"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="310"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="333"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="1049"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="313"/>
         <source>Information</source>
         <translation>Bilgi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="342"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="322"/>
         <source>The operation finished and everything checked out.</source>
         <translation>İşlem bitti ve her şey yolunda.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="344"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="324"/>
         <source>The operation finished, but something needs your attention. Read the details below.</source>
         <translation>İşlem bitti, ancak dikkatinizi gerektiren bir şey var. Aşağıdaki ayrıntıları okuyun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="348"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="328"/>
         <source>The operation failed, or the result cannot be trusted. Read the details below.</source>
         <translation>İşlem başarısız oldu veya sonuca güvenilemez. Aşağıdaki ayrıntıları okuyun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="353"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="333"/>
         <source>Nothing has been checked yet. The light turns green, orange or red once an operation finishes.</source>
         <translation>Henüz hiçbir şey kontrol edilmedi. Bir işlem bitince ışık yeşil, turuncu veya kırmızı olur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="371"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="351"/>
         <source>Green</source>
         <translation>Yeşil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="371"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="351"/>
         <source>Everything went well</source>
         <translation>Her şey yolunda gitti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="372"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="352"/>
         <source>Orange</source>
         <translation>Turuncu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="373"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="353"/>
         <source>Done, but check the details</source>
         <translation>Tamam, ancak ayrıntıları kontrol edin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="374"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="354"/>
         <source>Red</source>
         <translation>Kırmızı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="375"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="355"/>
         <source>Failed, or the result cannot be trusted</source>
         <translation>Başarısız veya sonuca güvenilemez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="376"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="356"/>
         <source>Grey</source>
         <translation>Gri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="377"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="357"/>
         <source>Idle, nothing checked yet</source>
         <translation>Boşta, henüz hiçbir şey kontrol edilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="408"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="390"/>
         <source>[%1] No details available.</source>
         <translation>[%1] Kullanılabilir ayrıntı yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="568"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="235"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="105"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="210"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="295"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="423"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="248"/>
         <source>DETAILS</source>
         <translation>AYRINTILAR</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="51"/>
         <source>GPGFRONTEND SECURITY REPORT</source>
-        <translation>GPGFRONTEND GÜVENLİK RAPORU</translation>
+        <translation type="vanished">GPGFRONTEND GÜVENLİK RAPORU</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="147"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="194"/>
         <source>No operation yet.
 Results will appear here as a summary document.</source>
         <translation>Henüz işlem yok.
 Sonuçlar burada bir özet belge olarak görünecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="224"/>
         <source>OPERATION</source>
-        <translation>İŞLEM</translation>
+        <translation type="vanished">İŞLEM</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="225"/>
         <source>STATUS</source>
-        <translation>DURUM</translation>
+        <translation type="vanished">DURUM</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="226"/>
         <source>ENGINE</source>
-        <translation>MOTOR</translation>
+        <translation type="vanished">MOTOR</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="44"/>
@@ -4191,16 +4694,14 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation>Kopyalandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="85"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="132"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="166"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="120"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="153"/>
         <source>Unable to Save</source>
         <translation>Kaydedilemiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="86"/>
         <source>The content could not be captured.</source>
-        <translation>İçerik yakalanamadı.</translation>
+        <translation type="vanished">İçerik yakalanamadı.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="92"/>
@@ -4208,242 +4709,237 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation>GpgFrontend güvenlik raporu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="94"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="93"/>
         <source>Cryptographic operation result report</source>
         <translation>Kriptografik işlem sonuç raporu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="104"/>
         <source>Hash: </source>
-        <translation>Karma: </translation>
+        <translation type="vanished">Karma: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="133"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="121"/>
         <source>The image could not be saved.</source>
         <translation>Görüntü kaydedilemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="145"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="132"/>
         <source>Export Certificate</source>
         <translation>Sertifikayı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="146"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="133"/>
         <source>PNG Image (*.png);;All Files (*)</source>
         <translation>PNG görüntüsü (*.png);;Tüm dosyalar (*)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="159"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="146"/>
         <source>Save Status Panel Content</source>
         <translation>Durum paneli içeriğini kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="160"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="147"/>
         <source>Text Files (*.txt);;All Files (*)</source>
         <translation>Metin dosyaları (*.txt);;Tüm dosyalar (*)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="167"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="154"/>
         <source>The file could not be saved. Please check the path and permissions.</source>
         <translation>Dosya kaydedilemedi. Lütfen yolu ve izinleri kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="141"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="564"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="595"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="208"/>
         <source>Issued:  %1</source>
         <translation>Düzenlenme:  %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="185"/>
         <source>Hash: %1</source>
-        <translation>Karma: %1</translation>
+        <translation type="vanished">Karma: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="190"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="162"/>
+        <source>Report status: %1. This seal is GpgFrontend&apos;s report branding; it is not a signature.</source>
+        <translation>Rapor durumu: %1. Bu mühür, GpgFrontend&apos;in rapor markalamasıdır; imza değildir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
+        <source>Report hash: %1</source>
+        <translation>Rapor hash&apos;i: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="225"/>
         <source>Export certificate as PNG image</source>
         <translation>Sertifikayı PNG görüntüsü olarak dışa aktarın</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="277"/>
+        <source>… %n more card(s) for this item (%1)</source>
+        <translation>
+            <numerusform>… bu öğe için %n kart daha (%1)</numerusform>
+        </translation>
+    </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="203"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="346"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="574"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="279"/>
+        <source>Show</source>
+        <translation>Göster</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="293"/>
+        <source>… %n more item(s): %1</source>
+        <translation>
+            <numerusform>… %n öğe daha: %1</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="295"/>
+        <source>Show all</source>
+        <translation>Tümünü göster</translation>
+    </message>
+    <message>
         <source>Operation: %1</source>
-        <translation>İşlem:      %1</translation>
+        <translation type="vanished">İşlem:      %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="205"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="348"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="576"/>
         <source>Status:    %1</source>
-        <translation>Durum:      %1</translation>
+        <translation type="vanished">Durum:      %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="206"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="351"/>
         <source>SHA-256:   %1</source>
-        <translation>SHA-256:    %1</translation>
+        <translation type="vanished">SHA-256:    %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="231"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="418"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="638"/>
         <source>Decrypt</source>
-        <translation>Şifresini çöz</translation>
+        <translation type="vanished">Şifresini çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="232"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="419"/>
         <source>RECIPIENT</source>
-        <translation>ALICI</translation>
+        <translation type="vanished">ALICI</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="233"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="420"/>
         <source>Sign</source>
-        <translation>İmzala</translation>
+        <translation type="vanished">İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="420"/>
         <source>Verify</source>
-        <translation>Doğrula</translation>
+        <translation type="vanished">Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="235"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="421"/>
         <source>SIGNER</source>
-        <translation>İMZALAYAN</translation>
+        <translation type="vanished">İMZALAYAN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="349"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="577"/>
         <source>Engine:    %1</source>
-        <translation>Motor:      %1</translation>
+        <translation type="vanished">Motor:      %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="355"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="581"/>
         <source>Details:   %1</source>
-        <translation>Ayrıntılar: %1</translation>
+        <translation type="vanished">Ayrıntılar: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="473"/>
         <source>OK</source>
-        <translation>Tamam</translation>
+        <translation type="vanished">Tamam</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="479"/>
         <source>Failed</source>
-        <translation>Başarısız</translation>
+        <translation type="vanished">Başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="510"/>
         <source>… and %1 more</source>
-        <translation>… ve %1 tane daha</translation>
+        <translation type="vanished">… ve %1 tane daha</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="586"/>
         <source>  SHA-256: %1</source>
-        <translation>  SHA-256: %1</translation>
+        <translation type="vanished">  SHA-256: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
         <source>  Signer: %1</source>
-        <translation>  İmzalayan: %1</translation>
+        <translation type="vanished">  İmzalayan: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="625"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="632"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="642"/>
         <source>  Key ID: %1</source>
-        <translation>  Anahtar kimliği: %1</translation>
+        <translation type="vanished">  Anahtar kimliği: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="630"/>
         <source>  Signed: %1</source>
-        <translation>  İmzalandı: %1</translation>
+        <translation type="vanished">  İmzalandı: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="635"/>
         <source>  Invalid signer: %1 — %2</source>
-        <translation>  Geçersiz imzalayan: %1 - %2</translation>
+        <translation type="vanished">  Geçersiz imzalayan: %1 - %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="637"/>
         <source>Encrypt</source>
-        <translation>Şifrele</translation>
+        <translation type="vanished">Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="641"/>
         <source>  Recipient: %1</source>
-        <translation>  Alıcı: %1</translation>
+        <translation type="vanished">  Alıcı: %1</translation>
     </message>
 </context>
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="258"/>
         <source>A user-friendly OpenPGP tool for encryption, signing, and key management.</source>
         <translation>Şifreleme, imzalama ve anahtar yönetimi için kullanıcı dostu bir OpenPGP aracı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="276"/>
         <source>Developed and maintained by Saturneric.</source>
         <translation>Saturneric tarafından geliştirilip sürdürülür.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="280"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="277"/>
         <source>Report an issue on GitHub</source>
         <translation>GitHub&apos;da bir sorun bildirin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="281"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="277"/>
         <source>About and contact information</source>
         <translation>Hakkında ve iletişim bilgileri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="280"/>
         <source>Developer</source>
         <translation>Geliştirici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="290"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="286"/>
         <source>Website:</source>
         <translation>Web sitesi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="293"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="289"/>
         <source>Documentation:</source>
         <translation>Belgeler:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="294"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="290"/>
         <source>User guides and overview</source>
         <translation>Kullanıcı kılavuzları ve genel bakış</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="296"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="292"/>
         <source>Source code:</source>
         <translation>Kaynak kodu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="299"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="295"/>
         <source>Release notes:</source>
         <translation>Sürüm notları:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="300"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="296"/>
         <source>Changelog and downloads</source>
         <translation>Değişiklik günlüğü ve indirmeler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="300"/>
         <source>Resources</source>
         <translation>Kaynaklar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="312"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="307"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
         <translation>GpgFrontend, &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt; lisansı altında özgür bir yazılımdır.</translation>
     </message>
@@ -4451,67 +4947,67 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
 <context>
     <name>GpgFrontend::UI::IntroPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="319"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="314"/>
         <source>Welcome to GpgFrontend</source>
         <translation>GpgFrontend&apos;e hoş geldiniz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="320"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="315"/>
         <source>Let&apos;s get you started in just a moment.</source>
         <translation>Birazdan başlamanızı sağlayacağız.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="323"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="318"/>
         <source>A simple, privacy-focused OpenPGP tool for text, files, and keys.</source>
         <translation>Metin, dosyalar ve anahtarlar için basit, gizlilik odaklı bir OpenPGP aracı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="326"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="321"/>
         <source>Language:</source>
         <translation>Dil:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="322"/>
         <source>System Default</source>
         <translation>Sistem varsayılanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="330"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="325"/>
         <source>&lt;b&gt;GpgFrontend&lt;/b&gt; helps you encrypt, decrypt, sign, and verify messages and files with OpenPGP. This short wizard will point you to the most useful places to start.</source>
         <translation>&lt;b&gt;GpgFrontend&lt;/b&gt;, iletileri ve dosyaları OpenPGP ile şifrelemenize, şifresini çözmenize, imzalamanıza ve doğrulamanıza yardımcı olur. Bu kısa sihirbaz, başlamak için en yararlı yerleri size gösterir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="335"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="330"/>
         <source>Star GpgFrontend on GitHub</source>
         <translation>GpgFrontend&apos;e GitHub&apos;da yıldız verin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="336"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="331"/>
         <source>GpgFrontend is free and open source. A star helps more people discover it and keeps the project moving forward.</source>
         <translation>GpgFrontend ücretsiz ve açık kaynaklıdır. Bir yıldız, daha fazla kişinin onu keşfetmesine yardımcı olur ve projenin ilerlemesini sağlar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="335"/>
         <source>Open the overview page</source>
         <translation>Genel bakış sayfasını açın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="336"/>
         <source>Get a quick tour of the main features and common workflows.</source>
         <translation>Ana özelliklerin ve yaygın iş akışlarının kısa bir turunu alın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="339"/>
         <source>Fundamental concepts</source>
         <translation>Temel kavramlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="345"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="340"/>
         <source>Understand public keys, private keys, encryption, signing, and trust.</source>
         <translation>Açık anahtarları, gizli anahtarları, şifrelemeyi, imzalamayı ve güveni anlayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="344"/>
         <source>You can change update checking, key database, and appearance settings later from the application settings.</source>
         <translation>Güncelleme kontrolünü, anahtar veritabanını ve görünüm ayarlarını daha sonra uygulama ayarlarından değiştirebilirsiniz.</translation>
     </message>
@@ -4572,141 +5068,141 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
 <context>
     <name>GpgFrontend::UI::KeyDatabaseEditDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="136"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="137"/>
         <source>Folder</source>
         <translation>Klasör</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="138"/>
         <source>Engine</source>
         <translation>Motor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="140"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="139"/>
         <source>Choose Folder…</source>
         <translation>Klasör seç…</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="140"/>
         <source>Convert to Relative Path</source>
         <translation>Göreli yola dönüştür</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="141"/>
         <source>e.g. Personal Keys</source>
         <translation>örn. Kişisel anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="160"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="159"/>
         <source>Open Directory</source>
         <translation>Dizini aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="171"/>
         <source>Illegal GnuPG Key Database Path</source>
         <translation>Geçersiz GnuPG anahtar veritabanı yolu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="172"/>
         <source>Target GnuPG Key Database Path is not an exists readable directory.</source>
         <translation>Hedef GnuPG anahtar veritabanı yolu, var olan okunabilir bir dizin değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="229"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="228"/>
         <source>Add Key Database</source>
         <translation>Anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="229"/>
         <source>New key database in your profile</source>
         <translation>Profilinizde yeni anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="231"/>
         <source>GpgFrontend picks the folder and keeps it inside your profile, so this key database travels with it. Just choose a name.</source>
         <translation>GpgFrontend klasörü kendisi seçer ve profilinizin içinde tutar; böylece bu anahtar veritabanı profille birlikte taşınır. Yalnızca bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="236"/>
         <source>Rename Key Database</source>
         <translation>Anahtar veritabanını yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="237"/>
         <source>Rename this key database</source>
         <translation>Bu anahtar veritabanını yeniden adlandır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="239"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="238"/>
         <source>The folder it is kept in is named after it, and is renamed too.</source>
         <translation>Tutulduğu klasör onun adını taşır ve o klasör de yeniden adlandırılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="244"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="243"/>
         <source>Add Key Database On This Computer</source>
         <translation>Bu bilgisayara anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="245"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="244"/>
         <source>New key database on this computer</source>
         <translation>Bu bilgisayarda yeni anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="247"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="246"/>
         <source>Choose a folder yourself. A key database outside your profile belongs to this computer alone, and a profile package never carries it.</source>
         <translation>Klasörü kendiniz seçin. Profilinizin dışındaki bir anahtar veritabanı yalnızca bu bilgisayara aittir ve bir profil paketi onu hiçbir zaman taşımaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="252"/>
         <source>Edit Key Database</source>
         <translation>Anahtar veritabanını düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="254"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="253"/>
         <source>Key database on this computer</source>
         <translation>Bu bilgisayardaki anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="256"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="255"/>
         <source>This key database belongs to this computer alone, and a profile package never carries it.</source>
         <translation>Bu anahtar veritabanı yalnızca bu bilgisayara aittir ve bir profil paketi onu hiçbir zaman taşımaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="305"/>
         <source>Choose a name first</source>
         <translation>Önce bir ad seçin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="308"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="306"/>
         <source>No folder chosen yet</source>
         <translation>Henüz klasör seçilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="353"/>
         <source>The key database name cannot be empty.</source>
         <translation>Anahtar veritabanı adı boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="362"/>
         <source>&quot;%1&quot; is reserved for the Built-in Key Database. Turn that one on in its section of the Key Databases settings, or pick another name.</source>
-        <translation type="unfinished"></translation>
+        <translation>&quot;%1&quot;, Yerleşik Anahtar Veritabanı için ayrılmıştır. Onu Anahtar Veritabanları ayarlarının kendi bölümünde açın veya başka bir ad seçin.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; is the name of the key database GpgFrontend derives from your OpenPGP engine. Turn that one on with the checkbox in Key Database settings, or pick another name.</source>
         <translation type="vanished">&quot;%1&quot;, GpgFrontend&apos;in OpenPGP motorunuzdan türettiği anahtar veritabanının adıdır. Onu Anahtar veritabanı ayarlarındaki onay kutusuyla açın veya başka bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="372"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="370"/>
         <source>The key database path cannot be empty.</source>
         <translation>Anahtar veritabanı yolu boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="383"/>
+        <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="381"/>
         <source>A key database with the name &apos;%1&apos; already exists. Please choose a different name.</source>
         <translation>&apos;%1&apos; adlı bir anahtar veritabanı zaten var. Lütfen farklı bir ad seçin.</translation>
     </message>
@@ -4728,17 +5224,17 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation>Bu bilgisayara anahtar veritabanı ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="408"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="409"/>
         <source>Unreadable Key Database Settings</source>
         <translation>Okunamayan anahtar veritabanı ayarları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="409"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="410"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>Kayıtlı anahtar veritabanı listeniz mevcut ancak okunamadı. Bu genellikle başka bir kurulum tarafından veya farklı bir uygulama anahtarıyla yazıldığı anlamına gelir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="413"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>Şimdi kaydetmek, onu burada gösterilen listeyle değiştirir. Önceki liste daha sonra kurtarılamaz.</translation>
     </message>
@@ -4755,77 +5251,77 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">Her zaman kanal 0. Bir profil paketine hiçbir zaman dahil edilmez: profilinizi başka bir yerde açan kişi kendisininkini alır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="774"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="775"/>
         <source>This folder could not be resolved on this computer.</source>
         <translation>Bu klasör bu bilgisayarda çözümlenemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="803"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="804"/>
         <source>No key databases of your own yet. One you add here is kept inside your profile and travels with it.</source>
         <translation>Henüz kendinize ait anahtar veritabanı yok. Buraya eklediğiniz veritabanı profilinizin içinde tutulur ve profille birlikte taşınır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="805"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="806"/>
         <source>Kept inside your profile, and carried by a profile package.</source>
         <translation>Profilinizin içinde tutulur ve bir profil paketiyle taşınır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="809"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="810"/>
         <source>Nothing here yet. A key database you add on this tab stays on this computer: a profile package never carries it, and it is always opened after the ones inside your profile.</source>
         <translation>Henüz burada bir şey yok. Bu sekmede eklediğiniz bir anahtar veritabanı bu bilgisayarda kalır: bir profil paketi onu hiçbir zaman taşımaz ve her zaman profilinizin içindekilerden sonra açılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="812"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="813"/>
         <source>Key databases outside your profile. They belong to this computer alone: a profile package never carries them, and they are always opened after the ones inside your profile.</source>
         <translation>Profilinizin dışındaki anahtar veritabanları. Yalnızca bu bilgisayara aittirler: bir profil paketi onları hiçbir zaman taşımaz ve her zaman profilinizin içindekilerden sonra açılırlar.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="875"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1061"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1143"/>
-        <source>Maximum Key Database Limit Reached</source>
-        <translation>Azami anahtar veritabanı sınırına ulaşıldı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="876"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1062"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1144"/>
+        <source>Maximum Key Database Limit Reached</source>
+        <translation>Azami anahtar veritabanı sınırına ulaşıldı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="877"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1063"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1145"/>
         <source>Currently, GpgFrontend supports a maximum of %1 key databases. Please remove an existing database to add a new one.</source>
         <translation>GpgFrontend şu anda en fazla %1 anahtar veritabanını destekler. Yeni bir tane eklemek için lütfen mevcut bir veritabanını kaldırın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="900"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
         <translation>Bu sayfadaki bir anahtar veritabanı zaten bu bilgisayarın varsayılan anahtar veritabanı klasörünü kullanıyor. Önce onu kaldırın, ardından bunu etkinleştirin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="922"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1213"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1214"/>
         <source>Key Database Required</source>
         <translation>Anahtar veritabanı gerekli</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="924"/>
         <source>GpgFrontend needs at least one key database. Add another one first, then turn this off.</source>
         <translation>GpgFrontend en az bir anahtar veritabanına ihtiyaç duyar. Önce başka bir tane ekleyin, sonra bunu kapatın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="944"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="945"/>
         <source>No Key Database Selected</source>
         <translation>Anahtar veritabanı seçilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="945"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="946"/>
         <source>Please select a key database to edit.</source>
         <translation>Lütfen düzenlemek için bir anahtar veritabanı seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="989"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="990"/>
         <source>Key Database Folder Already Exists</source>
         <translation>Anahtar veritabanı klasörü zaten var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="990"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="991"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
         <translation>&apos;%1&apos; adını taşıyan bir klasör zaten var. İçeriğini bizim değiştirmemiz doğru olmaz, bu yüzden başka bir ad seçin.</translation>
     </message>
@@ -4838,181 +5334,181 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
         <translation type="vanished">GpgFrontend, bu anahtar veritabanının tutulduğu klasörü yeniden adlandıramadı. Klasör hâlâ kullanımda olabilir; GpgFrontend&apos;i yeniden başlattıktan sonra yeniden deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1011"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1097"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1164"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1012"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1098"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1165"/>
         <source>Invalid Key Database Paths</source>
         <translation>Geçersiz anahtar veritabanı yolları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1012"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1098"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1165"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1013"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1099"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1166"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>Düzenlenen anahtar veritabanı yolu, GpgFrontend&apos;in kullanabileceği geçerli bir yol değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="898"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1019"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1108"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1172"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1020"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1109"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1173"/>
         <source>Duplicate Key Database Paths</source>
         <translation>Yinelenen anahtar veritabanı yolları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1020"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1021"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>Düzenlenen anahtar veritabanı yolu, daha önce var olan bir yolu yineliyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1109"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1110"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1174"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>Yeni eklenen anahtar veritabanı yolu, daha önce var olan bir yolu yineliyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1077"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1078"/>
         <source>Invalid Key Database Path</source>
         <translation>Geçersiz anahtar veritabanı yolu</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="191"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="636"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="637"/>
         <source>Used when an operation does not explicitly select a key database.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bir işlem açıkça bir anahtar veritabanı seçmediğinde kullanılır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="250"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="261"/>
         <source>Use as Default</source>
-        <translation type="unfinished"></translation>
+        <translation>Varsayılan Olarak Kullan</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="195"/>
         <source>Copy Folder Path</source>
-        <translation type="unfinished"></translation>
+        <translation>Klasör Yolunu Kopyala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="215"/>
         <source>Built-in Key Database</source>
-        <translation type="unfinished"></translation>
+        <translation>Yerleşik Anahtar Veritabanı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="217"/>
         <source>Key engine:</source>
-        <translation type="unfinished"></translation>
+        <translation>Anahtar motoru:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
         <source>Key engine for the built-in database</source>
-        <translation type="unfinished"></translation>
+        <translation>Yerleşik veritabanı için anahtar motoru</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="227"/>
         <source>Applies only to the built-in database. Other databases always open with their own engine.</source>
-        <translation type="unfinished"></translation>
+        <translation>Yalnızca yerleşik veritabanı için geçerlidir. Diğer veritabanları her zaman kendi motorlarıyla açılır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="231"/>
         <source>Location:</source>
-        <translation type="unfinished"></translation>
+        <translation>Konum:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
         <source>Built-in key database location</source>
-        <translation type="unfinished"></translation>
+        <translation>Yerleşik anahtar veritabanı konumu</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
         <source>Copy</source>
-        <translation type="unfinished">Kopyala</translation>
+        <translation>Kopyala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="239"/>
         <source>Copy the full path</source>
-        <translation type="unfinished"></translation>
+        <translation>Tam yolu kopyala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
         <source>Copy the built-in key database location</source>
-        <translation type="unfinished"></translation>
+        <translation>Yerleşik anahtar veritabanı konumunu kopyala</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="247"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="655"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="656"/>
         <source>Default</source>
-        <translation type="unfinished">Varsayılan</translation>
+        <translation>Varsayılan</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="253"/>
         <source>Use the built-in key database as default</source>
-        <translation type="unfinished"></translation>
+        <translation>Yerleşik anahtar veritabanını varsayılan olarak kullan</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="263"/>
         <source>Use the selected key database as default</source>
-        <translation type="unfinished"></translation>
+        <translation>Seçili anahtar veritabanını varsayılan olarak kullan</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="267"/>
         <source>Smart cards stay with the previous default database until GpgFrontend restarts. To move them sooner, apply this change, then use &quot;Restart All Gpg-Agents&quot; in the Smart Card Controller.</source>
-        <translation type="unfinished"></translation>
+        <translation>Akıllı kartlar, GpgFrontend yeniden başlatılana kadar önceki varsayılan veritabanında kalır. Daha erken taşımak için bu değişikliği uygulayın, ardından Akıllı Kart Denetleyicisi&apos;nde &quot;Tüm Gpg-Agent&apos;ları Yeniden Başlat&quot; seçeneğini kullanın.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="531"/>
         <source>%1: %n operation(s)</source>
         <translation>
             <numerusform>%1: %n işlem</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="573"/>
         <source>The OpenPGP engine on this computer does not report a key database, so there is no built-in one to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu bilgisayardaki OpenPGP motoru bir anahtar veritabanı bildirmiyor, bu nedenle kullanılacak yerleşik bir veritabanı yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="585"/>
         <source>Always available on this computer, and always listed first.</source>
         <translation>Bu bilgisayarda her zaman kullanılabilir ve her zaman ilk sırada listelenir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="585"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="586"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
         <translation>Her zaman ilk sırada listelenir. Bir profil paketine asla dahil edilmez: profilinizi başka bir yerde açan kişi kendi anahtar veritabanını alır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="599"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="600"/>
         <source>No engine in this build can open it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu derlemede hiçbir motor bunu açamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1078"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1079"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>Belirtilen anahtar veritabanı yolu var olan bir dosyayı gösteriyor. Lütfen var olmayan veya bir dizini gösteren bir yol belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1087"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1088"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>Anahtar veritabanı dizini oluşturulamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1088"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1089"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend, belirtilen anahtar veritabanı yolunda bir dizin oluşturamadı. Lütfen yolu ve izinlerinizi kontrol edin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1214"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1215"/>
         <source>GpgFrontend needs at least one key database, so the last one cannot be removed.</source>
         <translation>GpgFrontend en az bir anahtar veritabanına ihtiyaç duyar, bu nedenle sonuncusu kaldırılamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1220"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1221"/>
         <source>Confirm Deletion</source>
         <translation>Silmeyi onayla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1221"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1222"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>Seçili anahtar veritabanını listeden kaldırmak istediğinizden emin misiniz?</translation>
     </message>
@@ -5054,408 +5550,408 @@ Sonuçlar burada bir özet belge olarak görünecek.</translation>
 <context>
     <name>GpgFrontend::UI::KeyGenerateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="493"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="886"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1508"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="492"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="885"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1503"/>
         <source>Primary Key Only</source>
         <translation>Yalnızca birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="494"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="949"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="493"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="948"/>
         <source>Primary Key With Subkey</source>
         <translation>Birincil anahtar ve alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="497"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="496"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="498"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="497"/>
         <source>Basic</source>
         <translation>Temel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="500"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="509"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="499"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="508"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="500"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="502"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="501"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="506"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="505"/>
         <source>Fill in a random anonymous identity (for throwaway or test keys)</source>
         <translation>Rastgele bir anonim kimlik doldurun (tek kullanımlık veya deneme anahtarları için)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="508"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="507"/>
         <source>Key Database</source>
         <translation>Anahtar veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="509"/>
         <source>Combination</source>
         <translation>Birleşim</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="511"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="523"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="522"/>
         <source>Validity Period</source>
         <translation>Geçerlilik süresi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="513"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="512"/>
         <source>Save</source>
         <translation>Kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="515"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="514"/>
         <source>Save current configuration as a new profile</source>
         <translation>Geçerli yapılandırmayı yeni bir profil olarak kaydedin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="516"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="515"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="516"/>
         <source>Delete current selected profile</source>
         <translation>Geçerli seçili profili silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="518"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="517"/>
         <source>Reset</source>
         <translation>Sıfırla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="520"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="519"/>
         <source>Reset profile list to default configuration</source>
         <translation>Profil listesini varsayılan yapılandırmaya sıfırlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="522"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="521"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="539"/>
         <source>Algorithm</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="524"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="542"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="523"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="541"/>
         <source>Key Length</source>
         <translation>Anahtar uzunluğu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="525"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="544"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="543"/>
         <source>Second Algorithm</source>
         <translation>İkinci algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="526"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="545"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="525"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="544"/>
         <source>Second Key Length</source>
         <translation>İkinci anahtar uzunluğu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="527"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="526"/>
         <source>Key Format</source>
         <translation>Anahtar biçimi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="528"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="527"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="542"/>
         <source>Usage</source>
         <translation>Kullanım</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="531"/>
         <source>v4 (Compatible)</source>
         <translation>v4 (uyumlu)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="533"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="532"/>
         <source>v6 (Modern)</source>
         <translation>v6 (modern)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="534"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="533"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="545"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="535"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="534"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="546"/>
         <source>Sign</source>
         <translation>İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="536"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="548"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="535"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="547"/>
         <source>Authentication</source>
         <translation>Kimlik doğrulama</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="537"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="536"/>
         <source>No Passphrase</source>
         <translation>Parola ifadesi yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="538"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="549"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="189"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="537"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="548"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="188"/>
         <source>Non Expired</source>
         <translation>Süresiz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="540"/>
         <source>Expire Date</source>
         <translation>Sona erme tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="552"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="551"/>
         <source>Easy Mode</source>
         <translation>Kolay mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="553"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="552"/>
         <source>Primary Key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="554"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="553"/>
         <source>Subkey</source>
         <translation>Alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="557"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="556"/>
         <source>Generate</source>
         <translation>Oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="574"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="573"/>
         <source>%1 Engine Version: %2</source>
         <translation>%1 motor sürümü: %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="579"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="578"/>
         <source>If subkey is specified, it will be generated together with the primary key. Therefore, you may need to enter the passphrase additionally for the subkey generation.</source>
         <translation>Alt anahtar belirtilirse, birincil anahtarla birlikte oluşturulur. Bu nedenle alt anahtarın oluşturulması için parola ifadesini ayrıca girmeniz gerekebilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="585"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="584"/>
         <source>Supported Primary Key Algorithms: </source>
         <translation>Desteklenen birincil anahtar algoritmaları: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="595"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="594"/>
         <source>Supported Subkey Algorithms: </source>
         <translation>Desteklenen alt anahtar algoritmaları: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="605"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="604"/>
         <source>Please select a key algorithm and configure the parameters as needed.</source>
         <translation>Lütfen bir anahtar algoritması seçin ve parametreleri gerektiği gibi yapılandırın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="615"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="614"/>
         <source>Generate Key</source>
         <translation>Anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="730"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="729"/>
         <source>Name must not be empty.</source>
         <translation>Ad boş olmamalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="736"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="735"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
         <translation>Ad ve yorum &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; karakterlerini veya kontrol karakterlerini içermemelidir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="742"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="741"/>
         <source>Please give a valid email address.</source>
         <translation>Lütfen geçerli bir e-posta adresi belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="747"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="746"/>
         <source>Please give a valid primary key algorithm.</source>
         <translation>Lütfen geçerli bir birincil anahtar algoritması belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="756"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="755"/>
         <source>Time to primary key expiration must not be less than 120 seconds.</source>
         <translation>Birincil anahtarın sona ermesine kalan süre 120 saniyeden az olmamalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="763"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="762"/>
         <source>Please give a valid subkey algorithm.</source>
         <translation>Lütfen geçerli bir alt anahtar algoritması belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="771"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="770"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
         <translation>Alt anahtarın sona ermesine kalan süre 120 saniyeden az olmamalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="801"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="800"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="802"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="801"/>
         <source>Key generation completed successfully.</source>
         <translation>Anahtar oluşturma başarıyla tamamlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1402"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1497"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1503"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1604"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1773"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1811"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1397"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1492"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1498"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1599"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1768"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1806"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="167"/>
         <source>Custom</source>
         <translation>Özel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1533"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1528"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1534"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1529"/>
         <source>Unknown error occurred</source>
         <translation>Bilinmeyen bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1550"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1545"/>
         <source>Generating</source>
         <translation>Oluşturuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1681"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1676"/>
         <source>ECC</source>
         <translation>ECC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1686"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1681"/>
         <source>Post-Quantum</source>
         <translation>Kuantum sonrası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1759"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1754"/>
         <source>Save Profile</source>
         <translation>Profili kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1760"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1755"/>
         <source>Please enter profile name:</source>
         <translation>Lütfen profil adını girin:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1768"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1774"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1782"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1796"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1812"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1824"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1763"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1769"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1777"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1791"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1807"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1819"/>
         <source>Notice</source>
         <translation>Bilgi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1769"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1764"/>
         <source>Profile was not saved: Name cannot be empty.</source>
         <translation>Profil kaydedilmedi: Ad boş olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1775"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1770"/>
         <source>The profile name &apos;Custom&apos; is reserved. Please choose another name.</source>
         <translation>Profil adı &apos;Özel&apos; ayrılmıştır. Lütfen başka bir ad seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1783"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1778"/>
         <source>Profile was not saved: Name cannot be longer than %1 characters.</source>
         <translation>Profil kaydedilmedi: Ad %1 karakterden uzun olamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1797"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1792"/>
         <source>Profile was not saved: Name already exists.</source>
         <translation>Profil kaydedilmedi: Bu ad zaten var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1813"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1808"/>
         <source>The &apos;Custom&apos; profile cannot be deleted.</source>
         <translation>&apos;Özel&apos; profili silinemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1825"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1820"/>
         <source>Selected profile does not exist.</source>
         <translation>Seçili profil mevcut değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1830"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1825"/>
         <source>Delete Profile</source>
         <translation>Profili sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1831"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1826"/>
         <source>Are you sure you want to delete the profile &apos;%1&apos;?</source>
         <translation>&apos;%1&apos; profilini silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1857"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1852"/>
         <source>Reset To Default</source>
         <translation>Varsayılana sıfırla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1858"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1853"/>
         <source>Are you sure you want to reset the easy profile configuration to default? This action cannot be undone.</source>
         <translation>Kolay profil yapılandırmasını varsayılana sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2025"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2020"/>
         <source>Post-quantum algorithms require the v6 key format.</source>
         <translation>Kuantum sonrası algoritmalar v6 anahtar biçimini gerektirir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="163"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="164"/>
         <source>2 Years</source>
         <translation>2 yıl</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="173"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="172"/>
         <source>3 Months</source>
         <translation>3 ay</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="176"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="175"/>
         <source>6 Months</source>
         <translation>6 ay</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="179"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="178"/>
         <source>1 Year</source>
         <translation>1 yıl</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="183"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="182"/>
         <source>5 Years</source>
         <translation>5 yıl</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="186"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="185"/>
         <source>10 Years</source>
         <translation>10 yıl</translation>
     </message>
@@ -6274,7 +6770,7 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="266"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="702"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="701"/>
         <source>Key Operations</source>
         <translation>Anahtar işlemleri</translation>
     </message>
@@ -6285,359 +6781,359 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Kategori</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="331"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="330"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="331"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="330"/>
         <source>Open Key File</source>
         <translation>Anahtar dosyasını aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="337"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="336"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="341"/>
         <source>New Keypair</source>
         <translation>Yeni anahtar çifti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="342"/>
         <source>Generate KeyPair</source>
         <translation>Anahtar çifti oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="349"/>
         <source>New Subkey</source>
         <translation>Yeni alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="350"/>
         <source>Generate Subkey For Selected KeyPair</source>
         <translation>Seçili anahtar çifti için alt anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="360"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="359"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="596"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="361"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="360"/>
         <source>Import New Key From File</source>
         <translation>Dosyadan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="367"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="366"/>
         <source>Clipboard</source>
         <translation>Pano</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="368"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="367"/>
         <source>Import New Key From Clipboard</source>
         <translation>Panodan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="375"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1155"/>
         <source>Key Package</source>
         <translation>Anahtar paketi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="377"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
         <source>Import Key(s) From a Key Package</source>
         <translation>Bir anahtar paketinden anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="382"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="381"/>
         <source>Export To Clipboard</source>
         <translation>Panoya dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="383"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="382"/>
         <source>Export Checked Key(s) To Clipboard</source>
         <translation>İşaretli anahtarları panoya dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="388"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="387"/>
         <source>Export As Key Package</source>
         <translation>Anahtar paketi olarak dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="389"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="388"/>
         <source>Export Checked Key(s) To a Key Package</source>
         <translation>İşaretli anahtarları bir anahtar paketine dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="394"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="393"/>
         <source>Export As OpenSSH</source>
         <translation>OpenSSH olarak dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="395"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="394"/>
         <source>Export a single key in OpenSSH format to a file</source>
         <translation>Tek bir anahtarı OpenSSH biçiminde bir dosyaya dışa aktarın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="403"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="402"/>
         <source>Delete Selected Keys</source>
         <translation>Seçili anahtarları sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="404"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="403"/>
         <source>Delete the Selected keys</source>
         <translation>Seçili anahtarları silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="410"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
         <source>Refresh Key List</source>
         <translation>Anahtar listesini yenile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="411"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="410"/>
         <source>Re-read the keyring from disk</source>
         <translation>Anahtarlığı diskten yeniden okuyun</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="419"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="418"/>
         <source>Find Key</source>
         <translation>Anahtar bul</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="419"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="418"/>
         <source>Jump to the search box</source>
         <translation>Arama kutusuna gidin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="425"/>
         <source>Delete Checked Keys</source>
         <translation>İşaretli anahtarları sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="427"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="426"/>
         <source>Delete the Checked keys</source>
         <translation>İşaretli anahtarları silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="432"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="431"/>
         <source>Show Key Details</source>
         <translation>Anahtar ayrıntılarını göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="433"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="432"/>
         <source>Show Details for this Key</source>
         <translation>Bu anahtarın ayrıntılarını gösterin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="438"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="437"/>
         <source>Set Owner Trust Level</source>
         <translation>Sahip güven düzeyini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="439"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="438"/>
         <source>Set how much you trust this key to certify others</source>
         <translation>Bu anahtarın başkalarını tasdik etmesine ne kadar güvendiğinizi ayarlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="480"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="479"/>
         <source>Copy Fingerprint</source>
         <translation>Parmak izini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="481"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="480"/>
         <source>Copy this key&apos;s full fingerprint to the clipboard</source>
         <translation>Bu anahtarın tam parmak izini panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="485"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="484"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="488"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="487"/>
         <source>Copy Key ID</source>
         <translation>Anahtar kimliğini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="489"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="488"/>
         <source>Copy this key&apos;s ID to the clipboard</source>
         <translation>Bu anahtarın kimliğini panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="493"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="492"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="497"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="496"/>
         <source>Copy Email</source>
         <translation>E-postayı kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="498"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="497"/>
         <source>Copy this key&apos;s email address to the clipboard</source>
         <translation>Bu anahtarın e-posta adresini panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="502"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="501"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="506"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="505"/>
         <source>Copy Public Key Block</source>
         <translation>Açık anahtar bloğunu kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="507"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="506"/>
         <source>Copy this key&apos;s armored public key block to the clipboard, ready to paste or send</source>
         <translation>Bu anahtarın okunabilir ASCII açık anahtar bloğunu, yapıştırmaya veya göndermeye hazır olarak panoya kopyalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="517"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="516"/>
         <source>Certify Key...</source>
         <translation>Anahtarı tasdik et...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="518"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="517"/>
         <source>Sign this key&apos;s identity with your key</source>
         <translation>Bu anahtarın kimliğini kendi anahtarınızla imzalayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="527"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="526"/>
         <source>Set Expiry...</source>
         <translation>Sona ermeyi ayarla...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="527"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="526"/>
         <source>Change when this key expires</source>
         <translation>Bu anahtarın ne zaman sona ereceğini değiştirin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="539"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="538"/>
         <source>Export Public Key...</source>
         <translation>Açık anahtarı dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="540"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="539"/>
         <source>Save this key&apos;s public half to a file you can send</source>
         <translation>Bu anahtarın açık yarısını gönderebileceğiniz bir dosyaya kaydedin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="549"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="548"/>
         <source>Export Private Key...</source>
         <translation>Gizli anahtarı dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="550"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="549"/>
         <source>Save this key&apos;s private half to a file — keep it to yourself</source>
         <translation>Bu anahtarın gizli yarısını bir dosyaya kaydedin; kendinize saklayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="559"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="558"/>
         <source>Generate Revocation Certificate...</source>
         <translation>İptal sertifikası oluştur...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="560"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="559"/>
         <source>Create a certificate that can revoke this key, to store somewhere safe in case you ever lose control of it</source>
         <translation>Bu anahtarı iptal edebilecek bir sertifika oluşturun; kontrolünü kaybetmeniz durumunda güvenli bir yerde saklamak üzere</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="572"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="571"/>
         <source>Set Owner Trust for Checked Keys...</source>
         <translation>İşaretli anahtarlar için sahip güvenini ayarla...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="573"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="572"/>
         <source>Give every checked key the same owner trust level</source>
         <translation>İşaretli her anahtara aynı sahip güven düzeyini verin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="578"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="577"/>
         <source>Extend Expiry of Checked Keys...</source>
         <translation>İşaretli anahtarların sona ermesini uzat...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="579"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="578"/>
         <source>Push back the expiry date of every checked private key in one step</source>
         <translation>İşaretli her gizli anahtarın sona erme tarihini tek adımda erteleyin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="584"/>
         <source>Back Up All Private Keys...</source>
         <translation>Tüm gizli anahtarları yedekle...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="586"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="585"/>
         <source>Export every private key in this keyring to a single key package</source>
         <translation>Bu anahtarlıktaki her gizli anahtarı tek bir anahtar paketine dışa aktarın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="601"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="600"/>
         <source>Edit</source>
         <translation>Düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="610"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="668"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="609"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="667"/>
         <source>Key</source>
         <translation>Anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="611"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="610"/>
         <source>Generate Key</source>
         <translation>Anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="615"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="682"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="614"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="681"/>
         <source>Import Key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="622"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="621"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="687"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="688"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="689"/>
         <source>Export Key</source>
         <translation>Anahtarı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="638"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="715"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="637"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="714"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="642"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="654"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="653"/>
         <source>Bulk</source>
         <translation>Toplu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="683"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="682"/>
         <source>Import key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="703"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="702"/>
         <source>Certify, set expiry, add a subkey, set trust, revoke</source>
         <translation>Tasdik edin, sona ermeyi ayarlayın, bir alt anahtar ekleyin, güveni ayarlayın, iptal edin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="716"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="715"/>
         <source>Delete the selected or the checked keys</source>
         <translation>Seçili veya işaretli anahtarları silin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="722"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="721"/>
         <source>View</source>
         <translation>Görünüm</translation>
     </message>
@@ -7040,138 +7536,138 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Ek kullanıcı kimlikleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="111"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="112"/>
         <source>Email Address</source>
         <translation>E-posta adresi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="113"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="126"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="124"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="129"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="226"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="136"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="141"/>
         <source>Algorithm</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="140"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="145"/>
         <source>Algorithm Detail</source>
         <translation>Algoritma ayrıntısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="145"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="150"/>
         <source>Key Format Version</source>
         <translation>Anahtar biçimi sürümü</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="158"/>
         <source>Key Size</source>
         <translation>Anahtar boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="162"/>
         <source>Usage</source>
         <translation>Kullanım</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="162"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="167"/>
         <source>Owner Trust Level</source>
         <translation>Sahip güven düzeyi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="170"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="175"/>
         <source>Create Date (Local Time)</source>
         <translation>Oluşturma tarihi (yerel saat)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="181"/>
         <source>Expires on (Local Time)</source>
         <translation>Sona erme tarihi (yerel saat)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="184"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="189"/>
         <source>Last Update (Local Time)</source>
         <translation>Son güncelleme (yerel saat)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="194"/>
         <source>Primary Key Existence</source>
         <translation>Birincil anahtarın varlığı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="228"/>
         <source>copy fingerprint to clipboard</source>
         <translation>parmak izini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="278"/>
         <source>Exists</source>
         <translation>Var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="278"/>
         <source>Not Exists</source>
         <translation>Yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="296"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="301"/>
         <source>Certificate</source>
         <translation>Sertifika</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="298"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="303"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="299"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="304"/>
         <source>Sign</source>
         <translation>İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="300"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="305"/>
         <source>Auth</source>
         <translation>Kimlik doğrulama</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="326"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="331"/>
         <source>Never Expire</source>
         <translation>Hiçbir zaman sona ermez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="345"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="350"/>
         <source>No Data</source>
         <translation>Veri yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="359"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="364"/>
         <source>Warning: The primary key has expired.</source>
         <translation>Uyarı: Birincil anahtarın süresi doldu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="362"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="367"/>
         <source>Warning: The primary key has been revoked.</source>
         <translation>Uyarı: Birincil anahtar iptal edildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="370"/>
         <source>Warning: The primary key is not exists.</source>
         <translation>Uyarı: Birincil anahtar mevcut değil.</translation>
     </message>
@@ -7209,76 +7705,76 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>İptal sertifikası işlemi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="122"/>
         <source>Set Owner Trust Level</source>
         <translation>Sahip güven düzeyini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="158"/>
         <source>Export Full Secret Key</source>
         <translation>Tam gizli anahtarı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="164"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="166"/>
         <source>Export Shortest Secret Key</source>
         <translation>En kısa gizli anahtarı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="174"/>
         <source>Generate Revoke Certificate</source>
         <translation>İptal sertifikası oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="177"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="179"/>
         <source>Import Revoke Certificate</source>
         <translation>İptal sertifikasını içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="229"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="241"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="243"/>
         <source>Import Key Revocation Certificate</source>
         <translation>Anahtar iptal sertifikasını içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
         <source>You are about to import the</source>
         <translation>Şunu içe aktarmak üzeresiniz:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="233"/>
         <source>REVOCATION CERTIFICATE</source>
         <translation>İPTAL SERTİFİKASI</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="234"/>
         <source>A successful import will result in the key being irreversibly revoked.</source>
         <translation>Başarılı bir içe aktarma, anahtarın geri alınamaz biçimde iptal edilmesiyle sonuçlanır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="234"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="236"/>
         <source>Do you REALLY want to execute this operation?</source>
         <translation>Bu işlemi GERÇEKTEN gerçekleştirmek istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="244"/>
         <source>Revocation Certificates</source>
         <translation>İptal sertifikaları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="250"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="259"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="252"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="269"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="251"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="270"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>Bu dosya açılamıyor. Lütfen bunun normal bir dosya olduğundan ve okunabilir olduğundan emin olun.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="262"/>
         <source>The target file is too large for a key revocation certificate.</source>
         <translation>Hedef dosya, bir anahtar iptal sertifikası için çok büyük.</translation>
     </message>
@@ -7344,308 +7840,308 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>ADSK ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="108"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="472"/>
         <source>Export Subkey</source>
         <translation>Alt anahtarı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="115"/>
         <source>Exporting subkeys is not supported by the current OpenPGP backend.</source>
         <translation>Alt anahtarların dışa aktarılması, geçerli OpenPGP arka ucu tarafından desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="155"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="275"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="160"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="162"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="275"/>
         <source>Key Type</source>
         <translation>Anahtar türü</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="165"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="167"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="275"/>
         <source>Algorithm</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="170"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="274"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="276"/>
         <source>Algorithm Detail</source>
         <translation>Algoritma ayrıntısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="176"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="275"/>
         <source>Key Size</source>
         <translation>Anahtar boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="181"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="183"/>
         <source>Usage</source>
         <translation>Kullanım</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="186"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="188"/>
         <source>Expires On (Local Time)</source>
         <translation>Sona erme tarihi (yerel saat)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="195"/>
         <source>Create Date (Local Time)</source>
         <translation>Oluşturma tarihi (yerel saat)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="197"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="199"/>
         <source>Existence</source>
         <translation>Varlık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="203"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="205"/>
         <source>Revoked</source>
         <translation>İptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="208"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="210"/>
         <source>Key in Smart Card</source>
         <translation>Akıllı karttaki anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="213"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="215"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="274"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="276"/>
         <source>Create Date</source>
         <translation>Oluşturma tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="277"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="279"/>
         <source>Expire Date</source>
         <translation>Sona erme tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="300"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="475"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="477"/>
         <source>Primary Key</source>
         <translation>Birincil anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="300"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="476"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="302"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="478"/>
         <source>Subkey</source>
         <translation>Alt anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="301"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="303"/>
         <source>ADSK</source>
         <translation>ADSK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="329"/>
         <source>Never Expire</source>
         <translation>Hiçbir zaman sona ermez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="411"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="413"/>
         <source>Exists</source>
         <translation>Var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="412"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="414"/>
         <source>Not Exists</source>
         <translation>Yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="415"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="417"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="480"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="415"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="417"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="480"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="449"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="451"/>
         <source>Never Expires</source>
         <translation>Hiçbir zaman sona ermez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="469"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="471"/>
         <source>Export Primary Key</source>
         <translation>Birincil anahtarı dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="488"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="490"/>
         <source>Edit Expire Date</source>
         <translation>Sona erme tarihini düzenle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="492"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="494"/>
         <source>Export</source>
         <translation>Dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="496"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="498"/>
         <source>Delete</source>
         <translation>Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="500"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="502"/>
         <source>Revoke</source>
         <translation>İptal et</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="504"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="506"/>
         <source>Change Passphrase</source>
         <translation>Parola ifadesini değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="508"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="510"/>
         <source>Move to Card</source>
         <translation>Karta taşı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="632"/>
         <source>Exporting Subkey</source>
         <translation>Alt anahtarı dışa aktarma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="631"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="633"/>
         <source>You are about to export a private subkey.</source>
         <translation>Gizli bir alt anahtarı dışa aktarmak üzeresiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="632"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="634"/>
         <source>While subkeys are less critical than the primary key, they should still be handled with care.</source>
         <translation>Alt anahtarlar birincil anahtardan daha az kritik olsa da yine de özenle ele alınmalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="635"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="637"/>
         <source>Do you want to proceed with exporting this subkey?</source>
         <translation>Bu alt anahtarı dışa aktarmaya devam etmek istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="662"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="664"/>
         <source>Export Key To File</source>
         <translation>Anahtarı dosyaya dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="663"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="665"/>
         <source>Key Files</source>
         <translation>Anahtar dosyaları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="668"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="670"/>
         <source>Export Error</source>
         <translation>Dışa aktarma hatası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="669"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="671"/>
         <source>Couldn&apos;t open %1 for writing</source>
         <translation>%1 yazmak için açılamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="679"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="681"/>
         <source>&lt;h3&gt;You are about to delete the subkey:&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;This action is irreversible. Please confirm.</source>
         <translation>&lt;h3&gt;Alt anahtarı silmek üzeresiniz:&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;Anahtar kimliği:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Bu işlem geri alınamaz. Lütfen onaylayın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="685"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="687"/>
         <source>Delete Subkey Confirmation</source>
         <translation>Alt anahtar silme onayı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="700"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="785"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="702"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="787"/>
         <source>Illegal Operation</source>
         <translation>İzin verilmeyen işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="701"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="703"/>
         <source>Cannot delete the primary key or an invalid subkey.</source>
         <translation>Birincil anahtar veya geçersiz bir alt anahtar silinemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="709"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="711"/>
         <source>Operation Failed</source>
         <translation>İşlem başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="710"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="712"/>
         <source>The selected subkey could not be deleted. Please check your permissions or try again.</source>
         <translation>Seçili alt anahtar silinemedi. Lütfen izinlerinizi kontrol edin veya yeniden deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="716"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="718"/>
         <source>Operation Successful</source>
         <translation>İşlem başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="717"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="719"/>
         <source>The subkey with KeyID %1 has been successfully deleted.</source>
         <translation>Anahtar kimliği %1 olan alt anahtar başarıyla silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="762"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="764"/>
         <source>&lt;h3&gt;Revoke Subkey Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a subkey will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this subkey?</source>
         <translation>&lt;h3&gt;Alt anahtar iptal onayı&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;Anahtar kimliği:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Bir alt anahtarı iptal etmek onu kalıcı olarak kullanılamaz hale getirir. Bu işlem &lt;b&gt;geri alınamaz&lt;/b&gt;.&lt;br /&gt;Bu alt anahtarı iptal etmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="769"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="771"/>
         <source>Revoke Subkey</source>
         <translation>Alt anahtarı iptal et</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="786"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="788"/>
         <source>Cannot revoke the primary key or an invalid subkey.</source>
         <translation>Birincil anahtar veya geçersiz bir alt anahtar iptal edilemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="791"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="793"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; Gerekçe yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="791"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="793"/>
         <source>1 -&gt; This key is no more safe.</source>
         <translation>1 -&gt; Bu anahtar artık güvenli değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="792"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="794"/>
         <source>2 -&gt; Key is outdated.</source>
         <translation>2 -&gt; Anahtar güncel değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="792"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="794"/>
         <source>3 -&gt; Key is no longer used</source>
         <translation>3 -&gt; Anahtar artık kullanılmıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="804"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="806"/>
         <source>Revocation Failed</source>
         <translation>İptal başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="805"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="807"/>
         <source>Failed to revoke the subkey. Please try again.</source>
         <translation>Alt anahtar iptal edilemedi. Lütfen yeniden deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="808"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="810"/>
         <source>Revocation Successful</source>
         <translation>İptal başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="809"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="811"/>
         <source>The subkey has been successfully revoked.</source>
         <translation>Alt anahtar başarıyla iptal edildi.</translation>
     </message>
@@ -7668,221 +8164,221 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Seçili kullanıcı kimliğinin imzası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="142"/>
         <source>Index</source>
         <translation>Sıra</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="138"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="165"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="138"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="165"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="142"/>
         <source>Comment</source>
         <translation>Yorum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="165"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="165"/>
         <source>Create Date</source>
         <translation>Oluşturma tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="162"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="166"/>
         <source>Expired Date</source>
         <translation>Sona erme tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="272"/>
         <source>Never Expires</source>
         <translation>Hiçbir zaman sona ermez</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="309"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="319"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="474"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="483"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="529"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="550"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="313"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="323"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="487"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="533"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="554"/>
         <source>Invalid Operation</source>
         <translation>Geçersiz işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="310"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="314"/>
         <source>This is the only UID of a version 4 key. OpenPGP allows a key without UIDs, but a version 4 key keeps its usage, expiry and preferences in its UID self-signatures, so GpgFrontend could no longer use this key to sign or encrypt. Add another UID first if you want to replace this one.</source>
         <translation>Bu, sürüm 4 bir anahtarın tek kullanıcı kimliğidir. OpenPGP kullanıcı kimliği olmayan anahtarlara izin verir, ancak sürüm 4 bir anahtar kullanım amacını, son kullanma tarihini ve tercihlerini kullanıcı kimliklerinin öz imzalarında tutar; bu yüzden GpgFrontend bu anahtarı artık imzalamak veya şifrelemek için kullanamaz. Bunu değiştirmek istiyorsanız önce başka bir kullanıcı kimliği ekleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="320"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="551"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="324"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="555"/>
         <source>Cannot delete the Primary UID.</source>
         <translation>Birincil kullanıcı kimliği silinemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="325"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="329"/>
         <source>Deleting UIDs</source>
         <translation>Kullanıcı kimliklerini silme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="328"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="332"/>
         <source>Are you sure that you want to delete the following UID?</source>
         <translation>Aşağıdaki kullanıcı kimliğini silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="330"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="373"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="499"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="377"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="503"/>
         <source>The action can not be undone.</source>
         <translation>Bu işlem geri alınamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="342"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="386"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="505"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="390"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="509"/>
         <source>Operation Failed</source>
         <translation>İşlem başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="347"/>
         <source>An error occurred during the delete %1 operation.</source>
         <translation>%1 silme işlemi sırasında bir hata oluştu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="352"/>
         <source>Successful Operation</source>
         <translation>Başarılı işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="353"/>
         <source>Successfully deleted the UID.</source>
         <translation>Kullanıcı kimliği başarıyla silindi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="357"/>
         <source>Deleting UID</source>
         <translation>Kullanıcı kimliği siliniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="370"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="374"/>
         <source>Set Primary UID</source>
         <translation>Birincil kullanıcı kimliğini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="371"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="375"/>
         <source>Are you sure that you want to set the Primary UID to?</source>
         <translation>Birincil kullanıcı kimliğini aşağıdakine ayarlamak istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="387"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="506"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="391"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="510"/>
         <source>An error occurred during the operation.</source>
         <translation>İşlem sırasında bir hata oluştu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="393"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="397"/>
         <source>Setting Primary UID</source>
         <translation>Birincil kullanıcı kimliği ayarlanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="410"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="414"/>
         <source>Set As Primary</source>
         <translation>Birincil olarak ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="413"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="417"/>
         <source>Sign UID</source>
         <translation>Kullanıcı kimliğini imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="416"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="420"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="547"/>
         <source>Revoke UID</source>
         <translation>Kullanıcı kimliğini iptal et</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="419"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="423"/>
         <source>Delete UID</source>
         <translation>Kullanıcı kimliğini sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="463"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="467"/>
         <source>Delete(Revoke) Key Signature</source>
         <translation>Anahtar imzasını sil(iptal et)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="475"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="479"/>
         <source>Please select one Key Signature before doing this operation.</source>
         <translation>Bu işlemden önce lütfen bir anahtar imzası seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="484"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="488"/>
         <source>To delete the signature, you need to have its corresponding public key in the local database.</source>
         <translation>İmzayı silmek için ilgili açık anahtarın yerel veritabanında olması gerekir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="494"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="498"/>
         <source>Deleting Key Signature</source>
         <translation>Anahtar imzasını silme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="496"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="500"/>
         <source>Are you sure that you want to delete the following signature?</source>
         <translation>Aşağıdaki imzayı silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="534"/>
         <source>Please select one UID before doing this operation.</source>
         <translation>Bu işlemden önce lütfen bir kullanıcı kimliği seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="536"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="540"/>
         <source>&lt;h3&gt;Revoke UID Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;UID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a UID will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this UID?</source>
         <translation>&lt;h3&gt;Kullanıcı kimliği iptal onayı&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;Kullanıcı kimliği:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Bir kullanıcı kimliğini iptal etmek onu kalıcı olarak kullanılamaz hale getirir. Bu işlem &lt;b&gt;geri alınamaz&lt;/b&gt;.&lt;br /&gt;Bu kullanıcı kimliğini iptal etmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="556"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="560"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; Gerekçe yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="556"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="560"/>
         <source>4 -&gt; User ID is no longer valid.</source>
         <translation>4 -&gt; Kullanıcı kimliği artık geçerli değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="571"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="575"/>
         <source>Revocation Failed</source>
         <translation>İptal başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="576"/>
         <source>Failed to revoke the UID. Please try again.</source>
         <translation>Kullanıcı kimliği iptal edilemedi. Lütfen yeniden deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="576"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="580"/>
         <source>Revocation Successful</source>
         <translation>İptal başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="577"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="581"/>
         <source>The UID has been successfully revoked.</source>
         <translation>Kullanıcı kimliği başarıyla iptal edildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="581"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="585"/>
         <source>Revoking UID</source>
         <translation>Kullanıcı kimliği iptal ediliyor</translation>
     </message>
@@ -7955,62 +8451,62 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>Sona erme tarihi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="236"/>
         <source>Currently set to never expire.</source>
         <translation>Şu anda hiçbir zaman sona ermeyecek şekilde ayarlı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="241"/>
         <source>Currently expired since %1.</source>
         <translation>Şu anda %1 tarihinden beri süresi dolmuş.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="244"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="243"/>
         <source>Currently expires %1 · %2 left</source>
         <translation>Şu anda %1 tarihinde sona eriyor · %2 kaldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="257"/>
         <source>Modify Subkey Expiration Date</source>
         <translation>Alt anahtar sona erme tarihini değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="258"/>
         <source>Modify Key Expiration Date</source>
         <translation>Anahtar sona erme tarihini değiştir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="282"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="281"/>
         <source>Will never expire.</source>
         <translation>Hiçbir zaman sona ermeyecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="283"/>
         <source>The expiration date must be in the future.</source>
         <translation>Sona erme tarihi gelecekte olmalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="285"/>
         <source>Valid for %1 — until %2</source>
         <translation>%1 süreyle geçerli, %2 tarihine kadar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="332"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="333"/>
         <source>The expire date of the key pair has been updated.</source>
         <translation>Anahtar çiftinin sona erme tarihi güncellendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="347"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="346"/>
         <source>Failure</source>
         <translation>Başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="347"/>
         <source>Failed to update the expire date of the key pair.</source>
         <translation>Anahtar çiftinin sona erme tarihi güncellenemedi.</translation>
     </message>
@@ -8193,7 +8689,7 @@ Başka bir sekmede bir anahtara sağ tıklayın ve onu buraya koymak için Kateg
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="269"/>
-        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="280"/>
         <source>Save Failed</source>
         <translation>Kaydetme başarısız</translation>
     </message>
@@ -8203,17 +8699,17 @@ Başka bir sekmede bir anahtara sağ tıklayın ve onu buraya koymak için Kateg
         <translation>Dosya yazmak için açılamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="281"/>
         <source>Failed to save the log file.</source>
         <translation>Günlük dosyası kaydedilemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="289"/>
+        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="285"/>
         <source>Saved</source>
         <translation>Kaydedildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="290"/>
+        <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="286"/>
         <source>Logs have been saved successfully.</source>
         <translation>Günlükler başarıyla kaydedildi.</translation>
     </message>
@@ -8229,12 +8725,12 @@ Başka bir sekmede bir anahtara sağ tıklayın ve onu buraya koymak için Kateg
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="175"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="177"/>
         <source>GUI Pinentry Not Found</source>
         <translation>Grafik Pinentry bulunamadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="176"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="178"/>
         <source>No suitable *graphical* Pinentry program was found on your system.
 
 Please install a GUI-based Pinentry (e.g., &apos;pinentry-qt&apos;, &apos;pinentry-gnome3&apos;, or &apos;pinentry-mac&apos; on macOS).
@@ -8251,251 +8747,250 @@ Grafik Pinentry olmadan GnuPG sizden parola veya parola ifadesi isteyemez.
 Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma dosyası otomatik olarak güncellenecektir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="202"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="204"/>
         <source>Add To Category</source>
         <translation>Kategoriye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="287"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="290"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="289"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="292"/>
         <source>A critical error occurred while loading GpgFrontend.</source>
         <translation>GpgFrontend yüklenirken kritik bir hata oluştu.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="289"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="291"/>
         <source>Loading Failed</source>
         <translation>Yükleme başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="449"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="481"/>
         <source>Remove From This Category</source>
         <translation>Bu kategoriden kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="483"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="515"/>
         <source>New Category...</source>
         <translation>Yeni kategori...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="487"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="519"/>
         <source>New Category</source>
         <translation>Yeni kategori</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="487"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="519"/>
         <source>Category name:</source>
         <translation>Kategori adı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="521"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="554"/>
         <source>Name: %1</source>
         <translation>Ad: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="524"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="555"/>
         <source>Path: %1</source>
         <translation>Yol: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="537"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="568"/>
         <source>Invalid Key Databases</source>
         <translation>Geçersiz anahtar veritabanları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="542"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="573"/>
         <source>Detected %1 invalid key database(s).</source>
         <translation>%1 geçersiz anahtar veritabanı algılandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="545"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="576"/>
         <source>The application cannot load these databases. Please review the details below and fix the issues in the GnuPG Controller.</source>
         <translation>Uygulama bu veritabanlarını yükleyemiyor. Lütfen aşağıdaki ayrıntıları gözden geçirin ve sorunları GnuPG kontrolcüsünde giderin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="330"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="328"/>
         <source>Crypto</source>
         <translation>Kripto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="334"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="332"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="59"/>
         <source>New Text Editor</source>
         <translation>Yeni metin düzenleyici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="336"/>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="395"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="445"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="334"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="393"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="443"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="601"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="338"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="92"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="336"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="91"/>
         <source>Save File</source>
         <translation>Dosyayı kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="339"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="93"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="337"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="92"/>
         <source>Save the current File</source>
         <translation>Geçerli dosyayı kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="342"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="98"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="340"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="97"/>
         <source>Save As</source>
         <translation>Farklı kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="343"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="99"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="341"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="98"/>
         <source>Save the current File as...</source>
         <translation>Geçerli dosyayı farklı kaydet...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="346"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="109"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="344"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="108"/>
         <source>Close Tab</source>
         <translation>Sekmeyi kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="347"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="110"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="345"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="109"/>
         <source>Close the current tab</source>
         <translation>Geçerli sekmeyi kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="352"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="348"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="726"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="247"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="370"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="748"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="246"/>
         <source>Encrypt</source>
         <translation>Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="353"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="248"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="247"/>
         <source>Encrypt Message</source>
         <translation>İletiyi şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="356"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="550"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="839"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="261"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="354"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="572"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="260"/>
         <source>Decrypt</source>
         <translation>Şifresini çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="357"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="262"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="355"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="261"/>
         <source>Decrypt Message</source>
         <translation>İletinin şifresini çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="360"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="275"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="358"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="274"/>
         <source>Sign</source>
         <translation>İmzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="361"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="276"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="359"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="275"/>
         <source>Sign Message</source>
         <translation>İletiyi imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="364"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="362"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="280"/>
         <source>Verify</source>
         <translation>Doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="365"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="282"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="363"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
         <source>Verify Message</source>
         <translation>İletiyi doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="369"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="254"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="367"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
         <source>Encrypt &amp;&amp; Sign</source>
         <translation>Şifrele &amp;&amp; imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="370"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="255"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="368"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="254"/>
         <source>Encrypt and Sign Message</source>
         <translation>İletiyi şifrele ve imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="375"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="268"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="373"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="267"/>
         <source>Decrypt &amp;&amp; Verify</source>
         <translation>Şifresini çöz &amp;&amp; doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="269"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="374"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="268"/>
         <source>Decrypt and Verify Message</source>
         <translation>İletinin şifresini çöz ve doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="381"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="379"/>
         <source>Encrypt and Encode</source>
         <translation>Şifrele ve kodla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="382"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="380"/>
         <source>Encrypt the message, then encode it with a module&apos;s encoder</source>
         <translation>İletiyi şifreleyin, ardından bir modülün kodlayıcısıyla kodlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="387"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="498"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="385"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="496"/>
         <source>Import Key</source>
         <translation>Anahtarı içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="389"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="329"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="387"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="328"/>
         <source>Manage Keys</source>
         <translation>Anahtarları yönet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="390"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="330"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="388"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="329"/>
         <source>Open Key Management</source>
         <translation>Anahtar yönetimini aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="392"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="237"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="390"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="236"/>
         <source>Settings</source>
         <translation>Ayarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="393"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="238"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="391"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="237"/>
         <source>Open settings dialog</source>
         <translation>Ayarlar iletişim kutusunu aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="395"/>
         <source>Message</source>
         <translation>İleti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="103"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="230"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="269"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="110"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="252"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="291"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="104"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="111"/>
         <source>Failed to finalize output file:
 
 %1</source>
@@ -8504,23 +8999,21 @@ Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma do
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="155"/>
         <source>The operation succeeded, but GpgFrontend failed to finalize one or more output files.
 
 Temporary output files have been cleaned up. Original files were kept unchanged.</source>
-        <translation>İşlem başarılı oldu, ancak GpgFrontend bir veya daha fazla çıktı dosyasını sonlandıramadı.
+        <translation type="vanished">İşlem başarılı oldu, ancak GpgFrontend bir veya daha fazla çıktı dosyasını sonlandıramadı.
 
 Geçici çıktı dosyaları temizlendi. Orijinal dosyalar değiştirilmeden bırakıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="159"/>
         <source>The operation succeeded, but GpgFrontend failed to finalize one or more output files.
 
 These output files were already written before the failure:
 %1
 
 The remaining temporary output files have been cleaned up.</source>
-        <translation>İşlem başarılı oldu, ancak GpgFrontend bir veya daha fazla çıktı dosyasını tamamlayamadı.
+        <translation type="vanished">İşlem başarılı oldu, ancak GpgFrontend bir veya daha fazla çıktı dosyasını tamamlayamadı.
 
 Bu çıktı dosyaları hatadan önce zaten yazılmıştı:
 %1
@@ -8528,7 +9021,7 @@ Bu çıktı dosyaları hatadan önce zaten yazılmıştı:
 Kalan geçici çıktı dosyaları temizlendi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="231"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="253"/>
         <source>Cannot read from the following files:
 
 %1</source>
@@ -8537,7 +9030,7 @@ Kalan geçici çıktı dosyaları temizlendi.</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="244"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="266"/>
         <source>The target file &quot;%1&quot; already exists.
 
 It will only be replaced after the operation succeeds.
@@ -8548,12 +9041,12 @@ Yalnızca işlem başarılı olduktan sonra değiştirilecek.
 Devam etmek istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="248"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="270"/>
         <source>Warning</source>
         <translation>Uyarı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="270"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="292"/>
         <source>Cannot write to the following files:
 
 %1</source>
@@ -8562,195 +9055,196 @@ Devam etmek istiyor musunuz?</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="284"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="306"/>
         <source>No Key Checked</source>
         <translation>İşaretli anahtar yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="285"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="307"/>
         <source>Please check the key in the key toolbox on the right.</source>
         <translation>Lütfen sağdaki anahtar araç kutusundan bir anahtar işaretleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="295"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="317"/>
         <source>Invalid KeyPair</source>
         <translation>Geçersiz anahtar çifti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="297"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="319"/>
         <source>For example the Following Key:</source>
         <translation>Örneğin aşağıdaki anahtar:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="311"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="333"/>
         <source>The selected keypair cannot be used for encryption.</source>
         <translation>Seçili anahtar çifti şifreleme için kullanılamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="319"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="341"/>
         <source>Cannot Encrypt</source>
         <translation>Şifrelenemiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="339"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="361"/>
         <source>Confirm Recipients</source>
         <translation>Alıcıları onayla</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="364"/>
         <source>Encrypt to %n recipients?</source>
         <translation>
             <numerusform>%n alıcıya şifrelensin mi?</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="365"/>
         <source>Each recipient will be able to see the key IDs of all the others.</source>
         <translation>Her alıcı, diğerlerinin anahtar kimliklerini görebilecek.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="365"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="387"/>
         <source>Mixed Recipient Types</source>
         <translation>Karışık alıcı türleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="367"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="389"/>
         <source>Some recipients use post-quantum encryption and others do not.</source>
         <translation>Bazı alıcılar kuantum sonrası şifreleme kullanıyor, bazıları kullanmıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="370"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="392"/>
         <source>The message key is encrypted to every recipient, so anyone able to break the classical recipients&apos; encryption can read the whole message: the post-quantum protection does not hold for it. To keep that protection, encrypt separately for the post-quantum recipients.</source>
         <translation>İleti anahtarı her alıcı için şifrelenir; bu yüzden klasik alıcıların şifrelemesini kırabilen biri iletinin tamamını okuyabilir: kuantum sonrası koruma bu ileti için geçerli olmaz. Bu korumayı korumak için kuantum sonrası alıcılar için ayrı şifreleyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="375"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="397"/>
         <source>Encrypt Anyway</source>
         <translation>Yine de şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="388"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="410"/>
         <source>Key Databases Changed</source>
         <translation>Anahtar Veritabanları Değişti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="389"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="411"/>
         <source>The key databases changed while this operation was being prepared, so it was not started. Please check the selected keys and try again.</source>
         <translation>Bu işlem hazırlanırken anahtar veritabanları değişti, bu yüzden işlem başlatılmadı. Lütfen seçili anahtarları kontrol edip tekrar deneyin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="483"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="709"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="910"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="639"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="505"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="731"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="944"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
         <source>Encrypting</source>
         <translation>Şifreleniyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="537"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1002"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="711"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="559"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1036"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="593"/>
         <source>Signing</source>
         <translation>İmzalanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="559"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="568"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="958"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="507"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="581"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="590"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="992"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="389"/>
         <source>Decrypting</source>
         <translation>Şifresi çözülüyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="582"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1055"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="561"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1089"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="443"/>
         <source>Verifying</source>
         <translation>Doğrulanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="627"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="709"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1119"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="805"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="649"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="731"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1153"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="687"/>
         <source>Encrypting and Signing</source>
         <translation>Şifreleniyor ve imzalanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="637"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="659"/>
         <source>Decrypt Verify</source>
         <translation>Şifresini çöz ve doğrula</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="646"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="659"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1168"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="861"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="668"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="681"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1202"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="743"/>
         <source>Decrypting and Verifying</source>
         <translation>Şifresi çözülüyor ve doğrulanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="726"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="748"/>
         <source>Encrypt Sign</source>
         <translation>Şifrele ve imzala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="739"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="761"/>
         <source>Encoding</source>
         <translation>Kodlanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="752"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="774"/>
         <source>The encoder did not return text.</source>
         <translation>Kodlayıcı metin döndürmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="763"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="788"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="830"/>
+        <source>The current tab has no text document to receive the result.</source>
+        <translation>Geçerli sekmede sonucu alacak bir metin belgesi yok.</translation>
+    </message>
+    <message>
         <source>Message encrypted, signed and encoded.</source>
-        <translation>İleti şifrelendi, imzalandı ve kodlandı.</translation>
+        <translation type="vanished">İleti şifrelendi, imzalandı ve kodlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="764"/>
         <source>Message encrypted and encoded.</source>
-        <translation>İleti şifrelendi ve kodlandı.</translation>
+        <translation type="vanished">İleti şifrelendi ve kodlandı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="783"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="818"/>
         <source>Checking Message</source>
         <translation>İleti kontrol ediliyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="794"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="836"/>
         <source>The message could not be decoded.</source>
         <translation>İletinin kodu çözülemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="848"/>
         <source>Failed to decrypt the decoded message.</source>
-        <translation>Kodu çözülen iletinin şifresi çözülemedi.</translation>
+        <translation type="vanished">Kodu çözülen iletinin şifresi çözülemedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="850"/>
         <source>Decoded message decrypted (not signed).</source>
-        <translation>Kodu çözülen iletinin şifresi çözüldü (imzalanmamış).</translation>
+        <translation type="vanished">Kodu çözülen iletinin şifresi çözüldü (imzalanmamış).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="852"/>
         <source>Decoded message decrypted.</source>
-        <translation>Kodu çözülen iletinin şifresi çözüldü.</translation>
+        <translation type="vanished">Kodu çözülen iletinin şifresi çözüldü.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="973"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1007"/>
         <source>The selected key contains a key that does not actually have a sign usage.</source>
         <translation>Seçili anahtar, aslında imza kullanımı bulunmayan bir anahtar içeriyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1028"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1062"/>
         <source>File to be Verified</source>
         <translation>Doğrulanacak dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1029"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1063"/>
         <source>Please provide An ABSOLUTE Path 
 If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </source>
         <translation>Lütfen MUTLAK bir yol belirtin 
@@ -8802,158 +9296,144 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Doğrulama, eksik anahtarlar nedeniyle tamamlanamadı. Anahtarları daha sonra elle içe aktarabilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="320"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="884"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="310"/>
         <source>No operation result available.</source>
         <translation>Kullanılabilir işlem sonucu yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="339"/>
         <source>FAILED</source>
-        <translation>BAŞARISIZ</translation>
+        <translation type="vanished">BAŞARISIZ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="343"/>
         <source>OK</source>
-        <translation>Tamam</translation>
+        <translation type="vanished">Tamam</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="346"/>
         <source>WARNING</source>
-        <translation>UYARI</translation>
+        <translation type="vanished">UYARI</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="352"/>
         <source>Object: %1</source>
-        <translation>Nesne: %1</translation>
+        <translation type="vanished">Nesne: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="368"/>
         <source>Summary</source>
-        <translation>Özet</translation>
+        <translation type="vanished">Özet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="370"/>
         <source>Total operations: %1</source>
-        <translation>Toplam işlem: %1</translation>
+        <translation type="vanished">Toplam işlem: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="371"/>
         <source>Successful: %1</source>
-        <translation>Başarılı: %1</translation>
+        <translation type="vanished">Başarılı: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="372"/>
         <source>Warnings: %1</source>
-        <translation>Uyarılar: %1</translation>
+        <translation type="vanished">Uyarılar: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="373"/>
         <source>Failures: %1</source>
-        <translation>Başarısızlıklar: %1</translation>
+        <translation type="vanished">Başarısızlıklar: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="376"/>
         <source>Failed objects: %1</source>
-        <translation>Başarısız nesneler: %1</translation>
+        <translation type="vanished">Başarısız nesneler: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="380"/>
         <source>Warning objects: %1</source>
-        <translation>Uyarılı nesneler: %1</translation>
+        <translation type="vanished">Uyarılı nesneler: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="385"/>
         <source>Details</source>
-        <translation>Ayrıntılar</translation>
+        <translation type="vanished">Ayrıntılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="448"/>
         <source>Operation Failed</source>
-        <translation>İşlem başarısız</translation>
+        <translation type="vanished">İşlem başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="454"/>
         <source>The operation could not be completed. See the reason and suggested solutions below.</source>
-        <translation>İşlem tamamlanamadı. Nedeni ve önerilen çözümleri aşağıda görebilirsiniz.</translation>
+        <translation type="vanished">İşlem tamamlanamadı. Nedeni ve önerilen çözümleri aşağıda görebilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="456"/>
         <source>Report</source>
-        <translation>Rapor</translation>
+        <translation type="vanished">Rapor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="493"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="549"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="616"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="683"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="755"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="850"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="375"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="431"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="498"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="565"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="637"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="732"/>
         <source>Unsupported Operation</source>
         <translation>Desteklenmeyen işlem</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="494"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="376"/>
         <source>The decrypt operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>&apos;%1&apos; sekme türü için şifre çözme işlemi desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="550"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="432"/>
         <source>The verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>&apos;%1&apos; sekme türü için doğrulama işlemi desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="617"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="499"/>
         <source>The encryption operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>&apos;%1&apos; sekme türü için şifreleme işlemi desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="624"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="693"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="765"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="787"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="506"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="575"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="647"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="669"/>
         <source>No Key Selected</source>
         <translation>Anahtar seçilmedi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="625"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="507"/>
         <source>Please select a key for encryption.</source>
         <translation>Lütfen şifreleme için bir anahtar seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="684"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="566"/>
         <source>The sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>&apos;%1&apos; sekme türü için imzalama işlemi desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="694"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="788"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="576"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="670"/>
         <source>Please select a key for signing this document.</source>
         <translation>Lütfen bu belgeyi imzalamak için bir anahtar seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="699"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="793"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="581"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="675"/>
         <source>Multiple Keys Selected</source>
         <translation>Birden fazla anahtar seçildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="700"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="794"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="582"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="676"/>
         <source>Please select only one key to sign this document.</source>
         <translation>Lütfen bu belgeyi imzalamak için yalnızca bir anahtar seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="756"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="638"/>
         <source>The encrypt and sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>&apos;%1&apos; sekme türü için şifreleme ve imzalama işlemi desteklenmiyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="766"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="648"/>
         <source>Please select a key for encrypting this document.</source>
         <translation>Lütfen bu belgeyi şifrelemek için bir anahtar seçin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="851"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="733"/>
         <source>The decrypt and verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>&apos;%1&apos; sekme türü için şifre çözme ve doğrulama işlemi desteklenmiyor.</translation>
     </message>
@@ -9030,519 +9510,519 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Yeni bir metin düzenleyici aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="75"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="74"/>
         <source>New File Panel</source>
         <translation>Yeni dosya paneli</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="76"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="75"/>
         <source>Open a new file panel</source>
         <translation>Yeni bir dosya paneli aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="81"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="80"/>
         <source>File...</source>
         <translation>Dosya...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="82"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="81"/>
         <source>Open a file in the file panel</source>
         <translation>Dosya panelinde bir dosya aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="87"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="86"/>
         <source>Directory...</source>
         <translation>Dizin...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="88"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="87"/>
         <source>Open a directory in the file panel</source>
         <translation>Dosya panelinde bir dizin aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="104"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="103"/>
         <source>Print</source>
         <translation>Yazdır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="105"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="104"/>
         <source>Print Document</source>
         <translation>Belgeyi yazdır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="122"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="121"/>
         <source>Manage Profiles...</source>
         <translation>Profilleri yönet...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="123"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="122"/>
         <source>See every profile on this computer, and open, rename or remove one</source>
         <translation>Bu bilgisayardaki her profili görün ve birini açın, yeniden adlandırın veya kaldırın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="131"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
         <source>New Profile...</source>
         <translation>Yeni profil...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="132"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="131"/>
         <source>Start an empty profile on this computer, with its own settings and keys</source>
         <translation>Bu bilgisayarda kendi ayarları ve anahtarları olan boş bir profil başlatın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="137"/>
         <source>New Temporary Profile</source>
         <translation>Yeni Geçici Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="139"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
         <translation>Yeni bir pencerede boş, tek kullanımlık bir profil başlatın. O pencere kapandığında içindeki her şey yok edilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="150"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="149"/>
         <source>Open Profile File...</source>
         <translation>Profil dosyasını aç...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="151"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="150"/>
         <source>Work inside a profile file, leaving it a file. Nothing is added to this computer, and your changes go back into the same file.</source>
         <translation>Bir profil dosyasının içinde, onu dosya olarak bırakarak çalışın. Bu bilgisayara hiçbir şey eklenmez ve değişiklikleriniz aynı dosyaya geri yazılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="162"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="161"/>
         <source>Import Profile File...</source>
         <translation>Profil dosyasını içe aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="163"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="162"/>
         <source>Copy a profile file into a new profile kept on this computer. The file is not used again afterwards.</source>
         <translation>Bir profil dosyasını bu bilgisayarda tutulan yeni bir profile kopyalayın. Dosya bundan sonra bir daha kullanılmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="169"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="168"/>
         <source>Export This Profile...</source>
         <translation>Bu profili dışa aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="170"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="169"/>
         <source>Write the profile this window is using out to a new profile file, to carry elsewhere or keep as a backup</source>
         <translation>Bu pencerenin kullandığı profili, başka bir yere götürmek veya yedek olarak saklamak için yeni bir profil dosyasına yazın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="176"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="175"/>
         <source>Quit</source>
         <translation>Çık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="177"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="176"/>
         <source>Quit Program</source>
         <translation>Programdan çık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="181"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="180"/>
         <source>Undo</source>
         <translation>Geri al</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="182"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="181"/>
         <source>Undo Last Edit Action</source>
         <translation>Son düzenleme işlemini geri al</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="185"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="184"/>
         <source>Redo</source>
         <translation>Yinele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="186"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="185"/>
         <source>Redo Last Edit Action</source>
         <translation>Son düzenleme işlemini yinele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="189"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="188"/>
         <source>Zoom In</source>
         <translation>Yakınlaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="190"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="189"/>
         <source>Zoom in</source>
         <translation>Yakınlaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="194"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="193"/>
         <source>Zoom Out</source>
         <translation>Uzaklaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="195"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="194"/>
         <source>Zoom out</source>
         <translation>Uzaklaştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="199"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="198"/>
         <source>Paste</source>
         <translation>Yapıştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="200"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="199"/>
         <source>Paste Text From Clipboard</source>
         <translation>Panodan metin yapıştır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="203"/>
         <source>Cut</source>
         <translation>Kes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="205"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
         <source>Cut the current selection&apos;s contents to the clipboard</source>
         <translation>Geçerli seçimin içeriğini panoya kes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="209"/>
         <source>Copy</source>
         <translation>Kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="211"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
         <source>Copy the current selection&apos;s contents to the clipboard</source>
         <translation>Geçerli seçimin içeriğini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="215"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="214"/>
         <source>Quote</source>
         <translation>Alıntıla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="216"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="215"/>
         <source>Quote whole text</source>
         <translation>Tüm metni alıntıla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="220"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="219"/>
         <source>Select All</source>
         <translation>Tümünü seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="221"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="220"/>
         <source>Select the whole text</source>
         <translation>Tüm metni seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="224"/>
         <source>Find</source>
         <translation>Bul</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
         <source>Find a word</source>
         <translation>Bir sözcük bul</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="230"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="229"/>
         <source>Remove spacing</source>
         <translation>Boşlukları kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="232"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="231"/>
         <source>Remove double linebreaks, e.g. in pasted text from Web Mailer</source>
         <translation>Çift satır sonlarını kaldırın, örn. Web Mailer&apos;dan yapıştırılan metinde</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="288"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="287"/>
         <source>Sym. Encrypt</source>
         <translation>Sim. şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="289"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="288"/>
         <source>Encrypt Message (Symmetric)</source>
         <translation>İletiyi şifrele (simetrik)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="299"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="298"/>
         <source>New Keypair</source>
         <translation>Yeni anahtar çifti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="300"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="299"/>
         <source>Generate KeyPair</source>
         <translation>Anahtar çifti oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="307"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="443"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="306"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="441"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="595"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="309"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="308"/>
         <source>Import New Key From File</source>
         <translation>Dosyadan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="315"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="314"/>
         <source>Clipboard</source>
         <translation>Pano</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="317"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="316"/>
         <source>Import New Key From Clipboard</source>
         <translation>Panodan yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="323"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="322"/>
         <source>Editor</source>
         <translation>Düzenleyici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="323"/>
         <source>Import New Key From Editor</source>
         <translation>Düzenleyiciden yeni anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="336"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="335"/>
         <source>Open Module Controller</source>
         <translation>Modül kontrolcüsünü aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="337"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="336"/>
         <source>Open Module Controller Dialog</source>
         <translation>Modül kontrolcüsü iletişim kutusunu aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="341"/>
         <source>Open Smart Card Controller</source>
         <translation>Akıllı kart kontrolcüsünü aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="342"/>
         <source>Open Smart Card Controller Dialog</source>
         <translation>Akıllı kart kontrolcüsü iletişim kutusunu aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="349"/>
         <source>About</source>
         <translation>Hakkında</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="350"/>
         <source>Show the application&apos;s About box</source>
         <translation>Uygulamanın Hakkında kutusunu göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="361"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="360"/>
         <source>Open Wizard</source>
         <translation>Sihirbazı aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="362"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="361"/>
         <source>Open the wizard</source>
         <translation>Sihirbazı aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="366"/>
         <source>Show Application Log</source>
         <translation>Uygulama günlüğünü göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="368"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
         <source>Show the application log view</source>
         <translation>Uygulama günlüğü görünümünü göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="373"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="372"/>
         <source>Append Public Key to Editor</source>
         <translation>Açık anahtarı düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="374"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="373"/>
         <source>Append selected Keypair&apos;s Public Key to Editor</source>
         <translation>Seçili anahtar çiftinin açık anahtarını düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
         <source>Append Create DateTime to Editor</source>
         <translation>Oluşturma tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="380"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
         <source>Append selected Key&apos;s creation date and time to Editor</source>
         <translation>Seçili anahtarın oluşturulma tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="385"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
         <source>Append Expire DateTime to Editor</source>
         <translation>Sona erme tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="386"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="385"/>
         <source>Append selected Key&apos;s expiration date and time to Editor</source>
         <translation>Seçili anahtarın sona erme tarih ve saatini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="391"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
         <source>Append Fingerprint to Editor</source>
         <translation>Parmak izini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="392"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="391"/>
         <source>Append selected Key&apos;s Fingerprint to Editor</source>
         <translation>Seçili anahtarın parmak izini düzenleyiciye ekle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="396"/>
         <source>Copy Email</source>
         <translation>E-postayı kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="398"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="397"/>
         <source>Copy selected Keypair&apos;s to clipboard</source>
         <translation>Seçili anahtar çiftinin e-postasını panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="403"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
         <source>Copy Default UID</source>
         <translation>Varsayılan kullanıcı kimliğini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="404"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="403"/>
         <source>Copy selected Keypair&apos;s default UID to clipboard</source>
         <translation>Seçili anahtar çiftinin varsayılan kullanıcı kimliğini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="409"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
         <source>Copy Key ID</source>
         <translation>Anahtar kimliğini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="410"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="409"/>
         <source>Copy selected Keypair&apos;s ID to clipboard</source>
         <translation>Seçili anahtar çiftinin kimliğini panoya kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="415"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="414"/>
         <source>Show Key Details</source>
         <translation>Anahtar ayrıntılarını göster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="416"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="415"/>
         <source>Show Details for this Key</source>
         <translation>Bu anahtarın ayrıntılarını göster</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="420"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="421"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="422"/>
         <source>Set Owner Trust Level</source>
         <translation>Sahip güven düzeyini ayarla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="450"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="609"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="448"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="607"/>
         <source>Workspace</source>
         <translation>Çalışma alanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="465"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="640"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="463"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="638"/>
         <source>Edit</source>
         <translation>Düzen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="483"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="619"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="617"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="496"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="624"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="494"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="622"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="527"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="525"/>
         <source>Profiles</source>
         <translation>Profiller</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="532"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="530"/>
         <source>Open Recent</source>
         <translation>Son açılanlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="549"/>
         <source>Advanced</source>
         <translation>Gelişmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="566"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="564"/>
         <source>View</source>
         <translation>Görünüm</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="576"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="574"/>
         <source>Help</source>
         <translation>Yardım</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="601"/>
         <source>Open a file or directory</source>
         <translation>Bir dosya veya dizin aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="610"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="608"/>
         <source>Open a text editor or file panel</source>
         <translation>Bir metin düzenleyici veya dosya paneli aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="630"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="628"/>
         <source>Import</source>
         <translation>İçe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="631"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="629"/>
         <source>Import a key from file, editor, or clipboard</source>
         <translation>Dosyadan, düzenleyiciden veya panodan bir anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="649"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="647"/>
         <source>Text Tools</source>
         <translation>Metin araçları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="715"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="713"/>
         <source>Ready</source>
         <translation>Hazır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="719"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="717"/>
         <source>Key ToolBox</source>
         <translation>Anahtar araç kutusu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="744"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="742"/>
         <source>Default</source>
         <translation>Varsayılan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="752"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="750"/>
         <source>Key Group</source>
         <translation>Anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="759"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="757"/>
         <source>Only Public Key</source>
         <translation>Yalnızca açık anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="767"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="765"/>
         <source>Has Private Key</source>
         <translation>Gizli anahtarı var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="796"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="794"/>
         <source>Status Panel</source>
         <translation>Durum paneli</translation>
     </message>
@@ -9550,32 +10030,32 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::ModuleCommandsPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="344"/>
         <source>Filter commands...</source>
         <translation>Komutları filtrele...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="353"/>
         <source>Arguments as one JSON object; empty for none. Blobs cannot be given here.</source>
         <translation>Argümanlar tek bir JSON nesnesi olarak; hiçbiri yoksa boş. Bloblar burada verilemez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="359"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="357"/>
         <source>Invoke as Host</source>
         <translation>Host olarak çağır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="359"/>
         <source>Runs the command with the Host&apos;s own authority, which no module has: capability checks do not apply.</source>
         <translation>Komutu, hiçbir modülün sahip olmadığı Host yetkisiyle çalıştırır: yetenek kontrolleri uygulanmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="367"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="365"/>
         <source>Clear Log</source>
         <translation>Günlüğü temizle</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="448"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="446"/>
         <source>Arguments refused, %1</source>
         <translation>Argümanlar reddedildi, %1</translation>
     </message>
@@ -9894,17 +10374,17 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Bu derlemenin tetiklediği bir olay değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="248"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="247"/>
         <source>No active module listens to it.</source>
         <translation>Bunu dinleyen etkin bir modül yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="256"/>
         <source>Parameters refused, %1</source>
         <translation>Parametreler reddedildi, %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="262"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="261"/>
         <source>Fired %1 to %n listener(s)</source>
         <translation>
             <numerusform>%1, %n dinleyiciye iletildi</numerusform>
@@ -9952,77 +10432,77 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::ModuleStatusPanel</name>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>Module</source>
         <translation>Modül</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>State</source>
         <translation>Durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>Origin</source>
         <translation>Köken</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="283"/>
         <source>Entry Gate</source>
         <translation>Giriş kapısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
         <source>Listening</source>
         <translation>Dinleme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
         <source>Answers Owed</source>
         <translation>Bekleyen yanıtlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
         <source>Commands</source>
         <translation>Komutlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="284"/>
         <source>Calls</source>
         <translation>Çağrılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="285"/>
         <source>Widgets</source>
         <translation>Pencere öğeleri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="291"/>
         <source>Refresh</source>
         <translation>Yenile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="295"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="294"/>
         <source>Read-only. Activate and deactivate on the first tab.</source>
         <translation>Salt okunur. İlk sekmede etkinleştirin ve devre dışı bırakın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="326"/>
         <source>Integrated</source>
         <translation>Tümleşik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="326"/>
         <source>External</source>
         <translation>Harici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="328"/>
         <source>Closed</source>
         <translation>Kapalı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="329"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleDeveloperPanel.cpp" line="328"/>
         <source>Open</source>
         <translation>Açık</translation>
     </message>
@@ -10050,22 +10530,22 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Veritabanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="192"/>
         <source>Confirm</source>
         <translation>Onayla</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="196"/>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="195"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="201"/>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="200"/>
         <source>Select One Key</source>
         <translation>Bir anahtar seçin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="202"/>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="201"/>
         <source>Please select exactly one key or subkey to move to the card.</source>
         <translation>Lütfen karta taşımak için tam olarak bir anahtar veya alt anahtar seçin.</translation>
     </message>
@@ -10277,8 +10757,8 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="94"/>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="142"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="211"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="450"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="210"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="447"/>
         <source>Loading...</source>
         <translation>Yükleniyor...</translation>
     </message>
@@ -10294,7 +10774,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="147"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="240"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="238"/>
         <source>LF</source>
         <translation>LF</translation>
     </message>
@@ -10305,7 +10785,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="151"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="241"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="239"/>
         <source>UTF-8</source>
         <translation>UTF-8</translation>
     </message>
@@ -10315,57 +10795,57 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Metin kodlaması.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="162"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="161"/>
         <source>SHA-256 checksum of editor content.</source>
         <translation>Düzenleyici içeriğinin SHA-256 sağlama toplamı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="234"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="232"/>
         <source>Ln %1, Col %2 · %3 chars%4</source>
         <translation>Sat %1, Süt %2 · %3 karakter%4</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="240"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="238"/>
         <source>CRLF</source>
         <translation>CRLF</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="246"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="244"/>
         <source>The document has unsaved changes.</source>
         <translation>Belgede kaydedilmemiş değişiklikler var.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="247"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="245"/>
         <source>The document is unchanged.</source>
         <translation>Belge değişmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="536"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="533"/>
         <source>Loading... %1 KB</source>
         <translation>Yükleniyor... %1 KB</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="898"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="895"/>
         <source>Message</source>
         <translation>İleti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="899"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="896"/>
         <source>Raw Source</source>
         <translation>Ham kaynak</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="978"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="975"/>
         <source>Protected Document</source>
         <translation>Korumalı belge</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1004"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1001"/>
         <source>Stop Editing</source>
         <translation>Düzenlemeyi durdur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1005"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1002"/>
         <source>Edit Raw Source</source>
         <translation>Ham kaynağı düzenle</translation>
     </message>
@@ -10378,27 +10858,27 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation type="vanished">Salt okunur. Kaynağı düzenlemek için kilidi açın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1067"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1064"/>
         <source>Text Direction</source>
         <translation>Metin yönü</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1074"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1071"/>
         <source>Automatic</source>
         <translation>Otomatik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1075"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1072"/>
         <source>Left-to-Right</source>
         <translation>Soldan sağa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1076"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1073"/>
         <source>Right-to-Left</source>
         <translation>Sağdan sola</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1090"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="1087"/>
         <source>Which way the text runs. Automatic gives every line the direction of its own first letter.</source>
         <translation>Metnin aktığı yön. Otomatik, her satıra kendi ilk harfinin yönünü verir.</translation>
     </message>
@@ -10406,73 +10886,73 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::ProfileCreateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="150"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="175"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="173"/>
         <source>New Profile</source>
         <translation>Yeni profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="174"/>
         <source>Its own keys and settings, opened in a window of its own.</source>
         <translation>Kendi anahtarları ve ayarları, kendi penceresinde açılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="187"/>
         <source>Create Profile</source>
         <translation>Profil Oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="211"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="209"/>
         <source>for example: Work</source>
         <translation>örneğin: İş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="215"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="213"/>
         <source>Shown in the profile list and the status bar. You can change it later.</source>
         <translation>Profil listesinde ve durum çubuğunda gösterilir. Daha sonra değiştirebilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="219"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="217"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="231"/>
         <source>Keys live inside this profile and can be exported with it as one file.</source>
         <translation>Anahtarlar bu profilin içinde bulunur ve onunla birlikte tek bir dosya olarak dışa aktarılabilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
         <source>Recommended</source>
         <translation>Önerilen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="236"/>
         <source>Your existing keys, shared with the system. Not carried in a profile file.</source>
         <translation>Mevcut anahtarlarınız, sistemle paylaşılır. Bir profil dosyasında taşınmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="254"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="252"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="266"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="264"/>
         <source>Start with this window&apos;s settings</source>
         <translation>Bu pencerenin ayarlarıyla başlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="331"/>
         <source>Never copied: keys, key databases, the workspace folder, key protection and proxy credentials.</source>
         <translation>Asla kopyalanmaz: anahtarlar, anahtar veritabanları, çalışma alanı klasörü, anahtar koruması ve proxy kimlik bilgileri.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="338"/>
         <source>Settings</source>
         <translation>Ayarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="230"/>
         <source>Start with an empty keyring</source>
         <translation>Boş bir anahtarlıkla başlayın</translation>
     </message>
@@ -10481,7 +10961,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation type="vanished">Anahtarlar bu profilin içindedir. Profil diğer her şeyden ayrı kalır ve tek bir dosya olarak dışa aktarılabilir. Hiç anahtar olmadan açılır, bu nedenle anahtarları burada içe aktaracak veya oluşturacaksınız.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
         <source>Use the system GnuPG keyring</source>
         <translation>Sistem GnuPG anahtarlığını kullanın</translation>
     </message>
@@ -10494,57 +10974,57 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <name>GpgFrontend::UI::ProfileExportDialog</name>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="52"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="230"/>
         <source>Export Profile</source>
         <translation>Profili dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="74"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="73"/>
         <source>Export &quot;%1&quot;</source>
         <translation>&quot;%1&quot; dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="75"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="74"/>
         <source>Everything below is written into a single file you can copy to another computer and import there.</source>
         <translation>Aşağıdaki her şey, başka bir bilgisayara kopyalayıp orada içe aktarabileceğiniz tek bir dosyaya yazılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="119"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="118"/>
         <source>Export</source>
         <translation>Dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="150"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="149"/>
         <source>No file chosen yet.</source>
         <translation>Henüz dosya seçilmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="158"/>
         <source>Choose...</source>
         <translation>Seç...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="165"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="164"/>
         <source>Save to</source>
         <translation>Kayıt yeri</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="175"/>
         <source>What goes in</source>
         <translation>Dahil olanlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="195"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="194"/>
         <source>The file cannot be opened without this passphrase, and it cannot be recovered.</source>
         <translation>Dosya bu parola ifadesi olmadan açılamaz ve kurtarılamaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="209"/>
         <source>Protection</source>
         <translation>Koruma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="282"/>
         <source>Choose where to save the file to continue.</source>
         <translation>Devam etmek için dosyanın kaydedileceği yeri seçin.</translation>
     </message>
@@ -10777,47 +11257,47 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::RpgpEngineTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="703"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="697"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="712"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="706"/>
         <source>GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it can use a Rust-based engine (rPGP), giving you the freedom to choose the backend that best fits your needs. The details below describe the rPGP engine compiled into this build.</source>
         <translation>GpgFrontend birden fazla OpenPGP arka ucunu destekler. GnuPG ile birlikte Rust tabanlı bir motor (rPGP) kullanabilir; bu da size gereksinimlerinize en uygun arka ucu seçme özgürlüğü verir. Aşağıdaki ayrıntılar, bu derlemeyle gelen rPGP motorunu açıklar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="722"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="716"/>
         <source>Engine Version:</source>
         <translation>Motor sürümü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="724"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="718"/>
         <source>Rust Compiler:</source>
         <translation>Rust derleyicisi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="727"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="721"/>
         <source>Target:</source>
         <translation>Hedef:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="731"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="725"/>
         <source>Build Profile:</source>
         <translation>Derleme profili:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="736"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="730"/>
         <source>rPGP Engine</source>
         <translation>rPGP motoru</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="743"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="737"/>
         <source>Key Dependencies</source>
         <translation>Önemli bağımlılıklar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="762"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="754"/>
         <source>Copy Engine Information</source>
         <translation>Motor bilgilerini kopyala</translation>
     </message>
@@ -11110,12 +11590,12 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>eylemler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="116"/>
         <source>text editor</source>
         <translation>metin düzenleyici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="116"/>
         <source>status panel</source>
         <translation>durum paneli</translation>
     </message>
@@ -11172,12 +11652,12 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="134"/>
         <source>built-in</source>
-        <translation type="unfinished"></translation>
+        <translation>yerleşik</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="134"/>
         <source>default</source>
-        <translation type="unfinished"></translation>
+        <translation>varsayılan</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="141"/>
@@ -11989,204 +12469,204 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="461"/>
         <source>Application Key Protection:</source>
         <translation>Uygulama anahtarı koruması:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="464"/>
         <source>Secure Level:</source>
         <translation>Güvenlik düzeyi:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="474"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="496"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="490"/>
         <source>System Credential Store:</source>
         <translation>Sistem kimlik bilgisi deposu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="475"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="469"/>
         <source>Unavailable</source>
         <translation>Kullanılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="485"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="479"/>
         <source>GnuPG Home:</source>
         <translation>GnuPG ana dizini:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="486"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="480"/>
         <source>Unusable</source>
         <translation>Kullanılamaz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="493"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="487"/>
         <source>Running Mode:</source>
         <translation>Çalışma modu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="494"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="488"/>
         <source>Portable Mode</source>
         <translation>Taşınabilir mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="494"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="488"/>
         <source>Installed Mode</source>
         <translation>Kurulu mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="500"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="494"/>
         <source>Application</source>
         <translation>Uygulama</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="508"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="502"/>
         <source>Profile ID:</source>
         <translation>Profil kimliği:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="519"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="513"/>
         <source>Session Storage:</source>
         <translation>Oturum deposu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="524"/>
         <source>Profile Key:</source>
         <translation>Profil anahtarı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="531"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="525"/>
         <source>Held in memory only</source>
         <translation>Yalnızca bellekte tutuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="526"/>
         <source>The key that protects this profile&apos;s own saved data is never written here. Your OpenPGP keys are a separate thing and do live in the session storage above, because GnuPG needs real files for them.</source>
         <translation>Bu profilin kendi kayıtlı verilerini koruyan anahtar buraya hiçbir zaman yazılmaz. OpenPGP anahtarlarınız ayrıdır ve yukarıdaki oturum deposunda durur, çünkü GnuPG onlar için gerçek dosyalara ihtiyaç duyar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="545"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="539"/>
         <source>Profile Key Rotation:</source>
         <translation>Profil anahtarı döndürme:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="540"/>
         <source>On a schedule</source>
         <translation>Zamanlamaya göre</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
         <source>New saved data uses the current period&apos;s key, and the keys that open what earlier periods wrote are kept alongside it.</source>
         <translation>Yeni kaydedilen veriler geçerli dönemin anahtarını kullanır ve önceki dönemlerin yazdıklarını açan anahtarlar onun yanında tutulur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="557"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="551"/>
         <source>Profile Format Version:</source>
         <translation>Profil biçim sürümü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="567"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="561"/>
         <source>Profile File:</source>
         <translation>Profil dosyası:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="576"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="570"/>
         <source>Imported From:</source>
         <translation>İçe aktarıldığı yer:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="580"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="574"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="586"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="580"/>
         <source>Profile Folder:</source>
         <translation>Profil klasörü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="593"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="595"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="589"/>
         <source>Workspace:</source>
         <translation>Çalışma alanı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="593"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
         <source>None</source>
         <translation>Yok</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="605"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="599"/>
         <source>Profiles Folder:</source>
         <translation>Profiller klasörü:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="609"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="603"/>
         <source>Folders</source>
         <translation>Klasörler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="615"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="609"/>
         <source>Available</source>
         <translation>Kullanılabilir</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="619"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="613"/>
         <source>GnuPG Offline Mode:</source>
         <translation>GnuPG çevrimdışı modu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="620"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="614"/>
         <source>Active</source>
         <translation>Etkin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="620"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="614"/>
         <source>Disabled</source>
         <translation>Devre dışı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="627"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="621"/>
         <source>Pinentry Program Path:</source>
         <translation>Pinentry program yolu:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="623"/>
         <source>Default Pinentry Program</source>
         <translation>Varsayılan Pinentry programı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="634"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="628"/>
         <source>OpenPGP Engines</source>
         <translation>OpenPGP motorları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="655"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="649"/>
         <source>Needs Attention</source>
         <translation>Dikkat gerekiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="656"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="650"/>
         <source>At a Glance</source>
         <translation>Bir bakışta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="673"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="667"/>
         <source>More details</source>
         <translation>Daha fazla ayrıntı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="673"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="667"/>
         <source>Details</source>
         <translation>Ayrıntılar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="678"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="672"/>
         <source>Copy Status Information</source>
         <translation>Durum bilgisini kopyala</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="686"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="680"/>
         <source>These values reflect the current startup environment and may help when reporting issues.</source>
         <translation>Bu değerler geçerli başlangıç ortamını yansıtır ve sorun bildirirken yardımcı olabilir.</translation>
     </message>
@@ -12264,42 +12744,42 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Yeni alt anahtar oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="481"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="479"/>
         <source>Please give a valid subkey algorithm.</source>
         <translation>Lütfen geçerli bir alt anahtar algoritması belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="491"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="489"/>
         <source>Please give a valid second algorithm.</source>
         <translation>Lütfen geçerli bir ikinci algoritma belirtin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="499"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
         <translation>Alt anahtarın sona ermesine kalan süre 120 saniyeden az olmamalıdır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="518"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="516"/>
         <source>Generating</source>
         <translation>Oluşturuluyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="530"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="533"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="531"/>
         <source>Unknown error occurred</source>
         <translation>Bilinmeyen bir hata oluştu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="563"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="561"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="564"/>
+        <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="562"/>
         <source>Subkey generation completed successfully.</source>
         <translation>Alt anahtar oluşturma başarıyla tamamlandı.</translation>
     </message>
@@ -12336,7 +12816,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="195"/>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="224"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="699"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="703"/>
         <source>Warning</source>
         <translation>Uyarı</translation>
     </message>
@@ -12374,17 +12854,17 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Kaydetmezseniz değişiklikleriniz kaybolur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="650"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="654"/>
         <source>File Open Error</source>
         <translation>Dosya açma hatası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="651"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="655"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>&quot;%1&quot; dosyası açılamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="699"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="703"/>
         <source>No document to print.</source>
         <translation>Yazdırılacak belge yok.</translation>
     </message>
@@ -12440,28 +12920,28 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>&quot;%1&quot; dosyası mevcut değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="576"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="575"/>
         <source>Select Default Path</source>
         <translation>Varsayılan yolu seç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="646"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1203"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="645"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1201"/>
         <source>Workspace</source>
         <translation>Çalışma alanı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1175"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1173"/>
         <source>Directory Permission Denied</source>
         <translation>Dizin izni reddedildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1176"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1174"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>&quot;%1&quot; dizinine erişim izniniz yok.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1198"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1196"/>
         <source>Root</source>
         <translation>Kök</translation>
     </message>
@@ -12469,17 +12949,17 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="393"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="387"/>
         <source>Thanks to all translators</source>
         <translation>Tüm çevirmenlere teşekkürler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="403"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="397"/>
         <source>Translator information is not available.</source>
         <translation>Çevirmen bilgisi kullanılamıyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="407"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="401"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
         <translation>Yerelleştirmeyi iyileştirmeye yardımcı olmak istiyorsanız lütfen &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;çeviri kılavuzunu&lt;/a&gt; okuyun.!</translation>
     </message>
@@ -12500,8 +12980,8 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgFrontend::UI::Wizard</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="226"/>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="222"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="229"/>
         <source>Welcome to GpgFrontend</source>
         <translation>GpgFrontend&apos;e hoş geldiniz</translation>
     </message>
@@ -12509,33 +12989,33 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
 <context>
     <name>GpgKey</name>
     <message>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="103"/>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="117"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="104"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="118"/>
         <source>Ultimate</source>
         <translation>Nihai</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="107"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="108"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="109"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="110"/>
         <source>Undefined</source>
         <translation>Tanımsız</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="111"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="112"/>
         <source>Never</source>
         <translation>Hiçbir zaman</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="113"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="114"/>
         <source>Marginal</source>
         <translation>Sınırlı</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKey.cpp" line="115"/>
+        <location filename="../../../../src/core/model/GpgKey.cpp" line="116"/>
         <source>Full</source>
         <translation>Tam</translation>
     </message>
@@ -12620,50 +13100,50 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Hiçbir anahtar veritabanı açılamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="184"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="227"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="182"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="225"/>
         <source>Filename</source>
         <translation>Dosya adı</translation>
     </message>
     <message>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="183"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="185"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="187"/>
         <source>File Size</source>
         <translation>Dosya boyutu</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="210"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="208"/>
         <source>File Hash Information</source>
         <translation>Dosya karma bilgisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="212"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="227"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="210"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="225"/>
         <source>: </source>
         <translation>: </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="225"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="223"/>
         <source>Error: cannot read target file</source>
         <translation>Hata: hedef dosya okunamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="259"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="257"/>
         <source>target path doesn&apos;t exists</source>
         <translation>hedef yol mevcut değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="265"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="263"/>
         <source>do NOT have permission to write path</source>
         <translation>yola yazma izni YOK</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="271"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="269"/>
         <source>do NOT have permission to read/write file</source>
         <translation>dosyayı okuma/yazma izni YOK</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="274"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="272"/>
         <source>Success</source>
         <translation>Başarılı</translation>
     </message>
@@ -12738,60 +13218,60 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>OpenPGP ortamı hazırlanıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="179"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="178"/>
         <source>Starting GpgFrontend</source>
         <translation>GpgFrontend başlatılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="238"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="236"/>
         <source>Cancel</source>
         <translation>İptal</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1360"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1352"/>
         <source>Built-in</source>
-        <translation type="unfinished"></translation>
+        <translation>Yerleşik</translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="174"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="173"/>
         <source>The module claims the ID %1, which belongs to a module that comes with GpgFrontend.</source>
         <translation>Modül, GpgFrontend ile gelen bir modüle ait olan %1 kimliğini iddia ediyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="205"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="204"/>
         <source>External modules are not supported on macOS: the system only loads code signed with this application&apos;s own Team ID.</source>
         <translation>Harici modüller macOS&apos;ta desteklenmiyor: sistem yalnızca bu uygulamanın kendi Team ID&apos;si ile imzalanmış kodu yükler.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="220"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="219"/>
         <source>Waiting for you to trust the publisher key that signed it.</source>
         <translation>Onu imzalayan yayımcı anahtarına güvenmeniz bekleniyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="223"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="222"/>
         <source>Waiting for you to enable it.</source>
         <translation>Etkinleştirmeniz bekleniyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="250"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="249"/>
         <source>The module declares the ID %1 but is in a directory named %2 instead of %3.</source>
         <translation>Modül %1 kimliğini bildiriyor ancak %3 yerine %2 adlı bir dizinde bulunuyor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/ModuleManager.cpp" line="324"/>
+        <location filename="../../../../src/core/module/ModuleManager.cpp" line="323"/>
         <source>This is not a module package.</source>
         <translation>Bu bir modül paketi değil.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/profile/ProfileSecureKeyManager.cpp" line="540"/>
+        <location filename="../../../../src/core/profile/ProfileSecureKeyManager.cpp" line="541"/>
         <source>The secure key could not be encrypted, so it was not saved to disk.</source>
         <translation>Güvenli anahtar şifrelenemedi, bu yüzden diske kaydedilmedi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="132"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="148"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="251"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="275"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="232"/>
@@ -12802,7 +13282,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>Profil açılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="158"/>
         <source>That passphrase did not open this file. Try again.</source>
         <translation>Bu parola ifadesi bu dosyayı açmadı. Yeniden deneyin.</translation>
     </message>
@@ -12872,7 +13352,7 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="54"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="120"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="210"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="303"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
@@ -12882,48 +13362,48 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
         <translation>SDK ABI</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="119"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="118"/>
         <source>Built for</source>
         <translation>Derleme hedefi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="125"/>
         <source>Built against Qt</source>
         <translation>Derlendiği Qt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="130"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="129"/>
         <source>Capabilities</source>
         <translation>Yetenekler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="136"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="135"/>
         <source>Digest</source>
         <translation>Özet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="164"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="163"/>
         <source>Described by its package</source>
         <translation>Paketi tarafından tanımlandı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="165"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="164"/>
         <source>Claimed by the module</source>
         <translation>Modül tarafından bildirildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="168"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="167"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="123"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="172"/>
         <source>Author</source>
         <translation>Yazar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="177"/>
         <source>Description</source>
         <translation>Açıklama</translation>
     </message>
@@ -13036,7 +13516,7 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="164"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="211"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="304"/>
         <source>Cipher</source>
         <translation>Şifreleme</translation>
     </message>
@@ -13231,7 +13711,7 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="125"/>
         <source>Role</source>
-        <translation type="unfinished"></translation>
+        <translation>Rol</translation>
     </message>
     <message>
         <source>Channel</source>
@@ -13597,183 +14077,185 @@ Bağlantı panonuza kopyalandı:
         <translation>Bu, önceki bir değişiklik yarıda kesildiyse oluşabilir. PIN ayarı kapatıldı ve anahtar olduğu gibi bırakıldı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="99"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="185"/>
         <source>Fully Valid</source>
         <translation>Tamamen geçerli</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="101"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="187"/>
         <source>Valid (with Issues)</source>
         <translation>Geçerli (sorunlu)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="103"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="189"/>
         <source>Valid (Not Fully Trusted)</source>
         <translation>Geçerli (tam güvenilmiyor)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="105"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="191"/>
         <source>Invalid</source>
         <translation>Geçersiz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="107"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="193"/>
         <source>Key Missing</source>
         <translation>Anahtar eksik</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="109"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="195"/>
         <source>Key Revoked</source>
         <translation>Anahtar iptal edildi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="111"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="197"/>
         <source>Signature Expired</source>
         <translation>İmzanın süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="113"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="199"/>
         <source>Key Expired</source>
         <translation>Anahtarın süresi doldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="115"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="201"/>
         <source>Verification Error</source>
         <translation>Doğrulama hatası</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="117"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="203"/>
         <source>Key Not Authorized</source>
         <translation>Anahtar yetkili değil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="119"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="205"/>
         <location filename="../../../../src/ui/function/SecurityDisplayNames.cpp" line="47"/>
         <source>Unknown</source>
         <translation>Bilinmiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="125"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="211"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="688"/>
         <source>Signer</source>
         <translation>İmzalayan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="127"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="148"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="196"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="213"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="236"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="283"/>
         <source>Fingerprint</source>
         <translation>Parmak izi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="129"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="150"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="216"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="239"/>
         <source>Key ID</source>
         <translation>Anahtar kimliği</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="135"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="153"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="223"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="243"/>
         <source>Algorithm</source>
         <translation>Algoritma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="138"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="226"/>
         <source>Signed</source>
         <translation>İmzalı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="234"/>
+        <location filename="../../../../src/ui/function/InfoBoardReport.cpp" line="684"/>
         <source>Recipient</source>
         <translation>Alıcı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="152"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="242"/>
         <source>Primary Key Algorithm</source>
         <translation>Birincil anahtar algoritması</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="258"/>
+        <source>Signature · %1</source>
+        <translation>İmza · %1</translation>
+    </message>
+    <message>
         <source>Input Material Hash</source>
-        <translation>Girdi verisi karması</translation>
+        <translation type="vanished">Girdi verisi karması</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="167"/>
         <source>SHA-256</source>
-        <translation>SHA-256</translation>
+        <translation type="vanished">SHA-256</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="185"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="271"/>
         <source>Signature Created</source>
         <translation>İmza oluşturuldu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="188"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="274"/>
         <source>Mode</source>
         <translation>Mod</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="194"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="281"/>
         <source>Invalid Signer</source>
         <translation>Geçersiz imzalayan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="197"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="285"/>
         <source>Reason</source>
         <translation>Neden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="204"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="232"/>
         <source>Decrypt</source>
-        <translation>Şifresini çöz</translation>
+        <translation type="vanished">Şifresini çöz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="207"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="300"/>
         <source>Message Metadata</source>
         <translation>İleti üst verisi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="212"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="305"/>
         <source>MIME</source>
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="213"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="306"/>
         <source>Yes</source>
         <translation>Evet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="214"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="307"/>
         <source>No</source>
         <translation>Hayır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="215"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="308"/>
         <source>Integrity</source>
         <translation>Bütünlük</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="217"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="310"/>
         <source>Protected</source>
         <translation>Korumalı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="218"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="311"/>
         <source>Not Protected (unsafe)</source>
         <translation>Korumasız (güvenli değil)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="222"/>
         <source>Encrypt</source>
-        <translation>Şifrele</translation>
+        <translation type="vanished">Şifrele</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="225"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="319"/>
         <source>Encryption Recipient</source>
         <translation>Şifreleme alıcısı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="235"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="330"/>
         <source>Decryption Recipient</source>
         <translation>Şifre çözme alıcısı</translation>
     </message>
@@ -13788,12 +14270,12 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="45"/>
         <source>This profile&apos;s own built-in key database</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu profilin kendi yerleşik anahtar veritabanı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="46"/>
         <source>This computer&apos;s built-in key database</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu bilgisayarın yerleşik anahtar veritabanı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="48"/>
@@ -13808,20 +14290,20 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="86"/>
         <source>Uses keys in the GnuPG home directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu konumdaki GnuPG anahtar veritabanını kullanır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyDatabaseDisplayNames.cpp" line="87"/>
         <source>Uses the rPGP key database at this location.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bu konumdaki rPGP anahtar veritabanını kullanır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="198"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="195"/>
         <source>ECC</source>
         <translation>ECC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="205"/>
+        <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="202"/>
         <source>Post-Quantum</source>
         <translation>Kuantum sonrası</translation>
     </message>
@@ -14172,7 +14654,7 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <translation>%1  ·  %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="98"/>
+        <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="97"/>
         <source>Home</source>
         <translation>Ev</translation>
     </message>
@@ -14238,7 +14720,7 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="85"/>
         <source>Default: used when an operation does not explicitly select a key database.</source>
-        <translation type="unfinished"></translation>
+        <translation>Varsayılan: bir işlem açıkça bir anahtar veritabanı seçmediğinde kullanılır.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="107"/>
