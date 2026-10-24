@@ -1,0 +1,3 @@
+# The repository-wide "*.d" rule would drop the demo secret keys. They are
+# throwaway keys with no passphrase, and decrypt scenarios need them.
+!private-keys-v1.d/
