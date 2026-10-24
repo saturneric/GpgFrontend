@@ -34,6 +34,7 @@
 #include "core/model/GpgKey.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/DateTimeText.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
 namespace {
@@ -331,7 +332,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
     if (key_->ExpirationTime().toSecsSinceEpoch() == 0) {
       expire_var_label_->setText(tr("Never Expire"));
     } else {
-      expire_var_label_->setText(QLocale().toString(key_->ExpirationTime()));
+      expire_var_label_->setText(LongDateTimeText(key_->ExpirationTime()));
     }
 
     auto palette = expire_var_label_->palette();
@@ -345,12 +346,12 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   key_algo_val = key_->PublicKeyAlgo();
   key_algo_detail_val = key_->Algo();
 
-  created_var_label_->setText(QLocale().toString(key_->CreationTime()));
+  created_var_label_->setText(LongDateTimeText(key_->CreationTime()));
 
   if (key_->LastUpdateTime().toSecsSinceEpoch() == 0) {
     last_update_var_label_->setText(tr("No Data"));
   } else {
-    last_update_var_label_->setText(QLocale().toString(key_->LastUpdateTime()));
+    last_update_var_label_->setText(LongDateTimeText(key_->LastUpdateTime()));
   }
 
   key_size_var_label_->setText(key_size_val);

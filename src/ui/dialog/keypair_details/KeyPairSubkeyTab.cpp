@@ -43,6 +43,7 @@
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
+#include "ui/function/DateTimeText.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/MoveKeyToCard.h"
@@ -321,16 +322,16 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 4, tmp4);
 
-    auto* tmp5 = new QTableWidgetItem(QLocale().toString(s_key.CreationTime()));
+    auto* tmp5 = new QTableWidgetItem(ShortDateTimeText(s_key.CreationTime()));
     tmp5->setToolTip(tmp5->text());
     tmp5->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 5, tmp5);
 
     if (set_expire_supported_) {
-      auto* tmp6 = new QTableWidgetItem(
-          s_key.ExpirationTime().toSecsSinceEpoch() == 0
-              ? tr("Never Expire")
-              : QLocale().toString(s_key.ExpirationTime()));
+      auto* tmp6 =
+          new QTableWidgetItem(s_key.ExpirationTime().toSecsSinceEpoch() == 0
+                                   ? tr("Never Expire")
+                                   : ShortDateTimeText(s_key.ExpirationTime()));
       tmp6->setToolTip(tmp6->text());
       tmp6->setTextAlignment(Qt::AlignCenter);
       subkey_list_->setItem(row, 6, tmp6);
@@ -405,7 +406,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
   algorithm_var_label_->setText(s_key.PublicKeyAlgo());
   algorithm_detail_var_label_->setText(s_key.Algo());
-  created_var_label_->setText(QLocale().toString(s_key.CreationTime()));
+  created_var_label_->setText(LongDateTimeText(s_key.CreationTime()));
 
   QString buffer;
   QTextStream usage_steam(&buffer);
@@ -450,9 +451,9 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   if (set_expire_supported_) {
     const time_t subkey_time_t = s_key.ExpirationTime().toSecsSinceEpoch();
 
-    expire_var_label_->setText(
-        subkey_time_t == 0 ? tr("Never Expires")
-                           : QLocale().toString(s_key.ExpirationTime()));
+    expire_var_label_->setText(subkey_time_t == 0
+                                   ? tr("Never Expires")
+                                   : LongDateTimeText(s_key.ExpirationTime()));
 
     auto palette = expire_var_label_->palette();
     palette.setColor(expire_var_label_->foregroundRole(),

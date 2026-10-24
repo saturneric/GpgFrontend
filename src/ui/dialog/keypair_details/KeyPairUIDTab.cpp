@@ -37,6 +37,7 @@
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/keypair_details/KeyNewUIDDialog.h"
 #include "ui/dialog/keypair_details/KeyUIDSignDialog.h"
+#include "ui/function/DateTimeText.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
@@ -263,14 +264,13 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
         auto* tmp3 = new QTableWidgetItem(sig.GetEmail());
         sig_list_->setItem(sig_row, 2, tmp3);
       }
-      auto* tmp4 =
-          new QTableWidgetItem(QLocale().toString(sig.GetCreateTime()));
+      auto* tmp4 = new QTableWidgetItem(ShortDateTimeText(sig.GetCreateTime()));
       sig_list_->setItem(sig_row, 3, tmp4);
 
       auto* tmp5 =
           new QTableWidgetItem(sig.GetExpireTime().toSecsSinceEpoch() == 0
                                    ? tr("Never Expires")
-                                   : QLocale().toString(sig.GetExpireTime()));
+                                   : ShortDateTimeText(sig.GetExpireTime()));
       tmp5->setTextAlignment(Qt::AlignCenter);
       sig_list_->setItem(sig_row, 4, tmp5);
 
