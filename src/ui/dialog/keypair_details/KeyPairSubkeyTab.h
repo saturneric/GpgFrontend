@@ -133,7 +133,7 @@ class KeyPairSubkeyTab : public QWidget {
   OpenPGPEngine engine_;
   GpgKeyPtr key_;                           ///<
   QTableWidget* subkey_list_{};             ///<
-  QContainer<GpgSubKey> buffered_subkeys_;  ///<
+  QList<GpgSubKey> buffered_subkeys_;       ///<
 
   QGroupBox* list_box_;    ///<
   QGroupBox* detail_box_;  ///<

@@ -39,7 +39,7 @@ class KeyPairPhotosTab : public QWidget {
 
  public:
   explicit KeyPairPhotosTab(int channel, GpgKeyPtr key,
-                            const QContainer<GpgAttrInfo>& infos,
+                            const QList<GpgAttrInfo>& infos,
                             QWidget* parent = nullptr);
   ~KeyPairPhotosTab() override;
 
@@ -51,8 +51,8 @@ class KeyPairPhotosTab : public QWidget {
   QSharedPointer<Ui_KeyPairPhotosTab> ui_;
   int current_gpg_context_channel_;
   GpgKeyPtr key_;
-  QContainer<GpgAttrInfo> infos_;
-  QContainer<GpgAttrInfo> jpg_infos_;
+  QList<GpgAttrInfo> infos_;
+  QList<GpgAttrInfo> jpg_infos_;
 };
 
 }  // namespace GpgFrontend::UI

@@ -350,7 +350,7 @@ auto ModuleControllerDialog::show_refused_module() -> bool {
   ui_->descriptionLabel->setVisible(true);
   ui_->descriptionLabel->setText(refusal.reason);
 
-  QVector<MetaListRow> rows;
+  QList<MetaListRow> rows;
   rows.append({.caption = tr("Status"),
                .value = refusal.pending_user_action ? tr("Waiting for you")
                                                     : tr("Not loaded"),

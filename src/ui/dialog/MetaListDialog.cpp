@@ -57,7 +57,7 @@ MetaListDialog::MetaListDialog(const QString& title, const QString& subtitle,
 }
 
 void MetaListDialog::AddSection(const QString& card_title,
-                                const QVector<MetaListRow>& rows) {
+                                const QList<MetaListRow>& rows) {
   if (rows.isEmpty()) return;
 
   auto* panel = new MetaListPanel(this);

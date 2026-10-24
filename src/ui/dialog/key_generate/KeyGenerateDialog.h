@@ -203,10 +203,10 @@ class KeyGenerateDialog : public GeneralDialog {
   QSharedPointer<KeyGenerateInfo> gen_key_info_;     ///<
   QSharedPointer<KeyGenerateInfo> gen_subkey_info_;  ///<
 
-  QContainer<KeyAlgo> supported_primary_key_algos_;
-  QContainer<KeyAlgo> supported_subkey_algos_;
+  QList<KeyAlgo> supported_primary_key_algos_;
+  QList<KeyAlgo> supported_subkey_algos_;
 
-  QContainer<EasyModeConf> easy_mode_conf_;
+  QList<EasyModeConf> easy_mode_conf_;
   QMap<int, EasyModeConf> easy_profile_conf_index_;
 
   /**

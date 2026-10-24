@@ -52,15 +52,15 @@ class QuitDialog : public GeneralDialog {
   /**
    * @brief Get the Tab Ids To Save object
    *
-   * @return QContainer<int>
+   * @return QList<int>
    */
-  auto GetTabIdsToSave() -> QContainer<int>;
+  auto GetTabIdsToSave() -> QList<int>;
 
  signals:
 
   void SignalDiscard();
 
-  void SignalSave(const QContainer<int>& tab_ids);
+  void SignalSave(const QList<int>& tab_ids);
 
   void SignalCancel();
 

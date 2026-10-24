@@ -34,14 +34,14 @@ namespace GpgFrontend::UI {
 
 auto BuildProfileExportContents(const QMap<QString, qint64>& areas,
                                 bool include_workspace)
-    -> QVector<ProfileExportContentsRow> {
+    -> QList<ProfileExportContentsRow> {
   // A missing key measures zero rather than dropping its row, so renaming an
   // area in the core cannot make a line silently disappear from this list.
   const auto size = [&areas](const QString& key) {
     return areas.value(key, 0);
   };
 
-  QVector<ProfileExportContentsRow> rows;
+  QList<ProfileExportContentsRow> rows;
 
   rows.append({ProfileExportArea::kSettings, QObject::tr("Settings"),
                ":/icons/setting.png", size("config"), false, true});
@@ -69,7 +69,7 @@ auto BuildProfileExportContents(const QMap<QString, qint64>& areas,
   return rows;
 }
 
-auto TotalProfileExportBytes(const QVector<ProfileExportContentsRow>& rows)
+auto TotalProfileExportBytes(const QList<ProfileExportContentsRow>& rows)
     -> qint64 {
   qint64 total = 0;
   for (const auto& row : rows) {
@@ -123,9 +123,9 @@ auto DescribeProfileExport(const ProfileExportChoice& choice,
       .arg(destination, HumanSize(choice.total_bytes));
 }
 
-auto ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
-    -> QVector<MetaListRow> {
-  QVector<MetaListRow> out;
+auto ToMetaListRows(const QList<ProfileExportContentsRow>& rows)
+    -> QList<MetaListRow> {
+  QList<MetaListRow> out;
 
   for (const auto& row : rows) {
     // Dimmed when the row carries nothing -- either because it is empty or
@@ -159,7 +159,7 @@ auto ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
   return out;
 }
 
-auto BuildExportProtectionRows() -> QVector<MetaListRow> {
+auto BuildExportProtectionRows() -> QList<MetaListRow> {
   return {
       {.caption = QObject::tr("Cipher"), .value = "XChaCha20-Poly1305"},
       {.caption = QObject::tr("Key derivation"),

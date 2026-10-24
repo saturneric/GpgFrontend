@@ -439,7 +439,7 @@ auto KeyDatabasesTab::current_table() const -> QTableWidget* {
              : ui_->keyDatabaseTable;
 }
 
-auto KeyDatabasesTab::current_list() -> QContainer<KeyDatabaseInfo>* {
+auto KeyDatabasesTab::current_list() -> QList<KeyDatabaseInfo>* {
   return ui_->keyDatabaseTabs->currentWidget() == ui_->externalTab
              ? &model_.external
              : &model_.managed;
@@ -451,7 +451,7 @@ auto KeyDatabasesTab::current_row() const -> int {
   return selected_rows.first().row();
 }
 
-auto KeyDatabasesTab::TakePendingMoves() -> QContainer<KeyDatabaseMove> {
+auto KeyDatabasesTab::TakePendingMoves() -> QList<KeyDatabaseMove> {
   auto moves = std::move(pending_moves_);
   pending_moves_.clear();
   return moves;
@@ -647,7 +647,7 @@ void KeyDatabasesTab::refresh_role_controls() {
 
   // The Role column of both tables. A name or a status never says it.
   const auto mark = [&](QTableWidget* table,
-                        const QContainer<KeyDatabaseInfo>& list) {
+                        const QList<KeyDatabaseInfo>& list) {
     for (int row = 0; row < table->rowCount() && row < list.size(); row++) {
       auto* item = table->item(row, 4);
       if (item == nullptr) continue;
@@ -665,7 +665,7 @@ void KeyDatabasesTab::refresh_role_controls() {
   // One rule for the visible button and the menu action of each table, so the
   // two never disagree about the selected row.
   const auto selected_of = [](QTableWidget* table,
-                              const QContainer<KeyDatabaseInfo>& list) {
+                              const QList<KeyDatabaseInfo>& list) {
     const auto rows = table->selectionModel()->selectedRows();
     if (rows.isEmpty()) return QString();
     const auto row = rows.first().row();
@@ -717,9 +717,9 @@ void KeyDatabasesTab::use_as_default(const QString& id) {
   emit SignalRuntimeApplyNeeded();
 }
 
-void KeyDatabasesTab::fill_table(
-    QTableWidget* table, const QContainer<KeyDatabaseInfo>& key_databases,
-    int selected_row) {
+void KeyDatabasesTab::fill_table(QTableWidget* table,
+                                 const QList<KeyDatabaseInfo>& key_databases,
+                                 int selected_row) {
   table->setUpdatesEnabled(false);
   table->clearContents();
   table->setRowCount(static_cast<int>(key_databases.size()));

@@ -147,7 +147,7 @@ void AppKeyPinDialog::init_ui() {
 
 auto AppKeyPinDialog::AskPackagePassphrase(QWidget* parent, Mode mode,
                                            bool retry,
-                                           QVector<MetaListRow> context_rows)
+                                           QList<MetaListRow> context_rows)
     -> std::optional<GFBuffer> {
   auto texts =
       DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage, mode);

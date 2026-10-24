@@ -78,7 +78,7 @@ struct ProfileExportContentsRow {
  */
 auto GF_UI_EXPORT BuildProfileExportContents(const QMap<QString, qint64>& areas,
                                              bool include_workspace)
-    -> QVector<ProfileExportContentsRow>;
+    -> QList<ProfileExportContentsRow>;
 
 /**
  * @brief What the rows that travel add up to.
@@ -89,8 +89,8 @@ auto GF_UI_EXPORT BuildProfileExportContents(const QMap<QString, qint64>& areas,
  * @param rows what BuildProfileExportContents() returned
  * @return total bytes of the included rows
  */
-auto GF_UI_EXPORT TotalProfileExportBytes(
-    const QVector<ProfileExportContentsRow>& rows) -> qint64;
+auto GF_UI_EXPORT
+TotalProfileExportBytes(const QList<ProfileExportContentsRow>& rows) -> qint64;
 
 /**
  * @brief What the user has chosen so far.
@@ -119,7 +119,7 @@ enum class ProfileExportWarning {
  */
 struct ProfileExportReadiness {
   bool can_export = false;
-  QVector<ProfileExportWarning> warnings;  ///< most severe first
+  QList<ProfileExportWarning> warnings;  ///< most severe first
 };
 
 /**
@@ -171,8 +171,8 @@ auto GF_UI_EXPORT DescribeProfileExport(const ProfileExportChoice& choice,
  * @param rows what BuildProfileExportContents() returned
  * @return the rows to hand a MetaListPanel
  */
-auto GF_UI_EXPORT ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
-    -> QVector<MetaListRow>;
+auto GF_UI_EXPORT ToMetaListRows(const QList<ProfileExportContentsRow>& rows)
+    -> QList<MetaListRow>;
 
 /**
  * @brief How the file is sealed, as rows.
@@ -184,6 +184,6 @@ auto GF_UI_EXPORT ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
  *
  * @return the rows
  */
-auto GF_UI_EXPORT BuildExportProtectionRows() -> QVector<MetaListRow>;
+auto GF_UI_EXPORT BuildExportProtectionRows() -> QList<MetaListRow>;
 
 }  // namespace GpgFrontend::UI

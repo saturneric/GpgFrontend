@@ -59,7 +59,7 @@ namespace GpgFrontend::UI {
 auto GF_UI_EXPORT BuildProfilePackageRows(const QFileInfo &file,
                                           const ProfilePackageHeader &header,
                                           bool header_readable)
-    -> QVector<MetaListRow>;
+    -> QList<MetaListRow>;
 
 /**
  * @brief Describe a file this application is about to write.
@@ -73,6 +73,6 @@ auto GF_UI_EXPORT BuildProfilePackageRows(const QFileInfo &file,
  */
 auto GF_UI_EXPORT BuildProfilePackageDestinationRows(const QFileInfo &file,
                                                      qint64 free_bytes)
-    -> QVector<MetaListRow>;
+    -> QList<MetaListRow>;
 
 }  // namespace GpgFrontend::UI

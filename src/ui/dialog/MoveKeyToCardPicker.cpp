@@ -61,7 +61,7 @@ auto KeyHasMovablePart(const GpgKey& key) -> bool {
 }
 
 /// prefer the default database, otherwise the first supported one
-auto PickInitialChannel(const QContainer<KeyDatabaseInfo>& dbs) -> int {
+auto PickInitialChannel(const QList<KeyDatabaseInfo>& dbs) -> int {
   const auto default_handle = UsableDefaultChannelHandle();
   if (dbs.isEmpty()) return default_handle;
   for (const auto& db : dbs) {
@@ -72,8 +72,8 @@ auto PickInitialChannel(const QContainer<KeyDatabaseInfo>& dbs) -> int {
 
 }  // namespace
 
-auto MoveKeyToCardPicker::SupportedDatabases() -> QContainer<KeyDatabaseInfo> {
-  QContainer<KeyDatabaseInfo> ret;
+auto MoveKeyToCardPicker::SupportedDatabases() -> QList<KeyDatabaseInfo> {
+  QList<KeyDatabaseInfo> ret;
   for (const auto& db : GetGpgKeyDatabaseInfos()) {
     // smart card operations are GnuPG-only; the database info does not carry a
     // reliable backend tag, so ask the context for its actual engine

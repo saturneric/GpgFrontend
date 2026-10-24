@@ -129,8 +129,8 @@ class KeyPairUIDTab : public QWidget {
   QTableWidget* sig_list_{};                         ///<
   QMenu* uid_popup_menu_{};                          ///<
   QMenu* sign_popup_menu_{};                         ///<
-  QContainer<GpgUID> buffered_uids_;                 ///<
-  QContainer<GpgKeySignature> buffered_signatures_;  ///<
+  QList<GpgUID> buffered_uids_;                      ///<
+  QList<GpgKeySignature> buffered_signatures_;       ///<
 
   QAction* set_primary_uid_act_;
   QAction* sign_uid_act_;

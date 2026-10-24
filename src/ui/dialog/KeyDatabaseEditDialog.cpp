@@ -51,7 +51,7 @@ constexpr int kPathLabelInset = 170;
 }  // namespace
 
 KeyDatabaseEditDialog::KeyDatabaseEditDialog(
-    Mode mode, QContainer<KeyDatabaseInfo> key_db_infos, QWidget* parent)
+    Mode mode, QList<KeyDatabaseInfo> key_db_infos, QWidget* parent)
     : GeneralDialog("KeyDatabaseEditDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
       mode_(mode),
@@ -64,8 +64,7 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
 }
 
 KeyDatabaseEditDialog::KeyDatabaseEditDialog(
-    Mode mode, QContainer<KeyDatabaseInfo> key_db_infos, int index,
-    QWidget* parent)
+    Mode mode, QList<KeyDatabaseInfo> key_db_infos, int index, QWidget* parent)
     : GeneralDialog("KeyDatabaseEditDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
       mode_(mode),

@@ -68,10 +68,10 @@ auto GF_UI_EXPORT SettingsSectionOrder() -> const QStringList&;
  *
  * @param descriptors pages in the order they were collected
  * @param canonical_sections section keys in their intended display order
- * @return QVector<SettingsPageDescriptor> the same pages, grouped
+ * @return QList<SettingsPageDescriptor> the same pages, grouped
  */
 auto GF_UI_EXPORT OrderSettingsPageDescriptors(
-    QVector<SettingsPageDescriptor> descriptors,
-    const QStringList& canonical_sections) -> QVector<SettingsPageDescriptor>;
+    QList<SettingsPageDescriptor> descriptors,
+    const QStringList& canonical_sections) -> QList<SettingsPageDescriptor>;
 
 }  // namespace GpgFrontend::UI

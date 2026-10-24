@@ -71,7 +71,7 @@ class KeyDatabasesTab : public QWidget {
    * @brief The managed database folders a rename has to move, handed over to
    * be carried out when the change is applied.
    */
-  auto TakePendingMoves() -> QContainer<KeyDatabaseMove>;
+  auto TakePendingMoves() -> QList<KeyDatabaseMove>;
 
   /**
    * @brief The databases in use whose operations would be left running on a
@@ -107,7 +107,7 @@ class KeyDatabasesTab : public QWidget {
   QSharedPointer<Ui_KeyDatabasesSettings> ui_;  ///<
   QMenu* popup_menu_{};
   const QString app_path_;
-  QContainer<KeyDatabaseInfo> active_key_db_infos_;
+  QList<KeyDatabaseInfo> active_key_db_infos_;
 
   /// The three kinds, kept apart rather than in one list, because what may be
   /// done to a key database follows entirely from which one it is. A flat list
@@ -125,7 +125,7 @@ class KeyDatabasesTab : public QWidget {
   bool is_sandbox_ = false;
 
   /// Folders renamed in this page and not yet moved; see TakePendingMoves().
-  QContainer<KeyDatabaseMove> pending_moves_;
+  QList<KeyDatabaseMove> pending_moves_;
 
   void record_move(const KeyDatabaseInfo& info, const QString& to);
 
@@ -143,7 +143,7 @@ class KeyDatabasesTab : public QWidget {
    * cannot drift apart in what they show.
    */
   void fill_table(QTableWidget* table,
-                  const QContainer<KeyDatabaseInfo>& key_databases,
+                  const QList<KeyDatabaseInfo>& key_databases,
                   int selected_row);
 
   /**
@@ -155,7 +155,7 @@ class KeyDatabasesTab : public QWidget {
   /// The table the user is looking at, and the list behind it. Every row action
   /// works on the visible tab, so nothing can move between the two lists.
   [[nodiscard]] auto current_table() const -> QTableWidget*;
-  auto current_list() -> QContainer<KeyDatabaseInfo>*;
+  auto current_list() -> QList<KeyDatabaseInfo>*;
 
   /// The selected row of the visible table, or -1.
   [[nodiscard]] auto current_row() const -> int;

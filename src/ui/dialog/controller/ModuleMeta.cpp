@@ -56,8 +56,8 @@ auto UnattributedSignatureCaveat() -> QString {
 }
 
 auto BuildModuleRows(const Module::ModuleProvenance &module)
-    -> QVector<MetaListRow> {
-  QVector<MetaListRow> rows;
+    -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
   // Established once, by the manager, from Module::IsPackaged(). This used to
   // be re-derived here as manifest.has_value() while ModuleListView asked
   // IsPackaged() -- two answers to one question.

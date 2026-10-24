@@ -63,8 +63,8 @@ auto DescribeSessionStorage(bool is_volatile, bool encrypted_at_rest)
 }
 
 auto BuildProfileIdentityRows(ProfileKind kind, const QString& display_name,
-                              bool transient) -> QVector<MetaListRow> {
-  QVector<MetaListRow> rows;
+                              bool transient) -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
 
   const auto name_caption = QCoreApplication::translate(
       "GpgFrontend::UI::AboutStatusInfo", "Profile:");

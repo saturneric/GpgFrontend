@@ -48,8 +48,8 @@ auto HumanInstant(const QString &iso) -> QString {
 
 auto BuildProfilePackageRows(const QFileInfo &file,
                              const ProfilePackageHeader &header,
-                             bool header_readable) -> QVector<MetaListRow> {
-  QVector<MetaListRow> rows;
+                             bool header_readable) -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
 
   rows.append({.caption = QObject::tr("File"),
                .value = file.fileName(),
@@ -70,7 +70,7 @@ auto BuildProfilePackageRows(const QFileInfo &file,
 
   if (!header_readable) return rows;
 
-  QVector<MetaListRow> claims;
+  QList<MetaListRow> claims;
 
   // The one claim worth interrupting someone over. Every file this application
   // writes is sealed, so a file saying it is not either came from an older
@@ -114,8 +114,8 @@ auto BuildProfilePackageRows(const QFileInfo &file,
 
 auto BuildProfilePackageDestinationRows(const QFileInfo &file,
                                         qint64 free_bytes)
-    -> QVector<MetaListRow> {
-  QVector<MetaListRow> rows;
+    -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
 
   rows.append({.caption = QObject::tr("File"),
                .value = file.fileName(),

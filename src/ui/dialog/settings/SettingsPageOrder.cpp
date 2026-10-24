@@ -38,9 +38,9 @@ auto SettingsSectionOrder() -> const QStringList& {
   return kOrder;
 }
 
-auto OrderSettingsPageDescriptors(QVector<SettingsPageDescriptor> descriptors,
+auto OrderSettingsPageDescriptors(QList<SettingsPageDescriptor> descriptors,
                                   const QStringList& canonical_sections)
-    -> QVector<SettingsPageDescriptor> {
+    -> QList<SettingsPageDescriptor> {
   // A section the caller did not name still has to land somewhere predictable,
   // so it gets a rank past every canonical one, in the order it first shows up.
   // Doing this in its own pass means the comparison below is a plain integer

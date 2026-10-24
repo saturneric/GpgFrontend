@@ -57,7 +57,7 @@ class MoveKeyToCardPicker : public GeneralDialog {
    *
    * @return the list of supported (GnuPG) key databases
    */
-  [[nodiscard]] static auto SupportedDatabases() -> QContainer<KeyDatabaseInfo>;
+  [[nodiscard]] static auto SupportedDatabases() -> QList<KeyDatabaseInfo>;
 
   /**
    * @brief The primary key that owns the chosen (sub)key.

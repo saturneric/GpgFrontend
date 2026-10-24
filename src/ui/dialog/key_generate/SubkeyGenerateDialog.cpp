@@ -73,14 +73,14 @@ auto SetComboCurrentAlgo(QComboBox* combo, const GpgFrontend::KeyAlgo& algo)
 }
 
 auto IsAlgoInList(const GpgFrontend::KeyAlgo& algo,
-                  const QContainer<GpgFrontend::KeyAlgo>& algos) -> bool {
+                  const QList<GpgFrontend::KeyAlgo>& algos) -> bool {
   return std::any_of(
       algos.cbegin(), algos.cend(),
       [&](const GpgFrontend::KeyAlgo& item) { return item == algo; });
 }
 
 auto ComboCurrentAlgo(QComboBox* combo,
-                      const QContainer<GpgFrontend::KeyAlgo>& algos)
+                      const QList<GpgFrontend::KeyAlgo>& algos)
     -> GpgFrontend::KeyAlgo {
   if (combo == nullptr || combo->currentIndex() < 0) {
     return GpgFrontend::KeyGenerateInfo::kNoneAlgo;
@@ -234,7 +234,7 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
 #endif
 
   auto get_exact_algo = [](QComboBox* algo_combo, QComboBox* len_combo,
-                           const QContainer<KeyAlgo>& algos) {
+                           const QList<KeyAlgo>& algos) {
     if (algo_combo == nullptr || len_combo == nullptr ||
         algo_combo->currentIndex() < 0) {
       return std::make_tuple(false, KeyAlgo{});

@@ -123,7 +123,7 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
   this->activateWindow();
 }
 
-void ADSKsPicker::slot_add_adsk(const QContainer<GpgSubKey>& s_keys) {
+void ADSKsPicker::slot_add_adsk(const QList<GpgSubKey>& s_keys) {
   auto* task = new Thread::Task(
       [=, channel = channel_,
        key = key_](const DataObjectPtr& data_object) -> int {

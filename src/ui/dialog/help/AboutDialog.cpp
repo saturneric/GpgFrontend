@@ -439,9 +439,9 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // "what am I running and where are my keys". Everything else is one click
   // away -- still here, still copied by the button at the bottom, no longer in
   // the way of the four rows that matter.
-  QVector<MetaListRow> attention;  // anything not as it should be
-  QVector<MetaListRow> glance;     // what the page is for
-  QVector<QPair<QString, QVector<MetaListRow>>> details;  // true, but not now
+  QList<MetaListRow> attention;  // anything not as it should be
+  QList<MetaListRow> glance;     // what the page is for
+  QList<QPair<QString, QList<MetaListRow>>> details;  // true, but not now
 
   const auto& session = ProfileSession::Instance();
   const auto& profile = session.Profile();
@@ -488,7 +488,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                       .degraded = true});
   }
 
-  QVector<MetaListRow> application;
+  QList<MetaListRow> application;
   application.append(
       {.caption = tr("Running Mode:"),
        .value = portable_mode ? tr("Portable Mode") : tr("Installed Mode")});
@@ -499,7 +499,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   }
   details.append({tr("Application"), application});
 
-  QVector<MetaListRow> profile_rows;
+  QList<MetaListRow> profile_rows;
 
   // The one value that identifies this profile in a bug report, which is what
   // the footnote at the bottom of this tab invites. A uuid is an unbreakable
@@ -582,7 +582,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // Every path together. Scattered among the readings they belong to, they were
   // the rows a reader had to hunt for, and each one made the card it sat in
   // twice as tall as the readings around it.
-  QVector<MetaListRow> folders;
+  QList<MetaListRow> folders;
   folders.append({.caption = tr("Profile Folder:"),
                   .value = QDir::toNativeSeparators(profile.Root()),
                   .path = true});
@@ -610,7 +610,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   // The engines, and the settings that belong to one of them: a pinentry path
   // is not a property of GpgFrontend, it is how GnuPG asks for a passphrase.
-  QVector<MetaListRow> engines;
+  QList<MetaListRow> engines;
   for (const auto& engine : GetGSS().AllSupportedEngines()) {
     engines.append({.caption = engine, .value = tr("Available")});
   }
@@ -637,11 +637,11 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // what is copied cannot drift from what is shown -- and so the rows folded
   // away below are copied too. This tab tells the user its values "may help
   // when reporting issues"; the button is what makes that actionable.
-  QVector<MetaListRow> summary_rows;
+  QList<MetaListRow> summary_rows;
 
   const auto add_card = [&](QWidget* into_parent, QVBoxLayout* into,
                             const QString& title,
-                            const QVector<MetaListRow>& rows) {
+                            const QList<MetaListRow>& rows) {
     if (rows.isEmpty()) return;
 
     auto* panel = new MetaListPanel(into_parent);
@@ -658,7 +658,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // One card with headings inside it, not four cards of two rows each: a card
   // costs a border, a title and twenty-six pixels of padding, and four of them
   // around eight readings is mostly padding.
-  QVector<MetaListRow> more_rows;
+  QList<MetaListRow> more_rows;
   for (const auto& section : details) {
     if (section.second.isEmpty()) continue;
     more_rows.append({.kind = MetaRowKind::kSection, .caption = section.first});
@@ -718,7 +718,7 @@ RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
   main_layout->addWidget(intro_label);
 
   // Engine card: version, compiler, target, profile.
-  QVector<MetaListRow> engine_rows;
+  QList<MetaListRow> engine_rows;
   engine_rows.append({.caption = tr("Engine Version:"),
                       .value = or_unknown(info.engine_version)});
   engine_rows.append({.caption = tr("Rust Compiler:"),

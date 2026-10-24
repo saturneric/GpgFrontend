@@ -86,7 +86,7 @@ struct GF_UI_EXPORT SecretPromptTexts {
   /// not about a file at all. Built by a caller from BuildProfilePackageRows()
   /// rather than described here, so that every dialog naming a package names it
   /// the same way.
-  QVector<MetaListRow> context_rows;
+  QList<MetaListRow> context_rows;
 
   QString current_label;     ///< label for the existing-secret field
   QString new_label;         ///< label for the new-secret field

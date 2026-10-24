@@ -108,7 +108,7 @@ class GF_UI_EXPORT AppKeyPinDialog : public QDialog {
    * @return the passphrase, or nothing when the user gave up
    */
   static auto AskPackagePassphrase(QWidget* parent, Mode mode, bool retry,
-                                   QVector<MetaListRow> context_rows)
+                                   QList<MetaListRow> context_rows)
       -> std::optional<GFBuffer>;
 
   /**

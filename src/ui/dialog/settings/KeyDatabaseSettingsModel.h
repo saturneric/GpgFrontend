@@ -54,8 +54,8 @@ class KeyDatabaseSettingsModel {
  public:
   /// The built-in database, present exactly when it is turned on.
   std::optional<KeyDatabaseInfo> builtin;
-  QContainer<KeyDatabaseInfo> managed;   ///< kept inside the profile
-  QContainer<KeyDatabaseInfo> external;  ///< on this computer only
+  QList<KeyDatabaseInfo> managed;   ///< kept inside the profile
+  QList<KeyDatabaseInfo> external;  ///< on this computer only
 
   /// The database the user made the default, empty when none was chosen. May
   /// name one that is not in the list; the fallback then applies, as it does
@@ -74,8 +74,8 @@ class KeyDatabaseSettingsModel {
    * @param stored_choice the stored `default_database_id`
    * @param stored_engine the stored `basic/default_engine`
    */
-  void Load(const QContainer<KeyDatabaseInfo>& all,
-            const QString& stored_choice, const QString& stored_engine) {
+  void Load(const QList<KeyDatabaseInfo>& all, const QString& stored_choice,
+            const QString& stored_engine) {
     builtin.reset();
     managed.clear();
     external.clear();
@@ -99,9 +99,9 @@ class KeyDatabaseSettingsModel {
   /**
    * @brief The list as it would be stored, in the order the core gives it.
    */
-  [[nodiscard]] auto Compose() const -> QContainer<KeyDatabaseItemSO> {
-    const auto to_items = [](const QContainer<KeyDatabaseInfo>& infos) {
-      QContainer<KeyDatabaseItemSO> items;
+  [[nodiscard]] auto Compose() const -> QList<KeyDatabaseItemSO> {
+    const auto to_items = [](const QList<KeyDatabaseInfo>& infos) {
+      QList<KeyDatabaseItemSO> items;
       items.reserve(infos.size());
       for (const auto& info : infos) items.append(KeyDatabaseItemSO(info));
       return items;
@@ -180,7 +180,7 @@ class KeyDatabaseSettingsModel {
    *
    * Removing the chosen default withdraws the choice.
    */
-  void RemoveAt(QContainer<KeyDatabaseInfo>& list, int row) {
+  void RemoveAt(QList<KeyDatabaseInfo>& list, int row) {
     if (row < 0 || row >= list.size()) return;
     if (!choice_id.isEmpty() && list[row].id == choice_id) choice_id.clear();
     list.removeAt(row);

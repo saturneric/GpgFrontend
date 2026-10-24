@@ -140,7 +140,7 @@ class ProfileExportDialog : public GeneralDialog {
   void build_protection(QVBoxLayout* layout);
 
   /// @brief The contents rows for the current choice.
-  [[nodiscard]] auto contents_rows() const -> QVector<MetaListRow>;
+  [[nodiscard]] auto contents_rows() const -> QList<MetaListRow>;
 
   /// @brief What has been chosen so far, for the pure rules.
   [[nodiscard]] auto choice() const -> ProfileExportChoice;

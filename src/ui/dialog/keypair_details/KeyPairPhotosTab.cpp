@@ -35,7 +35,7 @@
 namespace GpgFrontend::UI {
 
 KeyPairPhotosTab::KeyPairPhotosTab(int channel, GpgKeyPtr key,
-                                   const QContainer<GpgAttrInfo>& infos,
+                                   const QList<GpgAttrInfo>& infos,
                                    QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyPairPhotosTab>()),

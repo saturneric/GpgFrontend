@@ -116,7 +116,7 @@ class KeySetExpireDateDialog : public GeneralDialog {
   const GpgKeyPtr m_key_;            ///<
   const SubkeyId m_subkey_;          ///<
 
-  const QContainer<ValidityPeriod> k_validity_periods_ = {
+  const QList<ValidityPeriod> k_validity_periods_ = {
       {"custom", tr("Custom Date"), nullptr},
       {"3m", tr("3 Months"),
        [] { return QDateTime::currentDateTime().addMonths(3); }},

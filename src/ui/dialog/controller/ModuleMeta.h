@@ -70,6 +70,6 @@ namespace GpgFrontend::UI {
 auto GF_UI_EXPORT UnattributedSignatureCaveat() -> QString;
 
 auto GF_UI_EXPORT BuildModuleRows(const Module::ModuleProvenance& module)
-    -> QVector<MetaListRow>;
+    -> QList<MetaListRow>;
 
 }  // namespace GpgFrontend::UI

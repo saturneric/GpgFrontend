@@ -140,8 +140,8 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
-auto QuitDialog::GetTabIdsToSave() -> QContainer<int> {
-  QContainer<int> tab_ids_to_save;
+auto QuitDialog::GetTabIdsToSave() -> QList<int> {
+  QList<int> tab_ids_to_save;
   for (int i = 0; i < file_list_->rowCount(); i++) {
     if (file_list_->item(i, 0)->checkState() == Qt::Checked) {
       tab_ids_to_save << file_list_->item(i, 2)->text().toInt();

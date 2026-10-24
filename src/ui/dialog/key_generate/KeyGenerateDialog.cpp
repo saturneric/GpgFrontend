@@ -372,9 +372,8 @@ void SetGridLayoutCompact(QGridLayout* layout) {
 
 #endif
 
-auto ComboCurrentAlgo(
-    QComboBox* combo,
-    const GpgFrontend::QContainer<GpgFrontend::KeyAlgo>& algos)
+auto ComboCurrentAlgo(QComboBox* combo,
+                      const QList<GpgFrontend::KeyAlgo>& algos)
     -> GpgFrontend::KeyAlgo {
   if (combo == nullptr) return GpgFrontend::KeyGenerateInfo::kNoneAlgo;
 
@@ -950,8 +949,7 @@ void KeyGenerateDialog::refresh_widgets_state() {
   ui_->easyCombinationComboBox->blockSignals(false);
 
   // handle sub algo related widgets
-  QContainer<KeyAlgo> sub_algos =
-      gen_subkey_info_->GetAlgo().SubAlgos(channel_);
+  QList<KeyAlgo> sub_algos = gen_subkey_info_->GetAlgo().SubAlgos(channel_);
   if (!sub_algos.empty()) {
     ui_->scndAlgoComboBox->setEnabled(true);
     ui_->scndAlgoComboBox->setHidden(false);
@@ -1565,7 +1563,7 @@ void KeyGenerateDialog::create_sync_gen_subkey_info(bool sync_from_ui) {
 }
 
 void KeyGenerateDialog::load_easy_profile_config() {
-  QContainer<EasyModeConf> easy_mode_conf = easy_mode_conf_;
+  QList<EasyModeConf> easy_mode_conf = easy_mode_conf_;
 
   if (easy_mode_conf.empty()) {
     QJsonArray conf;
@@ -1603,9 +1601,9 @@ void KeyGenerateDialog::load_easy_profile_config() {
   // Collect supported, visible profiles and split them into family tiers so the
   // elliptic-curve and quantum-resistant profiles each get their own header.
   // A profile's family is taken from its primary key algorithm.
-  QContainer<EasyModeConf> classical_profiles;
-  QContainer<EasyModeConf> ecc_profiles;
-  QContainer<EasyModeConf> pqc_profiles;
+  QList<EasyModeConf> classical_profiles;
+  QList<EasyModeConf> ecc_profiles;
+  QList<EasyModeConf> pqc_profiles;
 
   for (const auto& item : easy_mode_conf) {
     if (item.hidden || item.name.isEmpty()) continue;
@@ -1659,7 +1657,7 @@ void KeyGenerateDialog::load_easy_profile_config() {
   // primary.
   int preferred_default_index = -1;
   auto add_profiles = [this, &preferred_default_index](
-                          const QContainer<EasyModeConf>& profiles) {
+                          const QList<EasyModeConf>& profiles) {
     for (const auto& item : profiles) {
       const int index = ui_->easyProfileComboBox->count();
       easy_profile_conf_index_.insert(index, item);

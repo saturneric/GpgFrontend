@@ -59,7 +59,7 @@ class ADSKsPicker : public GeneralDialog {
    *
    * @param s_keys
    */
-  void slot_add_adsk(const QContainer<GpgSubKey>& s_keys);
+  void slot_add_adsk(const QList<GpgSubKey>& s_keys);
 
  private:
   KeyTreeView* tree_view_;  ///<

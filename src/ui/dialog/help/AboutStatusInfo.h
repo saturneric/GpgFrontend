@@ -86,7 +86,7 @@ auto GF_UI_EXPORT DescribeSessionStorage(bool is_volatile,
 auto GF_UI_EXPORT BuildProfileIdentityRows(ProfileKind kind,
                                            const QString& display_name,
                                            bool transient)
-    -> QVector<MetaListRow>;
+    -> QList<MetaListRow>;
 
 /**
  * @brief Describe what protects the application key, and why it is that.

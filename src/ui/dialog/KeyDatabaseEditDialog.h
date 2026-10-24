@@ -54,14 +54,12 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   };
 
   /// Add a database. @p mode must be one of the two kADD_* values.
-  explicit KeyDatabaseEditDialog(Mode mode,
-                                 QContainer<KeyDatabaseInfo> key_db_infos,
+  explicit KeyDatabaseEditDialog(Mode mode, QList<KeyDatabaseInfo> key_db_infos,
                                  QWidget* parent);
 
   /// Edit the database at @p index. @p mode must be kRENAME_MANAGED or
   /// kEDIT_EXTERNAL.
-  explicit KeyDatabaseEditDialog(Mode mode,
-                                 QContainer<KeyDatabaseInfo> key_db_infos,
+  explicit KeyDatabaseEditDialog(Mode mode, QList<KeyDatabaseInfo> key_db_infos,
                                  int index, QWidget* parent);
 
  signals:
@@ -79,7 +77,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   QString name_;
   QString path_;
   QString backend_type_;
-  QContainer<KeyDatabaseInfo> key_database_infos_;
+  QList<KeyDatabaseInfo> key_database_infos_;
   bool is_sandbox_ = false;
 
   /// A database inside the profile: its folder is derived from its name, so

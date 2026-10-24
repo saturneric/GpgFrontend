@@ -181,9 +181,9 @@ class SettingsDialog : public GeneralDialog {
    * Each mount's native widget is created once, here, producing a page that
    * belongs to this dialog instance.
    *
-   * @return QVector<SettingsPageDescriptor> the pages, in mount order
+   * @return QList<SettingsPageDescriptor> the pages, in mount order
    */
-  auto collect_module_pages() -> QVector<SettingsPageDescriptor>;
+  auto collect_module_pages() -> QList<SettingsPageDescriptor>;
 
   /**
    * @brief One navigable page of the dialog.
@@ -232,12 +232,12 @@ class SettingsDialog : public GeneralDialog {
   QStackedWidget* page_stack_;            ///< scroll-wrapped pages
   QLineEdit* search_edit_;                ///< filters nav_list_
   QLabel* page_title_label_;              ///< heading above the page
-  QVector<SettingsPage> pages_;           ///< registered pages, in order
+  QList<SettingsPage> pages_;             ///< registered pages, in order
   QHash<QWidget*, int> nav_row_of_page_;  ///< page widget -> nav row
   QDialogButtonBox* button_box_;          ///<
   /// Module-owned pages, guarded: a page is destroyed with the stack it sits
   /// in, and apply runs while the dialog is on its way out.
-  QVector<QPointer<Lua::NativeSettingsPage>> native_pages_;
+  QList<QPointer<Lua::NativeSettingsPage>> native_pages_;
   QHash<QWidget*, QString> module_page_titles_;  ///< for restart confirmation
   int restart_mode_{kNonRestartCode};            ///<
   QStringList restart_pages_;                    ///< pages with such a change

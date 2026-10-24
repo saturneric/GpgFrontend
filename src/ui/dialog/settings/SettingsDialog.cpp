@@ -103,7 +103,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   // time it sees a section, so an unsorted late arrival would show up under
   // whichever header came last. Ordering the whole set keeps each section
   // contiguous, which is the assumption add_page rests on.
-  QVector<SettingsPageDescriptor> descriptors{
+  QList<SettingsPageDescriptor> descriptors{
       {general_tab_,
        general_title,
        "application",
@@ -113,8 +113,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
        appearance_title,
        "application",
        {tr("theme"), tr("icon"), tr("font size"), tr("font family"),
-        tr("toolbar"), tr("actions"),
-        tr("text editor"), tr("status panel"), tr("arabic")}},
+        tr("toolbar"), tr("actions"), tr("text editor"), tr("status panel"),
+        tr("arabic")}},
   };
 
   // Network settings are not available in a sandbox, so only add the page when
@@ -308,8 +308,8 @@ auto SettingsDialog::eventFilter(QObject* watched, QEvent* event) -> bool {
   return GeneralDialog::eventFilter(watched, event);
 }
 
-auto SettingsDialog::collect_module_pages() -> QVector<SettingsPageDescriptor> {
-  QVector<SettingsPageDescriptor> descriptors;
+auto SettingsDialog::collect_module_pages() -> QList<SettingsPageDescriptor> {
+  QList<SettingsPageDescriptor> descriptors;
 
   // Pages module UI scripts mounted: typed, so nothing is found by name.
   for (const auto& info : Lua::BuildNativeSettingsPages()) {

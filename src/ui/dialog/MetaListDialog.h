@@ -66,7 +66,7 @@ class GF_UI_EXPORT MetaListDialog : public QDialog {
    * @param card_title the card's heading; empty puts the rows in the column
    * @param rows the rows
    */
-  void AddSection(const QString& card_title, const QVector<MetaListRow>& rows);
+  void AddSection(const QString& card_title, const QList<MetaListRow>& rows);
 
   /**
    * @brief Add a sentence that is not about one row in particular.

@@ -78,7 +78,7 @@ class WizardPage : public QWizardPage {
   void changeEvent(QEvent* event) override;
 
  private:
-  QContainer<std::function<void()>> retranslators_;  ///<
+  QList<std::function<void()>> retranslators_;  ///<
 };
 
 class IntroPage;

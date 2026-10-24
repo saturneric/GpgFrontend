@@ -65,7 +65,7 @@ class SubkeyGenerateDialog : public GeneralDialog {
 
   GpgKeyPtr key_;                                    ///<
   QSharedPointer<KeyGenerateInfo> gen_subkey_info_;  ///<
-  QContainer<KeyAlgo> supported_subkey_algos_;       ///<
+  QList<KeyAlgo> supported_subkey_algos_;            ///<
 
   /**
    * @brief Set the signal slot object

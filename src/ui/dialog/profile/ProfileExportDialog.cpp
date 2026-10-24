@@ -165,7 +165,7 @@ void ProfileExportDialog::build_destination(QVBoxLayout* layout) {
   layout->addWidget(CreateCard(tr("Save to"), destination, this));
 }
 
-auto ProfileExportDialog::contents_rows() const -> QVector<MetaListRow> {
+auto ProfileExportDialog::contents_rows() const -> QList<MetaListRow> {
   return ToMetaListRows(BuildProfileExportContents(areas_, include_workspace_));
 }
 
