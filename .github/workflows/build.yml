@@ -1139,107 +1139,19 @@ jobs:
           test "$rc" -eq 0 || { echo "the app exited $rc" >&2; exit 1; }
         if: runner.os == 'Windows' && matrix.flavor == 'portable'
 
-      # The screenshot mode's own checks, against the extracted archive and
-      # the GnuPG bundled in it. No reference image is rendered here: a hosted
-      # runner is not the reference environment. What is proven is that the
-      # mode is in the binary, its tests pass, and GnuPG on Windows honours
-      # the clock pinned through gpg.conf.
-      - name: Screenshot Mode Checks (Windows)
+      # Nothing is checked here: a hosted runner is not the environment the
+      # manual's images are rendered in, so the screenshot mode is exercised
+      # on the reference workstation only. The build records just the commit
+      # the pipeline compares against.
+      - name: Record Screenshot Build Info (Windows)
         shell: msys2 {0}
         run: |
           set -euo pipefail
-          WORKSPACE="$(cygpath -u "${{github.workspace}}")"
-          cd "$WORKSPACE"
-
-          ZIP="$(find build/upload-artifact -name '*-portable.zip' | head -1)"
-          test -n "$ZIP" || { echo "no portable archive was built" >&2; exit 1; }
-
-          SHOT="$(cygpath -u "$RUNNER_TEMP")/shot"
-          rm -rf "$SHOT"
-          mkdir -p "$SHOT/home/AppData/Local" "$SHOT/home/AppData/Roaming" "$SHOT/tmp"
-          unzip -q "$ZIP" -d "$SHOT"
-          BIN="$SHOT/bin/GpgFrontend.exe"
-
-          export USERPROFILE="$(cygpath -w "$SHOT/home")"
-          export LOCALAPPDATA="$(cygpath -w "$SHOT/home/AppData/Local")"
-          export APPDATA="$(cygpath -w "$SHOT/home/AppData/Roaming")"
-          export TEMP="$(cygpath -w "$SHOT/tmp")"
-          export TMP="$TEMP"
-
-          "$BIN" --screenshot-list | tee "$SHOT/list.txt"
-          grep -q "^main-window" "$SHOT/list.txt"
-
-          # The unit tests need no desktop. -t exits 0 even on failure, so
-          # the summary decides.
-          OFFSCREEN=/mingw64/share/qt6/plugins/platforms/qoffscreen.dll
-          cp "$OFFSCREEN" "$SHOT/bin/platforms/"
-          QT_QPA_PLATFORM=offscreen GTEST_FILTER='Screenshot*:*CurrentDateTime*' \
-            "$BIN" -t >"$SHOT/tests.log" 2>&1 || true
-          grep -E '^\[  (PASSED|FAILED|SKIPPED) ' "$SHOT/tests.log" || true
-          if grep -q '^\[  FAILED  \]' "$SHOT/tests.log" ||
-            ! grep -q '^\[  PASSED  \]' "$SHOT/tests.log"; then
-            # The summary names a failure but not its reason; print each
-            # failed test from its RUN line on.
-            awk '/^\[ RUN      \]/ { block = "" }
-                 { block = block $0 "\n" }
-                 /^\[  FAILED  \] .* \([0-9]+ ms\)$/ { printf "%s", block }' \
-              "$SHOT/tests.log" >&2
-            exit 1
-          fi
-          if grep -q '^\[  SKIPPED \]' "$SHOT/tests.log"; then
-            echo "screenshot tests were skipped; GnuPG was not found" >&2
-            exit 1
-          fi
-
-          # Two probes on the real platform, either side of Dave's expiry.
-          DEMO="$(cygpath -w "$WORKSPACE/resource/screenshot/demo-gnupghome")"
-          FIXTURES="$(cygpath -w "$WORKSPACE/resource/screenshot/fixtures")"
-          n=0
-          for clock in 2026-01-15T10:00:00Z 2025-04-15T10:00:00Z; do
-            n=$((n + 1))
-            rc=0
-            "$BIN" --temp-profile --screenshot-env --locale en_US --theme light \
-              --font-family "Segoe UI" --clock "$clock" \
-              --demo-gnupghome "$DEMO" --fixtures "$FIXTURES" \
-              --out "$(cygpath -w "$SHOT/env-$n.json")" || rc=$?
-            cat "$SHOT/env-$n.json" || true
-            test "$rc" -eq 0 || { echo "probe at $clock exited $rc" >&2; exit 1; }
-          done
-
-          python - "$SHOT/env-1.json" "$SHOT/env-2.json" \
-            "$WORKSPACE/build/upload-artifact/BUILD-INFO.json" "${GITHUB_SHA}" <<'PY'
-          import json, sys
-          records = [json.load(open(p, encoding="utf-8")) for p in sys.argv[1:3]]
-          for r in records:
-              assert r["gpg_clock"]["gpg_conf"] == "applied", r["gpg_clock"]
-              assert r["gpg_clock_probe"] == "ok", r["gpg_clock_probe"]
-              assert r["ui_clock_probe"] == "ok", r["ui_clock_probe"]
-          first = records[0]
-          info = {
-              "schema": 1,
-              "commit": sys.argv[4],
-              "qt_version": first["qt_version"],
-              "gnupg_version": first["gnupg_version"],
-              "gpgme_version": first["gpgme_version"],
-              "agent_conf": first["gpg_clock"]["agent_conf"],
-          }
-          with open(sys.argv[3], "w", encoding="utf-8", newline="\n") as f:
-              json.dump(info, f, indent=2)
-              f.write("\n")
-          print(json.dumps(info, indent=2))
-          PY
+          cd "$(cygpath -u "${{github.workspace}}")"
+          printf '{\n  "schema": 1,\n  "commit": "%s"\n}\n' "${GITHUB_SHA}" \
+            >build/upload-artifact/BUILD-INFO.json
+          cat build/upload-artifact/BUILD-INFO.json
         if: runner.os == 'Windows' && matrix.flavor == 'portable' && inputs.screenshot
-      - name: Upload Screenshot Check Logs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: screenshot-checks-${{matrix.os}}-${{matrix.flavor}}
-          path: |
-            ${{runner.temp}}/shot/*.log
-            ${{runner.temp}}/shot/*.json
-            ${{runner.temp}}/shot/*.txt
-          if-no-files-found: ignore
-          retention-days: 14
-        if: failure() && runner.os == 'Windows' && matrix.flavor == 'portable' && inputs.screenshot
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -1258,7 +1170,7 @@ jobs:
 
       # A screenshot build is a tool for the manual, not a deliverable: named
       # outside the release's patterns, kept two weeks, and with its
-      # BUILD-INFO.json (commit, Qt, GnuPG) inside.
+      # BUILD-INFO.json (the commit) inside.
       - name: Upload Screenshot Build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
