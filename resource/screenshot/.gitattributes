@@ -1,0 +1,8 @@
+# Screenshot demo data must be byte-identical on every checkout, including
+# Windows clones with core.autocrlf, or fingerprints and renders drift.
+demo-gnupghome/** -text -diff
+*.asc text eol=lf
+*.json text eol=lf
+demo-dbs/work/** -text -diff
+*.key text eol=lf
+*.cert text eol=lf

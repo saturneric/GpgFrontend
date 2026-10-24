@@ -47,6 +47,10 @@
 #include "sdk/host/GFHostImpl.h"
 #include "ui/function/GuiProfileLoaderDelegate.h"
 
+#ifdef GF_SCREENSHOT_MODE
+#include "screenshot/app/ScreenshotMode.h"
+#endif
+
 auto main(int argc, char* argv[]) -> int {
   // The host half of the module SDK, before anything else can load a module.
   //
@@ -58,6 +62,14 @@ auto main(int argc, char* argv[]) -> int {
 
   // initialize qt resources (embedded in the gf_res shared library)
   GpgFrontend::InitResources();
+
+#ifdef GF_SCREENSHOT_MODE
+  // Scale, DPI and timezone are only read when the QApplication is made.
+  if (const auto rtn =
+          GpgFrontend::Screenshot::PrepareScreenshotEnvironment(argc, argv)) {
+    return *rtn;
+  }
+#endif
 
   auto const ctx =
       QSharedPointer<GpgFrontend::GpgFrontendContext>::create(argc, argv);
@@ -96,6 +108,10 @@ auto main(int argc, char* argv[]) -> int {
        "token"},
   });
   parser.addPositionalArgument("file", "a .gfp package to open", "[file]");
+
+#ifdef GF_SCREENSHOT_MODE
+  GpgFrontend::Screenshot::AddScreenshotOptions(parser);
+#endif
 
   // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which would
   // otherwise reject them as unknown options. They are consumed later by
@@ -138,8 +154,15 @@ auto main(int argc, char* argv[]) -> int {
   // directory, its key material. So the profile is mounted first (the lock
   // taken, a package extracted), and only then is anything read.
   GpgFrontend::UI::GuiProfileLoaderDelegate delegate;
+#ifdef GF_SCREENSHOT_MODE
+  GpgFrontend::ProfileLoader loader(
+      GpgFrontend::Screenshot::MakeScreenshotProfile(ctx->profile_selection,
+                                                     parser),
+      &delegate);
+#else
   GpgFrontend::ProfileLoader loader(
       GpgFrontend::MakeProfile(ctx->profile_selection), &delegate);
+#endif
 
   if (!loader.Mount(GpgFrontend::GetAppProfileSchemaVersion())) return 1;
 
@@ -172,6 +195,12 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   auto rtn = 0;
+
+#ifdef GF_SCREENSHOT_MODE
+  if (GpgFrontend::Screenshot::IsScreenshotRun(parser)) {
+    return GpgFrontend::Screenshot::RunScreenshotMode(ctx, parser);
+  }
+#endif
 
   if (parser.isSet("module-status")) {
     // The same synchronous startup `-t` uses, for the same reason: it brings

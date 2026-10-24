@@ -46,6 +46,16 @@ if(UNIX AND NOT APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform/linux/LibSecretSearchPath.cpp)
 endif()
 
+# The screenshot mode's own tests, with the parts of it they exercise. The
+# application compiles the same files; neither copy holds state the other
+# needs to see.
+if(GPGFRONTEND_BUILD_SCREENSHOT_MODE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/src/screenshot SCREENSHOT_TEST_SOURCE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/src/screenshot/scenarios SCREENSHOT_TEST_SOURCE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/src/screenshot/test SCREENSHOT_TEST_SOURCE)
+  target_sources(${LIBRARY_TARGET} PRIVATE ${SCREENSHOT_TEST_SOURCE})
+endif()
+
 # Where CMake actually writes the module key list, and how many modules it
 # registered.
 #

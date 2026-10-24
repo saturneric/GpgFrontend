@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "keys": [
+    {"name": "Alice", "fingerprint": "875F70B6F2EEB84BB014D3735A5D0E0E460FE594", "created": 1735732800, "expires": null, "revoked": false},
+    {"name": "Bob", "fingerprint": "E1AB797A6FF34ACCDD1AA1E980BA5E1D311D4847", "created": 1735732800, "expires": null, "revoked": false},
+    {"name": "Carol", "fingerprint": "0142DDE17F3836FBED048AB3FA01BC4E16874F11", "created": 1735732800, "expires": null, "revoked": true},
+    {"name": "Dave", "fingerprint": "39A23B84DF52DB4EC3E79FD272745E9D5B24E8A5", "created": 1735732800, "expires": 1748779200, "revoked": false},
+    {"name": "Erin", "fingerprint": "0C0B8EA94B7F48A87C83ECDD8DB18662EF3A622E", "created": 1735732800, "expires": 1769947200, "revoked": false}
+  ],
+  "databases": {
+    "work": {"name": "Work", "backend": "gnupg", "keys": [
+      {"name": "Grace", "fingerprint": "3818A814A0DE75F628AF39C9F32819327EBEC29F", "created": 1735732800, "expires": null, "revoked": false},
+      {"name": "Heidi", "fingerprint": "5888A3C8D325F95E18A28833244E077D4C22A4B1", "created": 1735732800, "expires": null, "revoked": false}
+    ]},
+    "lab": {"name": "Lab", "backend": "rpgp", "import": ["ivan.key", "judy.cert"], "keys": [
+      {"name": "Ivan", "fingerprint": "DC0F1308D453F3CD4252A9F3F3D0C476F9F3A2AE587D821DB3E56E29B10F01E6", "created": 1735732800, "expires": null, "revoked": false},
+      {"name": "Judy", "fingerprint": "263BA5386DDEC2D71478B768FB57278E96EBF1FF204BE8C3E89CED74F29C4791", "created": 1735732800, "expires": null, "revoked": false}
+    ]}
+  },
+  "fixtures": {
+    "decrypt-verify.asc": {"signer": "E1AB797A6FF34ACCDD1AA1E980BA5E1D311D4847", "recipient": "875F70B6F2EEB84BB014D3735A5D0E0E460FE594", "signed": 1738411200},
+    "clock-probe-dave.asc": {"signer": "39A23B84DF52DB4EC3E79FD272745E9D5B24E8A5", "signed": 1740830400}
+  },
+  "newest_timestamp": 1743508800
+}

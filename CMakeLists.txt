@@ -62,6 +62,7 @@ option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
 option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
 option(GPGFRONTEND_BUILD_PORTABLE "Build as a portable release (data lives beside the application, not in the OS user-data location)" OFF)
+option(GPGFRONTEND_BUILD_SCREENSHOT_MODE "Build the hidden --screenshot mode that renders UI states for the user manual" OFF)
 
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
@@ -437,6 +438,14 @@ else()
 endif()
 
 message(STATUS "App Profile Name: ${GPGFRONTEND_APP_PROFILE_NAME}")
+
+# The screenshot mode drives the UI from the command line against a demo
+# keyring. It has no place in a release, so a stable build refuses it outright
+# rather than shipping it disabled.
+if(GPGFRONTEND_BUILD_SCREENSHOT_MODE AND GPGFRONTEND_BUILD_STABLE)
+  message(FATAL_ERROR
+    "GPGFRONTEND_BUILD_SCREENSHOT_MODE cannot be combined with GPGFRONTEND_BUILD_STABLE")
+endif()
 
 # Whether this artifact keeps its data beside itself rather than in the OS
 # user-data location. A build option rather than anything discovered at run

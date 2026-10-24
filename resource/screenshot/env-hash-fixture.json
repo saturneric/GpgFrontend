@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "env": {
+    "schema": 1,
+    "os": {
+      "product": "Windows 11 Version 24H2",
+      "kernel": "10.0.26100",
+      "build": "10.0.26100"
+    },
+    "qt_version": "6.9.1",
+    "platform_name": "windows",
+    "screen": {
+      "name": "\\\\.\\DISPLAY1",
+      "size": [
+        1920,
+        1080
+      ],
+      "geometry": [
+        0,
+        0,
+        1920,
+        1080
+      ],
+      "dpr": 2,
+      "logical_dpi": 96,
+      "physical_dpi": 163
+    },
+    "style": "windows11",
+    "color_scheme": "dark",
+    "color_scheme_method": "hint",
+    "locale": "zh_CN",
+    "clock": "2026-01-15T10:00:00Z",
+    "font_requested": [
+      "Noto Sans",
+      "Noto Sans CJK SC"
+    ],
+    "font_resolved": [
+      "Noto Sans",
+      "Noto Sans CJK SC"
+    ],
+    "system_font": "Segoe UI",
+    "gnupg_version": "2.5.21",
+    "gpgme_version": "2.0.1",
+    "gpg_clock": {
+      "gpg_conf": "applied",
+      "agent_conf": "applied"
+    },
+    "ui_clock_probe": "ok",
+    "gpg_clock_probe": "ok",
+    "tz_offset_check": 0,
+    "build_commit": "7fc3c602",
+    "display": "",
+    "profile_path": "C:/Users/x/AppData/Local/Temp/gf/1/BKTUS/GpgFrontendTesting/profiles/.tmp-0123456789abcdef",
+    "gate_failures": []
+  },
+  "canonical": "{\"clock\":\"2026-01-15T10:00:00Z\",\"color_scheme\":\"dark\",\"font_requested\":[\"Noto Sans\",\"Noto Sans CJK SC\"],\"font_resolved\":[\"Noto Sans\",\"Noto Sans CJK SC\"],\"gnupg_version\":\"2.5.21\",\"gpg_clock\":{\"agent_conf\":\"applied\",\"gpg_conf\":\"applied\"},\"gpgme_version\":\"2.0.1\",\"locale\":\"zh_CN\",\"os\":{\"build\":\"10.0.26100\",\"product\":\"Windows 11 Version 24H2\"},\"platform_name\":\"windows\",\"qt_version\":\"6.9.1\",\"screen\":{\"dpr\":2,\"logical_dpi\":96,\"physical_dpi\":163,\"size\":[1920,1080]},\"style\":\"windows11\",\"system_font\":\"Segoe UI\",\"tz_offset_check\":0}",
+  "env_hash_core": "8ef2653ba1c82cf944d4173a73d8e9145f06ed00d42837bc6218142c4211a929"
+}

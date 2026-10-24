@@ -357,6 +357,17 @@ endif()
 
 # link options for GpgFrontend
 target_link_libraries(${APP_NAME} gf_core gf_ui gf_test gf_res)
+
+# The screenshot mode lives in its own directory so that a build without the
+# option compiles none of it; aux_source_directory(.) above never sees it.
+if(GPGFRONTEND_BUILD_SCREENSHOT_MODE)
+  aux_source_directory(screenshot SCREENSHOT_SOURCE)
+  aux_source_directory(screenshot/scenarios SCREENSHOT_SOURCE)
+  aux_source_directory(screenshot/app SCREENSHOT_SOURCE)
+  target_sources(${APP_NAME} PRIVATE ${SCREENSHOT_SOURCE})
+  target_compile_definitions(${APP_NAME} PRIVATE GF_SCREENSHOT_MODE=1)
+endif()
+
 # The host half of the SDK: the GFHostApi primitives. An OBJECT library,
 # so it lands inside this binary and its bridge installer needs no
 # dynamic visibility. Exactly one binary may link it.

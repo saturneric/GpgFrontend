@@ -114,8 +114,9 @@ void MainWindow::Init() noexcept {
 
     connect(edit_->TabWidget(), &TextEditTabWidget::currentChanged, this,
             &MainWindow::slot_switch_menu_control_mode);
-    connect(edit_->TabWidget(), &TextEditTabWidget::SignalCurrentPageViewMounted,
-            this, &MainWindow::sync_status_dock_context);
+    connect(edit_->TabWidget(),
+            &TextEditTabWidget::SignalCurrentPageViewMounted, this,
+            &MainWindow::sync_status_dock_context);
     // A mode picked from the editor's own context menu has to move the check
     // mark in the View menu too.
     connect(edit_->TabWidget(),
@@ -385,6 +386,9 @@ auto MainWindow::create_action(const QString& id, const QString& name,
                                const QContainer<QKeySequence>& shortcuts)
     -> QAction* {
   auto* action = new QAction(name, this);
+  // Reachable by id from outside the class: buffered_actions_ is private, and
+  // the menu text is translated.
+  action->setObjectName(id);
 
   if (!icon.isEmpty()) {
     action->setIcon(QIcon(icon));
@@ -518,10 +522,9 @@ auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
 
     if (!key_db.valid || !is_active) {
       invalid_count++;
-      details += tr("Name: %1").arg(KeyDatabaseDisplayName(key_db.id,
-                                                           key_db.name)) +
-                 "\n" +
-                 tr("Path: %1").arg(key_db.origin_path) + "\n\n";
+      details +=
+          tr("Name: %1").arg(KeyDatabaseDisplayName(key_db.id, key_db.name)) +
+          "\n" + tr("Path: %1").arg(key_db.origin_path) + "\n\n";
     }
   }
 
