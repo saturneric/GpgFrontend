@@ -116,7 +116,7 @@ auto SupportsFscrypt(int fd, QString &reason) -> bool {
       break;
     default:
       reason = QString("this filesystem refused an encryption query (%1)")
-                   .arg(QLatin1String(strerror(errno)));
+                   .arg(QLatin1StringView(strerror(errno)));
       break;
   }
   return false;
@@ -190,7 +190,7 @@ auto AddKey(int fd, QByteArray &identifier, QString &reason) -> bool {
 
   if (!ok) {
     reason = QString("this session's key was refused by the kernel (%1)")
-                 .arg(QLatin1String(strerror(saved_errno)));
+                 .arg(QLatin1StringView(strerror(saved_errno)));
     return false;
   }
 
@@ -231,7 +231,7 @@ auto SetPolicyV2(int fd, const QByteArray &identifier, QString &reason)
       break;
     default:
       reason = QString("this folder could not be encrypted (%1)")
-                   .arg(QLatin1String(strerror(errno)));
+                   .arg(QLatin1StringView(strerror(errno)));
       break;
   }
   return false;
@@ -445,7 +445,7 @@ auto FscryptRemoveKey(const QString &any_path_on_fs,
     if (errno == ENOTTY || errno == EOPNOTSUPP) return true;
 
     reason = QString("this session's key could not be removed (%1)")
-                 .arg(QLatin1String(strerror(errno)));
+                 .arg(QLatin1StringView(strerror(errno)));
     return false;
   }
 

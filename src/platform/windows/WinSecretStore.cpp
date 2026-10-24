@@ -43,8 +43,7 @@ namespace {
 
 /// Credential Manager keys entries by a single target name.
 auto TargetName(const QString& account) -> QString {
-  return QStringLiteral("%1/%2").arg(QString::fromUtf8(SystemSecretService()),
-                                     account);
+  return u"%1/%2"_s.arg(QString::fromUtf8(SystemSecretService()), account);
 }
 
 auto AsWide(const QString& value) -> const wchar_t* {
@@ -57,7 +56,7 @@ auto AsWide(const QString& value) -> const wchar_t* {
 class WinSecretStore final : public SystemSecretStore {
  public:
   [[nodiscard]] auto Name() const -> QString override {
-    return QStringLiteral("credential manager");
+    return u"credential manager"_s;
   }
 
   [[nodiscard]] auto IsAvailable() -> bool override {

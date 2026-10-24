@@ -47,15 +47,15 @@ auto LibSecretSearchPaths(const QString& app_dir, const QString& override_path)
   // the image has been unpacked with --appimage-extract and started through
   // AppRun, which is exactly how this gets debugged.
   if (QDir::isAbsolutePath(app_dir)) {
-    add(QDir::cleanPath(app_dir + QStringLiteral("/usr/lib/") +
-                        QLatin1String(kLibSecretSoname)));
+    add(QDir::cleanPath(app_dir + u"/usr/lib/"_s +
+                        QLatin1StringView(kLibSecretSoname)));
   }
 
   // Every ordinary install, and the fallback when a bundled copy is the one at
   // fault. Left to the loader rather than spelled out as /usr/lib/<triplet>:
   // ld.so.cache already covers those, and Qt's name for an architecture is not
   // the same as Debian's.
-  add(QLatin1String(kLibSecretSoname));
+  add(QLatin1StringView(kLibSecretSoname));
 
   return candidates;
 }

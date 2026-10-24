@@ -97,9 +97,7 @@ auto MakeQuery(const QString& account) -> CFMutableDictionaryRef {
  */
 class MacSecretStore final : public SystemSecretStore {
  public:
-  [[nodiscard]] auto Name() const -> QString override {
-    return QStringLiteral("keychain");
-  }
+  [[nodiscard]] auto Name() const -> QString override { return u"keychain"_s; }
 
   [[nodiscard]] auto IsAvailable() -> bool override {
     // A locked or missing login keychain fails every call, and the round trip

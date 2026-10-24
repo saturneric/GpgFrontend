@@ -136,8 +136,7 @@ auto GFSdkSweepModuleHandles(const char* module_id) -> size_t {
   QMap<QString, int> by_origin;
   const auto tally = [&by_origin](const QList<const char*>& origins) {
     for (const auto* origin : origins) {
-      by_origin[origin == nullptr ? QStringLiteral("unknown")
-                                  : QString::fromUtf8(origin)]++;
+      by_origin[origin == nullptr ? u"unknown"_s : QString::fromUtf8(origin)]++;
     }
   };
 

@@ -86,13 +86,13 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
                 "%1 needs the \"%2\" capability, which this module's signed "
                 "manifest does not declare. Add it to module.json's "
                 "\"capabilities\" and rebuild; the call did nothing.")
-                .arg(QLatin1String(entry_point),
-                     QLatin1String(grantable->capabilities))
+                .arg(QLatin1StringView(entry_point),
+                     QLatin1StringView(grantable->capabilities))
           : QString(
                 "%1 needs the \"%2\" group, which the host did not provide. "
                 "The host is older than this module or failed to start the "
                 "SDK; the call did nothing.")
-                .arg(QLatin1String(entry_point), QLatin1String(group));
+                .arg(QLatin1StringView(entry_point), QLatin1StringView(group));
 
   log->write(ctx->host->context, GF_LOG_ERROR, __FILE__, __LINE__,
              "GFSdkReportUnavailable", message.toUtf8().constData());

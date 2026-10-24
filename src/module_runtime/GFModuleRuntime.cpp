@@ -38,6 +38,8 @@
 #include "GFModuleRuntimeNative.h"
 #include "include/GFModule.h"
 
+using namespace Qt::StringLiterals;
+
 /**
  * @file GFModuleRuntime.cpp
  * @brief The module ABI, implemented once for every module.
@@ -120,12 +122,10 @@ auto ReconcileSubscriptions(const QSet<QString>& hooked) -> bool {
  * never meet in Qt's one process-wide resource tree.
  */
 void LoadEmbeddedScripts() {
-  const auto root =
-      QStringLiteral(":/gf_module/%1/lua").arg(gf::runtime::Facts().id);
+  const auto root = u":/gf_module/%1/lua"_s.arg(gf::runtime::Facts().id);
   QDir dir(root);
   if (!dir.exists()) return;
-  auto names =
-      dir.entryList({QStringLiteral("*.lua")}, QDir::Files, QDir::Name);
+  auto names = dir.entryList({u"*.lua"_s}, QDir::Files, QDir::Name);
   for (const auto& name : names) {
     QFile f(dir.filePath(name));
     if (!f.open(QIODevice::ReadOnly)) continue;

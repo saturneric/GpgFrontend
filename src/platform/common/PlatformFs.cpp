@@ -40,7 +40,7 @@ auto NearestExistingAncestor(const QString &path) -> QString {
     if (QFileInfo::exists(current)) return current;
 
     const auto cut = current.lastIndexOf('/');
-    if (cut <= 0) return QStringLiteral("/");
+    if (cut <= 0) return u"/"_s;
     current.truncate(cut);
   }
 

@@ -51,9 +51,9 @@ auto IsRamBackedPath(const QString &path, QString &reason) -> bool {
 
 #ifdef Q_OS_FREEBSD
   // No magic number here; the name is what there is.
-  if (QLatin1String(info.f_fstypename) != QLatin1String("tmpfs")) {
+  if (QLatin1StringView(info.f_fstypename) != "tmpfs"_L1) {
     reason = QString("not a memory-backed filesystem (%1)")
-                 .arg(QLatin1String(info.f_fstypename));
+                 .arg(QLatin1StringView(info.f_fstypename));
     return false;
   }
 #else

@@ -150,10 +150,9 @@ auto RegisterCommand(GFHostContextRef ctx, const GFCommandSpec* spec) -> int {
   p.id = QString::fromUtf8(spec->id);
   p.owner = module;
   p.descriptor = descriptor.toMap();
-  p.required_caps = static_cast<uint32_t>(
-      p.descriptor.value(QStringLiteral("required_caps")).toInteger());
-  p.flags = static_cast<uint32_t>(
-      p.descriptor.value(QStringLiteral("flags")).toInteger());
+  p.required_caps =
+      static_cast<uint32_t>(p.descriptor.value(u"required_caps"_s).toInteger());
+  p.flags = static_cast<uint32_t>(p.descriptor.value(u"flags"_s).toInteger());
   p.owner_caps = gf_sdk_internal::ContextGranted(ctx);
 
   const auto module_utf8 = module.toUtf8();
@@ -180,9 +179,9 @@ auto RegisterCommand(GFHostContextRef ctx, const GFCommandSpec* spec) -> int {
         gf_host::GFBufferRelease(context_ref);
       });
       if (!entered) {
-        Registry().Finish(call_id, module,
-                          {GF_CMD_E_UNAVAILABLE, 0, {}, {},
-                           QStringLiteral("the module is unloading")});
+        Registry().Finish(
+            call_id, module,
+            {GF_CMD_E_UNAVAILABLE, 0, {}, {}, u"the module is unloading"_s});
       }
     };
 
@@ -243,7 +242,7 @@ auto Invoke(GFHostContextRef ctx, const char* id, uint32_t /*flags*/,
   CommandCaller caller;
   caller.module = gf_sdk_internal::ContextModuleId(ctx);
   caller.caps = gf_sdk_internal::ContextGranted(ctx);
-  caller.source = QStringLiteral("module");
+  caller.source = u"module"_s;
 
   const auto module = caller.module;
   const auto module_utf8 = module.toUtf8();
@@ -276,8 +275,11 @@ auto Complete(GFHostContextRef ctx, uint64_t call_id, int status,
   r.status = status;
   if (!TakePayload(result_cbor, blobs, blob_count, "command.complete",
                    r.result, r.blobs)) {
-    r = {GF_CMD_E_FAILED, 0, {}, {},
-         QStringLiteral("the provider returned a malformed result")};
+    r = {GF_CMD_E_FAILED,
+         0,
+         {},
+         {},
+         u"the provider returned a malformed result"_s};
   } else if (error != nullptr) {
     r.error = QString::fromUtf8(error);
   }
@@ -331,7 +333,7 @@ auto QueryState(GFHostContextRef ctx, const char* id, uint32_t* out_bits)
   CommandCaller caller;
   caller.module = gf_sdk_internal::ContextModuleId(ctx);
   caller.caps = gf_sdk_internal::ContextGranted(ctx);
-  caller.source = QStringLiteral("module");
+  caller.source = u"module"_s;
   *out_bits = Registry().State(QString::fromUtf8(id), caller, {});
   return GF_CMD_OK;
 }

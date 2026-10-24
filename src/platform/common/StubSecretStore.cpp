@@ -40,7 +40,7 @@ namespace GpgFrontend {
 
 void InstallPlatformSecretStore() {
   RegisterSystemSecretStoreUnavailable(
-      QStringLiteral("this platform has no credential store backend"));
+      u"this platform has no credential store backend"_s);
 }
 
 }  // namespace GpgFrontend

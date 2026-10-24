@@ -168,12 +168,12 @@ namespace {
 /// read each other's entries.
 auto ModuleCacheKey(const QString& module_id, int store, const QString& key)
     -> QString {
-  return QStringLiteral("__module_%1_%2_%3").arg(module_id).arg(store).arg(key);
+  return u"__module_%1_%2_%3"_s.arg(module_id).arg(store).arg(key);
 }
 
 /// The key every module shared before keys were scoped by module and store.
 auto LegacyModuleCacheKey(const QString& key) -> QString {
-  return QStringLiteral("__module_") + key;
+  return u"__module_"_s + key;
 }
 
 /**
@@ -188,12 +188,11 @@ auto LegacyHostSecretKey(const QString& module_id, int store,
                          const QString& key) -> QString {
   static const QMap<QString, QString> kKeys = {
       // The instant-messaging book phrase, and its value format, unchanged.
-      {QStringLiteral("com.bktus.gpgfrontend.module.im/%1/book_phrase")
-           .arg(GF_STORE_SECURE_DURABLE),
-       QStringLiteral("im/password_book_phrase")},
+      {u"com.bktus.gpgfrontend.module.im/%1/book_phrase"_s.arg(
+           GF_STORE_SECURE_DURABLE),
+       u"im/password_book_phrase"_s},
   };
-  return kKeys.value(QStringLiteral("%1/%2/%3").arg(module_id).arg(store).arg(
-      key));
+  return kKeys.value(u"%1/%2/%3"_s.arg(module_id).arg(store).arg(key));
 }
 
 /**

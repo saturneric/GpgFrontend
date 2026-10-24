@@ -53,12 +53,10 @@ namespace {
 /// leaves early when the loop has gone quiet.
 constexpr int kLaunchDocumentWaitMs = 250;
 
-auto BoolText(bool value) -> QString {
-  return value ? QStringLiteral("true") : QStringLiteral("false");
-}
+auto BoolText(bool value) -> QString { return value ? u"true"_s : u"false"_s; }
 
 auto DisplayPath(const QString& path) -> QString {
-  return path.isEmpty() ? QStringLiteral("<empty>") : path;
+  return path.isEmpty() ? u"<empty>"_s : path;
 }
 }  // namespace
 
@@ -74,7 +72,7 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   const auto& deployment = session.Marker().deployment;
 
   const auto env_value = [&deployment](const char* key) {
-    return deployment.value(QLatin1String(key));
+    return deployment.value(QLatin1StringView(key));
   };
 
   // Deployment-only knobs: the marker is the single source for these.
@@ -172,15 +170,14 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   // Mark the values the profile pinned, so a support log makes it obvious why
   // the Advanced tab is not in charge of a given knob.
   const auto source = [&locked_keys](const QString& user_key) -> QString {
-    return locked_keys.contains(user_key) ? QStringLiteral("  (profile.json)")
-                                          : QString();
+    return locked_keys.contains(user_key) ? u"  (profile.json)"_s : QString();
   };
 
   // The command line is deliberately not in locked_keys: it applies to this run
   // only, so showing the Advanced row as permanently read-only would be a lie.
   // The banner still has to say where the value came from.
   const auto log_level_source = cli_log_level.isValid()
-                                    ? QStringLiteral("  (command line)")
+                                    ? u"  (command line)"_s
                                     : source(SettingItems::kLogLevel.key);
 
   qInfo().noquote().nospace()

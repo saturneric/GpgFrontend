@@ -257,7 +257,7 @@ auto ResolveLibSecret() -> const LibSecret& {
       // ".../liblibsecret-1.so.0.so: cannot open shared object file", which
       // sends whoever reads it looking for a file nobody ever asked for.
       if (QDir::isAbsolutePath(candidate) && !QFileInfo::exists(candidate)) {
-        failures << QStringLiteral("%1 (no such file)").arg(candidate);
+        failures << u"%1 (no such file)"_s.arg(candidate);
         continue;
       }
 
@@ -276,8 +276,8 @@ auto ResolveLibSecret() -> const LibSecret& {
         // dependencies -- the usual way a bundled build shadows the host's
         // glib -- are the same greyed-out menu item to the user, and only the
         // loader can tell them apart.
-        failures << QStringLiteral("%1 (%2)").arg(
-            candidate, library.errorString().trimmed());
+        failures << u"%1 (%2)"_s.arg(candidate,
+                                     library.errorString().trimmed());
         continue;
       }
 
@@ -310,10 +310,8 @@ auto ResolveLibSecret() -> const LibSecret& {
           reinterpret_cast<ObjectUnrefFn>(library.resolve("g_object_unref"));
 
       if (!out.Loaded()) {
-        failures << QStringLiteral(
-                        "%1 loaded but its symbols could not be "
-                        "resolved")
-                        .arg(library.fileName());
+        failures << u"%1 loaded but its symbols could not be "
+                    "resolved"_s.arg(library.fileName());
         continue;
       }
 
@@ -335,9 +333,8 @@ auto ResolveLibSecret() -> const LibSecret& {
     }
 
     LibSecret failed;
-    failed.error = QStringLiteral("%1 could not be loaded; tried: %2")
-                       .arg(QLatin1String(kLibSecretSoname),
-                            failures.join(QStringLiteral("; ")));
+    failed.error = u"%1 could not be loaded; tried: %2"_s.arg(
+        QLatin1StringView(kLibSecretSoname), failures.join(u"; "_s));
     qWarning().noquote() << failed.error;
     return failed;
   }();
@@ -350,9 +347,7 @@ auto ResolveLibSecret() -> const LibSecret& {
  */
 class LinuxSecretStore final : public SystemSecretStore {
  public:
-  [[nodiscard]] auto Name() const -> QString override {
-    return QStringLiteral("libsecret");
-  }
+  [[nodiscard]] auto Name() const -> QString override { return u"libsecret"_s; }
 
   [[nodiscard]] auto IsAvailable() -> bool override {
     // A missing daemon and a missing entry both come back as NULL, so the only
@@ -398,7 +393,7 @@ class LinuxSecretStore final : public SystemSecretStore {
 
     auto encoded_bytes = encoded->ConvertToQByteArray();
     const auto account_utf8 = account.toUtf8();
-    const auto label = QStringLiteral("GpgFrontend: %1").arg(account).toUtf8();
+    const auto label = u"GpgFrontend: %1"_s.arg(account).toUtf8();
 
     GFGError* error = nullptr;
     const int ok = lib.store(&g_schema, nullptr, label.constData(),
@@ -456,9 +451,9 @@ class LinuxSecretStore final : public SystemSecretStore {
     }
 
     if (!lib.CanUnlock()) {
-      last_error_ = QStringLiteral(
-          "this libsecret cannot unlock the keyring on demand; it does not "
-          "export the secret service entry points");
+      last_error_ =
+          u"this libsecret cannot unlock the keyring on demand; it does not "
+          "export the secret service entry points"_s;
       return false;
     }
 
@@ -484,8 +479,7 @@ class LinuxSecretStore final : public SystemSecretStore {
       // Untranslated and deliberately ours: libsecret reports this as a bare
       // NULL, and an empty detail box is what sent the user here.
       if (last_error_.isEmpty()) {
-        last_error_ =
-            QStringLiteral("the secret service reports no default collection");
+        last_error_ = u"the secret service reports no default collection"_s;
       }
     } else {
       // Zero-terminated, as the paths argument is read until NULL.
@@ -502,9 +496,9 @@ class LinuxSecretStore final : public SystemSecretStore {
       unlocked = count > 0;
 
       if (!unlocked && last_error_.isEmpty()) {
-        last_error_ = QStringLiteral(
-            "the default keyring is still locked; the unlock prompt was "
-            "dismissed or no prompter is available");
+        last_error_ =
+            u"the default keyring is still locked; the unlock prompt was "
+            "dismissed or no prompter is available"_s;
       }
 
       if (unlocked_paths != nullptr) lib.free_strv(unlocked_paths);
