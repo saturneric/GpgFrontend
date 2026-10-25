@@ -97,10 +97,9 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
  * @brief Whether group @p g is long enough to contain member @p field.
  *
  * Group structs only grow by appending, and each begins with the
- * `struct_size` the HOST compiled it with. Today every host this SDK accepts
- * (GF_SDK_ABI_MIN_SUPPORTED) has every member, so no wrapper needs this. A
- * member appended later does: its wrapper must check it before calling,
- * because an older host's table simply ends before it.
+ * `struct_size` the HOST compiled it with. A member appended after a group
+ * first shipped must be checked by its wrapper before calling, because an
+ * older host's table simply ends before it.
  *
  *   GF_SDK_REQUIRE(ctx, app, "GFAppNewThing", -1);
  *   if (!GF_SDK_GROUP_HAS(g, new_thing)) return -1;

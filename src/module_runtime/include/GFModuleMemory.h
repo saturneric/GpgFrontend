@@ -66,7 +66,7 @@ auto GFModuleSdkContext() -> GFSDKContext*;
 ///
 /// The context comes from the runtime rather than being spelled at every call
 /// site: it is one pointer per module, fixed after activation, and threading
-/// it through 154 DUP() calls would be noise. The SDK itself still holds no
+/// it through every DUP() call would be noise. The SDK itself still holds no
 /// state -- this is the runtime's context, passed explicitly, one level down.
 #define DUP(v) GFMemStrDup(GFModuleSdkContext(), GF_ARENA_NORMAL, (v))
 
@@ -120,8 +120,6 @@ auto UnStrDup(const QByteArray&) -> QString = delete;
 auto UnSecStrDup(const QByteArray&) -> QString = delete;
 auto UnBytesDup(const QByteArray&, size_t) -> QByteArray = delete;
 
-inline auto QStrDup(const QString& str) -> char* { return DUP(str.toUtf8()); }
-
 inline auto QSecStrDup(const QString& str) -> char* {
   return SECDUP(str.toUtf8());
 }
@@ -139,17 +137,6 @@ inline auto AllocBufferAndCopy(const QByteArray& b) -> char* {
   p[b.size()] = '\0';
   return p;
 }
-
-template <typename T>
-class PointerConverter {
- public:
-  explicit PointerConverter(void* ptr) : ptr_(ptr) {}
-
-  auto AsType() const -> T* { return static_cast<T*>(ptr_); }
-
- private:
-  void* ptr_;
-};
 
 /**
  * @brief Construct a T in SDK-allocated memory, freed through the SDK.
@@ -173,37 +160,4 @@ auto SdkCreateSharedObject(Args&&... args) -> std::shared_ptr<T> {
     GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, mem);
     throw;
   }
-}
-
-template <typename T, typename... Args>
-auto SdkCreateQSharedObject(Args&&... args) -> QSharedPointer<T> {
-  void* mem = GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, sizeof(T));
-  if (!mem) throw std::bad_alloc();
-
-  try {
-    T* obj = new (mem) T(std::forward<Args>(args)...);
-    return QSharedPointer<T>(obj, [](T* ptr) {
-      ptr->~T();
-      GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, ptr);
-    });
-  } catch (...) {
-    GFMemFree(GFModuleSdkContext(), GF_ARENA_NORMAL, mem);
-    throw;
-  }
-}
-
-/// Allocate @p size bytes from the ordinary SDK arena, typed.
-template <typename T>
-auto SdkMallocAsType(std::size_t size) -> T* {
-  return PointerConverter<T>(
-             GFMemAlloc(GFModuleSdkContext(), GF_ARENA_NORMAL, size))
-      .AsType();
-}
-
-/// Resize an SDK allocation, typed.
-template <typename T>
-auto SdkReallocAsType(T* ptr, std::size_t size) -> T* {
-  return PointerConverter<T>(
-             GFMemRealloc(GFModuleSdkContext(), GF_ARENA_NORMAL, ptr, size))
-      .AsType();
 }

@@ -34,8 +34,8 @@
  *
  * Separate from GFSDKBuffer.h on purpose: that header is the ABI and must
  * stay compilable as C. This one is C++-only and entirely optional -- nothing
- * in the SDK requires it -- but using it is what makes the ~154 DUP/UDUP call
- * sites collapse into ordinary scoped objects.
+ * in the SDK requires it -- but using it is what lets DUP/UDUP call sites
+ * collapse into ordinary scoped objects.
  *
  * It lives in the SDK rather than in modules/include/ so that out-of-tree
  * modules get the safe ergonomics from the SDK itself instead of copying a
