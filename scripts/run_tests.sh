@@ -759,7 +759,7 @@ run_rust_slow_phase() {
 }
 
 # --- rust-large phase runner -----------------------------------------------
-# The large-file tier (see scripts/run_large_file_tests.sh, shared with CI):
+# The large-file tier (see scripts/run_large_file_tests.sh):
 # real multi-GB SEIPD v1/v2 files, each test in its own process with a
 # peak-memory assertion. A missing cargo or an empty test list fails.
 run_rust_large_phase() {
