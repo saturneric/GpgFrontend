@@ -55,8 +55,7 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
               return;
             }
 
-            if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-                !data_obj->Check<GFBuffer>()) {
+            if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
               cb(-1, TransferParams(QString{"Fetch Key Data Failed"}));
               return;
             }
@@ -90,6 +89,8 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
 
             succ = WriteFileGFBuffer(key_path, *encrypted_phrase);
             if (!succ) {
+              // A package without its key cannot be opened by anyone.
+              QFile::remove(key_package_path);
               cb(-1, TransferParams(
                          QString{"Write the Key of Key Package Failed"}));
               return;
