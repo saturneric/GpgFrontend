@@ -34,6 +34,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/profile/ProfileAccessor.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProfileSession.h"
@@ -1647,6 +1648,69 @@ TEST_F(SystemSecretStoreReasonTest, ReasonFallsBackToTheStoresOwnMessage) {
   // This is what reaches the reset dialog's detail box.
   EXPECT_EQ(SystemSecretStoreReason(), raw->LastError());
   EXPECT_FALSE(SystemSecretStoreReason().isEmpty());
+}
+
+/**
+ * A fresh profile has no key and no data, so minting a key costs nothing.
+ */
+TEST(ProfileKeyOrphanGuardTest, EmptyProfileIsNotAtRisk) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  FsProfileAccessor accessor(dir.path(), {});
+
+  EXPECT_FALSE(ProfileSecureKeyManager::WouldOrphanSealedData(accessor));
+}
+
+/**
+ * The restored-without-the-key case: sealed objects remain but app.key is gone,
+ * so loading would silently mint a key none of them can be opened with.
+ */
+TEST(ProfileKeyOrphanGuardTest, SealedObjectsWithoutKeyAreAtRisk) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  FsProfileAccessor accessor(dir.path(), {});
+
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, QString(64, 'a'),
+                             GFBuffer(QByteArray(64, '\x01'))));
+
+  EXPECT_TRUE(ProfileSecureKeyManager::WouldOrphanSealedData(accessor));
+}
+
+/**
+ * With the key file present there is nothing to guard against, whatever the
+ * data objects hold.
+ */
+TEST(ProfileKeyOrphanGuardTest, PresentKeyIsNeverAtRisk) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  FsProfileAccessor accessor(dir.path(), {});
+
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kSecure));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, QString(64, 'a'),
+                             GFBuffer(QByteArray(64, '\x01'))));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kSecure, u"app.key"_s, SampleKey()));
+
+  EXPECT_FALSE(ProfileSecureKeyManager::WouldOrphanSealedData(accessor));
+}
+
+/**
+ * Only names DataObjectOperator writes count: its GC state file or a stray
+ * file must not hold a fresh profile hostage behind a reset prompt.
+ */
+TEST(ProfileKeyOrphanGuardTest, ForeignFilesAreNotSealedObjects) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  FsProfileAccessor accessor(dir.path(), {});
+
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, u"gc_state.json"_s,
+                             GFBuffer(QByteArray("{}"))));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, QString(63, 'a'),
+                             GFBuffer(QByteArray(64, '\x01'))));
+
+  EXPECT_FALSE(ProfileSecureKeyManager::WouldOrphanSealedData(accessor));
 }
 
 }  // namespace GpgFrontend::Test

@@ -378,6 +378,20 @@ class GF_CORE_EXPORT ProfileSecureKeyManager {
   [[nodiscard]] static auto ResetKeyStorage(const QString& key_dir) -> bool;
 
   /**
+   * @brief Whether loading would mint a new key over data sealed by an old one.
+   *
+   * Load() generates a fresh key whenever app.key is absent, which is right for
+   * a new profile and silently destructive for one whose key file was lost --
+   * a partial restore from backup, typically. Every data object already stored
+   * carries the old key's ID, so all of them would turn unreadable at once.
+   *
+   * @param accessor the profile's storage
+   * @return true when app.key is absent but data_objs/ holds sealed objects
+   */
+  [[nodiscard]] static auto WouldOrphanSealedData(
+      const ProfileAccessor& accessor) -> bool;
+
+  /**
    * @brief Derive the identity of a key.
    *
    * HMAC-SHA256 over @p key using @p pin as the HMAC key, falling back to a

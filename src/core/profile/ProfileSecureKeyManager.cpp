@@ -522,6 +522,19 @@ auto ProfileSecureKeyManager::UnsealKey(const GFBuffer& pin,
   return stored;
 }
 
+auto ProfileSecureKeyManager::WouldOrphanSealedData(
+    const ProfileAccessor& accessor) -> bool {
+  if (accessor.Exists(ProfileArea::kSecure, kRootKeyName)) return false;
+
+  // Only names DataObjectOperator itself writes count: 32 bytes of reference,
+  // hex encoded. Its GC state file and anything a user dropped in there do not.
+  static const QRegularExpression kObjectName("^[0-9a-f]{64}$");
+  const auto names = accessor.List(ProfileArea::kDataObjects, "*");
+  return std::any_of(names.cbegin(), names.cend(), [](const QString& name) {
+    return kObjectName.match(name).hasMatch();
+  });
+}
+
 auto ProfileSecureKeyManager::new_root_key(const GFBuffer& pin,
                                            const GFBuffer& wrap,
                                            ProfileKeyLoadResult& status)

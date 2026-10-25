@@ -109,6 +109,7 @@ struct GF_CORE_EXPORT ProfileLoadError {
 enum class ProfileKeyResetReason : std::uint8_t {
   kKEYCHAIN_SECRET_LOST,  ///< the credential store will not give it back
   kPIN_FORGOTTEN,         ///< the user asked, having run out of guesses
+  kKEY_FILE_MISSING,      ///< app.key is gone but data sealed by it remains
 };
 
 /**

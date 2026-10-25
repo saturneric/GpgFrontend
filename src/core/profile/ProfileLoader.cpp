@@ -643,6 +643,19 @@ auto ProfileLoader::Open(int schema_version, bool rotation_requested) -> bool {
   // profile uuid, so the uuid has to exist by the time the key file is opened.
   ensure_identity();
 
+  // Before the secret: a missing key file otherwise means "create one", which
+  // for a PIN would even ask the user to choose a new PIN, and the fresh key
+  // would quietly orphan every stored object. Quitting leaves the old data
+  // intact, so the key file can be restored from a backup and the start
+  // retried.
+  if (ProfileSecureKeyManager::WouldOrphanSealedData(session_->Accessor()) &&
+      !delegate_->ConfirmKeyReset(ProfileKeyResetReason::kKEY_FILE_MISSING)) {
+    delegate_->Report(
+        {ProfileLoadFailure::kKEY_LOCKED_OUT,
+         session_->Accessor().PathOf(ProfileArea::kSecure, "app.key")});
+    return false;
+  }
+
   const auto protection = ApplyProfilePortabilityRule(
       AppKeyProtectionFromApp(), profile_->AllowsSystemKeychain());
 

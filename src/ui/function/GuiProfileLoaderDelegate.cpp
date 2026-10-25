@@ -32,6 +32,7 @@
 
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileSession.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/profile/ProfilePackageMeta.h"
@@ -229,6 +230,33 @@ auto GuiProfileLoaderDelegate::ConfirmKeyReset(ProfileKeyResetReason reason)
 
     auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::RejectRole);
     auto* reset = box.addButton(QObject::tr("Reset Secure Key"),
+                                QMessageBox::DestructiveRole);
+    box.setDefaultButton(quit);
+    box.exec();
+
+    if (box.clickedButton() != reset) return false;
+  }
+
+  if (reason == ProfileKeyResetReason::kKEY_FILE_MISSING) {
+    const auto key_path = ProfileSession::Instance().Accessor().PathOf(
+        ProfileArea::kSecure, "app.key");
+
+    QMessageBox box(QMessageBox::Critical, QObject::tr("Secure Key Missing"),
+                    QObject::tr("The application key file is missing, but this "
+                                "profile still holds settings and data "
+                                "encrypted with it."));
+    box.setInformativeText(
+        QObject::tr("This usually means the data folder was restored or "
+                    "copied without the key file.") +
+        "\n\n" +
+        QObject::tr("You can quit, put the key file back from your backup, "
+                    "and start the application again. Creating a new key "
+                    "instead lets the application start, but everything it "
+                    "previously encrypted becomes permanently unreadable."));
+    box.setDetailedText(QObject::tr("Expected key file: %1").arg(key_path));
+
+    auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::RejectRole);
+    auto* reset = box.addButton(QObject::tr("Create New Key"),
                                 QMessageBox::DestructiveRole);
     box.setDefaultButton(quit);
     box.exec();
