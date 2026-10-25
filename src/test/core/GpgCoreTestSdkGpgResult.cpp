@@ -69,19 +69,6 @@ auto Ctx() -> GFSDKContext* {
 
 }  // namespace
 
-namespace {
-
-/// Shards run against a throwaway profile with no agent, so an engine is not
-/// guaranteed. Tests that need one skip rather than fail.
-auto ChannelIsUsable(int channel) -> bool {
-  // Asked of the handle registry, not of GetInstance(), which would build a
-  // placeholder context for a channel nothing opened -- and the SDK now refuses
-  // such a channel anyway.
-  return IsLiveChannelHandle(channel);
-}
-
-}  // namespace
-
 TEST(SdkGpgResultTest, ANullOutParameterIsRejectedRatherThanDereferenced) {
   auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
 

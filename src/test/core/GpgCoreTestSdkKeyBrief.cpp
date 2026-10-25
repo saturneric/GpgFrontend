@@ -52,21 +52,6 @@ auto Ctx() -> GFSDKContext* {
 
 }  // namespace
 
-namespace {
-
-/// A lookup that actually reaches the key repository needs a working engine on
-/// the channel. Shards run against a throwaway profile with no agent, where
-/// there is none, so the tests that get that far say so instead of asserting
-/// deep inside the dispatcher.
-auto ChannelIsUsable(int channel) -> bool {
-  // Asked of the handle registry, not of GetInstance(), which would build a
-  // placeholder context for a channel nothing opened -- and the SDK now refuses
-  // such a channel anyway.
-  return IsLiveChannelHandle(channel);
-}
-
-}  // namespace
-
 // No SDK argument is ever consumed: every string a module passes in is
 // borrowed and stays the caller's to free (see GFModuleMemory.h).
 //

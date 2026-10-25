@@ -28,12 +28,21 @@
 
 #pragma once
 
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/module/ModuleCapability.h"
 #include "core/module/ModuleSdkBridge.h"
 #include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKContext.h"
 
 namespace GpgFrontend::Test {
+
+/// Shards run against a throwaway profile with no agent, so an engine is not
+/// guaranteed; tests that need one skip rather than fail. Asked of the handle
+/// registry, not of GetInstance(), which would build a placeholder context for
+/// a channel nothing opened -- and the SDK refuses such a channel anyway.
+inline auto ChannelIsUsable(int channel) -> bool {
+  return IsLiveChannelHandle(channel);
+}
 
 /**
  * @file SdkTestContext.h

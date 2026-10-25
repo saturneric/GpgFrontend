@@ -77,12 +77,6 @@ auto RunVerify(const GFBuffer& data, const GFBuffer& sig) -> VerifyOutcome {
 // keeps a test that loaded the wrong certificate from passing on NO_PUBKEY.
 constexpr auto kAuxSha1Fpr = "01BB973D0D42A8342456C59D99EE1C3EB10DAF4F";
 
-auto CountValid(const QList<GpgSignature>& sigs) -> int {
-  return static_cast<int>(
-      std::count_if(sigs.cbegin(), sigs.cend(),
-                    [](const auto& s) { return SignatureIsValid(s); }));
-}
-
 }  // namespace
 
 // --- B2: distinct signatures from one issuer must not be de-duplicated --------

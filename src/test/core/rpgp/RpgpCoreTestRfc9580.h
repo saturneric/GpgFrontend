@@ -89,6 +89,12 @@ inline auto SignatureIsValid(const GpgSignature& s) -> bool {
   return CheckGpgError(s.GetStatus()) == GPG_ERR_NO_ERROR;
 }
 
+inline auto CountValid(const QList<GpgSignature>& sigs) -> int {
+  return static_cast<int>(
+      std::count_if(sigs.cbegin(), sigs.cend(),
+                    [](const auto& s) { return SignatureIsValid(s); }));
+}
+
 // Load a committed test vector as a GFBuffer.
 inline auto LoadRfc9580Vector(const QString& name) -> GFBuffer {
   auto [ok, buf] = ReadFileGFBuffer(QString(":/test/rpgp_vectors/") + name);

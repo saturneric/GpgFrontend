@@ -173,12 +173,6 @@ auto RunVerify(const GFBuffer& data, const GFBuffer& sig) -> VerifyOutcome {
   return out;
 }
 
-auto CountValid(const QList<GpgSignature>& sigs) -> int {
-  return static_cast<int>(
-      std::count_if(sigs.cbegin(), sigs.cend(),
-                    [](const auto& s) { return SignatureIsValid(s); }));
-}
-
 }  // namespace
 
 // ---------------------------------------------------------------------------

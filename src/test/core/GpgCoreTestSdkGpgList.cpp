@@ -64,17 +64,6 @@ auto Ctx() -> GFSDKContext* {
 
 }  // namespace
 
-namespace {
-
-auto ChannelIsUsable(int channel) -> bool {
-  // Asked of the handle registry, not of GetInstance(), which would build a
-  // placeholder context for a channel nothing opened -- and the SDK now refuses
-  // such a channel anyway.
-  return IsLiveChannelHandle(channel);
-}
-
-}  // namespace
-
 TEST(SdkGpgListTest, ANullOutParameterIsRejectedRatherThanDereferenced) {
   auto in = GFBuf::Copy(Ctx(), QByteArray("data"));
   EXPECT_LT(GFGpgFindKeys(Ctx(), 0, "someone@example.org", nullptr), 0);
