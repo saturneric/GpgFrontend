@@ -35,6 +35,8 @@
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSession.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
@@ -413,7 +415,6 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   zoom_out_act_->setDisabled(disable);
   zoom_in_act_->setDisabled(disable);
   import_key_from_edit_act_->setDisabled(disable);
-
 
   sync_text_direction_action();
 
@@ -817,12 +818,54 @@ void MainWindow::set_action_block_reason(QAction* act, const QString& reason) {
 void MainWindow::slot_update_engine_status() {
   if (status_indicator_bar_ == nullptr) return;
 
-  auto& ctx =
-      OpenPGPContext::GetInstance(m_key_list_->GetCurrentGpgContextChannel());
+  const auto channel = m_key_list_->GetCurrentGpgContextChannel();
+  auto& ctx = OpenPGPContext::GetInstance(channel);
 
+  const auto engine = ctx.Engine();
+  const auto db_name = KeyDatabaseDisplayName(ctx.KeyDBId(), ctx.KeyDBName());
+  const auto db_path = ctx.KeyDBPath();
+
+  // What is known without asking anyone goes up now. The version is a round
+  // trip to gpg-agent with no timeout, and an agent that accepts the
+  // connection but never answers would otherwise freeze this whole window.
   status_indicator_bar_->SetEngine(DescribeEngineIndicator(
-      ctx.Engine(), ctx.EngineVersion(),
-      KeyDatabaseDisplayName(ctx.KeyDBId(), ctx.KeyDBName()), ctx.KeyDBPath()));
+      engine, engine_versions_.value(channel), db_name, db_path));
+
+  if (engine_versions_.contains(channel)) return;
+
+  const auto generation = ++engine_status_generation_;
+  auto version = QSharedPointer<QString>::create();
+
+  auto* task = new Thread::Task(
+      [channel, version](const DataObjectPtr&) -> int {
+        *version = OpenPGPContext::GetInstance(channel).EngineVersion();
+        return 0;
+      },
+      "fetch_engine_version", TransferParams(),
+      [self = QPointer<MainWindow>(this), channel, generation, engine, db_name,
+       db_path, version](int, const DataObjectPtr&) {
+        if (self == nullptr) return;
+
+        // An empty answer is not cached: a failed probe is retried at the next
+        // refresh rather than leaving the version off for the whole session.
+        if (!version->isEmpty()) {
+          self->engine_versions_.insert(channel, *version);
+        }
+
+        // A later refresh or a channel switch: what this answer was for is no
+        // longer on screen.
+        if (self->status_indicator_bar_ == nullptr ||
+            generation != self->engine_status_generation_) {
+          return;
+        }
+
+        self->status_indicator_bar_->SetEngine(
+            DescribeEngineIndicator(engine, *version, db_name, db_path));
+      });
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(task);
 }
 
 }  // namespace GpgFrontend::UI

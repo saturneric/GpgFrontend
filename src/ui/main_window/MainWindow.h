@@ -748,6 +748,10 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   StatusIndicatorBar* status_indicator_bar_ =
       nullptr;  ///< profile, engine and portable/installed, bottom right
 
+  QMap<int, QString> engine_versions_;    ///< engine version per channel, once
+                                          ///< known; fetched off the GUI thread
+  quint64 engine_status_generation_ = 0;  ///< newest engine status request
+
   KeyList* m_key_list_{};          ///<
   InfoBoardWidget* info_board_{};  ///<
   QMap<QString, QPointer<QAction>> buffered_actions_;
