@@ -1173,9 +1173,8 @@ jobs:
           # What this launch covers: startup (the executable and the gf_*
           # libraries load, so their whole import closure is in the archive)
           # and module loading (every module DLL is mapped, so its import
-          # closure is too). What it does not: anything loaded later by name.
-          # TLS is the case that matters, and it is only checked for presence
-          # below, never exercised.
+          # closure is too). What it does not: anything loaded later by name,
+          # and no TLS connection is made.
           WINDOWS_PATH="$(cygpath -S):$(cygpath -W)"
           cd "$SMOKE/bin"
           rc=0
@@ -1195,14 +1194,19 @@ jobs:
 
           test "$rc" -eq 0 || { echo "the app exited $rc" >&2; exit 1; }
 
-          # Presence, not a handshake. Qt's OpenSSL backend loads libssl and
-          # libcrypto by name, so no launch above would notice them missing;
-          # the build deploys them as runtime-loaded extras, and this checks
-          # they reached the archive. Whether TLS works is not tested here.
-          ls tls/ 2>/dev/null || echo "::warning::no Qt TLS backends in the archive"
-          for dll in libssl-3-x64.dll libcrypto-3-x64.dll; do
-            test -f "$dll" || { echo "runtime-loaded $dll is missing" >&2; exit 1; }
-          done
+          # Which TLS backend Qt gets, checked by file, not by a handshake.
+          # Schannel is the system's own and needs nothing from the archive.
+          # Qt's OpenSSL backend would load libssl and libcrypto by name,
+          # which no launch above can see, and the build deliberately does not
+          # deploy them for it. So it must not arrive here unnoticed, e.g. if
+          # windeployqt stops skipping it.
+          test -f tls/qschannelbackend.dll \
+            || { echo "the Schannel TLS backend is missing" >&2; exit 1; }
+          if [ -e tls/qopensslbackend.dll ]; then
+            echo "tls/qopensslbackend.dll shipped, but nothing deploys the" \
+                 "libssl/libcrypto it loads by name" >&2
+            exit 1
+          fi
         if: runner.os == 'Windows' && matrix.flavor == 'portable'
 
       # Nothing is checked here: a hosted runner is not the environment the

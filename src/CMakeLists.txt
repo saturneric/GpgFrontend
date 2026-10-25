@@ -207,11 +207,12 @@ if(MINGW)
     TARGETS ${_gf_runtime_targets}
     SEARCH_DIRS "${MSYS64_BIN_PATH}"
     DESTINATION "$<TARGET_FILE_DIR:${APP_NAME}>"
-    # Qt's OpenSSL TLS backend (tls/qopensslbackend.dll) loads these by name:
-    # MSYS2 builds qt6-base with openssl but not openssl-linked, so nothing
-    # imports them. Key server sync, the proxy test and m_email's certificate
-    # store all go through that backend.
-    EXTRA_DLLS libssl-3-x64.dll libcrypto-3-x64.dll
+    # No EXTRA_DLLS: nothing shipped loads a DLL by name that its import
+    # table does not already name. The one candidate was Qt's OpenSSL TLS
+    # backend, which loads libssl and libcrypto at runtime (MSYS2 builds Qt
+    # with openssl, not openssl-linked). windeployqt does not ship that
+    # backend, so Qt's TLS on Windows is Schannel, the system's own; the
+    # smoke test pins that. OpenSSL still ships where m_email imports it.
     ALLOW_UNRESOLVED ${GPGFRONTEND_DEPLOY_ALLOW_UNRESOLVED_DLLS})
 endif()
 

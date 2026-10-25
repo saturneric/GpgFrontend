@@ -544,6 +544,22 @@ gf_add_mingw_runtime_deploy(gf_deploy_runtime
                              "gf_deploy_runtime_rescan")
             self.assertIn("Rescanning MinGW runtime DLLs", out)
 
+    def test_rescan_builds_nothing(self):
+        # Packaging deletes build leftovers before it rescans, and windeployqt
+        # rewrites deployed DLLs. If asking for the rescan rebuilt anything
+        # upstream, a signed module would be relinked under its descriptor.
+        self.build_all()
+        self.wait_for_clock()
+        os.utime(self.prebuilt / "libplugin.dll")
+        (self.dest / "libbar.dll").unlink()
+        out = self.cmake("--build", self.build, "--target",
+                         "gf_deploy_runtime_rescan")
+        self.assertIn("Rescanning MinGW runtime DLLs", out)
+        self.assertNotIn("Deploying MinGW runtime DLLs", out)
+        self.assertRegex(out, r"\[1/1\]")
+        # The rescan itself still restores what it finds missing.
+        self.assertTrue((self.dest / "libbar.dll").exists())
+
     def test_static_library_is_not_scanned(self):
         manifest = next((self.build / "deploy").glob("gf_deploy_runtime-*.cmake"))
         self.assertNotIn("libx.a", manifest.read_text())

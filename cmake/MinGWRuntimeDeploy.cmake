@@ -45,8 +45,13 @@ set(GF_MINGW_RUNTIME_DEPLOY_SCRIPT
 #                   asks for it after windeployqt has added Qt's plugins, so
 #                   their dependencies are collected too.
 #
-# Both run the same script against the same manifest, and only one of them is
-# ever writing to DESTINATION at a time: the rescan depends on <name>.
+# Both run the same script against the same manifest. The rescan deliberately
+# depends on NOTHING, not even <name>: it is for a tree that has already been
+# built, and asking for it must never build anything. With a dependency, the
+# packaging step's own clean-up (it deletes the static libraries from
+# artifacts/bin) made Ninja relink every module after its descriptor had been
+# signed, and every module was then refused. Run on a tree that was never
+# built, it fails on the first missing binary instead.
 #
 # Static, object and interface libraries are skipped: they have no import
 # table of their own, and what they pull in is in the binary they link into.
@@ -186,5 +191,4 @@ set(GF_DEPLOY_ALLOW_UNRESOLVED ${allow_unresolved})
       -P "${script}"
     COMMENT "Rescanning MinGW runtime DLLs, Qt plugins included"
     VERBATIM)
-  add_dependencies(${name}_rescan ${name})
 endfunction()
