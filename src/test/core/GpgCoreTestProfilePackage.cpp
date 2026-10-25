@@ -1405,7 +1405,7 @@ TEST(PackagedProfileTest, OpensAPackageAndWritesItBackToTheSameFile) {
 
   // The key is not on the storage at all. A package carries it unprotected, so
   // unpacking it to a file and rewriting that file in place would leave the
-  // plaintext recoverable -- ToFileAtomic unlinks, it does not overwrite.
+  // plaintext recoverable -- ToFile unlinks, it does not overwrite.
   EXPECT_FALSE(QFileInfo::exists(packaged.Root() + "/secure/app.key"));
   EXPECT_FALSE(QDir(packaged.Root() + "/secure").exists())
       << "the secure area was written to the storage after all";

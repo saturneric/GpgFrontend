@@ -59,7 +59,19 @@ auto FsProfileAccessor::Ensure(ProfileArea area) -> bool {
 auto FsProfileAccessor::Read(ProfileArea area, const QString& name) const
     -> GFBufferOrNone {
   const auto path = PathOf(area, name);
-  if (!QFileInfo::exists(path)) return {};
+  const QFileInfo info(path);
+  if (!info.exists()) return {};
+
+  // Profiles written before ToFile() restricted its output still have files
+  // others can read, and a key file is written only once. Narrowed on first
+  // read so the repair reaches them; a link is left alone, as Write() refuses
+  // one too.
+  constexpr auto kOthers = QFileDevice::ReadGroup | QFileDevice::WriteGroup |
+                           QFileDevice::ReadOther | QFileDevice::WriteOther;
+  if (!info.isSymLink() && (info.permissions() & kOthers) != 0) {
+    QFile::setPermissions(path,
+                          QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+  }
   return GFBufferFactory::FromFile(path);
 }
 
@@ -69,7 +81,7 @@ auto FsProfileAccessor::Write(ProfileArea area, const QString& name,
 
   // Atomic: everything stored here is a whole-file replace, and a truncated
   // one reads back exactly like a file written with a key we no longer hold.
-  return GFBufferFactory::ToFileAtomic(PathOf(area, name), value);
+  return GFBufferFactory::ToFile(PathOf(area, name), value);
 }
 
 auto FsProfileAccessor::Remove(ProfileArea area, const QString& name) -> bool {

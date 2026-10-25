@@ -30,6 +30,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QTemporaryDir>
 
 #include "core/profile/MemoryAreaProfileAccessor.h"
@@ -287,6 +288,66 @@ TEST(ProfileAccessorTest, TheFilesystemDriverPutsBytesWhereItSaysItDoes) {
   ASSERT_TRUE(file.open(QIODevice::ReadOnly));
   EXPECT_EQ(file.readAll(), QByteArray("some sealed bytes"));
 }
+
+#ifndef Q_OS_WINDOWS
+TEST(ProfileAccessorTest, WhatTheFilesystemDriverWritesOnlyTheOwnerCanRead) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), {});
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kSecure));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kSecure, "app.key",
+                             GFBuffer(QByteArray("plaintext key"))));
+
+  const auto perms =
+      QFileInfo(accessor.PathOf(ProfileArea::kSecure, "app.key")).permissions();
+  EXPECT_TRUE(perms.testFlag(QFileDevice::ReadOwner));
+  EXPECT_EQ(perms & (QFileDevice::ReadGroup | QFileDevice::WriteGroup |
+                     QFileDevice::ReadOther | QFileDevice::WriteOther),
+            QFileDevice::Permissions{});
+}
+
+TEST(ProfileAccessorTest, TheFilesystemDriverRefusesToWriteThroughALink) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), {});
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kSecure));
+  const auto elsewhere = dir.filePath("elsewhere");
+  ASSERT_TRUE(
+      QFile::link(elsewhere, accessor.PathOf(ProfileArea::kSecure, "app.key")));
+
+  EXPECT_FALSE(accessor.Write(ProfileArea::kSecure, "app.key",
+                              GFBuffer(QByteArray("plaintext key"))));
+  EXPECT_FALSE(QFileInfo::exists(elsewhere));
+}
+
+TEST(ProfileAccessorTest, ReadingAFileOthersCouldReadNarrowsIt) {
+  // A profile from before writes were owner-only: the key file is written once,
+  // so a fix to Write() alone would never reach it.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), {});
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kSecure));
+  const auto path = accessor.PathOf(ProfileArea::kSecure, "app.key");
+  {
+    QFile legacy(path);
+    ASSERT_TRUE(legacy.open(QIODevice::WriteOnly));
+    legacy.write("plaintext key");
+  }
+  ASSERT_TRUE(QFile::setPermissions(
+      path, QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                QFileDevice::ReadGroup | QFileDevice::ReadOther));
+
+  const auto bytes = accessor.Read(ProfileArea::kSecure, "app.key");
+  ASSERT_TRUE(bytes.has_value());
+  EXPECT_EQ(bytes->ConvertToQByteArray(), QByteArray("plaintext key"));
+  EXPECT_EQ(QFileInfo(path).permissions() &
+                (QFileDevice::ReadGroup | QFileDevice::ReadOther),
+            QFileDevice::Permissions{});
+}
+#endif
 
 TEST(ProfileAccessorTest, SettingsFollowTheFileItWasGiven) {
   QTemporaryDir dir;

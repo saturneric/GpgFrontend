@@ -87,31 +87,6 @@ auto GFBufferFactory::ToFile(const class QString& path, const GFBuffer& buffer)
   return succ;
 }
 
-auto GFBufferFactory::ToFileAtomic(const class QString& path,
-                                   const GFBuffer& buffer) -> bool {
-  QSaveFile file(path);
-  if (!file.open(QIODevice::WriteOnly)) {
-    LOG_E() << "open file for atomic write failed:" << path;
-    return false;
-  }
-
-  const auto written =
-      file.write(buffer.Data(), static_cast<qint64>(buffer.Size()));
-  if (written != static_cast<qint64>(buffer.Size())) {
-    LOG_E() << "short write during atomic write:" << path;
-    file.cancelWriting();
-    return false;
-  }
-
-  // commit() flushes and renames; without it QSaveFile discards the temporary.
-  if (!file.commit()) {
-    LOG_E() << "commit atomic write failed:" << path;
-    return false;
-  }
-
-  return true;
-}
-
 auto GFBufferFactory::ToBase64(const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
   if (!EnsureSodiumInit()) return {};

@@ -219,7 +219,7 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     // store entry once the file no longer depends on it. A crash in between
     // leaves an unused entry, which is harmless; the reverse order would lose
     // the key.
-    if (!GFBufferFactory::ToFileAtomic(key_path, *plain)) {
+    if (!GFBufferFactory::ToFile(key_path, *plain)) {
       return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
     }
 
@@ -279,7 +279,7 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
-  if (!GFBufferFactory::ToFileAtomic(key_path, *encrypted)) {
+  if (!GFBufferFactory::ToFile(key_path, *encrypted)) {
     store->Remove(account);
     return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
@@ -290,7 +290,7 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
 
 auto AppKeySinkForFile(const QString& path) -> AppKeySink {
   return {[path](const GFBuffer& sealed) {
-            return GFBufferFactory::ToFileAtomic(path, sealed);
+            return GFBufferFactory::ToFile(path, sealed);
           },
           path};
 }

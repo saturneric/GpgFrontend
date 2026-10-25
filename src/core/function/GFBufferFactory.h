@@ -65,27 +65,18 @@ class GF_CORE_EXPORT GFBufferFactory
   static auto FromFile(const QString& path) -> GFBufferOrNone;
 
   /**
-   * @brief Write a GFBuffer to a file, overwriting any existing content.
+   * @brief Write a GFBuffer to a file, replacing it atomically.
+   *
+   * Writes to an owner-only temporary file alongside the destination and
+   * renames it into place, so an interrupted write leaves the previous content
+   * intact rather than a truncated file, and the content is never readable by
+   * other accounts. Refuses to write through a symbolic link.
    *
    * @param path absolute or relative path to the destination file
    * @param buffer data to write
    * @return true on success, false on write failure
    */
   static auto ToFile(const QString& path, const GFBuffer& buffer) -> bool;
-
-  /**
-   * @brief Write a GFBuffer to a file, replacing it atomically.
-   *
-   * Writes to a temporary file alongside the destination and renames it into
-   * place, so an interrupted write leaves the previous content intact rather
-   * than a truncated file. Use this whenever the destination is the only copy
-   * of something that cannot be regenerated, such as a key file.
-   *
-   * @param path absolute or relative path to the destination file
-   * @param buffer data to write
-   * @return true on success, false on write failure
-   */
-  static auto ToFileAtomic(const QString& path, const GFBuffer& buffer) -> bool;
 
   /**
    * @brief Encode a GFBuffer to standard Base64.
