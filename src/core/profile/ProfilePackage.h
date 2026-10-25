@@ -380,21 +380,6 @@ auto GF_CORE_EXPORT MeasureProfileAreas(const ProfileAccessor &storage)
 auto GF_CORE_EXPORT ProfilePackagePayloadCap() -> qint64;
 
 /**
- * @brief Outcome of building a staging tree.
- */
-struct GF_CORE_EXPORT ProfileStagingResult {
-  bool ok = false;
-  QString error;
-  qint64 bytes = 0;
-
-  /// Top-level names in the profile folder that the package does not carry,
-  /// sorted. Inclusion is an allow-list, so leaving something out is silent by
-  /// default -- and a sender who kept notes beside their profile should learn
-  /// that here rather than from the copy on somebody else's machine.
-  QStringList skipped;
-};
-
-/**
  * @brief Whether a setting is the profile's, or this machine's.
  *
  * A package is handed to somebody else, so a value that names something only

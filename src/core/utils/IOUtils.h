@@ -125,16 +125,6 @@ auto GF_CORE_EXPORT CalculateBinaryChacksum(QIODevice& io) -> QString;
 auto GF_CORE_EXPORT CalculateBinaryChacksum(const QString& path) -> QString;
 
 /**
- * @brief Write a string buffer to a file, overwriting any existing content.
- *
- * @param path destination file path
- * @param out_buffer string content to write
- * @return true on success, false if the file could not be opened or written
- */
-auto GF_CORE_EXPORT WriteBufferToFile(const QString& path,
-                                      const QString& out_buffer) -> bool;
-
-/**
  * @brief Return the path to a new temporary file in the system temp directory.
  *
  * @return absolute path to a temporary file (not yet created)
@@ -169,17 +159,6 @@ auto GF_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer& data) -> QString;
  */
 auto GF_CORE_EXPORT TargetFilePreCheck(const QString& path, bool read)
     -> std::tuple<bool, QString>;
-
-/**
- * @brief Return the full compound extension of a file path (e.g. ".tar.gz").
- *
- * Unlike QFileInfo::suffix(), this includes all dot-separated suffix
- * components starting from the first dot in the file name.
- *
- * @param path file path
- * @return full extension string including all dots, or empty if none
- */
-auto GF_CORE_EXPORT GetFullExtension(QString path) -> QString;
 
 /**
  * @brief Return a staging path for an output that will end up at @p final_path.

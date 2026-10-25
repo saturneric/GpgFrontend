@@ -43,11 +43,8 @@ constexpr int kGpgFrontendDefaultChannel = 0;   ///<
 constexpr int kGpgFrontendNonAsciiChannel = 2;  ///<
 
 // HEADER
-constexpr const char* kPgpCryptBegin = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* kPgpCryptEnd = "-----END PGP MESSAGE-----";      ///<
 constexpr const char* kPgpSignedBegin =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                             ///<
-constexpr const char* kPgpSignedEnd = "-----END PGP SIGNATURE-----";  ///<
+    "-----BEGIN PGP SIGNED MESSAGE-----";  ///<
 constexpr const char* kPgpSignatureBegin =
     "-----BEGIN PGP SIGNATURE-----";                                     ///<
 constexpr const char* kPgpSignatureEnd = "-----END PGP SIGNATURE-----";  ///<

@@ -373,24 +373,6 @@ auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
   return recipients;
 }
 
-auto SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList {
-  char* out_issuers = nullptr;
-  auto err = Rust::gfr_crypto_get_signature_issuers(
-      reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
-      &out_issuers);
-
-  if (err != Rust::GfrStatus::Success || out_issuers == nullptr) {
-    LOG_E() << "Rust FFI get_signature_issuers failed.";
-    return {};
-  }
-
-  auto issuers_str = QString::fromUtf8(out_issuers);
-  Rust::gfr_crypto_free_string(out_issuers);
-
-  return issuers_str.toUpper().split(",", Qt::SkipEmptyParts);
-  ;
-}
-
 auto InspectOpenPGPData(const GFBuffer& in_buffer) -> QByteArray {
 #ifndef HAS_RUST_SUPPORT
   (void)in_buffer;
@@ -412,18 +394,6 @@ auto InspectOpenPGPData(const GFBuffer& in_buffer) -> QByteArray {
   Rust::gfr_crypto_free_string(out_json);
   return json;
 #endif
-}
-auto GetKeyBlocksForVerification(GFKeyDatabase& key_db,
-                                 const QStringList& key_ids)
-    -> QList<GFBuffer> {
-  QList<GFBuffer> verified_keys_utf8;
-  for (const auto& issuer_id : key_ids) {
-    auto key = key_db.GetKeyBlocks(issuer_id);
-    if (key && !key->public_key.Empty()) {
-      verified_keys_utf8.push_back(key->public_key);
-    }
-  }
-  return verified_keys_utf8;
 }
 
 auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,

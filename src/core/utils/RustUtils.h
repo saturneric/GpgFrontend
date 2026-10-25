@@ -240,25 +240,6 @@ auto GF_CORE_EXPORT SniffRecipients(GFKeyDatabase& key_db,
     -> QList<GFRecipient>;
 
 /**
- * @brief Extract issuer key IDs from a signed data buffer.
- *
- * @param in_buffer signed or signed-and-encrypted data buffer
- * @return list of issuer key ID strings found in the buffer
- */
-auto GF_CORE_EXPORT SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList;
-
-/**
- * @brief Retrieve armored public key blocks needed to verify the given key IDs.
- *
- * @param key_db key database to look up keys in
- * @param key_ids list of key IDs to retrieve
- * @return list of armored public key blocks (one per found key)
- */
-auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
-                                                const QStringList& key_ids)
-    -> QList<GFBuffer>;
-
-/**
  * @brief Retrieve armored key blocks for the given key IDs.
  *
  * @param key_db key database to look up keys in

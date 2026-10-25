@@ -61,14 +61,6 @@ class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
                                   GpgVerifyResult result);
 
   /**
-   * @brief Return the raw gpgme signature list from the verify result.
-   *
-   * @return pointer to the first gpgme_signature_t, or nullptr if the result is
-   * invalid
-   */
-  [[nodiscard]] auto GetSignatures() const -> gpgme_signature_t;
-
-  /**
    * @brief Transfer ownership of the underlying GpgVerifyResult out of this
    * object.
    *

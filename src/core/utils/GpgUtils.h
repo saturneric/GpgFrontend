@@ -82,14 +82,6 @@ auto GF_CORE_EXPORT CheckGpgError2ErrCode(
 auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
 
 /**
- * @brief Return whether the given text contains PGP signature markers.
- *
- * @param text byte array reference to inspect
- * @return non-zero if a PGP signature is detected, 0 otherwise
- */
-auto GF_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
-
-/**
  * @brief Return the output file path with an extension appropriate for the
  * given operation.
  *
@@ -818,14 +810,6 @@ auto GF_CORE_EXPORT BuildGpgKeyDatabaseInfos(
 auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
 
 /**
- * @brief Return the name of the key database associated with @p channel.
- *
- * @param channel OpenPGP context channel
- * @return database name string
- */
-auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
-
-/**
  * @brief Extract key ID strings from a list of abstract keys for the given
  * channel.
  *
@@ -870,14 +854,6 @@ auto GF_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
     -> QString;
 
 /**
- * @brief Look up the underlying GpgKey for the given abstract key.
- *
- * @param key abstract key pointer
- * @return corresponding GpgKey value
- */
-auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* key) -> GpgKey;
-
-/**
  * @brief Return whether the given key ID refers to a key group rather than a
  * single key.
  *
@@ -887,29 +863,11 @@ auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* key) -> GpgKey;
 auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool;
 
 /**
- * @brief Return whether the gpg-agent version on @p channel is greater than @p
- * version.
- *
- * @param channel OpenPGP context channel
- * @param version version string to compare against
- * @return true if the agent version is strictly greater
- */
-auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel,
-                                               const QString& version) -> bool;
-
-/**
  * @brief Return the path to the appropriate pinentry program for the platform.
  *
  * @return absolute path to the pinentry binary, or empty if not found
  */
 auto GF_CORE_EXPORT DecidePinentry() -> QString;
-
-/**
- * @brief Return the GnuPG version string from the active context.
- *
- * @return GnuPG version string (e.g. "2.4.3")
- */
-auto GF_CORE_EXPORT GnuPGVersion() -> QString;
 
 /**
  * @brief Parse a raw user ID string (e.g. "Name <email>") into a GFUserId

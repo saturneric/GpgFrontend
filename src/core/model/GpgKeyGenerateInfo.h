@@ -450,14 +450,6 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowModifyCert() const -> bool;
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
   [[nodiscard]] auto IsAllowModifyAuth() const -> bool;
 
   /**

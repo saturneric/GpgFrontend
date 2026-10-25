@@ -170,34 +170,6 @@ auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
   return {err, data_object};
 }
 
-auto RunIOOperaAsync(const OperaRunnable& runnable,
-                     const OperationCallback& callback,
-                     const QString& operation) -> Thread::Task::TaskHandler {
-  auto handler =
-      Thread::TaskRunnerGetter::GetInstance()
-          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
-          ->RegisterTask(
-              operation,
-              [=](const DataObjectPtr& data_object) -> int {
-                auto custom_data_object = TransferParams();
-                auto err = runnable(custom_data_object);
-
-                data_object->Swap({err, custom_data_object});
-                return 0;
-              },
-              [=](int rtn, const DataObjectPtr& data_object) {
-                if (rtn != 0) {
-                  callback(-1, ExtractParams<DataObjectPtr>(data_object, 1));
-                } else {
-                  callback(ExtractParams<GFError>(data_object, 0),
-                           ExtractParams<DataObjectPtr>(data_object, 1));
-                }
-              },
-              TransferParams());
-  handler.Start();
-  return handler;
-}
-
 auto RunOperaAsync(const OperaRunnable& runnable,
                    const OperationCallback& callback, const QString& operation)
     -> Thread::Task::TaskHandler {

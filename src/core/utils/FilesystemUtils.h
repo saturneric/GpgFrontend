@@ -31,23 +31,6 @@
 namespace GpgFrontend {
 
 /**
- * @brief Return the file extension of the given path (without the dot).
- *
- * @param path file path
- * @return extension string (e.g. "txt"), or empty if none
- */
-auto GF_CORE_EXPORT GetFileExtension(const QString& path) -> QString;
-
-/**
- * @brief Return the file name component of the given path, including any
- * extension.
- *
- * @param path file path
- * @return file name string without the directory prefix
- */
-auto GF_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path) -> QString;
-
-/**
  * @brief Return the total size in bytes of all files matching the pattern under
  * @p path.
  *
@@ -66,14 +49,5 @@ auto GF_CORE_EXPORT GetFileSizeByPath(const QString& path,
  * @return formatted size string
  */
 auto GF_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size) -> QString;
-
-/**
- * @brief Delete all files matching the pattern under the given directory.
- *
- * @param path directory to search
- * @param filename_pattern glob pattern for file names to delete (e.g. "*.log")
- */
-void GF_CORE_EXPORT DeleteAllFilesByPattern(const QString& path,
-                                            const QString& filename_pattern);
 
 }  // namespace GpgFrontend

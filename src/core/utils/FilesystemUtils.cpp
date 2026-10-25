@@ -30,22 +30,6 @@
 
 namespace GpgFrontend {
 
-auto GetOnlyFileNameWithPath(const QString &path) -> QString {
-  // Create a path object from given string
-  QFileInfo file_info(path);
-  // Check if file name in the path object has extension
-  if (!file_info.fileName().isEmpty()) {
-    // Fetch the extension from path object and return
-    return file_info.path() + "/" + file_info.baseName();
-  }
-  // In case of no extension return empty string
-  return {};
-}
-
-auto GetFileExtension(const QString &path) -> QString {
-  return QFileInfo(path).suffix();
-}
-
 /**
  * @brief
  *
@@ -80,22 +64,6 @@ auto GetHumanFriendlyFileSize(int64_t size) -> QString {
     num /= 1024.0;
   }
   return (QString().setNum(num, 'f', 2) + " " + unit);
-}
-
-/**
- * @brief
- *
- */
-void DeleteAllFilesByPattern(const QString &path,
-                             const QString &filename_pattern) {
-  auto dir = QDir(path);
-
-  QStringList const log_files =
-      dir.entryList(QStringList{filename_pattern}, QDir::Files);
-
-  for (const auto &file : log_files) {
-    QFile::remove(dir.absoluteFilePath(file));
-  }
 }
 
 }  // namespace GpgFrontend

@@ -137,16 +137,6 @@ class GF_CORE_EXPORT KeyManagementOperation
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief Add an Additional Decryption Subkey (ADSK) to the given key (async).
-   *
-   * @param key primary key to add the ADSK to
-   * @param adsk subkey to add as an ADSK
-   * @param cb callback invoked on completion
-   */
-  void AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
-               const GpgOperationCallback& cb);
-
-  /**
    * @brief Add an Additional Decryption Subkey (ADSK) to the given key (sync).
    *
    * @param key primary key to add the ADSK to

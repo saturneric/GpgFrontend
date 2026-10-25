@@ -476,14 +476,6 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream& stream,
   return key != nullptr;
 }
 
-auto GpgFrontend::GpgVerifyResultAnalyse::GetSignatures() const
-    -> gpgme_signature_t {
-  if (result_.IsGood()) {
-    return result_.GetRaw()->signatures;
-  }
-  return nullptr;
-}
-
 auto GpgFrontend::GpgVerifyResultAnalyse::TakeChargeOfResult()
     -> GpgFrontend::GpgVerifyResult {
   return result_;

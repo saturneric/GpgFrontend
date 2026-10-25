@@ -137,12 +137,6 @@ auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString& a,
                                                  const QString& b) -> bool;
 
 /**
- * @brief Return whether the core environment has been fully initialised.
- * @return true if core initialisation is complete
- */
-auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
-
-/**
  * @brief Runtime value that pins CurrentDateTime(), in seconds since the
  * epoch. Only the screenshot mode publishes it, so its renders do not depend
  * on when they were made.

@@ -121,12 +121,6 @@ auto GF_CORE_EXPORT GetProjectGpgErrorVersion() -> QString;
 auto GF_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
 /**
- * @brief Return whether release commit hash verification is enabled.
- * @return true if commit hash checking is active
- */
-auto GF_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
-
-/**
  * @brief Return whether the binary was compiled with Rust support.
  * @return true if Rust support is available
  */

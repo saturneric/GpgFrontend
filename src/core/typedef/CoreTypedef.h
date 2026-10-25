@@ -31,10 +31,5 @@
 namespace GpgFrontend {
 
 using GFError = uint32_t;
-using ByteArray = QByteArray;                ///<
-using BypeArrayRef = ByteArray&;             ///<
-using BypeArrayConstRef = const ByteArray&;  ///<
-using StringArgsPtr = QStringList;           ///<
-using StringArgsRef = QStringList&;          ///<
 
 }  // namespace GpgFrontend

@@ -85,12 +85,6 @@ void KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) {
   DeleteKeys({key});
 }
 
-void KeyManagementOperation::AddADSK(const GpgKeyPtr& key,
-                                     const GpgSubKey& adsk,
-                                     const GpgOperationCallback& cb) {
-  RunRegisteredAsync<AddADSKOpTag>(ctx_, cb, key, adsk);
-}
-
 auto KeyManagementOperation::AddADSKSync(const GpgKeyPtr& key,
                                          const GpgSubKey& adsk)
     -> std::tuple<GpgError, DataObjectPtr> {

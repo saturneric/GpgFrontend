@@ -34,7 +34,6 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
-#include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
@@ -108,18 +107,6 @@ auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {
             << " description: " << GetGpgmeErrorString(err);
   }
   return err;
-}
-
-auto TextIsSigned(QString text) -> int {
-  auto trim_text = Trim(text);
-  if (trim_text.startsWith(kPgpSignedBegin) &&
-      trim_text.endsWith(kPgpSignedEnd)) {
-    return 2;
-  }
-  if (text.contains(kPgpSignedBegin) && text.contains(kPgpSignedEnd)) {
-    return 1;
-  }
-  return 0;
 }
 
 namespace {
@@ -305,12 +292,6 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo> {
   // indexed by channel: a list indexed by channel has a slot for every channel
   // no context reported, and those slots are key databases that do not exist.
   return BuildGpgKeyDatabaseInfos(reported);
-}
-
-auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
-  // Answered for a retired handle too: a result that finished on the previous
-  // Runtime still has to say which database it came from.
-  return LookupChannelHandle(channel).name;
 }
 
 namespace {
@@ -1130,35 +1111,8 @@ auto GF_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
   return usages;
 }
 
-auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
-    -> GpgKey {
-  if (!ab_key->IsGood()) return {};
-
-  if (ab_key->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
-    auto* s_key = dynamic_cast<GpgSubKey*>(ab_key);
-
-    assert(s_key != nullptr);
-    if (s_key == nullptr) return {};
-
-    return *s_key->Convert2GpgKey();
-  }
-
-  if (ab_key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
-    auto* key = dynamic_cast<GpgKey*>(ab_key);
-    return *key;
-  }
-
-  return {};
-}
-
 auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
   return id.startsWith("#&");
-}
-
-auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel, const QString& v)
-    -> bool {
-  return GFSoftwareVersionGreaterThan(
-      GpgComponentManager::GetInstance(channel).GetGpgAgentVersion(), v);
 }
 
 auto GF_CORE_EXPORT DecidePinentry() -> QString {
@@ -1198,12 +1152,6 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   }
 
   return {};
-}
-
-auto GnuPGVersion() -> QString {
-  auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{"0.0.0"});
-  return gnupg_version;
 }
 
 const QRegularExpression kRegexUserId(

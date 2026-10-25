@@ -272,15 +272,6 @@ auto TargetFilePreCheck(const QString& path, bool read)
   return {true, QCoreApplication::tr("Success")};
 }
 
-auto GetFullExtension(const QString& path) -> QString {
-  QString const filename = QFileInfo(path).fileName();
-
-  auto const dot_index = filename.indexOf('.');
-  if (dot_index == -1) return {};
-
-  return filename.mid(dot_index);
-}
-
 auto MakeSafeOutputTempPath(const QString& final_path) -> QString {
   const QFileInfo info(final_path);
   const auto base_name = info.fileName();

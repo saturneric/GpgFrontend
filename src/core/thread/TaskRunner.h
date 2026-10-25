@@ -36,10 +36,8 @@ namespace GpgFrontend::Thread {
  * @brief Owns a dedicated QThread and serialises Task execution on it.
  *
  * Tasks posted via PostTask() are moved to the runner's thread and executed
- * sequentially through its event loop. PostConcurrentTask() submits to the
- * global QThreadPool instead. PostScheduleTask() delays execution by a given
- * number of seconds. RegisterTask() creates a task, tracks it, and returns a
- * TaskHandler for deferred start or cancellation.
+ * sequentially through its event loop. RegisterTask() creates a task and
+ * returns a TaskHandler for deferred start or cancellation.
  */
 class GF_CORE_EXPORT TaskRunner : public QObject {
   Q_OBJECT
@@ -111,24 +109,6 @@ class GF_CORE_EXPORT TaskRunner : public QObject {
   auto RegisterTask(const QString& name, const Task::TaskRunnable& runnable,
                     const Task::TaskCallback& callback, DataObjectPtr data)
       -> Task::TaskHandler;
-
-  /**
-   * @brief Submit @p task to the global QThreadPool for concurrent execution.
-   *
-   * Unlike PostTask(), this does not use the runner's dedicated thread.
-   *
-   * @param task heap-allocated task to execute concurrently
-   */
-  void PostConcurrentTask(Task* task);
-
-  /**
-   * @brief Schedule @p task to run on the runner thread after @p seconds
-   * seconds.
-   *
-   * @param task heap-allocated task to execute
-   * @param seconds delay in seconds before execution
-   */
-  void PostScheduleTask(Task* task, size_t seconds);
 
  private:
   class Impl;

@@ -194,10 +194,6 @@ auto IsEmailAddress(const QString& str) -> bool {
   return kReEmailAnchored.match(str).hasMatch();
 }
 
-auto IsCoreEnvInitialized() -> bool {
-  return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
-}
-
 auto CurrentDateTime() -> QDateTime {
   const auto fixed = Module::RetrieveRTValueTypedOrDefault<qint64>(
       "core", kFixedClockRTKey, -1);

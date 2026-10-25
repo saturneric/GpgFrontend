@@ -129,55 +129,6 @@ inline auto WipeByteArray(QByteArray &bytes) -> bool {
 }
 
 /**
- * @brief Type-safe wrapper for casting a void pointer to a typed pointer.
- *
- * @tparam T target type
- */
-template <typename T>
-class PointerConverter {
- public:
-  /**
-   * @brief Wrap a raw void pointer.
-   * @param ptr pointer to wrap
-   */
-  explicit PointerConverter(void *ptr) : ptr_(ptr) {}
-
-  /**
-   * @brief Cast the wrapped pointer to T*.
-   * @return typed pointer
-   */
-  auto AsType() const -> T * { return static_cast<T *>(ptr_); }
-
- private:
-  void *ptr_;
-};
-
-/**
- * @brief Allocate @p size bytes via SMAMalloc and cast the result to T*.
- *
- * @tparam T target type
- * @param size number of bytes to allocate
- * @return typed pointer to the allocated memory
- */
-template <typename T>
-auto SecureMallocAsType(std::size_t size) -> T * {
-  return PointerConverter<T>(SMAMalloc(size)).AsType();
-}
-
-/**
- * @brief Reallocate @p ptr to @p size bytes via SMARealloc and cast to T*.
- *
- * @tparam T target type
- * @param ptr existing pointer to reallocate
- * @param size new size in bytes
- * @return typed pointer to the reallocated memory
- */
-template <typename T>
-auto SecureReallocAsType(T *ptr, std::size_t size) -> T * {
-  return PointerConverter<T>(SMARealloc(ptr, size)).AsType();
-}
-
-/**
  * @brief Construct a T in-place on SMAMalloc-allocated memory.
  *
  * Throws the constructor exception (and frees the memory) if construction

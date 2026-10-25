@@ -57,18 +57,6 @@ class TaskRunner::Impl : public QThread {
     auto* raw_task = new Task(runnable, name, std::move(params), cb);
     raw_task->setParent(nullptr);
     raw_task->moveToThread(this);
-
-    const auto full_id = raw_task->GetFullID();
-
-    connect(raw_task, &Task::SignalRun, this,
-            [this, task = QPointer<Task>(raw_task), full_id]() {
-              if (task == nullptr) return;
-              pending_tasks_[full_id] = task;
-            });
-
-    connect(raw_task, &Task::SignalTaskEnd, this,
-            [this, full_id]() { pending_tasks_.remove(full_id); });
-
     return Task::TaskHandler(raw_task);
   }
 
@@ -76,34 +64,6 @@ class TaskRunner::Impl : public QThread {
                 const Task::TaskCallback& cb, DataObjectPtr params) {
     PostTask(new Task(runnerable, name, std::move(params), cb));
   }
-
-  void PostConcurrentTask(Task* task) {
-    if (task == nullptr) {
-      FLOG_W("task posted is null");
-      return;
-    }
-
-    auto* concurrent_thread = new QThread(this);
-
-    task->setParent(nullptr);
-    task->moveToThread(concurrent_thread);
-
-    connect(task, &Task::SignalTaskEnd, concurrent_thread, &QThread::quit);
-    connect(concurrent_thread, &QThread::finished, concurrent_thread,
-            &QThread::deleteLater);
-
-    concurrent_thread->start();
-
-    task->SafelyRun();
-  }
-
-  void PostScheduleTask(Task* task, size_t seconds) {
-    if (task == nullptr) return;
-    // TODO
-  }
-
- private:
-  QMap<QString, Task*> pending_tasks_;
 };
 
 TaskRunner::TaskRunner() : p_(SecureCreateUniqueObject<Impl>()) {}
@@ -127,14 +87,6 @@ void TaskRunner::PostTask(Task* task) { p_->PostTask(task); }
 void TaskRunner::PostTask(const QString& name, const Task::TaskRunnable& runner,
                           const Task::TaskCallback& cb, DataObjectPtr params) {
   p_->PostTask(name, runner, cb, std::move(params));
-}
-
-void TaskRunner::PostConcurrentTask(Task* task) {
-  p_->PostConcurrentTask(task);
-}
-
-void TaskRunner::PostScheduleTask(Task* task, size_t seconds) {
-  p_->PostScheduleTask(task, seconds);
 }
 
 void TaskRunner::Start() { p_->start(); }

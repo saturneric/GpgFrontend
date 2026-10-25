@@ -725,16 +725,6 @@ void KeyGenerateInfo::SetAllowAuth(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowModifyCert() const -> bool {
-  return allow_change_certification_;
-}
-
-/**
- * @brief
- *
- * @return true
- * @return false
- */
 [[nodiscard]] auto KeyGenerateInfo::IsAllowModifyAuth() const -> bool {
   return allow_change_authentication_;
 }

@@ -68,10 +68,6 @@ constexpr auto kProtectionNone = "none";
 constexpr auto kProtectionKeychain = "keychain";
 constexpr auto kProtectionPin = "pin";
 
-/// The secure level at which a pre-split profile sealed its key file with a
-/// PIN.
-constexpr int kLegacyPinSecureLevel = 3;
-
 }  // namespace
 
 namespace GpgFrontend {

@@ -78,20 +78,6 @@ auto GF_CORE_EXPORT RunGpgOperaSync(int channel,
     -> std::tuple<GpgError, DataObjectPtr>;
 
 /**
- * @brief Run an I/O operation asynchronously on the dedicated I/O task runner.
- *
- * @param runnable I/O operation to execute on the runner thread
- * @param callback function invoked on the calling thread with (GFError,
- * DataObjectPtr)
- * @param operation human-readable operation name used for task identification
- * @return TaskHandler for the scheduled task
- */
-auto GF_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
-                                    const OperationCallback& callback,
-                                    const QString& operation)
-    -> Thread::Task::TaskHandler;
-
-/**
  * @brief Run a general operation asynchronously on the default task runner.
  *
  * @param runnable operation to execute on the runner thread
