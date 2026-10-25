@@ -73,7 +73,6 @@ auto GFBufferFactory::Decrypt(const GFBuffer& passphase, const GFBuffer& buffer)
 
 auto GFBufferFactory::FromFile(const class QString& path) -> GFBufferOrNone {
   auto [succ, buffer] = ReadFileGFBuffer(path);
-  Q_ASSERT(succ);
   if (!succ) {
     LOG_E() << "read gf buffer from file failed: " << path;
     return {};
@@ -84,7 +83,6 @@ auto GFBufferFactory::FromFile(const class QString& path) -> GFBufferOrNone {
 auto GFBufferFactory::ToFile(const class QString& path, const GFBuffer& buffer)
     -> bool {
   auto succ = WriteFileGFBuffer(path, buffer);
-  Q_ASSERT(succ);
   if (!succ) LOG_E() << "write gf buffer to file failed: " << path;
   return succ;
 }
