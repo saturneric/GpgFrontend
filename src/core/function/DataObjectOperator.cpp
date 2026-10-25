@@ -978,6 +978,7 @@ auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
 
   if (!WriteFileGFBuffer(ref_path, *data)) {
     LOG_E() << "failed to write data object to disk: " << ref_hex;
+    return {};
   }
 
   return ref_hex;

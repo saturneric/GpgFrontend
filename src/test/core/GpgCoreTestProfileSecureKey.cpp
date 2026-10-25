@@ -352,6 +352,27 @@ TEST(ProfileSecureKeyManagerTest, DataObjectRoundTripUsesLegacyKey) {
 }
 
 /**
+ * A store that did not reach the disk must say so: the reference it would
+ * otherwise return names an object nothing can read back.
+ */
+TEST(ProfileSecureKeyManagerTest, DataObjectStoreReportsAFailedWrite) {
+  auto& dao = DataObjectOperator::GetInstance();
+  const QString key("data_object_write_failure_test");
+
+  const auto ref = dao.StoreSecDataObj(key, GFBuffer("first"));
+  ASSERT_FALSE(ref.isEmpty());
+
+  // The object's own path taken by a directory: QSaveFile cannot replace it.
+  const auto path = ProfileSession::Instance().Accessor().PathOf(
+      ProfileArea::kDataObjects, ref);
+  ASSERT_TRUE(QFile::remove(path));
+  ASSERT_TRUE(QDir().mkpath(path));
+
+  EXPECT_TRUE(dao.StoreSecDataObj(key, GFBuffer("second")).isEmpty());
+  EXPECT_TRUE(QDir(path).removeRecursively());
+}
+
+/**
  * IsEncryptedBuffer is what makes a key file self-describing, so it must not
  * report a plaintext or truncated buffer as encrypted.
  */
