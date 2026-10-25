@@ -228,6 +228,8 @@ auto GF_UI_EXPORT OutcomeFromId(const QString& id)
     -> std::optional<InfoBoardOutcome>;
 auto GF_UI_EXPORT CardKindId(InfoBoardCardKind kind) -> QString;
 auto GF_UI_EXPORT CardKindFromId(const QString& id) -> InfoBoardCardKind;
+auto GF_UI_EXPORT SeverityId(InfoBoardStatus status) -> QString;
+auto GF_UI_EXPORT SourceKindId(InfoBoardSource::Kind kind) -> QString;
 
 // ---------------------------------------------------------------------------
 // Builders: one per way a result reaches the panel.

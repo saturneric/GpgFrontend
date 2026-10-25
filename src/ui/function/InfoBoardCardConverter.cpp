@@ -38,38 +38,11 @@ namespace GpgFrontend::UI {
 
 namespace {
 
-auto status_to_string(InfoBoardStatus status) -> QString {
-  switch (status) {
-    case kINFO_ERROR_OK:
-      return u"ok"_s;
-    case kINFO_ERROR_WARN:
-      return u"warn"_s;
-    case kINFO_ERROR_CRITICAL:
-      return u"critical"_s;
-    default:
-      return u"neutral"_s;
-  }
-}
-
 auto status_from_string(const QString& s) -> InfoBoardStatus {
   if (s == "ok"_L1) return kINFO_ERROR_OK;
   if (s == "warn"_L1) return kINFO_ERROR_WARN;
   if (s == "critical"_L1) return kINFO_ERROR_CRITICAL;
   return kINFO_ERROR_NEUTRAL;
-}
-
-auto source_kind_to_string(InfoBoardSource::Kind kind) -> QString {
-  switch (kind) {
-    case InfoBoardSource::kFILE:
-      return u"file"_s;
-    case InfoBoardSource::kDOCUMENT:
-      return u"document"_s;
-    case InfoBoardSource::kGENERIC:
-      return u"generic"_s;
-    case InfoBoardSource::kOPERATION:
-    default:
-      return u"operation"_s;
-  }
 }
 
 auto source_kind_from_string(const QString& s) -> InfoBoardSource::Kind {
@@ -85,7 +58,7 @@ auto card_to_json(const InfoBoardCard& card) -> QJsonObject {
     fields.append(QJsonArray{f.first, f.second});
   }
   QJsonObject obj{{u"title"_s, card.title},
-                  {u"status"_s, status_to_string(card.status)},
+                  {u"status"_s, SeverityId(card.status)},
                   {u"fields"_s, fields},
                   {u"kind"_s, CardKindId(card.kind)}};
   // Presentation hints, only when a field has any.
@@ -102,7 +75,7 @@ auto card_to_json(const InfoBoardCard& card) -> QJsonObject {
   if (any_meta) obj.insert(u"meta"_s, meta);
   if (!card.source.IsEmpty()) {
     obj.insert(u"source"_s,
-               QJsonObject{{u"kind"_s, source_kind_to_string(card.source.kind)},
+               QJsonObject{{u"kind"_s, SourceKindId(card.source.kind)},
                            {u"id"_s, card.source.id},
                            {u"label"_s, card.source.label},
                            {u"full"_s, card.source.full}});

@@ -79,19 +79,6 @@ auto OutcomeFromStatus(InfoBoardStatus status) -> InfoBoardOutcome {
   }
 }
 
-auto SeverityId(InfoBoardStatus status) -> QString {
-  switch (status) {
-    case kINFO_ERROR_OK:
-      return u"ok"_s;
-    case kINFO_ERROR_WARN:
-      return u"warn"_s;
-    case kINFO_ERROR_CRITICAL:
-      return u"critical"_s;
-    default:
-      return u"neutral"_s;
-  }
-}
-
 auto HeadlineId(InfoBoardHeadline headline) -> QString {
   switch (headline) {
     case InfoBoardHeadline::kSUCCEEDED:
@@ -172,20 +159,6 @@ auto ActionId(OutputAction action) -> QString {
     case OutputAction::kCOMMIT_FILE:
     default:
       return u"commit_file"_s;
-  }
-}
-
-auto SourceKindId(InfoBoardSource::Kind kind) -> QString {
-  switch (kind) {
-    case InfoBoardSource::kFILE:
-      return u"file"_s;
-    case InfoBoardSource::kDOCUMENT:
-      return u"document"_s;
-    case InfoBoardSource::kOPERATION:
-      return u"operation"_s;
-    case InfoBoardSource::kGENERIC:
-    default:
-      return u"generic"_s;
   }
 }
 
@@ -1090,6 +1063,33 @@ auto CountSummaryText(const InfoBoardOutcomeCounts& c) -> QString {
                  .arg(c.not_reported);
   }
   return parts.join(u" · "_s);
+}
+
+auto SeverityId(InfoBoardStatus status) -> QString {
+  switch (status) {
+    case kINFO_ERROR_OK:
+      return u"ok"_s;
+    case kINFO_ERROR_WARN:
+      return u"warn"_s;
+    case kINFO_ERROR_CRITICAL:
+      return u"critical"_s;
+    default:
+      return u"neutral"_s;
+  }
+}
+
+auto SourceKindId(InfoBoardSource::Kind kind) -> QString {
+  switch (kind) {
+    case InfoBoardSource::kFILE:
+      return u"file"_s;
+    case InfoBoardSource::kDOCUMENT:
+      return u"document"_s;
+    case InfoBoardSource::kOPERATION:
+      return u"operation"_s;
+    case InfoBoardSource::kGENERIC:
+    default:
+      return u"generic"_s;
+  }
 }
 
 auto OutcomeId(InfoBoardOutcome outcome) -> QString {
