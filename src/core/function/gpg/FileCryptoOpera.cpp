@@ -201,15 +201,19 @@ auto DecryptVerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
   return DecryptVerifyFileGpgDataImpl(ctx_, data_in, data_out, data_object);
 }
 
-auto DecryptVerifyArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
-                                   const QString& out_path,
-                                   const GpgOperationCallback& cb) -> GpgError {
-  // The archive is extracted on a separate IO task that reads the decrypted
-  // plaintext from the exchanger and writes the files to disk. gpgme finishing
-  // only means all bytes have been pushed into the queue; the extractor may
-  // still be draining it and writing the trailing files. Join on the extractor
-  // so the opera does not report completion (and the caller does not commit /
-  // rename the output directory) until every file is on disk.
+namespace {
+using GpgDataOpera = GpgError (*)(OpenPGPContext&, GpgData&, GpgData&,
+                                  const DataObjectPtr&);
+
+/// Decrypts into an archive extractor running on a separate IO task, which
+/// reads the plaintext from the exchanger and writes the files to disk.
+auto DecryptIntoArchive(OpenPGPContext& ctx_, const QString& in_path,
+                        const QString& out_path, const GpgOperationCallback& cb,
+                        GpgDataOpera opera, const QString& name) -> GpgError {
+  // gpgme finishing only means all bytes have been pushed into the queue; the
+  // extractor may still be draining it and writing the trailing files. Join on
+  // the extractor so the opera does not report completion (and the caller does
+  // not commit / rename the output directory) until every file is on disk.
   auto extract_done = std::make_shared<std::promise<GFError>>();
   std::shared_future<GFError> extract_future =
       extract_done->get_future().share();
@@ -219,19 +223,27 @@ auto DecryptVerifyArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
 
   RunGpgOperaAsync(
       ctx_.GetChannel(),
-      [ctx_ptr = &ctx_, in_path, ex,
-       extract_future](const DataObjectPtr& data_object) -> GpgError {
+      [ctx_ptr = &ctx_, in_path, ex, extract_future,
+       opera](const DataObjectPtr& data_object) -> GpgError {
         GpgError err;
         {
           GpgData data_in(in_path, true);
           GpgData data_out(ex);
-          err = DecryptVerifyFileGpgDataImpl(*ctx_ptr, data_in, data_out,
-                                             data_object);
-        }  // data_out destroyed -> CloseWrite, lets extractor EOF
+          err = opera(*ctx_ptr, data_in, data_out, data_object);
+        }  // data_out destroyed -> CloseWrite, lets extractor reach EOF
         return JoinArchiveExtraction(err, extract_future);
       },
-      cb, "gpgme_op_decrypt_verify", {{OpenPGPEngine::kGNUPG, "2.2.0"}});
+      cb, name, {{OpenPGPEngine::kGNUPG, "2.2.0"}});
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+}
+}  // namespace
+
+auto DecryptVerifyArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
+                                   const QString& out_path,
+                                   const GpgOperationCallback& cb) -> GpgError {
+  return DecryptIntoArchive(ctx_, in_path, out_path, cb,
+                            DecryptVerifyFileGpgDataImpl,
+                            "gpgme_op_decrypt_verify");
 }
 
 namespace {
@@ -260,33 +272,8 @@ auto DecryptFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
 auto DecryptArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                              const QString& out_path,
                              const GpgOperationCallback& cb) -> GpgError {
-  // See DecryptVerifyArchiveGnuPGImpl: join on the extraction task so the opera
-  // completes only after every extracted file has been written to disk,
-  // otherwise the caller may commit/rename the output directory while the
-  // extractor is still writing the trailing files (race -> missing files).
-  auto extract_done = std::make_shared<std::promise<GFError>>();
-  std::shared_future<GFError> extract_future =
-      extract_done->get_future().share();
-
-  auto ex = ExtractArchiveHelper(
-      out_path, [extract_done](GFError err) { extract_done->set_value(err); });
-
-  RunGpgOperaAsync(
-      ctx_.GetChannel(),
-      [ctx_ptr = &ctx_, in_path, ex,
-       extract_future](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-        {
-          GpgData data_in(in_path, true);
-          GpgData data_out(ex);
-          err =
-              DecryptFileGpgDataImpl(*ctx_ptr, data_in, data_out, data_object);
-        }  // data_out destroyed -> CloseWrite, lets extractor reach EOF
-        return JoinArchiveExtraction(err, extract_future);
-      },
-      cb, "gpgme_op_decrypt",
-      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
-  return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+  return DecryptIntoArchive(ctx_, in_path, out_path, cb, DecryptFileGpgDataImpl,
+                            "gpgme_op_decrypt");
 }
 
 auto SignFileGpgDataGnuPGImpl(OpenPGPContext& ctx_,
