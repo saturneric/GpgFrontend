@@ -49,6 +49,7 @@ namespace GpgFrontend::UI {
 
 class KeyList;
 class TextEdit;
+class FilePage;
 class InfoBoardWidget;
 class StatusDockPresenter;
 class SettingsDialog;
@@ -817,6 +818,32 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @return QString
    */
   auto handle_module_error(Module::Event::Params p) -> bool;
+
+  /// Routes a crypto action to the file, text or module-owned flavour of the
+  /// current tab. Nothing happens when there is no tab.
+  void dispatch_general_op(
+      const std::function<void(FilePage*)>& on_file,
+      const std::function<void()>& on_text,
+      const std::function<void(const QString&)>& on_custom);
+
+  /// The tab a custom operation runs on, or nullptr after telling the user why
+  /// it cannot: no tab, or no module listening for @p event_id.
+  auto custom_op_page(const QString& event_id, const QString& unsupported)
+      -> QPointer<QWidget>;
+
+  /// Sends @p params, plus the current channel, to the module listening for
+  /// @p event_id, behind a waiting dialog. @p on_result handles a successful
+  /// answer before the Info Board shows it; @p on_error, if given, a failed
+  /// one.
+  void run_custom_op(
+      const QString& event_id, const QString& waiting_title,
+      Module::Event::Params params,
+      const std::function<void(Module::Event::Params&)>& on_result,
+      const std::function<void()>& on_error = {});
+
+  /// The usual answer to a custom operation: its output replaces the page.
+  auto apply_custom_op_data(const QPointer<QWidget>& page)
+      -> std::function<void(Module::Event::Params&)>;
 
   /**
    * @brief

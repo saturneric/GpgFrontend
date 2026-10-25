@@ -360,146 +360,119 @@ void MainWindow::slot_refresh_info_board_from_module(
   slot_refresh_info_board(status, text);
 }
 
-void MainWindow::SlotCustomDecrypt(const QString& type) {
-  // A QPointer, not a raw address: the callback below arrives an unbounded
-  // time later, by which point this tab may have been switched away from or
-  // closed outright. Results are addressed to THIS page rather than to
-  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
-  const QPointer<QWidget> page = edit_->CurPage();
-  if (edit_->TabCount() == 0 || page == nullptr) return;
-
-  auto event_id = QString("EDIT_TAB_TYPE_%1_OP_DECRYPT").arg(type.toUpper());
+auto MainWindow::custom_op_page(const QString& event_id,
+                                const QString& unsupported)
+    -> QPointer<QWidget> {
+  // A QPointer, not a raw address: the module answers an unbounded time later,
+  // by which point this tab may have been switched away from or closed
+  // outright. Results are addressed to THIS page rather than to whichever one
+  // is current when they land. See TextEdit::SetGFBuffer2Page.
+  QPointer<QWidget> page = edit_->CurPage();
+  if (edit_->TabCount() == 0 || page == nullptr) return nullptr;
 
   if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(
-        this, tr("Unsupported Operation"),
-        tr("The decrypt operation for the tab type '%1' is not supported.")
-            .arg(type));
-    return;
+    QMessageBox::warning(this, tr("Unsupported Operation"), unsupported);
+    return nullptr;
   }
+  return page;
+}
 
-  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
-  if (!sec_buf_base64) return;
-
-  // Wrapped like every other long-running crypto operation. Decrypt was the
-  // one that never was, so it alone ran with the whole window live underneath
-  // it. The dialog is a courtesy, not the correctness mechanism: that is the
-  // page-addressed write above, which holds whether or not a modal is up.
+void MainWindow::run_custom_op(
+    const QString& event_id, const QString& waiting_title,
+    Module::Event::Params params,
+    const std::function<void(Module::Event::Params&)>& on_result,
+    const std::function<void()>& on_error) {
+  // Wrapped like every other long-running crypto operation. The dialog is a
+  // courtesy, not the correctness mechanism: that is the page-addressed write
+  // the callers make, which holds whether or not a modal is up.
   GpgOperaHelper::WaitForOpera(
-      this, tr("Decrypting"),
-      [this, event_id, sec_buf_base64, page](const OperaWaitingHd& hd) {
+      this, waiting_title,
+      [this, event_id, params, on_result,
+       on_error](const OperaWaitingHd& hd) mutable {
+        params.insert("channel",
+                      GFBuffer{QString::number(
+                          m_key_list_->GetCurrentGpgContextChannel())});
         Module::TriggerEvent(
-            event_id,
-            {
-                {"data", *sec_buf_base64},
-                {"channel", GFBuffer{QString::number(
-                                m_key_list_->GetCurrentGpgContextChannel())}},
-            },
+            event_id, params,
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
               LOG_D() << event_id << " callback: " << i << ei;
-
-              // end waiting dialog
               hd();
 
-              // check if error occurred
-              if (handle_module_error(p)) return -1;
-
-              if (p.contains("data")) {
-                edit_->SetGFBuffer2Page(page, p["data"]);
+              if (handle_module_error(p)) {
+                if (on_error) on_error();
+                return -1;
               }
 
+              on_result(p);
               slot_refresh_info_board_from_module(p);
-
               return 0;
             });
       });
 }
 
+void MainWindow::SlotCustomDecrypt(const QString& type) {
+  const auto event_id =
+      QString("EDIT_TAB_TYPE_%1_OP_DECRYPT").arg(type.toUpper());
+  const auto page = custom_op_page(
+      event_id,
+      tr("The decrypt operation for the tab type '%1' is not supported.")
+          .arg(type));
+  if (page == nullptr) return;
+
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
+  if (!sec_buf_base64) return;
+
+  // Applied whenever the module answers with data, even empty data: an empty
+  // message decrypts to nothing, and that is what the page must then hold.
+  run_custom_op(event_id, tr("Decrypting"), {{"data", *sec_buf_base64}},
+                [this, page](Module::Event::Params& p) {
+                  if (p.contains("data")) {
+                    edit_->SetGFBuffer2Page(page, p["data"]);
+                  }
+                });
+}
+
 void MainWindow::SlotCustomVerify(const QString& type) {
-  // A QPointer, not a raw address: the callback below arrives an unbounded
-  // time later, by which point this tab may have been switched away from or
-  // closed outright. Results are addressed to THIS page rather than to
-  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
-  const QPointer<QWidget> page = edit_->CurPage();
-  if (edit_->TabCount() == 0 || page == nullptr) return;
-
-  auto event_id = QString("EDIT_TAB_TYPE_%1_OP_VERIFY").arg(type.toUpper());
-
-  if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(
-        this, tr("Unsupported Operation"),
-        tr("The verify operation for the tab type '%1' is not supported.")
-            .arg(type));
-    return;
-  }
+  const auto event_id =
+      QString("EDIT_TAB_TYPE_%1_OP_VERIFY").arg(type.toUpper());
+  const auto page = custom_op_page(
+      event_id,
+      tr("The verify operation for the tab type '%1' is not supported.")
+          .arg(type));
+  if (page == nullptr) return;
 
   // The document as it stands, not a canonicalized copy of it: see
   // CurrentTabVerifyPayload.
   auto sec_buf_base64 = CurrentTabVerifyPayload(edit_);
   if (!sec_buf_base64) return;
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Verifying"),
-      [this, event_id, sec_buf_base64, page](const OperaWaitingHd& hd) {
-        Module::TriggerEvent(
-            event_id,
-            {
-                {"data", *sec_buf_base64},
-                {"channel", GFBuffer{QString::number(
-                                m_key_list_->GetCurrentGpgContextChannel())}},
-            },
-            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-                Module::Event::Params p) {
-              LOG_D() << event_id << " callback: " << i << ei;
-
-              // end waiting dialog
-              hd();
-
-              // check if error occurred
-              if (handle_module_error(p)) {
-                // The page asked for this and is waiting on it. Told that it
-                // ended, even though it ended with nothing: a request whose
-                // answer never arrives at all would leave the message surface
-                // unable to ask again.
-                edit_->ApplyVerificationToPage(page, {});
-                return -1;
-              }
-
-              slot_refresh_info_board_from_module(p);
-
-              // The same answer the board above was just given, to the message
-              // surface that shows the badge and the attachment list. One
-              // verification, one result, every surface quoting it: the tab
-              // used to run a second verification of its own and the two
-              // regularly disagreed about the same message.
-              edit_->ApplyVerificationToPage(
-                  page, p.contains("verification")
-                            ? p.value("verification").ConvertToQByteArray()
-                            : QByteArray{});
-
-              return 0;
-            });
-      });
+  // The same answer the board is given, to the message surface that shows the
+  // badge and the attachment list. One verification, one result, every
+  // surface quoting it: the tab used to run a second verification of its own
+  // and the two regularly disagreed about the same message.
+  run_custom_op(
+      event_id, tr("Verifying"), {{"data", *sec_buf_base64}},
+      [this, page](Module::Event::Params& p) {
+        edit_->ApplyVerificationToPage(
+            page, p.contains("verification")
+                      ? p.value("verification").ConvertToQByteArray()
+                      : QByteArray{});
+      },
+      // The page asked for this and is waiting on it. Told that it ended, even
+      // though it ended with nothing: a request whose answer never arrives at
+      // all would leave the message surface unable to ask again.
+      [this, page]() { edit_->ApplyVerificationToPage(page, {}); });
 }
 
 void MainWindow::SlotCustomEncrypt(const QString& type) {
-  // A QPointer, not a raw address: the callback below arrives an unbounded
-  // time later, by which point this tab may have been switched away from or
-  // closed outright. Results are addressed to THIS page rather than to
-  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
-  const QPointer<QWidget> page = edit_->CurPage();
-  if (edit_->TabCount() == 0 || page == nullptr) return;
-
-  auto event_id = QString("EDIT_TAB_TYPE_%1_OP_ENCRYPT").arg(type.toUpper());
-
-  if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(
-        this, tr("Unsupported Operation"),
-        tr("The encryption operation for the tab type '%1' is not supported.")
-            .arg(type));
-    return;
-  }
+  const auto event_id =
+      QString("EDIT_TAB_TYPE_%1_OP_ENCRYPT").arg(type.toUpper());
+  const auto page = custom_op_page(
+      event_id,
+      tr("The encryption operation for the tab type '%1' is not supported.")
+          .arg(type));
+  if (page == nullptr) return;
 
   auto keys = m_key_list_->GetCheckedKeys();
   if (keys.isEmpty()) {
@@ -517,57 +490,19 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
   auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Encrypting"),
-      [this, event_id, sec_buf_base64, key_ids,
-       page](const OperaWaitingHd& hd) {
-        Module::TriggerEvent(
-            event_id,
-            {
-                {"body_data", *sec_buf_base64},
-                {"channel", GFBuffer{QString::number(
-                                m_key_list_->GetCurrentGpgContextChannel())}},
-                {"encrypt_keys", GFBuffer{key_ids.join(';')}},
-            },
-
-            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-                Module::Event::Params p) {
-              LOG_D() << event_id << " callback: " << i << ei;
-
-              // close waiting dialog
-              hd();
-
-              // check if error occurred
-              if (handle_module_error(p)) return -1;
-
-              if (!p["data"].Empty()) {
-                edit_->SetGFBuffer2Page(page, p.value("data"));
-              }
-
-              slot_refresh_info_board_from_module(p);
-
-              return 0;
-            });
-      });
+  run_custom_op(event_id, tr("Encrypting"),
+                {{"body_data", *sec_buf_base64},
+                 {"encrypt_keys", GFBuffer{key_ids.join(';')}}},
+                apply_custom_op_data(page));
 }
 
 void MainWindow::SlotCustomSign(const QString& type) {
-  // A QPointer, not a raw address: the callback below arrives an unbounded
-  // time later, by which point this tab may have been switched away from or
-  // closed outright. Results are addressed to THIS page rather than to
-  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
-  const QPointer<QWidget> page = edit_->CurPage();
-  if (edit_->TabCount() == 0 || page == nullptr) return;
-
-  auto event_id = QString("EDIT_TAB_TYPE_%1_OP_SIGN").arg(type.toUpper());
-
-  if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(this, tr("Unsupported Operation"),
-                         tr("The sign operation for the tab type "
-                            "'%1' is not supported.")
-                             .arg(type));
-    return;
-  }
+  const auto event_id = QString("EDIT_TAB_TYPE_%1_OP_SIGN").arg(type.toUpper());
+  const auto page =
+      custom_op_page(event_id, tr("The sign operation for the tab type "
+                                  "'%1' is not supported.")
+                                   .arg(type));
+  if (page == nullptr) return;
 
   auto keys = m_key_list_->GetCheckedKeys();
 
@@ -589,57 +524,20 @@ void MainWindow::SlotCustomSign(const QString& type) {
   auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Signing"),
-      [this, event_id, sec_buf_base64, key_ids,
-       page](const OperaWaitingHd& hd) {
-        Module::TriggerEvent(
-            event_id,
-            {
-                {"body_data", *sec_buf_base64},
-                {"channel", GFBuffer{QString::number(
-                                m_key_list_->GetCurrentGpgContextChannel())}},
-                {"sign_key", GFBuffer{key_ids.front()}},
-            },
-            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-                Module::Event::Params p) {
-              LOG_D() << event_id << " callback: " << i << ei;
-
-              // close waiting dialog
-              hd();
-
-              // check if error occurred
-              if (handle_module_error(p)) return -1;
-
-              if (!p["data"].Empty()) {
-                edit_->SetGFBuffer2Page(page, p.value("data"));
-              }
-
-              slot_refresh_info_board_from_module(p);
-
-              return 0;
-            });
-      });
+  run_custom_op(
+      event_id, tr("Signing"),
+      {{"body_data", *sec_buf_base64}, {"sign_key", GFBuffer{key_ids.front()}}},
+      apply_custom_op_data(page));
 }
 
 void MainWindow::SlotCustomEncryptSign(const QString& type) {
-  // A QPointer, not a raw address: the callback below arrives an unbounded
-  // time later, by which point this tab may have been switched away from or
-  // closed outright. Results are addressed to THIS page rather than to
-  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
-  const QPointer<QWidget> page = edit_->CurPage();
-  if (edit_->TabCount() == 0 || page == nullptr) return;
-
-  auto event_id =
+  const auto event_id =
       QString("EDIT_TAB_TYPE_%1_OP_ENCRYPT_SIGN").arg(type.toUpper());
-
-  if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(this, tr("Unsupported Operation"),
-                         tr("The encrypt and sign operation for the tab type "
-                            "'%1' is not supported.")
-                             .arg(type));
-    return;
-  }
+  const auto page = custom_op_page(
+      event_id, tr("The encrypt and sign operation for the tab type "
+                   "'%1' is not supported.")
+                    .arg(type));
+  if (page == nullptr) return;
 
   auto keys = m_key_list_->GetCheckedKeys();
 
@@ -683,99 +581,39 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
   auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Encrypting and Signing"),
-      [this, event_id, sec_buf_base64, key_ids, signer_keys,
-       page](const OperaWaitingHd& hd) {
-        Module::TriggerEvent(
-            event_id,
-            {
-                {"body_data", *sec_buf_base64},
-                {"channel", GFBuffer{QString::number(
-                                m_key_list_->GetCurrentGpgContextChannel())}},
-                {"sign_key", GFBuffer{signer_keys.front()->ID()}},
-                {"encrypt_keys", GFBuffer{key_ids.join(';')}},
-            },
-            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-                Module::Event::Params p) {
-              LOG_D() << event_id << " callback: " << i << ei;
-
-              // close waiting dialog
-              hd();
-
-              // check if error occurred
-              if (handle_module_error(p)) return -1;
-
-              if (!p["data"].Empty()) {
-                edit_->SetGFBuffer2Page(page, p.value("data"));
-              }
-
-              slot_refresh_info_board_from_module(p);
-
-              return 0;
-            });
-      });
+  run_custom_op(event_id, tr("Encrypting and Signing"),
+                {{"body_data", *sec_buf_base64},
+                 {"sign_key", GFBuffer{signer_keys.front()->ID()}},
+                 {"encrypt_keys", GFBuffer{key_ids.join(';')}}},
+                apply_custom_op_data(page));
 }
 
 void MainWindow::SlotCustomDecryptVerify(const QString& type) {
-  // A QPointer, not a raw address: the callback below arrives an unbounded
-  // time later, by which point this tab may have been switched away from or
-  // closed outright. Results are addressed to THIS page rather than to
-  // whichever one is current when they land. See TextEdit::SetGFBuffer2Page.
-  const QPointer<QWidget> page = edit_->CurPage();
-  if (edit_->TabCount() == 0 || page == nullptr) return;
-
-  auto event_id =
+  const auto event_id =
       QString("EDIT_TAB_TYPE_%1_OP_DECRYPT_VERIFY").arg(type.toUpper());
-
-  if (!Module::IsEventListening(event_id)) {
-    QMessageBox::warning(this, tr("Unsupported Operation"),
-                         tr("The decrypt and verify operation for the tab type "
-                            "'%1' is not supported.")
-                             .arg(type));
-    return;
-  }
+  const auto page = custom_op_page(
+      event_id, tr("The decrypt and verify operation for the tab type "
+                   "'%1' is not supported.")
+                    .arg(type));
+  if (page == nullptr) return;
 
   auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Decrypting and Verifying"),
-      [this, event_id, sec_buf_base64, page](const OperaWaitingHd& hd) {
-        Module::TriggerEvent(
-            event_id,
-            {
-                {"data", *sec_buf_base64},
-                {"channel", GFBuffer{QString::number(
-                                m_key_list_->GetCurrentGpgContextChannel())}},
-            },
-            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-                Module::Event::Params p) {
-              LOG_D() << event_id << " callback: " << i << ei;
+  run_custom_op(event_id, tr("Decrypting and Verifying"),
+                {{"data", *sec_buf_base64}}, apply_custom_op_data(page));
+}
 
-              // close waiting dialog
-              hd();
-
-              // check if error occurred
-              if (handle_module_error(p)) return -1;
-
-              if (!p["data"].Empty()) {
-                edit_->SetGFBuffer2Page(page, p.value("data"));
-              }
-
-              slot_refresh_info_board_from_module(p);
-
-              return 0;
-            });
-      });
+auto MainWindow::apply_custom_op_data(const QPointer<QWidget>& page)
+    -> std::function<void(Module::Event::Params&)> {
+  return [this, page](Module::Event::Params& p) {
+    if (!p["data"].Empty()) edit_->SetGFBuffer2Page(page, p.value("data"));
+  };
 }
 
 auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
-  if (p["ret"] == "-2") {
-    auto detailed_error = p["err"];
-
-    return true;
-  }
+  // -2: the module has already told the user, in its own words.
+  if (p["ret"] == "-2") return true;
 
   if (p["ret"] != "0" || !p["err"].Empty()) {
     LOG_E() << "An error occurred trying to run the module operation, "

@@ -649,118 +649,73 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   }
 }
 
-void MainWindow::SlotGeneralEncrypt(bool) {
+void MainWindow::dispatch_general_op(
+    const std::function<void(FilePage*)>& on_file,
+    const std::function<void()>& on_text,
+    const std::function<void(const QString&)>& on_custom) {
+  // No tab at all is a state the window can be in; host commands are refused
+  // before they get here, but a menu action must not assume it.
   auto* page = edit_->CurPage();
-  auto type = page->property("type").toString();
+  if (page == nullptr) return;
 
-  if (type == "file") {
-    auto* const file_page = qobject_cast<FilePage*>(page);
-    const auto paths = file_page->GetSelected();
-    this->SlotFileEncrypt(paths, file_page->IsASCIIMode());
+  // By what the page is, not by what its "type" says: a restored tab carries
+  // whatever type it was saved with.
+  if (auto* file_page = qobject_cast<FilePage*>(page)) {
+    on_file(file_page);
     return;
   }
 
+  const auto type = page->property("type").toString();
   if (type == "text") {
-    this->SlotEncrypt();
+    on_text();
     return;
   }
+  on_custom(type);
+}
 
-  this->SlotCustomEncrypt(type);
+void MainWindow::SlotGeneralEncrypt(bool) {
+  dispatch_general_op(
+      [this](FilePage* p) {
+        SlotFileEncrypt(p->GetSelected(), p->IsASCIIMode());
+      },
+      [this]() { SlotEncrypt(); },
+      [this](const QString& type) { SlotCustomEncrypt(type); });
 }
 
 void MainWindow::SlotGeneralDecrypt(bool) {
-  auto* page = edit_->CurPage();
-  auto type = page->property("type").toString();
-
-  if (edit_->CurPageFileTreeView() != nullptr) {
-    auto* const file_page = qobject_cast<FilePage*>(page);
-    const auto paths = file_page->GetSelected();
-    this->SlotFileDecrypt(paths);
-    return;
-  }
-
-  if (type == "text") {
-    this->SlotDecrypt();
-    return;
-  }
-
-  this->SlotCustomDecrypt(type);
+  dispatch_general_op(
+      [this](FilePage* p) { SlotFileDecrypt(p->GetSelected()); },
+      [this]() { SlotDecrypt(); },
+      [this](const QString& type) { SlotCustomDecrypt(type); });
 }
 
 void MainWindow::SlotGeneralSign(bool) {
-  auto* page = edit_->CurPage();
-  auto type = page->property("type").toString();
-
-  if (type == "file") {
-    auto* const file_page = qobject_cast<FilePage*>(page);
-    const auto paths = file_page->GetSelected();
-    this->SlotFileSign(paths, file_page->IsASCIIMode());
-    return;
-  }
-
-  if (type == "text") {
-    this->SlotSign();
-    return;
-  }
-
-  this->SlotCustomSign(type);
+  dispatch_general_op(
+      [this](FilePage* p) { SlotFileSign(p->GetSelected(), p->IsASCIIMode()); },
+      [this]() { SlotSign(); },
+      [this](const QString& type) { SlotCustomSign(type); });
 }
 
 void MainWindow::SlotGeneralVerify(bool) {
-  auto* page = edit_->CurPage();
-  auto type = page->property("type").toString();
-
-  if (type == "file") {
-    auto* const file_page = qobject_cast<FilePage*>(page);
-    const auto paths = file_page->GetSelected();
-    this->SlotFileVerify(paths);
-    return;
-  }
-
-  if (type == "text") {
-    this->SlotVerify();
-    return;
-  }
-
-  this->SlotCustomVerify(type);
+  dispatch_general_op([this](FilePage* p) { SlotFileVerify(p->GetSelected()); },
+                      [this]() { SlotVerify(); },
+                      [this](const QString& type) { SlotCustomVerify(type); });
 }
 
 void MainWindow::SlotGeneralEncryptSign(bool) {
-  auto* page = edit_->CurPage();
-  auto type = page->property("type").toString();
-
-  if (type == "file") {
-    auto* const file_page = qobject_cast<FilePage*>(page);
-    const auto paths = file_page->GetSelected();
-    this->SlotFileEncryptSign(paths, file_page->IsASCIIMode());
-    return;
-  }
-
-  if (type == "text") {
-    this->SlotEncryptSign();
-    return;
-  }
-
-  this->SlotCustomEncryptSign(type);
+  dispatch_general_op(
+      [this](FilePage* p) {
+        SlotFileEncryptSign(p->GetSelected(), p->IsASCIIMode());
+      },
+      [this]() { SlotEncryptSign(); },
+      [this](const QString& type) { SlotCustomEncryptSign(type); });
 }
 
 void MainWindow::SlotGeneralDecryptVerify(bool) {
-  auto* page = edit_->CurPage();
-  auto type = page->property("type").toString();
-
-  if (type == "file") {
-    auto* const file_page = qobject_cast<FilePage*>(page);
-    const auto paths = file_page->GetSelected();
-    this->SlotFileDecryptVerify(paths);
-    return;
-  }
-
-  if (type == "text") {
-    this->SlotDecryptVerify();
-    return;
-  }
-
-  this->SlotCustomDecryptVerify(type);
+  dispatch_general_op(
+      [this](FilePage* p) { SlotFileDecryptVerify(p->GetSelected()); },
+      [this]() { SlotDecryptVerify(); },
+      [this](const QString& type) { SlotCustomDecryptVerify(type); });
 }
 
 void MainWindow::slot_update_operations_menu_by_checked_keys(
