@@ -1322,6 +1322,7 @@ fn fetch_certs_for_signatures(
 /// its Issuer Key IDs when it carries none. A v6 signature has only a
 /// fingerprint (RFC 9580 §5.2.3.12, §5.2.3.35); legacy v4 producers may emit
 /// only a key ID. Fingerprints are uppercase hex, like the v6 OPS ones.
+#[cfg(test)]
 fn signature_issuer_ids(sig: &pgp::packet::Signature) -> Vec<String> {
     let fprs: Vec<String> = sig
         .issuer_fingerprint()
@@ -1341,7 +1342,9 @@ fn signature_issuer_ids(sig: &pgp::packet::Signature) -> Vec<String> {
 /// signed or encrypted data buffer.
 ///
 /// Returns `(recipients_csv, issuers_csv)`. Clear-text messages are handled as
-/// a special case before packet parsing; no decryption is performed.
+/// a special case before packet parsing; no decryption is performed. Only
+/// the tests use it, as an independent check of signer attribution.
+#[cfg(test)]
 pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), GfrStatus> {
     let mut recipients = Vec::new();
     let mut issuers = Vec::new();

@@ -26,7 +26,6 @@
  *
  */
 
-use crate::crypto::get_signature_issuers_internal;
 use crate::err::clear_last_error;
 use crate::types::{
     GfrBuffer, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrSignMode, GfrSignResultC,
@@ -503,45 +502,9 @@ pub extern "C" fn gfr_crypto_verify_file(
     }
 }
 
-/// Extract issuer fingerprints from a signed data buffer as a comma-separated string.
-///
-/// On success `*out_issuers` is set to a heap-allocated CSV string of fingerprints.
-/// Free with `gfr_crypto_free_string`.
-///
-/// # Safety
-/// `in_data` and `out_issuers` must be non-null; `in_data` must be at least `in_len` bytes.
-#[unsafe(no_mangle)]
-pub extern "C" fn gfr_crypto_get_signature_issuers(
-    in_data: *const u8,
-    in_len: usize,
-    out_issuers: *mut *mut c_char,
-) -> GfrStatus {
-    clear_last_error();
-    let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if in_data.is_null() || out_issuers.is_null() {
-            return Err(GfrStatus::ErrorInvalidInput);
-        }
-
-        let data_slice = unsafe { std::slice::from_raw_parts(in_data, in_len) };
-        let (_, issuers_csv) = get_signature_issuers_internal(data_slice)?;
-
-        let c_str = CString::new(issuers_csv).map_err(|_| GfrStatus::ErrorInternal)?;
-        unsafe {
-            *out_issuers = c_str.into_raw();
-        }
-        Ok(())
-    });
-
-    match result {
-        Ok(Ok(_)) => GfrStatus::Success,
-        Ok(Err(e)) => e,
-        Err(_) => GfrStatus::ErrorPanic,
-    }
-}
-
 #[cfg(test)]
 mod ffi_sign_tests {
-    //! The five sign/verify/issuer FFI entry points.
+    //! The sign/verify FFI entry points.
 
     use super::*;
     use crate::testutil::{cb, corpus, keys};
@@ -866,57 +829,6 @@ mod ffi_sign_tests {
 
         crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
         crate::ffi::mem::gfr_crypto_free_sign_result(&mut signed);
-    }
-
-    // -- get_signature_issuers ----------------------------------------------------
-
-    #[test]
-    fn get_signature_issuers_rejects_null_arguments() {
-        let mut out = std::ptr::null_mut();
-        assert_eq!(
-            gfr_crypto_get_signature_issuers(std::ptr::null(), 0, &mut out),
-            GfrStatus::ErrorInvalidInput
-        );
-        assert_eq!(
-            gfr_crypto_get_signature_issuers(
-                corpus::SIG_GOOD_DETACHED.as_ptr(),
-                corpus::SIG_GOOD_DETACHED.len(),
-                std::ptr::null_mut()
-            ),
-            GfrStatus::ErrorInvalidInput
-        );
-    }
-
-    #[test]
-    fn get_signature_issuers_returns_a_csv_and_frees_cleanly() {
-        let mut out = std::ptr::null_mut();
-        assert_eq!(
-            gfr_crypto_get_signature_issuers(
-                corpus::SIG_GOOD_DETACHED.as_ptr(),
-                corpus::SIG_GOOD_DETACHED.len(),
-                &mut out
-            ),
-            GfrStatus::Success
-        );
-        assert!(!out.is_null());
-        let issuers = unsafe { CStr::from_ptr(out) }
-            .to_string_lossy()
-            .into_owned();
-        assert!(!issuers.is_empty());
-        crate::ffi::mem::gfr_crypto_free_string(out);
-    }
-
-    #[test]
-    fn get_signature_issuers_of_garbage_does_not_crash() {
-        let mut out = std::ptr::null_mut();
-        let status = gfr_crypto_get_signature_issuers(
-            corpus::GARBAGE.as_ptr(),
-            corpus::GARBAGE.len(),
-            &mut out,
-        );
-        if status == GfrStatus::Success && !out.is_null() {
-            crate::ffi::mem::gfr_crypto_free_string(out);
-        }
     }
 
     // -- file variants ----------------------------------------------------------------
