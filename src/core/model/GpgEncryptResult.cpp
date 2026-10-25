@@ -44,7 +44,9 @@ GpgEncryptResult::GpgEncryptResult() = default;
 
 GpgEncryptResult::~GpgEncryptResult() = default;
 
-auto GpgEncryptResult::IsGood() -> bool { return result_ref_ != nullptr; }
+auto GpgEncryptResult::IsGood() -> bool {
+  return result_ref_ != nullptr || gf_result_ref_ != nullptr;
+}
 
 auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
   return result_ref_.get();

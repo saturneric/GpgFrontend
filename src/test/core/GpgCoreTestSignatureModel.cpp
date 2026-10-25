@@ -26,6 +26,7 @@
  *
  */
 
+#include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignature.h"
 #include "core/model/GpgVerifyResult.h"
 
@@ -41,6 +42,13 @@ TEST(SignatureModelTest, DefaultVerifyResultIsNotGood) {
 
   EXPECT_FALSE(result.IsGood());
   EXPECT_EQ(result.GetRaw(), nullptr);
+}
+
+// An rPGP result carries no gpgme handle; it is still a result, as it is for
+// the sign, decrypt and verify models.
+TEST(SignatureModelTest, EngineNeutralEncryptResultIsGood) {
+  EXPECT_FALSE(GpgEncryptResult().IsGood());
+  EXPECT_TRUE(GpgEncryptResult(GFEncryptResult{}).IsGood());
 }
 
 TEST(SignatureModelTest, DefaultVerifyResultReturnsNoSignatures) {
