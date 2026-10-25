@@ -1219,6 +1219,8 @@ void KeyMgmt::SlotImportKeyPackage() {
   GFBuffer buf(pin);
   WipeString(pin);
 
+  // Read here: the task body runs on the GPG runner, not the GUI thread.
+  const auto channel = key_list_->GetCurrentGpgContextChannel();
   QPointer<KeyMgmt> self = this;
 
   Thread::Task::TaskCallback cb = [=](int /*ret*/,
@@ -1245,8 +1247,7 @@ void KeyMgmt::SlotImportKeyPackage() {
     *connection =
         connect(UISignalStation::GetInstance(),
                 &UISignalStation::SignalKeyDatabaseRefreshDone, self, [=]() {
-                  (new KeyImportDetailDialog(
-                      key_list_->GetCurrentGpgContextChannel(), info, self));
+                  (new KeyImportDetailDialog(channel, info, self));
                   QObject::disconnect(*connection);
                   delete connection;
                 });
@@ -1255,9 +1256,8 @@ void KeyMgmt::SlotImportKeyPackage() {
   auto* task = new Thread::Task{
       [=](const DataObjectPtr& data_object) -> int {
         auto [err, info] =
-            KeyPackageOperator::GetInstance(
-                key_list_->GetCurrentGpgContextChannel())
-                .ImportKeyPackage(key_package_file_name, key_file_name, buf);
+            KeyPackageOperator::GetInstance(channel).ImportKeyPackage(
+                key_package_file_name, key_file_name, buf);
         data_object->Swap({err, info});
         return 0;
       },
