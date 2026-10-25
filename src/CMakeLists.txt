@@ -165,178 +165,54 @@ endif()
 target_compile_features(${APP_NAME} PUBLIC cxx_std_17)
 
 if(MINGW)
-  message(STATUS "Copying Dependent DLL For Windows Runtime Env")
-
-  # all dep dll list
-  set(ALL_RUNTIME_DEP_PATH_LIST "")
-
-  # /mingw64/libexec
+  # The third-party DLLs beside the executable, derived from the import tables
+  # of what was built rather than listed by hand. See
+  # cmake/MinGWRuntimeDeploy.cmake.
   execute_process(
     COMMAND cygpath -m /mingw64/bin
     OUTPUT_VARIABLE MSYS64_BIN_PATH
+    RESULT_VARIABLE _gf_cygpath_result
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-
-  # find libicu*.dll
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libicu[a-z]*[0-9][0-9].dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libbz*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libexpat-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libfreetype-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgcc_s_seh-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libglib-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  # if we use dynamic link
-  if(NOT BUILD_AND_STATIC_LINK_GPGME)
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpg-error*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libassuan*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgme*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  if(NOT _gf_cygpath_result EQUAL 0 OR NOT IS_DIRECTORY "${MSYS64_BIN_PATH}")
+    message(FATAL_ERROR
+      "cannot locate the MSYS2 MinGW runtime: `cygpath -m /mingw64/bin` gave "
+      "'${MSYS64_BIN_PATH}' (exit ${_gf_cygpath_result}). Build from an MSYS2 "
+      "MINGW64 shell.")
   endif()
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgraphite2.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  # Copying DLLs from one MinGW while compiling with another is a build that
+  # starts on this machine and crashes on the next one.
+  get_filename_component(_gf_compiler_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
+  string(TOLOWER "${_gf_compiler_dir}" _gf_compiler_key)
+  string(TOLOWER "${MSYS64_BIN_PATH}" _gf_runtime_key)
+  if(NOT _gf_compiler_key STREQUAL _gf_runtime_key
+     AND EXISTS "${_gf_compiler_dir}/libstdc++-6.dll")
+    message(FATAL_ERROR
+      "the compiler (${CMAKE_CXX_COMPILER}) belongs to a different MinGW than "
+      "the runtime that would be deployed (${MSYS64_BIN_PATH})")
+  endif()
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libharfbuzz-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libiconv-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libintl-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/liblz4.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/liblzma-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libpcre-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libpcre2-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libpng*-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libstdc++-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libwinpthread-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/zlib*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libb2-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libxml2-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libarchive*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgtest*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libssl-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libsqlite3-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libsodium-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  # dll with only name
-  set(ALL_RUNTIME_DLL_FILES "")
-
-  list(APPEND ALL_RUNTIME_DLL_FILES
-    "Qt6Core.dll"
-    "Qt6Gui.dll"
-    "Qt6Network.dll"
-    "Qt6PrintSupport.dll"
-    "Qt6Widgets.dll"
-    "Qt6Xml.dll"
-    "libbrotlicommon.dll"
-    "libbrotlidec.dll"
-    "libdouble-conversion.dll"
-    "libzstd.dll"
-    "libmd4c.dll"
-  )
-
-  # find the other dlls
-  foreach(_dllFileName ${ALL_RUNTIME_DLL_FILES})
-    message(STATUS "DLL FILE ${_dllFileName}")
-    list(APPEND ALL_DLL_NAME ${_dllFileName})
-    unset(_runtimeDllLocalPath)
-
-    find_file(_runtimeDllLocalPath NAMES ${_dllFileName} NO_CACHE REQUIRED)
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_runtimeDllLocalPath})
-    message(STATUS "DLL: ${_dllFileName} , ITS Full Path is ${_runtimeDllLocalPath}")
+  # The application, every registered library and every module: the same
+  # registries the install rules and build-info.json are built from.
+  set(_gf_runtime_targets ${APP_NAME})
+  foreach(_gf_target IN LISTS GPGFRONTEND_LIBRARY_TARGETS GPGFRONTEND_MODULE_TARGETS)
+    if(TARGET ${_gf_target})
+      list(APPEND _gf_runtime_targets ${_gf_target})
+    endif()
   endforeach()
 
-  foreach(_dllDepPath ${ALL_RUNTIME_DEP_PATH_LIST})
-    message(STATUS "Runtime DLL Dependency Path: ${_dllDepPath}")
-  endforeach()
-
-  # copy dependencies to release path
-  foreach(_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
-    file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-  endforeach()
+  include(${CMAKE_SOURCE_DIR}/cmake/MinGWRuntimeDeploy.cmake)
+  gf_add_mingw_runtime_deploy(gf_deploy_runtime
+    TARGETS ${_gf_runtime_targets}
+    SEARCH_DIRS "${MSYS64_BIN_PATH}"
+    DESTINATION "$<TARGET_FILE_DIR:${APP_NAME}>"
+    # Qt's OpenSSL TLS backend (tls/qopensslbackend.dll) loads these by name:
+    # MSYS2 builds qt6-base with openssl but not openssl-linked, so nothing
+    # imports them. Key server sync, the proxy test and m_email's certificate
+    # store all go through that backend.
+    EXTRA_DLLS libssl-3-x64.dll libcrypto-3-x64.dll
+    ALLOW_UNRESOLVED ${GPGFRONTEND_DEPLOY_ALLOW_UNRESOLVED_DLLS})
 endif()
 
 # link options for GpgFrontend

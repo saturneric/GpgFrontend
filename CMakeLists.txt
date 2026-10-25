@@ -72,6 +72,12 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 
+# MinGW only: a runtime DLL that cannot be found fails the build, because the
+# result would not start on a machine without MSYS2. A development build may
+# downgrade that to a warning; a release never should.
+option(GPGFRONTEND_DEPLOY_ALLOW_UNRESOLVED_DLLS
+  "MinGW: warn instead of failing when a runtime DLL cannot be resolved (development only)" OFF)
+
 # Module native-binding policy, for INTEGRATED modules only.
 #
 # Integrated modules ship inside this distribution, so what protects them is

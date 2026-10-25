@@ -962,6 +962,12 @@ jobs:
           for module in $(find ./artifacts/modules -type f -name '*.dll' | sort); do
             windeployqt6 --no-translations --force --dir ./artifacts/bin "$module"
           done
+          # windeployqt brings Qt's plugins (platforms/, tls/, imageformats/
+          # ...) but not the MSYS2 DLLs those plugins import. The build's own
+          # deployment ran before they existed, so scan again now, plugins
+          # included. This target always runs; it is the packaging rescan, not
+          # the incremental one, and a DLL it cannot resolve fails the job.
+          cmake --build . --target gf_deploy_runtime_rescan || exit 1
           mkdir -p upload-artifact
         if: runner.os == 'Windows'
 
@@ -1154,9 +1160,20 @@ jobs:
           EXPECTED="$(./scripts/build_info.sh build module_count)"
           STATUS="$SMOKE/module-status.json"
 
+          # Only Windows' own directories on PATH for the launch. With the
+          # msys2 shell's PATH, a DLL the payload forgot is quietly found in
+          # /mingw64/bin and the launch proves nothing about the archive.
+          #
+          # What this launch covers: startup (the executable and the gf_*
+          # libraries load, so their whole import closure is in the archive)
+          # and module loading (every module DLL is mapped, so its import
+          # closure is too). What it does not: anything loaded later by name.
+          # TLS is the case that matters, and it is only checked for presence
+          # below, never exercised.
+          WINDOWS_PATH="$(cygpath -S):$(cygpath -W)"
           cd "$SMOKE/bin"
           rc=0
-          ./GpgFrontend.exe --module-status "$(cygpath -w "$STATUS")" \
+          PATH="$WINDOWS_PATH" ./GpgFrontend.exe --module-status "$(cygpath -w "$STATUS")" \
             >"$SMOKE/stdout.log" 2>&1 || rc=$?
 
           if [ ! -f "$STATUS" ]; then
@@ -1171,6 +1188,15 @@ jobs:
             "$STATUS" "$EXPECTED"
 
           test "$rc" -eq 0 || { echo "the app exited $rc" >&2; exit 1; }
+
+          # Presence, not a handshake. Qt's OpenSSL backend loads libssl and
+          # libcrypto by name, so no launch above would notice them missing;
+          # the build deploys them as runtime-loaded extras, and this checks
+          # they reached the archive. Whether TLS works is not tested here.
+          ls tls/ 2>/dev/null || echo "::warning::no Qt TLS backends in the archive"
+          for dll in libssl-3-x64.dll libcrypto-3-x64.dll; do
+            test -f "$dll" || { echo "runtime-loaded $dll is missing" >&2; exit 1; }
+          done
         if: runner.os == 'Windows' && matrix.flavor == 'portable'
 
       # Nothing is checked here: a hosted runner is not the environment the
