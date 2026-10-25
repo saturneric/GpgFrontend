@@ -28,6 +28,7 @@
 
 #include "ResultHandler.h"
 
+#include "core/function/rpgp/KeyStorage.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
@@ -267,6 +268,47 @@ auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString {
   QString detail;
   RecordEngineDetail(err, detail, op);
   return detail;
+}
+
+auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
+                       const char* what, const SecretKeyEdit& edit)
+    -> GpgError {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return GPG_ERR_GENERAL;
+  }
+
+  const auto key = key_db->GetKeyByIdentifier(fpr);
+  if (!key || key->blocks.secret_key.Empty()) {
+    LOG_E() << what << "needs a secret key the database does not hold:" << fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  const auto& secret = key->blocks.secret_key;
+  const Rust::GfrBuffer block{reinterpret_cast<const uint8_t*>(secret.Data()),
+                              secret.Size()};
+  char* out = nullptr;
+  const auto status = edit(key->metadata, block, &out);
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << what << "failed, engine status:" << static_cast<int>(status);
+    if (out != nullptr) Rust::gfr_crypto_free_string(out);
+    TakeEngineErrorDetail(status, what);
+    return CommonEngineError(status);
+  }
+  if (out == nullptr) {
+    LOG_E() << what << "returned no key block for:" << fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  const GFBuffer edited(QString::fromUtf8(out));
+  Rust::gfr_crypto_free_string(out);
+
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), edited, key->blocks)) {
+    LOG_E() << "failed to store the key after:" << what << fpr;
+    return GPG_ERR_GENERAL;
+  }
+  return GPG_ERR_NO_ERROR;
 }
 
 auto NoUsableRecipientsResult(const QList<GpgKey>& recipients)

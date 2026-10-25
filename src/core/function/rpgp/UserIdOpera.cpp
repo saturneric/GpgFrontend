@@ -29,9 +29,7 @@
 #include "UserIdOpera.h"
 
 #include "core/GFCoreRust.h"
-#include "core/function/GFKeyDatabase.h"
-#include "core/function/rpgp/KeyImportExport.h"
-#include "core/function/rpgp/KeyStorage.h"
+#include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -39,311 +37,68 @@ namespace GpgFrontend {
 
 auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                     const QString& uid) -> bool {
-  LOG_D() << "Adding UID: " << uid << " to key: " << key->Fingerprint()
-          << " using RPGP backend";
-
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "Key database is not initialized";
-    return false;
-  }
-
-  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
-  if (!gf_key) {
-    LOG_E() << "Key not found in database: " << key->Fingerprint();
-    return false;
-  }
-
-  if (!gf_key->metadata.has_secret) {
-    LOG_E() << "Cannot add UID to a public key";
-    return false;
-  }
-
-  auto secret_key_block = gf_key->blocks.secret_key;
-  if (secret_key_block.Empty()) {
-    LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto uid_utf8 = uid.toUtf8();
-
-  char* out_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
-      secret_key_block.Size()};
-
-  auto status = Rust::gfr_crypto_add_user_id(ctx.GetChannel(), key_block_buffer,
-                                             uid_utf8.constData(),
-                                             FetchPasswordCallback, &out_block);
-
-  LOG_D() << "Rust function gfr_crypto_add_user_id returned status: "
-          << static_cast<int>(status);
-
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Failed to add UID: " << uid << " to key: " << key->Fingerprint()
-            << ", status: " << static_cast<int>(status);
-    return false;
-  }
-
-  if (out_block == nullptr) {
-    LOG_E() << "Output block is null after adding UID: " << uid
-            << " to key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_block);
-  Rust::gfr_crypto_free_string(out_block);
-
-  LOG_D() << "Successfully added UID: " << uid << " to key: " << key;
-
-  // Replace, not merge: a merge with a key another edit changed meanwhile
-  // would bring back what that edit removed.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                gf_key->blocks)) {
-    LOG_E() << "Failed to store updated key block after adding UID: " << uid
-            << " to key: " << key->Fingerprint();
-    return false;
-  }
-
-  return true;
+  const auto uid_utf8 = uid.toUtf8();
+  return EditSecretKeyRpgp(ctx, key->Fingerprint(), "Adding a user ID",
+                           [&](const GFKeyMetadata&,
+                               const Rust::GfrBuffer& block, char** out) {
+                             return Rust::gfr_crypto_add_user_id(
+                                 ctx.GetChannel(), block, uid_utf8.constData(),
+                                 FetchPasswordCallback, out);
+                           }) == GPG_ERR_NO_ERROR;
 }
 
 auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid) -> bool {
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "Key database is not initialized";
-    return false;
-  }
-
-  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
-  if (!gf_key) {
-    LOG_E() << "Key not found in database: " << key->Fingerprint();
-    return false;
-  }
-
-  if (!gf_key->metadata.has_secret) {
-    LOG_E() << "Cannot delete UID from a public key";
-    return false;
-  }
-
-  auto uids = gf_key->metadata.user_ids;
-  if (std::none_of(uids.begin(), uids.end(), [uid](const GFUserId& u) -> bool {
-        return u.ToString() == uid;
-      })) {
-    LOG_E() << "UID: " << uid << " not found in key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto uid_utf8 = uid.toUtf8();
-
-  auto secret_key_block = gf_key->blocks.secret_key;
-  if (secret_key_block.Empty()) {
-    LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
-    return false;
-  }
-
-  char* out_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
-      secret_key_block.Size()};
-
-  auto status = Rust::gfr_crypto_delete_user_id(
-      key_block_buffer, uid_utf8.constData(), &out_block);
-
-  LOG_D() << "Rust function gfr_crypto_delete_user_id returned status: "
-          << static_cast<int>(status);
-
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Failed to delete UID: " << uid
-            << " from key: " << key->Fingerprint()
-            << ", status: " << static_cast<int>(status);
-    return false;
-  }
-
-  if (out_block == nullptr) {
-    LOG_E() << "Output block is null after deleting UID: " << uid
-            << " from key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_block);
-  Rust::gfr_crypto_free_string(out_block);
-
-  LOG_D() << "Successfully deleted UID: " << uid << " from key: " << key;
-
-  // Replace (do not merge), merging would re-add the deleted UID from the
-  // existing database entry.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                gf_key->blocks)) {
-    LOG_E() << "Failed to store updated key block after deleting UID: " << uid
-            << " from key: " << key->Fingerprint();
-    return false;
-  }
-
-  return true;
+  const auto uid_utf8 = uid.toUtf8();
+  return EditSecretKeyRpgp(ctx, key->Fingerprint(), "Deleting a user ID",
+                           [&](const GFKeyMetadata& meta,
+                               const Rust::GfrBuffer& block, char** out) {
+                             const auto& uids = meta.user_ids;
+                             if (std::none_of(uids.begin(), uids.end(),
+                                              [&](const GFUserId& u) {
+                                                return u.ToString() == uid;
+                                              })) {
+                               LOG_E() << "UID:" << uid
+                                       << "not found in key:" << meta.fpr;
+                               return Rust::GfrStatus::ErrorInvalidInput;
+                             }
+                             return Rust::gfr_crypto_delete_user_id(
+                                 block, uid_utf8.constData(), out);
+                           }) == GPG_ERR_NO_ERROR;
 }
 
 auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            const QString& uid) -> bool {
-  LOG_D() << "Adding UID: " << uid << " to key: " << key->Fingerprint()
-          << " using RPGP backend";
-
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "Key database is not initialized";
-    return false;
-  }
-
-  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
-  if (!gf_key) {
-    LOG_E() << "Key not found in database: " << key->Fingerprint();
-    return false;
-  }
-
-  if (!gf_key->metadata.has_secret) {
-    LOG_E() << "Cannot add UID to a public key";
-    return false;
-  }
-
-  auto secret_key_block = gf_key->blocks.secret_key;
-  if (secret_key_block.Empty()) {
-    LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto uid_utf8 = uid.toUtf8();
-
-  char* out_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
-      secret_key_block.Size()};
-
-  auto status = Rust::gfr_crypto_set_primary_user_id(
-      ctx.GetChannel(), key_block_buffer, uid_utf8.constData(),
-      FetchPasswordCallback, &out_block);
-
-  LOG_D() << "Rust function gfr_crypto_set_primary_user_id returned status: "
-          << static_cast<int>(status);
-
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Failed to set primary UID: " << uid
-            << " for key: " << key->Fingerprint()
-            << ", status: " << static_cast<int>(status);
-    return false;
-  }
-
-  if (out_block == nullptr) {
-    LOG_E() << "Output block is null after setting primary UID: " << uid
-            << " for key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_block);
-  Rust::gfr_crypto_free_string(out_block);
-
-  LOG_D() << "Successfully set primary UID: " << uid << " for key: " << key;
-
-  // Replace (do not merge) — merging would keep the previous primary UID's
-  // self-signature and defeat the change.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                gf_key->blocks)) {
-    LOG_E() << "Failed to store updated key block after setting primary UID: "
-            << uid << " for key: " << key->Fingerprint();
-    return false;
-  }
-
-  return true;
+  const auto uid_utf8 = uid.toUtf8();
+  return EditSecretKeyRpgp(ctx, key->Fingerprint(),
+                           "Setting the primary user ID",
+                           [&](const GFKeyMetadata&,
+                               const Rust::GfrBuffer& block, char** out) {
+                             return Rust::gfr_crypto_set_primary_user_id(
+                                 ctx.GetChannel(), block, uid_utf8.constData(),
+                                 FetchPasswordCallback, out);
+                           }) == GPG_ERR_NO_ERROR;
 }
 
 auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid, int reason_code,
                        const QString& reason_text) -> bool {
-  LOG_D() << "Revoking UID: " << uid << " from key: " << key->Fingerprint()
-          << " using RPGP backend";
+  const auto uid_utf8 = uid.toUtf8();
+  const auto reason_text_utf8 = reason_text.toUtf8();
+  // 4 is GnuPG's "user ID is no longer valid"; anything else gives no reason.
+  const auto mapped_reason_code = reason_code == 4
+                                      ? Rust::GfrRevocationCode::UserIdInvalid
+                                      : Rust::GfrRevocationCode::NoReason;
 
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "Key database is not initialized";
-    return false;
-  }
-
-  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
-  if (!gf_key) {
-    LOG_E() << "Key not found in database: " << key->Fingerprint();
-    return false;
-  }
-
-  if (!gf_key->metadata.has_secret) {
-    LOG_E() << "Cannot revoke UID from a public key";
-    return false;
-  }
-
-  auto secret_key_block = gf_key->blocks.secret_key;
-  if (secret_key_block.Empty()) {
-    LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto uid_utf8 = uid.toUtf8();
-  auto reason_text_utf8 = reason_text.toUtf8();
-
-  int mapped_reason_code = 0;
-  switch (reason_code) {
-    case 4:
-      mapped_reason_code = 32;
-      break;
-    default:
-      mapped_reason_code = 0;
-      break;
-  }
-
-  char* out_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
-      secret_key_block.Size()};
-
-  auto status = Rust::gfr_crypto_revoke_user_id(
-      ctx.GetChannel(), key_block_buffer, uid_utf8.constData(),
-      static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
-      reason_text_utf8.constData(), FetchPasswordCallback, &out_block);
-
-  LOG_D() << "Rust function gfr_crypto_revoke_user_id returned status: "
-          << static_cast<int>(status);
-
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Failed to revoke UID: " << uid
-            << " for key: " << key->Fingerprint()
-            << ", status: " << static_cast<int>(status);
-    return false;
-  }
-
-  if (out_block == nullptr) {
-    LOG_E() << "Output block is null after revoking UID: " << uid
-            << " for key: " << key->Fingerprint();
-    return false;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_block);
-  Rust::gfr_crypto_free_string(out_block);
-
-  LOG_D() << "Successfully revoked UID: " << uid
-          << " for key: " << key->Fingerprint();
-
-  // Replace (do not merge) so the revocation self-signature is stored as the
-  // authoritative state of the key.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                gf_key->blocks)) {
-    LOG_E() << "Failed to store updated key block after revoking UID: " << uid
-            << " for key: " << key->Fingerprint();
-    return false;
-  }
-
-  return true;
+  return EditSecretKeyRpgp(ctx, key->Fingerprint(), "Revoking a user ID",
+                           [&](const GFKeyMetadata&,
+                               const Rust::GfrBuffer& block, char** out) {
+                             return Rust::gfr_crypto_revoke_user_id(
+                                 ctx.GetChannel(), block, uid_utf8.constData(),
+                                 mapped_reason_code,
+                                 reason_text_utf8.constData(),
+                                 FetchPasswordCallback, out);
+                           }) == GPG_ERR_NO_ERROR;
 }
 
 }  // namespace GpgFrontend

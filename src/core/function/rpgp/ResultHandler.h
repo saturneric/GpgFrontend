@@ -36,6 +36,8 @@
 
 namespace GpgFrontend {
 
+class OpenPGPContext;
+
 /**
  * @brief The GnuPG error for an engine status any operation can report.
  *
@@ -60,6 +62,26 @@ auto CommonEngineError(Rust::GfrStatus err) -> GpgError;
  * @return QString the detail, possibly empty
  */
 auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString;
+
+/// Runs one engine edit on a secret key block: given the key's metadata and
+/// its secret block, sets the out pointer to the edited block, which the
+/// engine allocated.
+using SecretKeyEdit = std::function<Rust::GfrStatus(
+    const GFKeyMetadata&, const Rust::GfrBuffer&, char**)>;
+
+/**
+ * @brief Edit a secret key in place and store the result.
+ *
+ * Replaced, not merged: a merge with the stored key would bring back what the
+ * edit removed -- a deleted UID or subkey, a superseded self-signature.
+ *
+ * @param fpr the key to edit
+ * @param what the edit, for the log and the engine's error detail
+ * @return GPG_ERR_NO_ERROR, the engine's own error for a refused edit, or
+ * GPG_ERR_GENERAL when there is no secret key to edit or storing failed
+ */
+auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
+                       const char* what, const SecretKeyEdit& edit) -> GpgError;
 
 /**
  * @brief The encrypt result for an encryption that never reached the engine

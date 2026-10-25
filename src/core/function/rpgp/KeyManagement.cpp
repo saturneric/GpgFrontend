@@ -78,75 +78,18 @@ namespace {
  */
 auto modify_key_passphrase(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            const QString& target_fpr) -> GpgError {
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "key database is not initialized";
-    return GPG_ERR_GENERAL;
-  }
-
-  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
-  if (!meta) {
-    LOG_E() << "key metadata not found in database for key: "
-            << key->Fingerprint();
-    return GPG_ERR_GENERAL;
-  }
-
-  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
-  if (!key_block_data) {
-    LOG_E() << "key block data not found in database for key with fpr: "
-            << meta->fpr;
-    return GPG_ERR_GENERAL;
-  }
-
-  if (key_block_data->secret_key.Empty()) {
-    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
-    return GPG_ERR_GENERAL;
-  }
-
-  auto key_block_utf8 = key_block_data->secret_key;
-  auto target_fpr_utf8 = target_fpr.toUtf8();
-  char* out_secret_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
-      key_block_utf8.Size()};
-
-  // a null target selects the whole key
-  auto err = Rust::gfr_crypto_modify_key_password(
-      ctx.GetChannel(), key_block_buffer,
-      target_fpr.isEmpty() ? nullptr : target_fpr_utf8.constData(),
-      FetchPasswordCallback, &out_secret_block);
-
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_crypto_modify_key_password error, code: "
-            << static_cast<int>(err);
-
-    // Report a rejected passphrase or a cancel as such; collapsing it into a
-    // general error shows the user "General error" when the cause is simply a
-    // wrong password.
-    TakeEngineErrorDetail(err, "Changing the passphrase");
-    return CommonEngineError(err);
-  }
-
-  if (out_secret_block == nullptr) {
-    LOG_E() << "gfr_crypto_modify_key_password returned null secret block";
-    return GPG_ERR_GENERAL;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_secret_block);
-  Rust::gfr_crypto_free_string(out_secret_block);
-
-  // Replace, not merge: a merge with a key another edit changed meanwhile
-  // would bring back what that edit removed.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                *key_block_data)) {
-    LOG_E() << "Failed to store updated key block after modifying key "
-               "password for key with fpr: "
-            << key->Fingerprint();
-    return GPG_ERR_GENERAL;
-  }
-
-  return GPG_ERR_NO_ERROR;
+  const auto target_fpr_utf8 = target_fpr.toUtf8();
+  // Reports a rejected passphrase or a cancel as such; collapsing it into a
+  // general error would show "General error" for a wrong password.
+  return EditSecretKeyRpgp(
+      ctx, key->Fingerprint(), "Changing the passphrase",
+      [&](const GFKeyMetadata&, const Rust::GfrBuffer& block, char** out) {
+        // a null target selects the whole key
+        return Rust::gfr_crypto_modify_key_password(
+            ctx.GetChannel(), block,
+            target_fpr.isEmpty() ? nullptr : target_fpr_utf8.constData(),
+            FetchPasswordCallback, out);
+      });
 }
 }  // namespace
 
@@ -169,186 +112,57 @@ auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
 auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int skey_idx) -> bool {
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "key database is not initialized";
-    return false;
-  }
-
-  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
-  if (!meta) {
-    LOG_E() << "key metadata not found in database for key: "
-            << key->Fingerprint();
-    return false;
-  }
-
-  if (skey_idx < 0 || skey_idx >= static_cast<int>(meta->subkeys.size())) {
-    LOG_E() << "illegal subkey index: " << skey_idx
-            << " for key with fpr: " << meta->fpr;
-    return false;
-  }
-
-  auto target_subkey_fpr = meta->subkeys[skey_idx].fpr;
-
-  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
-  if (!key_block_data) {
-    LOG_E() << "key block data not found in database for key with fpr: "
-            << meta->fpr;
-    return false;
-  }
-
-  if (key_block_data->secret_key.Empty()) {
-    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
-    return false;
-  }
-
-  auto key_block_utf8 = key_block_data->secret_key;
-  if (key_block_utf8.Empty()) {
-    LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
-    return false;
-  }
-
-  auto key_fpr_utf8 = key->Fingerprint().toUtf8();
-  char* out_secret_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
-      key_block_utf8.Size()};
-
-  auto err = Rust::gfr_crypto_delete_subkey(
-      key_block_buffer, target_subkey_fpr.toUtf8().constData(),
-      &out_secret_block);
-
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_crypto_delete_subkey error, code: "
-            << static_cast<int>(err);
-    return false;
-  }
-
-  if (out_secret_block == nullptr) {
-    LOG_E() << "gfr_crypto_delete_subkey returned null secret block";
-    return false;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_secret_block);
-  Rust::gfr_crypto_free_string(out_secret_block);
-
-  // Replace in one transaction: deleting first and then importing would lose
-  // the key for good if the import failed. Replace (do not merge), merging
-  // would bring back what the edit removed from the existing database entry.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                *key_block_data)) {
-    LOG_E() << "Failed to import updated key block after deleting subkey for "
-               "key with fpr: "
-            << key->Fingerprint();
-    return false;
-  }
-
-  return true;
+  return EditSecretKeyRpgp(
+             ctx, key->Fingerprint(), "Deleting a subkey",
+             [&](const GFKeyMetadata& meta, const Rust::GfrBuffer& block,
+                 char** out) {
+               if (skey_idx < 0 ||
+                   skey_idx >= static_cast<int>(meta.subkeys.size())) {
+                 LOG_E() << "illegal subkey index:" << skey_idx
+                         << "for key:" << meta.fpr;
+                 return Rust::GfrStatus::ErrorInvalidInput;
+               }
+               return Rust::gfr_crypto_delete_subkey(
+                   block, meta.subkeys[skey_idx].fpr.toUtf8().constData(), out);
+             }) == GPG_ERR_NO_ERROR;
 }
 
 auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
                           const QString& reason_text) -> bool {
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "key database is not initialized";
-    return false;
-  }
+  const auto reason_text_utf8 = reason_text.toUtf8();
 
-  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
-  if (!meta) {
-    LOG_E() << "key metadata not found in database for key: "
-            << key->Fingerprint();
-    return false;
-  }
-
-  if (subkey_index < 0 ||
-      subkey_index >= static_cast<int>(meta->subkeys.size())) {
-    LOG_E() << "illegal subkey index: " << subkey_index
-            << " for key with fpr: " << meta->fpr;
-    return false;
-  }
-
-  auto target_subkey_fpr = meta->subkeys[subkey_index].fpr;
-
-  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
-  if (!key_block_data) {
-    LOG_E() << "key block data not found in database for key with fpr: "
-            << meta->fpr;
-    return false;
-  }
-
-  if (key_block_data->secret_key.Empty()) {
-    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
-    return false;
-  }
-
-  auto key_block_utf8 = key_block_data->secret_key;
-  if (key_block_utf8.Empty()) {
-    LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
-    return false;
-  }
-
-  auto reason_text_utf8 = reason_text.toUtf8();
-
-  int mapped_reason_code = 0;
+  auto mapped_reason_code = Rust::GfrRevocationCode::NoReason;
   switch (reason_code) {
     case 1:
-      mapped_reason_code =
-          static_cast<int>(Rust::GfrRevocationCode::Compromised);
+      mapped_reason_code = Rust::GfrRevocationCode::Compromised;
       break;
     case 2:
-      mapped_reason_code =
-          static_cast<int>(Rust::GfrRevocationCode::Superseded);
+      mapped_reason_code = Rust::GfrRevocationCode::Superseded;
       break;
     case 3:
-      mapped_reason_code = static_cast<int>(Rust::GfrRevocationCode::Retired);
+      mapped_reason_code = Rust::GfrRevocationCode::Retired;
       break;
     default:
-      mapped_reason_code = 0;
       break;
   }
 
-  auto key_fpr_utf8 = key->Fingerprint().toUtf8();
-  char* out_secret_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
-      key_block_utf8.Size()};
-
-  auto err = Rust::gfr_crypto_revoke_subkey(
-      ctx.GetChannel(), key_block_buffer,
-      target_subkey_fpr.toUtf8().constData(),
-      static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
-      reason_text_utf8.constData(), FetchPasswordCallback, &out_secret_block);
-
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_crypto_revoke_subkey error, code: "
-            << static_cast<int>(err);
-    return false;
-  }
-
-  if (out_secret_block == nullptr) {
-    LOG_E() << "gfr_crypto_revoke_subkey returned null secret block";
-    return false;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_secret_block);
-  Rust::gfr_crypto_free_string(out_secret_block);
-
-  // Replace in one transaction: deleting first and then importing would lose
-  // the key for good if the import failed. Replace (do not merge), merging
-  // would bring back what the edit removed from the existing database entry.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                *key_block_data)) {
-    LOG_E() << "Failed to import updated key block after revoking subkey for "
-               "key with fpr: "
-            << key->Fingerprint();
-    return false;
-  }
-
-  return true;
+  return EditSecretKeyRpgp(
+             ctx, key->Fingerprint(), "Revoking a subkey",
+             [&](const GFKeyMetadata& meta, const Rust::GfrBuffer& block,
+                 char** out) {
+               if (subkey_index < 0 ||
+                   subkey_index >= static_cast<int>(meta.subkeys.size())) {
+                 LOG_E() << "illegal subkey index:" << subkey_index
+                         << "for key:" << meta.fpr;
+                 return Rust::GfrStatus::ErrorInvalidInput;
+               }
+               return Rust::gfr_crypto_revoke_subkey(
+                   ctx.GetChannel(), block,
+                   meta.subkeys[subkey_index].fpr.toUtf8().constData(),
+                   mapped_reason_code, reason_text_utf8.constData(),
+                   FetchPasswordCallback, out);
+             }) == GPG_ERR_NO_ERROR;
 }
 
 auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
@@ -436,83 +250,27 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
 auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const SubkeyId& skey_fpr,
                        const std::optional<QDateTime>& expires) -> GpgError {
-  auto key_db = ctx.KeyDatabase();
-  if (key_db == nullptr) {
-    LOG_E() << "key database is not initialized";
-    return GPG_ERR_GENERAL;
-  }
-
-  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
-  if (!meta) {
-    LOG_E() << "key metadata not found in database for key: "
-            << key->Fingerprint();
-    return GPG_ERR_GENERAL;
-  }
-
-  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
-  if (!key_block_data) {
-    LOG_E() << "key block data not found in database for key with fpr: "
-            << meta->fpr;
-    return GPG_ERR_GENERAL;
-  }
-
-  if (key_block_data->secret_key.Empty()) {
-    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
-    return GPG_ERR_GENERAL;
-  }
-
   // A null target selects the primary key. The GnuPG impl treats an empty
   // fingerprint or one matching the primary the same way, so mirror that here.
-  auto target_is_primary = skey_fpr.isEmpty() || skey_fpr == key->Fingerprint();
-  auto target_fpr_utf8 = skey_fpr.toUtf8();
+  const auto target_is_primary =
+      skey_fpr.isEmpty() || skey_fpr == key->Fingerprint();
+  const auto target_fpr_utf8 = skey_fpr.toUtf8();
 
   // 0 means "never expires"; otherwise pass the absolute Unix time. Unlike the
   // GnuPG impl (which uses seconds-from-now), the rPGP engine takes an absolute
   // epoch and derives the duration from the key's creation time internally.
-  auto expires_epoch = expires.has_value()
-                           ? static_cast<uint64_t>(expires->toSecsSinceEpoch())
-                           : 0;
+  const auto expires_epoch =
+      expires.has_value() ? static_cast<uint64_t>(expires->toSecsSinceEpoch())
+                          : 0;
 
-  auto key_block_utf8 = key_block_data->secret_key;
-  char* out_secret_block = nullptr;
-
-  Rust::GfrBuffer key_block_buffer = {
-      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
-      key_block_utf8.Size()};
-
-  auto err = Rust::gfr_crypto_update_key_expiration(
-      ctx.GetChannel(), key_block_buffer,
-      target_is_primary ? nullptr : target_fpr_utf8.constData(), expires_epoch,
-      FetchPasswordCallback, &out_secret_block);
-
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_crypto_update_key_expiration error, code: "
-            << static_cast<int>(err);
-
-    TakeEngineErrorDetail(err, "Changing the expiration");
-    return CommonEngineError(err);
-  }
-
-  if (out_secret_block == nullptr) {
-    LOG_E() << "gfr_crypto_update_key_expiration returned null secret block";
-    return GPG_ERR_GENERAL;
-  }
-
-  auto out_block_str = QString::fromUtf8(out_secret_block);
-  Rust::gfr_crypto_free_string(out_secret_block);
-
-  // Replace in one transaction: deleting first and then importing would lose
-  // the key for good if the import failed. Replace (do not merge), merging
-  // would bring back what the edit removed from the existing database entry.
-  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str),
-                                *key_block_data)) {
-    LOG_E() << "Failed to import updated key block after changing expiration "
-               "for key with fpr: "
-            << key->Fingerprint();
-    return GPG_ERR_GENERAL;
-  }
-
-  return GPG_ERR_NO_ERROR;
+  return EditSecretKeyRpgp(
+      ctx, key->Fingerprint(), "Changing the expiration",
+      [&](const GFKeyMetadata&, const Rust::GfrBuffer& block, char** out) {
+        return Rust::gfr_crypto_update_key_expiration(
+            ctx.GetChannel(), block,
+            target_is_primary ? nullptr : target_fpr_utf8.constData(),
+            expires_epoch, FetchPasswordCallback, out);
+      });
 }
 
 auto GetEcdhKdfParamsRpgpImpl(const GFBuffer& public_key_block,
