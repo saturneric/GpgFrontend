@@ -176,13 +176,13 @@ auto SignMode2SigType(Rust::GfrSignMode mode) -> QString {
   }
 }
 
-auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
-  GFSignResult result;
+auto ParseSignatures(const Rust::GfrSignatureResultC* sigs, size_t count)
+    -> QList<GFSignature> {
+  QList<GFSignature> out;
+  for (size_t i = 0; i < count; ++i) {
+    const auto& sig = sigs[i];
 
-  for (size_t i = 0; i < m.signature_count; ++i) {
-    const auto& sig = m.signatures[i];
-
-    GFSignatureStatus sig_status;
+    auto sig_status = GFSignatureStatus::kUNKNOWN_ERROR;
     switch (sig.status) {
       case Rust::GfrSignatureStatus::Valid:
         sig_status = GFSignatureStatus::kVALID;
@@ -202,12 +202,12 @@ auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
       case Rust::GfrSignatureStatus::KeyNotAuthorized:
         sig_status = GFSignatureStatus::kKEY_NOT_AUTHORIZED;
         break;
+      case Rust::GfrSignatureStatus::UnknownError:
       default:
-        sig_status = GFSignatureStatus::kUNKNOWN_ERROR;
         break;
     }
 
-    result.signatures.push_back({
+    out.push_back({
         QString::fromUtf8(sig.issuer_fpr).toUpper(),
         sig_status,
         sig.created_at,
@@ -216,7 +216,12 @@ auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
         SignMode2SigType(sig.sig_type),
     });
   }
+  return out;
+}
 
+auto ParseSignResultMeta(const Rust::GfrSignMetadataC& m) -> GFSignResult {
+  GFSignResult result;
+  result.signatures = ParseSignatures(m.signatures, m.signature_count);
   return result;
 }
 
@@ -251,47 +256,8 @@ auto ParseDecryptResultMeta(const Rust::GfrDecryptMetadataC& m)
 auto ParseVerifyResultMeta(const Rust::GfrVerifyMetadataC& m)
     -> GFVerifyResult {
   GFVerifyResult result;
-
   result.is_verified = m.is_verified;
-  for (size_t i = 0; i < m.signature_count; ++i) {
-    const auto& sig = m.signatures[i];
-
-    auto sig_status = GFSignatureStatus::kUNKNOWN_ERROR;
-    switch (sig.status) {
-      case Rust::GfrSignatureStatus::Valid:
-        sig_status = GFSignatureStatus::kVALID;
-        break;
-      case Rust::GfrSignatureStatus::BadSignature:
-        sig_status = GFSignatureStatus::kBAD_SIGNATURE;
-        break;
-      case Rust::GfrSignatureStatus::NoKey:
-        sig_status = GFSignatureStatus::kNO_KEY;
-        break;
-      case Rust::GfrSignatureStatus::KeyRevoked:
-        sig_status = GFSignatureStatus::kKEY_REVOKED;
-        break;
-      case Rust::GfrSignatureStatus::KeyExpired:
-        sig_status = GFSignatureStatus::kKEY_EXPIRED;
-        break;
-      case Rust::GfrSignatureStatus::KeyNotAuthorized:
-        sig_status = GFSignatureStatus::kKEY_NOT_AUTHORIZED;
-        break;
-      case Rust::GfrSignatureStatus::UnknownError:
-      default:
-        sig_status = GFSignatureStatus::kUNKNOWN_ERROR;
-        break;
-    }
-
-    result.signatures.push_back({
-        QString::fromUtf8(sig.issuer_fpr).toUpper(),
-        sig_status,
-        sig.created_at,
-        sig.pub_algo,
-        sig.hash_algo,
-        SignMode2SigType(sig.sig_type),
-    });
-  }
-
+  result.signatures = ParseSignatures(m.signatures, m.signature_count);
   return result;
 }
 
