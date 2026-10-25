@@ -281,14 +281,6 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
   }
 }
 
-void KeyPairUIDTab::slot_add_sign() {
-  const auto& target_uid = get_selected_uid();
-
-  auto* key_sign_dialog = new KeyUIDSignDialog(
-      current_gpg_context_channel_, m_key_, target_uid.GetUID(), this);
-  key_sign_dialog->show();
-}
-
 void KeyPairUIDTab::slot_add_uid() {
   // The dialog reports its own success/failure over the key-details window; no
   // result wiring is needed here.

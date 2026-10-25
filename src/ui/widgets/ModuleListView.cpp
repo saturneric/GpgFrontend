@@ -439,16 +439,6 @@ void ModuleListView::SetCategoryFilter(ModuleCategory category) {
   if (!previous.isEmpty()) SelectModule(previous);
 }
 
-auto ModuleListView::ModuleCount() const -> int { return model_->rowCount(); }
-
-auto ModuleListView::ActiveModuleCount() const -> int {
-  auto count = 0;
-  for (auto row = 0; row < model_->rowCount(); ++row) {
-    if (model_->item(row)->data(kModuleActiveRole).toBool()) count++;
-  }
-  return count;
-}
-
 auto ModuleListView::GetCurrentModuleID() -> Module::ModuleIdentifier {
   auto* item = model_->itemFromIndex(proxy_model_->mapToSource(currentIndex()));
   return item != nullptr ? item->data(kModuleIdRole).toString() : "";

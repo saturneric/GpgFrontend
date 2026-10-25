@@ -619,14 +619,4 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   return languages;
 }
 
-void SettingsDialog::SelectPageFor(QWidget* page) {
-  const auto it = nav_row_of_page_.constFind(page);
-  if (it == nav_row_of_page_.constEnd()) return;
-
-  // A leftover filter could be hiding exactly the row we are about to select,
-  // so drop it first. Clearing runs filter_pages(), which unhides everything.
-  search_edit_->clear();
-  nav_list_->setCurrentRow(*it);
-}
-
 }  // namespace GpgFrontend::UI

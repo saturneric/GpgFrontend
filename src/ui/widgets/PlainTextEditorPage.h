@@ -305,13 +305,6 @@ class PlainTextEditorPage : public QWidget {
   void SetTextDirectionMode(TextDirectionMode mode);
 
   /**
-   * @brief Returns the direction mode configured for this page.
-   *
-   * @return The mode, which may be kTEXT_DIRECTION_AUTO.
-   */
-  [[nodiscard]] auto GetTextDirectionMode() const -> TextDirectionMode;
-
-  /**
    * @brief Returns the action opening this page's text direction submenu.
    *
    * The page owns the three mode actions, and this is how anything else shows

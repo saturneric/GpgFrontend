@@ -73,17 +73,6 @@ class GF_UI_EXPORT TextEdit : public QWidget {
   explicit TextEdit(QWidget* parent);
 
   /**
-   * @brief Loads a file into the current plain-text editor page.
-   *
-   * The file is read into a GFBuffer and its text representation is inserted
-   * into the current text page. The current page file path and tab title are
-   * updated afterwards.
-   *
-   * @param fileName File path to load.
-   */
-  void LoadFile(const QString& fileName);
-
-  /**
    * @brief Checks all tabs for unsaved documents before closing.
    *
    * If text-editor page restoration is enabled, unsaved text editors are cached
@@ -320,14 +309,6 @@ class GF_UI_EXPORT TextEdit : public QWidget {
   bool SlotSaveAs();  // NOLINT
 
   /**
-   * @brief Opens one or more files in new text-editor tabs.
-   *
-   * The method shows a file-open dialog and delegates each selected file to
-   * SlotOpenFile().
-   */
-  void SlotOpen();
-
-  /**
    * @brief Prints the current text editor document.
    *
    * A print dialog is shown before printing. If the current tab has no text
@@ -499,13 +480,6 @@ class GF_UI_EXPORT TextEdit : public QWidget {
    * @param reveal true to scroll to and reveal the appended text.
    */
   void SlotAppendText2CurTextPage(const QString& text, bool reveal);
-
-  /**
-   * @brief Appends text to the current text editor and reveals it.
-   *
-   * @param text Text to append.
-   */
-  void SlotAppendText2CurTextPageAndReveal(const QString& text);
 
   /**
    * @brief Replaces the current text editor content with a GFBuffer.

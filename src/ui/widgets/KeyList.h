@@ -276,28 +276,6 @@ class KeyList : public QWidget {
   auto GetCheckedKeys() -> GpgAbstractKeyPtrList;
 
   /**
-   * @brief Get the Checked object
-   *
-   * @param key_table
-   * @return KeyIdArgsListPtr
-   */
-  static auto GetChecked(const KeyTable& key_table) -> GpgAbstractKeyPtrList;
-
-  /**
-   * @brief Get the Private Checked object
-   *
-   * @return KeyIdArgsListPtr
-   */
-  auto GetCheckedPrivateKey() -> GpgAbstractKeyPtrList;
-
-  /**
-   * @brief
-   *
-   * @return KeyIdArgsListPtr
-   */
-  auto GetCheckedPublicKey() -> GpgAbstractKeyPtrList;
-
-  /**
    * @brief Set the Checked object
    *
    * @param keyIds
@@ -372,12 +350,6 @@ class KeyList : public QWidget {
    * @return int
    */
   [[nodiscard]] auto GetCurrentGpgContextChannel() const -> int;
-
-  /**
-   * @brief
-   *
-   */
-  void UpdateKeyTableFilter(int index, const GpgKeyTableProxyModel::KeyFilter&);
 
   /**
    * @brief

@@ -64,10 +64,6 @@ struct GF_UI_EXPORT GpgOperaContextBasement {
   auto GetContextOutPath(int category) -> QStringList&;
 
   auto GetContextBuffer(int category) -> QList<GFBuffer>&;
-
-  auto GetAllPath() -> QStringList;
-
-  auto GetAllOutPath() -> QStringList;
 };
 
 struct GpgOperaContext {

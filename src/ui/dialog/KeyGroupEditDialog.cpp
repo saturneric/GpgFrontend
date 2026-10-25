@@ -41,10 +41,6 @@ KeyGroupEditDialog::KeyGroupEditDialog(const QString& name,
       comment_(new QLineEdit(comment, this)),
       error_label_(new QLabel(this)),
       save_button_(nullptr) {
-#ifdef Q_OS_MACOS
-  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-#endif
-
   setWindowTitle(tr("Edit Key Group"));
   setModal(true);
   setMinimumWidth(460);

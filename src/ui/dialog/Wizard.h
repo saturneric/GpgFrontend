@@ -129,13 +129,6 @@ class Wizard : public QWizard {
 
  signals:
   /**
-   * @brief
-   *
-   * @param page
-   */
-  void SignalOpenHelp(QString page);
-
-  /**
    * @brief emitted when the choices made here only take effect after a restart
    *
    * @param mode kRestartCode or deeper
@@ -214,15 +207,6 @@ class ChoosePage : public WizardPage {
    */
   explicit ChoosePage(QWidget* parent = nullptr);
 
- private slots:
-
-  /**
-   * @brief
-   *
-   * @param page
-   */
-  void slot_jump_page(const QString& page);
-
  protected:
   /**
    * @brief
@@ -230,8 +214,6 @@ class ChoosePage : public WizardPage {
    * @return int
    */
   [[nodiscard]] int nextId() const override;
-
-  int next_page_;  ///<
 };
 
 /**

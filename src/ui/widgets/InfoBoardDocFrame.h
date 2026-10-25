@@ -172,8 +172,6 @@ class CardSourceLabel final : public QLabel {
     setText(full_);
   }
 
-  [[nodiscard]] auto FullText() const -> QString { return full_; }
-
   /// The width the whole source needs.
   [[nodiscard]] auto FullWidth() const -> int {
     return fontMetrics().horizontalAdvance(full_) + 2;

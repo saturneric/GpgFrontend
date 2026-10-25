@@ -78,12 +78,6 @@ class KeyPairUIDTab : public QWidget {
    * @brief
    *
    */
-  void slot_add_sign();
-
-  /**
-   * @brief
-   *
-   */
   void slot_add_sign_single();
 
   /**

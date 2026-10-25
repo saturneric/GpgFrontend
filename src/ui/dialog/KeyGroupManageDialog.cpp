@@ -97,10 +97,6 @@ KeyGroupManageDialog::KeyGroupManageDialog(
       this, [this]() { return channel_; },
       [this](int channel) { channel_ = channel; });
 
-#ifdef Q_OS_MACOS
-  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-#endif
-
   setWindowTitle(tr("Key Group Management"));
   setModal(true);
   setMinimumSize(880, 520);

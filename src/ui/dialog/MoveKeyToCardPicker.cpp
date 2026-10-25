@@ -123,10 +123,6 @@ MoveKeyToCardPicker::MoveKeyToCardPicker(QWidget* parent)
       this, [this]() { return channel_; },
       [this](int channel) { channel_ = channel; });
 
-#ifdef Q_OS_MACOS
-  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-#endif
-
   setWindowTitle(tr("Select Key to Move to Card"));
   setModal(true);
   setMinimumSize(560, 420);

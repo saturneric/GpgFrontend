@@ -101,17 +101,6 @@ class FileTreeView : public QTreeView {
   auto GetSelectedPaths() -> QStringList;
 
   /**
-   * @brief Returns the file-system path at a viewport position.
-   *
-   * The point is interpreted in the view's viewport coordinate system. If the
-   * point does not hit a valid model index, an empty string is returned.
-   *
-   * @param point Viewport-local position.
-   * @return Absolute path under the point, or an empty string.
-   */
-  auto GetPathByClickPoint(const QPoint& point) -> QString;
-
-  /**
    * @brief Converts a viewport-local position to a global screen position.
    *
    * This is mainly used when showing the custom context menu.

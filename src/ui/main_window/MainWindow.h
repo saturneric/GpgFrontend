@@ -680,8 +680,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /// Tool buttons grouping the variants of one crypto operation.
   QList<QPointer<QToolButton>> crypt_family_buttons_;
 
-  QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
-  QDockWidget* attachment_dock_{};  ///<  Attachment Dock
+  QDockWidget* key_list_dock_{};  ///<  Encrypt Dock
   QDockWidget* info_board_dock_{};
   StatusDockPresenter* status_dock_presenter_{};  ///< Expanded / Collapsed
 
@@ -758,7 +757,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   QMenu* popup_menu_;
 
-  bool attachment_dock_created_{};       ///<
   int restart_mode_{0};                  ///<
   bool show_wizard_on_startup_ = false;  ///<
   bool wizard_checked_ = false;          ///<
@@ -792,16 +790,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @details Create keylist- and attachment-dockwindows.
    */
   void create_dock_windows();
-
-  /**
-   * @details Create attachment dock window.
-   */
-  void create_attachment_dock();
-
-  /**
-   * @details close attachment-dockwindow.
-   */
-  void close_attachment_dock();
 
   /**
    * @details Load settings from ini-file.

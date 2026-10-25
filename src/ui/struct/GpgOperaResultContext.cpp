@@ -51,24 +51,6 @@ auto GpgOperaContextBasement::GetContextBuffer(int category)
   return categories[category].buffers;
 }
 
-auto GpgOperaContextBasement::GetAllPath() -> QStringList {
-  QStringList res;
-
-  for (auto& category : categories) {
-    res.append(category.paths);
-  }
-  return res;
-}
-
-auto GpgOperaContextBasement::GetAllOutPath() -> QStringList {
-  QStringList res;
-
-  for (auto& category : categories) {
-    res.append(category.o_paths);
-  }
-  return res;
-}
-
 auto GetGpgOperaContextFromBasement(
     const QSharedPointer<GpgOperaContextBasement>& base, int category)
     -> QSharedPointer<GpgOperaContext> {

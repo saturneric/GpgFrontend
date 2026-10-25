@@ -1047,10 +1047,6 @@ void PlainTextEditorPage::SetTextDirectionMode(TextDirectionMode mode) {
   if (changed) emit SignalTextDirectionModeChanged();
 }
 
-auto PlainTextEditorPage::GetTextDirectionMode() const -> TextDirectionMode {
-  return text_direction_mode_;
-}
-
 auto PlainTextEditorPage::TextDirectionMenuAction() const -> QAction * {
   return text_direction_menu_->menuAction();
 }

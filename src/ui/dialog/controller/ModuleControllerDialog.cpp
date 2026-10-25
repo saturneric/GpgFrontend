@@ -434,7 +434,6 @@ void ModuleControllerDialog::slot_load_module_details(
   const auto provenance = module_manager_->GetModuleProvenance(module_id);
   const auto& meta_data = provenance.metadata;
   const auto if_activated = provenance.activated;
-  const auto integrated = provenance.integrated;
 
   auto name_font = ui_->detailNameLabel->font();
   name_font.setBold(true);

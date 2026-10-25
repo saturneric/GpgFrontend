@@ -1633,28 +1633,6 @@ auto KeyList::GetCheckedKeys() -> GpgAbstractKeyPtrList {
   return key_table->GetCheckedKeys();
 }
 
-auto KeyList::GetCheckedPrivateKey() -> GpgAbstractKeyPtrList {
-  auto ret = GpgAbstractKeyPtrList{};
-
-  auto keys = GetCheckedKeys();
-  for (const auto& key : keys) {
-    if (key->IsPrivateKey()) ret.push_back(key);
-  }
-
-  return ret;
-}
-
-auto KeyList::GetCheckedPublicKey() -> GpgAbstractKeyPtrList {
-  auto ret = GpgAbstractKeyPtrList{};
-
-  auto keys = GetCheckedKeys();
-  for (const auto& key : keys) {
-    if (!key->IsPrivateKey()) ret.push_back(key);
-  }
-
-  return ret;
-}
-
 void KeyList::SetChecked(const KeyIdArgsList& key_ids,
                          const KeyTable& key_table) {
   if (!key_ids.empty()) {
@@ -1891,14 +1869,6 @@ void KeyList::slot_new_key_group() {
   // Modal and deleted on close by itself; show() rather than exec() spares
   // the nested event loop.
   dialog->show();
-}
-
-void KeyList::UpdateKeyTableFilter(
-    int index, const GpgKeyTableProxyModel::KeyFilter& filter) {
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyStack->widget(index));
-  if (key_table == nullptr) return;
-
-  key_table->SetFilter(filter);
 }
 
 void KeyList::RefreshKeyTable(int index) {

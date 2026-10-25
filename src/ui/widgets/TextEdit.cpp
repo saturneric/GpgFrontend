@@ -114,16 +114,6 @@ void TextEdit::SlotOpenFile(const QString& path) {
   tab_widget_->SlotOpenFile(path);
 }
 
-void TextEdit::SlotOpen() {
-  QStringList file_names =
-      QFileDialog::getOpenFileNames(this, tr("Open File"), QDir::currentPath());
-  for (const auto& file_name : file_names) {
-    if (!file_name.isEmpty()) {
-      SlotOpenFile(file_name);
-    }
-  }
-}
-
 void TextEdit::SlotSave() {
   if (tab_widget_->count() == 0) {
     return;
@@ -503,10 +493,6 @@ void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
   SlotAppendText2CurTextPage(text, false);
 }
 
-void TextEdit::SlotAppendText2CurTextPageAndReveal(const QString& text) {
-  SlotAppendText2CurTextPage(text, true);
-}
-
 void TextEdit::SlotAppendText2CurTextPage(const QString& text, bool reveal) {
   if (text.isEmpty()) return;
 
@@ -646,35 +632,6 @@ void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
   if (!keep_history) edit->setUndoRedoEnabled(false);
   SetOperationResultFromBuffer(page, buffer);
   if (!keep_history) edit->setUndoRedoEnabled(true);
-}
-
-void TextEdit::LoadFile(const QString& fileName) {
-  auto [succ, buffer] = ReadFileGFBuffer(fileName);
-  if (!succ) {
-    QMessageBox::warning(this, tr("File Open Error"),
-                         tr("The file \"%1\" could not be opened.")
-                             .arg(QFileInfo(fileName).fileName()));
-    return;
-  }
-
-  if (CurTextPage() == nullptr) {
-    SlotNewTab();
-  }
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  // Through the page, not its editor: a file opened here keeps the line
-  // endings it has on disk, which is what lets a signed message it carries
-  // still verify. This one has a file behind it, so the document comes out
-  // clean rather than modified.
-  {
-    auto bytes = buffer.ConvertToQByteArray();
-    CurTextPage()->SetContentFromBytes(bytes);
-    WipeByteArray(bytes);
-  }
-  QApplication::restoreOverrideCursor();
-
-  CurPageTextEdit()->SetFilePath(fileName);
-  tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
 }
 
 auto TextEdit::stripped_name(const QString& full_file_name) -> QString {

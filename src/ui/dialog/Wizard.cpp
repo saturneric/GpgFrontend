@@ -426,33 +426,9 @@ ChoosePage::ChoosePage(QWidget* parent) : WizardPage(parent) {
         tr("You can also skip these guides and start using GpgFrontend "
            "directly."));
   });
-
-  next_page_ = Wizard::kPAGE_CONCLUSION;
 }
 
-auto ChoosePage::nextId() const -> int { return next_page_; }
-
-void ChoosePage::slot_jump_page(const QString& page) {
-  const QMetaObject qmo = Wizard::staticMetaObject;
-  const int index = qmo.indexOfEnumerator("WizardPages");
-
-  if (index < 0) {
-    next_page_ = Wizard::kPAGE_CONCLUSION;
-    wizard()->next();
-    return;
-  }
-
-  const QMetaEnum meta_enum = qmo.enumerator(index);
-  const int page_id = meta_enum.keyToValue(page.toUtf8().constData());
-
-  if (page_id >= Wizard::kPAGE_INTRO && page_id <= Wizard::kPAGE_CONCLUSION) {
-    next_page_ = page_id;
-  } else {
-    next_page_ = Wizard::kPAGE_CONCLUSION;
-  }
-
-  wizard()->next();
-}
+auto ChoosePage::nextId() const -> int { return Wizard::kPAGE_CONCLUSION; }
 
 ConclusionPage::ConclusionPage(QWidget* parent) : WizardPage(parent) {
   auto* layout = new QVBoxLayout;

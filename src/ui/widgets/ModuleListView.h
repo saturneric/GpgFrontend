@@ -172,10 +172,6 @@ class ModuleListView : public QListView {
    */
   void SelectModule(const Module::ModuleIdentifier& module_id);
 
-  [[nodiscard]] auto ModuleCount() const -> int;
-
-  [[nodiscard]] auto ActiveModuleCount() const -> int;
-
  signals:
   void SignalSelectModule(Module::ModuleIdentifier);
 

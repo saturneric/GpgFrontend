@@ -49,10 +49,6 @@ KeyGroupCreationDialog::KeyGroupCreationDialog(int channel, QStringList key_ids,
 
   assert(!key_ids_.isEmpty());
 
-#ifdef Q_OS_MACOS
-  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-#endif
-
   setWindowTitle(tr("New Key Group"));
   setModal(true);
   setMinimumWidth(460);

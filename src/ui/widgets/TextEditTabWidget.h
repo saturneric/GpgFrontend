@@ -332,14 +332,6 @@ class TextEditTabWidget : public QTabWidget {
    * @param path
    * @return QString
    */
-  auto compact_path_for_tab(const QString& path) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param path
-   * @return QString
-   */
   auto workspace_title_from_path(const QString& path) -> QString;
 
   /**

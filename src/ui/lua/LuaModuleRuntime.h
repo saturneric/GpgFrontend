@@ -209,7 +209,6 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
   /// Step 1 alone, safe from any thread: no callback enters Lua after this.
   void StopCallbacks() { stopping_.store(true); }
 
-  [[nodiscard]] auto TornDown() const -> bool { return torn_down_; }
   [[nodiscard]] auto Snapshot() const -> LuaRuntimeSnapshot;
 
   /// For tests: the teardown steps, in the order they ran.

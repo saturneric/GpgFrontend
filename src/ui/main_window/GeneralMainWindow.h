@@ -61,13 +61,6 @@ class GeneralMainWindow : public QMainWindow {
   ~GeneralMainWindow() override;
 
   /**
-   * @brief Get the Id object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetId() const -> QString;
-
-  /**
    * @brief
    *
    * @return true

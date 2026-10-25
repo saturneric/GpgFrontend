@@ -120,10 +120,7 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
 
   // Cancel
   connect(button_box->button(QDialogButtonBox::Cancel), &QPushButton::clicked,
-          this, [this]() {
-            emit SignalCancel();
-            this->close();
-          });
+          this, [this]() { this->close(); });
 
   /*
    *  Set the layout

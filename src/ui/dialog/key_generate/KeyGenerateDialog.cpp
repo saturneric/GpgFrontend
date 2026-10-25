@@ -624,7 +624,6 @@ void KeyGenerateDialog::InitUi() {
   setObjectName(u"KeyGenerateDialog"_s);
 
 #ifdef Q_OS_MACOS
-  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
   CompactLayout(layout(), 4, 5);
 
   ui_->profileGroupBox->setFlat(true);

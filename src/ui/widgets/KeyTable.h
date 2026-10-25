@@ -210,12 +210,6 @@ struct KeyTable : public QTableView {
    * @brief
    *
    */
-  void SignalGpgContextChannelChange(int);
-
-  /**
-   * @brief
-   *
-   */
   void SignalKeyChecked();
 
   /**

@@ -273,8 +273,6 @@ void GeneralMainWindow::update_rect_cache() {
       screen != nullptr ? screen->availableGeometry() : QRect(0, 0, 1024, 768);
 }
 
-auto GeneralMainWindow::GetId() const -> QString { return id_; }
-
 auto GeneralMainWindow::restoreWindowState() noexcept -> bool {
   try {
     WindowStateSO window_state(SettingsObject(id_ + "_state"));

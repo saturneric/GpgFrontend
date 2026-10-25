@@ -75,16 +75,6 @@ class SettingsDialog : public GeneralDialog {
    */
   static QHash<QString, QString> ListLanguages();
 
-  /**
-   * @brief Preselect the navigation entry hosting @p page.
-   *
-   * Clears any active search first, so a page filtered out of the list is
-   * still reachable. A no-op when that page has no entry: several are
-   * conditional on the sandbox and on engine support, so rows are not fixed
-   * and cannot be assumed.
-   */
-  void SelectPageFor(QWidget* page);
-
  public slots:
 
   /**

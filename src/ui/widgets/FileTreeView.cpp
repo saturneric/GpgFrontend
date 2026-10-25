@@ -376,16 +376,6 @@ void FileTreeView::SlotShowHiddenFile(bool on) {
   dir_model_->setRootPath(current_path_);
 }
 
-auto FileTreeView::GetPathByClickPoint(const QPoint& point) -> QString {
-  auto const index = this->indexAt(point);
-
-  if (!index.isValid()) {
-    return {};
-  }
-
-  return dir_model_->fileInfo(index).absoluteFilePath();
-}
-
 auto FileTreeView::GetSelectedPaths() -> QStringList { return selected_paths_; }
 
 auto FileTreeView::SlotDeleteSelectedItem() -> void {

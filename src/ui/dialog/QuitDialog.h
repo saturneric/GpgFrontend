@@ -62,8 +62,6 @@ class QuitDialog : public GeneralDialog {
 
   void SignalSave(const QList<int>& tab_ids);
 
-  void SignalCancel();
-
  private:
   QTableWidget* file_list_;  ///<
 };

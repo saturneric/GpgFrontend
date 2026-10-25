@@ -83,9 +83,6 @@ void MainWindow::Init() noexcept {
 
     info_board_ = new InfoBoardWidget(this);
 
-    /* List of binary Attachments */
-    attachment_dock_created_ = false;
-
     /* Whether a restart is needed */
     this->SlotSetRestartNeeded(0);
 
@@ -357,15 +354,6 @@ void MainWindow::restore_settings() {
   }
 
   apply_tool_bar_appearance();
-}
-
-void MainWindow::close_attachment_dock() {
-  if (!attachment_dock_created_) {
-    return;
-  }
-  attachment_dock_->close();
-  attachment_dock_->deleteLater();
-  attachment_dock_created_ = false;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
