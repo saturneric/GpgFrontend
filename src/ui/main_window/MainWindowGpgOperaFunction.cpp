@@ -891,6 +891,34 @@ auto MainWindow::exec_decoded_decrypt_helper(
   return overall >= 0;
 }
 
+auto MainWindow::stage_file_outputs(const QStringList& paths, GpgOperation op,
+                                    GpgOperaContextBasement& contexts,
+                                    QList<SafeOutputPath>& safe_outputs)
+    -> bool {
+  QStringList final_output_paths;
+  for (const auto& path : paths) {
+    // Category 1 is the archive one: a folder to encrypt, or the .tar.*
+    // ciphertext one became.
+    const QFileInfo info(path);
+    const auto extension = info.completeSuffix();
+    const bool archive = op == kDECRYPT
+                             ? extension == "tar.gpg" || extension == "tar.asc"
+                             : info.isDir();
+    const auto final_path =
+        archive ? SetExtensionOfOutputFileForArchive(path, op, contexts.ascii)
+                : SetExtensionOfOutputFile(path, op, contexts.ascii);
+    const auto temp_path =
+        PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
+
+    contexts.GetContextPath(archive ? 1 : 0).append(path);
+    contexts.GetContextOutPath(archive ? 1 : 0).append(temp_path);
+  }
+
+  if (check_write_file_paths_helper(final_output_paths)) return true;
+  RemoveSafeOutputWorkDirs(safe_outputs);
+  return false;
+}
+
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
   // The keys come from this database: the operation runs on it, whatever
   // the key list shows by the time any prompt below has been answered.
@@ -902,33 +930,8 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
   if (!encrypt_operation_key_validate(contexts.Base())) return;
   if (!check_read_file_paths_helper(paths)) return;
 
-  QStringList final_output_paths;
   QList<SafeOutputPath> safe_outputs;
-
-  for (const auto& path : paths) {
-    const QFileInfo info(path);
-
-    if (info.isDir()) {
-      const auto final_path =
-          SetExtensionOfOutputFileForArchive(path, kENCRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(1).append(path);
-      contexts->GetContextOutPath(1).append(temp_path);
-    } else {
-      const auto final_path =
-          SetExtensionOfOutputFile(path, kENCRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(0).append(path);
-      contexts->GetContextOutPath(0).append(temp_path);
-    }
-  }
-
-  if (!check_write_file_paths_helper(final_output_paths)) {
-    RemoveSafeOutputWorkDirs(safe_outputs);
+  if (!stage_file_outputs(paths, kENCRYPT, *contexts.Base(), safe_outputs)) {
     return;
   }
 
@@ -949,34 +952,8 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
 
   if (!check_read_file_paths_helper(paths)) return;
 
-  QStringList final_output_paths;
   QList<SafeOutputPath> safe_outputs;
-
-  for (const auto& path : paths) {
-    const QFileInfo info(path);
-    const auto extension = info.completeSuffix();
-
-    if (extension == "tar.gpg" || extension == "tar.asc") {
-      const auto final_path =
-          SetExtensionOfOutputFileForArchive(path, kDECRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(1).append(path);
-      contexts->GetContextOutPath(1).append(temp_path);
-    } else {
-      const auto final_path =
-          SetExtensionOfOutputFile(path, kDECRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(0).append(path);
-      contexts->GetContextOutPath(0).append(temp_path);
-    }
-  }
-
-  if (!check_write_file_paths_helper(final_output_paths)) {
-    RemoveSafeOutputWorkDirs(safe_outputs);
+  if (!stage_file_outputs(paths, kDECRYPT, *contexts.Base(), safe_outputs)) {
     return;
   }
 
@@ -1111,33 +1088,8 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   if (!sign_operation_key_validate(contexts.Base())) return;
   if (!check_read_file_paths_helper(paths)) return;
 
-  QStringList final_output_paths;
   QList<SafeOutputPath> safe_outputs;
-
-  for (const auto& path : paths) {
-    const QFileInfo info(path);
-
-    if (info.isDir()) {
-      const auto final_path =
-          SetExtensionOfOutputFileForArchive(path, kENCRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(1).append(path);
-      contexts->GetContextOutPath(1).append(temp_path);
-    } else {
-      const auto final_path =
-          SetExtensionOfOutputFile(path, kENCRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(0).append(path);
-      contexts->GetContextOutPath(0).append(temp_path);
-    }
-  }
-
-  if (!check_write_file_paths_helper(final_output_paths)) {
-    RemoveSafeOutputWorkDirs(safe_outputs);
+  if (!stage_file_outputs(paths, kENCRYPT, *contexts.Base(), safe_outputs)) {
     return;
   }
 
@@ -1159,34 +1111,8 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
 
   if (!check_read_file_paths_helper(paths)) return;
 
-  QStringList final_output_paths;
   QList<SafeOutputPath> safe_outputs;
-
-  for (const auto& path : paths) {
-    const QFileInfo info(path);
-    const auto extension = info.completeSuffix();
-
-    if (extension == "tar.gpg" || extension == "tar.asc") {
-      const auto final_path =
-          SetExtensionOfOutputFileForArchive(path, kDECRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(1).append(path);
-      contexts->GetContextOutPath(1).append(temp_path);
-    } else {
-      const auto final_path =
-          SetExtensionOfOutputFile(path, kDECRYPT, contexts->ascii);
-      const auto temp_path =
-          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
-
-      contexts->GetContextPath(0).append(path);
-      contexts->GetContextOutPath(0).append(temp_path);
-    }
-  }
-
-  if (!check_write_file_paths_helper(final_output_paths)) {
-    RemoveSafeOutputWorkDirs(safe_outputs);
+  if (!stage_file_outputs(paths, kDECRYPT, *contexts.Base(), safe_outputs)) {
     return;
   }
 

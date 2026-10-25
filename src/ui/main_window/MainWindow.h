@@ -863,6 +863,13 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   auto check_write_file_paths_helper(const QStringList& paths) -> bool;
 
+  /// Gives each input a staged output in @p contexts, archives in category 1
+  /// and single files in 0. False, with the staging removed, when an output
+  /// path cannot be written.
+  auto stage_file_outputs(const QStringList& paths, GpgOperation op,
+                          GpgOperaContextBasement& contexts,
+                          QList<SafeOutputPath>& safe_outputs) -> bool;
+
   /**
    * @brief
    *
