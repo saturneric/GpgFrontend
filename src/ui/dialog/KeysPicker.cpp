@@ -26,7 +26,7 @@
  *
  */
 
-#include "SigningKeysPicker.h"
+#include "KeysPicker.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "ui/function/KeyDatabaseRefresh.h"
@@ -45,34 +45,35 @@ auto CollectFingerprints(const GpgAbstractKeyPtrList& keys) -> QSet<QString> {
   return ret;
 }
 
+auto IsKeyOrSubkey(const GpgAbstractKey* k) -> bool {
+  return k->KeyType() == GpgAbstractKeyType::kGPG_KEY ||
+         k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY;
+}
+
 }  // namespace
 
-SigningKeysPicker::SigningKeysPicker(int channel, QWidget* parent)
-    : SigningKeysPicker(channel, {}, parent) {}
-
-SigningKeysPicker::SigningKeysPicker(int channel,
-                                     const GpgAbstractKeyPtrList& restrict_keys,
-                                     QWidget* parent)
-    : GeneralDialog("SigningKeysPicker", parent),
+KeysPicker::KeysPicker(const QString& name, int channel,
+                       const GpgAbstractKeyPtrList& restrict_keys,
+                       const Texts& texts, const Filter& row_filter,
+                       const Filter& key_filter, QWidget* parent)
+    : GeneralDialog(name, parent),
       channel_(channel),
       tree_view_(new KeyTreeView(
           channel,
-          [](GpgAbstractKey* k) -> bool {
-            return k != nullptr &&
-                   (k->KeyType() == GpgAbstractKeyType::kGPG_KEY ||
-                    k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) &&
-                   k->IsHasSignCap();
+          [row_filter](GpgAbstractKey* k) -> bool {
+            return k != nullptr && IsKeyOrSubkey(k) && row_filter(k);
           },
-          [allowed = CollectFingerprints(restrict_keys)](
+          [row_filter, key_filter,
+           allowed = CollectFingerprints(restrict_keys)](
               const GpgAbstractKey* k) -> bool {
             if (k == nullptr || !k->IsGood()) return false;
             // Subkey rows are only reached when their primary key already
             // passed this filter, so restricting at the primary level is
             // enough.
             if (k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
-              return k->IsHasSignCap();
+              return row_filter(k);
             }
-            if (!(k->IsPrivateKey() && k->IsHasSignCap())) return false;
+            if (!key_filter(k)) return false;
             return allowed.isEmpty() || allowed.contains(k->Fingerprint());
           })) {
   // A reload of the key databases replaces the channel this works on; find
@@ -81,23 +82,17 @@ SigningKeysPicker::SigningKeysPicker(int channel,
       this, [this]() { return channel_; },
       [this](int channel) { channel_ = channel; });
 
-#ifdef Q_OS_MACOS
-  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
-#endif
-
-  setWindowTitle(tr("Select Signing Key(s)"));
+  setWindowTitle(texts.window_title);
   setModal(true);
   setMinimumSize(560, 420);
   resize(700, 500);
 
-  auto* title_label = new QLabel(tr("Choose Signing Key(s) or Subkey(s)"));
+  auto* title_label = new QLabel(texts.heading);
   auto title_font = title_label->font();
   title_font.setBold(true);
   title_label->setFont(title_font);
 
-  auto* desc_label = new QLabel(
-      tr("Select the private key(s) or specific signing subkey(s) to use for "
-         "this operation. Expand a key to choose a particular subkey."));
+  auto* desc_label = new QLabel(texts.description);
   desc_label->setWordWrap(true);
 
   auto tips_palette = desc_label->palette();
@@ -110,16 +105,15 @@ SigningKeysPicker::SigningKeysPicker(int channel,
       QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
   confirm_btn_ = button_box->button(QDialogButtonBox::Ok);
-  confirm_btn_->setText(tr("Confirm"));
+  confirm_btn_->setText(texts.confirm);
   confirm_btn_->setEnabled(false);
 
-  button_box->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+  button_box->button(QDialogButtonBox::Cancel)->setText(texts.cancel);
 
-  connect(button_box, &QDialogButtonBox::accepted, this, [this]() {
+  connect(button_box, &QDialogButtonBox::accepted, this, [this, texts]() {
     if (tree_view_ == nullptr || tree_view_->GetAllCheckedKeys().isEmpty()) {
-      QMessageBox::information(
-          this, tr("No Key Selected"),
-          tr("Please select at least one signing key or subkey."));
+      QMessageBox::information(this, texts.none_selected_title,
+                               texts.none_selected);
       return;
     }
     accept();
@@ -128,7 +122,7 @@ SigningKeysPicker::SigningKeysPicker(int channel,
   connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   connect(tree_view_, &KeyTreeView::SignalKeysChecked, this,
-          &SigningKeysPicker::update_confirm_button_state);
+          &KeysPicker::update_confirm_button_state);
 
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(10, 10, 10, 10);
@@ -144,7 +138,7 @@ SigningKeysPicker::SigningKeysPicker(int channel,
   update_confirm_button_state();
 }
 
-auto SigningKeysPicker::GetSigningKeys() const -> GpgAbstractKeyPtrList {
+auto KeysPicker::GetKeys() const -> GpgAbstractKeyPtrList {
   if (tree_view_ == nullptr) return {};
 
   const auto keys = tree_view_->GetAllCheckedKeys();
@@ -152,11 +146,7 @@ auto SigningKeysPicker::GetSigningKeys() const -> GpgAbstractKeyPtrList {
   auto& getter = AbstractKeyRepository::GetInstance(channel_);
 
   for (const auto& k : keys) {
-    if (k == nullptr) continue;
-    if (k->KeyType() != GpgAbstractKeyType::kGPG_KEY &&
-        k->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY) {
-      continue;
-    }
+    if (k == nullptr || !IsKeyOrSubkey(k.get())) continue;
     auto key = getter.GetKey(k->Fingerprint() + "!");
     if (key != nullptr) ret.push_back(key);
   }
@@ -164,14 +154,51 @@ auto SigningKeysPicker::GetSigningKeys() const -> GpgAbstractKeyPtrList {
   return ret;
 }
 
-void SigningKeysPicker::update_confirm_button_state() {
+void KeysPicker::update_confirm_button_state() {
   if (confirm_btn_ == nullptr || tree_view_ == nullptr) return;
   confirm_btn_->setEnabled(!tree_view_->GetAllCheckedKeys().isEmpty());
 }
 
-void SigningKeysPicker::showEvent(QShowEvent* event) {
+void KeysPicker::showEvent(QShowEvent* event) {
   GeneralDialog::showEvent(event);
   if (!isRectRestored()) movePosition2CenterOfParent();
 }
+
+EncryptionKeysPicker::EncryptionKeysPicker(
+    int channel, const GpgAbstractKeyPtrList& restrict_keys, QWidget* parent)
+    : KeysPicker(
+          "EncryptionKeysPicker", channel, restrict_keys,
+          {tr("Select Encryption Key(s)"),
+           tr("Choose Encryption Key(s) or Subkey(s)"),
+           tr("Select the recipient key(s) or specific encryption subkey(s) to "
+              "use for this operation. Expand a key to choose a particular "
+              "subkey."),
+           tr("Confirm"), tr("Cancel"), tr("No Key Selected"),
+           tr("Please select at least one encryption key or subkey.")},
+          [](const GpgAbstractKey* k) {
+            return k->IsHasEncrCap() && !k->IsRevoked();
+          },
+          [](const GpgAbstractKey* k) { return k->IsHasEncrCap(); }, parent) {}
+
+SigningKeysPicker::SigningKeysPicker(int channel, QWidget* parent)
+    : SigningKeysPicker(channel, {}, parent) {}
+
+SigningKeysPicker::SigningKeysPicker(int channel,
+                                     const GpgAbstractKeyPtrList& restrict_keys,
+                                     QWidget* parent)
+    : KeysPicker(
+          "SigningKeysPicker", channel, restrict_keys,
+          {tr("Select Signing Key(s)"),
+           tr("Choose Signing Key(s) or Subkey(s)"),
+           tr("Select the private key(s) or specific signing subkey(s) to use "
+              "for this operation. Expand a key to choose a particular "
+              "subkey."),
+           tr("Confirm"), tr("Cancel"), tr("No Key Selected"),
+           tr("Please select at least one signing key or subkey.")},
+          [](const GpgAbstractKey* k) { return k->IsHasSignCap(); },
+          [](const GpgAbstractKey* k) {
+            return k->IsPrivateKey() && k->IsHasSignCap();
+          },
+          parent) {}
 
 }  // namespace GpgFrontend::UI

@@ -36,7 +36,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/dialog/SigningKeysPicker.h"
+#include "ui/dialog/KeysPicker.h"
 #include "ui/function/FileTypeUtils.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -661,7 +661,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
   // return when canceled
   if (picker->result() == QDialog::Rejected) return;
 
-  auto signer_keys = picker->GetSigningKeys();
+  auto signer_keys = picker->GetKeys();
   assert(std::all_of(signer_keys.begin(), signer_keys.end(),
                      [](const auto& key) { return key->IsGood(); }));
 

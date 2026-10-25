@@ -36,8 +36,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/dialog/EncryptionKeysPicker.h"
-#include "ui/dialog/SigningKeysPicker.h"
+#include "ui/dialog/KeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/main_window/EncryptBlockReason.h"
@@ -229,7 +228,7 @@ auto MainWindow::sign_operation_key_validate(
 
   if (picker->result() == QDialog::Rejected) return false;
 
-  contexts->singer_keys = picker->GetSigningKeys();
+  contexts->singer_keys = picker->GetKeys();
   return !contexts->singer_keys.isEmpty();
 }
 
@@ -470,7 +469,7 @@ auto MainWindow::resolve_encrypt_recipients_helper(
     canceled = true;
     return {};
   }
-  return confirmed_mix(picker->GetEncryptionKeys());
+  return confirmed_mix(picker->GetKeys());
 }
 
 void MainWindow::SlotEncrypt() {
@@ -543,7 +542,7 @@ void MainWindow::SlotSign() {
         [](SigningKeysPicker* p) { p->deleteLater(); });
     picker->exec();
     if (picker->result() == QDialog::Rejected) return;
-    contexts->keys = picker->GetSigningKeys();
+    contexts->keys = picker->GetKeys();
   } else {
     contexts->keys = sign_keys;
   }
