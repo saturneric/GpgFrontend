@@ -943,6 +943,12 @@ jobs:
           # is D:\a\..., and unquoted in bash its backslashes vanish. Read into
           # a variable first, because a failure inside `< <(...)` is swallowed
           # and left windeployqt never run on the libraries at all.
+          # The key database opens QSQLITE and nothing else. windeployqt
+          # would otherwise copy every SQL driver Qt has, and the Firebird,
+          # MySQL and PostgreSQL ones import client libraries (fbclient,
+          # libmariadb, libpq) that are not installed: dead files that could
+          # never load, and that the runtime deployment rightly refuses.
+          UNUSED_QT_PLUGINS="qsqlibase,qsqlmysql,qsqlpsql"
           LIBS="$(../scripts/build_info.sh . deployable_libraries)"
           test -n "$LIBS" || { echo "no deployable libraries registered" >&2; exit 1; }
           while IFS= read -r lib; do
@@ -951,16 +957,16 @@ jobs:
               echo "registered library $lib is not in artifacts/bin" >&2
               exit 1
             }
-            windeployqt6 --no-translations --force "./artifacts/bin/$lib"
+            windeployqt6 --no-translations --force --exclude-plugins "$UNUSED_QT_PLUGINS" "./artifacts/bin/$lib"
           done <<< "$LIBS"
-          windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
+          windeployqt6 --no-translations --force --exclude-plugins "$UNUSED_QT_PLUGINS" ./artifacts/bin/GpgFrontend.exe
           # A module may need Qt modules the app itself never links (Qt6Xml,
           # Qt6Network, ...), so each one still has to be scanned. But --dir
           # sends what it needs into bin/, which is the first directory the
           # loader searches, instead of duplicating the whole Qt runtime next
           # to every module.
           for module in $(find ./artifacts/modules -type f -name '*.dll' | sort); do
-            windeployqt6 --no-translations --force --dir ./artifacts/bin "$module"
+            windeployqt6 --no-translations --force --exclude-plugins "$UNUSED_QT_PLUGINS" --dir ./artifacts/bin "$module"
           done
           # windeployqt brings Qt's plugins (platforms/, tls/, imageformats/
           # ...) but not the MSYS2 DLLs those plugins import. The build's own

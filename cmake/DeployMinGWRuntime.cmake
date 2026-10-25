@@ -56,6 +56,15 @@
 
 cmake_minimum_required(VERSION 3.24)
 
+# Match against normalized paths. A Windows host reports system DLLs as
+# `C:\Windows\system32/x.dll`, which the forward-slash exclusions below would
+# otherwise never match: harmless to the result, since such a path is still
+# recognised as a system DLL afterwards, but Windows' own DLLs would be
+# traversed for nothing and every one of them warned about.
+if(POLICY CMP0207)
+  cmake_policy(SET CMP0207 NEW)
+endif()
+
 function(_gf_deploy_fail)
   string(JOIN "" _msg ${ARGN})
   message(FATAL_ERROR "MinGW runtime deployment: ${_msg}")
