@@ -946,16 +946,8 @@ void KeyMgmt::bulk_set_owner_trust() {
       0, false, &ok);
   if (!ok || item.isEmpty()) return;
 
-  int trust_level = 1;  // Undefined
-  if (item == tr("Ultimate")) {
-    trust_level = 5;
-  } else if (item == tr("Full")) {
-    trust_level = 4;
-  } else if (item == tr("Marginal")) {
-    trust_level = 3;
-  } else if (item == tr("Never")) {
-    trust_level = 2;
-  }
+  // The list is in level order, Undefined (1) to Ultimate (5).
+  const int trust_level = static_cast<int>(items.indexOf(item)) + 1;
 
   const auto channel = key_list_->GetCurrentGpgContextChannel();
   int failed = 0;

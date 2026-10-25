@@ -65,46 +65,17 @@ auto SetOwnerTrustLevel::Exec(int channel, const GpgAbstractKeyPtr& key)
     }
   }
 
-  int index = 0;
-  switch (owner_trust_level) {
-    case 2:
-      index = 1;
-      break;
-    case 3:
-      index = 2;
-      break;
-    case 4:
-      index = 3;
-      break;
-    case 5:
-      index = 4;
-      break;
-    case 1:
-    default:
-      index = 0;
-  }
+  // The list is in level order, Undefined (1) to Ultimate (5).
+  const int index = owner_trust_level >= 1 && owner_trust_level <= 5
+                        ? owner_trust_level - 1
+                        : 0;
 
   QString item = QInputDialog::getItem(this, tr("Modify Owner Trust Level"),
                                        tr("Trust for the Key Pair:"), items,
                                        index, false, &ok);
 
   if (ok && !item.isEmpty()) {
-    int trust_level = 0;  // Unknown Level
-    if (item == tr("Ultimate")) {
-      trust_level = 5;
-    } else if (item == tr("Full")) {
-      trust_level = 4;
-    } else if (item == tr("Marginal")) {
-      trust_level = 3;
-    } else if (item == tr("Never")) {
-      trust_level = 2;
-    } else if (item == tr("Undefined")) {
-      trust_level = 1;
-    }
-
-    if (trust_level == 0) {
-      trust_level = 1;
-    }
+    const int trust_level = static_cast<int>(items.indexOf(item)) + 1;
 
     bool status =
         KeyManagementOperation::GetInstance(channel).SetOwnerTrustLevel(
