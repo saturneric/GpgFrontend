@@ -137,9 +137,9 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
               },
               [=](int rtn, const DataObjectPtr& data_object) {
                 (void)lease;
+                // A runnable that threw never filled the object in.
                 if (rtn < 0) {
-                  callback(GPG_ERR_USER_1,
-                           ExtractParams<DataObjectPtr>(data_object, 1));
+                  callback(GPG_ERR_USER_1, TransferParams());
                 } else {
                   callback(ExtractParams<GpgError>(data_object, 0),
                            ExtractParams<DataObjectPtr>(data_object, 1));
@@ -183,11 +183,12 @@ auto RunOperaAsync(const OperaRunnable& runnable,
                 auto err = runnable(custom_data_object);
 
                 data_object->Swap({err, custom_data_object});
-                return static_cast<int>(err);
+                return 0;
               },
               [=](int rtn, const DataObjectPtr& data_object) {
+                // A runnable that threw never filled the object in.
                 if (rtn != 0) {
-                  callback(-1, ExtractParams<DataObjectPtr>(data_object, 1));
+                  callback(-1, TransferParams());
                 } else {
                   callback(ExtractParams<GFError>(data_object, 0),
                            ExtractParams<DataObjectPtr>(data_object, 1));

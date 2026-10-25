@@ -27,6 +27,7 @@
  */
 
 #include <atomic>
+#include <stdexcept>
 #include <thread>
 
 #include "GpgCoreTest.h"
@@ -360,6 +361,64 @@ TEST_F(GpgCoreTest, GnuPgQueuedOperationSkipTest) {
   ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
   ASSERT_TRUE(ran.load());
   ASSERT_EQ(CheckGpgError(reported), GPG_ERR_NO_ERROR);
+}
+
+// A runnable that throws reaches its callback as an error, with an empty data
+// object, rather than taking the process down from inside a slot.
+TEST_F(GpgCoreTest, ThrowingOperationReportsAnError) {
+  const EngineSupportList support_ifs{{OpenPGPEngine::kGNUPG, "2.0.0"}};
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+
+  std::atomic<bool> done{false};
+  GpgError reported = GPG_ERR_NO_ERROR;
+  size_t size = 1;
+  RunGpgOperaAsync(
+      kGpgChannelForUnitTest,
+      [](const DataObjectPtr&) -> GpgError {
+        throw std::runtime_error("runnable failed");
+      },
+      [&](GpgError err, const DataObjectPtr& data_object) {
+        reported = err;
+        size = data_object->GetObjectSize();
+        done = true;
+      },
+      "test_throwing_gpg_opera", support_ifs);
+
+  ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
+  EXPECT_NE(reported, GPG_ERR_NO_ERROR);
+  EXPECT_EQ(size, 0U);
+
+  done = false;
+  GFError plain_reported = 0;
+  RunOperaAsync(
+      [](const DataObjectPtr&) -> GFError {
+        throw std::runtime_error("runnable failed");
+      },
+      [&](GFError err, const DataObjectPtr& data_object) {
+        plain_reported = err;
+        size = data_object->GetObjectSize();
+        done = true;
+      },
+      "test_throwing_opera");
+
+  ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
+  EXPECT_NE(plain_reported, 0U);
+  EXPECT_EQ(size, 0U);
+}
+
+// The runnable's own result reaches the callback, not a stand-in for it.
+TEST_F(GpgCoreTest, OperationErrorReachesItsCallback) {
+  std::atomic<bool> done{false};
+  GFError reported = 0;
+  RunOperaAsync([](const DataObjectPtr&) -> GFError { return 42; },
+                [&](GFError err, const DataObjectPtr&) {
+                  reported = err;
+                  done = true;
+                },
+                "test_failing_opera");
+
+  ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
+  EXPECT_EQ(reported, 42U);
 }
 
 // A GnuPG encryption already running is aborted in-flight when a cancel is
