@@ -48,10 +48,6 @@ auto HasPathSeparator(const QString& text) -> bool {
 auto NormalizedAbsolutePath(const QString& path) -> QString {
   auto normalized = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
 
-#ifdef Q_OS_WIN
-  normalized.replace("\\", "/");
-#endif
-
   return normalized;
 }
 
@@ -117,10 +113,6 @@ auto IsSameDirectoryOperation(const QStringList& source_paths,
   for (const auto& source_path : source_paths) {
     auto source_dir =
         QDir::cleanPath(QFileInfo(source_path).absoluteDir().absolutePath());
-
-#ifdef Q_OS_WIN
-    source_dir.replace("\\", "/");
-#endif
 
     if (source_dir != clean_target_dir) return false;
   }

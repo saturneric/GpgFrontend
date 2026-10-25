@@ -56,10 +56,6 @@ auto NormalizeUserPath(QString path, const QString& current_path) -> QString {
 auto ToDisplayUserPath(const QString& path) -> QString {
   auto clean_path = QDir::cleanPath(path);
 
-#ifdef Q_OS_WIN
-  clean_path.replace("\\", "/");
-#endif
-
   const auto home_path = QDir::cleanPath(QDir::homePath());
 
   if (clean_path == home_path) {
@@ -79,9 +75,6 @@ auto SplitPathSegments(const QString& path) -> QList<PathSegment> {
   QList<PathSegment> segments;
 
   auto clean = QDir::cleanPath(path);
-#ifdef Q_OS_WIN
-  clean.replace("\\", "/");
-#endif
 
   if (clean.isEmpty()) return segments;
 
@@ -508,10 +501,6 @@ void FilePathBar::update_path_completion(const QString& input) {
     }
 
     auto candidate_path = QDir::cleanPath(entry.absoluteFilePath());
-
-#ifdef Q_OS_WIN
-    candidate_path.replace("\\", "/");
-#endif
 
     if (input.trimmed().startsWith("~")) {
       candidates.append(ToDisplayUserPath(candidate_path));
