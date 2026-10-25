@@ -694,7 +694,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
                 {"channel", GFBuffer{QString::number(
                                 m_key_list_->GetCurrentGpgContextChannel())}},
                 {"sign_key", GFBuffer{signer_keys.front()->ID()}},
-                {"encrypt_keys", GFBuffer{key_ids.front()}},
+                {"encrypt_keys", GFBuffer{key_ids.join(';')}},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
