@@ -25,11 +25,9 @@
 
 cmake_minimum_required(VERSION 3.24)
 
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 if(CMAKE_GENERATOR STREQUAL "Xcode")
-  set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverridesXcode.cmake")
   set(XCODE_BUILD 1)
-else()
-  set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 endif()
 
 # define project
@@ -56,7 +54,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # general build options
 option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
-option(GPGFRONTEND_BUILD_APP_IMAGE "Deprecated; the AppImage job installs" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
 option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
@@ -66,7 +63,6 @@ option(GPGFRONTEND_BUILD_SCREENSHOT_MODE "Build the hidden --screenshot mode tha
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
-option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
 option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # check options
@@ -111,20 +107,12 @@ set(GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM "AUTO" CACHE STRING
 set_property(CACHE GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM
   PROPERTY STRINGS "AUTO" "FILE_SHA256" "PE_AUTHENTICODE_SHA256")
 
-if(GPGFRONTEND_BUILD_APP_IMAGE)
-  set(BUILD_APP_IMAGE 1)
-endif()
-
 if(GPGFRONTEND_BUILD_APP_FOR_PACKAGE)
   set(BUILD_APP_FOR_PACKAGE 1)
   set(BUILD_STRIP_RPATH 1) # suppose that it's a standard for deb or rpm packaging
 
   if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
-    if(BUILD_FOR_PACKAGING)
-      set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Normal packaging path" FORCE)
-    else()
-      set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Normal installing path" FORCE)
-    endif()
+    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Normal installing path" FORCE)
   endif()
 
   set(PACKAGING_INSTALL_PREFIX "/usr" CACHE PATH "Prefix by packaging")
@@ -311,9 +299,6 @@ if(APPLE)
   set(OS_PLATFORM 1)
 
   if(XCODE_BUILD)
-    set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
-    message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
-
     # For macOS sandbox, we need to define APPLE_SANDBOX for the source code to
     # conditionally compile the code related to sandbox, and we also need to
     # link the Security framework for the sandbox entitlements.
