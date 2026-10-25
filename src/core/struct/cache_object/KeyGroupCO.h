@@ -54,7 +54,7 @@ struct KeyGroupCO {
       comment = v.toString();
     }
     if (const auto v = j["creation_time"]; v.isDouble()) {
-      creation_time = QDateTime::fromSecsSinceEpoch(v.toInt());
+      creation_time = QDateTime::fromSecsSinceEpoch(v.toInteger());
     }
 
     if (!j.contains("key_ids") || !j["key_ids"].isArray()) return;

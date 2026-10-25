@@ -28,6 +28,7 @@
 
 #include "GFCoreTest.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
+#include "core/struct/cache_object/KeyGroupCO.h"
 
 namespace GpgFrontend::Test {
 
@@ -42,6 +43,20 @@ auto ContainsCategoryId(const QList<KeyCategoryCO>& cats, const QString& id)
 }
 
 }  // namespace
+
+// Stored as 64-bit seconds, so it must be read back as 64-bit seconds: a
+// 32-bit read turns every date after 2038 into the epoch.
+TEST(KeyCacheObjectTest, CreationTimeSurvivesARoundTripPast2038) {
+  const auto later = QDateTime::fromSecsSinceEpoch(qint64{4102444800});
+
+  KeyCategoryCO category;
+  category.creation_time = later;
+  EXPECT_EQ(KeyCategoryCO(category.ToJson()).creation_time, later);
+
+  KeyGroupCO group;
+  group.creation_time = later;
+  EXPECT_EQ(KeyGroupCO(group.ToJson()).creation_time, later);
+}
 
 TEST_F(GFCoreTest, CoreKeyCategoryCustomLifecycle) {
   auto& repo = KeyCategoryRepository::GetInstance();
