@@ -71,14 +71,7 @@ pub extern "C" fn gfr_crypto_sign_data(
         let name_str = unsafe { CStr::from_ptr(name) }.to_str().unwrap_or("");
         let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
 
-        let mut skey_blocks = Vec::with_capacity(signers_count);
-
-        unsafe {
-            let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
-            for gfr_buf in sk_slice {
-                skey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let skey_blocks = unsafe { super::key_blocks_arg(secret_keys, signers_count) }?;
 
         // Perform the multi-signature and get the structured report
         let internal_result = crate::crypto::sign_internal(
@@ -182,13 +175,7 @@ pub extern "C" fn gfr_crypto_sign_file(
             .to_string_lossy();
 
         // 4. Safely extract secret keys
-        let mut skey_blocks = Vec::with_capacity(signers_count);
-        unsafe {
-            let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
-            for gfr_buf in sk_slice {
-                skey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let skey_blocks = unsafe { super::key_blocks_arg(secret_keys, signers_count) }?;
 
         // 5. Open input and output files
         let in_file = crate::crypto::open_input_file(in_path_str)?;

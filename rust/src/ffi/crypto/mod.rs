@@ -44,6 +44,21 @@ impl ZeroableResult for crate::types::GfrVerifyResultC {}
 impl ZeroableResult for crate::types::GfrEncryptAndSignResultC {}
 impl ZeroableResult for crate::types::GfrDecryptAndVerifyResultC {}
 
+/// The key blocks a C caller passed as an array of `GfrBuffer`, as string
+/// slices. A block that is empty or not UTF-8 refuses the whole call.
+///
+/// # Safety
+/// `blocks` must point to `count` valid `GfrBuffer`s that outlive the result.
+pub(crate) unsafe fn key_blocks_arg<'a>(
+    blocks: *const crate::types::GfrBuffer,
+    count: usize,
+) -> Result<Vec<&'a str>, GfrStatus> {
+    unsafe { std::slice::from_raw_parts(blocks, count) }
+        .iter()
+        .map(|block| unsafe { block.as_str() })
+        .collect()
+}
+
 /// On `ErrorUnusableKey`, put the recipients the encryption rejected into
 /// `meta`'s invalid-recipient list, so the caller learns each one's reason
 /// even though no message was produced. Freed with the result as usual.

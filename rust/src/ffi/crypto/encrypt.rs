@@ -62,6 +62,22 @@ fn leak_recipients_c_array(
     (ptr, count)
 }
 
+/// Leaks the recipients a successful encryption skipped to C, as the
+/// pointer and count its metadata holds. Freed with the result.
+fn leak_invalid_recipients(
+    recipients: Vec<crypto::InvalidRecipientInternal>,
+) -> (*mut GfrInvalidRecipientC, usize) {
+    let boxed: Box<[GfrInvalidRecipientC]> = recipients
+        .into_iter()
+        .map(|rec| GfrInvalidRecipientC {
+            fpr: CString::new(rec.fpr).unwrap_or_default().into_raw(),
+            reason: rec.reason,
+        })
+        .collect();
+    let count = boxed.len();
+    (Box::into_raw(boxed) as *mut GfrInvalidRecipientC, count)
+}
+
 /// The encryption metadata inside `out_result`, or null.
 fn out_meta(out_result: *mut GfrEncryptResultC) -> *mut crate::types::GfrEncryptMetadataC {
     if out_result.is_null() {
@@ -118,14 +134,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
         let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
 
         // Convert the C array of GfrBuffer into a Rust Vec<&str>
-        let mut key_blocks = Vec::with_capacity(pub_keys_count);
-        unsafe {
-            let keys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for gfr_buf in keys_slice {
-                let key_str = gfr_buf.as_str()?;
-                key_blocks.push(key_str);
-            }
-        }
+        let key_blocks = unsafe { super::key_blocks_arg(pub_keys, pub_keys_count) }?;
 
         // Perform the encryption using the updated internal function
         let internal_result =
@@ -140,18 +149,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
         std::mem::forget(data_boxed); // Leak payload to C
 
         // 2. Process invalid recipients array
-        let mut c_invalid_recs = Vec::with_capacity(internal_result.invalid_recipients.len());
-        for rec in internal_result.invalid_recipients {
-            c_invalid_recs.push(GfrInvalidRecipientC {
-                fpr: CString::new(rec.fpr).unwrap_or_default().into_raw(),
-                reason: rec.reason,
-            });
-        }
-
-        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
-        let recs_ptr = boxed_recs.as_mut_ptr();
-        let recs_count = boxed_recs.len();
-        std::mem::forget(boxed_recs); // Leak array to C
+        let (recs_ptr, recs_count) = leak_invalid_recipients(internal_result.invalid_recipients);
 
         let (recipients_ptr, recipients_count) =
             leak_recipients_c_array(internal_result.recipients);
@@ -221,14 +219,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
             .to_string_lossy();
 
         // 4. Convert the C array of GfrBuffer into a Rust Vec<&str>
-        let mut key_blocks = Vec::with_capacity(pub_keys_count);
-        unsafe {
-            let keys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for gfr_buf in keys_slice {
-                let key_str = gfr_buf.as_str()?;
-                key_blocks.push(key_str);
-            }
-        }
+        let key_blocks = unsafe { super::key_blocks_arg(pub_keys, pub_keys_count) }?;
 
         // 5. Open input and output files
         let in_file = crypto::open_input_file(in_path_str)?;
@@ -246,18 +237,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         crypto::commit_output(stage)?;
 
         // 7. Process invalid recipients array and leak it to C
-        let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
-        for rec in stream_result.invalid_recipients {
-            c_invalid_recs.push(GfrInvalidRecipientC {
-                fpr: CString::new(rec.fpr).unwrap_or_default().into_raw(),
-                reason: rec.reason,
-            });
-        }
-
-        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
-        let recs_ptr = boxed_recs.as_mut_ptr();
-        let recs_count = boxed_recs.len();
-        std::mem::forget(boxed_recs); // Leak array to C
+        let (recs_ptr, recs_count) = leak_invalid_recipients(stream_result.invalid_recipients);
 
         let (recipients_ptr, recipients_count) = leak_recipients_c_array(stream_result.recipients);
 
@@ -321,14 +301,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
         // 4. Convert the C array of GfrBuffer into a Rust Vec<&str>
-        let mut key_blocks = Vec::with_capacity(pub_keys_count);
-        unsafe {
-            let keys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for gfr_buf in keys_slice {
-                let key_str = gfr_buf.as_str()?;
-                key_blocks.push(key_str);
-            }
-        }
+        let key_blocks = unsafe { super::key_blocks_arg(pub_keys, pub_keys_count) }?;
 
         // 6. Perform the streaming encryption
         let stream_result = crypto::encrypt_directory_internal(
@@ -340,18 +313,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
         )?;
 
         // 7. Process invalid recipients array and leak it to C
-        let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
-        for rec in stream_result.invalid_recipients {
-            c_invalid_recs.push(GfrInvalidRecipientC {
-                fpr: CString::new(rec.fpr).unwrap_or_default().into_raw(),
-                reason: rec.reason,
-            });
-        }
-
-        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
-        let recs_ptr = boxed_recs.as_mut_ptr();
-        let recs_count = boxed_recs.len();
-        std::mem::forget(boxed_recs); // Leak array to C
+        let (recs_ptr, recs_count) = leak_invalid_recipients(stream_result.invalid_recipients);
 
         let (recipients_ptr, recipients_count) = leak_recipients_c_array(stream_result.recipients);
 
@@ -414,21 +376,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
         let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
 
         // Safely extract public keys
-        let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
-        unsafe {
-            let pkeys_slice = slice::from_raw_parts(pub_keys, pub_keys_count);
-            for gfr_buf in pkeys_slice {
-                pkey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let pkey_blocks = unsafe { super::key_blocks_arg(pub_keys, pub_keys_count) }?;
 
-        let mut skey_blocks = Vec::with_capacity(signers_count);
-        unsafe {
-            let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
-            for gfr_buf in sk_slice {
-                skey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let skey_blocks = unsafe { super::key_blocks_arg(secret_keys, signers_count) }?;
 
         // Execute core logic
         let internal_result = crate::crypto::encrypt_and_sign_internal(
@@ -466,17 +416,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
         std::mem::forget(boxed_sigs);
 
         // 3. Process Invalid Recipients
-        let mut c_invalid_recs = Vec::with_capacity(internal_result.invalid_recipients.len());
-        for rec in internal_result.invalid_recipients {
-            c_invalid_recs.push(GfrInvalidRecipientC {
-                fpr: CString::new(rec.fpr).unwrap_or_default().into_raw(),
-                reason: rec.reason,
-            });
-        }
-        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
-        let recs_ptr = boxed_recs.as_mut_ptr();
-        let recs_count = boxed_recs.len();
-        std::mem::forget(boxed_recs);
+        let (recs_ptr, recs_count) = leak_invalid_recipients(internal_result.invalid_recipients);
 
         let (recipients_ptr, recipients_count) =
             leak_recipients_c_array(internal_result.recipients);
@@ -552,22 +492,10 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
             .to_string_lossy();
 
         // 4. Safely extract public keys (Recipients)
-        let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
-        unsafe {
-            let pkeys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for gfr_buf in pkeys_slice {
-                pkey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let pkey_blocks = unsafe { super::key_blocks_arg(pub_keys, pub_keys_count) }?;
 
         // 5. Safely extract secret keys (Signers)
-        let mut skey_blocks = Vec::with_capacity(signers_count);
-        unsafe {
-            let sk_slice = std::slice::from_raw_parts(secret_keys, signers_count);
-            for gfr_buf in sk_slice {
-                skey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let skey_blocks = unsafe { super::key_blocks_arg(secret_keys, signers_count) }?;
 
         crate::crypto::require_signers(&skey_blocks)?;
 
@@ -612,19 +540,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
         std::mem::forget(boxed_sigs);
 
         // 9. Process Invalid Recipients array and leak it to C
-        let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
-        for rec in stream_result.invalid_recipients {
-            c_invalid_recs.push(GfrInvalidRecipientC {
-                fpr: std::ffi::CString::new(rec.fpr)
-                    .unwrap_or_default()
-                    .into_raw(),
-                reason: rec.reason,
-            });
-        }
-        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
-        let recs_ptr = boxed_recs.as_mut_ptr();
-        let recs_count = boxed_recs.len();
-        std::mem::forget(boxed_recs);
+        let (recs_ptr, recs_count) = leak_invalid_recipients(stream_result.invalid_recipients);
 
         let (recipients_ptr, recipients_count) = leak_recipients_c_array(stream_result.recipients);
 
@@ -690,21 +606,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
-        unsafe {
-            let pkeys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for gfr_buf in pkeys_slice {
-                pkey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let pkey_blocks = unsafe { super::key_blocks_arg(pub_keys, pub_keys_count) }?;
 
-        let mut skey_blocks = Vec::with_capacity(signers_count);
-        unsafe {
-            let sk_slice = std::slice::from_raw_parts(secret_keys, signers_count);
-            for gfr_buf in sk_slice {
-                skey_blocks.push(gfr_buf.as_str()?);
-            }
-        }
+        let skey_blocks = unsafe { super::key_blocks_arg(secret_keys, signers_count) }?;
 
         let internal_result = encrypt_and_sign_directory_internal(
             channel,
@@ -738,19 +642,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
         let sigs_count = boxed_sigs.len();
         std::mem::forget(boxed_sigs);
 
-        let mut c_invalid_recs = Vec::with_capacity(internal_result.invalid_recipients.len());
-        for rec in internal_result.invalid_recipients {
-            c_invalid_recs.push(GfrInvalidRecipientC {
-                fpr: std::ffi::CString::new(rec.fpr)
-                    .unwrap_or_default()
-                    .into_raw(),
-                reason: rec.reason,
-            });
-        }
-        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
-        let recs_ptr = boxed_recs.as_mut_ptr();
-        let recs_count = boxed_recs.len();
-        std::mem::forget(boxed_recs);
+        let (recs_ptr, recs_count) = leak_invalid_recipients(internal_result.invalid_recipients);
 
         let (recipients_ptr, recipients_count) =
             leak_recipients_c_array(internal_result.recipients);
