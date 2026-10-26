@@ -864,8 +864,10 @@ void KeyMgmt::SlotExportKeyToKeyPackage() {
   auto keys = target_keys();
   if (keys.empty()) return;
 
+  // Public keys only until the user asks for more: a package with private
+  // keys in it is the one that has to be guarded.
   auto* dialog = new ExportKeyPackageDialog(
-      key_list_->GetCurrentGpgContextChannel(), keys, this);
+      key_list_->GetCurrentGpgContextChannel(), keys, {}, this);
   // Modal and deleted on close by itself; show() rather than exec() spares
   // the nested event loop, and the status line waits for a real export.
   connect(dialog, &QDialog::accepted, this,
@@ -1060,8 +1062,12 @@ void KeyMgmt::backup_all_private_keys() {
     return;
   }
 
+  // A backup of private keys that left them out would back up nothing, so
+  // both options start ticked; the wizard still shows them before anything
+  // is written.
   auto* dialog = new ExportKeyPackageDialog(
-      key_list_->GetCurrentGpgContextChannel(), keys, this);
+      key_list_->GetCurrentGpgContextChannel(), keys,
+      {.include_private = true, .only_with_private = true}, this);
   // Modal and deleted on close by itself; show() rather than exec() spares
   // the nested event loop, and the status line waits for a real export.
   connect(dialog, &QDialog::accepted, this, [this]() {
