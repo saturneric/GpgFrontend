@@ -30,6 +30,7 @@
 
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/rpgp/KeyStorage.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -105,6 +106,20 @@ auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
                                           const QString& key_path,
                                           const GFBuffer& pin)
     -> std::tuple<QString, QSharedPointer<GpgImportInformation>> {
+  auto [err, key_data] = OpenKeyPackage(key_package_path, key_path, pin);
+  if (!err.isEmpty()) return {err, {}};
+
+  auto p_info =
+      KeyImportExportOperation::GetInstance(GetChannel()).ImportKey(key_data);
+  if (!p_info) return {{"Import Key Data in the Key Package Failed"}, {}};
+
+  return {QString{}, p_info};
+}
+
+auto KeyPackageOperator::OpenKeyPackage(const QString& key_package_path,
+                                        const QString& key_path,
+                                        const GFBuffer& pin)
+    -> std::tuple<QString, GFBuffer> {
   auto [succ_e, encrypted] = ReadFileGFBuffer(key_package_path);
   if (!succ_e || encrypted.Empty()) return {{"Read Key Package Failed"}, {}};
 
@@ -119,8 +134,70 @@ auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
   auto key_data = GFBufferFactory::Decrypt(*passphrase, encrypted);
   if (!key_data) return {{"Decrypt the Key Package Failed"}, {}};
 
+  return {QString{}, *key_data};
+}
+
+auto KeyPackageOperator::ListKeyPackageKeys(const GFBuffer& key_data)
+    -> QList<KeyPackageKey> {
+  QList<KeyPackageKey> keys;
+
+  for (const auto& gf_key : GetGFKeysFromKeyBlock(key_data)) {
+    const auto& meta = gf_key.metadata;
+    if (meta.fpr.isEmpty()) continue;
+
+    auto it = std::find_if(keys.begin(), keys.end(), [&](const auto& key) {
+      return key.fpr.compare(meta.fpr, Qt::CaseInsensitive) == 0;
+    });
+    if (it != keys.end()) {
+      it->has_secret = it->has_secret || meta.has_secret;
+      continue;
+    }
+
+    KeyPackageKey key;
+    key.fpr = meta.fpr.toUpper();
+    key.key_id = meta.key_id.toUpper();
+    key.has_secret = meta.has_secret;
+
+    // The primary user ID names the key; the first stands in without one.
+    const auto primary =
+        std::find_if(meta.user_ids.begin(), meta.user_ids.end(),
+                     [](const auto& uid) { return uid.is_primary; });
+    const auto* uid = primary != meta.user_ids.end() ? &*primary
+                      : meta.user_ids.isEmpty()      ? nullptr
+                                                     : &meta.user_ids.front();
+    if (uid != nullptr) {
+      key.name = uid->name;
+      key.email = uid->email;
+    }
+
+    keys.append(key);
+  }
+
+  return keys;
+}
+
+auto KeyPackageOperator::ImportKeyPackageKeys(const GFBuffer& key_data,
+                                              const QStringList& fprs)
+    -> std::tuple<QString, QSharedPointer<GpgImportInformation>> {
+  // Every block of every chosen key, public and secret, joined into one
+  // armored key block that either engine imports as usual. Blocks of keys
+  // left out never reach the engine.
+  GFBuffer selected;
+  for (const auto& gf_key : GetGFKeysFromKeyBlock(key_data)) {
+    if (!fprs.contains(gf_key.metadata.fpr, Qt::CaseInsensitive)) continue;
+
+    for (const auto* block :
+         {&gf_key.blocks.public_key, &gf_key.blocks.secret_key}) {
+      if (block->Empty()) continue;
+      selected.Append(*block);
+      selected.Append("\n", 1);
+    }
+  }
+  if (selected.Empty())
+    return {{"No Selected Key Found in the Key Package"}, {}};
+
   auto p_info =
-      KeyImportExportOperation::GetInstance(GetChannel()).ImportKey(*key_data);
+      KeyImportExportOperation::GetInstance(GetChannel()).ImportKey(selected);
   if (!p_info) return {{"Import Key Data in the Key Package Failed"}, {}};
 
   return {QString{}, p_info};

@@ -36,6 +36,17 @@
 namespace GpgFrontend {
 
 /**
+ * @brief One key found inside an opened key package.
+ */
+struct KeyPackageKey {
+  QString fpr;
+  QString key_id;
+  QString name;   ///< the primary user ID's name
+  QString email;  ///< the primary user ID's email
+  bool has_secret = false;
+};
+
+/**
  * @brief Singleton operator for creating and importing encrypted key packages.
  *
  * A key package bundles exported OpenPGP key data encrypted with a randomly
@@ -101,6 +112,47 @@ class GF_CORE_EXPORT KeyPackageOperator
    */
   auto ImportKeyPackage(const QString &key_package_path,
                         const QString &key_path, const GFBuffer &pin)
+      -> std::tuple<QString, QSharedPointer<GpgImportInformation>>;
+
+  /**
+   * @brief Decrypt a key package without importing anything.
+   *
+   * The first half of ImportKeyPackage(): read both files, open the key file
+   * with @p pin, then open the package with what it held.
+   *
+   * @param key_package_path path to the encrypted key data file
+   * @param key_path path to the encrypted passphrase file
+   * @param pin PIN used to decrypt the package passphrase
+   * @return tuple of (error message string, key data); the error is empty on
+   * success
+   */
+  auto OpenKeyPackage(const QString &key_package_path, const QString &key_path,
+                      const GFBuffer &pin) -> std::tuple<QString, GFBuffer>;
+
+  /**
+   * @brief List the keys in opened key data, one entry per fingerprint.
+   *
+   * A package written with private keys carries each key twice, once in its
+   * public section and once in its secret one; they are listed once.
+   *
+   * @param key_data what OpenKeyPackage() returned
+   * @return the keys, in the order they first appear
+   */
+  static auto ListKeyPackageKeys(const GFBuffer &key_data)
+      -> QList<KeyPackageKey>;
+
+  /**
+   * @brief Import some of the keys in opened key data.
+   *
+   * Only the keys whose fingerprint is in @p fprs reach the key database,
+   * with every part the package holds of them.
+   *
+   * @param key_data what OpenKeyPackage() returned
+   * @param fprs fingerprints of the keys to import
+   * @return tuple of (error message string, import information); the error
+   * is empty on success
+   */
+  auto ImportKeyPackageKeys(const GFBuffer &key_data, const QStringList &fprs)
       -> std::tuple<QString, QSharedPointer<GpgImportInformation>>;
 
  private:
