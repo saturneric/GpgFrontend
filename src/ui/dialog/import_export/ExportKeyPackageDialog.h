@@ -92,6 +92,10 @@ class ExportKeyPackageDialog : public GeneralWizard {
    */
   void done(int result) override;
 
+ protected:
+  /// @brief Recolour the left-out keys when the palette changes.
+  void changeEvent(QEvent* event) override;
+
  private slots:
   void slot_choose_key_file();
   void slot_reset_key_file();

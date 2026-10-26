@@ -408,7 +408,9 @@ void ExportKeyPackageDialog::slot_page_changed(int id) {
 void ExportKeyPackageDialog::refresh_key_table(
     const KeyPackageExportChoice& choice) {
   const auto rows = BuildKeyPackageKeyRows(entries_, choice);
-  const auto dimmed = palette().color(QPalette::Disabled, QPalette::Text);
+  // The muted text colour rather than the disabled one, which all but
+  // disappears in a dark palette.
+  const auto dimmed = MutedTextColor(palette());
 
   keys_model_->setRowCount(static_cast<int>(rows.size()));
   for (int r = 0; r < rows.size(); ++r) {
@@ -671,6 +673,14 @@ void ExportKeyPackageDialog::set_busy(bool busy) {
   if (!busy) {
     emit pages_.at(StepIndex(KeyPackageExportStep::kProtection))
         ->completeChanged();
+  }
+}
+
+void ExportKeyPackageDialog::changeEvent(QEvent* event) {
+  GeneralWizard::changeEvent(event);
+  // choice() reads every page, so wait until the last one is built.
+  if (event->type() == QEvent::PaletteChange && entry_ != nullptr) {
+    refresh_key_table(choice());
   }
 }
 
