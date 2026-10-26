@@ -101,6 +101,27 @@ TEST(GFUiTabTypeOperationMaskTest, AModuleTabNeverGetsSymmetricEncryption) {
   EXPECT_TRUE((mask & OperationMenu::kDecryptAndVerify) != 0U);
 }
 
+TEST(GFUiTabTypeOperationMaskTest, SymmetricEncryptionAppliesToFileTabs) {
+  // A file tab encrypts the selected files, not an editor's text, so it must
+  // not be caught by the rule that keeps this off structured documents.
+  EXPECT_TRUE(MainWindow::SymmetricEncryptApplies(
+      OperationMenu::kSymmetricEncrypt, false, true));
+  EXPECT_TRUE(MainWindow::SymmetricEncryptApplies(
+      OperationMenu::kSymmetricEncrypt, true, false));
+}
+
+TEST(GFUiTabTypeOperationMaskTest, SymmetricEncryptionNeverAppliesElsewhere) {
+  // A module tab is neither plain text nor a file tab.
+  EXPECT_FALSE(MainWindow::SymmetricEncryptApplies(~0U, false, false));
+
+  // And the mask still decides on the tabs that do qualify: a checked key, or
+  // a selection that is already OpenPGP, clears the bit.
+  constexpr unsigned int kWithout =
+      ~static_cast<unsigned int>(OperationMenu::kSymmetricEncrypt);
+  EXPECT_FALSE(MainWindow::SymmetricEncryptApplies(kWithout, true, false));
+  EXPECT_FALSE(MainWindow::SymmetricEncryptApplies(kWithout, false, true));
+}
+
 TEST(GFUiTabTypeOperationMaskTest, AnUnclaimedTabTypeGetsNothing) {
   // A tab type no module handles can do nothing at all, rather than appearing
   // to offer the full menu and failing on every item.

@@ -641,12 +641,20 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   if ((opera_type & OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
-  // Symmetric encryption replaces the editor's text with an armored blob, so
-  // it only means anything on a tab whose document IS that text.
-  if (edit_->CurPageIsPlainText() &&
-      (opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
+  if (SymmetricEncryptApplies(opera_type, edit_->CurPageIsPlainText(),
+                              edit_->CurFilePage() != nullptr)) {
     sym_encrypt_act_->setDisabled(false);
   }
+}
+
+auto MainWindow::SymmetricEncryptApplies(unsigned int mask,
+                                         bool plain_text_page, bool file_page)
+    -> bool {
+  // Symmetric encryption replaces the editor's text with an armored blob, so
+  // on a document tab it only means anything when the document IS that text.
+  // A file tab encrypts the selected files instead, and qualifies as well.
+  return (plain_text_page || file_page) &&
+         (mask & OperationMenu::kSymmetricEncrypt) != 0U;
 }
 
 void MainWindow::dispatch_general_op(

@@ -106,6 +106,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const std::function<bool(const QString&)>& is_listening) -> unsigned int;
 
   /**
+   * @brief Whether Sym. Encrypt applies to the current tab under @p mask.
+   *
+   * A plain text tab encrypts its text and a file tab its selected files; a
+   * module tab never qualifies, since it would only overwrite the raw document.
+   */
+  static auto SymmetricEncryptApplies(unsigned int mask, bool plain_text_page,
+                                      bool file_page) -> bool;
+
+  /**
    * @brief
    *
    */
