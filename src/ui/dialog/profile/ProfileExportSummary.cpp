@@ -105,24 +105,6 @@ auto DescribeProfileExportWarning(ProfileExportWarning warning) -> QString {
   return {};
 }
 
-auto DescribeProfileExport(const ProfileExportChoice& choice,
-                           const QString& destination) -> QString {
-  // Nothing to say until there is somewhere to say it about. The label keeps
-  // its reserved height either way, so an empty sentence leaves a gap rather
-  // than a claim.
-  if (!choice.has_destination || destination.isEmpty()) return {};
-
-  // One line, because everything else it used to spell out -- what is inside,
-  // what it comes to, that it is sealed -- is now a row above it that the
-  // reader can check. What is left is the act itself.
-  return (choice.include_workspace
-              ? QObject::tr("Writes %1: keys, settings and workspace files, "
-                            "about %2 before compression.")
-              : QObject::tr("Writes %1: keys and settings, about %2 before "
-                            "compression."))
-      .arg(destination, HumanSize(choice.total_bytes));
-}
-
 auto ToMetaListRows(const QList<ProfileExportContentsRow>& rows)
     -> QList<MetaListRow> {
   QList<MetaListRow> out;
@@ -135,9 +117,7 @@ auto ToMetaListRows(const QList<ProfileExportContentsRow>& rows)
     out.append({.caption = row.label,
                 .icon = row.icon,
                 .bytes = row.bytes,
-                .dimmed = !row.included || row.bytes <= 0,
-                .checkable = row.optional,
-                .checked = row.included});
+                .dimmed = !row.included || row.bytes <= 0});
   }
 
   out.append({.kind = MetaRowKind::kRule});
@@ -159,15 +139,101 @@ auto ToMetaListRows(const QList<ProfileExportContentsRow>& rows)
   return out;
 }
 
-auto BuildExportProtectionRows() -> QList<MetaListRow> {
-  return {
-      {.caption = QObject::tr("Cipher"), .value = "XChaCha20-Poly1305"},
-      {.caption = QObject::tr("Key derivation"),
-       .value = QObject::tr("Argon2id, from your passphrase")},
-      {.caption = QObject::tr("Keychain"),
-       .value = QObject::tr("Not used: the file has to open on another "
-                            "computer")},
-  };
+auto DescribeExportProtection() -> QString {
+  return QObject::tr(
+      "Encrypted with XChaCha20-Poly1305, using a key derived from your "
+      "passphrase with Argon2id. The system keychain is not used, so the file "
+      "opens on any computer.");
+}
+
+auto ProfileExportStepTitle(ProfileExportStep step) -> QString {
+  switch (step) {
+    case ProfileExportStep::kContents:
+      return QObject::tr("Contents");
+    case ProfileExportStep::kProtection:
+      return QObject::tr("Protection");
+    case ProfileExportStep::kSave:
+      return QObject::tr("Save");
+  }
+  return {};
+}
+
+auto CanAdvanceProfileExport(ProfileExportStep step,
+                             const ProfileExportChoice& choice) -> bool {
+  switch (step) {
+    case ProfileExportStep::kContents:
+      return true;
+    case ProfileExportStep::kProtection:
+      return choice.passphrase_acceptable;
+    case ProfileExportStep::kSave:
+      return EvaluateProfileExport(choice).can_export;
+  }
+  return false;
+}
+
+auto DescribeProfileExportContents(const QList<ProfileExportContentsRow>& rows)
+    -> QString {
+  const auto workspace =
+      std::any_of(rows.begin(), rows.end(), [](const auto& row) {
+        return row.area == ProfileExportArea::kWorkspace && row.included;
+      });
+
+  return (workspace ? QObject::tr("Settings, keys, this profile's own key and "
+                                  "workspace files, %1 before compression.")
+                    : QObject::tr("Settings, keys and this profile's own key, "
+                                  "%1 before compression."))
+      .arg(HumanSize(TotalProfileExportBytes(rows)));
+}
+
+auto HasProfileExportWorkspace(const QList<ProfileExportContentsRow>& rows)
+    -> bool {
+  return std::any_of(rows.begin(), rows.end(), [](const auto& row) {
+    return row.area == ProfileExportArea::kWorkspace && row.bytes > 0;
+  });
+}
+
+auto DescribeProfileExportWorkspaceOption(
+    const QList<ProfileExportContentsRow>& rows) -> QString {
+  for (const auto& row : rows) {
+    if (row.area != ProfileExportArea::kWorkspace) continue;
+    if (row.bytes <= 0) break;
+    return QObject::tr("Include workspace files (%1)")
+        .arg(HumanSize(row.bytes));
+  }
+  return QObject::tr("No workspace files to include");
+}
+
+auto BuildProfileExportReviewRows(const QString& display_name,
+                                  const ProfileExportChoice& choice)
+    -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
+
+  rows.append({.caption = QObject::tr("Profile"), .value = display_name});
+
+  rows.append({.caption = QObject::tr("Size"),
+               .value = choice.include_workspace
+                            ? QObject::tr("%1, including workspace files")
+                                  .arg(HumanSize(choice.total_bytes))
+                            : HumanSize(choice.total_bytes),
+               .detail = QObject::tr("Before compression.")});
+
+  // Never a row that reads as protected when it is not. The wizard does not
+  // reach this step without an acceptable passphrase, but the rows are built
+  // from the choice, not from where the wizard happens to be.
+  rows.append({.caption = QObject::tr("Protection"),
+               .value = choice.passphrase_acceptable
+                            ? QObject::tr("Encrypted with your passphrase")
+                            : QObject::tr("No passphrase chosen yet"),
+               .danger = !choice.passphrase_acceptable});
+
+  return rows;
+}
+
+auto DescribeProfileExportFreeSpace(qint64 free_bytes) -> QString {
+  // A volume this application could not read says nothing rather than
+  // guessing.
+  if (free_bytes < 0) return {};
+  return QObject::tr("%1 free on this drive").arg(HumanSize(free_bytes));
 }
 
 }  // namespace GpgFrontend::UI

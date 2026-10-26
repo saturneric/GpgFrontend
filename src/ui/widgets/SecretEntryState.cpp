@@ -60,11 +60,18 @@ auto EvaluateSecretEntry(const SecretEntryInput& input) -> SecretEntryState {
   // Named before the mismatch on purpose: it is the deeper problem, and fixing
   // it means retyping the confirmation anyway.
   if (!long_enough && secret > 0) {
+    if (input.defer_until_committed && !input.secret_committed) {
+      return {acceptable, SecretEntryProblem::kPending};
+    }
     return {acceptable, SecretEntryProblem::kTooShort};
   }
 
   // Withheld until there is a second entry worth comparing.
   if (long_enough && confirm > 0 && !confirmed) {
+    if (input.defer_until_committed && !input.confirm_committed &&
+        confirm < secret) {
+      return {acceptable, SecretEntryProblem::kPending};
+    }
     return {acceptable, SecretEntryProblem::kMismatch};
   }
 

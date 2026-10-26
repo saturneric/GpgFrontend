@@ -165,4 +165,61 @@ TEST(SecretEntryStateTest, NegativeLengthsAreTreatedAsEmpty) {
   EXPECT_EQ(state.problem, SecretEntryProblem::kEmpty);
 }
 
+TEST(SecretEntryStateTest, DeferredTooShortWaitsForTheCommit) {
+  // The export wizard names a short passphrase once its field is left, not on
+  // the first keystroke. Not acceptable either way.
+  auto in = Choosing(3, true);
+  in.defer_until_committed = true;
+
+  const auto typing = EvaluateSecretEntry(in);
+  EXPECT_FALSE(typing.acceptable);
+  EXPECT_EQ(typing.problem, SecretEntryProblem::kPending);
+
+  in.secret_committed = true;
+  const auto left = EvaluateSecretEntry(in);
+  EXPECT_FALSE(left.acceptable);
+  EXPECT_EQ(left.problem, SecretEntryProblem::kTooShort);
+}
+
+TEST(SecretEntryStateTest, DeferredMismatchWaitsForAFullConfirmation) {
+  auto in = Choosing(10, false);
+  in.defer_until_committed = true;
+  in.secret_committed = true;
+
+  // Still typing the confirmation: shorter than the secret, not yet left.
+  in.confirm_length = 4;
+  EXPECT_EQ(EvaluateSecretEntry(in).problem, SecretEntryProblem::kPending);
+
+  // As long as the secret: there is nothing more to wait for.
+  in.confirm_length = 10;
+  EXPECT_EQ(EvaluateSecretEntry(in).problem, SecretEntryProblem::kMismatch);
+
+  // Left early: the user has said they are finished.
+  in.confirm_length = 4;
+  in.confirm_committed = true;
+  EXPECT_EQ(EvaluateSecretEntry(in).problem, SecretEntryProblem::kMismatch);
+}
+
+TEST(SecretEntryStateTest, DeferralNeverChangesAcceptance) {
+  for (int length = 0; length < 12; ++length) {
+    for (const auto matches : {false, true}) {
+      auto in = Choosing(length, matches);
+      const auto eager = EvaluateSecretEntry(in);
+      in.defer_until_committed = true;
+      EXPECT_EQ(EvaluateSecretEntry(in).acceptable, eager.acceptable)
+          << "length " << length;
+    }
+  }
+}
+
+TEST(SecretEntryStateTest, DeferralDoesNotScoldAnEmptyForm) {
+  SecretEntryInput in;
+  in.ask_new = true;
+  in.defer_until_committed = true;
+  in.secret_committed = true;
+  in.confirm_committed = true;
+
+  EXPECT_EQ(EvaluateSecretEntry(in).problem, SecretEntryProblem::kEmpty);
+}
+
 }  // namespace GpgFrontend::Test

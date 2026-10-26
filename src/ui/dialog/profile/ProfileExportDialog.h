@@ -28,40 +28,45 @@
 
 #pragma once
 
+#include <array>
+
 #include "core/profile/ProfilePackage.h"
-#include "ui/dialog/GeneralDialog.h"
 #include "ui/dialog/profile/ProfileExportSummary.h"
 
-class QDialogButtonBox;
+class QCheckBox;
 class QLabel;
+class QLineEdit;
 class QPushButton;
 
 namespace GpgFrontend::UI {
 
 class MetaListPanel;
+class ProfileExportPage;
 class SecretEntryPanel;
 
 /**
- * @brief Choose where a profile is written, and what protects it.
+ * @brief Export a profile in three steps: what goes in, what protects it, and
+ * where it is written.
  *
- * The contents are listed with their sizes because the one thing a user cannot
- * guess is how big their own workspace has become — and the workspace is
- * exactly where the cleartext of things they meant to encrypt tends to live, so
- * it is named rather than swept in.
+ * One screen used to hold all three at equal weight, and the decision that
+ * matters -- the passphrase -- sat third in a column of four cards. Each step
+ * now answers one question, with the detail that backs it listed beneath.
+ *
+ * A QWizard, so the navigation, the button order and the look are the
+ * platform's own and match the first-run wizard. The pages live for the
+ * wizard's lifetime, so Back and Continue never lose what was typed or ticked.
  *
  * The passphrase is typed into the same SecretEntryPanel the application key's
- * PIN uses, so that a profile file's protection is offered with the same
- * seriousness, the same reveal toggle and the same floor rather than as two
- * bare fields at the bottom of a form. It is not optional: a profile file
- * carries the profile's own key, so an unsealed one hands over everything the
- * profile ever encrypted, and this dialog no longer offers that.
+ * PIN uses. It is not optional: a profile file carries the profile's own key,
+ * so an unsealed one hands over everything the profile ever encrypted, and
+ * this wizard does not offer that.
  */
-class ProfileExportDialog : public GeneralDialog {
+class ProfileExportDialog : public QWizard {
   Q_OBJECT
 
  public:
   /**
-   * @brief Construct the dialog.
+   * @brief Construct the wizard.
    *
    * @param display_name what the profile is called
    * @param storage the session's storage, asked for the size figures
@@ -105,39 +110,45 @@ class ProfileExportDialog : public GeneralDialog {
  private slots:
   void slot_choose_destination();
   void slot_state_changed();
+  void slot_page_changed(int id);
 
  private:
   QString display_name_;
   QMap<QString, qint64> areas_;
 
-  QLabel* destination_hint_{};         ///< shown until a destination is chosen
-  MetaListPanel* destination_list_{};  ///< shown once one is
-  QPushButton* destination_button_{};
+  std::array<ProfileExportPage*, kProfileExportStepCount> pages_{};
 
+  // Contents
+  QLabel* contents_summary_{};
+  QCheckBox* workspace_box_{};
   MetaListPanel* contents_{};
   bool include_workspace_ = false;
 
+  // Protection
   SecretEntryPanel* entry_{};
 
-  QLabel* warning_icon_{};
+  // Save
+  MetaListPanel* review_{};
+  QLineEdit* destination_edit_{};
+  QPushButton* destination_button_{};
+  QLabel* free_space_label_{};
   QLabel* warning_label_{};
-  QLabel* summary_label_{};
-  QDialogButtonBox* buttons_{};
 
   QString destination_;
   qint64 free_bytes_ = -1;
 
-  void init_ui();
+  /// @brief Step 1: the profile, a one-line summary, the workspace choice, and
+  /// the itemised list.
+  void build_contents_page();
 
-  /// @brief Build the "save to" group: the rows, and the button that fills
-  /// them.
-  void build_destination(QVBoxLayout* layout);
+  /// @brief Step 2: the passphrase, and the mechanism that uses it.
+  void build_protection_page();
 
-  /// @brief Build the "what goes in" group from BuildProfileExportContents().
-  void build_contents(QVBoxLayout* layout);
+  /// @brief Step 3: what is about to happen, and where.
+  void build_save_page();
 
-  /// @brief Build the protection group: the fields, and how they are used.
-  void build_protection(QVBoxLayout* layout);
+  /// @brief A page for a step, titled and registered under the step's id.
+  auto add_page(ProfileExportStep step) -> ProfileExportPage*;
 
   /// @brief The contents rows for the current choice.
   [[nodiscard]] auto contents_rows() const -> QList<MetaListRow>;

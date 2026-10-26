@@ -30,18 +30,24 @@
 
 #include "GpgFrontendTest.h"
 #include "ui/dialog/profile/ProfileExportSummary.h"
+#include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::Test {
 
 namespace {
 
-using UI::BuildExportProtectionRows;
 using UI::BuildProfileExportContents;
-using UI::DescribeProfileExport;
+using UI::BuildProfileExportReviewRows;
+using UI::CanAdvanceProfileExport;
+using UI::DescribeProfileExportContents;
 using UI::DescribeProfileExportWarning;
+using UI::DescribeProfileExportWorkspaceOption;
 using UI::EvaluateProfileExport;
+using UI::HasProfileExportWorkspace;
 using UI::ProfileExportArea;
 using UI::ProfileExportChoice;
+using UI::ProfileExportStep;
+using UI::ProfileExportStepTitle;
 using UI::ProfileExportWarning;
 using UI::ToMetaListRows;
 using UI::TotalProfileExportBytes;
@@ -216,42 +222,6 @@ TEST(ProfileExportSummaryTest, EveryWarningHasAMessage) {
   }
 }
 
-TEST(ProfileExportSummaryTest, TheSummaryIsEmptyUntilThereIsADestination) {
-  auto choice = Ready();
-  choice.has_destination = false;
-  EXPECT_TRUE(DescribeProfileExport(choice, "work.gfp").isEmpty());
-  EXPECT_TRUE(DescribeProfileExport(Ready(), {}).isEmpty());
-}
-
-TEST(ProfileExportSummaryTest, TheSummaryNamesTheDestination) {
-  EXPECT_TRUE(DescribeProfileExport(Ready(), "work.gfp").contains("work.gfp"));
-}
-
-TEST(ProfileExportSummaryTest, TheSummaryIsOneLine) {
-  // It sits immediately above the button, where a paragraph is not read at all.
-  // Everything it used to spell out -- what is inside, what it comes to -- is a
-  // row in the list above it now, and rows can be checked; what is left here is
-  // the act itself.
-  const auto summary = DescribeProfileExport(Ready(), "work.gfp");
-
-  EXPECT_FALSE(summary.contains('\n'));
-  EXPECT_LT(summary.size(), 110) << summary.toStdString();
-}
-
-TEST(ProfileExportSummaryTest,
-     TheSummaryMentionsTheWorkspaceOnlyWhenItTravels) {
-  // The assertion that makes this sentence worth building rather than
-  // decoration: it has to actually change when the checkbox does.
-  auto with_workspace = Ready();
-  with_workspace.include_workspace = true;
-
-  const auto without = DescribeProfileExport(Ready(), "work.gfp");
-  const auto with = DescribeProfileExport(with_workspace, "work.gfp");
-
-  EXPECT_FALSE(without.contains("workspace", Qt::CaseInsensitive));
-  EXPECT_TRUE(with.contains("workspace", Qt::CaseInsensitive));
-}
-
 TEST(ProfileExportSummaryTest, TheContentsRowsEndWithTheTotalAndTheExclusions) {
   // The dialog holds no wording of its own, so what the list adds up to and
   // what never travels are decided here, where they can be asserted.
@@ -271,21 +241,13 @@ TEST(ProfileExportSummaryTest, TheContentsRowsEndWithTheTotalAndTheExclusions) {
   EXPECT_FALSE(rows.at(7).detail.isEmpty());
 }
 
-TEST(ProfileExportSummaryTest, TheWorkspaceIsTheOnlyRowAnyoneCanTick) {
-  // The workspace row *is* its checkbox: a checkbox below a list that never
-  // mentions the workspace is how someone ends up unsure whether the list they
-  // just read was the whole story.
+TEST(ProfileExportSummaryTest, TheDetailsListIsReadOnly) {
+  // The workspace is chosen by the one checkbox beside the summary. A second
+  // checkbox for it inside the details would be two answers to one question.
   for (const auto include : {false, true}) {
     const auto rows =
         ToMetaListRows(BuildProfileExportContents(MeasuredAreas(), include));
-
-    int checkable = 0;
-    for (const auto& row : rows) {
-      if (!row.checkable) continue;
-      ++checkable;
-      EXPECT_EQ(row.checked, include);
-    }
-    EXPECT_EQ(checkable, 1);
+    for (const auto& row : rows) EXPECT_FALSE(row.checkable);
   }
 }
 
@@ -300,26 +262,124 @@ TEST(ProfileExportSummaryTest, ARowCarryingNothingIsDimmed) {
   EXPECT_TRUE(rows.at(4).dimmed);   // workspace, left out
 }
 
-TEST(ProfileExportSummaryTest, TheProtectionRowsNameTheMechanism) {
+TEST(ProfileExportSummaryTest, TheProtectionLineNamesTheMechanism) {
   // Named rather than asserted: someone who knows what these are can check the
   // claim, and someone who does not still reads a specific mechanism rather
   // than a reassurance.
-  const auto rows = BuildExportProtectionRows();
-  ASSERT_FALSE(rows.isEmpty());
+  const auto line = UI::DescribeExportProtection();
 
-  QStringList values;
-  for (const auto& row : rows) {
-    EXPECT_FALSE(row.caption.isEmpty());
-    values << row.value;
-  }
-
-  const auto all = values.join(" ");
-  EXPECT_TRUE(all.contains("XChaCha20-Poly1305"));
-  EXPECT_TRUE(all.contains("Argon2id"));
+  EXPECT_TRUE(line.contains("XChaCha20-Poly1305"));
+  EXPECT_TRUE(line.contains("Argon2id"));
   // The keychain is named because its absence is the surprising part: a package
   // has to open on a computer this one's keychain knows nothing about.
-  EXPECT_TRUE(all.contains("keychain", Qt::CaseInsensitive) ||
-              all.contains("computer", Qt::CaseInsensitive));
+  EXPECT_TRUE(line.contains("keychain", Qt::CaseInsensitive));
+}
+
+TEST(ProfileExportSummaryTest, EveryStepHasATitle) {
+  for (const auto step :
+       {ProfileExportStep::kContents, ProfileExportStep::kProtection,
+        ProfileExportStep::kSave}) {
+    EXPECT_FALSE(ProfileExportStepTitle(step).isEmpty());
+  }
+}
+
+TEST(ProfileExportSummaryTest, ContentsAlwaysAdvances) {
+  // Nothing on the first step can be wrong: the workspace is optional either
+  // way, and nothing has been typed yet.
+  EXPECT_TRUE(CanAdvanceProfileExport(ProfileExportStep::kContents,
+                                      ProfileExportChoice{}));
+}
+
+TEST(ProfileExportSummaryTest,
+     ProtectionAdvancesOnlyWithAnAcceptablePassphrase) {
+  // A destination is not this step's business; it is chosen after.
+  ProfileExportChoice choice;
+  EXPECT_FALSE(CanAdvanceProfileExport(ProfileExportStep::kProtection, choice));
+
+  choice.passphrase_acceptable = true;
+  EXPECT_TRUE(CanAdvanceProfileExport(ProfileExportStep::kProtection, choice));
+}
+
+TEST(ProfileExportSummaryTest, SaveAdvancesExactlyWhenTheExportCan) {
+  // The wizard must not be more lenient than the rules it replaces.
+  for (const auto destination : {false, true}) {
+    for (const auto acceptable : {false, true}) {
+      ProfileExportChoice choice;
+      choice.has_destination = destination;
+      choice.passphrase_acceptable = acceptable;
+      EXPECT_EQ(CanAdvanceProfileExport(ProfileExportStep::kSave, choice),
+                EvaluateProfileExport(choice).can_export);
+      EXPECT_EQ(CanAdvanceProfileExport(ProfileExportStep::kSave, choice),
+                destination && acceptable);
+    }
+  }
+}
+
+TEST(ProfileExportSummaryTest,
+     TheContentsLineMentionsTheWorkspaceOnlyWhenItTravels) {
+  // It has to change when the checkbox does, or it is decoration.
+  const auto without = DescribeProfileExportContents(
+      BuildProfileExportContents(MeasuredAreas(), false));
+  const auto with = DescribeProfileExportContents(
+      BuildProfileExportContents(MeasuredAreas(), true));
+
+  EXPECT_FALSE(without.contains("workspace", Qt::CaseInsensitive));
+  EXPECT_TRUE(with.contains("workspace", Qt::CaseInsensitive));
+  EXPECT_FALSE(with.contains('\n'));
+  EXPECT_NE(without, with);
+}
+
+TEST(ProfileExportSummaryTest, AnEmptyWorkspaceIsNotOffered) {
+  const auto empty =
+      BuildProfileExportContents({{"config", 1000}, {"workspace", 0}}, false);
+  EXPECT_FALSE(HasProfileExportWorkspace(empty));
+  EXPECT_TRUE(DescribeProfileExportWorkspaceOption(empty).contains(
+      "No workspace", Qt::CaseInsensitive));
+
+  const auto some = BuildProfileExportContents(MeasuredAreas(), false);
+  EXPECT_TRUE(HasProfileExportWorkspace(some));
+  EXPECT_FALSE(DescribeProfileExportWorkspaceOption(some).contains(
+      "No workspace", Qt::CaseInsensitive));
+}
+
+TEST(ProfileExportSummaryTest, TheReviewNamesProfileSizeAndProtection) {
+  auto choice = Ready();
+  choice.total_bytes = 2048;
+
+  const auto rows = BuildProfileExportReviewRows("Work", choice);
+
+  QStringList values;
+  for (const auto& row : rows) values << row.value;
+  const auto all = values.join(" ");
+
+  EXPECT_TRUE(values.contains("Work"));
+  EXPECT_TRUE(all.contains(UI::HumanSize(2048)));
+  EXPECT_TRUE(all.contains("Encrypted with your passphrase"));
+}
+
+TEST(ProfileExportSummaryTest, TheReviewNamesNoCipher) {
+  // The mechanism is on the step that chose it. Here the reader only needs to
+  // know that it is in place.
+  for (const auto& row : BuildProfileExportReviewRows("Work", Ready())) {
+    EXPECT_FALSE(row.value.contains("XChaCha20"));
+    EXPECT_FALSE(row.value.contains("Argon2"));
+  }
+}
+
+TEST(ProfileExportSummaryTest, TheReviewNeverClaimsProtectionItDoesNotHave) {
+  auto choice = Ready();
+  choice.passphrase_acceptable = false;
+
+  for (const auto& row : BuildProfileExportReviewRows("Work", choice)) {
+    EXPECT_FALSE(row.value.contains("Encrypted"));
+  }
+}
+
+TEST(ProfileExportSummaryTest, FreeSpaceIsOnlySaidWhenKnown) {
+  EXPECT_TRUE(UI::DescribeProfileExportFreeSpace(-1).isEmpty());
+
+  const auto known = UI::DescribeProfileExportFreeSpace(4096);
+  EXPECT_TRUE(known.contains(UI::HumanSize(4096)));
 }
 
 }  // namespace GpgFrontend::Test

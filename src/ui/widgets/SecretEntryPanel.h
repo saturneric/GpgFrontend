@@ -75,6 +75,20 @@ class GF_UI_EXPORT SecretEntryPanel : public QWidget {
     /// passphrase, and not the PIN typed at every startup.
     bool offer_generation = false;
 
+    /// Name a short or mismatched secret only once its field is committed --
+    /// left for another field, or Return -- and keep the strength row quiet
+    /// while nothing is typed. The reveal toggle and the generator stop taking
+    /// focus, so using them never commits a field half way through. Off by
+    /// default: every prompt that predates the export wizard keeps reporting
+    /// as the user types.
+    bool defer_validation = false;
+
+    /// Fields at the platform's own height, tighter spacing, and every control
+    /// aligned under the fields, for a panel that shares its page with other
+    /// content. Off by default: a prompt that is nothing but the secret keeps
+    /// its larger fields and its own layout.
+    bool compact = false;
+
     SecretPromptTexts texts;
   };
 
@@ -133,6 +147,10 @@ class GF_UI_EXPORT SecretEntryPanel : public QWidget {
   /// @brief Put the caret in the first field the user has to fill.
   void FocusFirstField();
 
+ protected:
+  /// @brief Commit a field when focus leaves it for somewhere that counts.
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+
  signals:
   /// @brief Something was typed. Carries no secret, by design: a signal
   /// argument is copied to every connection, and none of them needs the value.
@@ -148,6 +166,14 @@ class GF_UI_EXPORT SecretEntryPanel : public QWidget {
   /// @brief Build one password field, sized and cleared like all the others.
   auto make_field() -> QLineEdit*;
 
+  /// @brief The prompt layout: fields, then controls, strength and message as
+  /// full-width rows.
+  void lay_out_standard();
+
+  /// @brief Config::compact: everything but the labels in the field column,
+  /// with the strength right under the field it grades.
+  void lay_out_compact();
+
   /// @brief Update the strength bar from the new-secret field.
   void refresh_strength();
 
@@ -162,6 +188,10 @@ class GF_UI_EXPORT SecretEntryPanel : public QWidget {
   /// @brief Fill both fields with a secret nobody has to invent.
   void generate();
 
+  /// @brief Hook up Config::defer_validation: which controls may take focus,
+  /// and what commits a field.
+  void wire_deferred_validation();
+
   Config config_;
 
   QLineEdit* current_edit_{};
@@ -174,6 +204,9 @@ class GF_UI_EXPORT SecretEntryPanel : public QWidget {
   QLabel* message_label_{};
 
   SecretEntryState state_;
+
+  bool secret_committed_ = false;   ///< see Config::defer_validation
+  bool confirm_committed_ = false;  ///< see Config::defer_validation
 };
 
 }  // namespace GpgFrontend::UI

@@ -47,6 +47,70 @@ constexpr int kGeneratedLength = 24;
 
 SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
     : QWidget(parent), config_(std::move(config)) {
+  if (config_.ask_current) current_edit_ = make_field();
+  if (config_.ask_new) {
+    new_edit_ = make_field();
+    confirm_edit_ = make_field();
+  }
+
+  reveal_box_ = new QCheckBox(config_.texts.reveal_label, this);
+  connect(reveal_box_, &QCheckBox::toggled, this, [this](bool shown) {
+    const auto echo = shown ? QLineEdit::Normal : QLineEdit::Password;
+    for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
+      if (edit != nullptr) edit->setEchoMode(echo);
+    }
+  });
+
+  if (config_.offer_generation) {
+    generate_button_ = new QPushButton(tr("Generate"), this);
+    generate_button_->setIcon(QIcon(":/icons/password-generate.svg"));
+    generate_button_->setToolTip(
+        tr("Invent a strong passphrase and show it, so you can write it down"));
+    connect(generate_button_, &QPushButton::clicked, this,
+            &SecretEntryPanel::generate);
+  }
+
+  if (config_.ask_new) {
+    strength_bar_ = new QProgressBar(this);
+    strength_bar_->setRange(0, 100);
+    strength_bar_->setTextVisible(false);
+    strength_label_ = new QLabel(this);
+  }
+
+  message_label_ = new QLabel(this);
+  message_label_->setWordWrap(true);
+  message_label_->setAlignment(Qt::AlignTop);
+  // The message row does double duty: a dimmed hint when all is well, the retry
+  // message in danger red on a failure. Keeping it always visible means the
+  // reserved space carries guidance instead of reading as empty padding, and
+  // the two-line floor keeps everything below it from moving when a longer
+  // message replaces a shorter one.
+  //
+  // A prompt with no hint has nothing to put in the second line, and reserving
+  // it anyway would leave a blank band above the buttons that reads as a
+  // missing control. One line still absorbs the messages such a prompt shows.
+  message_label_->setMinimumHeight(message_label_->fontMetrics().lineSpacing() *
+                                   (config_.texts.hint.isEmpty() ? 1 : 2));
+
+  if (config_.compact) {
+    lay_out_compact();
+  } else {
+    lay_out_standard();
+  }
+
+  for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
+    if (edit == nullptr) continue;
+    connect(edit, &QLineEdit::textChanged, this, &SecretEntryPanel::refresh);
+  }
+
+  if (config_.defer_validation) wire_deferred_validation();
+
+  show_default_hint();
+  refresh_strength();
+  refresh();
+}
+
+void SecretEntryPanel::lay_out_standard() {
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(10);
@@ -66,62 +130,33 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
   int row = 0;
   const auto add_field = [this, form, &row](const QString& label,
                                             QLineEdit* edit) {
-    form->addWidget(new QLabel(label, this), row, 0);
+    if (edit == nullptr) return;
+    auto* caption = new QLabel(label, this);
+    caption->setBuddy(edit);
+    form->addWidget(caption, row, 0);
     form->addWidget(edit, row, 1);
     ++row;
   };
 
-  if (config_.ask_current) {
-    current_edit_ = make_field();
-    add_field(config_.texts.current_label, current_edit_);
-  }
-
-  if (config_.ask_new) {
-    new_edit_ = make_field();
-    add_field(config_.texts.new_label, new_edit_);
-
-    confirm_edit_ = make_field();
-    add_field(config_.texts.confirm_label, confirm_edit_);
-  }
+  add_field(config_.texts.current_label, current_edit_);
+  add_field(config_.texts.new_label, new_edit_);
+  add_field(config_.texts.confirm_label, confirm_edit_);
 
   layout->addLayout(form);
 
   // The controls that act on the fields above, set apart as quiet controls
   // rather than as more form rows competing with the field labels.
-  reveal_box_ = new QCheckBox(config_.texts.reveal_label, this);
   auto* reveal_row = new QHBoxLayout();
-
-  if (config_.offer_generation) {
-    generate_button_ = new QPushButton(tr("Generate"), this);
-    generate_button_->setIcon(QIcon(":/icons/password-generate.svg"));
-    generate_button_->setToolTip(
-        tr("Invent a strong passphrase and show it, so you can write it down"));
-    reveal_row->addWidget(generate_button_);
-
-    connect(generate_button_, &QPushButton::clicked, this,
-            &SecretEntryPanel::generate);
-  }
-
+  if (generate_button_ != nullptr) reveal_row->addWidget(generate_button_);
   reveal_row->addStretch(1);
   reveal_row->addWidget(reveal_box_);
   layout->addLayout(reveal_row);
 
-  connect(reveal_box_, &QCheckBox::toggled, this, [this](bool shown) {
-    const auto echo = shown ? QLineEdit::Normal : QLineEdit::Password;
-    for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
-      if (edit != nullptr) edit->setEchoMode(echo);
-    }
-  });
-
-  if (config_.ask_new) {
+  if (strength_bar_ != nullptr) {
     auto* caption = new QLabel(config_.texts.strength_caption, this);
     SetLabelTextColor(caption, MutedTextColor(caption->palette()));
 
-    strength_bar_ = new QProgressBar(this);
-    strength_bar_->setRange(0, 100);
-    strength_bar_->setTextVisible(false);
     strength_bar_->setFixedHeight(8);
-    strength_label_ = new QLabel(this);
 
     auto* strength_row = new QHBoxLayout();
     strength_row->setSpacing(10);
@@ -131,30 +166,102 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
     layout->addLayout(strength_row);
   }
 
-  message_label_ = new QLabel(this);
-  message_label_->setWordWrap(true);
-  message_label_->setAlignment(Qt::AlignTop);
-  // The message row does double duty: a dimmed hint when all is well, the retry
-  // message in danger red on a failure. Keeping it always visible means the
-  // reserved space carries guidance instead of reading as empty padding, and
-  // the two-line floor keeps everything below it from moving when a longer
-  // message replaces a shorter one.
-  //
-  // A prompt with no hint has nothing to put in the second line, and reserving
-  // it anyway would leave a blank band above the buttons that reads as a
-  // missing control. One line still absorbs the messages such a prompt shows.
-  message_label_->setMinimumHeight(message_label_->fontMetrics().lineSpacing() *
-                                   (config_.texts.hint.isEmpty() ? 1 : 2));
   layout->addWidget(message_label_);
+}
 
-  for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
-    if (edit == nullptr) continue;
-    connect(edit, &QLineEdit::textChanged, this, &SecretEntryPanel::refresh);
+void SecretEntryPanel::lay_out_compact() {
+  // One column of labels and one of everything else. The strength sits right
+  // under the field it grades, and the controls and the message line up with
+  // the fields rather than with the labels, so the panel reads as a single
+  // block instead of rows that each start somewhere different.
+  auto* form = new QGridLayout(this);
+  form->setContentsMargins(0, 0, 0, 0);
+  form->setHorizontalSpacing(12);
+  form->setVerticalSpacing(6);
+  form->setColumnStretch(1, 1);
+
+  int row = 0;
+  const auto add_field = [this, form, &row](const QString& label,
+                                            QLineEdit* edit) {
+    if (edit == nullptr) return;
+    auto* caption = new QLabel(label, this);
+    caption->setBuddy(edit);
+    form->addWidget(caption, row, 0);
+    form->addWidget(edit, row, 1);
+    ++row;
+  };
+
+  add_field(config_.texts.current_label, current_edit_);
+  add_field(config_.texts.new_label, new_edit_);
+
+  if (strength_bar_ != nullptr) {
+    strength_bar_->setFixedHeight(4);
+    strength_bar_->setAccessibleName(config_.texts.strength_caption);
+
+    auto font = strength_label_->font();
+    font.setPointSizeF(font.pointSizeF() * 0.92);
+    strength_label_->setFont(font);
+
+    auto* strength_row = new QHBoxLayout();
+    strength_row->setSpacing(8);
+    strength_row->addWidget(strength_bar_, 1, Qt::AlignVCenter);
+    strength_row->addWidget(strength_label_);
+    form->addLayout(strength_row, row++, 1);
   }
 
-  show_default_hint();
-  refresh_strength();
-  refresh();
+  add_field(config_.texts.confirm_label, confirm_edit_);
+
+  // Quiet controls: the generator is a flat button, read as an offer rather
+  // than as a second primary action competing with Continue.
+  auto* controls = new QHBoxLayout();
+  controls->setSpacing(12);
+  if (generate_button_ != nullptr) {
+    generate_button_->setText(tr("Generate a strong passphrase"));
+    generate_button_->setFlat(true);
+    generate_button_->setCursor(Qt::PointingHandCursor);
+
+    // Drawn in the link colour so a flat button still reads as something to
+    // click. The icon is dropped: its SVG paints with currentColor, which Qt
+    // renders as nothing, and an empty gap before the text looks like a typo.
+    generate_button_->setIcon({});
+    auto palette = generate_button_->palette();
+    palette.setColor(QPalette::ButtonText,
+                     generate_button_->palette().color(QPalette::Link));
+    generate_button_->setPalette(palette);
+    controls->addWidget(generate_button_);
+  }
+  controls->addStretch(1);
+  controls->addWidget(reveal_box_);
+  form->addLayout(controls, row++, 1);
+
+  // Left to right, as they are drawn; creation order would put the reveal
+  // toggle first.
+  if (generate_button_ != nullptr) {
+    setTabOrder(generate_button_, reveal_box_);
+  }
+
+  form->addWidget(message_label_, row, 1);
+}
+
+void SecretEntryPanel::wire_deferred_validation() {
+  // Clicking either must not take the caret out of a field: under deferred
+  // validation, leaving a field is what names its problem, and showing the
+  // passphrase is not a verdict on it. Both stay reachable with Tab.
+  reveal_box_->setFocusPolicy(Qt::TabFocus);
+  if (generate_button_ != nullptr) {
+    generate_button_->setFocusPolicy(Qt::TabFocus);
+  }
+
+  for (auto* edit : {new_edit_, confirm_edit_}) {
+    if (edit == nullptr) continue;
+    edit->installEventFilter(this);
+    // Return is a commit too. The dialog's default button runs after this, and
+    // finds the field already judged.
+    connect(edit, &QLineEdit::returnPressed, this, [this, edit]() {
+      (edit == new_edit_ ? secret_committed_ : confirm_committed_) = true;
+      refresh();
+    });
+  }
 }
 
 SecretEntryPanel::~SecretEntryPanel() {
@@ -171,7 +278,7 @@ SecretEntryPanel::~SecretEntryPanel() {
 auto SecretEntryPanel::make_field() -> QLineEdit* {
   auto* edit = new QLineEdit(this);
   edit->setEchoMode(QLineEdit::Password);
-  edit->setMinimumHeight(kSecretFieldHeight);
+  if (!config_.compact) edit->setMinimumHeight(kSecretFieldHeight);
   edit->setClearButtonEnabled(true);
   return edit;
 }
@@ -246,6 +353,33 @@ void SecretEntryPanel::FocusFirstField() {
   }
 }
 
+auto SecretEntryPanel::eventFilter(QObject* watched, QEvent* event) -> bool {
+  if (event->type() != QEvent::FocusOut) {
+    return QWidget::eventFilter(watched, event);
+  }
+
+  // Another window, a context menu, or the dialog going away: the user has not
+  // moved on from this field, so it is not finished.
+  const auto reason = static_cast<QFocusEvent*>(event)->reason();
+  if (reason == Qt::ActiveWindowFocusReason || reason == Qt::PopupFocusReason) {
+    return QWidget::eventFilter(watched, event);
+  }
+
+  // Qt has already moved focus by the time the old widget hears FocusOut, so
+  // this is where it went. The reveal toggle and the generator act on the
+  // field rather than leave it.
+  auto* next = QApplication::focusWidget();
+  if (next == nullptr || next == reveal_box_ || next == generate_button_) {
+    return QWidget::eventFilter(watched, event);
+  }
+
+  if (watched == new_edit_) secret_committed_ = true;
+  if (watched == confirm_edit_) confirm_committed_ = true;
+  refresh();
+
+  return QWidget::eventFilter(watched, event);
+}
+
 void SecretEntryPanel::generate() {
   auto generated =
       PassphraseGenerator::GetInstance().Generate(kGeneratedLength);
@@ -276,15 +410,29 @@ void SecretEntryPanel::generate() {
 void SecretEntryPanel::refresh_strength() {
   if (strength_bar_ == nullptr || new_edit_ == nullptr) return;
 
+  // Fully rounded at whatever height the layout gave the bar.
+  const auto radius = QString::number(strength_bar_->maximumHeight() / 2);
+
+  // An empty field has no strength to grade. Painting it as a red "Very weak"
+  // scolds the user before they have typed anything.
+  if (config_.defer_validation && new_edit_->text().isEmpty()) {
+    strength_bar_->setValue(0);
+    strength_bar_->setStyleSheet(
+        u"QProgressBar { border: none; border-radius: %1px; "
+        "background-color: rgba(128, 128, 128, 60); }"_s.arg(radius));
+    strength_label_->clear();
+    return;
+  }
+
   const auto strength = CalculatePassphraseStrength(new_edit_->text());
   const auto color = PassphraseStrengthColor(strength);
 
   strength_bar_->setValue(strength);
   strength_bar_->setStyleSheet(
-      u"QProgressBar { border: none; border-radius: 4px; "
+      u"QProgressBar { border: none; border-radius: %2px; "
       "background-color: rgba(128, 128, 128, 60); }"
-      "QProgressBar::chunk { border-radius: 4px; background-color: %1; }"_s.arg(
-          color));
+      "QProgressBar::chunk { border-radius: %2px; background-color: %1; }"_s
+          .arg(color, radius));
 
   strength_label_->setStyleSheet(u"color: %1; font-weight: 600;"_s.arg(color));
   strength_label_->setText(PassphraseStrengthDescription(strength));
@@ -306,6 +454,14 @@ void SecretEntryPanel::refresh() {
   input.confirm_matches = new_edit_ != nullptr && confirm_edit_ != nullptr &&
                           new_edit_->text() == confirm_edit_->text();
 
+  // An emptied field starts over: whatever it was committed with is gone.
+  if (input.secret_length == 0) secret_committed_ = false;
+  if (input.confirm_length == 0) confirm_committed_ = false;
+
+  input.defer_until_committed = config_.defer_validation;
+  input.secret_committed = secret_committed_;
+  input.confirm_committed = confirm_committed_;
+
   state_ = EvaluateSecretEntry(input);
 
   refresh_strength();
@@ -323,6 +479,7 @@ void SecretEntryPanel::refresh() {
       break;
     case SecretEntryProblem::kNone:
     case SecretEntryProblem::kEmpty:
+    case SecretEntryProblem::kPending:
       show_default_hint();
       break;
   }

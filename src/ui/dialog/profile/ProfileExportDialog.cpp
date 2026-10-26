@@ -33,7 +33,6 @@
 
 #include "core/profile/ProfilePackage.h"
 #include "ui/dialog/SecretPrompt.h"
-#include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/ProfileController.h"
 #include "ui/function/UIStyle.h"
@@ -42,171 +41,275 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief A wizard page whose gates are the wizard's to decide.
+ *
+ * Every rule lives in ProfileExportSummary, so a page only forwards QWizard's
+ * question to it. Not a Q_OBJECT: it declares no
+ * signals or slots of its own, and completeChanged() is QWizardPage's.
+ */
+class ProfileExportPage : public QWizardPage {
+ public:
+  using QWizardPage::QWizardPage;
+
+  std::function<bool()> complete;  ///< enables Continue / Export backup
+
+  [[nodiscard]] auto isComplete() const -> bool override {
+    return complete ? complete() : QWizardPage::isComplete();
+  }
+};
+
+namespace {
+
+auto StepIndex(ProfileExportStep step) -> int { return static_cast<int>(step); }
+
+/// A page's body: no margins of its own, since the wizard frames it.
+auto PageLayout(QWidget* page) -> QVBoxLayout* {
+  auto* layout = new QVBoxLayout(page);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(8);
+  return layout;
+}
+
+/// The one sentence a page opens with: what this step is for, before any
+/// control asks for anything.
+void AddLead(QVBoxLayout* layout, const QString& text, QWidget* page) {
+  auto* lead = new QLabel(text, page);
+  lead->setWordWrap(true);
+  layout->addWidget(lead);
+  layout->addSpacing(4);
+}
+
+}  // namespace
+
 ProfileExportDialog::ProfileExportDialog(QString display_name,
                                          const ProfileAccessor& storage,
                                          QWidget* parent)
-    : GeneralDialog("profile_export_dialog", parent),
+    : QWizard(parent),
       display_name_(std::move(display_name)),
       areas_(MeasureProfileAreas(storage)) {
-  init_ui();
   setWindowTitle(tr("Export Profile"));
   setModal(true);
 
-  // GeneralDialog deletes itself on close, and everything this dialog exists
-  // to say is read after exec() returns.
-  setAttribute(Qt::WA_DeleteOnClose, false);
+  // The same style choice as the first-run wizard, so the two read as one
+  // family. No logo: the page titles carry the step, and a large badge would
+  // only push the fields down.
+#if !defined(Q_OS_MACOS)
+  setWizardStyle(QWizard::ModernStyle);
+#endif
+  setOption(QWizard::HaveHelpButton, false);
 
-  movePosition2CenterOfParent();
-}
+  setButtonText(QWizard::BackButton, tr("Back"));
+  setButtonText(QWizard::NextButton, tr("Continue"));
+  setButtonText(QWizard::FinishButton, tr("Export backup"));
 
-void ProfileExportDialog::init_ui() {
-  auto* layout = new QVBoxLayout(this);
-
-  // Word-wrapped labels ask for almost no width, so the dialog would open as a
+  // Word-wrapped labels ask for almost no width, so the wizard would open as a
   // tall ribbon; stating the width once makes everything wrap against it.
-  setMinimumWidth(560);
+  setMinimumWidth(520);
 
-  // The same badge, heading and rule the passphrase prompt uses. Handing over a
-  // whole profile deserves to look like the same class of act as unlocking one,
-  // and sharing the furniture is what makes the two read as one family.
-  layout->addLayout(CreateDialogHeader(
-      u":/icons/lock.png"_s, tr("Export \"%1\"").arg(display_name_),
-      tr("Everything below is written into a single file you can copy to "
-         "another computer and import there."),
-      this));
-
-  build_destination(layout);
-  build_contents(layout);
-  build_protection(layout);
-
-  // One footer, not two rows. The warning and the sentence saying what is about
-  // to happen are both about the same moment, and giving each its own reserved
-  // height left a block of blank space above the button whenever there was
-  // neither -- which at open is always. Reserving the height once, on the block
-  // rather than on either label, still keeps the Export button from moving
-  // under the cursor aiming at it.
-  auto* footer = new QWidget(this);
-  auto* footer_row = new QHBoxLayout(footer);
-  footer_row->setContentsMargins(0, 0, 0, 0);
-  footer_row->setSpacing(8);
-
-  warning_icon_ = new QLabel(footer);
-  warning_icon_->setFixedWidth(18);
-  warning_icon_->setAlignment(Qt::AlignTop);
-
-  warning_label_ = new QLabel(footer);
-  warning_label_->setWordWrap(true);
-  SetLabelTextColor(warning_label_, DangerColor(palette()));
-
-  summary_label_ = new QLabel(footer);
-  summary_label_->setWordWrap(true);
-  SetLabelTextColor(summary_label_, MutedTextColor(summary_label_->palette()));
-
-  auto* footer_column = new QVBoxLayout();
-  footer_column->setSpacing(4);
-  footer_column->addWidget(warning_label_);
-  footer_column->addWidget(summary_label_);
-
-  footer_row->addWidget(warning_icon_, 0, Qt::AlignTop);
-  footer_row->addLayout(footer_column, 1);
-
-  footer->setMinimumHeight(summary_label_->fontMetrics().lineSpacing() * 2);
-  layout->addWidget(footer);
-
-  buttons_ = new QDialogButtonBox(
-      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-  buttons_->button(QDialogButtonBox::Ok)->setText(tr("Export"));
-  layout->addWidget(buttons_);
+  build_contents_page();
+  build_protection_page();
+  build_save_page();
 
   connect(destination_button_, &QPushButton::clicked, this,
           &ProfileExportDialog::slot_choose_destination);
-  connect(contents_, &MetaListPanel::SignalRowToggled, this,
-          [this](int /*index*/, bool checked) {
-            // The only checkable row in the list is the workspace; see
-            // BuildProfileExportContents().
-            include_workspace_ = checked;
-            slot_state_changed();
-          });
+  connect(workspace_box_, &QCheckBox::toggled, this, [this](bool checked) {
+    include_workspace_ = checked;
+    slot_state_changed();
+  });
   connect(entry_, &SecretEntryPanel::SignalStateChanged, this,
           &ProfileExportDialog::slot_state_changed);
-  connect(buttons_, &QDialogButtonBox::accepted, this,
-          &ProfileExportDialog::accept);
-  connect(buttons_, &QDialogButtonBox::rejected, this,
-          &ProfileExportDialog::reject);
+  connect(this, &QWizard::currentIdChanged, this,
+          &ProfileExportDialog::slot_page_changed);
 
   slot_state_changed();
 }
 
-void ProfileExportDialog::build_destination(QVBoxLayout* layout) {
-  auto* destination = new QWidget(this);
-  auto* destination_layout = new QVBoxLayout(destination);
-  destination_layout->setContentsMargins(0, 0, 0, 0);
-  destination_layout->setSpacing(8);
-
-  // Where the file goes is described in the same rows the file is described in
-  // when it is opened again later, so the two ends of a package's life name it
-  // the same way.
-  destination_hint_ = new QLabel(tr("No file chosen yet."), destination);
-  SetLabelTextColor(destination_hint_,
-                    MutedTextColor(destination_hint_->palette()));
-  destination_layout->addWidget(destination_hint_);
-
-  destination_list_ = new MetaListPanel(destination);
-  destination_list_->hide();
-  destination_layout->addWidget(destination_list_);
-
-  destination_button_ = new QPushButton(tr("Choose..."), destination);
-  auto* button_row = new QHBoxLayout();
-  button_row->addWidget(destination_button_);
-  button_row->addStretch(1);
-  destination_layout->addLayout(button_row);
-
-  layout->addWidget(CreateCard(tr("Save to"), destination, this));
+auto ProfileExportDialog::add_page(ProfileExportStep step)
+    -> ProfileExportPage* {
+  auto* page = new ProfileExportPage(this);
+  page->setTitle(ProfileExportStepTitle(step));
+  page->setSubTitle(tr("Step %1 of %2")
+                        .arg(StepIndex(step) + 1)
+                        .arg(kProfileExportStepCount));
+  setPage(StepIndex(step), page);
+  pages_.at(StepIndex(step)) = page;
+  return page;
 }
 
-auto ProfileExportDialog::contents_rows() const -> QList<MetaListRow> {
-  return ToMetaListRows(BuildProfileExportContents(areas_, include_workspace_));
-}
+void ProfileExportDialog::build_contents_page() {
+  auto* page = add_page(ProfileExportStep::kContents);
+  auto* layout = PageLayout(page);
+  AddLead(layout, tr("Check what the backup file will contain."), page);
 
-void ProfileExportDialog::build_contents(QVBoxLayout* layout) {
-  contents_ = new MetaListPanel(this);
+  auto* name = new QLabel(display_name_, page);
+  auto name_font = name->font();
+  name_font.setBold(true);
+  name->setFont(name_font);
+  name->setTextFormat(Qt::PlainText);
+  layout->addWidget(name);
+
+  contents_summary_ = new QLabel(page);
+  contents_summary_->setWordWrap(true);
+  layout->addWidget(contents_summary_);
+
+  // The one place the workspace is chosen. It is where the cleartext of things
+  // a user meant to encrypt tends to live, so it is offered, never swept in,
+  // and an empty one says so instead of offering nothing.
+  const auto rows = BuildProfileExportContents(areas_, false);
+  workspace_box_ =
+      new QCheckBox(DescribeProfileExportWorkspaceOption(rows), page);
+  workspace_box_->setEnabled(HasProfileExportWorkspace(rows));
+  layout->addWidget(workspace_box_);
+
+  contents_ = new MetaListPanel(page);
   contents_->SetRows(contents_rows());
+  layout->addSpacing(4);
+  layout->addWidget(contents_);
 
-  layout->addWidget(CreateCard(tr("What goes in"), contents_, this));
+  layout->addStretch(1);
 }
 
-void ProfileExportDialog::build_protection(QVBoxLayout* layout) {
-  auto* protection = new QWidget(this);
-  auto* protection_layout = new QVBoxLayout(protection);
-  protection_layout->setContentsMargins(0, 0, 0, 0);
-  protection_layout->setSpacing(8);
+void ProfileExportDialog::build_protection_page() {
+  auto* page = add_page(ProfileExportStep::kProtection);
+  auto* layout = PageLayout(page);
+
+  // Said before the fields rather than under them: it is the one thing to know
+  // before choosing, and under the fields it read as small print.
+  AddLead(layout,
+          tr("Choose a passphrase to encrypt the backup. It cannot be "
+             "recovered, so keep it somewhere safe."),
+          page);
 
   // The same fields, reveal toggle, strength meter and floor the application
   // PIN is chosen with. A generator is offered here and not there because this
   // secret is going to be written down rather than remembered.
-  //
-  // There is no second option beside it. The file carries the profile's own
-  // key, so an unsealed one hands over everything the profile ever encrypted --
-  // and a choice offered is a choice somebody makes by accident.
   auto texts = DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage,
                                         SecretPromptMode::kSET);
-  texts.hint =
-      tr("The file cannot be opened without this passphrase, and it cannot be "
-         "recovered.");
+  // The lead above says it; the row under the fields is kept for what goes
+  // wrong and for the generator's notice.
+  texts.hint = {};
 
   SecretEntryPanel::Config config;
   config.ask_current = false;
   config.ask_new = true;
   config.offer_generation = true;
+  config.defer_validation = true;
+  config.compact = true;
   config.texts = texts;
-  entry_ = new SecretEntryPanel(config, protection);
-  protection_layout->addWidget(entry_);
+  entry_ = new SecretEntryPanel(config, page);
+  layout->addWidget(entry_);
 
-  auto* mechanism = new MetaListPanel(protection);
-  mechanism->SetRows(BuildExportProtectionRows());
-  protection_layout->addWidget(mechanism);
+  // How the file is sealed, as one quiet line under a hairline: true and worth
+  // checking, but not something to fill in.
+  auto* rule = new QFrame(page);
+  rule->setFrameShape(QFrame::HLine);
+  rule->setFrameShadow(QFrame::Sunken);
+  layout->addSpacing(4);
+  layout->addWidget(rule);
 
-  layout->addWidget(CreateCard(tr("Protection"), protection, this));
+  auto* lock = new QLabel(page);
+  lock->setPixmap(QIcon(u":/icons/lock.png"_s).pixmap(16, 16));
+  lock->setAlignment(Qt::AlignTop);
+
+  auto* mechanism = CreateDetailLabel(DescribeExportProtection(), page);
+  mechanism->setWordWrap(true);
+
+  auto* mechanism_row = new QHBoxLayout();
+  mechanism_row->setSpacing(8);
+  mechanism_row->addWidget(lock, 0, Qt::AlignTop);
+  mechanism_row->addWidget(mechanism, 1);
+  layout->addLayout(mechanism_row);
+
+  layout->addStretch(1);
+
+  // Continue waits for a passphrase the panel accepts. What is still wrong is
+  // named once the field is left, so the greyed-out button is never the only
+  // thing on screen for long.
+  page->complete = [this]() {
+    return CanAdvanceProfileExport(ProfileExportStep::kProtection, choice());
+  };
+}
+
+void ProfileExportDialog::build_save_page() {
+  auto* page = add_page(ProfileExportStep::kSave);
+  auto* layout = PageLayout(page);
+  AddLead(layout, tr("Check the summary, then choose where to save the file."),
+          page);
+
+  review_ = new MetaListPanel(page);
+  layout->addWidget(review_);
+
+  layout->addSpacing(8);
+
+  // The platform's own shape for "a file, and the button that picks it": a
+  // read-only path with Browse beside it. The field shows the whole path, so
+  // nothing about where the file lands is left to a second screen.
+  auto* save_to = new QLabel(tr("Save to"), page);
+  layout->addWidget(save_to);
+
+  destination_edit_ = new QLineEdit(page);
+  destination_edit_->setReadOnly(true);
+  destination_edit_->setPlaceholderText(tr("No location chosen yet"));
+  save_to->setBuddy(destination_edit_);
+
+  // The folder icon inside the field opens the picker too; it is where the eye
+  // already is.
+  auto* pick = destination_edit_->addAction(
+      QIcon::fromTheme(u"folder"_s, QIcon(u":/icons/folder.png"_s)),
+      QLineEdit::LeadingPosition);
+  pick->setToolTip(tr("Choose where to save the file"));
+  connect(pick, &QAction::triggered, this,
+          &ProfileExportDialog::slot_choose_destination);
+
+  destination_button_ = new QPushButton(tr("Browse..."), page);
+  destination_button_->setAutoDefault(false);
+
+  auto* destination_row = new QHBoxLayout();
+  destination_row->setSpacing(6);
+  destination_row->addWidget(destination_edit_, 1);
+  destination_row->addWidget(destination_button_);
+  layout->addLayout(destination_row);
+
+  free_space_label_ = CreateDetailLabel({}, page);
+  free_space_label_->hide();
+  layout->addWidget(free_space_label_);
+
+  warning_label_ = new QLabel(page);
+  warning_label_->setWordWrap(true);
+  SetLabelTextColor(warning_label_, WarningColor(palette()));
+  warning_label_->hide();
+  layout->addWidget(warning_label_);
+
+  layout->addStretch(1);
+
+  page->complete = [this]() {
+    return CanAdvanceProfileExport(ProfileExportStep::kSave, choice());
+  };
+}
+
+void ProfileExportDialog::slot_page_changed(int id) {
+  // Queued: QWizard settles focus on its own buttons after announcing the new
+  // page, and this has to land after that.
+  QTimer::singleShot(0, this, [this, id]() {
+    if (currentId() != id) return;
+
+    switch (static_cast<ProfileExportStep>(id)) {
+      case ProfileExportStep::kContents:
+        if (workspace_box_->isEnabled()) workspace_box_->setFocus();
+        break;
+      case ProfileExportStep::kProtection:
+        entry_->FocusFirstField();
+        break;
+      case ProfileExportStep::kSave:
+        if (destination_.isEmpty()) destination_button_->setFocus();
+        break;
+    }
+  });
+}
+
+auto ProfileExportDialog::contents_rows() const -> QList<MetaListRow> {
+  return ToMetaListRows(BuildProfileExportContents(areas_, include_workspace_));
 }
 
 auto ProfileExportDialog::choice() const -> ProfileExportChoice {
@@ -222,7 +325,8 @@ auto ProfileExportDialog::choice() const -> ProfileExportChoice {
 
 void ProfileExportDialog::slot_choose_destination() {
   auto suggestion = QString("%1/%2%3").arg(
-      GetDefaultUserFilePath(),
+      destination_.isEmpty() ? GetDefaultUserFilePath()
+                             : QFileInfo(destination_).absolutePath(),
       display_name_.simplified().replace(' ', '-').toLower(),
       kProfilePackageExtension);
 
@@ -234,55 +338,50 @@ void ProfileExportDialog::slot_choose_destination() {
                      ? chosen
                      : chosen + kProfilePackageExtension;
 
-  const QFileInfo info(destination_);
-
   // Free space as a fact, not a prediction. What the file will actually occupy
   // is unknowable before it is packed, because the payload is compressed on the
   // way out; what the volume has right now is simply true.
-  const QStorageInfo storage(info.absolutePath());
+  const QStorageInfo storage(QFileInfo(destination_).absolutePath());
   free_bytes_ = storage.isValid() ? storage.bytesAvailable() : -1;
 
-  destination_list_->SetRows(
-      BuildProfilePackageDestinationRows(info, free_bytes_));
-  destination_list_->show();
-  destination_hint_->hide();
-
   slot_state_changed();
+  if (auto* finish = button(QWizard::FinishButton)) finish->setFocus();
 }
 
 void ProfileExportDialog::slot_state_changed() {
   const auto current = choice();
 
-  // Re-render the sizes so the total visibly moves when the workspace row is
-  // ticked; a number that does not react to the checkbox above it teaches the
-  // user that the list is decoration.
+  // Re-rendered so the total visibly moves when the workspace is ticked; a
+  // number that does not react to the checkbox beside it teaches the user that
+  // the list is decoration.
+  contents_summary_->setText(DescribeProfileExportContents(
+      BuildProfileExportContents(areas_, include_workspace_)));
   contents_->RefreshValues(contents_rows());
 
-  const auto readiness = EvaluateProfileExport(current);
+  review_->SetRows(BuildProfileExportReviewRows(display_name_, current));
+
+  const auto native = QDir::toNativeSeparators(destination_);
+  destination_edit_->setText(native);
+  destination_edit_->setToolTip(native);
+  // The end of a long path is the part that names the file.
+  destination_edit_->setCursorPosition(static_cast<int>(native.size()));
+
+  const auto free_space = DescribeProfileExportFreeSpace(free_bytes_);
+  free_space_label_->setText(free_space);
+  free_space_label_->setVisible(!destination_.isEmpty() &&
+                                !free_space.isEmpty());
 
   // Only the first warning is shown. They are ordered by what it would cost to
   // ignore them, and a stack of alarms is read as one alarm.
-  if (readiness.warnings.isEmpty()) {
-    warning_icon_->clear();
-    warning_label_->clear();
-  } else {
-    const auto warning = readiness.warnings.front();
-    warning_icon_->setPixmap(
-        style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(18, 18));
-    warning_label_->setText(DescribeProfileExportWarning(warning));
-    SetLabelTextColor(warning_label_, WarningColor(palette()));
+  const auto readiness = EvaluateProfileExport(current);
+  warning_label_->setVisible(!readiness.warnings.isEmpty());
+  if (!readiness.warnings.isEmpty()) {
+    warning_label_->setText(
+        DescribeProfileExportWarning(readiness.warnings.front()));
   }
 
-  // Before a destination exists there is no summary to give, so the footer
-  // carries the one thing still to do rather than sitting blank.
-  const auto summary = DescribeProfileExport(
-      current,
-      destination_.isEmpty() ? QString{} : QFileInfo(destination_).fileName());
-  summary_label_->setText(summary.isEmpty()
-                              ? tr("Choose where to save the file to continue.")
-                              : summary);
-
-  buttons_->button(QDialogButtonBox::Ok)->setEnabled(readiness.can_export);
+  emit pages_.at(StepIndex(ProfileExportStep::kProtection))->completeChanged();
+  emit pages_.at(StepIndex(ProfileExportStep::kSave))->completeChanged();
 }
 
 auto ProfileExportDialog::DestinationPath() const -> QString {

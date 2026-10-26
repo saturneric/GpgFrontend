@@ -148,25 +148,14 @@ auto GF_UI_EXPORT DescribeProfileExportWarning(ProfileExportWarning warning)
     -> QString;
 
 /**
- * @brief One sentence saying what is about to happen, for just above the
- * button.
- *
- * Immediately before an act with no undo, this puts the user's understanding
- * and the program's actual state side by side in one line — which is what
- * catches "I thought I had ticked the workspace box".
- *
- * @param choice what has been chosen
- * @param destination the file name to name
- * @return the sentence, or empty while there is nothing to say yet
- */
-auto GF_UI_EXPORT DescribeProfileExport(const ProfileExportChoice& choice,
-                                        const QString& destination) -> QString;
-
-/**
  * @brief The contents list as rows, total included.
  *
  * The dialog holds no wording of its own: what goes in, what it adds up to and
  * what never travels are decided here, where they can be asserted.
+ *
+ * Read-only. The workspace is chosen by the one checkbox beside the list, and
+ * a second checkbox for the same thing inside it would be two answers to one
+ * question.
  *
  * @param rows what BuildProfileExportContents() returned
  * @return the rows to hand a MetaListPanel
@@ -175,15 +164,107 @@ auto GF_UI_EXPORT ToMetaListRows(const QList<ProfileExportContentsRow>& rows)
     -> QList<MetaListRow>;
 
 /**
- * @brief How the file is sealed, as rows.
+ * @brief How the file is sealed, in one sentence.
  *
  * Named rather than asserted. Someone who knows what these are can check the
  * claim; someone who does not still reads a specific mechanism rather than a
- * reassurance. The Argon2id parameters are deliberately left out: they will
- * change, and a number nobody can evaluate is noise.
+ * reassurance. The keychain is mentioned because its absence is the surprising
+ * part. The Argon2id parameters are deliberately left out: they will change,
+ * and a number nobody can evaluate is noise.
  *
- * @return the rows
+ * @return translated sentence
  */
-auto GF_UI_EXPORT BuildExportProtectionRows() -> QList<MetaListRow>;
+auto GF_UI_EXPORT DescribeExportProtection() -> QString;
+
+/**
+ * @brief Where the export wizard is.
+ */
+enum class ProfileExportStep {
+  kContents,
+  kProtection,
+  kSave,
+};
+
+/// How many steps the wizard has, for "Step 2 of 3".
+constexpr int kProfileExportStepCount = 3;
+
+/**
+ * @brief What a step is called in the indicator above it.
+ *
+ * @param step the step
+ * @return translated title
+ */
+auto GF_UI_EXPORT ProfileExportStepTitle(ProfileExportStep step) -> QString;
+
+/**
+ * @brief Whether the primary button may leave a step.
+ *
+ * Contents has nothing to get wrong. Protection needs a passphrase the panel
+ * accepts. Save is the export itself, so it asks EvaluateProfileExport() and
+ * nothing else: the wizard cannot be more lenient than the rules it replaces.
+ *
+ * @param step the step being left
+ * @param choice what has been chosen so far
+ * @return true when the step may be left forwards
+ */
+auto GF_UI_EXPORT CanAdvanceProfileExport(ProfileExportStep step,
+                                          const ProfileExportChoice& choice)
+    -> bool;
+
+/**
+ * @brief One line saying what goes in and what it comes to.
+ *
+ * The detailed list stays one click away; this is the line that answers the
+ * question most people opened the dialog with.
+ *
+ * @param rows what BuildProfileExportContents() returned
+ * @return translated sentence
+ */
+auto GF_UI_EXPORT DescribeProfileExportContents(
+    const QList<ProfileExportContentsRow>& rows) -> QString;
+
+/**
+ * @brief Whether there are workspace files to offer at all.
+ *
+ * @param rows what BuildProfileExportContents() returned
+ * @return true when the workspace measures more than nothing
+ */
+auto GF_UI_EXPORT
+HasProfileExportWorkspace(const QList<ProfileExportContentsRow>& rows) -> bool;
+
+/**
+ * @brief The workspace checkbox's text: its size, or why it is unavailable.
+ *
+ * @param rows what BuildProfileExportContents() returned
+ * @return translated text
+ */
+auto GF_UI_EXPORT DescribeProfileExportWorkspaceOption(
+    const QList<ProfileExportContentsRow>& rows) -> QString;
+
+/**
+ * @brief What the last step shows before the button with no undo.
+ *
+ * Plain words for the protection rather than the cipher's name: the mechanism
+ * is on the step that chose it, and here the reader only needs to know that it
+ * is in place.
+ *
+ * The destination is not a row here: it has a field of its own beside the
+ * button that chooses it.
+ *
+ * @param display_name what the profile is called
+ * @param choice what has been chosen so far
+ * @return the rows to hand a MetaListPanel
+ */
+auto GF_UI_EXPORT BuildProfileExportReviewRows(
+    const QString& display_name, const ProfileExportChoice& choice)
+    -> QList<MetaListRow>;
+
+/**
+ * @brief The quiet line under the destination: how much room the volume has.
+ *
+ * @param free_bytes what QStorageInfo reported, or -1 when unknown
+ * @return translated text, or empty when there is nothing true to say
+ */
+auto GF_UI_EXPORT DescribeProfileExportFreeSpace(qint64 free_bytes) -> QString;
 
 }  // namespace GpgFrontend::UI

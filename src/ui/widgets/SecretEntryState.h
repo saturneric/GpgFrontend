@@ -48,6 +48,13 @@ struct SecretEntryInput {
   int secret_length = 0;
   int confirm_length = 0;
   bool confirm_matches = false;  ///< compared at the field, never here
+
+  /// Hold "too short" and "do not match" back until the field they are about
+  /// has been committed. Off by default, so a caller that never asked for it
+  /// keeps reporting while the user types.
+  bool defer_until_committed = false;
+  bool secret_committed = false;   ///< the new secret's field was left
+  bool confirm_committed = false;  ///< the confirmation's field was left
 };
 
 /**
@@ -63,6 +70,7 @@ enum class SecretEntryProblem {
   kCurrentMissing,  ///< the existing secret has not been given
   kTooShort,        ///< something is typed, and it is under the floor
   kMismatch,        ///< the confirmation is non-empty and differs
+  kPending,  ///< wrong so far, but the user has not finished; deferred only
 };
 
 /**
@@ -84,6 +92,11 @@ struct SecretEntryState {
  *
  * Where both a short secret and a mismatch apply, the short one is reported:
  * it is the deeper problem, and fixing it usually invalidates the other anyway.
+ *
+ * With defer_until_committed set, both are held back further, as kPending: a
+ * short secret until its field is committed, and a mismatch until the
+ * confirmation is committed or is at least as long as the secret. Acceptance
+ * never changes with it; only when a problem is named does.
  *
  * The floor governs *choosing* a secret and never entering one that already
  * exists — a file sealed with four characters must stay openable.
