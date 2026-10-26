@@ -653,8 +653,13 @@ void ImportKeyPackageDialog::finish_import(
   imported_ = true;
   entry_->Clear();
   drop_opened();
-  emit SignalKeysImported(current_gpg_context_channel_, info);
+
+  // Closed before the result is announced, so whatever reports it opens over
+  // the window the wizard came from, not over the wizard. accept() only
+  // schedules the deletion, so emitting afterwards is safe.
+  const auto channel = current_gpg_context_channel_;
   accept();
+  emit SignalKeysImported(channel, info);
 }
 
 void ImportKeyPackageDialog::show_failure(const QString& error) {

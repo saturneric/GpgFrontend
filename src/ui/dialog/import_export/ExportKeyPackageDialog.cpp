@@ -642,26 +642,37 @@ void ExportKeyPackageDialog::finish_export(bool success, const QString& error,
   exported_ = true;
   entry_->Clear();
 
-  // Named in rows, the same way the summary named them a moment ago: the
-  // two files are now facts rather than intentions.
-  MetaListDialog done(tr("Key Package Exported"),
-                      tr("The key package and its key file have been saved."),
-                      this);
-  done.AddSection({}, BuildKeyPackageExportDoneRows(package_path, key_path));
-  done.AddNote(
-      tr("Keep the key file and the PIN apart from the package, and "
-         "delete both files once the transfer is done."));
-  done.AddButton(tr("Done"), QDialogButtonBox::AcceptRole);
-  const auto show_folder =
-      done.AddButton(tr("Show in Folder"), QDialogButtonBox::ActionRole);
-  done.exec();
-
-  if (done.Choice() == show_folder) {
-    QDesktopServices::openUrl(
-        QUrl::fromLocalFile(QFileInfo(package_path).absolutePath()));
-  }
+  // The wizard closes first, so the result is not read over a form that
+  // looks as if it were still waiting for input. The dialog belongs to the
+  // window the wizard was opened from, and is shown once the wizard is gone:
+  // it deletes itself on close.
+  const QPointer<QWidget> owner = parentWidget();
+  const auto title = tr("Key Package Exported");
+  const auto subtitle = tr("The key package and its key file have been saved.");
+  const auto note =
+      tr("Keep the key file and the PIN apart from the package, and delete "
+         "both files once the transfer is done.");
+  const auto done_text = tr("Done");
+  const auto folder_text = tr("Show in Folder");
 
   accept();
+
+  QTimer::singleShot(0, qApp, [=]() {
+    // Named in rows, the same way the summary named them a moment ago: the
+    // two files are now facts rather than intentions.
+    MetaListDialog done(title, subtitle, owner);
+    done.AddSection({}, BuildKeyPackageExportDoneRows(package_path, key_path));
+    done.AddNote(note);
+    done.AddButton(done_text, QDialogButtonBox::AcceptRole);
+    const auto show_folder =
+        done.AddButton(folder_text, QDialogButtonBox::ActionRole);
+    done.exec();
+
+    if (done.Choice() == show_folder) {
+      QDesktopServices::openUrl(
+          QUrl::fromLocalFile(QFileInfo(package_path).absolutePath()));
+    }
+  });
 }
 
 void ExportKeyPackageDialog::set_busy(bool busy) {
