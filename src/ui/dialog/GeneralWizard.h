@@ -113,6 +113,9 @@ class GF_UI_EXPORT GeneralWizard : public QWizard {
  private:
   QString name_;
   bool first_show_handled_ = false;
+  /// The size is the wizard's own estimate, not one the user chose, so the
+  /// first fit may shrink it as well as grow it.
+  bool size_is_estimate_ = false;
 
   /// @brief Restore the remembered geometry.
   /// @return false when there was none to restore
@@ -121,9 +124,9 @@ class GF_UI_EXPORT GeneralWizard : public QWizard {
   /// @brief Size for the largest page, and centre on the parent window.
   void place_first_time();
 
-  /// @brief Once the pages have their real width, grow until the tallest one
-  /// fits, and never allow less. Only ever grows: a size the user chose that
-  /// already fits is kept.
+  /// @brief Once the pages have their real width, fit the tallest one and
+  /// never allow less. An estimated size is fitted exactly, both ways; a size
+  /// the user chose is only ever grown.
   void fit_tallest_page();
 
   void save_geometry();

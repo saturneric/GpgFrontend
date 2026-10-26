@@ -109,7 +109,8 @@ void GeneralWizard::setVisible(bool visible) {
   if (visible && !first_show_handled_) {
     first_show_handled_ = true;
     ensurePolished();
-    if (!restore_geometry()) place_first_time();
+    size_is_estimate_ = !restore_geometry();
+    if (size_is_estimate_) place_first_time();
 
     // The estimate above is made before any page has a real width, and fonts
     // differ between displays; a size remembered from an older layout can be
@@ -139,9 +140,16 @@ void GeneralWizard::fit_tallest_page() {
   // only the page area has to reach the tallest page.
   const int needed = height() - current->height() + tallest;
   setMinimumHeight(needed);
-  if (height() < needed) {
+
+  // The estimate made before the window was laid out errs tall, and a tall
+  // wizard is mostly blank space, so it is corrected in both directions,
+  // around the same centre. A size the user chose only grows.
+  const bool fit_exactly = std::exchange(size_is_estimate_, false);
+  if (height() < needed || (fit_exactly && height() > needed)) {
     auto rect = geometry();
+    const auto center = rect.center();
     rect.setHeight(needed);
+    if (fit_exactly) rect.moveCenter(center);
     setGeometry(ClampRectToAvailableGeometry(rect, AvailableGeometry(this)));
   }
 }
