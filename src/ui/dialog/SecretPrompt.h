@@ -56,6 +56,7 @@ enum class SecretPromptMode {
 enum class SecretPromptSubject {
   kAppKey,          ///< the application key file kept on this computer
   kProfilePackage,  ///< a profile file being opened, imported, or re-sealed
+  kKeyPackage,      ///< the PIN that seals a key package's key file
 };
 
 /// Shortest secret accepted when choosing one. The strength meter stays advice,
@@ -93,6 +94,9 @@ struct GF_UI_EXPORT SecretPromptTexts {
   QString confirm_label;     ///< label for the confirmation field
   QString reveal_label;      ///< the show-the-secret checkbox
   QString strength_caption;  ///< caption beside the strength bar
+  /// The generator's button, where one is offered; empty keeps the panel's
+  /// own "passphrase" wording.
+  QString generate_label;
 
   QString accept_button;  ///< names what accepting does, never just "OK"
   QString cancel_button;  ///< empty keeps the platform's own wording

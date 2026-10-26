@@ -216,7 +216,9 @@ void SecretEntryPanel::lay_out_compact() {
   auto* controls = new QHBoxLayout();
   controls->setSpacing(12);
   if (generate_button_ != nullptr) {
-    generate_button_->setText(tr("Generate a strong passphrase"));
+    generate_button_->setText(config_.texts.generate_label.isEmpty()
+                                  ? tr("Generate a strong passphrase")
+                                  : config_.texts.generate_label);
     generate_button_->setFlat(true);
     generate_button_->setCursor(Qt::PointingHandCursor);
 

@@ -180,12 +180,59 @@ auto ProfilePackageTexts(SecretPromptMode mode) -> SecretPromptTexts {
   return texts;
 }
 
+/**
+ * @brief Wording for the PIN that seals a key package's key file.
+ *
+ * A PIN, because that is what the import prompt has always called it, and the
+ * word typed at import has to be the word chosen at export. New strings, so
+ * they take QObject::tr()'s context like the profile file's.
+ */
+auto KeyPackageTexts(SecretPromptMode mode) -> SecretPromptTexts {
+  SecretPromptTexts texts;
+
+  if (mode == SecretPromptMode::kUNLOCK) {
+    texts.window_title = QObject::tr("Import Key Package");
+    texts.subtitle = QObject::tr("Enter the PIN that opens this key file.");
+    texts.accept_button = QObject::tr("Import");
+  } else {
+    texts.window_title = QObject::tr("Protect This Key Package");
+    texts.subtitle =
+        QObject::tr("Choose the PIN that will seal the package's key file.");
+    texts.accept_button = QObject::tr("Save");
+    texts.hint =
+        QObject::tr("Use at least %1 characters.").arg(kMinSecretLength);
+    texts.warning = QObject::tr(
+        "If you lose this PIN, the key package can never be opened again.");
+  }
+
+  texts.current_label = QObject::tr("PIN");
+  texts.new_label = QObject::tr("PIN");
+  texts.confirm_label = QObject::tr("Repeat");
+  texts.reveal_label = QObject::tr("Show PIN");
+  texts.strength_caption = QObject::tr("Strength");
+  texts.generate_label = QObject::tr("Generate a strong PIN");
+
+  texts.too_short_message =
+      QObject::tr("The PIN must be at least %1 characters.");
+  texts.mismatch_message = QObject::tr("The two entries do not match.");
+  texts.current_missing_message = {};
+
+  return texts;
+}
+
 }  // namespace
 
 auto DefaultSecretPromptTexts(SecretPromptSubject subject,
                               SecretPromptMode mode) -> SecretPromptTexts {
-  return subject == SecretPromptSubject::kAppKey ? AppKeyTexts(mode)
-                                                 : ProfilePackageTexts(mode);
+  switch (subject) {
+    case SecretPromptSubject::kAppKey:
+      return AppKeyTexts(mode);
+    case SecretPromptSubject::kProfilePackage:
+      return ProfilePackageTexts(mode);
+    case SecretPromptSubject::kKeyPackage:
+      return KeyPackageTexts(mode);
+  }
+  return ProfilePackageTexts(mode);
 }
 
 }  // namespace GpgFrontend::UI

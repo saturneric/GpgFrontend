@@ -55,6 +55,12 @@ constexpr std::array kAllModes = {
     SecretPromptMode::kCHANGE,
 };
 
+constexpr std::array kAllSubjects = {
+    SecretPromptSubject::kAppKey,
+    SecretPromptSubject::kProfilePackage,
+    SecretPromptSubject::kKeyPackage,
+};
+
 }  // namespace
 
 TEST(SecretPromptTextsTest, TheApplicationKeyTitlesAreUnchanged) {
@@ -121,8 +127,7 @@ TEST(SecretPromptTextsTest, EveryPromptLineIsShortEnoughToRead) {
   // These are single wrapped lines in a 470 pixel dialog, above the field the
   // user came here to type in. A sentence that wraps three times is one nobody
   // finishes.
-  for (const auto subject :
-       {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
+  for (const auto subject : kAllSubjects) {
     for (const auto mode : kAllModes) {
       const auto texts = DefaultSecretPromptTexts(subject, mode);
       EXPECT_LT(texts.subtitle.size(), 120) << texts.subtitle.toStdString();
@@ -154,11 +159,27 @@ TEST(SecretPromptTextsTest, EachSubjectKeepsItsOwnWordForTheSecret) {
   }
 }
 
+TEST(SecretPromptTextsTest, AKeyPackageAsksForTheWordItsImportUses) {
+  // The import prompt has always asked for a PIN. Choosing a "passphrase" at
+  // export and being asked for a PIN at import reads as two different secrets.
+  for (const auto mode : kAllModes) {
+    const auto texts =
+        DefaultSecretPromptTexts(SecretPromptSubject::kKeyPackage, mode);
+    for (const auto& text :
+         {texts.current_label, texts.new_label, texts.reveal_label,
+          texts.too_short_message, texts.generate_label}) {
+      EXPECT_TRUE(text.contains("PIN", Qt::CaseSensitive))
+          << text.toStdString();
+      EXPECT_FALSE(text.contains("passphrase", Qt::CaseInsensitive))
+          << text.toStdString();
+    }
+  }
+}
+
 TEST(SecretPromptTextsTest, EveryStringAPromptWillRenderIsPopulated) {
   // A missing string renders as a blank label: invisible in review, obvious to
   // a user. Every field the dialog reads unconditionally has to be filled.
-  for (const auto subject :
-       {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
+  for (const auto subject : kAllSubjects) {
     for (const auto mode : kAllModes) {
       const auto texts = DefaultSecretPromptTexts(subject, mode);
 
@@ -192,8 +213,7 @@ TEST(SecretPromptTextsTest, EveryStringAPromptWillRenderIsPopulated) {
 TEST(SecretPromptTextsTest, TheFloorAppearsInItsOwnMessage) {
   // The message carries %1 rather than a baked-in number, so lowering the floor
   // for one caller cannot leave the sentence claiming the old one.
-  for (const auto subject :
-       {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
+  for (const auto subject : kAllSubjects) {
     const auto texts =
         DefaultSecretPromptTexts(subject, SecretPromptMode::kSET);
     EXPECT_TRUE(texts.too_short_message.contains("%1"));
@@ -204,8 +224,7 @@ TEST(SecretPromptTextsTest, TheFloorAppearsInItsOwnMessage) {
 TEST(SecretPromptTextsTest, TheFloorIsEightUnlessACallerLowersIt) {
   // Every default carries the same floor, so the write-back prompt's lower one
   // reads as a caller's deliberate choice rather than a quiet special case.
-  for (const auto subject :
-       {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
+  for (const auto subject : kAllSubjects) {
     for (const auto mode : kAllModes) {
       EXPECT_EQ(DefaultSecretPromptTexts(subject, mode).min_length,
                 kMinSecretLength);
