@@ -84,7 +84,6 @@ auto main(int argc, char* argv[]) -> int {
   parser.addHelpOption();
   parser.addOptions({
       {{"v", "version"}, "show version information"},
-      {{"t", "test"}, "run all unit test cases"},
       {{"e", "environment"}, "show environment information"},
       // A testing aid: start, let the module system settle, write what it did
       // as JSON, and exit. The smoke tests used to grep a log line for this,
@@ -109,17 +108,24 @@ auto main(int argc, char* argv[]) -> int {
   });
   parser.addPositionalArgument("file", "a .gfp package to open", "[file]");
 
+#ifdef GF_BUILD_TESTS
+  parser.addOption({{"t", "test"}, "run all unit test cases"});
+#endif
+
 #ifdef GF_SCREENSHOT_MODE
   GpgFrontend::Screenshot::AddScreenshotOptions(parser);
 #endif
 
-  // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which would
-  // otherwise reject them as unknown options. They are consumed later by
-  // testing::InitGoogleTest, which reads the unmodified argv during RunTest, so
-  // `gpgfrontend -t --gtest_filter=...` works without the GTEST_* env vars.
   QStringList parser_args;
   for (const auto& arg : QCoreApplication::arguments()) {
+#ifdef GF_BUILD_TESTS
+    // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which
+    // would otherwise reject them as unknown options. They are consumed later
+    // by testing::InitGoogleTest, which reads the unmodified argv during
+    // RunTest, so `gpgfrontend -t --gtest_filter=...` works without the
+    // GTEST_* env vars.
     if (arg.startsWith("--gtest_")) continue;
+#endif
     parser_args << arg;
   }
   parser.process(parser_args);
@@ -246,6 +252,7 @@ auto main(int argc, char* argv[]) -> int {
     return rtn;
   }
 
+#ifdef GF_BUILD_TESTS
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;
     ctx->unit_test_mode = true;
@@ -255,6 +262,7 @@ auto main(int argc, char* argv[]) -> int {
     ShutdownGlobalBasicEnv(ctx);
     return rtn;
   }
+#endif
 
   ctx->gather_external_gnupg_info = true;
   ctx->unit_test_mode = false;

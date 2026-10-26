@@ -239,6 +239,7 @@ if [[ "$ASAN" != "no" ]]; then
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DGPGFRONTEND_LINK_GPGME_INTO_CORE=On \
       -DGPGFRONTEND_BUILD_MODULES=ON \
+      -DGPGFRONTEND_BUILD_TESTS=ON \
       -DGPGFRONTEND_MODULES_BUILD_TESTS=ON \
       -DCMAKE_C_FLAGS="$SAN_FLAGS" \
       -DCMAKE_CXX_FLAGS="$SAN_FLAGS" \
@@ -303,6 +304,15 @@ if [[ "$MODE" != "rust" && "$MODE" != "rust-slow" ]]; then
   if [[ ! -x "$BIN" ]]; then
     echo "error: test binary not found: $BIN" >&2
     echo "       run with --build, or build the 'gpgfrontend' target first." >&2
+    exit 1
+  fi
+
+  # The unit tests are opt-in at configure time. Without them the binary has
+  # no -t mode, and every phase below would fail as an unknown option.
+  if [[ "$MODE" != "modules" ]] &&
+     ! grep -qiE '^GPGFRONTEND_BUILD_TESTS:BOOL=(ON|TRUE|YES|Y|1)$' "$BUILD_DIR/CMakeCache.txt" 2>/dev/null; then
+    echo "error: $BUILD_DIR was configured without the unit tests" >&2
+    echo "       reconfigure with: cmake -B $BUILD_DIR -DGPGFRONTEND_BUILD_TESTS=ON" >&2
     exit 1
   fi
 fi

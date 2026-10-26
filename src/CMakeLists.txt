@@ -67,7 +67,11 @@ add_subdirectory(core)
 add_subdirectory(ui)
 add_subdirectory(sdk)
 add_subdirectory(tools)
-add_subdirectory(test)
+# The unit tests are opt-in: a build without them needs no GoogleTest, and the
+# application then has no -t mode.
+if(GPGFRONTEND_BUILD_TESTS)
+  add_subdirectory(test)
+endif()
 add_subdirectory(res)
 
 # Collecting sources file of app
@@ -217,7 +221,12 @@ if(MINGW)
 endif()
 
 # link options for GpgFrontend
-target_link_libraries(${APP_NAME} gf_core gf_ui gf_test gf_res)
+target_link_libraries(${APP_NAME} gf_core gf_ui gf_res)
+
+if(GPGFRONTEND_BUILD_TESTS)
+  target_link_libraries(${APP_NAME} gf_test)
+  target_compile_definitions(${APP_NAME} PRIVATE GF_BUILD_TESTS=1)
+endif()
 
 # The screenshot mode lives in its own directory so that a build without the
 # option compiles none of it; aux_source_directory(.) above never sees it.

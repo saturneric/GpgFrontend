@@ -573,13 +573,12 @@ jobs:
           # when it runs, and a file dropped in afterwards gets neither an
           # rpath nor its own dependencies deployed.
           #
-          # This is googletest in practice. The application links gf_test --
-          # `gpgfrontend -t` runs the suite from the shipped binary -- and CI
+          # This was googletest, back when every build linked gf_test: CI
           # builds googletest as a SHARED library into /usr/local/lib, which is
           # a directory that exists on this runner and on nobody's desktop. The
           # AppImage started, looked for libgtest.so.1.15.2, and died before
-          # main(). A developer building locally never sees it, because a local
-          # googletest is usually static.
+          # main(). Release builds now leave GPGFRONTEND_BUILD_TESTS off, so it
+          # only matters for a build configured with the tests.
           #
           # Resolved rather than named: /usr/local is where a hand-built
           # dependency lands, and the next one should not need this comment

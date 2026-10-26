@@ -48,7 +48,9 @@ auto PrintVersion() -> int;
  */
 void ApplyLogLevel(int level);
 
+#ifdef GF_BUILD_TESTS
 auto RunTest(const GFCxtWPtr&) -> int;
+#endif
 
 auto PrintEnvInfo() -> int;
 

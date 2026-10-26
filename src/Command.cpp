@@ -43,7 +43,10 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
+
+#ifdef GF_BUILD_TESTS
 #include "test/GpgFrontendTest.h"
+#endif
 
 // GpgFrontend
 #include "Application.h"
@@ -230,6 +233,7 @@ void ApplyLogLevel(int level) {
   }
 }
 
+#ifdef GF_BUILD_TESTS
 auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   GpgFrontend::GFCxtSPtr const ctx = p_ctx.lock();
   if (ctx == nullptr) {
@@ -260,5 +264,6 @@ auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   looper.exec();
   return 0;
 }
+#endif
 
 }  // namespace GpgFrontend

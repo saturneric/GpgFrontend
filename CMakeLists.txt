@@ -59,6 +59,7 @@ option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" O
 option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
 option(GPGFRONTEND_BUILD_PORTABLE "Build as a portable release (data lives beside the application, not in the OS user-data location)" OFF)
 option(GPGFRONTEND_BUILD_SCREENSHOT_MODE "Build the hidden --screenshot mode that renders UI states for the user manual" OFF)
+option(GPGFRONTEND_BUILD_TESTS "Build the unit tests and the -t test mode (requires GoogleTest)" OFF)
 
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
@@ -432,6 +433,13 @@ message(STATUS "App Profile Name: ${GPGFRONTEND_APP_PROFILE_NAME}")
 if(GPGFRONTEND_BUILD_SCREENSHOT_MODE AND GPGFRONTEND_BUILD_STABLE)
   message(FATAL_ERROR
     "GPGFRONTEND_BUILD_SCREENSHOT_MODE cannot be combined with GPGFRONTEND_BUILD_STABLE")
+endif()
+
+# The screenshot mode's own tests are compiled into gf_test, so it cannot be
+# built without the tests.
+if(GPGFRONTEND_BUILD_SCREENSHOT_MODE AND NOT GPGFRONTEND_BUILD_TESTS)
+  message(FATAL_ERROR
+    "GPGFRONTEND_BUILD_SCREENSHOT_MODE requires GPGFRONTEND_BUILD_TESTS")
 endif()
 
 # Whether this artifact keeps its data beside itself rather than in the OS
