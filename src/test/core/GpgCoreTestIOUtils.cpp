@@ -28,6 +28,7 @@
 
 #include <QCryptographicHash>
 #include <QFile>
+#include <QProcess>
 #include <QTemporaryDir>
 
 #ifndef _WIN32
@@ -526,5 +527,145 @@ TEST(IOUtilsSafeOutputTest, RemoveWorkDirIgnoresPathsItDidNotStage) {
   EXPECT_TRUE(QFileInfo::exists(temp_dir.path()));
   EXPECT_TRUE(QFileInfo::exists(foreign));
 }
+
+// -----------------------------------------------------------------------------
+// Tree walks that never go through a link: removal, making a tree removable,
+// and measuring it.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+constexpr auto kReadOnlyDir = QFileDevice::ReadOwner | QFileDevice::ExeOwner;
+
+#ifdef Q_OS_WIN
+// A junction, made the way a user or an installer would make one.
+auto MakeJunction(const QString& link, const QString& target) -> bool {
+  QProcess mklink;
+  mklink.start("cmd.exe", {"/c", "mklink", "/J", QDir::toNativeSeparators(link),
+                           QDir::toNativeSeparators(target)});
+  return mklink.waitForFinished(10000) && mklink.exitCode() == 0 &&
+         QFileInfo(link).isJunction();
+}
+#endif
+
+}  // namespace
+
+TEST(IOUtilsTreeWalkTest, RemoveTreeWithoutFollowingLinksLeavesTargetsAlone) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto tree = temp_dir.path() + "/tree";
+  const auto outside = temp_dir.path() + "/outside";
+  ASSERT_TRUE(QDir().mkpath(tree + "/a/b"));
+  ASSERT_TRUE(QDir().mkpath(outside));
+  WriteTempFile(tree + "/a/b", "inner", "inner");
+  const auto sentinel = WriteTempFile(outside, "sentinel", "outside");
+
+  // Read-only on the far side of the link: making the tree removable must not
+  // reach through it.
+  QFile::setPermissions(sentinel, QFileDevice::ReadOwner);
+  QFile::setPermissions(outside, kReadOnlyDir);
+  const auto outside_mode = QFile::permissions(outside);
+  const auto sentinel_mode = QFile::permissions(sentinel);
+
+  ASSERT_TRUE(QFile::link(outside, tree + "/a/to-outside"));
+  ASSERT_TRUE(QFile::link(sentinel, tree + "/a/b/to-file"));
+  QFile::setPermissions(tree + "/a/b", kReadOnlyDir);
+  QFile::setPermissions(tree + "/a", kReadOnlyDir);
+
+  EXPECT_TRUE(RemoveTreeWithoutFollowingLinks(tree).isEmpty());
+  EXPECT_FALSE(QFileInfo::exists(tree));
+
+  EXPECT_TRUE(QFileInfo::exists(sentinel));
+  EXPECT_EQ(QFile::permissions(outside), outside_mode);
+  EXPECT_EQ(QFile::permissions(sentinel), sentinel_mode);
+
+  QFile::setPermissions(outside, outside_mode | QFileDevice::WriteOwner);
+}
+
+TEST(IOUtilsTreeWalkTest,
+     RemoveTreeWithoutFollowingLinksOnALinkRemovesTheLink) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto outside = temp_dir.path() + "/outside";
+  ASSERT_TRUE(QDir().mkpath(outside));
+  WriteTempFile(outside, "keep", "keep");
+  ASSERT_TRUE(QFile::link(outside, temp_dir.path() + "/link"));
+
+  EXPECT_TRUE(
+      RemoveTreeWithoutFollowingLinks(temp_dir.path() + "/link").isEmpty());
+  EXPECT_FALSE(QFileInfo(temp_dir.path() + "/link").isSymLink());
+  EXPECT_TRUE(QFileInfo::exists(outside + "/keep"));
+
+  EXPECT_TRUE(
+      RemoveTreeWithoutFollowingLinks(temp_dir.path() + "/missing").isEmpty());
+}
+
+TEST(IOUtilsTreeWalkTest, MakingAStagedTreeRemovableNeverReachesThroughALink) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto outside = temp_dir.path() + "/outside";
+  ASSERT_TRUE(QDir().mkpath(outside));
+  QFile::setPermissions(outside, kReadOnlyDir);
+  const auto outside_mode = QFile::permissions(outside);
+
+  // Read-only, so the first removal attempt fails and the tree is made
+  // removable before the second.
+  const auto staged = MakeSafeOutputTempPath(temp_dir.path() + "/out");
+  ASSERT_TRUE(QDir().mkpath(staged + "/locked"));
+  WriteTempFile(staged + "/locked", "plain", "text");
+  ASSERT_TRUE(QFile::link(outside, staged + "/locked/to-outside"));
+  QFile::setPermissions(staged + "/locked", kReadOnlyDir);
+
+  EXPECT_TRUE(DiscardSafeOutput(staged));
+  EXPECT_FALSE(QFileInfo::exists(staged));
+  EXPECT_EQ(QFile::permissions(outside), outside_mode);
+
+  QFile::setPermissions(outside, outside_mode | QFileDevice::WriteOwner);
+}
+
+TEST(IOUtilsTreeWalkTest, DirectorySizeCountsFilesButNotLinks) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto tree = temp_dir.path() + "/tree";
+  const auto outside = temp_dir.path() + "/outside";
+  ASSERT_TRUE(QDir().mkpath(tree + "/sub"));
+  ASSERT_TRUE(QDir().mkpath(outside));
+  WriteTempFile(tree, "a", QByteArray(10, 'a'));
+  WriteTempFile(tree + "/sub", "b", QByteArray(20, 'b'));
+  WriteTempFile(outside, "big", QByteArray(1000, 'x'));
+
+  ASSERT_TRUE(QFile::link(outside, tree + "/to-outside"));
+  ASSERT_TRUE(QFile::link(outside + "/big", tree + "/to-big"));
+  // A loop back up the tree.
+  ASSERT_TRUE(QFile::link(tree, tree + "/sub/loop"));
+
+  EXPECT_EQ(DirectorySize(tree), 30);
+  EXPECT_EQ(DirectorySize(tree + "/to-outside"), 0);
+  EXPECT_EQ(DirectorySize(tree + "/a"), 0);
+  EXPECT_EQ(DirectorySize(temp_dir.path() + "/missing"), 0);
+}
+
+#ifdef Q_OS_WIN
+TEST(IOUtilsTreeWalkTest, ANestedJunctionIsRemovedWithoutEnteringIt) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto tree = temp_dir.path() + "/tree";
+  const auto outside = temp_dir.path() + "/outside";
+  ASSERT_TRUE(QDir().mkpath(tree + "/a"));
+  ASSERT_TRUE(QDir().mkpath(outside));
+  const auto sentinel = WriteTempFile(outside, "sentinel", "outside");
+  QFile::setPermissions(sentinel, QFileDevice::ReadOwner);
+  const auto sentinel_mode = QFile::permissions(sentinel);
+  ASSERT_TRUE(MakeJunction(tree + "/a/junction", outside));
+
+  EXPECT_EQ(DirectorySize(tree), 0);
+  EXPECT_TRUE(RemoveTreeWithoutFollowingLinks(tree).isEmpty());
+  EXPECT_FALSE(QFileInfo::exists(tree));
+  EXPECT_TRUE(QFileInfo::exists(sentinel));
+  EXPECT_EQ(QFile::permissions(sentinel), sentinel_mode);
+
+  QFile::setPermissions(sentinel, sentinel_mode | QFileDevice::WriteOwner);
+}
+#endif
 
 }  // namespace GpgFrontend::Test

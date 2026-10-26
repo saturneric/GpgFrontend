@@ -231,4 +231,29 @@ auto GF_CORE_EXPORT DiscardSafeOutput(const QString& temp_path) -> bool;
  */
 void GF_CORE_EXPORT RemoveSafeOutputWorkDir(const QString& temp_path);
 
+/**
+ * @brief Remove a file or directory tree without ever following a link.
+ *
+ * A symbolic link, shortcut or junction met anywhere in the tree, @p root
+ * included, is removed itself; what it points at is never entered, listed or
+ * given a new mode. Read-only directories and files inside the tree are made
+ * writable first.
+ *
+ * @param root the file or directory to remove
+ * @return the paths that could not be removed, empty on success
+ */
+auto GF_CORE_EXPORT RemoveTreeWithoutFollowingLinks(const QString& root)
+    -> QStringList;
+
+/**
+ * @brief The bytes the files of a directory tree occupy.
+ *
+ * Links are skipped rather than measured through, so what lies outside the
+ * tree is never counted, and a link cannot make the walk loop.
+ *
+ * @param path the directory
+ * @return the total, 0 for anything that is not a directory
+ */
+auto GF_CORE_EXPORT DirectorySize(const QString& path) -> qint64;
+
 }  // namespace GpgFrontend

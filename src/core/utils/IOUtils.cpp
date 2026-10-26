@@ -65,37 +65,76 @@ auto UnpredictableSuffix() -> QString {
   return QUuid::createUuid().toString(QUuid::Id128);
 }
 
-// Give the owner write access to every directory of a tree, so the entries
-// in it can be unlinked. Links are skipped: changing a mode follows a link.
-void MakeTreeRemovable(const QString& root) {
-  const auto add_owner_rwx = [](const QString& dir) {
-    QFile::setPermissions(dir,
-                          QFile::permissions(dir) | QFileDevice::ReadOwner |
-                              QFileDevice::WriteOwner | QFileDevice::ExeOwner);
-  };
+// Whether an entry is a link of any kind: a symbolic link, a Windows shortcut
+// or a junction. Nothing that walks a tree here ever goes through one, or
+// changes a mode through one -- both would act on whatever it points at.
+auto IsLinkEntry(const QFileInfo& info) -> bool {
+  return info.isSymLink() || info.isJunction();
+}
 
-  add_owner_rwx(root);
-  QDirIterator it(
-      root, QDir::Dirs | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot,
-      QDirIterator::Subdirectories);
-  while (it.hasNext()) {
-    const auto dir = it.next();
-    if (!QFileInfo(dir).isSymLink()) add_owner_rwx(dir);
+// The entries of one directory, hidden and system ones included. A broken
+// link is only listed with QDir::System.
+auto DirectoryEntries(const QString& dir) -> QFileInfoList {
+  return QDir(dir).entryInfoList(QDir::AllEntries | QDir::Hidden |
+                                 QDir::System | QDir::NoDotAndDotDot);
+}
+
+void AddOwnerRwx(const QString& dir) {
+  QFile::setPermissions(dir, QFile::permissions(dir) | QFileDevice::ReadOwner |
+                                 QFileDevice::WriteOwner |
+                                 QFileDevice::ExeOwner);
+}
+
+// Remove a link itself. A directory link on Windows (a junction, or a
+// directory symlink) is only removed as a directory; elsewhere rmdir() on a
+// link fails without following it.
+auto RemoveLinkEntry(const QString& path) -> bool {
+  if (QFile::remove(path)) return true;
+  return QDir().rmdir(path);
+}
+
+void RemoveTreeInto(const QString& dir, QStringList& failed) {
+  AddOwnerRwx(dir);
+
+  for (const auto& entry : DirectoryEntries(dir)) {
+    const auto path = entry.absoluteFilePath();
+
+    if (IsLinkEntry(entry)) {
+      if (!RemoveLinkEntry(path)) failed.append(path);
+      continue;
+    }
+
+    if (entry.isDir()) {
+      RemoveTreeInto(path, failed);
+      continue;
+    }
+
+    if (QFile::remove(path)) continue;
+    // Windows refuses to delete a read-only file. Not a link, so the mode
+    // change lands on the file itself.
+    QFile::setPermissions(path,
+                          QFile::permissions(path) | QFileDevice::WriteOwner);
+    if (!QFile::remove(path)) failed.append(path);
   }
+
+  if (!QDir().rmdir(dir)) failed.append(dir);
 }
 
 // Remove a staged output, file or directory, with everything in it. A tree
 // with read-only directories in it (an extracted archive can carry them) is
 // made writable first rather than left behind with plaintext inside.
+//
+// Not QDir::removeRecursively(): when it cannot remove an entry it retries
+// after a setPermissions() on it, and on a link that changes the mode of
+// whatever the link points at, outside the tree.
 auto RemoveStagedPath(const QString& path) -> bool {
   const QFileInfo info(path);
-  if (info.isDir() && !info.isSymLink()) {
-    if (QDir(path).removeRecursively()) return true;
-
-    MakeTreeRemovable(path);
-    return QDir(path).removeRecursively();
+  if (info.isDir() && !IsLinkEntry(info)) {
+    QStringList failed;
+    RemoveTreeInto(info.absoluteFilePath(), failed);
+    return failed.isEmpty();
   }
-  return !info.exists() && !info.isSymLink() ? true : QFile::remove(path);
+  return !info.exists() && !IsLinkEntry(info) ? true : RemoveLinkEntry(path);
 }
 
 }  // namespace
@@ -346,6 +385,50 @@ void RemoveSafeOutputWorkDir(const QString& temp_path) {
   if (!QFileInfo(dir).fileName().startsWith(SafeOutputWorkDirPrefix())) return;
 
   QDir().rmdir(dir);
+}
+
+auto RemoveTreeWithoutFollowingLinks(const QString& root) -> QStringList {
+  QStringList failed;
+  const QFileInfo info(root);
+  if (IsLinkEntry(info)) {
+    if (!RemoveLinkEntry(root)) failed.append(root);
+    return failed;
+  }
+  if (!info.exists()) return failed;
+  if (!info.isDir()) {
+    if (!QFile::remove(root)) failed.append(root);
+    return failed;
+  }
+
+  RemoveTreeInto(info.absoluteFilePath(), failed);
+  return failed;
+}
+
+auto DirectorySize(const QString& path) -> qint64 {
+  const QFileInfo root(path);
+  if (path.isEmpty() || IsLinkEntry(root) || !root.isDir()) return 0;
+
+  qint64 total = 0;
+  // Links are never entered, so a cycle needs something like a bind mount;
+  // the visited set keeps even that from looping.
+  QSet<QString> visited;
+  QStringList pending{root.absoluteFilePath()};
+  while (!pending.isEmpty()) {
+    const auto dir = pending.takeLast();
+    const auto canonical = QFileInfo(dir).canonicalFilePath();
+    if (canonical.isEmpty() || visited.contains(canonical)) continue;
+    visited.insert(canonical);
+
+    for (const auto& entry : DirectoryEntries(dir)) {
+      if (IsLinkEntry(entry)) continue;
+      if (entry.isDir()) {
+        pending.append(entry.absoluteFilePath());
+      } else {
+        total += entry.size();
+      }
+    }
+  }
+  return total;
 }
 
 auto CalculateBinaryChacksum(QIODevice& io) -> QString {

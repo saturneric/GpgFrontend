@@ -53,6 +53,7 @@
 #include "core/profile/ProtectedFsProfileAccessor.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "platform/common/PlatformFs.h"
 
 namespace GpgFrontend {
@@ -74,19 +75,6 @@ constexpr qint64 kStorageExhaustedSlack = 1024 * 1024;
 /// at all from trying to hold a DVD in memory.
 constexpr qint64 kPayloadCapFloor = 16LL * 1024 * 1024;
 constexpr qint64 kPayloadCapCeiling = 256LL * 1024 * 1024;
-
-auto DirectorySize(const QString &path) -> qint64 {
-  if (path.isEmpty() || !QFileInfo::exists(path)) return 0;
-
-  qint64 total = 0;
-  QDirIterator it(path, QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot,
-                  QDirIterator::Subdirectories);
-  while (it.hasNext()) {
-    it.next();
-    total += it.fileInfo().size();
-  }
-  return total;
-}
 
 /**
  * @brief How much the settings this package would carry actually weigh.
