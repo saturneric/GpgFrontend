@@ -35,8 +35,10 @@
 
 #include "GpgFrontendTest.h"
 #include "ModuleTestPackages.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/module/ModuleSetVerification.h"
+#include "core/utils/BuildInfoUtils.h"
 
 /**
  * @file GpgCoreTestModuleSetVerification.cpp
@@ -238,6 +240,26 @@ TEST(ModuleSetVerificationTest, ThisBuildsOwnTreeVerifies) {
   }
   EXPECT_TRUE(result.ok);
   EXPECT_EQ(result.verified.size(), built.size());
+}
+
+TEST(ModuleSetVerificationTest, EveryBundledModuleCarriesTheHostVersion) {
+  const auto built = BuiltModulePackages();
+  if (built.isEmpty()) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
+
+  // A bundled module.json leaves "version" out and takes the Host's, so a
+  // release bumps one number. A module that still states its own drifts.
+  const auto host_version = GetProjectVersion().mid(1);
+  for (const auto& package : built) {
+    const auto verdict =
+        Module::VerifyModuleDescriptor(package.absoluteFilePath());
+    ASSERT_TRUE(verdict.authenticated) << verdict.reason.toStdString();
+    EXPECT_EQ(verdict.manifest.version, host_version)
+        << verdict.manifest.id.toStdString();
+  }
 }
 
 TEST(ModuleSetVerificationTest, AWrongCountIsARefusal) {
