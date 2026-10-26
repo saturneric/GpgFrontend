@@ -462,6 +462,11 @@ class KeyList : public QWidget {
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
   int current_gpg_context_channel_;
 
+  /// The channel the category rail was last built from, -1 if it never was.
+  /// Categories belong to one database, so a list that switches database has
+  /// to rebuild the rail too, or it keeps showing the previous one's.
+  int category_tabs_channel_ = -1;
+
   /// Keeps the shown database's objects alive while its model is attached,
   /// across a Runtime replacing it until this list has moved on.
   std::optional<EngineLease> channel_lease_;

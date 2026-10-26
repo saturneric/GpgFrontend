@@ -1254,6 +1254,7 @@ void KeyList::RebuildCategoryTabs() {
   }
 
   apply_saved_tab_order();
+  category_tabs_channel_ = current_gpg_context_channel_;
 }
 
 void KeyList::SetTabOrderSettingsKey(const QString& settings_key) {
@@ -1602,6 +1603,15 @@ void KeyList::SlotRefresh() {
           << current_gpg_context_channel_;
   model_ = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
                .GetGpgKeyTableModel();
+
+  // Another database is shown now, and its categories and tab colours are its
+  // own. Rebuilt before the tables take the new model so the pages it adds get
+  // it as well; a list that never showed categories is left without them.
+  if (category_tabs_channel_ >= 0 &&
+      category_tabs_channel_ != current_gpg_context_channel_) {
+    RebuildCategoryTabs();
+    refresh_category_icons();
+  }
 
   for (int i = 0; i < ui_->keyStack->count(); i++) {
     auto* key_table = qobject_cast<KeyTable*>(ui_->keyStack->widget(i));
