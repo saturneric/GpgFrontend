@@ -489,7 +489,11 @@ function(gf_add_module)
   endif()
 
   _gf_module_json_string("${manifest_json}" "${manifest_file}" id module_id)
-  _gf_module_json_string("${manifest_json}" "${manifest_file}" version
+  # A bundled module ships with the Host and carries its version, so its
+  # module.json leaves "version" out and nobody has to remember to bump it.
+  # An external module states its own.
+  set(module_version "${PROJECT_VERSION}")
+  _gf_module_json_optional_string("${manifest_json}" "${manifest_file}" version
     module_version)
   _gf_module_json_string("${manifest_json}" "${manifest_file}" name module_name)
   _gf_module_json_string("${manifest_json}" "${manifest_file}" description
