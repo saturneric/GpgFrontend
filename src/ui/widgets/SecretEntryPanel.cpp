@@ -88,9 +88,20 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
   //
   // A prompt with no hint has nothing to put in the second line, and reserving
   // it anyway would leave a blank band above the buttons that reads as a
-  // missing control. One line still absorbs the messages such a prompt shows.
-  message_label_->setMinimumHeight(message_label_->fontMetrics().lineSpacing() *
-                                   (config_.texts.hint.isEmpty() ? 1 : 2));
+  // missing control. One line still absorbs the messages such a prompt shows,
+  // unless it offers the generator: its notice runs to two lines, and growing
+  // into the second would push everything under the panel down the moment
+  // the button is pressed.
+  //
+  // A little air above, so the notice reads as a note on the fields rather
+  // than as a line crowded onto them.
+  constexpr int kMessageTopPadding = 4;
+  const int lines =
+      config_.texts.hint.isEmpty() && !config_.offer_generation ? 1 : 2;
+  message_label_->setContentsMargins(0, kMessageTopPadding, 0, 0);
+  message_label_->setMinimumHeight(
+      (message_label_->fontMetrics().lineSpacing() * lines) +
+      kMessageTopPadding);
 
   if (config_.compact) {
     lay_out_compact();
@@ -405,8 +416,8 @@ void SecretEntryPanel::generate() {
   SetErrorText({});
   SetLabelTextColor(message_label_, WarningColor(palette()));
   message_label_->setText(
-      tr("Copied to the clipboard. Save it somewhere safe now — it is not "
-         "stored anywhere, and it cannot be recovered later."));
+      tr("Copied to the clipboard. Keep it somewhere safe: it cannot be "
+         "recovered."));
 }
 
 void SecretEntryPanel::refresh_strength() {
