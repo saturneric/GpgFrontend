@@ -52,9 +52,11 @@ use std::io::Read;
 use pgp::armor::{BlockType, Dearmor, DearmorOptions};
 use pgp::composed::CleartextSignedMessage;
 use pgp::crypto::aead::AeadAlgorithm;
+use pgp::crypto::ecc_curve::{ECCCurve, ecc_curve_from_oid};
+use pgp::crypto::public_key::PublicKeyAlgorithm;
 use pgp::crypto::sym::SymmetricKeyAlgorithm;
 use pgp::packet::{Packet, PacketHeader};
-use pgp::types::{KeyDetails, PacketLength, Tag};
+use pgp::types::{KeyDetails, PacketLength, PkeskBytes, PublicParams, Tag};
 use serde::Serialize;
 
 /// Maximum armored block size handed to the dearmorer, and the ceiling on the
@@ -717,7 +719,7 @@ fn describe_signature(sig: &pgp::packet::Signature) -> Vec<Field> {
     if let Some(config) = sig.config() {
         fields.push(Field::new(
             "Public Key Algorithm",
-            format!("{:?}", config.pub_alg),
+            pub_key_algo_name(config.pub_alg),
         ));
     }
     if let Some(created) = sig.created() {
@@ -776,7 +778,7 @@ fn describe_one_pass(ops: &pgp::packet::OnePassSignature) -> Vec<Field> {
         Field::new("Hash Algorithm", format!("{:?}", ops.hash_algorithm())),
         Field::new(
             "Public Key Algorithm",
-            format!("{:?}", ops.public_key_algorithm()),
+            pub_key_algo_name(ops.public_key_algorithm()),
         ),
         Field::new(
             "Nested",
@@ -798,8 +800,11 @@ fn describe_one_pass(ops: &pgp::packet::OnePassSignature) -> Vec<Field> {
 fn describe_pkesk(pkesk: &pgp::packet::PublicKeyEncryptedSessionKey) -> Vec<Field> {
     let mut fields = vec![Field::new("Version", format!("{:?}", pkesk.version()))];
     match pkesk.algorithm() {
-        Ok(alg) => fields.push(Field::new("Public Key Algorithm", format!("{alg:?}"))),
+        Ok(alg) => fields.push(Field::new("Public Key Algorithm", pub_key_algo_name(alg))),
         Err(e) => fields.push(Field::new("Public Key Algorithm", e.to_string())),
+    }
+    if let (Ok(alg), Ok(values)) = (pkesk.algorithm(), pkesk.values()) {
+        fields.extend(pkesk_variant(alg, values));
     }
     if let Ok(id) = pkesk.id() {
         fields.push(Field::new("Recipient Key ID", id.to_string()));
@@ -919,13 +924,146 @@ fn describe_gnupg_aead(body: &[u8]) -> Vec<Field> {
 }
 
 fn describe_key(key: &impl KeyDetails) -> Vec<Field> {
-    vec![
+    let mut fields = vec![
         Field::new("Version", format!("{:?}", key.version())),
-        Field::new("Public Key Algorithm", format!("{:?}", key.algorithm())),
+        Field::new("Public Key Algorithm", pub_key_algo_name(key.algorithm())),
+    ];
+    fields.extend(key_variant(key.algorithm(), key.public_params()));
+    fields.extend([
         Field::new("Created", format!("{:?}", key.created_at())),
         Field::new("Fingerprint", key.fingerprint().to_string()),
         Field::new("Key ID", key.legacy_key_id().to_string()),
-    ]
+    ]);
+    fields
+}
+
+/// What the session key packet reveals about the recipient key beyond its
+/// algorithm id: an RSA or Elgamal ciphertext is as wide as the modulus, and
+/// an ephemeral ECC point's encoding gives away the curve.
+fn pkesk_variant(alg: PublicKeyAlgorithm, values: &PkeskBytes) -> Vec<Field> {
+    match values {
+        PkeskBytes::Rsa { mpi } | PkeskBytes::Elgamal { first: mpi, .. } => {
+            // The ciphertext is below the modulus, so its width only falls
+            // short of the key size when its top octet happens to be zero.
+            // rPGP strips leading zero octets, so this is the bit count
+            // rounded up to whole octets.
+            let bits = mpi.as_ref().len() * 8;
+            vec![Field::new(
+                "Key Size",
+                format!("~{bits} bits (from ciphertext width)"),
+            )]
+        }
+        PkeskBytes::Ecdh { public_point, .. } => ecc_point_curve(public_point.as_ref())
+            .map(|curve| vec![Field::new("Curve", curve)])
+            .unwrap_or_default(),
+        PkeskBytes::X25519 { .. } => vec![Field::new("Variant", "X25519")],
+        PkeskBytes::X448 { .. } => vec![Field::new("Variant", "X448")],
+        PkeskBytes::MlKem768X25519 { .. } => {
+            vec![Field::new("Variant", "ML-KEM-768 + X25519")]
+        }
+        PkeskBytes::MlKem1024X448 { .. } => {
+            vec![Field::new("Variant", "ML-KEM-1024 + X448")]
+        }
+        PkeskBytes::Other { key } if u8::from(alg) == GNUPG_KYBER => gnupg_kyber_pkesk_variant(key)
+            .map(|variant| vec![Field::new("Variant", variant)])
+            .unwrap_or_default(),
+        _ => Vec::new(),
+    }
+}
+
+/// The size and curve of a key. Only classical parameters get a size: for the
+/// post-quantum ones `extract_key_length` returns a parameter set number
+/// (ML-DSA-65 as 65), not a bit count, and their names say it already.
+fn key_variant(alg: PublicKeyAlgorithm, params: &PublicParams) -> Vec<Field> {
+    let mut fields = Vec::new();
+    let classical = matches!(
+        params,
+        PublicParams::RSA(_)
+            | PublicParams::DSA(_)
+            | PublicParams::ECDH(_)
+            | PublicParams::ECDSA(_)
+            | PublicParams::EdDSALegacy(_)
+            | PublicParams::Ed25519(_)
+            | PublicParams::X25519(_)
+            | PublicParams::Ed448(_)
+            | PublicParams::X448(_)
+    );
+    // An unknown curve reports zero bits.
+    if let Some(bits) = crate::utils::extract_key_length(params).filter(|b| classical && *b > 0) {
+        fields.push(Field::new("Key Size", format!("{bits} bits")));
+    }
+    let curve = match params {
+        PublicParams::ECDH(p) => Some(p.curve()),
+        PublicParams::ECDSA(p) => Some(p.curve()),
+        PublicParams::EdDSALegacy(p) => Some(p.curve()),
+        _ => None,
+    };
+    if let Some(curve) = curve {
+        fields.push(Field::new("Curve", curve_name(&curve)));
+    }
+    if let PublicParams::Unknown { data } = params
+        && u8::from(alg) == GNUPG_KYBER
+        && let Some(variant) = gnupg_kyber_key_variant(data)
+    {
+        fields.push(Field::new("Variant", variant));
+    }
+    fields
+}
+
+/// Parse GnuPG's Kyber session key layout in full: an SOS ephemeral ECC
+/// point, the ML-KEM ciphertext behind a four-octet length, the symmetric
+/// algorithm octet, then the wrapped key behind a one-octet length, ending
+/// the body.
+fn gnupg_kyber_pkesk_variant(data: &[u8]) -> Option<String> {
+    let (point, rest) = read_sos(data)?;
+    let (ciphertext, rest) = read_sized(rest, 4)?;
+    let (_sym_alg, rest) = rest.split_first()?;
+    let (wrapped, rest) = read_sized(rest, 1)?;
+    if wrapped.is_empty() || !rest.is_empty() {
+        return None;
+    }
+    let kem = match ciphertext.len() {
+        1088 => "ML-KEM-768",
+        1568 => "ML-KEM-1024",
+        _ => return None,
+    };
+    Some(format!("{kem} + {}", ecc_point_curve(point)?))
+}
+
+/// Parse GnuPG's Kyber public key layout: the ECC curve OID behind a length
+/// octet, the SOS ECC point, then the ML-KEM key behind a four-octet length.
+/// Bytes may follow: for a v4 secret key rPGP hands over the secret part
+/// with the public one.
+fn gnupg_kyber_key_variant(data: &[u8]) -> Option<String> {
+    let (oid, rest) = read_sized(data, 1)?;
+    let (point, rest) = read_sos(rest)?;
+    let (public, _) = read_sized(rest, 4)?;
+    if oid.is_empty() || point.is_empty() {
+        return None;
+    }
+    let kem = match public.len() {
+        1184 => "ML-KEM-768",
+        1568 => "ML-KEM-1024",
+        _ => return None,
+    };
+    Some(format!("{kem} + {}", oid_curve_name(oid)))
+}
+
+/// An SOS (an MPI whose leading zero bits are kept): a two-octet bit count,
+/// then that many bits rounded up to whole octets.
+fn read_sos(data: &[u8]) -> Option<(&[u8], &[u8])> {
+    let (prefix, rest) = data.split_first_chunk::<2>()?;
+    let len = (u16::from_be_bytes(*prefix) as usize).div_ceil(8);
+    rest.split_at_checked(len)
+}
+
+/// An octet string behind a big-endian length of `width` octets.
+fn read_sized(data: &[u8], width: usize) -> Option<(&[u8], &[u8])> {
+    let (prefix, rest) = data.split_at_checked(width)?;
+    let len = prefix
+        .iter()
+        .try_fold(0usize, |n, b| n.checked_mul(256)?.checked_add(*b as usize))?;
+    rest.split_at_checked(len)
 }
 
 /// The fallback for a body we could not decode: show its first octets so the
@@ -988,6 +1126,89 @@ fn compression_name(id: u8) -> String {
         2 => "ZLIB (RFC 1950)".to_string(),
         3 => "BZip2".to_string(),
         other => format!("Unknown ({other})"),
+    }
+}
+
+/// GnuPG's ML-KEM + ECC composite, which predates the RFC 9980 code points
+/// and which rPGP does not know.
+const GNUPG_KYBER: u8 = 8;
+
+/// A public key algorithm by name and number. Matched on the number rather
+/// than the variant, so it does not depend on rPGP's feature gates and also
+/// names the ids rPGP keeps as `Unknown(n)`: GnuPG's own composites (names
+/// as in GnuPG's common/openpgpdefs.h).
+fn pub_key_algo_name(alg: PublicKeyAlgorithm) -> String {
+    let id = u8::from(alg);
+    let name = match id {
+        1 => "RSA",
+        2 => "RSA (Encrypt-Only)",
+        3 => "RSA (Sign-Only)",
+        GNUPG_KYBER => "Kyber (GnuPG, ML-KEM+ECC)",
+        9 => "Dilithium (GnuPG)",
+        16 => "Elgamal (Encrypt-Only)",
+        17 => "DSA",
+        18 => "ECDH",
+        19 => "ECDSA",
+        20 => "Elgamal (Encrypt or Sign)",
+        21 => "Diffie-Hellman (X9.42)",
+        22 => "EdDSA (legacy)",
+        25 => "X25519",
+        26 => "X448",
+        27 => "Ed25519",
+        28 => "Ed448",
+        30 => "ML-DSA-65+Ed25519",
+        31 => "ML-DSA-87+Ed448",
+        32 => "SLH-DSA-SHAKE-128s",
+        33 => "SLH-DSA-SHAKE-128f",
+        34 => "SLH-DSA-SHAKE-256s",
+        35 => "ML-KEM-768+X25519",
+        36 => "ML-KEM-1024+X448",
+        37 => "ML-KEM-768+ECDH-NIST-P-384",
+        38 => "ML-KEM-1024+ECDH-NIST-P-521",
+        39 => "ML-KEM-768+ECDH-brainpoolP384r1",
+        40 => "ML-KEM-1024+ECDH-brainpoolP512r1",
+        100..=110 => "Private/Experimental",
+        _ => "Unknown",
+    };
+    format!("{name} ({id})")
+}
+
+/// The curve of an ephemeral ECC point, read off its encoding: Curve25519
+/// points carry a 0x40 prefix, X448 points are 56 bare octets (GnuPG's
+/// common/kem.c gives X448 no prefix, and its SOS writer keeps leading zero
+/// octets), Weierstrass points are uncompressed 0x04 || x || y. A NIST and a
+/// brainpool curve of the same size encode identically, so those are reported
+/// as either.
+fn ecc_point_curve(point: &[u8]) -> Option<&'static str> {
+    match (point.first()?, point.len()) {
+        (0x40, 33) => Some("Curve25519"),
+        (0x04, 65) => Some("NIST P-256 or brainpoolP256r1"),
+        (0x04, 97) => Some("NIST P-384 or brainpoolP384r1"),
+        (0x04, 129) => Some("brainpoolP512r1"),
+        (0x04, 133) => Some("NIST P-521"),
+        (_, 56) => Some("X448"),
+        _ => None,
+    }
+}
+
+/// rPGP's name for a curve, or its OID when rPGP does not know it.
+fn curve_name(curve: &ECCCurve) -> String {
+    match curve {
+        ECCCurve::Unknown(_) => format!("Unknown ({})", curve.oid_str()),
+        other => other.name().to_string(),
+    }
+}
+
+/// A GnuPG Kyber key's curve by its DER OID body. GnuPG writes Curve25519
+/// under the legacy OID, and X448 under the RFC 8410 OID rPGP does not know.
+fn oid_curve_name(oid: &[u8]) -> String {
+    if oid == [0x2b, 0x65, 0x6f] {
+        return "X448".to_string();
+    }
+    match ecc_curve_from_oid(oid) {
+        Some(ECCCurve::Curve25519Legacy) => "Curve25519".to_string(),
+        Some(curve) => curve_name(&curve),
+        None => format!("Unknown (0x{})", to_hex(oid)),
     }
 }
 
@@ -1141,6 +1362,11 @@ mod inspect_tests {
             tags[..tags.len() - 1].iter().all(|t| *t == 1),
             "everything before it addresses a recipient: {tags:?}"
         );
+
+        for pkesk in &nodes[..nodes.len() - 1] {
+            assert_eq!(field(pkesk, "Public Key Algorithm"), Some("ECDH (18)"));
+            assert!(field(pkesk, "Curve").is_some(), "{:?}", pkesk.fields);
+        }
 
         let container = nodes.last().expect("a container");
         assert_eq!(container.version, Some(1));
@@ -1328,6 +1554,20 @@ mod inspect_tests {
 
         let key = &block.packets[0];
         assert!(field(key, "Fingerprint").is_some_and(|v| v.len() >= 40));
+        assert_eq!(
+            field(key, "Public Key Algorithm"),
+            Some("EdDSA (legacy) (22)")
+        );
+        assert_eq!(field(key, "Curve"), Some("Ed25519Legacy"));
+        assert_eq!(field(key, "Key Size"), Some("255 bits"));
+
+        let ecdh = block
+            .packets
+            .iter()
+            .find(|n| n.tag == 14 && field(n, "Public Key Algorithm") == Some("ECDH (18)"))
+            .expect("an ECDH subkey");
+        assert_eq!(field(ecdh, "Curve"), Some("Curve25519Legacy"));
+        assert!(field(ecdh, "Key Size").is_some());
     }
 
     #[test]
@@ -1341,6 +1581,9 @@ mod inspect_tests {
         );
         let key = &d.blocks[0].packets[0];
         assert_eq!(key.version, Some(6));
+        assert_eq!(field(key, "Public Key Algorithm"), Some("Ed25519 (27)"));
+        assert_eq!(field(key, "Key Size"), Some("255 bits"));
+        assert_eq!(field(key, "Curve"), None, "the name fixes the curve");
     }
 
     #[test]
@@ -1418,6 +1661,255 @@ mod inspect_tests {
             d.blocks[1].offset > d.blocks[0].offset,
             "blocks carry their offset in the input"
         );
+    }
+
+    // -- algorithm names and parameters -------------------------------------
+
+    /// A new-format packet with a five-octet length.
+    fn packet(tag: u8, body: &[u8]) -> Vec<u8> {
+        let mut out = vec![0xc0 | tag, 0xff];
+        out.extend_from_slice(&(body.len() as u32).to_be_bytes());
+        out.extend_from_slice(body);
+        out
+    }
+
+    /// A Curve25519 point as GnuPG writes it: an SOS of 0x40 || 32 octets.
+    fn sos_x25519_point() -> Vec<u8> {
+        let mut out = vec![0x01, 0x07, 0x40];
+        out.extend_from_slice(&[0x11; 32]);
+        out
+    }
+
+    /// An X448 point as GnuPG writes it: an SOS of 56 bare octets, whose bit
+    /// count drops only the leading zero bits of a non-zero first octet.
+    fn sos_x448_point(first: u8) -> Vec<u8> {
+        let bits = if first == 0 {
+            448
+        } else {
+            448 - first.leading_zeros() as u16
+        };
+        let mut out = bits.to_be_bytes().to_vec();
+        out.push(first);
+        out.extend_from_slice(&[0x55; 55]);
+        out
+    }
+
+    /// The algorithm-specific part of a GnuPG Kyber (algorithm 8) PKESK.
+    fn gnupg_kyber_pkesk_values(ciphertext_len: usize) -> Vec<u8> {
+        gnupg_kyber_pkesk_values_on(sos_x25519_point(), ciphertext_len)
+    }
+
+    fn gnupg_kyber_pkesk_values_on(point: Vec<u8>, ciphertext_len: usize) -> Vec<u8> {
+        let mut out = point;
+        out.extend_from_slice(&(ciphertext_len as u32).to_be_bytes());
+        out.extend(std::iter::repeat_n(0x22, ciphertext_len));
+        out.push(9); // AES-256
+        out.push(40);
+        out.extend_from_slice(&[0x33; 40]);
+        out
+    }
+
+    /// A v3 PKESK packet around `values`.
+    fn v3_pkesk(algorithm: u8, values: &[u8]) -> Vec<u8> {
+        let mut body = vec![3u8];
+        body.extend_from_slice(&[0xab; 8]); // recipient key id
+        body.push(algorithm);
+        body.extend_from_slice(values);
+        packet(1, &body)
+    }
+
+    /// A v4 public key packet of GnuPG's Kyber layout.
+    fn gnupg_kyber_key(oid: &[u8], public_len: usize) -> Vec<u8> {
+        let mut body = vec![4u8, 0x60, 0x00, 0x00, 0x00, 8];
+        body.push(oid.len() as u8);
+        body.extend_from_slice(oid);
+        body.extend(sos_x25519_point());
+        body.extend_from_slice(&(public_len as u32).to_be_bytes());
+        body.extend(std::iter::repeat_n(0x44, public_len));
+        packet(6, &body)
+    }
+
+    #[test]
+    fn a_public_key_algorithm_is_named_with_its_number() {
+        let name = |id: u8| pub_key_algo_name(PublicKeyAlgorithm::from(id));
+        assert_eq!(name(1), "RSA (1)");
+        assert_eq!(name(18), "ECDH (18)");
+        assert_eq!(name(8), "Kyber (GnuPG, ML-KEM+ECC) (8)");
+        assert_eq!(name(35), "ML-KEM-768+X25519 (35)");
+        assert_eq!(name(37), "ML-KEM-768+ECDH-NIST-P-384 (37)");
+        assert_eq!(name(200), "Unknown (200)");
+    }
+
+    #[test]
+    fn a_gnupg_kyber_session_key_names_its_kem_and_curve() {
+        for (len, variant) in [
+            (1088, "ML-KEM-768 + Curve25519"),
+            (1568, "ML-KEM-1024 + Curve25519"),
+        ] {
+            let nodes = packets(&v3_pkesk(8, &gnupg_kyber_pkesk_values(len)));
+            assert_eq!(tags(&nodes), vec![1]);
+            let alg = field(&nodes[0], "Public Key Algorithm").expect("an algorithm");
+            assert!(alg.contains("Kyber"), "{alg}");
+            assert_eq!(field(&nodes[0], "Variant"), Some(variant));
+        }
+    }
+
+    #[test]
+    fn a_gnupg_ky1024_cv448_session_key_names_x448() {
+        // Any first octet, including zero and one with leading zero bits.
+        for first in [0x9a, 0x01, 0x00] {
+            let values = gnupg_kyber_pkesk_values_on(sos_x448_point(first), 1568);
+            let nodes = packets(&v3_pkesk(8, &values));
+            assert_eq!(
+                field(&nodes[0], "Variant"),
+                Some("ML-KEM-1024 + X448"),
+                "first octet {first:#04x}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_truncated_gnupg_kyber_session_key_reports_no_variant() {
+        let values = gnupg_kyber_pkesk_values(1088);
+        assert!(gnupg_kyber_pkesk_variant(&values).is_some());
+
+        // Every cut, which includes each length and payload boundary.
+        for cut in 0..values.len() {
+            assert_eq!(gnupg_kyber_pkesk_variant(&values[..cut]), None, "cut {cut}");
+        }
+
+        // The boundaries once more through the whole walk: inside the SOS
+        // header, the point, the ciphertext length, the ciphertext, the
+        // symmetric algorithm octet, the wrapped key length and the wrapped key.
+        let point_end = 2 + 33;
+        let ciphertext_end = point_end + 4 + 1088;
+        for cut in [
+            1,
+            point_end - 1,
+            point_end + 2,
+            ciphertext_end - 1,
+            ciphertext_end,
+            ciphertext_end + 1,
+            values.len() - 1,
+        ] {
+            let nodes = packets(&v3_pkesk(8, &values[..cut]));
+            assert_eq!(field(&nodes[0], "Variant"), None, "cut {cut}");
+        }
+    }
+
+    #[test]
+    fn a_malformed_gnupg_kyber_session_key_reports_no_variant() {
+        // A ciphertext length no ML-KEM parameter set produces.
+        let nodes = packets(&v3_pkesk(8, &gnupg_kyber_pkesk_values(100)));
+        assert!(field(&nodes[0], "Public Key Algorithm").is_some());
+        assert_eq!(field(&nodes[0], "Variant"), None);
+
+        // Trailing bytes past the wrapped key.
+        let mut long = gnupg_kyber_pkesk_values(1088);
+        long.push(0);
+        assert_eq!(gnupg_kyber_pkesk_variant(&long), None);
+
+        // A ciphertext length that would overflow or run past the body.
+        let mut huge = sos_x25519_point();
+        huge.extend_from_slice(&[0xff; 4]);
+        assert_eq!(gnupg_kyber_pkesk_variant(&huge), None);
+    }
+
+    #[test]
+    fn a_gnupg_kyber_key_names_its_kem_and_curve() {
+        // Curve25519 under its legacy OID, as GnuPG writes ky768_cv25519.
+        let cv25519 = [0x2b, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01];
+        let x448 = [0x2b, 0x65, 0x6f];
+        for (oid, len, variant) in [
+            (&cv25519[..], 1184, "ML-KEM-768 + Curve25519"),
+            (&x448[..], 1568, "ML-KEM-1024 + X448"),
+        ] {
+            let nodes = packets(&gnupg_kyber_key(oid, len));
+            assert_eq!(tags(&nodes), vec![6]);
+            assert_eq!(
+                field(&nodes[0], "Public Key Algorithm"),
+                Some("Kyber (GnuPG, ML-KEM+ECC) (8)")
+            );
+            assert_eq!(field(&nodes[0], "Variant"), Some(variant));
+            assert_eq!(field(&nodes[0], "Key Size"), None);
+        }
+
+        // A PKESK ciphertext length is not a public key length.
+        let nodes = packets(&gnupg_kyber_key(&cv25519, 1088));
+        assert_eq!(field(&nodes[0], "Variant"), None);
+    }
+
+    #[test]
+    fn an_rsa_session_key_estimates_the_key_size_from_its_width() {
+        // A 3072-bit modulus yields a ciphertext of up to 3072 bits; here its
+        // top bit is clear, which is the common case and must not round down.
+        let mut ciphertext = vec![0x7f];
+        ciphertext.extend_from_slice(&[0x66; 383]);
+        let mpi = crate::testutil::packets::mpi_with_bitcount(3071, &ciphertext);
+
+        let nodes = packets(&v3_pkesk(1, &mpi));
+        assert_eq!(field(&nodes[0], "Public Key Algorithm"), Some("RSA (1)"));
+        assert_eq!(
+            field(&nodes[0], "Key Size"),
+            Some("~3072 bits (from ciphertext width)")
+        );
+    }
+
+    #[test]
+    fn a_curve_oid_is_named_by_rpgp_or_as_gnupg_x448() {
+        assert_eq!(oid_curve_name(&[0x2b, 0x65, 0x6f]), "X448");
+        assert_eq!(
+            oid_curve_name(&[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07]),
+            "NIST P-256"
+        );
+        assert_eq!(oid_curve_name(&[0x2b, 0x65, 0x70]), "Unknown (1.3.101.112)");
+    }
+
+    #[test]
+    fn an_ephemeral_point_gives_away_its_curve() {
+        let point = |prefix: u8, len: usize| {
+            let mut p = vec![prefix];
+            p.resize(len, 0x55);
+            p
+        };
+        assert_eq!(ecc_point_curve(&point(0x40, 33)), Some("Curve25519"));
+        assert_eq!(
+            ecc_point_curve(&point(0x04, 65)),
+            Some("NIST P-256 or brainpoolP256r1")
+        );
+        assert_eq!(
+            ecc_point_curve(&point(0x04, 97)),
+            Some("NIST P-384 or brainpoolP384r1")
+        );
+        assert_eq!(ecc_point_curve(&point(0x04, 129)), Some("brainpoolP512r1"));
+        assert_eq!(ecc_point_curve(&point(0x04, 133)), Some("NIST P-521"));
+        assert_eq!(ecc_point_curve(&point(0x9a, 56)), Some("X448"));
+        assert_eq!(ecc_point_curve(&point(0x00, 56)), Some("X448"));
+        assert_eq!(ecc_point_curve(&point(0x40, 57)), None);
+        assert_eq!(ecc_point_curve(&point(0x04, 40)), None);
+        assert_eq!(ecc_point_curve(&[]), None);
+    }
+
+    #[test]
+    fn every_corpus_session_key_and_key_reports_its_parameters() {
+        for (name, data) in every_vector() {
+            for block in doc(data).blocks {
+                for node in &block.packets {
+                    if [1, 5, 6, 7, 14].contains(&node.tag) && node.error.is_none() {
+                        assert!(
+                            ["Key Size", "Curve", "Variant"]
+                                .iter()
+                                .any(|label| field(node, label).is_some()),
+                            "{name}: tag {} lacks its parameters: {:?}",
+                            node.tag,
+                            node.fields
+                        );
+                        let alg = field(node, "Public Key Algorithm").unwrap_or_default();
+                        assert!(!alg.starts_with("Unknown"), "{name}: {alg}");
+                    }
+                }
+            }
+        }
     }
 
     // -- caps -----------------------------------------------------------------
