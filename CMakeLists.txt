@@ -26,13 +26,14 @@
 cmake_minimum_required(VERSION 3.24)
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
+
 if(CMAKE_GENERATOR STREQUAL "Xcode")
   set(XCODE_BUILD 1)
 endif()
 
 # define project
 project(GpgFrontend
-  VERSION 2.2.3
+  VERSION 2.2.4
   DESCRIPTION "A modern, cross-platform OpenPGP tool with a unique dual-engine core."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
   LANGUAGES CXX C)
@@ -542,7 +543,7 @@ else()
 endif()
 
 if(GF_INTEGRATED_MODULE_BINDING_REQUIRED
-   AND GF_INTEGRATED_MODULE_BINDING_ALGORITHM STREQUAL "NONE")
+  AND GF_INTEGRATED_MODULE_BINDING_ALGORITHM STREQUAL "NONE")
   message(FATAL_ERROR
     "GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED cannot be honoured "
     "on macOS: there is no entry binding mode on this platform. Apple code "
@@ -550,8 +551,8 @@ if(GF_INTEGRATED_MODULE_BINDING_REQUIRED
 endif()
 
 if(NOT GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM STREQUAL "AUTO"
-   AND NOT GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM
-       STREQUAL GF_INTEGRATED_MODULE_BINDING_ALGORITHM)
+  AND NOT GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM
+  STREQUAL GF_INTEGRATED_MODULE_BINDING_ALGORITHM)
   message(FATAL_ERROR
     "GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM asserts "
     "\"${GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM}\", but this platform "
@@ -570,7 +571,6 @@ set(GF_MODULE_HOST_POLICY_SOURCE
 configure_file(
   "${CMAKE_SOURCE_DIR}/cmake/ModuleHostPolicyGenerated.cpp.in"
   "${GF_MODULE_HOST_POLICY_SOURCE}" @ONLY)
-
 
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
@@ -625,6 +625,7 @@ if(MINGW)
 else()
   set(GPGFRONTEND_HOST_TOOL_DIR "${CMAKE_BINARY_DIR}/artifacts/tools")
 endif()
+
 message(STATUS "Host build tools: ${GPGFRONTEND_HOST_TOOL_DIR}")
 
 # Published in build-info.json, with everything else a CI step needs.
@@ -650,6 +651,7 @@ function(gf_pin_output_directory target dir)
     RUNTIME_OUTPUT_DIRECTORY "${dir}"
     LIBRARY_OUTPUT_DIRECTORY "${dir}"
     ARCHIVE_OUTPUT_DIRECTORY "${dir}")
+
   foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
     string(TOUPPER "${config}" config_upper)
     set_target_properties(${target} PROPERTIES
@@ -667,6 +669,7 @@ endfunction()
 if(NOT DEFINED GPGFRONTEND_MODULE_NAMESPACE_ROOT)
   set(GPGFRONTEND_MODULE_NAMESPACE_ROOT "${CMAKE_BINARY_DIR}/artifacts/modules")
 endif()
+
 message(STATUS "Module namespace root: ${GPGFRONTEND_MODULE_NAMESPACE_ROOT}")
 
 # rpath
@@ -680,6 +683,7 @@ else()
     set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
   else()
     set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+
     # Relative to the binary, not to the prefix that happened to be configured.
     #
     # This was "${CMAKE_INSTALL_PREFIX}/lib", which is frozen at configure
@@ -733,21 +737,27 @@ add_subdirectory(src)
 get_property(gf_module_tests GLOBAL PROPERTY GPGFRONTEND_MODULE_TEST_TARGETS)
 get_property(gf_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 set(gf_module_test_list "${CMAKE_BINARY_DIR}/test-bin/module-tests.list")
+
 if(gf_module_tests)
   set(gf_module_test_lines "")
+
   foreach(gf_test IN LISTS gf_module_tests)
     string(APPEND gf_module_test_lines "$<TARGET_FILE:${gf_test}>\n")
   endforeach()
+
   set(gf_module_test_output "${gf_module_test_list}")
+
   if(gf_multi_config)
     set(gf_module_test_output
       "${CMAKE_BINARY_DIR}/test-bin/$<CONFIG>/module-tests.list")
   endif()
+
   file(GENERATE OUTPUT "${gf_module_test_output}"
     CONTENT "${gf_module_test_lines}")
 else()
   file(REMOVE "${gf_module_test_list}")
 endif()
+
 # ---------------------------------------------------------------------------
 # One file that says what this build is and where it put things.
 #
@@ -770,12 +780,14 @@ endif()
 # file(GENERATE) rather than file(WRITE): the library names are generator
 # expressions, and only the generate step can resolve them.
 set(gf_deployable_library_files)
+
 foreach(gf_library_target IN LISTS GPGFRONTEND_LIBRARY_TARGETS)
   list(APPEND gf_deployable_library_files
     "\"$<TARGET_FILE_NAME:${gf_library_target}>\"")
 endforeach()
 
 set(gf_module_entries)
+
 foreach(gf_pair IN LISTS GPGFRONTEND_MODULE_DIRECTORY_KEYS)
   string(FIND "${gf_pair}" "=" gf_at)
   string(SUBSTRING "${gf_pair}" 0 ${gf_at} gf_id)
@@ -783,6 +795,7 @@ foreach(gf_pair IN LISTS GPGFRONTEND_MODULE_DIRECTORY_KEYS)
   string(SUBSTRING "${gf_pair}" ${gf_at} -1 gf_key)
   list(APPEND gf_module_entries "    \"${gf_id}\": \"${gf_key}\"")
 endforeach()
+
 list(LENGTH gf_module_entries GPGFRONTEND_MODULE_COUNT)
 string(REPLACE ";" ",\n" gf_module_json "${gf_module_entries}")
 
