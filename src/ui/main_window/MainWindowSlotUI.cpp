@@ -272,9 +272,9 @@ void MainWindow::slot_export_profile() {
   // sender's own stored list is left exactly as it is: it names directories on
   // this machine, which is right here and wrong everywhere else, and the
   // rewritten copy goes into the package as a member of its own below.
-  const auto packed = RewriteKeyDatabaseListForPacking(
-      KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject)).key_databases,
-      profile.Root());
+  const auto stored = KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject));
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(stored.key_databases, profile.Root());
 
   const auto& marker = session.Marker();
 
@@ -309,7 +309,9 @@ void MainWindow::slot_export_profile() {
   // Sealed here, on the thread that owns the key material, for the same reason
   // the settings are snapshotted here. Without it the package would carry the
   // stored object instead, and that one names directories on this machine.
-  if (auto member = MakeTravellingKeyDatabaseMember(packed)) {
+  if (auto member = MakeTravellingKeyDatabaseMember(
+          packed,
+          TravellingDefaultKeyDatabaseId(stored.default_database_id, packed))) {
     request.data_object_members.append(*member);
   } else {
     LOG_W() << "the package will carry the stored key database list unchanged";
