@@ -481,6 +481,68 @@ TEST(ProfilePackagePathTest, RewritingIsIdempotent) {
   EXPECT_FALSE(DescribeKeyDatabasesForManifest(twice).at(0).external);
 }
 
+TEST(ProfilePackagePathTest, TheChosenDefaultTravelsWithItsDatabase) {
+  // The bug this exists for: the travelling list was built without the choice
+  // at all, so a profile whose default was one of its own databases arrived
+  // with the default reset -- and the key list opened on another database.
+  QList<KeyDatabaseItemSO> databases;
+
+  KeyDatabaseItemSO managed;
+  managed.id = "db-work";
+  managed.name = "Work";
+  managed.path = "/srv/profiles/work/dbs/Work";
+  managed.kind = KeyDatabaseKind::kMANAGED;
+  databases.push_back(managed);
+
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work");
+
+  EXPECT_EQ(TravellingDefaultKeyDatabaseId("db-work", packed), "db-work");
+}
+
+TEST(ProfilePackagePathTest, AChosenDefaultThatStaysHomeIsNotCarried) {
+  // The recipient would have nothing by that id, so they derive their own.
+  QList<KeyDatabaseItemSO> databases;
+
+  KeyDatabaseItemSO external;
+  external.id = "db-stick";
+  external.name = "Stick";
+  external.path = "/srv/profiles/work/dbs/Stick";
+  external.kind = KeyDatabaseKind::kEXTERNAL;
+  databases.push_back(external);
+
+  KeyDatabaseItemSO outside;
+  outside.id = "db-system";
+  outside.name = "System";
+  outside.path = "/home/eric/.gnupg";
+  databases.push_back(outside);
+
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work");
+
+  EXPECT_TRUE(TravellingDefaultKeyDatabaseId("db-stick", packed).isEmpty());
+  EXPECT_TRUE(TravellingDefaultKeyDatabaseId("db-system", packed).isEmpty());
+}
+
+TEST(ProfilePackagePathTest, ChoosingTheDefaultDatabaseAlwaysTravels) {
+  // DEFAULT never travels as an entry, but every machine derives one under the
+  // same id, so the choice still means something on the other side.
+  EXPECT_EQ(TravellingDefaultKeyDatabaseId(kDefaultKeyDatabaseId, {}),
+            kDefaultKeyDatabaseId);
+}
+
+TEST(ProfilePackagePathTest, NoChoiceIsNotTurnedIntoOne) {
+  QList<KeyDatabaseItemSO> packed;
+
+  KeyDatabaseItemSO managed;
+  managed.id = "db-work";
+  managed.name = "Work";
+  managed.path = "@profile/dbs/Work";
+  packed.push_back(managed);
+
+  EXPECT_TRUE(TravellingDefaultKeyDatabaseId({}, packed).isEmpty());
+}
+
 // --------------------------------------------------- what a package carries
 
 TEST(ProfilePackageSettingsTest, AMachineSpecificSettingStaysOnItsMachine) {

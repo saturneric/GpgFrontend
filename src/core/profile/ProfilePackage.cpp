@@ -725,10 +725,24 @@ auto DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
   return out;
 }
 
-auto MakeTravellingKeyDatabaseMember(const QList<KeyDatabaseItemSO> &databases)
+auto TravellingDefaultKeyDatabaseId(const QString &chosen,
+                                    const QList<KeyDatabaseItemSO> &packed)
+    -> QString {
+  if (chosen.isEmpty()) return {};
+  if (chosen == QLatin1StringView(kDefaultKeyDatabaseId)) return chosen;
+
+  for (const auto &item : packed) {
+    if (item.id == chosen) return chosen;
+  }
+  return {};
+}
+
+auto MakeTravellingKeyDatabaseMember(const QList<KeyDatabaseItemSO> &databases,
+                                     const QString &default_database_id)
     -> std::optional<ProfileMember> {
   KeyDatabaseListSO travelling;
   travelling.key_databases = databases;
+  travelling.default_database_id = default_database_id;
 
   auto sealed = DataObjectOperator::GetInstance().SealDataObjForPackage(
       kKeyDatabaseListObject, QJsonDocument(travelling.ToJson()));

@@ -329,10 +329,33 @@ DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
  *
  * @param databases the list, already rewritten by
  * RewriteKeyDatabaseListForPacking()
+ * @param default_database_id the default choice that travels, already reduced
+ * by TravellingDefaultKeyDatabaseId(); empty when there is none
  * @return the member to pack, or nothing if the key material is unavailable
  */
 auto GF_CORE_EXPORT MakeTravellingKeyDatabaseMember(
-    const QList<KeyDatabaseItemSO> &databases) -> std::optional<ProfileMember>;
+    const QList<KeyDatabaseItemSO> &databases,
+    const QString &default_database_id) -> std::optional<ProfileMember>;
+
+/**
+ * @brief Reduce the user's choice of default key database to one that travels.
+ *
+ * The choice is carried as long as it names something the recipient will have:
+ * a database the package carries, or the DEFAULT one, which every machine
+ * derives for itself. A choice of a database that stayed home is dropped, for
+ * the reason its entry was, and the recipient derives their own default.
+ *
+ * Dropping it was not a choice before: the travelling list was built without
+ * the field at all, so every package arrived with the default reset.
+ *
+ * Pure.
+ *
+ * @param chosen the stored default_database_id, possibly empty
+ * @param packed the list, already reduced by RewriteKeyDatabaseListForPacking()
+ * @return @p chosen when it travels, otherwise an empty string
+ */
+auto GF_CORE_EXPORT TravellingDefaultKeyDatabaseId(
+    const QString &chosen, const QList<KeyDatabaseItemSO> &packed) -> QString;
 
 /**
  * @brief Sizes of the areas a package would carry, in bytes.
