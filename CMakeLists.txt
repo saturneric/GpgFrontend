@@ -481,8 +481,27 @@ set(GPGFRONTEND_BUILD_REPOSITORY "saturneric/GpgFrontend"
   CACHE STRING "The repository this build claims to come from")
 set(GPGFRONTEND_BUILD_REF "${GIT_BRANCH_NAME}"
   CACHE STRING "The ref this build was made from")
+# What kind of distribution this is. Left at "installed", the options above
+# refine it, since an installed build cannot be sandboxed or portable; Flatpak
+# has no option of its own, so its manifest passes it. Which modules ship is
+# decided by it as well (modules/src/CMakeLists.txt).
+set(_gf_build_flavors installed portable sandbox flatpak)
 set(GPGFRONTEND_BUILD_FLAVOR "installed"
-  CACHE STRING "installed | portable | sandbox")
+  CACHE STRING "installed | portable | sandbox | flatpak")
+set_property(CACHE GPGFRONTEND_BUILD_FLAVOR
+  PROPERTY STRINGS ${_gf_build_flavors})
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "installed")
+  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+    set(GPGFRONTEND_BUILD_FLAVOR "sandbox")
+  elseif(GPGFRONTEND_BUILD_PORTABLE)
+    set(GPGFRONTEND_BUILD_FLAVOR "portable")
+  endif()
+endif()
+if(NOT GPGFRONTEND_BUILD_FLAVOR IN_LIST _gf_build_flavors)
+  message(FATAL_ERROR "Unknown GPGFRONTEND_BUILD_FLAVOR "
+    "\"${GPGFRONTEND_BUILD_FLAVOR}\"; expected one of: ${_gf_build_flavors}")
+endif()
+message(STATUS "GpgFrontend Build Flavor: ${GPGFRONTEND_BUILD_FLAVOR}")
 set(GPGFRONTEND_BUILD_MODE "nightly"
   CACHE STRING "nightly | release")
 
