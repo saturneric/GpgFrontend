@@ -239,6 +239,15 @@ QTableView[gfKeyTable="true"] QTableCornerButton::section {
 }
 
 void KeyTable::apply_column_sizing() {
+  // A row scan per column, and every tab of a key list asks for one whenever
+  // any of them changes. Nobody can see a hidden tab's widths, so it sizes
+  // once, when it is shown.
+  if (!isVisible()) {
+    column_sizing_pending_ = true;
+    return;
+  }
+  column_sizing_pending_ = false;
+
   auto* header = horizontalHeader();
   if (header == nullptr) return;
 
@@ -378,8 +387,9 @@ void KeyTable::showEvent(QShowEvent* event) {
   QTableView::showEvent(event);
 
   // The viewport width is not usable before the first show, so the automatic
-  // layout can only be computed here.
-  if (saved_widths_.isEmpty()) apply_column_sizing();
+  // layout can only be computed here. Sizing asked for while hidden is owed
+  // now as well.
+  if (column_sizing_pending_ || saved_widths_.isEmpty()) apply_column_sizing();
 }
 
 void KeyTable::resizeEvent(QResizeEvent* event) {

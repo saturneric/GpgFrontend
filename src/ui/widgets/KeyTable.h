@@ -263,6 +263,10 @@ struct KeyTable : public QTableView {
   ///< resizeSection() calls are not mistaken for user drags.
   bool applying_sizing_ = false;
 
+  ///< Set when apply_column_sizing() was asked for while the table was hidden;
+  ///< showEvent() then does the sizing that was skipped.
+  bool column_sizing_pending_ = false;
+
   ///< Last keyword handed to SetFilterKeyword(). Kept so an empty table can say
   ///< whether it is empty because of the search or because there is nothing to
   ///< show.
