@@ -142,6 +142,6 @@ mod crate_smoke_tests {
             .to_string_lossy()
             .into_owned();
         crate::ffi::mem::gfr_crypto_free_string(ptr);
-        assert_eq!(version, env!("CARGO_PKG_VERSION"));
+        assert_eq!(version, crate::ffi::ENGINE_VERSION);
     }
 }

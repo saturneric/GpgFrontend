@@ -207,6 +207,10 @@ add_subdirectory(corrosion)
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
 corrosion_import_crate(MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust/Cargo.toml)
 
+# The engine ships with the app and reports its version, so a release bumps
+# one number. Cargo tracks the variable, so changing it rebuilds the crate.
+corrosion_set_env_vars(gf_rust GFR_ENGINE_VERSION=${PROJECT_VERSION})
+
 # On macOS Corrosion hard-codes the Command Line Tools SDK's usr/lib as a link
 # directory of every Rust library, so it reaches whatever links gf_rust and
 # -larchive, -lSystem and friends resolve there instead of in the SDK the

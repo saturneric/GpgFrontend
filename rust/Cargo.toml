@@ -1,5 +1,8 @@
 [package]
 name = "gf-rust"
+# Not bumped: the engine reports the Host's version (CMake passes it in as
+# GFR_ENGINE_VERSION, see ENGINE_VERSION in src/ffi/mod.rs). This one is only
+# the fallback for a plain cargo build.
 version = "0.3.2"
 edition = "2024"
 description = "Rust Engine for GpgFrontend"

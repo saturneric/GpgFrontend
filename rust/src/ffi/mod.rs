@@ -39,14 +39,19 @@ pub mod keygen;
 pub mod mem;
 pub mod user_id;
 
+/// The engine version. The engine ships with the Host, so CMake passes the
+/// Host's version in and there is no separate number to bump; a plain `cargo`
+/// build, which has no Host, falls back to the crate version.
+pub const ENGINE_VERSION: &str = match option_env!("GFR_ENGINE_VERSION") {
+    Some(v) => v,
+    None => env!("CARGO_PKG_VERSION"),
+};
+
 /// Log a greeting that includes the Rust engine version. Used to confirm the
 /// Rust library was loaded successfully at application startup.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_hello() {
-    log::info!(
-        "Hello from Rust! (Rust Engine version {})",
-        env!("CARGO_PKG_VERSION")
-    );
+    log::info!("Hello from Rust! (Rust Engine version {})", ENGINE_VERSION);
 }
 
 /// Return the Rust engine version string as a heap-allocated C string.
@@ -55,8 +60,7 @@ pub extern "C" fn gfr_rust_hello() {
 /// `gfr_crypto_free_string`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
-    let ver_str =
-        CString::new(env!("CARGO_PKG_VERSION")).unwrap_or_else(|_| CString::new("0.0.0").unwrap());
+    let ver_str = CString::new(ENGINE_VERSION).unwrap_or_else(|_| CString::new("0.0.0").unwrap());
     ver_str.into_raw()
 }
 
@@ -72,7 +76,7 @@ pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_engine_build_info() -> *mut c_char {
     let mut records: Vec<(String, String)> = vec![
-        ("engine".to_string(), env!("CARGO_PKG_VERSION").to_string()),
+        ("engine".to_string(), ENGINE_VERSION.to_string()),
         (
             "rustc".to_string(),
             option_env!("GFR_RUSTC_VERSION")
@@ -248,11 +252,19 @@ mod ffi_mod_tests {
     }
 
     #[test]
-    fn the_engine_version_matches_the_package_version() {
-        assert_eq!(
-            take_string(gfr_rust_engine_version()),
-            env!("CARGO_PKG_VERSION")
-        );
+    fn the_engine_version_is_the_engine_version_constant() {
+        assert_eq!(take_string(gfr_rust_engine_version()), ENGINE_VERSION);
+    }
+
+    #[test]
+    fn the_engine_version_is_dotted_numbers() {
+        // The Host compares versions numerically, part by part, so a suffix
+        // would silently compare as zero.
+        let parts: Vec<&str> = ENGINE_VERSION.split('.').collect();
+        assert_eq!(parts.len(), 3, "{ENGINE_VERSION:?}");
+        for part in parts {
+            assert!(part.parse::<u32>().is_ok(), "{ENGINE_VERSION:?}");
+        }
     }
 
     #[test]
@@ -280,7 +292,7 @@ mod ffi_mod_tests {
         let info = take_string(gfr_rust_engine_build_info());
         assert!(
             info.lines()
-                .any(|l| l.starts_with("engine\t") && l.contains(env!("CARGO_PKG_VERSION")))
+                .any(|l| l == format!("engine\t{ENGINE_VERSION}"))
         );
     }
 

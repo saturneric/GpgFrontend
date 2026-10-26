@@ -34,6 +34,7 @@
 #include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/GlobalRegisterTableTreeModel.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -279,10 +280,11 @@ TEST_F(GFCoreTest, GRTPublishesTheSupportedEngines) {
     }
   }
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
-    EXPECT_FALSE(Module::RetrieveRTValueTypedOrDefault(
-                     Module::kGRTCoreNamespace,
-                     Module::GRTEngineKey("rpgp", "version"), QString{})
-                     .isEmpty());
+    // The engine ships with the app and reports the app's version.
+    EXPECT_EQ(Module::RetrieveRTValueTypedOrDefault(
+                  Module::kGRTCoreNamespace,
+                  Module::GRTEngineKey("rpgp", "version"), QString{}),
+              GetProjectVersion().mid(1));
   }
 }
 
