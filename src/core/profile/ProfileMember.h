@@ -215,9 +215,13 @@ class GF_CORE_EXPORT TreeMemberSource final : public ProfileMemberSource {
    * skipped name: these do travel, they simply travel as bytes in hand rather
    * than as the copy on disk, and counting the copy as well would both write
    * the member twice and overstate how much room the recipient needs.
+   * @param excluded profile-relative directories left out whole, contents
+   * and all: the Recycle Bin's key database folders, which are not part of
+   * the profile's configuration
    */
   TreeMemberSource(QString profile_root, bool include_workspace,
-                   QString guard = {}, QSet<QString> superseded = {});
+                   QString guard = {}, QSet<QString> superseded = {},
+                   QSet<QString> excluded = {});
 
   /**
    * @brief Walk now, so failures are known before anything is written.
@@ -248,6 +252,7 @@ class GF_CORE_EXPORT TreeMemberSource final : public ProfileMemberSource {
   bool include_workspace_;
   QString guard_;
   QSet<QString> superseded_;
+  QSet<QString> excluded_;
 
   QString error_;
   QSet<QString> skipped_;

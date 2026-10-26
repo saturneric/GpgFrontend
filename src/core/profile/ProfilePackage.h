@@ -299,6 +299,21 @@ auto GF_CORE_EXPORT RewriteKeyDatabaseListForPacking(
     -> QList<KeyDatabaseItemSO>;
 
 /**
+ * @brief The Recycle Bin folders a package leaves behind.
+ *
+ * Every folder under the profile's `dbs/` that @p databases does not name: a
+ * database the user removed, kept on this computer until restored or deleted.
+ * It is not part of the profile's configuration, so it does not travel.
+ *
+ * @param databases the stored list
+ * @param profile_root the profile being packed
+ * @return profile-relative directories (`dbs/<name>`), each left out whole
+ */
+auto GF_CORE_EXPORT RecycledKeyDatabaseDirsForPacking(
+    const QList<KeyDatabaseItemSO> &databases, const QString &profile_root)
+    -> QStringList;
+
+/**
  * @brief Describe a stored key database list for the manifest.
  *
  * Every entry that reaches here travels, so `external` is always false now.
@@ -369,10 +384,13 @@ auto GF_CORE_EXPORT TravellingDefaultKeyDatabaseId(
  * inside the profile at all.
  *
  * @param storage the session's storage
+ * @param excluded_dirs profile-relative directories the package leaves out
+ * (RecycledKeyDatabaseDirsForPacking()), not counted
  * @return area name to size; keys are `config`, `data_objs`, `secure`,
  * `key_databases` and `workspace`
  */
-auto GF_CORE_EXPORT MeasureProfileAreas(const ProfileAccessor &storage)
+auto GF_CORE_EXPORT MeasureProfileAreas(const ProfileAccessor &storage,
+                                        const QStringList &excluded_dirs = {})
     -> QMap<QString, qint64>;
 
 /**
@@ -599,6 +617,10 @@ struct GF_CORE_EXPORT ProfileExportRequest {
   /// supersedes the file of the same name in the tree, so neither is packed
   /// twice.
   QList<ProfileMember> data_object_members;
+
+  /// Profile-relative directories left out whole: the Recycle Bin's key
+  /// database folders (RecycledKeyDatabaseDirsForPacking()).
+  QStringList excluded_dirs;
 
   GFBuffer passphrase;  ///< ignored when protection is kNONE
 

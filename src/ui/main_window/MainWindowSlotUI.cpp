@@ -279,6 +279,10 @@ void MainWindow::slot_export_profile() {
 
   ProfileExportRequest request;
   request.profile_root = profile.Root();
+  // A key database the user moved to the Recycle Bin is no longer part of
+  // the profile, so the copy handed to somebody else does not carry it.
+  request.excluded_dirs =
+      RecycledKeyDatabaseDirsForPacking(stored.key_databases, profile.Root());
   request.dest_path = dialog.DestinationPath();
   request.include_workspace = dialog.IncludeWorkspace();
   request.protection = dialog.Protection();

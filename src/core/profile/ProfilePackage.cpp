@@ -694,6 +694,26 @@ auto RewriteKeyDatabaseListForPacking(const QList<KeyDatabaseItemSO> &databases,
   return out;
 }
 
+auto RecycledKeyDatabaseDirsForPacking(
+    const QList<KeyDatabaseItemSO> &databases, const QString &profile_root)
+    -> QStringList {
+  if (profile_root.isEmpty()) return {};
+
+  QStringList referenced;
+  for (const auto &item : databases) {
+    referenced.append(item.path);
+    referenced.append(
+        FromProfileRelativeKeyDatabasePath(item.path, profile_root));
+  }
+
+  QStringList dirs;
+  for (const auto &folder : SelectRecycledKeyDatabaseFolders(
+           ScanManagedKeyDatabaseDir(profile_root), referenced)) {
+    dirs.append("dbs/" + folder.name);
+  }
+  return dirs;
+}
+
 auto DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
     -> QList<ProfilePackageKeyDatabaseEntry> {
   QList<ProfilePackageKeyDatabaseEntry> out;
@@ -746,7 +766,8 @@ auto MakeTravellingKeyDatabaseMember(const QList<KeyDatabaseItemSO> &databases,
   return member;
 }
 
-auto MeasureProfileAreas(const ProfileAccessor &storage)
+auto MeasureProfileAreas(const ProfileAccessor &storage,
+                         const QStringList &excluded_dirs)
     -> QMap<QString, qint64> {
   // Asked of the storage, not of the tree under the root. Walking the tree was
   // right only for a profile whose every area is a directory, and two are not:
@@ -768,6 +789,12 @@ auto MeasureProfileAreas(const ProfileAccessor &storage)
   areas["key_databases"] = root.isEmpty() ? 0
                                           : DirectorySize(root + "/db") +
                                                 DirectorySize(root + "/dbs");
+  // What the package leaves out is not part of what is handed over.
+  if (!root.isEmpty()) {
+    for (const auto &dir : excluded_dirs) {
+      areas["key_databases"] -= DirectorySize(root + "/" + dir);
+    }
+  }
 
   areas["workspace"] = DirectorySize(storage.PathOf(ProfileArea::kWorkspace));
   return areas;
@@ -1324,7 +1351,9 @@ auto ExportProfilePackage(ProfileExportRequest request)
   for (const auto &member : synthesised) synthesised_paths.insert(member.path);
 
   TreeMemberSource tree(request.profile_root, request.include_workspace, {},
-                        synthesised_paths);
+                        synthesised_paths,
+                        QSet<QString>(request.excluded_dirs.begin(),
+                                      request.excluded_dirs.end()));
   if (const auto error = tree.Prepare(); !error.isEmpty()) {
     result.error = error;
     return result;

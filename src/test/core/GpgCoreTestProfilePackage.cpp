@@ -686,6 +686,55 @@ TEST(ProfilePackageRoundTripTest, ASynthesisedDataObjectReplacesTheStoredOne) {
   EXPECT_EQ(stored.readAll(), QByteArray("encrypted-object"));
 }
 
+// A key database the user moved to the Recycle Bin is no longer part of the
+// profile: the package leaves its folder out whole, and keeps the rest.
+TEST(ProfilePackageRoundTripTest, RecycleBinFoldersAreNotPackaged) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+  WriteFile(root + "/dbs/Kept/pubring.kbx", "kept keyring");
+  WriteFile(root + "/dbs/Binned/pubring.kbx", "removed keyring");
+  WriteFile(root + "/dbs/Binned/private-keys-v1.d/secret.key", "secret");
+
+  KeyDatabaseItemSO kept;
+  kept.name = "Kept";
+  kept.path = "@profile/dbs/Kept";
+  const auto excluded = RecycledKeyDatabaseDirsForPacking({kept}, root);
+  ASSERT_EQ(excluded, QStringList{"dbs/Binned"});
+
+  // Spelled out in full rather than as `@profile/`, it is still referenced.
+  kept.path = root + "/dbs/Kept";
+  EXPECT_EQ(RecycledKeyDatabaseDirsForPacking({kept}, root),
+            QStringList{"dbs/Binned"});
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  request.excluded_dirs = excluded;
+
+  const auto written = ExportProfilePackage(request);
+  ASSERT_TRUE(written.ok) << written.error.toStdString();
+
+  const auto extracted = dir.path() + "/extracted";
+  const auto read = ReadProfilePackage(package, extracted, {});
+  ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
+
+  const auto tree = extracted + "/profile";
+  EXPECT_TRUE(QFileInfo::exists(tree + "/dbs/Kept/pubring.kbx"));
+  EXPECT_FALSE(QFileInfo::exists(tree + "/dbs/Binned"))
+      << "a Recycle Bin folder travelled";
+
+  // Left where it was on this computer.
+  EXPECT_TRUE(QFileInfo::exists(root + "/dbs/Binned/pubring.kbx"));
+
+  // And not counted into what the export dialog says it hands over.
+  FsProfileAccessor storage(root, root + "/config/config.ini");
+  EXPECT_EQ(MeasureProfileAreas(storage, excluded).value("key_databases"),
+            QByteArray("keyring").size() + QByteArray("kept keyring").size());
+}
+
 TEST(ProfilePackageRoundTripTest, AnUnpackThatFailsIsNotAWrongPassphrase) {
   // The two are told apart by nothing the reader can see -- a wrong passphrase
   // and a damaged chunk are the same event to the stream -- so an unpack that

@@ -122,11 +122,13 @@ auto ListMemberSource::Next(ProfileMember &out) -> bool {
 }
 
 TreeMemberSource::TreeMemberSource(QString profile_root, bool include_workspace,
-                                   QString guard, QSet<QString> superseded)
+                                   QString guard, QSet<QString> superseded,
+                                   QSet<QString> excluded)
     : profile_root_(std::move(profile_root)),
       include_workspace_(include_workspace),
       guard_(std::move(guard)),
-      superseded_(std::move(superseded)) {}
+      superseded_(std::move(superseded)),
+      excluded_(std::move(excluded)) {}
 
 auto TreeMemberSource::Skipped() const -> QStringList {
   QStringList names(skipped_.begin(), skipped_.end());
@@ -164,6 +166,10 @@ void TreeMemberSource::Collect() {
       const auto relative = relative_dir.isEmpty()
                                 ? entry.fileName()
                                 : relative_dir + "/" + entry.fileName();
+
+      // Left out whole, and not reported as skipped: the user put it in the
+      // Recycle Bin, and knows it is not part of the profile any more.
+      if (excluded_.contains(relative)) continue;
 
       if (!IsIncludedInPackage(relative, include_workspace_)) {
         // Only the top level is worth reporting: a user knows what they left in

@@ -31,7 +31,9 @@
 #include <QFileDialog>
 #include <QStorageInfo>
 
+#include "core/model/SettingsObject.h"
 #include "core/profile/ProfilePackage.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "ui/dialog/SecretPrompt.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/ProfileController.h"
@@ -53,7 +55,12 @@ ProfileExportDialog::ProfileExportDialog(QString display_name,
     : GeneralWizard(typeid(ProfileExportDialog).name(), tr("Export backup"),
                     parent),
       display_name_(std::move(display_name)),
-      areas_(MeasureProfileAreas(storage)) {
+      // Sized as it will be packed: without the Recycle Bin's folders.
+      areas_(MeasureProfileAreas(
+          storage, RecycledKeyDatabaseDirsForPacking(
+                       KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject))
+                           .key_databases,
+                       storage.PathOf(ProfileArea::kRoot)))) {
   setWindowTitle(tr("Export Profile"));
 
   build_contents_page();
