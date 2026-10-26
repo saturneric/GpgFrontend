@@ -2511,7 +2511,7 @@ mod seipd_file_tests {
                 .packets
                 .last()
                 .unwrap()
-                .version,
+                .body_version(),
             Some(1)
         );
         (payload, data)
@@ -3026,7 +3026,7 @@ mod seipd_file_tests {
                     .packets
                     .last()
                     .unwrap()
-                    .version,
+                    .body_version(),
                 Some(2)
             );
             let dir = tempfile::tempdir().unwrap();
@@ -3240,7 +3240,7 @@ mod seipd_file_tests {
                     .iter()
                     .find(|n| n.tag == 18)
                     .unwrap_or_else(|| panic!("{case}: no SEIPD"));
-                assert_eq!(seipd.version, Some(1), "{case}");
+                assert_eq!(seipd.body_version(), Some(1), "{case}");
 
                 let dir = tempfile::tempdir().unwrap();
                 let cert = sign.then_some(gnupg.cert.as_str());
@@ -3328,7 +3328,10 @@ mod seipd_file_tests {
                 let data = sq.encrypt(&key.public_armored, &payload, signer);
                 let nodes = crate::inspect::inspect(&data).blocks[0].packets.clone();
                 assert_eq!(
-                    nodes.iter().find(|n| n.tag == 18).and_then(|n| n.version),
+                    nodes
+                        .iter()
+                        .find(|n| n.tag == 18)
+                        .and_then(|n| n.body_version()),
                     Some(want_version),
                     "{case}"
                 );

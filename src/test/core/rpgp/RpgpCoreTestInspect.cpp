@@ -134,6 +134,25 @@ TEST_F(RpgpCoreTest, InspectPacketOffsetsAbut) {
   }
 }
 
+TEST_F(RpgpCoreTest, InspectHandsOverEachPacketsWireOctets) {
+  // The walk interprets no packet body; it hands the octets to the module,
+  // so each packet's raw hex must be exactly its framing's extent.
+  auto packets = FirstBlockPackets(InspectVector("enc_v1seipd_mdc.pgp"));
+  ASSERT_GT(packets.size(), 0);
+
+  for (const auto& entry : packets) {
+    auto packet = entry.toObject();
+    const auto raw =
+        QByteArray::fromHex(packet.value("raw").toString().toLatin1());
+    EXPECT_EQ(raw.size(), packet.value("headerLength").toInt() +
+                              packet.value("bodyLength").toInt());
+    EXPECT_FALSE(packet.value("rawTruncated").toBool());
+    EXPECT_EQ(static_cast<quint8>(raw.at(0)) & 0x80, 0x80)
+        << "starts at the CTB";
+    EXPECT_FALSE(packet.contains("fields")) << "bodies are not decoded here";
+  }
+}
+
 TEST_F(RpgpCoreTest, InspectIsRepeatableAndReleasesItsDocument) {
   // Each call gets a fresh allocation that the wrapper frees; running it many
   // times is what would surface a leak or a double free under the sanitizer.

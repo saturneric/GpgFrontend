@@ -51,12 +51,12 @@ extern "C" {
  *   { "format": "binary"|"armored"|"cleartext", "size": N, "errors": [...],
  *     "blocks": [ { "kind": ..., "offset": N, "armor": {...}|absent,
  *                   "cleartext": {...}|absent, "error": null|"...",
- *                   "packets": [ { "tag": N, "tagName": "...", "offset": N,
+ *                   "packets": [ { "tag": N, "offset": N,
  *                                  "headerVersion": "old"|"new",
  *                                  "headerLength": N, "bodyLength": N,
  *                                  "lengthType": "fixed"|"partial"
  *                                                |"indeterminate",
- *                                  "version": N, "fields": [{label,value}],
+ *                                  "raw": "<hex>", "rawTruncated": bool,
  *                                  "children": [ ...same shape... ],
  *                                  "error": null|"..." } ] } ] }
  *
@@ -64,6 +64,12 @@ extern "C" {
  * in, the dearmored octets for an armored block, and the framing figures
  * describe the bytes as they appear there, so consecutive packets always
  * satisfy `offset + headerLength + bodyLength == next offset`.
+ *
+ * Packet bodies are not interpreted here: `raw` carries the packet's wire
+ * octets, header included, for the caller to decode. It is capped per packet
+ * and per document, and `rawTruncated` says when it holds fewer octets than
+ * the packet has. The children of a compressed packet carry the octets of
+ * the decompressed stream.
  *
  * @param in borrowed
  * @param out owned on success; release with GFBufferRelease

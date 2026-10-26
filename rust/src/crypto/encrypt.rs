@@ -1342,7 +1342,7 @@ mod encrypt_tests {
             .packets
             .iter()
             .find(|n| n.tag == 18)
-            .and_then(|n| n.version)
+            .and_then(|n| n.body_version())
     }
 
     #[test]
@@ -1617,7 +1617,7 @@ mod encrypt_tests {
         assert!(!pkesks.is_empty(), "a public-key message carries PKESKs");
         for pkesk in pkesks {
             assert_eq!(
-                pkesk.version,
+                pkesk.body_version(),
                 Some(want),
                 "a v{seipd} SEIPD must be preceded by v{want} PKESKs only"
             );
@@ -1625,19 +1625,20 @@ mod encrypt_tests {
         seipd
     }
 
-    /// The v2 SEIPD's (cipher, AEAD) fields as the inspector reports them.
+    /// The v2 SEIPD's (cipher, AEAD) octets, named the way rPGP names them.
+    /// RFC 9580 §5.13.2: version, cipher, AEAD mode, chunk size, salt.
     fn aead_suite(data: &[u8]) -> (String, String) {
         let nodes = &crate::inspect::inspect(data).blocks[0].packets;
         let seipd = nodes.iter().find(|n| n.tag == 18).expect("a SEIPD");
-        let field = |label: &str| {
-            seipd
-                .fields
-                .iter()
-                .find(|f| f.label == label)
-                .map(|f| f.value.clone())
-                .expect("field")
-        };
-        (field("Symmetric Algorithm"), field("AEAD Mode"))
+        let body = seipd.body();
+        assert_eq!(body.first(), Some(&2), "a v2 SEIPD");
+        (
+            format!(
+                "{:?}",
+                pgp::crypto::sym::SymmetricKeyAlgorithm::from(body[1])
+            ),
+            format!("{:?}", pgp::crypto::aead::AeadAlgorithm::from(body[2])),
+        )
     }
 
     #[test]
@@ -2444,7 +2445,7 @@ mod encrypt_tests {
         let nodes = &crate::inspect::inspect(&out).blocks[0].packets;
         assert_eq!(nodes[0].tag, 3, "a SKESK leads the message");
         assert_eq!(
-            nodes[0].version,
+            nodes[0].body_version(),
             Some(6),
             "a v2 SEIPD pairs with a v6 SKESK"
         );
