@@ -31,6 +31,7 @@
 #include <array>
 
 #include "core/profile/ProfilePackage.h"
+#include "ui/dialog/GeneralWizard.h"
 #include "ui/dialog/profile/ProfileExportSummary.h"
 
 class QCheckBox;
@@ -41,7 +42,6 @@ class QPushButton;
 namespace GpgFrontend::UI {
 
 class MetaListPanel;
-class ProfileExportPage;
 class SecretEntryPanel;
 
 /**
@@ -52,8 +52,8 @@ class SecretEntryPanel;
  * matters -- the passphrase -- sat third in a column of four cards. Each step
  * now answers one question, with the detail that backs it listed beneath.
  *
- * A QWizard, so the navigation, the button order and the look are the
- * platform's own and match the first-run wizard. The pages live for the
+ * A GeneralWizard, so the navigation, the button order and the look are the
+ * platform's own and match the key package wizard. The pages live for the
  * wizard's lifetime, so Back and Continue never lose what was typed or ticked.
  *
  * The passphrase is typed into the same SecretEntryPanel the application key's
@@ -61,7 +61,7 @@ class SecretEntryPanel;
  * so an unsealed one hands over everything the profile ever encrypted, and
  * this wizard does not offer that.
  */
-class ProfileExportDialog : public QWizard {
+class ProfileExportDialog : public GeneralWizard {
   Q_OBJECT
 
  public:
@@ -116,7 +116,7 @@ class ProfileExportDialog : public QWizard {
   QString display_name_;
   QMap<QString, qint64> areas_;
 
-  std::array<ProfileExportPage*, kProfileExportStepCount> pages_{};
+  std::array<GeneralWizardPage*, kProfileExportStepCount> pages_{};
 
   // Contents
   QLabel* contents_summary_{};
@@ -148,7 +148,7 @@ class ProfileExportDialog : public QWizard {
   void build_save_page();
 
   /// @brief A page for a step, titled and registered under the step's id.
-  auto add_page(ProfileExportStep step) -> ProfileExportPage*;
+  auto add_page(ProfileExportStep step) -> GeneralWizardPage*;
 
   /// @brief The contents rows for the current choice.
   [[nodiscard]] auto contents_rows() const -> QList<MetaListRow>;

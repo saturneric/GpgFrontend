@@ -41,71 +41,20 @@
 
 namespace GpgFrontend::UI {
 
-/**
- * @brief A wizard page whose gates are the wizard's to decide.
- *
- * Every rule lives in ProfileExportSummary, so a page only forwards QWizard's
- * question to it. Not a Q_OBJECT: it declares no
- * signals or slots of its own, and completeChanged() is QWizardPage's.
- */
-class ProfileExportPage : public QWizardPage {
- public:
-  using QWizardPage::QWizardPage;
-
-  std::function<bool()> complete;  ///< enables Continue / Export backup
-
-  [[nodiscard]] auto isComplete() const -> bool override {
-    return complete ? complete() : QWizardPage::isComplete();
-  }
-};
-
 namespace {
 
 auto StepIndex(ProfileExportStep step) -> int { return static_cast<int>(step); }
-
-/// A page's body: no margins of its own, since the wizard frames it.
-auto PageLayout(QWidget* page) -> QVBoxLayout* {
-  auto* layout = new QVBoxLayout(page);
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(8);
-  return layout;
-}
-
-/// The one sentence a page opens with: what this step is for, before any
-/// control asks for anything.
-void AddLead(QVBoxLayout* layout, const QString& text, QWidget* page) {
-  auto* lead = new QLabel(text, page);
-  lead->setWordWrap(true);
-  layout->addWidget(lead);
-  layout->addSpacing(4);
-}
 
 }  // namespace
 
 ProfileExportDialog::ProfileExportDialog(QString display_name,
                                          const ProfileAccessor& storage,
                                          QWidget* parent)
-    : QWizard(parent),
+    : GeneralWizard(typeid(ProfileExportDialog).name(), tr("Export backup"),
+                    parent),
       display_name_(std::move(display_name)),
       areas_(MeasureProfileAreas(storage)) {
   setWindowTitle(tr("Export Profile"));
-  setModal(true);
-
-  // The same style choice as the first-run wizard, so the two read as one
-  // family. No logo: the page titles carry the step, and a large badge would
-  // only push the fields down.
-#if !defined(Q_OS_MACOS)
-  setWizardStyle(QWizard::ModernStyle);
-#endif
-  setOption(QWizard::HaveHelpButton, false);
-
-  setButtonText(QWizard::BackButton, tr("Back"));
-  setButtonText(QWizard::NextButton, tr("Continue"));
-  setButtonText(QWizard::FinishButton, tr("Export backup"));
-
-  // Word-wrapped labels ask for almost no width, so the wizard would open as a
-  // tall ribbon; stating the width once makes everything wrap against it.
-  setMinimumWidth(520);
 
   build_contents_page();
   build_protection_page();
@@ -126,13 +75,9 @@ ProfileExportDialog::ProfileExportDialog(QString display_name,
 }
 
 auto ProfileExportDialog::add_page(ProfileExportStep step)
-    -> ProfileExportPage* {
-  auto* page = new ProfileExportPage(this);
-  page->setTitle(ProfileExportStepTitle(step));
-  page->setSubTitle(tr("Step %1 of %2")
-                        .arg(StepIndex(step) + 1)
-                        .arg(kProfileExportStepCount));
-  setPage(StepIndex(step), page);
+    -> GeneralWizardPage* {
+  auto* page = AddStep(StepIndex(step), kProfileExportStepCount,
+                       ProfileExportStepTitle(step));
   pages_.at(StepIndex(step)) = page;
   return page;
 }
