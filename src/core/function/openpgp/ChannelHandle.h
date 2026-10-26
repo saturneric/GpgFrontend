@@ -361,4 +361,39 @@ auto GF_CORE_EXPORT RetireChannelsAtLocation(const QString& path) -> QList<int>;
  */
 auto GF_CORE_EXPORT IsKeyDatabaseLocationInUse(const QString& path) -> bool;
 
+/**
+ * @brief A key database location held for deletion.
+ *
+ * While one is held, every attempt to open a key database there fails, as an
+ * unavailable database does. Released when destroyed.
+ */
+class GF_CORE_EXPORT KeyDatabaseDeletionReservation {
+ public:
+  explicit KeyDatabaseDeletionReservation(QString location);
+  ~KeyDatabaseDeletionReservation();
+
+  KeyDatabaseDeletionReservation(const KeyDatabaseDeletionReservation&) =
+      delete;
+  auto operator=(const KeyDatabaseDeletionReservation&)
+      -> KeyDatabaseDeletionReservation& = delete;
+
+ private:
+  QString location_;
+};
+
+/**
+ * @brief Hold the directory at @p path so nothing opens it while it is
+ * deleted.
+ *
+ * Every key database, whichever engine, is opened through the one shared
+ * session per directory, and that open is refused while a reservation is held.
+ * Taken under the same lock, so an open and a deletion never overlap.
+ *
+ * @param path a key database directory
+ * @return the reservation, or nullptr when the location is open, still in use
+ * by a handle not yet reclaimed, or already reserved
+ */
+auto GF_CORE_EXPORT ReserveKeyDatabaseLocationForDeletion(const QString& path)
+    -> std::unique_ptr<KeyDatabaseDeletionReservation>;
+
 }  // namespace GpgFrontend

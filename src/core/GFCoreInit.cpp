@@ -54,6 +54,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
@@ -1265,6 +1266,10 @@ void InstallKeyDatabaseRuntimeReclaimer() {
         MarkChannelReclaimed(handle);
         LOG_D() << "reclaimed retired channel" << handle
                 << "objects:" << released;
+        if (!IsCoreShuttingDown()) {
+          emit CoreSignalStation::GetInstance()
+              -> SignalKeyDatabaseChannelReleased(handle);
+        }
         // Looked up again between the taking and now: built afresh, and
         // missed by the reclamation already under way.
         if (HasEngineScopedObjects(handle)) {
@@ -1284,6 +1289,84 @@ void InstallKeyDatabaseRuntimeReclaimer() {
       reclaim();
     }
   });
+}
+
+auto DeleteRecycledKeyDatabase(const QString& app_data_path,
+                               const QString& path,
+                               const QStringList& extra_referenced)
+    -> KeyDatabaseDeleteResult {
+  // No Runtime is built while this runs, so nothing can come to name the
+  // folder between the checks below and the removal.
+  std::lock_guard<std::mutex> lock(g_key_db_apply_lock);
+
+  KeyDatabaseDeleteResult result;
+  const auto refuse = [&](const QString& reason) -> KeyDatabaseDeleteResult {
+    LOG_W() << "refusing to delete key database folder:" << path << reason;
+    result.error = reason;
+    return result;
+  };
+
+  const QFileInfo target(path);
+  if (target.isSymLink() || target.isJunction()) {
+    return refuse(QCoreApplication::tr(
+        "This is a link to a folder elsewhere, not a key database folder."));
+  }
+  if (!target.isDir()) {
+    return refuse(QCoreApplication::tr("The folder is no longer there."));
+  }
+
+  const auto dbs_root =
+      QFileInfo(QDir::cleanPath(app_data_path + "/dbs")).canonicalFilePath();
+  const auto canonical = target.canonicalFilePath();
+  if (app_data_path.isEmpty() || dbs_root.isEmpty() || canonical.isEmpty() ||
+      canonical == dbs_root ||
+      QFileInfo(canonical).absolutePath() != dbs_root ||
+      IsReservedKeyDatabaseName(QFileInfo(canonical).fileName())) {
+    return refuse(QCoreApplication::tr(
+        "Only a folder directly inside the profile's key database folder can "
+        "be deleted here."));
+  }
+
+  QStringList referenced = extra_referenced;
+  const QDir app_dir(GlobalSettingStation::GetInstance().GetAppDir());
+  for (const auto& item : LoadKeyDatabaseList()) {
+    referenced.append(ExpandKeyDatabasePath(app_dir, item.path));
+  }
+  for (const auto& move : PendingKeyDatabaseMoves()) {
+    referenced.append(move.from);
+    referenced.append(move.to);
+  }
+  for (const auto& other : referenced) {
+    if (!other.isEmpty() && IsSameKeyDatabaseLocation(other, canonical)) {
+      return refuse(QCoreApplication::tr(
+          "The current configuration still refers to this folder."));
+    }
+  }
+
+  const auto reservation = ReserveKeyDatabaseLocationForDeletion(canonical);
+  if (reservation == nullptr) {
+    return refuse(QCoreApplication::tr(
+        "The folder is still in use. Try again in a moment."));
+  }
+
+  LOG_I() << "deleting key database folder permanently:" << canonical;
+  const auto failed = RemoveTreeWithoutFollowingLinks(canonical);
+  if (failed.isEmpty()) {
+    result.deleted = true;
+    return result;
+  }
+
+  for (const auto& entry : failed) {
+    LOG_W() << "could not remove from deleted key database folder:" << entry;
+  }
+  result.partial = true;
+  result.error =
+      QCoreApplication::tr(
+          "Some files in the folder could not be deleted, so it is still "
+          "there with part of its contents. What is left may no longer be "
+          "usable as a key database.") +
+      "\n\n" + QDir::toNativeSeparators(failed.first());
+  return result;
 }
 
 auto ApplyKeyDatabaseRuntime(const QList<KeyDatabaseMove>& moves)

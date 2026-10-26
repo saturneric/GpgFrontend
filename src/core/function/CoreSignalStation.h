@@ -142,6 +142,16 @@ class GF_CORE_EXPORT CoreSignalStation : public QObject {
    * the next Runtime is published.
    */
   void SignalKeyDatabaseChannelsRetired();
+
+  /**
+   * @brief A retired channel has been reclaimed: what it had open is closed.
+   *
+   * Emitted from a worker thread. A folder the channel opened may now be free,
+   * and so no longer in use by anything.
+   *
+   * @param handle the reclaimed channel handle
+   */
+  void SignalKeyDatabaseChannelReleased(int handle);
 };
 
 }  // namespace GpgFrontend

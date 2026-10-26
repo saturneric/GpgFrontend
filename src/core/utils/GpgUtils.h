@@ -368,6 +368,69 @@ auto GF_CORE_EXPORT ManagedKeyDatabasePath(const QString& app_data_path,
                                            const QString& name) -> QString;
 
 /**
+ * @brief The folders under the profile's managed key database directory.
+ *
+ * One entry per real directory in `<app-data>/dbs`, as name and path, of kind
+ * kMANAGED. Links (and junctions) are skipped: what they point at lies outside
+ * the directory. Scanning finds folders; it registers nothing.
+ *
+ * @param app_data_path the profile's data directory
+ * @return the folders, by name
+ */
+auto GF_CORE_EXPORT ScanManagedKeyDatabaseDir(const QString& app_data_path)
+    -> QList<KeyDatabaseItemSO>;
+
+/**
+ * @brief The scanned folders no configuration refers to: the Recycle Bin.
+ *
+ * A folder is left out when any of @p referenced_paths is the same location,
+ * however either is spelled, and when its name is reserved for the built-in
+ * database.
+ *
+ * @param discovered what ScanManagedKeyDatabaseDir() found
+ * @param referenced_paths every folder the settings, the Runtime or a pending
+ * operation still refers to
+ * @return the unreferenced folders, in scan order
+ */
+auto GF_CORE_EXPORT SelectRecycledKeyDatabaseFolders(
+    const QList<KeyDatabaseItemSO>& discovered,
+    const QStringList& referenced_paths) -> QList<KeyDatabaseItemSO>;
+
+/**
+ * @brief The engine a key database folder was written by, judged by the files
+ * in it. Nothing is opened.
+ *
+ * GnuPG's files decide first: the shared database file is written by every
+ * engine, so on its own it means rPGP only where GnuPG left nothing.
+ *
+ * @param path the folder
+ * @return "rpgp", "gnupg", or empty when neither left its files there
+ */
+auto GF_CORE_EXPORT GuessKeyDatabaseBackend(const QString& path) -> QString;
+
+/**
+ * @brief What CreateManagedKeyDatabaseFolderExclusively() did.
+ */
+enum class ManagedFolderCreation : std::uint8_t {
+  kCREATED,  ///< a new, empty folder now exists
+  kEXISTED,  ///< something was already there; it was not touched
+  kFAILED,   ///< nothing was there, and nothing could be made
+};
+
+/**
+ * @brief Create the folder of a new managed key database, never adopting one.
+ *
+ * Asked of the disk at the moment of creation, so a folder that appeared after
+ * any earlier check (one in the Recycle Bin, say) is reported rather than
+ * taken over as an empty database. Its contents are never read or changed.
+ *
+ * @param app_data_path the profile's data directory
+ * @param name the database name as typed
+ */
+auto GF_CORE_EXPORT CreateManagedKeyDatabaseFolderExclusively(
+    const QString& app_data_path, const QString& name) -> ManagedFolderCreation;
+
+/**
  * @brief Assemble the stored list from the three kinds, in the fixed order.
  *
  * DEFAULT first, then the managed databases, then the external ones, numbered
@@ -645,11 +708,22 @@ auto GF_CORE_EXPORT GetDefaultKeyDatabaseId() -> QString;
  * @brief Reconcile the macOS app-sandbox key database list against the
  * filesystem.
  *
- * The filesystem scan (@p discovered) is authoritative for which user databases
- * exist and their paths; @p stored only supplies recoverable metadata (backend
- * type, channel/order) matched by name. The channel-0 @p default_db is always
- * kept. Backend types not present in @p supported_backends are replaced by a
- * supported default (gnupg when available, else rpgp).
+ * The stored list (@p stored) says which user databases exist. The scan
+ * (@p discovered) says where their folders are now -- the container path
+ * drifts -- matched by name, and drops a stored entry whose folder is gone.
+ * Backend type and channel come from the stored entry. The channel-0
+ * @p default_db is always kept. Backend types not present in
+ * @p supported_backends are replaced by a supported default (gnupg when
+ * available, else rpgp).
+ *
+ * A scanned folder no stored entry names is **not** registered: it is in the
+ * Recycle Bin, untouched, until the user restores or deletes it.
+ *
+ * Upgrading from a build that registered every scanned folder: every start of
+ * such a build persisted the list it registered, so its folders are all in
+ * @p stored and nothing changes. A list that is missing, empty or unreadable
+ * names none of them, so after the upgrade those folders are Recycle Bin
+ * entries -- kept on disk as they are, and restorable -- rather than databases.
  *
  * Exposed primarily for unit testing of the reconciliation logic.
  *

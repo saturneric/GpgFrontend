@@ -84,6 +84,10 @@ struct KeyDatabaseSessions {
   std::mutex mutex;
   std::condition_variable closed;
   std::map<QString, Entry> open;
+
+  /// Locations held for deletion; nothing opens them meanwhile. See
+  /// ReserveKeyDatabaseLocationForDeletion().
+  std::set<QString> reserved;
 };
 
 auto Sessions() -> KeyDatabaseSessions& {
@@ -106,6 +110,14 @@ auto AcquireKeyDatabaseSession(const QString& path)
     // Its last holder is gone and its destructor is running: wait until it
     // has closed, rather than opening the same files beside it.
     sessions.closed.wait(lock);
+  }
+
+  // Being deleted. Refused under the same lock the reservation was taken
+  // under, so no open can slip in between a deletion's checks and its work.
+  if (sessions.reserved.count(location) != 0) {
+    LOG_W() << "key database location is being deleted, not opening it:"
+            << location;
+    return nullptr;
   }
 
   void* mem = SMAMalloc(sizeof(GFKeyDatabase));
@@ -698,6 +710,37 @@ auto IsKeyDatabaseLocationInUse(const QString& path) -> bool {
   auto& sessions = Sessions();
   std::lock_guard<std::mutex> lock(sessions.mutex);
   return sessions.open.find(location) != sessions.open.end();
+}
+
+KeyDatabaseDeletionReservation::KeyDatabaseDeletionReservation(QString location)
+    : location_(std::move(location)) {}
+
+KeyDatabaseDeletionReservation::~KeyDatabaseDeletionReservation() {
+  auto& sessions = Sessions();
+  std::lock_guard<std::mutex> lock(sessions.mutex);
+  sessions.reserved.erase(location_);
+}
+
+auto ReserveKeyDatabaseLocationForDeletion(const QString& path)
+    -> std::unique_ptr<KeyDatabaseDeletionReservation> {
+  const auto location = KeyDatabasePhysicalLocation(path);
+  if (location.isEmpty()) return nullptr;
+
+  std::unique_ptr<KeyDatabaseDeletionReservation> reservation;
+  {
+    auto& sessions = Sessions();
+    std::lock_guard<std::mutex> lock(sessions.mutex);
+    if (sessions.reserved.count(location) != 0) return nullptr;
+    if (sessions.open.find(location) != sessions.open.end()) return nullptr;
+    sessions.reserved.insert(location);
+    reservation.reset(new KeyDatabaseDeletionReservation(location));
+  }
+
+  // Taken first and checked after: from the moment it is held no session can
+  // open there, so a handle still on the location is one opened before, and
+  // it is seen here. Dropping the reservation releases it again.
+  if (IsKeyDatabaseLocationInUse(path)) return nullptr;
+  return reservation;
 }
 
 }  // namespace GpgFrontend

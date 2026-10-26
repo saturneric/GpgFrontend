@@ -26,7 +26,9 @@
  *
  */
 
+#include <QElapsedTimer>
 #include <atomic>
+#include <chrono>
 #include <thread>
 
 #include "GFCoreTest.h"
@@ -104,9 +106,10 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileEmpty) {
   EXPECT_EQ(result[0].backend_type, QString("rpgp"));
 }
 
-// Databases discovered on disk but absent from settings get sequential channels
-// and the default supported backend.
-TEST_F(GFCoreTest, KeyDatabaseReconcileDiscoverNew) {
+// A folder on disk that no stored entry names is not registered: it is in the
+// Recycle Bin. Registering it is what brought a removed database back at every
+// start.
+TEST_F(GFCoreTest, SandboxReconcileLeavesUnstoredFoldersUnregistered) {
   QList<KeyDatabaseItemSO> discovered{
       MakeItem("alpha", "/app-data/dbs/alpha"),
       MakeItem("beta", "/app-data/dbs/beta"),
@@ -115,22 +118,34 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileDiscoverNew) {
   auto result = ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, {},
                                                 kLiteBackends);
 
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(result[0].name, QString("DEFAULT"));
+  EXPECT_EQ(FindByName(result, "alpha"), nullptr);
+  EXPECT_EQ(FindByName(result, "beta"), nullptr);
+}
+
+// Only the stored ones of several folders are registered, each with its own
+// channel; the rest stay out.
+TEST_F(GFCoreTest, SandboxReconcileRegistersOnlyStoredFolders) {
+  QList<KeyDatabaseItemSO> discovered{
+      MakeItem("alpha", "/app-data/dbs/alpha"),
+      MakeItem("beta", "/app-data/dbs/beta"),
+      MakeItem("gamma", "/app-data/dbs/gamma"),
+  };
+  QList<KeyDatabaseItemSO> stored{
+      MakeItem("alpha", "/app-data/dbs/alpha", "rpgp", 1),
+      MakeItem("gamma", "/app-data/dbs/gamma", "rpgp", 2),
+  };
+
+  auto result = ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, stored,
+                                                kLiteBackends);
+
   ASSERT_EQ(result.size(), 3);
-
-  const auto* alpha = FindByName(result, "alpha");
-  const auto* beta = FindByName(result, "beta");
-  ASSERT_NE(alpha, nullptr);
-  ASSERT_NE(beta, nullptr);
-
-  EXPECT_EQ(alpha->path, QString("/app-data/dbs/alpha"));
-  EXPECT_EQ(alpha->backend_type, QString("rpgp"));
-  EXPECT_EQ(beta->backend_type, QString("rpgp"));
-
-  // channels are unique and ascending, DEFAULT stays at 0
-  EXPECT_EQ(FindByName(result, "DEFAULT")->channel, 0);
-  EXPECT_NE(alpha->channel, beta->channel);
-  EXPECT_NE(alpha->channel, 0);
-  EXPECT_NE(beta->channel, 0);
+  ASSERT_NE(FindByName(result, "alpha"), nullptr);
+  ASSERT_NE(FindByName(result, "gamma"), nullptr);
+  EXPECT_EQ(FindByName(result, "beta"), nullptr);
+  EXPECT_NE(FindByName(result, "alpha")->channel,
+            FindByName(result, "gamma")->channel);
 }
 
 // Metadata (backend type + channel) is recovered from settings by name for a
@@ -1681,8 +1696,9 @@ TEST(KeyDatabaseIdTest, ASeededFallbackIsTheDefaultIdentity) {
 }
 
 TEST_F(GFCoreTest, ASandboxDatabaseRecoversItsIdByName) {
-  // The scan is authoritative for which databases exist; the stored list is
-  // where everything else about them, the identity included, is recovered.
+  // The stored list says which databases exist, and is where everything else
+  // about them, the identity included, is recovered; the scan only says where
+  // their folders are. A folder it does not name stays out.
   const auto id = NewKeyDatabaseId();
   auto stored_work = MakeItem("work", "/stale/old/path", "rpgp", 5);
   stored_work.id = id;
@@ -1695,8 +1711,10 @@ TEST_F(GFCoreTest, ASandboxDatabaseRecoversItsIdByName) {
 
   EXPECT_EQ(FindByName(out, "DEFAULT")->id,
             QLatin1StringView(kDefaultKeyDatabaseId));
+  ASSERT_NE(FindByName(out, "work"), nullptr);
   EXPECT_EQ(FindByName(out, "work")->id, id);
-  EXPECT_FALSE(QUuid::fromString(FindByName(out, "fresh")->id).isNull());
+  EXPECT_EQ(FindByName(out, "work")->path, QString("/app-data/dbs/work"));
+  EXPECT_EQ(FindByName(out, "fresh"), nullptr);
 }
 
 TEST_F(GFCoreTest, ComposingKeepsEveryIdentity) {
@@ -2565,5 +2583,467 @@ TEST(KeyDatabaseRuntimeTest, ACandidateWhoseDefaultCannotOpenIsNotOk) {
 
   RetireRuntimeGeneration(candidate.generation);
 }
+
+// -----------------------------------------------------------------------------
+// The Recycle Bin: folders under dbs/ nothing refers to, found by one scanner,
+// never registered by it, and deleted only through DeleteRecycledKeyDatabase().
+// -----------------------------------------------------------------------------
+
+namespace {
+
+auto MakeSentinel(const QString& dir, const QByteArray& content) -> bool {
+  QFile file(dir + "/sentinel");
+  if (!file.open(QIODevice::WriteOnly)) return false;
+  return file.write(content) == content.size();
+}
+
+auto ReadSentinel(const QString& dir) -> QByteArray {
+  QFile file(dir + "/sentinel");
+  if (!file.open(QIODevice::ReadOnly)) return {};
+  return file.readAll();
+}
+
+auto PathsOf(const QList<KeyDatabaseItemSO>& items) -> QStringList {
+  QStringList paths;
+  for (const auto& item : items) paths.append(item.path);
+  return paths;
+}
+
+auto NamesOf(const QList<KeyDatabaseItemSO>& items) -> QStringList {
+  QStringList names;
+  for (const auto& item : items) names.append(item.name);
+  return names;
+}
+
+}  // namespace
+
+TEST(RecycledKeyDatabaseTest, TheScannerListsRealDirectoriesOnly) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dbs(root.path() + "/dbs");
+  ASSERT_TRUE(dbs.mkpath("work"));
+  ASSERT_TRUE(dbs.mkpath(".hidden"));
+  QTemporaryDir outside;
+  ASSERT_TRUE(outside.isValid());
+
+  QFile file(dbs.filePath("a-file"));
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.close();
+  ASSERT_TRUE(QFile::link(outside.path(), dbs.filePath("a-link")));
+
+  const auto scanned = ScanManagedKeyDatabaseDir(root.path());
+  EXPECT_EQ(NamesOf(scanned), (QStringList{".hidden", "work"}));
+  for (const auto& item : scanned) {
+    EXPECT_EQ(item.kind, KeyDatabaseKind::kMANAGED);
+  }
+}
+
+TEST(RecycledKeyDatabaseTest, TheScannerFindsNothingWithoutADbsDirectory) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  EXPECT_TRUE(ScanManagedKeyDatabaseDir(root.path()).isEmpty());
+  EXPECT_TRUE(ScanManagedKeyDatabaseDir({}).isEmpty());
+}
+
+TEST(RecycledKeyDatabaseTest, AReferencedFolderIsNotRecycledHoweverSpelled) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dbs(root.path() + "/dbs");
+  ASSERT_TRUE(dbs.mkpath("work"));
+  ASSERT_TRUE(dbs.mkpath("home"));
+  ASSERT_TRUE(dbs.mkpath("legacy"));
+  ASSERT_TRUE(dbs.mkpath("Default"));
+
+  // The same folders, reached through a link to the profile and with a
+  // trailing slash.
+  QTemporaryDir links;
+  ASSERT_TRUE(links.isValid());
+  const auto via_link = links.path() + "/profile";
+  ASSERT_TRUE(QFile::link(root.path(), via_link));
+
+  const auto recycled = SelectRecycledKeyDatabaseFolders(
+      ScanManagedKeyDatabaseDir(root.path()),
+      {via_link + "/dbs/work", root.path() + "/dbs/home/", QString()});
+
+  // Not the reserved name either: that folder is the built-in database's.
+  EXPECT_EQ(NamesOf(recycled), QStringList{"legacy"});
+}
+
+TEST(RecycledKeyDatabaseTest, PendingMovesKeepTheirFoldersOutOfTheBin) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dbs(root.path() + "/dbs");
+  ASSERT_TRUE(dbs.mkpath("old-name"));
+  ASSERT_TRUE(dbs.mkpath("new-name"));
+  ASSERT_TRUE(dbs.mkpath("unrelated"));
+
+  const auto recycled = SelectRecycledKeyDatabaseFolders(
+      ScanManagedKeyDatabaseDir(root.path()),
+      {dbs.filePath("old-name"), dbs.filePath("new-name")});
+  EXPECT_EQ(NamesOf(recycled), QStringList{"unrelated"});
+}
+
+TEST(RecycledKeyDatabaseTest, TheEngineIsJudgedByTheFilesLeftBehind) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dir(root.path());
+  for (const auto* name :
+       {"rpgp", "kbx", "legacy", "agent-only", "gnupg-opened", "empty"}) {
+    ASSERT_TRUE(dir.mkpath(QLatin1StringView(name)));
+  }
+  const auto touch = [&](const QString& path) {
+    QFile file(dir.filePath(path));
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  };
+  touch("rpgp/gf_keydb.sqlite");
+  touch("kbx/pubring.kbx");
+  touch("legacy/pubring.gpg");
+  ASSERT_TRUE(dir.mkpath("agent-only/private-keys-v1.d"));
+  // Opened by GpgFrontend under GnuPG: the shared database file is there too.
+  touch("gnupg-opened/pubring.kbx");
+  touch("gnupg-opened/gf_keydb.sqlite");
+
+  EXPECT_EQ(GuessKeyDatabaseBackend(dir.filePath("rpgp")), "rpgp");
+  EXPECT_EQ(GuessKeyDatabaseBackend(dir.filePath("kbx")), "gnupg");
+  EXPECT_EQ(GuessKeyDatabaseBackend(dir.filePath("legacy")), "gnupg");
+  EXPECT_EQ(GuessKeyDatabaseBackend(dir.filePath("agent-only")), "gnupg");
+  EXPECT_EQ(GuessKeyDatabaseBackend(dir.filePath("gnupg-opened")), "gnupg");
+  EXPECT_EQ(GuessKeyDatabaseBackend(dir.filePath("empty")), QString());
+}
+
+TEST(RecycledKeyDatabaseTest, AddingNeverAdoptsAFolderThatAppearedSince) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+
+  // The Recycle Bin was read before the folder existed, so a cached list
+  // would have said the name is free.
+  EXPECT_TRUE(SelectRecycledKeyDatabaseFolders(
+                  ScanManagedKeyDatabaseDir(root.path()), {})
+                  .isEmpty());
+  ASSERT_TRUE(QDir(root.path()).mkpath("dbs/Work"));
+  ASSERT_TRUE(MakeSentinel(root.path() + "/dbs/Work", "old keys"));
+
+  EXPECT_EQ(CreateManagedKeyDatabaseFolderExclusively(root.path(), "Work"),
+            ManagedFolderCreation::kEXISTED);
+  EXPECT_EQ(ReadSentinel(root.path() + "/dbs/Work"), "old keys");
+
+  // Trimmed the way the folder name is, so " Work " is the same folder.
+  EXPECT_EQ(CreateManagedKeyDatabaseFolderExclusively(root.path(), " Work "),
+            ManagedFolderCreation::kEXISTED);
+}
+
+TEST(RecycledKeyDatabaseTest, AddingCreatesOnlyWhereNothingIsThere) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+
+  EXPECT_EQ(CreateManagedKeyDatabaseFolderExclusively(root.path(), "Fresh"),
+            ManagedFolderCreation::kCREATED);
+  EXPECT_TRUE(QFileInfo(root.path() + "/dbs/Fresh").isDir());
+  EXPECT_TRUE(QDir(root.path() + "/dbs/Fresh").isEmpty());
+
+  // A file, and a dangling link, are both in the way.
+  QFile file(root.path() + "/dbs/AFile");
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.close();
+  EXPECT_EQ(CreateManagedKeyDatabaseFolderExclusively(root.path(), "AFile"),
+            ManagedFolderCreation::kEXISTED);
+  ASSERT_TRUE(QFile::link(root.path() + "/nowhere", root.path() + "/dbs/Gone"));
+  EXPECT_EQ(CreateManagedKeyDatabaseFolderExclusively(root.path(), "Gone"),
+            ManagedFolderCreation::kEXISTED);
+
+  EXPECT_EQ(CreateManagedKeyDatabaseFolderExclusively(root.path(), "  "),
+            ManagedFolderCreation::kFAILED);
+}
+
+// Upgrading from a build that registered every scanned folder. What it stored
+// decides which folders stay databases; the others become Recycle Bin entries,
+// untouched.
+TEST(SandboxReconcileUpgradeTest, OldStoredListsDecideWhatStaysRegistered) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dbs(root.path() + "/dbs");
+  for (const auto* name : {"alpha", "beta"}) {
+    ASSERT_TRUE(dbs.mkpath(QLatin1StringView(name)));
+    ASSERT_TRUE(MakeSentinel(dbs.filePath(QLatin1StringView(name)),
+                             QByteArray("keys of ") + name));
+  }
+
+  struct Case {
+    const char* what;
+    QList<KeyDatabaseItemSO> stored;
+    QStringList registered;
+  };
+  const QList<Case> cases = {
+      // Missing, or unreadable: read as nothing at all.
+      {"missing", {}, {}},
+      {"only the built-in one", {MakeItem("DEFAULT", "/x", "rpgp", 0)}, {}},
+      {"some of them",
+       {MakeItem("DEFAULT", "/x", "rpgp", 0),
+        MakeItem("alpha", "/old/container/dbs/alpha", "rpgp", 1)},
+       {"alpha"}},
+      {"all of them, as every start since persisted",
+       {MakeItem("alpha", dbs.filePath("alpha"), "rpgp", 1),
+        MakeItem("beta", dbs.filePath("beta"), "rpgp", 2)},
+       {"alpha", "beta"}},
+  };
+
+  for (const auto& c : cases) {
+    SCOPED_TRACE(c.what);
+    const auto scanned = ScanManagedKeyDatabaseDir(root.path());
+    const auto reconciled = ReconcileSandboxKeyDatabaseList(
+        kDefaultDb, scanned, c.stored, kLiteBackends);
+
+    QStringList registered;
+    for (const auto& item : reconciled) {
+      if (item.kind != KeyDatabaseKind::kDEFAULT) registered.append(item.name);
+    }
+    EXPECT_EQ(registered, c.registered);
+
+    // Re-anchored to where the folder is now, not where it was stored.
+    if (const auto* alpha = FindByName(reconciled, "alpha"); alpha != nullptr) {
+      EXPECT_EQ(alpha->path, dbs.filePath("alpha"));
+    }
+
+    // Everything not registered is in the Recycle Bin.
+    auto expected_recycled = QStringList{"alpha", "beta"};
+    for (const auto& name : c.registered) expected_recycled.removeAll(name);
+    EXPECT_EQ(
+        NamesOf(SelectRecycledKeyDatabaseFolders(scanned, PathsOf(reconciled))),
+        expected_recycled);
+
+    // And a second start, reading what the first persisted, agrees.
+    const auto again = ReconcileSandboxKeyDatabaseList(
+        kDefaultDb, ScanManagedKeyDatabaseDir(root.path()), reconciled,
+        kLiteBackends);
+    EXPECT_EQ(NamesOf(again), NamesOf(reconciled));
+  }
+
+  EXPECT_EQ(ReadSentinel(dbs.filePath("alpha")), "keys of alpha");
+  EXPECT_EQ(ReadSentinel(dbs.filePath("beta")), "keys of beta");
+}
+
+TEST(RecycledKeyDatabaseTest, DeletionRefusesAnythingButADirectChildOfDbs) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dir(root.path());
+  ASSERT_TRUE(dir.mkpath("dbs/work/nested"));
+  ASSERT_TRUE(dir.mkpath("dbs/Default"));
+  ASSERT_TRUE(dir.mkpath("elsewhere"));
+  ASSERT_TRUE(MakeSentinel(root.path() + "/elsewhere", "not ours"));
+  ASSERT_TRUE(
+      QFile::link(root.path() + "/elsewhere", root.path() + "/dbs/a-link"));
+
+  for (const auto& path :
+       {root.path() + "/elsewhere", root.path() + "/dbs",
+        root.path() + "/dbs/work/nested", root.path() + "/dbs/Default",
+        root.path() + "/dbs/a-link", root.path() + "/dbs/missing"}) {
+    SCOPED_TRACE(path.toStdString());
+    const auto result = DeleteRecycledKeyDatabase(root.path(), path);
+    EXPECT_FALSE(result.deleted);
+    EXPECT_FALSE(result.partial);
+    EXPECT_FALSE(result.error.isEmpty());
+  }
+
+  EXPECT_TRUE(QFileInfo(root.path() + "/dbs/work/nested").isDir());
+  EXPECT_TRUE(QFileInfo(root.path() + "/dbs/Default").isDir());
+  EXPECT_TRUE(QFileInfo(root.path() + "/dbs/a-link").isSymLink());
+  EXPECT_EQ(ReadSentinel(root.path() + "/elsewhere"), "not ours");
+}
+
+TEST(RecycledKeyDatabaseTest, DeletionRefusesAFolderStillReferenced) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("dbs/unsaved"));
+  ASSERT_TRUE(QDir(root.path()).mkpath("dbs/moving"));
+
+  // Named by a settings page that has not stored it yet.
+  auto result =
+      DeleteRecycledKeyDatabase(root.path(), root.path() + "/dbs/unsaved",
+                                {root.path() + "/dbs/unsaved/"});
+  EXPECT_FALSE(result.deleted);
+  EXPECT_TRUE(QFileInfo(root.path() + "/dbs/unsaved").isDir());
+
+  // The source of a rename still waiting to be applied.
+  NotePendingKeyDatabaseMoves(
+      {Move("id-recycle-moving", root.path() + "/dbs/moving",
+            root.path() + "/dbs/moved")});
+  result = DeleteRecycledKeyDatabase(root.path(), root.path() + "/dbs/moving");
+  ForgetPendingKeyDatabaseMove("id-recycle-moving");
+  EXPECT_FALSE(result.deleted);
+  EXPECT_TRUE(QFileInfo(root.path() + "/dbs/moving").isDir());
+}
+
+TEST(RecycledKeyDatabaseTest, DeletionRemovesTheTreeButNothingItLinksTo) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  QDir dir(root.path());
+  ASSERT_TRUE(dir.mkpath("dbs/old/private-keys-v1.d/deeper"));
+  ASSERT_TRUE(MakeSentinel(root.path() + "/dbs/old/private-keys-v1.d", "key"));
+  ASSERT_TRUE(dir.mkpath("outside"));
+  ASSERT_TRUE(MakeSentinel(root.path() + "/outside", "must survive"));
+  const auto outside_mode = QFile::permissions(root.path() + "/outside");
+  const auto sentinel_mode =
+      QFile::permissions(root.path() + "/outside/sentinel");
+  ASSERT_TRUE(QFile::link(root.path() + "/outside",
+                          root.path() + "/dbs/old/private-keys-v1.d/link"));
+
+  // Read-only all the way down, as an extracted package can leave it.
+  QFile::setPermissions(root.path() + "/dbs/old/private-keys-v1.d/deeper",
+                        QFileDevice::ReadOwner | QFileDevice::ExeOwner);
+  QFile::setPermissions(root.path() + "/dbs/old/private-keys-v1.d",
+                        QFileDevice::ReadOwner | QFileDevice::ExeOwner);
+
+  const auto result =
+      DeleteRecycledKeyDatabase(root.path(), root.path() + "/dbs/old");
+  EXPECT_TRUE(result.deleted) << result.error.toStdString();
+  EXPECT_FALSE(result.partial);
+  EXPECT_FALSE(QFileInfo::exists(root.path() + "/dbs/old"));
+
+  EXPECT_EQ(ReadSentinel(root.path() + "/outside"), "must survive");
+  EXPECT_EQ(QFile::permissions(root.path() + "/outside"), outside_mode);
+  EXPECT_EQ(QFile::permissions(root.path() + "/outside/sentinel"),
+            sentinel_mode);
+}
+
+TEST(KeyDatabaseGateTest, AReservationAndAnOpenExcludeEachOther) {
+  if (!GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    GTEST_SKIP() << "this build has no rPGP engine";
+  }
+
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("dbs/held"));
+  const auto path = root.path() + "/dbs/held";
+
+  // Held for deletion: an open is refused, and leaves the folder as it was.
+  {
+    const auto reservation = ReserveKeyDatabaseLocationForDeletion(path);
+    ASSERT_NE(reservation, nullptr);
+    EXPECT_EQ(ReserveKeyDatabaseLocationForDeletion(path), nullptr)
+        << "a location was reserved twice";
+
+    KeyDatabaseApplyResult result;
+    const auto candidate = PrepareKeyDatabaseRuntime(
+        {RpgpDatabase("id-gate-held", "gate-held", path)}, 0, RpgpOnlyOptions(),
+        result);
+    EXPECT_FALSE(candidate.ok);
+    EXPECT_EQ(result.unavailable, QStringList{"gate-held"});
+    EXPECT_TRUE(QDir(path).isEmpty()) << "the refused open wrote into it";
+    RetireRuntimeGeneration(candidate.generation);
+  }
+
+  // Open: a reservation is refused until the database is closed again.
+  KeyDatabaseApplyResult result;
+  const auto candidate = PrepareKeyDatabaseRuntime(
+      {RpgpDatabase("id-gate-open", "gate-open", path)}, 0, RpgpOnlyOptions(),
+      result);
+  ASSERT_TRUE(candidate.ok) << result.errors.join("; ").toStdString();
+  EXPECT_EQ(ReserveKeyDatabaseLocationForDeletion(path), nullptr);
+  EXPECT_FALSE(DeleteRecycledKeyDatabase(root.path(), path).deleted);
+
+  std::atomic<int> released{-1};
+  const auto connection =
+      QObject::connect(CoreSignalStation::GetInstance(),
+                       &CoreSignalStation::SignalKeyDatabaseChannelReleased,
+                       [&released](int handle) { released = handle; });
+
+  RetireRuntimeGeneration(candidate.generation);
+  EXPECT_TRUE(WaitFor([&] { return !IsKeyDatabaseLocationInUse(path); }));
+  // Told once it is free, which can be well after the apply has finished.
+  EXPECT_TRUE(WaitFor([&] { return released == candidate.default_handle; }));
+  QObject::disconnect(connection);
+
+  EXPECT_EQ(NamesOf(SelectRecycledKeyDatabaseFolders(
+                ScanManagedKeyDatabaseDir(root.path()), {})),
+            QStringList{"held"});
+
+  const auto deleted = DeleteRecycledKeyDatabase(root.path(), path);
+  EXPECT_TRUE(deleted.deleted) << deleted.error.toStdString();
+  EXPECT_FALSE(QFileInfo::exists(path));
+}
+
+TEST(KeyDatabaseGateTest, OpeningAndDeletingNeverOverlap) {
+  if (!GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    GTEST_SKIP() << "this build has no rPGP engine";
+  }
+
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("dbs/raced"));
+  const auto path = root.path() + "/dbs/raced";
+
+  // Each side marks the time it holds the folder, inside the window it holds
+  // it; the two windows must never meet.
+  std::atomic<bool> reserved{false};
+  std::atomic<bool> opened{false};
+  std::atomic<bool> overlap{false};
+  std::atomic<bool> stop{false};
+  std::atomic<int> reservations{0};
+  std::atomic<int> opens{0};
+
+  std::thread deleter([&] {
+    while (!stop) {
+      const auto reservation = ReserveKeyDatabaseLocationForDeletion(path);
+      if (reservation == nullptr) {
+        std::this_thread::yield();
+        continue;
+      }
+      reserved = true;
+      ++reservations;
+      if (opened) overlap = true;
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      if (opened) overlap = true;
+      reserved = false;
+    }
+  });
+
+  QElapsedTimer timer;
+  timer.start();
+  while (timer.elapsed() < 3000 || opens == 0 || reservations == 0) {
+    if (timer.elapsed() > 20000) break;
+    KeyDatabaseApplyResult result;
+    const auto candidate = PrepareKeyDatabaseRuntime(
+        {RpgpDatabase("id-gate-race", "gate-race", path)}, 0, RpgpOnlyOptions(),
+        result);
+    if (candidate.ok) {
+      opened = true;
+      ++opens;
+      if (reserved) overlap = true;
+      opened = false;
+    }
+    RetireRuntimeGeneration(candidate.generation);
+    WaitFor([&] { return !IsKeyDatabaseLocationInUse(path); });
+  }
+  stop = true;
+  deleter.join();
+
+  EXPECT_FALSE(overlap) << "a folder was opened while held for deletion";
+  EXPECT_GT(opens.load(), 0);
+  EXPECT_GT(reservations.load(), 0);
+}
+
+#ifdef Q_OS_WIN
+TEST(RecycledKeyDatabaseTest, AJunctionInDbsIsNeitherListedNorDeleted) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("dbs"));
+  ASSERT_TRUE(QDir(root.path()).mkpath("outside"));
+  ASSERT_TRUE(MakeSentinel(root.path() + "/outside", "not ours"));
+
+  QProcess mklink;
+  mklink.start("cmd.exe",
+               {"/c", "mklink", "/J",
+                QDir::toNativeSeparators(root.path() + "/dbs/junction"),
+                QDir::toNativeSeparators(root.path() + "/outside")});
+  ASSERT_TRUE(mklink.waitForFinished(10000) && mklink.exitCode() == 0);
+  ASSERT_TRUE(QFileInfo(root.path() + "/dbs/junction").isJunction());
+
+  EXPECT_TRUE(ScanManagedKeyDatabaseDir(root.path()).isEmpty());
+  EXPECT_FALSE(
+      DeleteRecycledKeyDatabase(root.path(), root.path() + "/dbs/junction")
+          .deleted);
+  EXPECT_EQ(ReadSentinel(root.path() + "/outside"), "not ours");
+}
+#endif
 
 }  // namespace GpgFrontend::Test

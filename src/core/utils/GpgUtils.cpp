@@ -461,36 +461,6 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
   return key_db;
 }
 
-// Scan the fixed sandbox directory (<app-data>/dbs) for user key databases,
-// returning a name/path entry per subdirectory found.
-auto ScanSandboxKeyDatabaseDir() -> QList<KeyDatabaseItemSO> {
-  QList<KeyDatabaseItemSO> discovered;
-
-  const auto dbs_root =
-      GlobalSettingStation::GetInstance().GetAppDataPath() + "/dbs";
-  QDir dbs_dir(dbs_root);
-  if (!dbs_dir.exists()) {
-    LOG_D() << "sandbox key database dir does not exist, skip scan:"
-            << dbs_root;
-    return discovered;
-  }
-
-  const auto entries =
-      dbs_dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-  for (const auto& entry : entries) {
-    KeyDatabaseItemSO key_db;
-    key_db.name = entry.fileName();
-    key_db.path = entry.absoluteFilePath();
-    // Scanned out of the profile's own dbs/ directory, so managed by
-    // construction -- there is nowhere else a sandbox database can be.
-    key_db.kind = KeyDatabaseKind::kMANAGED;
-    LOG_I() << "discovered sandbox key database:" << key_db.name
-            << "path:" << key_db.path;
-    discovered.append(key_db);
-  }
-  return discovered;
-}
-
 }  // namespace
 
 auto BuiltInKeyDatabaseStoredPath() -> QString {
@@ -499,14 +469,15 @@ auto BuiltInKeyDatabaseStoredPath() -> QString {
                                   : candidate.path;
 }
 
-// Reconcile the sandbox key database list from the filesystem scan. The
-// filesystem (`discovered`) is authoritative for which user databases exist and
-// their paths; `stored` only supplies recoverable metadata (backend type,
-// channel/order) matched by name. The channel-0 `default_db` is always kept and
-// never sourced from the scan. Any backend type not present in
-// `supported_backends` is dropped in favour of a supported default (gnupg when
-// available, else rpgp) - this is what keeps the rpgp-only macOS lite build
-// from honouring a stale "gnupg" type carried over in settings.
+// Reconcile the sandbox key database list against the filesystem scan. The
+// stored list says which user databases exist; the scan (`discovered`) says
+// where their folders are now, matched by name, and drops an entry whose
+// folder is gone. A scanned folder no stored entry names is left unregistered:
+// it is in the Recycle Bin. The channel-0 `default_db` is always kept and never
+// sourced from the scan. Any backend type not present in `supported_backends`
+// is dropped in favour of a supported default (gnupg when available, else
+// rpgp) - this is what keeps the rpgp-only macOS lite build from honouring a
+// stale "gnupg" type carried over in settings.
 auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
     KeyDatabaseItemSO default_db, QList<KeyDatabaseItemSO> discovered,
     const QList<KeyDatabaseItemSO>& stored,
@@ -547,19 +518,25 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
     // are the same folder.
     if (IsReservedKeyDatabaseName(key_db.name)) continue;
 
-    if (const auto it = stored_by_name.constFind(key_db.name);
-        it != stored_by_name.constEnd()) {
-      key_db.backend_type = is_supported(it->backend_type)
-                                ? it->backend_type
-                                : pick_default_backend();
-      key_db.channel = it->channel;
-      // Recovered by name like the rest. The settings dialog writes a renamed
-      // database's new name together with its id, so a rename keeps it.
-      key_db.id = it->id;
-    } else {
-      key_db.backend_type = pick_default_backend();
-      key_db.channel = next_channel;
+    // A folder no stored entry names is not a database of this profile: it
+    // is one the user removed, or one left over from before, and it waits in
+    // the Recycle Bin. Registering it here is what used to bring a removed
+    // database back at every start.
+    const auto it = stored_by_name.constFind(key_db.name);
+    if (it == stored_by_name.constEnd()) {
+      LOG_I() << "managed key database folder is not in the stored list, "
+                 "leaving it unregistered:"
+              << key_db.path;
+      continue;
     }
+
+    key_db.backend_type = is_supported(it->backend_type)
+                              ? it->backend_type
+                              : pick_default_backend();
+    key_db.channel = it->channel;
+    // Recovered by name like the rest. The settings dialog writes a renamed
+    // database's new name together with its id, so a rename keeps it.
+    key_db.id = it->id;
     next_channel = std::max(next_channel, key_db.channel) + 1;
     key_dbs.append(key_db);
   }
@@ -703,8 +680,9 @@ auto GetKeyDatabasesBySettings() -> QList<KeyDatabaseItemSO> {
           // its old one would drop that entry and give the folder a new id.
           ? ReconcileSandboxKeyDatabaseList(
                 MakeDefaultKeyDatabaseItem(),
-                ApplyPendingMovesToScan(ScanSandboxKeyDatabaseDir(),
-                                        PendingKeyDatabaseMoves()),
+                ApplyPendingMovesToScan(
+                    ScanManagedKeyDatabaseDir(GetGSS().GetAppDataPath()),
+                    PendingKeyDatabaseMoves()),
                 stored, SupportedKeyDatabaseBackends())
           : ReconcileKeyDatabaseList(stored, DefaultKeyDatabaseCandidate(),
                                      MakeDefaultKeyDatabaseItem(),
@@ -1412,6 +1390,97 @@ auto ManagedKeyDatabasePath(const QString& app_data_path, const QString& name)
   if (app_data_path.isEmpty() || trimmed.isEmpty()) return {};
 
   return QDir::cleanPath(app_data_path + "/dbs/" + trimmed);
+}
+
+auto ScanManagedKeyDatabaseDir(const QString& app_data_path)
+    -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> discovered;
+  if (app_data_path.isEmpty()) return discovered;
+
+  const auto dbs_root = QDir::cleanPath(app_data_path + "/dbs");
+  QDir dbs_dir(dbs_root);
+  if (!dbs_dir.exists()) {
+    LOG_D() << "managed key database dir does not exist, skip scan:"
+            << dbs_root;
+    return discovered;
+  }
+
+  const auto entries = dbs_dir.entryInfoList(
+      QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot, QDir::Name);
+  for (const auto& entry : entries) {
+    // A link here points somewhere else, and that somewhere is not ours to
+    // list, open or delete.
+    if (entry.isSymLink() || entry.isJunction()) {
+      LOG_W() << "skipping a link in the managed key database dir:"
+              << entry.absoluteFilePath();
+      continue;
+    }
+
+    KeyDatabaseItemSO key_db;
+    key_db.name = entry.fileName();
+    key_db.path = entry.absoluteFilePath();
+    // Out of the profile's own dbs/ directory, so managed by construction.
+    key_db.kind = KeyDatabaseKind::kMANAGED;
+    discovered.append(key_db);
+  }
+  return discovered;
+}
+
+auto SelectRecycledKeyDatabaseFolders(
+    const QList<KeyDatabaseItemSO>& discovered,
+    const QStringList& referenced_paths) -> QList<KeyDatabaseItemSO> {
+  QList<KeyDatabaseItemSO> recycled;
+  for (const auto& folder : discovered) {
+    if (folder.name.isEmpty() || IsReservedKeyDatabaseName(folder.name)) {
+      continue;
+    }
+    const auto referenced =
+        std::any_of(referenced_paths.begin(), referenced_paths.end(),
+                    [&](const QString& path) -> bool {
+                      return !path.isEmpty() &&
+                             IsSameKeyDatabaseLocation(path, folder.path);
+                    });
+    if (!referenced) recycled.append(folder);
+  }
+  return recycled;
+}
+
+auto GuessKeyDatabaseBackend(const QString& path) -> QString {
+  const QDir dir(path);
+  // GnuPG's own files first: every context opens the shared database file,
+  // whichever engine it runs, so a GnuPG folder has one too.
+  for (const auto* marker :
+       {"pubring.kbx", "pubring.gpg", "private-keys-v1.d", "trustdb.gpg"}) {
+    if (QFileInfo::exists(dir.filePath(QLatin1StringView(marker)))) {
+      return "gnupg";
+    }
+  }
+  if (QFileInfo::exists(dir.filePath("gf_keydb.sqlite"))) return "rpgp";
+  return {};
+}
+
+auto CreateManagedKeyDatabaseFolderExclusively(const QString& app_data_path,
+                                               const QString& name)
+    -> ManagedFolderCreation {
+  const auto path = ManagedKeyDatabasePath(app_data_path, name);
+  if (path.isEmpty()) return ManagedFolderCreation::kFAILED;
+
+  // Anything there at all, a dangling link included, is somebody's folder.
+  const QFileInfo info(path);
+  if (info.exists() || info.isSymLink() || info.isJunction()) {
+    return ManagedFolderCreation::kEXISTED;
+  }
+
+  const auto parent = QFileInfo(path).absolutePath();
+  if (!QDir().mkpath(parent)) return ManagedFolderCreation::kFAILED;
+
+  // mkdir() and not mkpath(): it fails when the leaf is already there, so
+  // a folder that appeared since the check above is still never adopted.
+  if (QDir().mkdir(path)) return ManagedFolderCreation::kCREATED;
+
+  const QFileInfo after(path);
+  return after.exists() || after.isSymLink() ? ManagedFolderCreation::kEXISTED
+                                             : ManagedFolderCreation::kFAILED;
 }
 
 auto ComposeKeyDatabaseList(const std::optional<KeyDatabaseItemSO>& default_db,

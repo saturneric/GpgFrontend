@@ -170,6 +170,38 @@ auto GF_CORE_EXPORT ApplyKeyDatabaseRuntime(
     const QList<KeyDatabaseMove>& moves = {}) -> KeyDatabaseApplyResult;
 
 /**
+ * @brief What DeleteRecycledKeyDatabase() did.
+ */
+struct KeyDatabaseDeleteResult {
+  bool deleted{false};  ///< the folder is gone
+  bool partial{false};  ///< removal began, and some of it could not be done
+  QString error;        ///< why not, for the user; empty when deleted
+};
+
+/**
+ * @brief Delete a Recycle Bin folder, and everything in it, for good.
+ *
+ * The only place a key database folder is ever deleted. Nothing the caller
+ * checked is trusted: under the apply lock, so no Runtime is built meanwhile,
+ * the folder must be a real directory directly inside `<app-data>/dbs` -- not
+ * the directory itself, not a link or junction, not a reserved name -- and
+ * named by neither the stored list, a pending move, nor @p extra_referenced.
+ * It is then held for deletion, which fails while anything has it open and
+ * keeps everything from opening it until the deletion is over.
+ *
+ * Links inside it are removed themselves, never followed. Blocks while the
+ * tree is removed, so it is run off the GUI thread.
+ *
+ * @param app_data_path the profile's data directory
+ * @param path the folder
+ * @param extra_referenced folders the caller still refers to without having
+ * stored them yet (an unsaved settings page)
+ */
+auto GF_CORE_EXPORT DeleteRecycledKeyDatabase(
+    const QString& app_data_path, const QString& path,
+    const QStringList& extra_referenced = {}) -> KeyDatabaseDeleteResult;
+
+/**
  * @brief Install what reclaims a retired channel once nothing holds it.
  *
  * Reclamation takes the channel's engine objects out of reach on the GUI
