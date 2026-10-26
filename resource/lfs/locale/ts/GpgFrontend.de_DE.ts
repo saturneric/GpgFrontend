@@ -4,27 +4,27 @@
 <context>
     <name>GpgFrontend</name>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1510"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1579"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1512"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1581"/>
         <source>Expiring Soon</source>
         <translation>Läuft bald ab</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1514"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1583"/>
         <source>Expired</source>
         <translation>Abgelaufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1516"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1585"/>
         <source>Revoked</source>
         <translation>Widerrufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1518"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1587"/>
         <source>Disabled</source>
         <translation>Deaktiviert</translation>
     </message>
@@ -5973,17 +5973,17 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         <translation type="vanished">Neue Schlüsseldatenbank hinzufügen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="432"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="510"/>
         <source>Unreadable Key Database Settings</source>
         <translation>Nicht lesbare Schlüsseldatenbank-Einstellungen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="433"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="511"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>Ihre gespeicherte Schlüsseldatenbank-Liste ist vorhanden, konnte aber nicht gelesen werden. Dies bedeutet in der Regel, dass sie von einer anderen Installation oder mit einem anderen Anwendungsschlüssel geschrieben wurde.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="437"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="515"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>Das Speichern ersetzt sie nun durch die hier angezeigte Liste. Die vorherige Liste kann danach nicht wiederhergestellt werden.</translation>
     </message>
@@ -5992,32 +5992,56 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         <translation type="vanished">N/V</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="968"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1075"/>
         <source>No Key Database Selected</source>
         <translation>Keine Schlüsseldatenbank ausgewählt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="969"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1076"/>
         <source>Please select a key database to edit.</source>
         <translation>Bitte wählen Sie eine Schlüsseldatenbank zum Bearbeiten aus.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="922"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1043"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1132"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1196"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1029"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1160"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1258"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1324"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1654"/>
         <source>Duplicate Key Database Paths</source>
         <translation>Doppelter Schlüsseldatenbankpfad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1044"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="831"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1385"/>
+        <source>Remove Reference</source>
+        <translation>Referenz entfernen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="833"/>
+        <source>Forget this key database. Its folder is left as it is.</source>
+        <translation>Diese Schlüsseldatenbank vergessen. Ihr Ordner bleibt unverändert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="835"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1378"/>
+        <source>Move to Recycle Bin</source>
+        <translation>In den Papierkorb verschieben</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="837"/>
+        <source>Remove this key database from the list. Its folder and keys stay in the Recycle Bin.</source>
+        <translation>Diese Schlüsseldatenbank aus der Liste entfernen. Ihr Ordner und ihre Schlüssel bleiben im Papierkorb.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1161"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>Der bearbeitete Schlüsseldatenbankpfad ist bereits vorhanden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1035"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1121"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1188"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1152"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1247"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1316"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1647"/>
         <source>Invalid Key Database Paths</source>
         <translation>Ungültiger Schlüsseldatenbankpfad</translation>
     </message>
@@ -6026,12 +6050,12 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         <translation type="vanished">Standard-Schlüsseldatenbank dieses Computers verwenden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="345"/>
         <source>Add Key Database</source>
         <translation>Schlüsseldatenbank hinzufügen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="281"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="347"/>
         <source>Add Key Database On This Computer</source>
         <translation>Schlüsseldatenbank auf diesem Computer hinzufügen</translation>
     </message>
@@ -6048,60 +6072,68 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         <translation type="vanished">Immer Kanal 0. Nie in einem Profilpaket enthalten: Wer Ihr Profil anderswo öffnet, erhält sein eigenes.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="798"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="937"/>
         <source>This folder could not be resolved on this computer.</source>
         <translation>Dieser Ordner konnte auf diesem Computer nicht aufgelöst werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="827"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="966"/>
         <source>No key databases of your own yet. One you add here is kept inside your profile and travels with it.</source>
         <translation>Noch keine eigenen Schlüsseldatenbanken. Eine hier hinzugefügte wird in Ihrem Profil aufbewahrt und mitgeführt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="829"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="968"/>
         <source>Kept inside your profile, and carried by a profile package.</source>
         <translation>In Ihrem Profil aufbewahrt und von einem Profilpaket mitgeführt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="833"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="976"/>
         <source>Nothing here yet. A key database you add on this tab stays on this computer: a profile package never carries it, and it is always opened after the ones inside your profile.</source>
         <translation>Noch nichts hier. Eine Schlüsseldatenbank, die Sie auf dieser Registerkarte hinzufügen, bleibt auf diesem Computer: Ein Profilpaket führt sie nie mit, und sie wird immer nach denen in Ihrem Profil geöffnet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="836"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="979"/>
         <source>Key databases outside your profile. They belong to this computer alone: a profile package never carries them, and they are always opened after the ones inside your profile.</source>
         <translation>Schlüsseldatenbanken außerhalb Ihres Profils. Sie gehören nur zu diesem Computer: Ein Profilpaket führt sie nie mit, und sie werden immer nach denen in Ihrem Profil geöffnet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="900"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1086"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1168"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1007"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1203"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1296"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1610"/>
         <source>Currently, GpgFrontend supports a maximum of %1 key databases. Please remove an existing database to add a new one.</source>
         <translation>Derzeit unterstützt GpgFrontend maximal %1 Schlüsseldatenbanken. Bitte entfernen Sie eine vorhandene Datenbank, um eine neue hinzuzufügen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1030"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
         <translation>Eine Schlüsseldatenbank auf dieser Seite verwendet bereits den Standardordner für Schlüsseldatenbanken dieses Computers. Entfernen Sie sie zuerst und aktivieren Sie diese dann.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="946"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1237"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1053"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1365"/>
         <source>Key Database Required</source>
         <translation>Schlüsseldatenbank erforderlich</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="947"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1054"/>
         <source>GpgFrontend needs at least one key database. Add another one first, then turn this off.</source>
         <translation>GpgFrontend benötigt mindestens eine Schlüsseldatenbank. Fügen Sie zuerst eine weitere hinzu, dann deaktivieren Sie diese.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1013"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1121"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1130"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1224"/>
         <source>Key Database Folder Already Exists</source>
         <translation>Schlüsseldatenbank-Ordner existiert bereits</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1014"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1122"/>
+        <source>A folder named &quot;%1&quot; is in the Recycle Bin. Restore it or delete it permanently, or choose another name.</source>
+        <translation>Ein Ordner namens &quot;%1&quot; befindet sich im Papierkorb. Stellen Sie ihn wieder her, löschen Sie ihn endgültig oder wählen Sie einen anderen Namen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1131"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
         <translation>Ein Ordner mit dem Namen &apos;%1&apos; ist bereits vorhanden. Dessen Inhalt können wir nicht ersetzen, wählen Sie bitte einen anderen Namen.</translation>
     </message>
@@ -6114,16 +6146,18 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         <translation type="vanished">GpgFrontend konnte den Ordner, in dem diese Schlüsseldatenbank gespeichert ist, nicht umbenennen. Er wird möglicherweise noch verwendet; versuchen Sie es nach einem Neustart von GpgFrontend erneut.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1036"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1122"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1153"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1248"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1317"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1648"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>Der bearbeitete Schlüsseldatenbankpfad ist kein gültiger Pfad, den GpgFrontend verwenden kann.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1085"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1167"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1006"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1202"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1295"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1609"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>Maximale Anzahl an Schlüsseldatenbanken erreicht</translation>
     </message>
@@ -6132,172 +6166,214 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         <translation type="vanished">GpgFrontend unterstützt derzeit maximal 8 Schlüsseldatenbanken. Bitte entfernen Sie eine bestehende Datenbank, um eine neue hinzuzufügen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1133"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1197"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1259"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1325"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1655"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>Der neu hinzugefügte Schlüsseldatenbankpfad ist bereits vorhanden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1101"/>
         <source>Invalid Key Database Path</source>
-        <translation>Ungültiger Schlüsseldatenbankpfad</translation>
+        <translation type="vanished">Ungültiger Schlüsseldatenbankpfad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="191"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="660"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="224"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="780"/>
         <source>Used when an operation does not explicitly select a key database.</source>
         <translation>Wird verwendet, wenn ein Vorgang keine Schlüsseldatenbank explizit auswählt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="268"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="226"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="308"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="350"/>
         <source>Use as Default</source>
         <translation>Als Standard verwenden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="195"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="256"/>
         <source>Copy Folder Path</source>
         <translation>Ordnerpfad kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="197"/>
         <source>Move Up</source>
-        <translation>Nach oben</translation>
+        <translation type="vanished">Nach oben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="199"/>
         <source>Move this key database up in the list</source>
-        <translation>Diese Schlüsseldatenbank in der Liste nach oben verschieben</translation>
+        <translation type="vanished">Diese Schlüsseldatenbank in der Liste nach oben verschieben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
         <source>Move Down</source>
-        <translation>Nach unten</translation>
+        <translation type="vanished">Nach unten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="202"/>
         <source>Move this key database down in the list</source>
-        <translation>Diese Schlüsseldatenbank in der Liste nach unten verschieben</translation>
+        <translation type="vanished">Diese Schlüsseldatenbank in der Liste nach unten verschieben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="203"/>
         <source>Move to Top</source>
-        <translation>Ganz nach oben</translation>
+        <translation type="vanished">Ganz nach oben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="205"/>
         <source>Move this key database to the top of the list</source>
-        <translation>Diese Schlüsseldatenbank an den Anfang der Liste verschieben</translation>
+        <translation type="vanished">Diese Schlüsseldatenbank an den Anfang der Liste verschieben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="206"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="253"/>
         <source>Open</source>
         <translation>Öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="208"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="255"/>
         <source>Open this key database&apos;s folder in the file manager</source>
         <translation>Den Ordner dieser Schlüsseldatenbank im Dateimanager öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="209"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="233"/>
         <source>Edit</source>
         <translation>Bearbeiten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="234"/>
         <source>Edit this key database</source>
         <translation>Diese Schlüsseldatenbank bearbeiten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="211"/>
         <source>Remove</source>
-        <translation>Entfernen</translation>
+        <translation type="vanished">Entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="213"/>
         <source>Remove this key database from the list</source>
-        <translation>Diese Schlüsseldatenbank aus der Liste entfernen</translation>
+        <translation type="vanished">Diese Schlüsseldatenbank aus der Liste entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="273"/>
         <source>Built-in Key Database</source>
         <translation>Integrierte Schlüsseldatenbank</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="235"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="275"/>
         <source>Key engine:</source>
         <translation>Schlüssel-Engine:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="281"/>
         <source>Key engine for the built-in database</source>
         <translation>Schlüssel-Engine für die integrierte Datenbank</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="245"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="285"/>
         <source>Applies only to the built-in database. Other databases always open with their own engine.</source>
         <translation>Gilt nur für die integrierte Datenbank. Andere Datenbanken werden immer mit ihrer eigenen Engine geöffnet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="249"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="289"/>
         <source>Location:</source>
         <translation>Speicherort:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="254"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="294"/>
         <source>Built-in key database location</source>
         <translation>Speicherort der integrierten Schlüsseldatenbank</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="256"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="296"/>
         <source>Copy</source>
         <translation>Kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="297"/>
         <source>Copy the full path</source>
         <translation>Vollständigen Pfad kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="299"/>
         <source>Copy the built-in key database location</source>
         <translation>Speicherort der integrierten Schlüsseldatenbank kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="265"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="679"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="799"/>
         <source>Default</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="271"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="311"/>
         <source>Use the built-in key database as default</source>
         <translation>Die integrierte Schlüsseldatenbank als Standard verwenden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="275"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="315"/>
         <source>In Profile</source>
         <translation>Im Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="277"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="317"/>
         <source>Local Only</source>
         <translation>Nur lokal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
+        <source>Recycle Bin</source>
+        <translation>Papierkorb</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="325"/>
+        <source>Key databases kept inside your profile</source>
+        <translation>Im Profil gespeicherte Schlüsseldatenbanken</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="328"/>
+        <source>Key databases removed from In Profile, with their keys still on this computer</source>
+        <translation>Aus „Im Profil“ entfernte Schlüsseldatenbanken, deren Schlüssel weiterhin auf diesem Computer liegen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="332"/>
+        <source>Key databases outside your profile. They never go to the Recycle Bin.</source>
+        <translation>Schlüsseldatenbanken außerhalb Ihres Profils. Sie landen nie im Papierkorb.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="336"/>
+        <source>These folders are no longer referenced by the current configuration. Their keys are still stored on this computer.</source>
+        <translation>Diese Ordner werden von der aktuellen Konfiguration nicht mehr referenziert. Ihre Schlüssel sind weiterhin auf diesem Computer gespeichert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="338"/>
+        <source>Restore</source>
+        <translation>Wiederherstellen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
+        <source>Add this key database back to In Profile</source>
+        <translation>Diese Schlüsseldatenbank wieder zu „Im Profil“ hinzufügen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1689"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1698"/>
+        <source>Delete Permanently</source>
+        <translation>Endgültig löschen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="343"/>
+        <source>Delete this folder and every key in it, now</source>
+        <translation>Diesen Ordner und alle darin enthaltenen Schlüssel jetzt löschen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="352"/>
         <source>Use the selected key database as default</source>
         <translation>Die ausgewählte Schlüsseldatenbank als Standard verwenden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="290"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="356"/>
         <source>Smart cards stay with the previous default database until GpgFrontend restarts. To move them sooner, apply this change, then use &quot;Restart All Gpg-Agents&quot; in the Smart Card Controller.</source>
         <translation>Smartcards bleiben bis zum Neustart von GpgFrontend bei der bisherigen Standardschlüsseldatenbank. Um sie früher zu verschieben, übernehmen Sie diese Änderung und verwenden Sie dann „Restart All Gpg-Agents“ im Smartcard-Controller.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="554"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="674"/>
         <source>%1: %n operation(s)</source>
         <translation>
             <numerusform>%1: %n Vorgang
@@ -6306,54 +6382,141 @@ Ergebnisse werden hier als Zusammenfassungsbericht angezeigt.</translation>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="596"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="716"/>
         <source>The OpenPGP engine on this computer does not report a key database, so there is no built-in one to use.</source>
         <translation>Die OpenPGP-Engine auf diesem Computer meldet keine Schlüsseldatenbank, daher gibt es keine integrierte, die verwendet werden kann.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="608"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="728"/>
         <source>Always available on this computer, and always listed first.</source>
         <translation>Immer auf diesem Computer verfügbar und wird immer zuerst aufgeführt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="609"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="729"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
         <translation>Wird immer zuerst aufgeführt. Nie in einem Profilpaket enthalten: Wer Ihr Profil anderswo öffnet, erhält sein eigenes.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="623"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="743"/>
         <source>No engine in this build can open it.</source>
         <translation>Keine Engine in dieser Build-Version kann sie öffnen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1102"/>
-        <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
-        <translation>Der angegebene Schlüsseldatenbankpfad verweist auf eine existierende Datei. Bitte geben Sie einen Pfad an, der nicht existiert oder auf ein Verzeichnis verweist.</translation>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1225"/>
+        <source>A folder named &quot;%1&quot; already exists. It is in the Recycle Bin: restore it, or delete it permanently before adding a new one.</source>
+        <translation>Ein Ordner namens „%1“ existiert bereits. Er befindet sich im Papierkorb: Stellen Sie ihn wieder her oder löschen Sie ihn endgültig, bevor Sie einen neuen hinzufügen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1111"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1379"/>
+        <source>Remove &quot;%1&quot; from your key databases when you apply? Its folder and keys stay on this computer, in the Recycle Bin, where you can restore it.</source>
+        <translation>„%1“ beim Übernehmen aus Ihren Schlüsseldatenbanken entfernen? Der Ordner und die Schlüssel bleiben auf diesem Computer im Papierkorb, wo Sie ihn wiederherstellen können.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1386"/>
+        <source>Remove the reference to &quot;%1&quot; when you apply? Only the reference goes: its folder is not deleted, and does not go to the Recycle Bin.</source>
+        <translation>Beim Übernehmen die Referenz auf „%1“ entfernen? Nur die Referenz wird entfernt: Ihr Ordner wird nicht gelöscht und gelangt nicht in den Papierkorb.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1556"/>
+        <source>Unknown</source>
+        <translation>Unbekannt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1561"/>
+        <source>Neither engine&apos;s files are in this folder. You are asked which engine to open it with when you restore it.</source>
+        <translation>Die Dateien keiner der beiden Engines befinden sich in diesem Ordner. Beim Wiederherstellen werden Sie gefragt, mit welcher Engine er geöffnet werden soll.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1599"/>
+        <source>Key Database Name Taken</source>
+        <translation>Name der Schlüsseldatenbank bereits vergeben</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1600"/>
+        <source>A key database named &quot;%1&quot; is already in the list. Rename or remove that one first, then restore this folder.</source>
+        <translation>Eine Schlüsseldatenbank namens „%1“ ist bereits in der Liste. Benennen Sie diese zuerst um oder entfernen Sie sie, und stellen Sie dann diesen Ordner wieder her.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1624"/>
+        <source>Choose an Engine</source>
+        <translation>Engine auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1625"/>
+        <source>GpgFrontend cannot tell which engine wrote &quot;%1&quot;. Open it with:</source>
+        <translation>GpgFrontend kann nicht feststellen, welche Engine „%1“ geschrieben hat. Öffnen mit:</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1637"/>
+        <source>Engine Not Available</source>
+        <translation>Engine nicht verfügbar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1638"/>
+        <source>&quot;%1&quot; was written by %2, which this build of GpgFrontend cannot open.</source>
+        <translation>&quot;%1&quot; wurde von %2 geschrieben; diese Build-Version von GpgFrontend kann sie nicht öffnen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1690"/>
+        <source>Delete &quot;%1&quot; and everything in it?</source>
+        <translation>&quot;%1&quot; und alles darin löschen?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1693"/>
+        <source>All keys in this folder, including secret keys, are deleted immediately. This cannot be undone, and Cancel in Settings does not bring them back.</source>
+        <translation>Alle Schlüssel in diesem Ordner, einschließlich geheimer Schlüssel, werden sofort gelöscht. Dies kann nicht rückgängig gemacht werden, und Abbrechen in den Einstellungen holt sie nicht zurück.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1711"/>
+        <source>Deleting Key Database Folder</source>
+        <translation>Schlüsseldatenbankordner wird gelöscht</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1738"/>
+        <source>Key database folder deleted.</source>
+        <translation>Schlüsseldatenbankordner gelöscht.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1742"/>
+        <source>Folder Not Deleted</source>
+        <translation>Ordner nicht gelöscht</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1743"/>
+        <source>&quot;%1&quot; was only partly deleted.</source>
+        <translation>&quot;%1&quot; wurde nur teilweise gelöscht.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1744"/>
+        <source>&quot;%1&quot; was not deleted.</source>
+        <translation>&quot;%1&quot; wurde nicht gelöscht.</translation>
+    </message>
+    <message>
+        <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
+        <translation type="vanished">Der angegebene Schlüsseldatenbankpfad verweist auf eine existierende Datei. Bitte geben Sie einen Pfad an, der nicht existiert oder auf ein Verzeichnis verweist.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1233"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>Fehler beim Erstellen des Schlüsseldatenbankverzeichnisses</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1112"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1234"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend konnte am angegebenen Schlüsseldatenbankpfad kein Verzeichnis erstellen. Bitte überprüfen Sie den Pfad und Ihre Berechtigungen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1238"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1366"/>
         <source>GpgFrontend needs at least one key database, so the last one cannot be removed.</source>
         <translation>GpgFrontend benötigt mindestens eine Schlüsseldatenbank, daher kann die letzte Schlüsseldatenbank nicht entfernt werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1244"/>
         <source>Confirm Deletion</source>
-        <translation>Löschen bestätigen</translation>
+        <translation type="vanished">Löschen bestätigen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1245"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
-        <translation>Sind Sie sicher, dass Sie die ausgewählte Schlüsseldatenbank aus der Liste entfernen möchten?</translation>
+        <translation type="vanished">Sind Sie sicher, dass Sie die ausgewählte Schlüsseldatenbank aus der Liste entfernen möchten?</translation>
     </message>
 </context>
 <context>
@@ -11079,33 +11242,33 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation>%1  (in einem anderen Fenster öffnen)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="321"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="340"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="325"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="344"/>
         <source>Cannot Export Profile</source>
         <translation>Profil kann nicht exportiert werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="322"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="326"/>
         <source>The application key is not available, so the profile could not be packed.</source>
         <translation>Der Anwendungsschlüssel ist nicht verfügbar, daher konnte das Profil nicht gepackt werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="330"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="334"/>
         <source>Exporting Profile</source>
         <translation>Profil wird exportiert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="349"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="353"/>
         <source>&quot;%1&quot; was saved as an encrypted backup.</source>
         <translation>&quot;%1&quot; wurde als verschlüsselte Sicherung gespeichert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="364"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="368"/>
         <source>Keep your passphrase safe. Without it, this file cannot be opened, and it cannot be recovered.</source>
         <translation>Bewahren Sie Ihre Passphrase sicher auf. Ohne sie kann diese Datei weder geöffnet noch wiederhergestellt werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="368"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="372"/>
         <source>Show in Folder</source>
         <translation>Im Ordner anzeigen</translation>
     </message>
@@ -11122,7 +11285,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation type="vanished">Eine Profildatei enthält nur das Profil selbst.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="366"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="370"/>
         <source>Done</source>
         <translation>Fertig</translation>
     </message>
@@ -11131,7 +11294,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation type="vanished">Diese wurden nicht übernommen, da eine Profildatei nur das Profil selbst enthält: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="348"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="352"/>
         <source>Profile Exported</source>
         <translation>Profil exportiert</translation>
     </message>
@@ -12546,43 +12709,43 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>GpgFrontend::UI::ProfileExportDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="53"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="55"/>
         <source>Export backup</source>
         <translation>Backup exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="57"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="64"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="286"/>
         <source>Export Profile</source>
         <translation>Profil exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="95"/>
         <source>Check what the backup file will contain.</source>
         <translation>Prüfen Sie, was die Backup-Datei enthalten wird.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="132"/>
         <source>Choose a passphrase to encrypt the backup. It cannot be recovered, so keep it somewhere safe.</source>
         <translation>Wählen Sie eine Passphrase zum Verschlüsseln des Backups. Sie kann nicht wiederhergestellt werden, bewahren Sie sie daher an einem sicheren Ort auf.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="182"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="189"/>
         <source>Check the summary, then choose where to save the file.</source>
         <translation>Prüfen Sie die Zusammenfassung und wählen Sie dann, wo die Datei gespeichert werden soll.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="198"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="205"/>
         <source>No location chosen yet</source>
         <translation>Noch kein Speicherort ausgewählt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="206"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="213"/>
         <source>Choose where to save the file</source>
         <translation>Wählen Sie, wo die Datei gespeichert werden soll</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="217"/>
         <source>Browse...</source>
         <translation>Durchsuchen...</translation>
     </message>
@@ -12603,7 +12766,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation type="vanished">Auswählen...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileExportDialog.cpp" line="200"/>
         <source>Save to</source>
         <translation>Speichern unter</translation>
     </message>
@@ -14991,50 +15154,50 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
 <context>
     <name>QCoreApplication</name>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="208"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="247"/>
         <source>File Hash Information</source>
         <translation>Datei-Hash-Informationen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="182"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="225"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="221"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="264"/>
         <source>Filename</source>
         <translation>Dateiname</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="210"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="225"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="249"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="264"/>
         <source>: </source>
         <translation>: </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="183"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="185"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="222"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="224"/>
         <source>File Size</source>
         <translation>Dateigröße</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="223"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="262"/>
         <source>Error: cannot read target file</source>
         <translation>Fehler: Zieldatei kann nicht gelesen werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="257"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="296"/>
         <source>target path doesn&apos;t exists</source>
         <translation>Zielpfad existiert nicht</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="263"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="302"/>
         <source>do NOT have permission to write path</source>
         <translation>habe KEINE Schreibberechtigung für den Pfad</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="269"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="308"/>
         <source>do NOT have permission to read/write file</source>
         <translation>habe KEINE Lese-/Schreibberechtigung für die Datei</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="272"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="311"/>
         <source>Success</source>
         <translation>erfolgreich</translation>
     </message>
@@ -15059,50 +15222,80 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
         <translation type="vanished">Kann keine Infos von GpgConf erhalten</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="558"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="559"/>
         <source>Basic Path Initiation Failed</source>
         <translation>Initialisierung der Basispfade fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="590"/>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="679"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="591"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="680"/>
         <source>No Supported OpenPGP Engine Detected</source>
         <translation>Keine unterstützte OpenPGP-Engine erkannt</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="635"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="636"/>
         <source>No valid Key Database</source>
         <translation>Keine gültige Schlüsseldatenbank</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="716"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="717"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>GpgME-Standardkontext-Initiation fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="738"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="739"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Gpg-Standard-Schlüsseldatenbank-Initiation fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="1060"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1061"/>
         <source>The key database &quot;%1&quot; was still in use, so its folder was not renamed. It keeps its previous name.</source>
         <translation>Die Schlüsseldatenbank &quot;%1&quot; war noch in Verwendung, daher wurde ihr Ordner nicht umbenannt. Sie behält ihren bisherigen Namen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="1078"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1079"/>
         <source>The folder of the key database &quot;%1&quot; could not be renamed. It keeps its previous name.</source>
         <translation>Der Ordner der Schlüsseldatenbank &quot;%1&quot; konnte nicht umbenannt werden. Sie behält ihren bisherigen Namen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="1234"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1235"/>
         <source>The default key database &quot;%1&quot; could not be opened.</source>
         <translation>Die Standardschlüsseldatenbank &quot;%1&quot; konnte nicht geöffnet werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="1244"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1245"/>
         <source>No key database could be opened.</source>
         <translation>Es konnte keine Schlüsseldatenbank geöffnet werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1311"/>
+        <source>This is a link to a folder elsewhere, not a key database folder.</source>
+        <translation>Dies ist eine Verknüpfung zu einem Ordner an anderer Stelle, nicht zu einem Schlüsseldatenbankordner.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1315"/>
+        <source>The folder is no longer there.</source>
+        <translation>Der Ordner ist nicht mehr vorhanden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1325"/>
+        <source>Only a folder directly inside the profile&apos;s key database folder can be deleted here.</source>
+        <translation>Hier kann nur ein Ordner direkt innerhalb des Schlüsseldatenbankordners des Profils gelöscht werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1341"/>
+        <source>The current configuration still refers to this folder.</source>
+        <translation>Die aktuelle Konfiguration verweist noch auf diesen Ordner.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1348"/>
+        <source>The folder is still in use. Try again in a moment.</source>
+        <translation>Der Ordner ist noch in Verwendung. Versuchen Sie es gleich erneut.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="1364"/>
+        <source>Some files in the folder could not be deleted, so it is still there with part of its contents. What is left may no longer be usable as a key database.</source>
+        <translation>Einige Dateien im Ordner konnten nicht gelöscht werden, daher ist er mit einem Teil seines Inhalts noch vorhanden. Was übrig bleibt, ist möglicherweise nicht mehr als Schlüsseldatenbank verwendbar.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="75"/>
@@ -15201,7 +15394,7 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1300"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1278"/>
         <source>Built-in</source>
         <translation>Integriert</translation>
     </message>
@@ -15706,7 +15899,7 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
         <translation type="vanished">Der Anwendungssicherheitsschlüssel konnte nicht entschlüsselt werden. Ihre PIN ist möglicherweise falsch oder die Schlüsseldatei ist beschädigt. Bitte löschen Sie den Sicherheitsschlüssel und versuchen Sie es erneut.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="75"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="81"/>
         <source>Key Database Path Too Long</source>
         <translation>Pfad der Schlüsseldatenbank zu lang</translation>
     </message>
@@ -15715,32 +15908,32 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
         <translation type="vanished">Der Pfad dieses Ordners ist für den Agent-Socket von GnuPG zu lang, daher konnte GnuPG nicht darauf starten. Wählen Sie einen Ordner mit einem kürzeren Pfad.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="82"/>
         <source>This folder&apos;s path is too long for GnuPG&apos;s agent socket, and no short enough link to it could be made, so GnuPG could not start against it. Choose a folder with a shorter path.</source>
         <translation>Der Pfad dieses Ordners ist für den Agent-Socket von GnuPG zu lang, und es konnte keine ausreichend kurze Verknüpfung zu diesem Ordner erstellt werden, daher konnte GnuPG nicht darauf starten. Wählen Sie einen Ordner mit einem kürzeren Pfad.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="94"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="100"/>
         <source>Active</source>
         <translation>Aktiv</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="101"/>
         <source>Inactive</source>
         <translation>Inaktiv</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="113"/>
         <source>GpgFrontend could not open this key database at the last start.</source>
         <translation>GpgFrontend konnte diese Schlüsseldatenbank beim letzten Start nicht öffnen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
         <source>ID</source>
         <translation>ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="186"/>
         <source>Role</source>
         <translation>Rolle</translation>
     </message>
@@ -15848,7 +16041,8 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="167"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="192"/>
         <source>Name</source>
         <translation>Name</translation>
     </message>
@@ -15863,12 +16057,13 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
         <translation>Beschreibung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="192"/>
         <source>Engine</source>
         <translation>Engine</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="186"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
@@ -16301,7 +16496,8 @@ Der Link wurde in die Zwischenablage kopiert:
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="246"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="57"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="123"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="186"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
         <source>Folder</source>
         <translation>Ordner</translation>
     </message>
@@ -16309,6 +16505,7 @@ Der Link wurde in die Zwischenablage kopiert:
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="213"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="251"/>
         <location filename="../../../../src/ui/dialog/profile/ProfilePackageMeta.cpp" line="65"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="192"/>
         <source>Size</source>
         <translation>Größe</translation>
     </message>
