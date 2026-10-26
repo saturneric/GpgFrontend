@@ -393,4 +393,103 @@ TEST(KeyDatabaseSettingsModelTest, TheBuiltInEngineIsTheCoresDecision) {
   EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);
 }
 
+namespace {
+
+auto IdsOf(const QList<KeyDatabaseItemSO>& items) -> QStringList {
+  QStringList ids;
+  for (const auto& item : items) ids.append(item.id);
+  return ids;
+}
+
+}  // namespace
+
+// Moving a managed database to the Recycle Bin is a removal from the list, and
+// nothing else: the stored list loses it only when applied, and Cancel, which
+// reloads, brings it back.
+TEST(KeyDatabaseSettingsModelTest, MovingToTheRecycleBinCommitsOnlyOnApply) {
+  KeyDatabaseListSO stored;
+  ThreeDatabases().ApplyTo(stored);
+
+  auto model = ThreeDatabases();
+  model.RemoveAt(model.managed, 0);
+  EXPECT_FALSE(model.Contains("id-work"));
+  EXPECT_TRUE(IdsOf(stored.key_databases).contains("id-work"))
+      << "the stored list changed before applying";
+
+  // Apply.
+  KeyDatabaseListSO applied = stored;
+  model.ApplyTo(applied);
+  EXPECT_FALSE(IdsOf(applied.key_databases).contains("id-work"));
+  EXPECT_TRUE(IdsOf(applied.key_databases).contains("id-usb"));
+
+  // Cancel: the page is read again from what is stored.
+  auto reloaded = ThreeDatabases();
+  EXPECT_TRUE(reloaded.Contains("id-work"));
+}
+
+// Removing a reference to a folder on this computer drops only that entry; the
+// managed list, which the Recycle Bin is about, is untouched.
+TEST(KeyDatabaseSettingsModelTest, RemovingAReferenceLeavesManagedAlone) {
+  auto model = ThreeDatabases();
+  model.RemoveAt(model.external, 0);
+
+  KeyDatabaseListSO applied;
+  model.ApplyTo(applied);
+  EXPECT_EQ(IdsOf(applied.key_databases),
+            (QStringList{QString(kDefaultKeyDatabaseId), "id-work"}));
+}
+
+// A restored folder is a managed database again, pending until applied.
+TEST(KeyDatabaseSettingsModelTest, ARestoreCommitsOnlyOnApply) {
+  auto model = ThreeDatabases();
+  model.managed.append(Database("id-restored", "old", KeyDatabaseKind::kMANAGED,
+                                u"/profile/dbs/old"_s));
+
+  KeyDatabaseListSO applied;
+  model.ApplyTo(applied);
+  ASSERT_TRUE(IdsOf(applied.key_databases).contains("id-restored"));
+  for (const auto& item : applied.key_databases) {
+    if (item.id != "id-restored") continue;
+    EXPECT_EQ(item.kind, KeyDatabaseKind::kMANAGED);
+  }
+
+  // Cancel.
+  EXPECT_FALSE(ThreeDatabases().Contains("id-restored"));
+}
+
+// A dragged row lands in the gap it was dropped into.
+TEST(KeyDatabaseSettingsModelTest, ADraggedRowLandsInTheGapItWasDroppedInto) {
+  const auto ids = [](const QList<KeyDatabaseInfo>& list) {
+    QStringList out;
+    for (const auto& info : list) out.append(info.id);
+    return out;
+  };
+  const auto three = [] {
+    return QList<KeyDatabaseInfo>{
+        Database("a", "a", KeyDatabaseKind::kMANAGED),
+        Database("b", "b", KeyDatabaseKind::kMANAGED),
+        Database("c", "c", KeyDatabaseKind::kMANAGED)};
+  };
+
+  auto list = three();
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, 0, 3), 2);
+  EXPECT_EQ(ids(list), (QStringList{"b", "c", "a"}));
+
+  list = three();
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, 2, 0), 0);
+  EXPECT_EQ(ids(list), (QStringList{"c", "a", "b"}));
+
+  list = three();
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, 0, 2), 1);
+  EXPECT_EQ(ids(list), (QStringList{"b", "a", "c"}));
+
+  // Dropped just above or just below itself, or out of range: nothing moves.
+  list = three();
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, 1, 1), -1);
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, 1, 2), -1);
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, -1, 0), -1);
+  EXPECT_EQ(KeyDatabaseSettingsModel::MoveRow(list, 0, 4), -1);
+  EXPECT_EQ(ids(list), (QStringList{"a", "b", "c"}));
+}
+
 }  // namespace GpgFrontend::Test

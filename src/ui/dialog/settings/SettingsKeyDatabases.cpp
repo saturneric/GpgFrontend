@@ -28,17 +28,23 @@
 
 #include "SettingsKeyDatabases.h"
 
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyDatabaseEditDialog.h"
+#include "ui/dialog/WaitingDialog.h"
 #include "ui/function/KeyDatabaseDisplayNames.h"
+#include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/UIStyle.h"
 
 //
@@ -111,18 +117,12 @@ auto CreateStatusItem(bool active) -> QTableWidgetItem* {
   return item;
 }
 
-// Both tables show the same thing about a different list, so they are set up
-// the same way from one place.
-void SetUpKeyDatabaseTable(QTableWidget* table) {
+// Every table on the page looks and behaves the same; only the columns differ.
+// @p stretch is the column that takes the remaining width, and the columns in
+// @p left_aligned have their headings over their values.
+void SetUpTable(QTableWidget* table, const QStringList& column_titles,
+                int stretch, std::initializer_list<int> left_aligned) {
   table->clear();
-
-  QStringList column_titles;
-  // The role has a column of its own: which database is the default changes
-  // without the database changing, so neither its name nor its status may say
-  // it.
-  column_titles << QObject::tr("ID") << QObject::tr("Name")
-                << QObject::tr("Engine") << QObject::tr("Status")
-                << QObject::tr("Role") << QObject::tr("Folder");
   table->setColumnCount(static_cast<int>(column_titles.size()));
   table->setHorizontalHeaderLabels(column_titles);
 
@@ -158,21 +158,40 @@ void SetUpKeyDatabaseTable(QTableWidget* table) {
   header->setStretchLastSection(true);
   header->setMinimumSectionSize(60);
 
-  header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-  header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-  header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-  header->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-  header->setSectionResizeMode(4, QHeaderView::ResizeToContents);
-  header->setSectionResizeMode(5, QHeaderView::Stretch);
+  for (int column = 0; column < table->columnCount(); column++) {
+    header->setSectionResizeMode(column, column == stretch
+                                             ? QHeaderView::Stretch
+                                             : QHeaderView::ResizeToContents);
+  }
 
   // Headers sit over their values rather than centred above left-aligned text.
-  // It only shows on the two wide columns, which are the two that read as
+  // It only shows on the wide columns, which are the ones that read as
   // detached from their heading when it does not.
-  for (const auto column : {1, 5}) {
+  for (const auto column : left_aligned) {
     if (auto* head = table->horizontalHeaderItem(column); head != nullptr) {
       head->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     }
   }
+}
+
+// Both tables of databases show the same thing about a different list, so they
+// are set up the same way from one place.
+void SetUpKeyDatabaseTable(QTableWidget* table) {
+  // The role has a column of its own: which database is the default changes
+  // without the database changing, so neither its name nor its status may say
+  // it.
+  SetUpTable(
+      table,
+      {QObject::tr("ID"), QObject::tr("Name"), QObject::tr("Engine"),
+       QObject::tr("Status"), QObject::tr("Role"), QObject::tr("Folder")},
+      5, {1, 5});
+}
+
+void SetUpRecycleBinTable(QTableWidget* table) {
+  SetUpTable(table,
+             {QObject::tr("Name"), QObject::tr("Engine"), QObject::tr("Size"),
+              QObject::tr("Folder")},
+             3, {0, 3});
 }
 
 }  // namespace
@@ -186,6 +205,20 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
 
   SetUpKeyDatabaseTable(ui_->keyDatabaseTable);
   SetUpKeyDatabaseTable(ui_->externalKeyDatabaseTable);
+  SetUpRecycleBinTable(ui_->recycleBinTable);
+
+  // Rows are dragged into a new order. The table only shows where the row
+  // would land; eventFilter() takes the drop and moves the entry in the list,
+  // so the cells are never moved on their own.
+  for (auto* table : {ui_->keyDatabaseTable, ui_->externalKeyDatabaseTable}) {
+    table->setDragEnabled(true);
+    table->setAcceptDrops(true);
+    table->setDragDropMode(QAbstractItemView::InternalMove);
+    table->setDragDropOverwriteMode(false);
+    table->setDropIndicatorShown(true);
+    table->setDefaultDropAction(Qt::MoveAction);
+    table->viewport()->installEventFilter(this);
+  }
 
   const auto role_help =
       tr("Used when an operation does not explicitly select a key database.");
@@ -194,29 +227,16 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   use_as_default_action_->setToolTip(role_help);
   copy_folder_path_action_ = new QAction(tr("Copy Folder Path"), this);
 
-  ui_->actionMove_Key_Database_Up->setText(tr("Move Up"));
-  ui_->actionMove_Key_Database_Up->setToolTip(
-      tr("Move this key database up in the list"));
-  ui_->actionMove_Key_Database_Down->setText(tr("Move Down"));
-  ui_->actionMove_Key_Database_Down->setToolTip(
-      tr("Move this key database down in the list"));
-  ui_->actionMove_Key_Database_To_Top->setText(tr("Move to Top"));
-  ui_->actionMove_Key_Database_To_Top->setToolTip(
-      tr("Move this key database to the top of the list"));
   ui_->actionOpen_Key_Database->setText(tr("Open"));
   ui_->actionOpen_Key_Database->setToolTip(
       tr("Open this key database's folder in the file manager"));
   ui_->actionEdit_Key_Database->setText(tr("Edit"));
   ui_->actionEdit_Key_Database->setToolTip(tr("Edit this key database"));
-  ui_->actionRemove_Selected_Key_Database->setText(tr("Remove"));
-  ui_->actionRemove_Selected_Key_Database->setToolTip(
-      tr("Remove this key database from the list"));
+  // Its words follow the tab, set by refresh_role_controls(): removing a
+  // database of the profile and removing a reference to a folder elsewhere
+  // are different things, and say so.
 
   popup_menu_ = new QMenu(this);
-  popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
-  popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
-  popup_menu_->addAction(ui_->actionMove_Key_Database_To_Top);
-  popup_menu_->addSeparator();
   popup_menu_->addAction(use_as_default_action_);
   popup_menu_->addSeparator();
   popup_menu_->addAction(ui_->actionOpen_Key_Database);
@@ -225,6 +245,26 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
     popup_menu_->addAction(ui_->actionEdit_Key_Database);
   }
   popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
+
+  // A folder in the Recycle Bin is not a database, so none of the above
+  // applies to it; looking at it does. Restore and Delete Permanently stay
+  // on their buttons, where they cannot be picked by a stray right-click.
+  recycle_bin_menu_ = new QMenu(this);
+  auto* open_recycled = recycle_bin_menu_->addAction(tr("Open"));
+  open_recycled->setToolTip(
+      tr("Open this key database's folder in the file manager"));
+  auto* copy_recycled = recycle_bin_menu_->addAction(tr("Copy Folder Path"));
+  connect(open_recycled, &QAction::triggered, this, [this]() {
+    const auto row = current_recycled_row();
+    if (row < 0) return;
+    QDesktopServices::openUrl(QUrl::fromLocalFile(recycled_[row].path));
+  });
+  connect(copy_recycled, &QAction::triggered, this, [this]() {
+    const auto row = current_recycled_row();
+    if (row < 0) return;
+    QGuiApplication::clipboard()->setText(
+        QDir::toNativeSeparators(recycled_[row].path));
+  });
 
   // The built-in database's section. The engine selector is the one setting
   // that speaks for it, so it lives here rather than on the General page.
@@ -275,6 +315,32 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
       ui_->keyDatabaseTabs->indexOf(ui_->profileTab), tr("In Profile"));
   ui_->keyDatabaseTabs->setTabText(
       ui_->keyDatabaseTabs->indexOf(ui_->externalTab), tr("Local Only"));
+  ui_->keyDatabaseTabs->setTabText(
+      ui_->keyDatabaseTabs->indexOf(ui_->recycleBinTab), tr("Recycle Bin"));
+
+  // The Recycle Bin sits beside In Profile because it holds what In Profile
+  // removed; Local Only is a different thing altogether, and comes last.
+  ui_->keyDatabaseTabs->setTabToolTip(
+      ui_->keyDatabaseTabs->indexOf(ui_->profileTab),
+      tr("Key databases kept inside your profile"));
+  ui_->keyDatabaseTabs->setTabToolTip(
+      ui_->keyDatabaseTabs->indexOf(ui_->recycleBinTab),
+      tr("Key databases removed from In Profile, with their keys still on "
+         "this computer"));
+  ui_->keyDatabaseTabs->setTabToolTip(
+      ui_->keyDatabaseTabs->indexOf(ui_->externalTab),
+      tr("Key databases outside your profile. They never go to the Recycle "
+         "Bin."));
+
+  ui_->recycleBinHintLabel->setText(
+      tr("These folders are no longer referenced by the current "
+         "configuration. Their keys are still stored on this computer."));
+  ui_->recycleBinRestoreButton->setText(tr("Restore"));
+  ui_->recycleBinRestoreButton->setToolTip(
+      tr("Add this key database back to In Profile"));
+  ui_->recycleBinDeleteButton->setText(tr("Delete Permanently"));
+  ui_->recycleBinDeleteButton->setToolTip(
+      tr("Delete this folder and every key in it, now"));
 
   ui_->addNewKeyDatabaseButton->setText(tr("Add Key Database"));
   ui_->addExternalKeyDatabaseButton->setText(
@@ -309,15 +375,6 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   connect(ui_->actionOpen_Key_Database, &QAction::triggered, this,
           &KeyDatabasesTab::slot_open_key_database);
 
-  connect(ui_->actionMove_Key_Database_Up, &QAction::triggered, this,
-          &KeyDatabasesTab::slot_move_up_key_database);
-
-  connect(ui_->actionMove_Key_Database_To_Top, &QAction::triggered, this,
-          &KeyDatabasesTab::slot_move_to_top_key_database);
-
-  connect(ui_->actionMove_Key_Database_Down, &QAction::triggered, this,
-          &KeyDatabasesTab::slot_move_down_key_database);
-
   connect(ui_->actionEdit_Key_Database, &QAction::triggered, this,
           &KeyDatabasesTab::slot_edit_key_database);
 
@@ -326,6 +383,11 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
 
   connect(ui_->addExternalKeyDatabaseButton, &QPushButton::clicked, this,
           &KeyDatabasesTab::slot_add_external_key_database);
+
+  connect(ui_->recycleBinRestoreButton, &QPushButton::clicked, this,
+          &KeyDatabasesTab::slot_restore_recycled);
+  connect(ui_->recycleBinDeleteButton, &QPushButton::clicked, this,
+          &KeyDatabasesTab::slot_delete_recycled);
 
   connect(ui_->builtInKeyDatabaseBox, &QGroupBox::toggled, this,
           &KeyDatabasesTab::slot_toggle_default_key_database);
@@ -365,7 +427,8 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
 
   // Whatever moves the selection -- mouse, arrow keys, a refill -- and
   // whichever tab is showing, the controls follow it.
-  for (auto* table : {ui_->keyDatabaseTable, ui_->externalKeyDatabaseTable}) {
+  for (auto* table : {ui_->keyDatabaseTable, ui_->externalKeyDatabaseTable,
+                      ui_->recycleBinTable}) {
     connect(table, &QTableWidget::itemSelectionChanged, this,
             &KeyDatabasesTab::refresh_role_controls);
   }
@@ -381,6 +444,20 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
             active_key_db_infos_ = GetGpgKeyDatabaseInfos();
             slot_refresh_key_database_table(current_row());
           });
+
+  // A database removed by the apply leaves the stored list now, and its
+  // folder belongs in the Recycle Bin from here on.
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseChangesApplied, this, [this]() {
+            take_saved_snapshot();
+            refresh_recycle_bin();
+          });
+
+  // ...but only once the old Runtime has let go of it, which can be after
+  // the apply has finished.
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalKeyDatabaseChannelReleased, this,
+          [this](int) { refresh_recycle_bin(); });
 }
 
 void KeyDatabasesTab::SetSettings() {
@@ -392,6 +469,7 @@ void KeyDatabasesTab::SetSettings() {
   // existed -- so this screen never has to guess, and never has to agree with
   // the packer about how the guessing is done.
   const auto all = GetAllKeyDatabaseInfoBySettings();
+  take_saved_snapshot();
   model_.Load(all,
               KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject))
                   .default_database_id,
@@ -451,10 +529,51 @@ void KeyDatabasesTab::ApplySettings() {
 }
 
 void KeyDatabasesTab::contextMenuEvent(QContextMenuEvent* event) {
+  if (recycle_bin_visible()) {
+    if (current_recycled_row() >= 0) {
+      recycle_bin_menu_->exec(event->globalPos());
+    }
+    return;
+  }
   if (current_table()->selectedItems().isEmpty()) return;
 
   popup_menu_->exec(event->globalPos());
   QWidget::contextMenuEvent(event);
+}
+
+auto KeyDatabasesTab::eventFilter(QObject* watched, QEvent* event) -> bool {
+  if (event->type() != QEvent::Drop) {
+    return QWidget::eventFilter(watched, event);
+  }
+
+  auto* table = current_table();
+  if (watched != table->viewport()) return QWidget::eventFilter(watched, event);
+
+  auto* drop = static_cast<QDropEvent*>(event);
+  // Taken here either way: what the table would do with it is overwrite the
+  // cells it lands on.
+  drop->setDropAction(Qt::IgnoreAction);
+  drop->accept();
+  if (drop->source() != table) return true;
+
+  const auto from = current_row();
+  const auto y = drop->position().toPoint().y();
+  auto insert_at = table->rowAt(y);
+  if (insert_at < 0) {
+    insert_at = table->rowCount();
+  } else if (y > table->visualRect(table->model()->index(insert_at, 0))
+                     .center()
+                     .y()) {
+    insert_at++;
+  }
+
+  const auto to =
+      KeyDatabaseSettingsModel::MoveRow(*current_list(), from, insert_at);
+  if (to < 0) return true;
+
+  slot_refresh_key_database_table(to);
+  emit SignalRuntimeApplyNeeded();
+  return true;
 }
 
 auto KeyDatabasesTab::current_table() const -> QTableWidget* {
@@ -470,6 +589,7 @@ auto KeyDatabasesTab::current_list() -> QList<KeyDatabaseInfo>* {
 }
 
 auto KeyDatabasesTab::current_row() const -> int {
+  if (recycle_bin_visible()) return -1;
   const auto selected_rows = current_table()->selectionModel()->selectedRows();
   if (selected_rows.isEmpty()) return -1;
   return selected_rows.first().row();
@@ -704,6 +824,25 @@ void KeyDatabasesTab::refresh_role_controls() {
   use_as_default_action_->setEnabled(model_.CanUseAsDefault(selected));
   copy_folder_path_action_->setEnabled(!selected.isEmpty());
 
+  // A database of the profile goes to the Recycle Bin with its keys; a folder
+  // elsewhere is only forgotten, and never touched.
+  auto* remove_action = ui_->actionRemove_Selected_Key_Database;
+  if (ui_->keyDatabaseTabs->currentWidget() == ui_->externalTab) {
+    remove_action->setText(tr("Remove Reference"));
+    remove_action->setToolTip(
+        tr("Forget this key database. Its folder is left as it is."));
+  } else {
+    remove_action->setText(tr("Move to Recycle Bin"));
+    remove_action->setToolTip(
+        tr("Remove this key database from the list. Its folder and keys stay "
+           "in the Recycle Bin."));
+  }
+
+  const auto recycled_selected = current_recycled_row() >= 0;
+  ui_->recycleBinRestoreButton->setEnabled(recycled_selected);
+  ui_->recycleBinDeleteButton->setEnabled(recycled_selected && !deleting_ &&
+                                          !IsApplyingKeyDatabaseChanges());
+
   // A GnuPG agent's smart card role is fixed when it starts, and applying
   // keeps the agents running. Moving the default from one GnuPG database to
   // another therefore leaves smart cards with the previous one until its agents
@@ -828,6 +967,10 @@ void KeyDatabasesTab::slot_refresh_key_database_table(int selected_row) {
                "inside your profile and travels with it.")
           : tr("Kept inside your profile, and carried by a profile package."));
 
+  // The stored and pending references just changed with the lists, and with
+  // them what is in the Recycle Bin.
+  refresh_recycle_bin();
+
   ui_->externalHintLabel->setText(
       model_.external.isEmpty()
           ? tr("Nothing here yet. A key database you add on this tab stays on "
@@ -849,42 +992,6 @@ void KeyDatabasesTab::slot_open_key_database() {
 
   LOG_D() << "try to open key db at path: " << key_database.path;
   QDesktopServices::openUrl(QUrl::fromLocalFile(key_database.path));
-}
-
-void KeyDatabasesTab::slot_move_up_key_database() {
-  const auto row = current_row();
-  if (row <= 0) return;
-
-  current_list()->swapItemsAt(row, row - 1);
-
-  slot_refresh_key_database_table(row - 1);
-
-  emit SignalRuntimeApplyNeeded();
-}
-
-void KeyDatabasesTab::slot_move_to_top_key_database() {
-  const auto row = current_row();
-  if (row <= 0) return;
-
-  auto* list = current_list();
-  auto selected_item = list->takeAt(row);
-  list->insert(0, selected_item);
-
-  slot_refresh_key_database_table(0);
-
-  emit SignalRuntimeApplyNeeded();
-}
-
-void KeyDatabasesTab::slot_move_down_key_database() {
-  const auto row = current_row();
-  auto* list = current_list();
-  if (row < 0 || row >= list->size() - 1) return;
-
-  list->swapItemsAt(row, row + 1);
-
-  slot_refresh_key_database_table(row + 1);
-
-  emit SignalRuntimeApplyNeeded();
 }
 
 void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
@@ -1008,6 +1115,16 @@ void KeyDatabasesTab::slot_edit_key_database() {
                                                     .isDir(),
                                             QFileInfo(path).exists());
 
+              if (action == ManagedRenameAction::kTARGET_TAKEN &&
+                  is_recycled(path)) {
+                QMessageBox::warning(
+                    this, tr("Key Database Folder Already Exists"),
+                    tr("A folder named \"%1\" is in the Recycle Bin. Restore "
+                       "it or delete it permanently, or choose another name.")
+                        .arg(name));
+                return;
+              }
+
               if (action == ManagedRenameAction::kTARGET_TAKEN) {
                 QMessageBox::warning(
                     this, tr("Key Database Folder Already Exists"),
@@ -1095,18 +1212,23 @@ void KeyDatabasesTab::slot_add_new_key_database() {
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this](const QString& name, const QString& backend_type,
                  const QString& path) -> void {
-            QFileInfo file_info(path);
-            if (file_info.exists() && !file_info.isDir()) {
+            // A folder already there is never taken over as a new, empty
+            // database: it is one in the Recycle Bin, or one that turned up
+            // since the bin was last read. Asked of the disk at the moment of
+            // creation, not of the list on screen.
+            const auto creation = CreateManagedKeyDatabaseFolderExclusively(
+                GlobalSettingStation::GetInstance().GetAppDataPath(), name);
+            if (creation == ManagedFolderCreation::kEXISTED) {
+              refresh_recycle_bin();
               QMessageBox::warning(
-                  this, tr("Invalid Key Database Path"),
-                  tr("The specified key database path points to an existing "
-                     "file. Please specify a path that does not exist or "
-                     "points to a directory."));
+                  this, tr("Key Database Folder Already Exists"),
+                  tr("A folder named \"%1\" already exists. It is in the "
+                     "Recycle Bin: restore it, or delete it permanently "
+                     "before adding a new one.")
+                      .arg(name.trimmed()));
               return;
             }
-
-            if (!file_info.exists() &&
-                !QDir(file_info.absoluteFilePath()).mkpath(".")) {
+            if (creation == ManagedFolderCreation::kFAILED) {
               QMessageBox::warning(
                   this, tr("Failed to Create Key Database Directory"),
                   tr("GpgFrontend failed to create a directory at the "
@@ -1114,6 +1236,10 @@ void KeyDatabasesTab::slot_add_new_key_database() {
                      "your permissions."));
               return;
             }
+
+            // Made just now and still empty, so nothing is lost by taking it
+            // away again when a check below turns the database down.
+            auto created = qScopeGuard([path]() { QDir().rmdir(path); });
 
             auto key_db_fs_path =
                 GpgFrontend::GetCanonicalKeyDatabasePath(app_path_, path);
@@ -1141,6 +1267,8 @@ void KeyDatabasesTab::slot_add_new_key_database() {
 
             LOG_D() << "new key database path, name: " << name
                     << "path: " << path << "canonical path: " << key_db_fs_path;
+
+            created.dismiss();
 
             KeyDatabaseInfo key_database;
             // Given its identity now rather than at the next read, so it is
@@ -1240,11 +1368,26 @@ void KeyDatabasesTab::slot_remove_existing_key_database() {
     return;
   }
 
-  QMessageBox::StandardButton reply =
-      QMessageBox::question(this, tr("Confirm Deletion"),
-                            tr("Are you sure you want to remove the selected "
-                               "key database from the list?"),
-                            QMessageBox::Yes | QMessageBox::No);
+  // Nothing on disk changes here, now or when this is applied: a managed
+  // folder waits in the Recycle Bin, and a folder elsewhere was never ours.
+  const auto& name = (*list)[row].name;
+  const auto managed = list == &model_.managed;
+  const auto reply =
+      managed
+          ? QMessageBox::question(
+                this, tr("Move to Recycle Bin"),
+                tr("Remove \"%1\" from your key databases when you apply? Its "
+                   "folder and keys stay on this computer, in the Recycle "
+                   "Bin, where you can restore it.")
+                    .arg(name),
+                QMessageBox::Yes | QMessageBox::No)
+          : QMessageBox::question(
+                this, tr("Remove Reference"),
+                tr("Remove the reference to \"%1\" when you apply? Only the "
+                   "reference goes: its folder is not deleted, and does not "
+                   "go to the Recycle Bin.")
+                    .arg(name),
+                QMessageBox::Yes | QMessageBox::No);
 
   if (reply != QMessageBox::Yes) return;
 
@@ -1261,6 +1404,350 @@ void KeyDatabasesTab::slot_remove_existing_key_database() {
   slot_refresh_key_database_table(next_selected_row);
 
   emit SignalRuntimeApplyNeeded();
+}
+
+void KeyDatabasesTab::take_saved_snapshot() {
+  // Read as stored, without reconciling: this is what the stored list names,
+  // not what the next start would make of it.
+  saved_snapshot_.clear();
+  const QDir app_dir(app_path_);
+  for (const auto& item : LoadKeyDatabaseList()) {
+    saved_snapshot_.append(ExpandKeyDatabasePath(app_dir, item.path));
+  }
+}
+
+auto KeyDatabasesTab::unsaved_paths() const -> QStringList {
+  QStringList paths;
+  const auto add = [&](const KeyDatabaseInfo& info) {
+    paths.append(info.path);
+    if (!info.origin_path.isEmpty()) {
+      paths.append(ExpandKeyDatabasePath(QDir(app_path_), info.origin_path));
+    }
+  };
+  if (model_.builtin) add(*model_.builtin);
+  for (const auto* list : {&model_.managed, &model_.external}) {
+    for (const auto& info : *list) add(info);
+  }
+  for (const auto& move : pending_moves_) {
+    paths.append(move.from);
+    paths.append(move.to);
+  }
+  return paths;
+}
+
+auto KeyDatabasesTab::referenced_paths() const -> QStringList {
+  auto paths = unsaved_paths();
+  paths.append(saved_snapshot_);
+  for (const auto& channel : ListRuntimeChannels()) paths.append(channel.path);
+  for (const auto& move : PendingKeyDatabaseMoves()) {
+    paths.append(move.from);
+    paths.append(move.to);
+  }
+  return paths;
+}
+
+auto KeyDatabasesTab::recycle_bin_visible() const -> bool {
+  return ui_->keyDatabaseTabs->currentWidget() == ui_->recycleBinTab;
+}
+
+auto KeyDatabasesTab::current_recycled_row() const -> int {
+  const auto rows = ui_->recycleBinTable->selectionModel()->selectedRows();
+  if (rows.isEmpty()) return -1;
+  const auto row = rows.first().row();
+  return row < recycled_.size() ? row : -1;
+}
+
+auto KeyDatabasesTab::is_recycled(const QString& path) const -> bool {
+  return std::any_of(recycled_.begin(), recycled_.end(),
+                     [&](const RecycledFolder& folder) -> bool {
+                       return IsSameKeyDatabaseLocation(folder.path, path);
+                     });
+}
+
+void KeyDatabasesTab::refresh_recycle_bin() {
+  // Kept on the same folder across a rescan, by path rather than by row.
+  const auto selected_row = current_recycled_row();
+  const auto selected_path =
+      selected_row >= 0 ? recycled_[selected_row].path : QString();
+
+  QHash<QString, qint64> known_sizes;
+  for (const auto& folder : recycled_) {
+    if (folder.size >= 0) known_sizes.insert(folder.path, folder.size);
+  }
+
+  const auto discovered = ScanManagedKeyDatabaseDir(
+      GlobalSettingStation::GetInstance().GetAppDataPath());
+
+  recycled_.clear();
+  for (const auto& folder :
+       SelectRecycledKeyDatabaseFolders(discovered, referenced_paths())) {
+    // A handle not yet reclaimed may still have it open under a path the
+    // channel list no longer shows.
+    if (IsKeyDatabaseLocationInUse(folder.path)) continue;
+
+    RecycledFolder recycled;
+    recycled.name = folder.name;
+    recycled.path = folder.path;
+    recycled.backend_type = GuessKeyDatabaseBackend(folder.path);
+    recycled.size = known_sizes.value(folder.path, -1);
+    recycled_.append(recycled);
+  }
+
+  recycle_generation_++;
+  fill_recycle_bin_table();
+
+  for (int row = 0; row < recycled_.size(); row++) {
+    if (recycled_[row].path != selected_path) continue;
+    ui_->recycleBinTable->selectRow(row);
+    break;
+  }
+
+  measure_recycled_sizes();
+  refresh_role_controls();
+}
+
+void KeyDatabasesTab::measure_recycled_sizes() {
+  QStringList paths;
+  for (const auto& folder : recycled_) {
+    if (folder.size < 0) paths.append(folder.path);
+  }
+  if (paths.isEmpty()) return;
+
+  // A folder can hold a lot, and walking it is the one slow part of a rescan.
+  const auto generation = recycle_generation_;
+  auto sizes = QSharedPointer<QHash<QString, qint64>>::create();
+  QPointer<KeyDatabasesTab> self(this);
+  auto* task = new Thread::Task(
+      [paths, sizes](const DataObjectPtr&) -> int {
+        for (const auto& path : paths) sizes->insert(path, DirectorySize(path));
+        return 0;
+      },
+      "measure_recycled_key_databases", TransferParams(),
+      [self, generation, sizes](int, const DataObjectPtr&) {
+        if (self == nullptr || self->recycle_generation_ != generation) return;
+        for (auto& folder : self->recycled_) {
+          const auto it = sizes->constFind(folder.path);
+          if (it != sizes->constEnd()) folder.size = it.value();
+        }
+        self->fill_recycle_bin_table();
+      });
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+      ->PostTask(task);
+}
+
+void KeyDatabasesTab::fill_recycle_bin_table() {
+  auto* table = ui_->recycleBinTable;
+  const auto selected_row = current_recycled_row();
+
+  table->setUpdatesEnabled(false);
+  table->clearContents();
+  table->setRowCount(static_cast<int>(recycled_.size()));
+
+  const auto app_data = GlobalSettingStation::GetInstance().GetAppDataPath();
+  for (int row = 0; row < recycled_.size(); row++) {
+    const auto& folder = recycled_[row];
+
+    table->setItem(
+        row, 0, CreateTableItem(folder.name, Qt::AlignLeft | Qt::AlignVCenter));
+
+    auto* engine = CreateTableItem(folder.backend_type.isEmpty()
+                                       ? tr("Unknown")
+                                       : folder.backend_type.toUpper(),
+                                   Qt::AlignCenter);
+    if (folder.backend_type.isEmpty()) {
+      engine->setToolTip(
+          tr("Neither engine's files are in this folder. You are asked which "
+             "engine to open it with when you restore it."));
+    }
+    table->setItem(row, 1, engine);
+
+    table->setItem(
+        row, 2,
+        CreateTableItem(folder.size < 0
+                            ? QStringLiteral("\u2026")
+                            : QLocale().formattedDataSize(folder.size),
+                        Qt::AlignRight | Qt::AlignVCenter));
+
+    auto* i_folder =
+        CreateTableItem(KeyDatabaseDisplayPath(folder.path, app_data),
+                        Qt::AlignLeft | Qt::AlignVCenter);
+    i_folder->setToolTip(QDir::toNativeSeparators(folder.path));
+    table->setItem(row, 3, i_folder);
+  }
+
+  if (selected_row >= 0 && selected_row < table->rowCount()) {
+    table->selectRow(selected_row);
+  }
+  table->setUpdatesEnabled(true);
+}
+
+void KeyDatabasesTab::slot_restore_recycled() {
+  const auto row = current_recycled_row();
+  if (row < 0) return;
+  const auto folder = recycled_[row];
+
+  // The same rules a database added here meets, in the same words where the
+  // problem is the same.
+  if (IsReservedKeyDatabaseName(folder.name)) return;
+
+  for (const auto* list : {&model_.managed, &model_.external}) {
+    for (const auto& info : *list) {
+      if (info.name.compare(folder.name, Qt::CaseInsensitive) != 0) continue;
+      QMessageBox::warning(
+          this, tr("Key Database Name Taken"),
+          tr("A key database named \"%1\" is already in the list. Rename or "
+             "remove that one first, then restore this folder.")
+              .arg(folder.name));
+      return;
+    }
+  }
+
+  if (total_count() >= kMaxKeyDatabases) {
+    QMessageBox::critical(
+        this, tr("Maximum Key Database Limit Reached"),
+        tr("Currently, GpgFrontend supports a maximum of %1 key databases. "
+           "Please remove an existing database to add a new one.")
+            .arg(kMaxKeyDatabases));
+    return;
+  }
+
+  auto backend_type = folder.backend_type;
+  if (backend_type.isEmpty()) {
+    QStringList engines;
+    for (const auto& engine : GetGSS().AllSupportedEngines()) {
+      engines.append(engine.toUpper());
+    }
+    bool ok = false;
+    const auto picked = QInputDialog::getItem(
+        this, tr("Choose an Engine"),
+        tr("GpgFrontend cannot tell which engine wrote \"%1\". Open it "
+           "with:")
+            .arg(folder.name),
+        engines, 0, false, &ok);
+    if (!ok || picked.isEmpty()) return;
+    backend_type = picked.toLower();
+  }
+
+  const auto engine =
+      backend_type == u"rpgp"_s ? OpenPGPEngine::kRPGP : OpenPGPEngine::kGNUPG;
+  if (!GetGSS().IsEngineSupported(engine)) {
+    QMessageBox::warning(
+        this, tr("Engine Not Available"),
+        tr("\"%1\" was written by %2, which this build of GpgFrontend "
+           "cannot open.")
+            .arg(folder.name, backend_type.toUpper()));
+    return;
+  }
+
+  const auto key_db_fs_path =
+      GpgFrontend::GetCanonicalKeyDatabasePath(app_path_, folder.path);
+  if (key_db_fs_path.isEmpty()) {
+    QMessageBox::warning(this, tr("Invalid Key Database Paths"),
+                         tr("The edited key database path is not a "
+                            "valid path that GpgFrontend can use"));
+    return;
+  }
+
+  if (location_taken(key_db_fs_path)) {
+    QMessageBox::warning(this, tr("Duplicate Key Database Paths"),
+                         tr("The newly added key database path duplicates a "
+                            "previously existing one."));
+    return;
+  }
+
+  if (RejectsGnuPGSocketPath(this, backend_type, key_db_fs_path)) return;
+
+  LOG_D() << "restore key database from the recycle bin, name:" << folder.name
+          << "path:" << key_db_fs_path;
+
+  // A database of its own again, so a new identity: whatever it was known by
+  // before went when it was removed.
+  KeyDatabaseInfo key_database;
+  key_database.id = NewKeyDatabaseId();
+  key_database.name = folder.name;
+  key_database.backend_type = backend_type;
+  key_database.path = key_db_fs_path;
+  key_database.origin_path = ToProfileRelativeKeyDatabasePath(
+      folder.path, GlobalSettingStation::GetInstance().GetAppDataPath());
+  key_database.kind = KeyDatabaseKind::kMANAGED;
+  model_.managed.append(key_database);
+
+  // Shown where it now is, selected.
+  ui_->keyDatabaseTabs->setCurrentWidget(ui_->profileTab);
+  slot_refresh_key_database_table(static_cast<int>(model_.managed.size() - 1));
+
+  emit SignalRuntimeApplyNeeded();
+}
+
+void KeyDatabasesTab::slot_delete_recycled() {
+  const auto row = current_recycled_row();
+  if (row < 0 || deleting_ || IsApplyingKeyDatabaseChanges()) return;
+  const auto folder = recycled_[row];
+
+  QMessageBox box(QMessageBox::Warning, tr("Delete Permanently"),
+                  tr("Delete \"%1\" and everything in it?").arg(folder.name),
+                  QMessageBox::NoButton, this);
+  box.setInformativeText(
+      tr("All keys in this folder, including secret keys, are deleted "
+         "immediately. This cannot be undone, and Cancel in Settings does not "
+         "bring them back.") +
+      "\n\n" + QDir::toNativeSeparators(folder.path));
+  auto* delete_button =
+      box.addButton(tr("Delete Permanently"), QMessageBox::DestructiveRole);
+  box.addButton(QMessageBox::Cancel);
+  box.setDefaultButton(QMessageBox::Cancel);
+  box.setEscapeButton(QMessageBox::Cancel);
+  box.exec();
+  if (box.clickedButton() != delete_button) return;
+
+  deleting_ = true;
+  refresh_role_controls();
+
+  // Modal while it runs: nothing on this page may change what refers to the
+  // folder until it is gone.
+  auto* waiting =
+      new WaitingDialog(tr("Deleting Key Database Folder"), false, this);
+  waiting->setWindowModality(Qt::ApplicationModal);
+  waiting->SetUserClosable(false);
+  waiting->show();
+
+  const auto app_data = GlobalSettingStation::GetInstance().GetAppDataPath();
+  const auto extra = unsaved_paths();
+  const auto path = folder.path;
+  auto result = QSharedPointer<KeyDatabaseDeleteResult>::create();
+  QPointer<KeyDatabasesTab> self(this);
+  QPointer<WaitingDialog> waiting_ptr(waiting);
+  auto* task = new Thread::Task(
+      [app_data, path, extra, result](const DataObjectPtr&) -> int {
+        *result = DeleteRecycledKeyDatabase(app_data, path, extra);
+        return 0;
+      },
+      "delete_recycled_key_database", TransferParams(),
+      [self, waiting_ptr, result, name = folder.name](int,
+                                                      const DataObjectPtr&) {
+        if (waiting_ptr != nullptr) waiting_ptr->SlotFinish();
+        if (self == nullptr) return;
+
+        self->deleting_ = false;
+        self->refresh_recycle_bin();
+
+        if (result->deleted) {
+          emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
+              tr("Key database folder deleted."), 5000);
+          return;
+        }
+        QMessageBox::warning(
+            self, tr("Folder Not Deleted"),
+            (result->partial ? tr("\"%1\" was only partly deleted.").arg(name)
+                             : tr("\"%1\" was not deleted.").arg(name)) +
+                "\n\n" + result->error);
+      });
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+      ->PostTask(task);
 }
 
 }  // namespace GpgFrontend::UI

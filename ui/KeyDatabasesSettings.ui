@@ -199,6 +199,65 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="recycleBinTab">
+      <attribute name="title">
+       <string>Recycle Bin</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="recycleBinTabLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="recycleBinHintLabel">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="recycleBinTable">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="recycleBinButtonLayout">
+         <item>
+          <spacer name="recycleBinButtonSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="recycleBinDeleteButton"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="recycleBinRestoreButton"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="externalTab">
       <attribute name="title">
        <string>Local Only</string>
@@ -321,45 +380,12 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
-  <action name="actionMove_Key_Database_To_Top">
-   <property name="text">
-    <string>Move To Top</string>
-   </property>
-   <property name="toolTip">
-    <string>Move this Key Database Item to the top of the list</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionMove_Key_Database_Up">
-   <property name="text">
-    <string>Move Up</string>
-   </property>
-   <property name="toolTip">
-    <string>Move this Key Database Item up</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
-   </property>
-  </action>
   <action name="actionEdit_Key_Database">
    <property name="text">
     <string>Edit</string>
    </property>
    <property name="toolTip">
     <string>Edit this Key Database Item</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionMove_Key_Database_Down">
-   <property name="text">
-    <string>Move Down</string>
-   </property>
-   <property name="toolTip">
-    <string>Move this Key Database Item down</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

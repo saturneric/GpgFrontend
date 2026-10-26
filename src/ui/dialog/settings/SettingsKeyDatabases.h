@@ -103,9 +103,16 @@ class KeyDatabasesTab : public QWidget {
    */
   void contextMenuEvent(QContextMenuEvent* event) override;
 
+  /**
+   * @brief Reorder a list by dragging its rows: the drop is taken here and
+   * applied to the list, never to the table's cells.
+   */
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+
  private:
   QSharedPointer<Ui_KeyDatabasesSettings> ui_;  ///<
   QMenu* popup_menu_{};
+  QMenu* recycle_bin_menu_{};  ///< the Recycle Bin's own, for its folders
   const QString app_path_;
   QList<KeyDatabaseInfo> active_key_db_infos_;
 
@@ -137,6 +144,61 @@ class KeyDatabasesTab : public QWidget {
   /// True while SetSettings() is populating the widgets, so the checkbox's own
   /// toggled() handler does not mistake being restored for being clicked.
   bool loading_ = false;
+
+  /// A folder in the Recycle Bin: under the profile's dbs/ directory, and
+  /// referred to by nothing. Its size arrives later, from a worker.
+  struct RecycledFolder {
+    QString name;
+    QString path;
+    QString backend_type;  ///< as judged by its files, empty when unknown
+    qint64 size{-1};       ///< -1 until measured
+  };
+
+  /// What the stored list referred to when last read: the page's own changes
+  /// are not stored yet, and a database removed here leaves the stored list
+  /// only when the change is applied.
+  QStringList saved_snapshot_;
+
+  QList<RecycledFolder> recycled_;
+
+  /// Bumped by every rescan, so sizes measured for an older one are dropped.
+  int recycle_generation_ = 0;
+
+  /// A permanent deletion is running.
+  bool deleting_ = false;
+
+  /// Read the stored list's folders into saved_snapshot_.
+  void take_saved_snapshot();
+
+  /// Every folder the page, the stored list, the Runtime or a pending
+  /// operation still refers to.
+  [[nodiscard]] auto referenced_paths() const -> QStringList;
+
+  /// The folders the page itself refers to and has not stored yet.
+  [[nodiscard]] auto unsaved_paths() const -> QStringList;
+
+  /// Scan dbs/ again and refill the Recycle Bin.
+  void refresh_recycle_bin();
+
+  /// Measure the folders of the current scan off the GUI thread.
+  void measure_recycled_sizes();
+
+  void fill_recycle_bin_table();
+
+  /// The selected Recycle Bin row, or -1.
+  [[nodiscard]] auto current_recycled_row() const -> int;
+
+  /// Whether the Recycle Bin is the tab showing.
+  [[nodiscard]] auto recycle_bin_visible() const -> bool;
+
+  /// Whether @p path is a folder in the Recycle Bin.
+  [[nodiscard]] auto is_recycled(const QString& path) const -> bool;
+
+  /// Bring the selected Recycle Bin folder back into In Profile, pending.
+  void slot_restore_recycled();
+
+  /// Delete the selected Recycle Bin folder for good, now.
+  void slot_delete_recycled();
 
   /**
    * @brief Fill one table from one of the lists. Shared, so the two tables
@@ -190,24 +252,6 @@ class KeyDatabasesTab : public QWidget {
    *
    */
   void slot_open_key_database();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_move_up_key_database();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_move_to_top_key_database();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_move_down_key_database();
 
   /**
    * @brief

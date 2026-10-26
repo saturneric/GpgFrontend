@@ -187,6 +187,27 @@ class KeyDatabaseSettingsModel {
   }
 
   /**
+   * @brief Move row @p from of @p list to where it was dropped.
+   *
+   * @p insert_at is the gap the row was dropped into, 0 for above the first
+   * row and the row count for below the last, as a drop indicator shows it.
+   *
+   * @return the row's new index, or -1 when nothing moved
+   */
+  static auto MoveRow(QList<KeyDatabaseInfo>& list, int from, int insert_at)
+      -> int {
+    const auto size = static_cast<int>(list.size());
+    if (from < 0 || from >= size || insert_at < 0 || insert_at > size) {
+      return -1;
+    }
+    // The gap below the row itself, or above it, is where it already is.
+    const auto to = insert_at > from ? insert_at - 1 : insert_at;
+    if (to == from) return -1;
+    list.move(from, to);
+    return to;
+  }
+
+  /**
    * @brief Write the list and the choice into @p list_so.
    *
    * The same on every store path, the one that overrides an unreadable list
