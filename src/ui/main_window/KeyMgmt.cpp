@@ -31,7 +31,6 @@
 #include <cassert>
 #include <optional>
 
-#include "core/function/KeyPackageOperator.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -51,6 +50,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyCategoryEditDialog.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
+#include "ui/dialog/import_export/ImportKeyPackageDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
@@ -1162,109 +1162,31 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 }
 
 void KeyMgmt::SlotImportKeyPackage() {
-  auto key_package_file_name = QFileDialog::getOpenFileName(
-      this, tr("Import Key Package"), {}, tr("Key Package") + " (*.gfpack)");
+  auto* dialog = new ImportKeyPackageDialog(
+      key_list_->GetCurrentGpgContextChannel(), this);
 
-  if (key_package_file_name.isEmpty()) return;
-
-  // max file size is 32 mb
-  QFileInfo key_package_file_info(key_package_file_name);
-
-  if (!key_package_file_info.isFile() || !key_package_file_info.isReadable()) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Cannot open this file. Please make sure that this "
-           "is a regular file and it's readable."));
-    return;
-  }
-
-  if (key_package_file_info.size() > static_cast<qint64>(32 * 1024 * 1024)) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("The target file is too large for a key package."));
-    return;
-  }
-
-  auto key_file_name = QFileDialog::getOpenFileName(
-      this, tr("Import Key Package Passphrase File"), {},
-      tr("Key Package Passphrase File") + " (*.key)");
-
-  if (key_file_name.isEmpty()) return;
-
-  // max file size is 1 mb
-  QFileInfo key_file_info(key_file_name);
-
-  if (!key_file_info.isFile() || !key_file_info.isReadable()) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Cannot open this file. Please make sure that this "
-           "is a regular file and it's readable."));
-    return;
-  }
-
-  if (key_file_info.size() > static_cast<qint64>(1024 * 1024)) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("The target file is too large for a key package passphrase."));
-    return;
-  }
-
-  bool ok;
-  auto pin = QInputDialog::getText(this, tr("Enter PIN"),
-                                   tr("Please enter PIN to decrypt the Key:"),
-                                   QLineEdit::Password, QString(), &ok);
-  if (!ok || pin.isEmpty()) return;
-
-  GFBuffer buf(pin);
-  WipeString(pin);
-
-  // Read here: the task body runs on the GPG runner, not the GUI thread.
-  const auto channel = key_list_->GetCurrentGpgContextChannel();
+  // Modal and deleted on close by itself; the details follow once the key
+  // list has caught up with what was imported.
   QPointer<KeyMgmt> self = this;
+  connect(
+      dialog, &ImportKeyPackageDialog::SignalKeysImported, this,
+      [self](int channel, const QSharedPointer<GpgImportInformation>& info) {
+        if (!self) return;
 
-  Thread::Task::TaskCallback cb = [=](int /*ret*/,
-                                      const DataObjectPtr& data_object) {
-    if (!data_object->Check<QString, QSharedPointer<GpgImportInformation>>()) {
-      return;
-    }
+        emit self->SignalStatusBarChanged(tr("key(s) imported"));
+        emit self->SignalKeyStatusUpdated();
 
-    auto msg = ExtractParams<QString>(data_object, 0);
-    auto info =
-        ExtractParams<QSharedPointer<GpgImportInformation>>(data_object, 1);
-
-    if (!info) {
-      QMessageBox::critical(self, tr("Error"), msg);
-      return;
-    }
-
-    if (!self) return;
-
-    emit SignalStatusBarChanged(tr("key(s) imported"));
-    emit SignalKeyStatusUpdated();
-
-    auto* connection = new QMetaObject::Connection;
-    *connection =
-        connect(UISignalStation::GetInstance(),
-                &UISignalStation::SignalKeyDatabaseRefreshDone, self, [=]() {
-                  (new KeyImportDetailDialog(channel, info, self));
-                  QObject::disconnect(*connection);
-                  delete connection;
-                });
-  };
-
-  auto* task = new Thread::Task{
-      [=](const DataObjectPtr& data_object) -> int {
-        auto [err, info] =
-            KeyPackageOperator::GetInstance(channel).ImportKeyPackage(
-                key_package_file_name, key_file_name, buf);
-        data_object->Swap({err, info});
-        return 0;
-      },
-      "import_key_package", TransferParams(), cb};
-
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(task);
+        auto* connection = new QMetaObject::Connection;
+        *connection = connect(
+            UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseRefreshDone, self, [=]() {
+              (new KeyImportDetailDialog(channel, info, self));
+              QObject::disconnect(*connection);
+              delete connection;
+            });
+      });
+  dialog->setModal(true);
+  dialog->show();
 }
 
 void KeyMgmt::dragEnterEvent(QDragEnterEvent* event) {
