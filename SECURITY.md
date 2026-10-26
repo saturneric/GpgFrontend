@@ -61,6 +61,8 @@ From version v2.2.2 onwards, we no longer support macOS 14, as it will be soon
 discontinued by GitHub Action. Given its age and the anticipated discontinuation
 of support by Apple, it is wise to drop it.
 
+From version v2.2.3 onwards, we no longer support Qt5, as it consumes more time to maintain code for both Qt5 and Qt6, especially with the increasing adoption of Qt6. But version 2.1.x will still support Qt5, so if you want to use Qt5, please use version 2.1.x.
+
 ## Reporting a Vulnerability
 
 In case you wish to report a vulnerability, please avoid raising an issue
