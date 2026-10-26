@@ -41,6 +41,7 @@
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/KeyCategoryEditDialog.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/function/KeyDatabaseDisplayNames.h"
@@ -1460,6 +1461,17 @@ auto KeyList::GetCurrentCategoryId() const -> QString {
   return page != nullptr ? page->objectName() : QString{};
 }
 
+auto KeyList::GetCategoryColors() const -> QList<QColor> {
+  QList<QColor> colors;
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    const auto* item = ui_->categoryList->item(i);
+    colors.append(
+        resolve_category_color(item->data(Qt::UserRole).toString(),
+                               item->data(kCategoryColorRole).toString()));
+  }
+  return colors;
+}
+
 void KeyList::FocusSearchBar() {
   ui_->searchBarEdit->setFocus(Qt::ShortcutFocusReason);
   ui_->searchBarEdit->selectAll();
@@ -1494,13 +1506,13 @@ void KeyList::slot_category_context_menu(const QPoint& pos) {
       emit UISignalStation::GetInstance() -> SignalKeyCategoryColorsChanged();
     });
 
-    // Rename / membership / deletion apply to user categories only.
+    // Editing / membership / deletion apply to user categories only.
     if (custom) {
       menu.addSeparator();
 
-      auto* rename_action = menu.addAction(tr("Rename Category..."));
-      connect(rename_action, &QAction::triggered, this,
-              [this, id, name]() { rename_category(id, name); });
+      auto* edit_action = menu.addAction(tr("Edit Category..."));
+      connect(edit_action, &QAction::triggered, this,
+              [this, id]() { edit_category(id); });
 
       auto* delete_action = menu.addAction(tr("Delete Category..."));
       connect(delete_action, &QAction::triggered, this,
@@ -1553,35 +1565,16 @@ void KeyList::refresh_category_icons() {
 }
 
 void KeyList::new_category() {
-  bool ok = false;
-  const auto name =
-      QInputDialog::getText(this, tr("New Category"), tr("Category name:"),
-                            QLineEdit::Normal, QString{}, &ok)
-          .trimmed();
-  if (!ok || name.isEmpty()) return;
-
-  const QColor color = QColorDialog::getColor(
-      resolve_category_color(name, {}), this, tr("Category Colour (optional)"));
-
-  auto& repo = KeyCategoryRepository::GetInstance(current_gpg_context_channel_);
-  const auto id =
-      repo.AddCategory(name, color.isValid() ? color.name() : QString{});
-
-  emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
-  select_category(id);
+  auto* dialog = new KeyCategoryEditDialog(current_gpg_context_channel_, {}, {},
+                                           GetCategoryColors(), this);
+  connect(dialog, &KeyCategoryEditDialog::SignalSaved, this,
+          [this](const QString& id) { select_category(id); });
+  dialog->show();
 }
 
-void KeyList::rename_category(const QString& id, const QString& current_name) {
-  bool ok = false;
-  const auto name =
-      QInputDialog::getText(this, tr("Rename Category"), tr("Category name:"),
-                            QLineEdit::Normal, current_name, &ok)
-          .trimmed();
-  if (!ok || name.isEmpty() || name == current_name) return;
-
-  KeyCategoryRepository::GetInstance(current_gpg_context_channel_)
-      .Rename(id, name);
-  emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
+void KeyList::edit_category(const QString& id) {
+  (new KeyCategoryEditDialog(current_gpg_context_channel_, id, {}, {}, this))
+      ->show();
 }
 
 void KeyList::SlotRefresh() {

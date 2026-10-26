@@ -339,6 +339,12 @@ class KeyList : public QWidget {
   [[nodiscard]] auto GetCurrentCategoryId() const -> QString;
 
   /**
+   * @brief The colours of every category in the list, built-in tabs included,
+   * as they are drawn.
+   */
+  [[nodiscard]] auto GetCategoryColors() const -> QList<QColor>;
+
+  /**
    * @brief
    *
    */
@@ -707,14 +713,14 @@ class KeyList : public QWidget {
   void refresh_category_icons();
 
   /**
-   * @brief Prompt for a name (and colour) and create a new custom category.
+   * @brief Ask for a name and colour and create a new custom category.
    */
   void new_category();
 
   /**
-   * @brief Prompt for a new name and rename a custom category.
+   * @brief Edit the name and colour of a custom category.
    */
-  void rename_category(const QString& id, const QString& current_name);
+  void edit_category(const QString& id);
 
   /**
    * @brief

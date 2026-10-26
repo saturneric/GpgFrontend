@@ -41,6 +41,7 @@
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/KeyCategoryEditDialog.h"
 #include "ui/function/ProfileController.h"
 #include "ui/lua/LuaPlacements.h"
 #include "ui/main_window/GeneralMainWindow.h"
@@ -502,19 +503,13 @@ void MainWindow::populate_key_category_menu(int channel,
   add_key_2_category_menu_->addSeparator();
   auto* new_act = add_key_2_category_menu_->addAction(tr("New Category..."));
   connect(new_act, &QAction::triggered, this, [=]() {
-    bool ok = false;
-    auto name =
-        QInputDialog::getText(this, tr("New Category"), tr("Category name:"),
-                              QLineEdit::Normal, QString{}, &ok);
-    if (!ok || name.trimmed().isEmpty()) return;
-
     const auto target = live_channel();
     if (target < 0) return;
-    auto& r = KeyCategoryRepository::GetInstance(target);
-    auto id = r.AddCategory(name.trimmed());
-    r.AddKey2Category(id, key_id);
-    emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
-    emit SignalUIRefresh();
+    auto* dialog = new KeyCategoryEditDialog(
+        target, {}, {key_id}, m_key_list_->GetCategoryColors(), this);
+    connect(dialog, &KeyCategoryEditDialog::SignalSaved, this,
+            &MainWindow::SignalUIRefresh);
+    dialog->show();
   });
 }
 

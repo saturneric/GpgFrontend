@@ -49,6 +49,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/KeyCategoryEditDialog.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateDialog.h"
@@ -1514,17 +1515,9 @@ void KeyMgmt::populate_key_category_menu(int channel,
   add_key_2_category_menu_->addSeparator();
   auto* new_act = add_key_2_category_menu_->addAction(tr("New Category..."));
   connect(new_act, &QAction::triggered, this, [=]() {
-    bool ok = false;
-    auto name =
-        QInputDialog::getText(this, tr("New Category"), tr("Category name:"),
-                              QLineEdit::Normal, QString{}, &ok)
-            .trimmed();
-    if (!ok || name.isEmpty()) return;
-
-    auto& r = KeyCategoryRepository::GetInstance(channel);
-    const auto id = r.AddCategory(name);
-    for (const auto& key_id : key_ids) r.AddKey2Category(id, key_id);
-    emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
+    (new KeyCategoryEditDialog(channel, {}, key_ids,
+                               key_list_->GetCategoryColors(), this))
+        ->show();
   });
 }
 
