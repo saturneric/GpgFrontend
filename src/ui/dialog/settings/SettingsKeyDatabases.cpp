@@ -194,6 +194,24 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   use_as_default_action_->setToolTip(role_help);
   copy_folder_path_action_ = new QAction(tr("Copy Folder Path"), this);
 
+  ui_->actionMove_Key_Database_Up->setText(tr("Move Up"));
+  ui_->actionMove_Key_Database_Up->setToolTip(
+      tr("Move this key database up in the list"));
+  ui_->actionMove_Key_Database_Down->setText(tr("Move Down"));
+  ui_->actionMove_Key_Database_Down->setToolTip(
+      tr("Move this key database down in the list"));
+  ui_->actionMove_Key_Database_To_Top->setText(tr("Move to Top"));
+  ui_->actionMove_Key_Database_To_Top->setToolTip(
+      tr("Move this key database to the top of the list"));
+  ui_->actionOpen_Key_Database->setText(tr("Open"));
+  ui_->actionOpen_Key_Database->setToolTip(
+      tr("Open this key database's folder in the file manager"));
+  ui_->actionEdit_Key_Database->setText(tr("Edit"));
+  ui_->actionEdit_Key_Database->setToolTip(tr("Edit this key database"));
+  ui_->actionRemove_Selected_Key_Database->setText(tr("Remove"));
+  ui_->actionRemove_Selected_Key_Database->setToolTip(
+      tr("Remove this key database from the list"));
+
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
@@ -252,6 +270,11 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   ui_->builtInUseAsDefaultButton->setAccessibleName(
       tr("Use the built-in key database as default"));
   ui_->builtInUseAsDefaultButton->setAccessibleDescription(role_help);
+
+  ui_->keyDatabaseTabs->setTabText(
+      ui_->keyDatabaseTabs->indexOf(ui_->profileTab), tr("In Profile"));
+  ui_->keyDatabaseTabs->setTabText(
+      ui_->keyDatabaseTabs->indexOf(ui_->externalTab), tr("Local Only"));
 
   ui_->addNewKeyDatabaseButton->setText(tr("Add Key Database"));
   ui_->addExternalKeyDatabaseButton->setText(

@@ -5983,17 +5983,17 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">Добавить новую базу данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="409"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="432"/>
         <source>Unreadable Key Database Settings</source>
         <translation>Нечитаемые настройки базы данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="410"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="433"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>Ваш сохранённый список баз данных ключей существует, но не может быть прочитан. Обычно это означает, что он был записан другой установкой или с другим ключом приложения.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="437"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>Сохранение сейчас заменит его на список, показанный здесь. Предыдущий список не может быть восстановлен впоследствии.</translation>
     </message>
@@ -6002,32 +6002,32 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">Н/Д</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="945"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="968"/>
         <source>No Key Database Selected</source>
         <translation>База данных ключей не выбрана</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="946"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="969"/>
         <source>Please select a key database to edit.</source>
         <translation>Пожалуйста, выберите базу данных ключей для редактирования.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1020"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1109"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="922"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1043"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1132"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1196"/>
         <source>Duplicate Key Database Paths</source>
         <translation>Дублирующиеся пути к базам данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1021"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1044"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>Указанный путь к базе данных ключей дублирует уже существующий.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1012"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1098"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1165"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1035"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1121"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1188"/>
         <source>Invalid Key Database Paths</source>
         <translation>Недопустимые пути к базам данных ключей</translation>
     </message>
@@ -6036,12 +6036,12 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">Использовать базу данных ключей по умолчанию этого компьютера</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="256"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="279"/>
         <source>Add Key Database</source>
         <translation>Добавить базу данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="281"/>
         <source>Add Key Database On This Computer</source>
         <translation>Добавить базу данных ключей на этом компьютере</translation>
     </message>
@@ -6058,60 +6058,60 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">Всегда канал 0. Никогда не включается в пакет профиля: любой, кто откроет ваш профиль в другом месте, получит свою собственную базу данных.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="775"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="798"/>
         <source>This folder could not be resolved on this computer.</source>
         <translation>Не удалось найти эту папку на этом компьютере.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="804"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="827"/>
         <source>No key databases of your own yet. One you add here is kept inside your profile and travels with it.</source>
         <translation>У вас ещё нет собственных баз данных ключей. Добавленная здесь база данных хранится внутри вашего профиля и перемещается вместе с ним.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="806"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="829"/>
         <source>Kept inside your profile, and carried by a profile package.</source>
         <translation>Хранится внутри вашего профиля и переносится пакетом профиля.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="810"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="833"/>
         <source>Nothing here yet. A key database you add on this tab stays on this computer: a profile package never carries it, and it is always opened after the ones inside your profile.</source>
         <translation>Здесь пока ничего нет. База данных ключей, добавленная на этой вкладке, остаётся на этом компьютере: пакет профиля никогда не переносит её, и она всегда открывается после баз данных внутри вашего профиля.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="813"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="836"/>
         <source>Key databases outside your profile. They belong to this computer alone: a profile package never carries them, and they are always opened after the ones inside your profile.</source>
         <translation>Базы данных ключей вне вашего профиля. Они принадлежат только этому компьютеру: пакет профиля никогда не переносит их, и они всегда открываются после баз данных внутри вашего профиля.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="877"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1063"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1145"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="900"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1086"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1168"/>
         <source>Currently, GpgFrontend supports a maximum of %1 key databases. Please remove an existing database to add a new one.</source>
         <translation>В настоящее время GpgFrontend поддерживает максимум %1 баз данных ключей. Удалите существующую базу данных, чтобы добавить новую.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="900"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
         <translation>Одна база данных ключей на этой странице уже использует папку базы данных ключей по умолчанию на этом компьютере. Сначала удалите её, затем включите этот параметр.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1214"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="946"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1237"/>
         <source>Key Database Required</source>
         <translation>Требуется база данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="924"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="947"/>
         <source>GpgFrontend needs at least one key database. Add another one first, then turn this off.</source>
         <translation>GpgFrontend нуждается как минимум в одной базе данных ключей. Сначала добавьте другую, затем отключите эту.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="990"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1013"/>
         <source>Key Database Folder Already Exists</source>
         <translation>Папка базы данных ключей уже существует</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="991"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1014"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
         <translation>Папка с именем «%1» уже существует. Мы не вправе заменять её содержимое, поэтому выберите другое имя.</translation>
     </message>
@@ -6124,16 +6124,16 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">GpgFrontend не удалось переименовать папку, в которой хранится эта база данных ключей. Возможно, она всё ещё используется; повторите попытку после перезапуска GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1013"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1099"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1166"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1036"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1122"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1189"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>Указанный путь к базе данных ключей не является допустимым путем, который может использовать GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="876"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1062"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1144"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1085"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1167"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>Достигнут лимит баз данных ключей</translation>
     </message>
@@ -6142,26 +6142,26 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">В настоящее время GpgFrontend поддерживает максимум 8 баз данных ключей. Пожалуйста, удалите существующую базу данных, чтобы добавить новую.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1110"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1174"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1133"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1197"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>Добавленный путь к базе данных ключей дублирует уже существующий.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1078"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1101"/>
         <source>Invalid Key Database Path</source>
         <translation>Недопустимый путь к базе данных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="191"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="637"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="660"/>
         <source>Used when an operation does not explicitly select a key database.</source>
         <translation>Используется, когда операция не указывает базу данных ключей явно.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="250"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="284"/>
         <source>Use as Default</source>
         <translation>Использовать по умолчанию</translation>
     </message>
@@ -6171,73 +6171,143 @@ Results will appear here as a summary document.</source>
         <translation>Копировать путь к папке</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="215"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="197"/>
+        <source>Move Up</source>
+        <translation>Вверх</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="199"/>
+        <source>Move this key database up in the list</source>
+        <translation>Переместить эту базу данных ключей вверх по списку</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <source>Move Down</source>
+        <translation>Вниз</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="202"/>
+        <source>Move this key database down in the list</source>
+        <translation>Переместить эту базу данных ключей вниз по списку</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="203"/>
+        <source>Move to Top</source>
+        <translation>В начало</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="205"/>
+        <source>Move this key database to the top of the list</source>
+        <translation>Переместить эту базу данных ключей в начало списка</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="206"/>
+        <source>Open</source>
+        <translation>Открыть</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="208"/>
+        <source>Open this key database&apos;s folder in the file manager</source>
+        <translation>Открыть папку этой базы данных ключей в файловом менеджере</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="209"/>
+        <source>Edit</source>
+        <translation>Изменить</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="210"/>
+        <source>Edit this key database</source>
+        <translation>Изменить эту базу данных ключей</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="211"/>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="213"/>
+        <source>Remove this key database from the list</source>
+        <translation>Удалить эту базу данных ключей из списка</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="233"/>
         <source>Built-in Key Database</source>
         <translation>Встроенная база данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="217"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="235"/>
         <source>Key engine:</source>
         <translation>Движок ключей:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
         <source>Key engine for the built-in database</source>
         <translation>Движок ключей для встроенной базы данных</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="227"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="245"/>
         <source>Applies only to the built-in database. Other databases always open with their own engine.</source>
         <translation>Применяется только к встроенной базе данных. Другие базы данных всегда открываются со своим движком.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="249"/>
         <source>Location:</source>
         <translation>Расположение:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="254"/>
         <source>Built-in key database location</source>
         <translation>Расположение встроенной базы данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="256"/>
         <source>Copy</source>
         <translation>Копировать</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="239"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="257"/>
         <source>Copy the full path</source>
         <translation>Копировать полный путь</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="259"/>
         <source>Copy the built-in key database location</source>
         <translation>Копировать расположение встроенной базы данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="247"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="656"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="265"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="679"/>
         <source>Default</source>
         <translation>По умолчанию</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="271"/>
         <source>Use the built-in key database as default</source>
         <translation>Использовать встроенную базу данных ключей по умолчанию</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="275"/>
+        <source>In Profile</source>
+        <translation>В профиле</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="277"/>
+        <source>Local Only</source>
+        <translation>Только локально</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="286"/>
         <source>Use the selected key database as default</source>
         <translation>Использовать выбранную базу данных ключей по умолчанию</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="290"/>
         <source>Smart cards stay with the previous default database until GpgFrontend restarts. To move them sooner, apply this change, then use &quot;Restart All Gpg-Agents&quot; in the Smart Card Controller.</source>
         <translation>Смарт-карты остаются привязанными к предыдущей базе данных по умолчанию до перезапуска GpgFrontend. Чтобы перенести их раньше, примените это изменение, а затем используйте «Перезапустить все Gpg-Agents» в контроллере смарт-карт.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="531"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="554"/>
         <source>%1: %n operation(s)</source>
         <translation>
             <numerusform>%1: %n операций</numerusform>
@@ -6246,52 +6316,52 @@ Results will appear here as a summary document.</source>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="573"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="596"/>
         <source>The OpenPGP engine on this computer does not report a key database, so there is no built-in one to use.</source>
         <translation>OpenPGP-движок на этом компьютере не сообщает о базе данных ключей, поэтому встроенной базы данных для использования нет.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="585"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="608"/>
         <source>Always available on this computer, and always listed first.</source>
         <translation>Всегда доступна на этом компьютере и всегда отображается первой.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="586"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="609"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
         <translation>Всегда отображается первым. Никогда не включается в пакет профиля: у того, кто откроет ваш профиль в другом месте, будет собственная.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="600"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="623"/>
         <source>No engine in this build can open it.</source>
         <translation>Ни один движок в этой сборке не может её открыть.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1079"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1102"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>Указанный путь к базе данных ключей указывает на существующий файл. Пожалуйста, укажите путь, который не существует или указывает на каталог.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1088"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1111"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>Не удалось создать каталог базы данных ключей</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1089"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1112"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend не удалось создать каталог по указанному пути к базе данных ключей. Пожалуйста, проверьте путь и ваши права доступа.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1215"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1238"/>
         <source>GpgFrontend needs at least one key database, so the last one cannot be removed.</source>
         <translation>GpgFrontend нуждается как минимум в одной базе данных ключей, поэтому последнюю удалить нельзя.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1221"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1244"/>
         <source>Confirm Deletion</source>
         <translation>Подтверждение удаления</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1222"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1245"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>Вы уверены, что хотите удалить выбранную базу данных ключей из списка?</translation>
     </message>
@@ -15165,7 +15235,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="148"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="154"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="279"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="303"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="232"/>

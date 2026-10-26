@@ -5965,17 +5965,17 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">添加新密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="409"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="432"/>
         <source>Unreadable Key Database Settings</source>
         <translation>无法读取的密钥数据库设置</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="410"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="433"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>您的已保存密钥数据库列表存在但无法读取。这通常意味着它是由其他安装或使用不同的应用密钥写入的。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="437"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>现在保存将用此处显示的列表替换它。之前的列表之后无法恢复。</translation>
     </message>
@@ -5984,32 +5984,32 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">不适用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="945"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="968"/>
         <source>No Key Database Selected</source>
         <translation>未选择任何密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="946"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="969"/>
         <source>Please select a key database to edit.</source>
         <translation>请选择要编辑的密钥数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1020"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1109"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="922"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1043"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1132"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1196"/>
         <source>Duplicate Key Database Paths</source>
         <translation>重复的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1021"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1044"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>编辑后的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1012"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1098"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1165"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1035"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1121"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1188"/>
         <source>Invalid Key Database Paths</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
@@ -6018,12 +6018,12 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">使用此计算机的默认密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="256"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="279"/>
         <source>Add Key Database</source>
         <translation>添加密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="281"/>
         <source>Add Key Database On This Computer</source>
         <translation>在此计算机上添加密钥数据库</translation>
     </message>
@@ -6040,60 +6040,60 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">始终为通道 0。从不包含在配置文件包中：在其他地方打开您的配置文件的人会得到他们自己的。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="775"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="798"/>
         <source>This folder could not be resolved on this computer.</source>
         <translation>无法在此计算机上解析此文件夹。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="804"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="827"/>
         <source>No key databases of your own yet. One you add here is kept inside your profile and travels with it.</source>
         <translation>您还没有自己的密钥数据库。您在此添加的密钥数据库会保存在您的配置文件中并随其移动。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="806"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="829"/>
         <source>Kept inside your profile, and carried by a profile package.</source>
         <translation>保存在您的配置文件中，并由配置文件包携带。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="810"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="833"/>
         <source>Nothing here yet. A key database you add on this tab stays on this computer: a profile package never carries it, and it is always opened after the ones inside your profile.</source>
         <translation>这里还没有任何内容。您在此选项卡上添加的密钥数据库将保留在此计算机上：配置文件包绝不携带它，并且它总是在您配置文件中的密钥数据库之后打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="813"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="836"/>
         <source>Key databases outside your profile. They belong to this computer alone: a profile package never carries them, and they are always opened after the ones inside your profile.</source>
         <translation>您配置文件之外的密钥数据库。它们仅属于此计算机：配置文件包绝不携带它们，并且它们总是在您配置文件内的密钥数据库之后打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="877"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1063"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1145"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="900"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1086"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1168"/>
         <source>Currently, GpgFrontend supports a maximum of %1 key databases. Please remove an existing database to add a new one.</source>
         <translation>目前，GpgFrontend 最多支持 %1 个密钥数据库。请移除现有数据库以添加新的数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="900"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
         <source>A key database on this page already uses this computer&apos;s default key database folder. Remove it first, then turn this on.</source>
         <translation>此页面上的某个密钥数据库已使用此计算机的默认密钥数据库文件夹。请先将其移除，然后再开启此选项。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="923"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1214"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="946"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1237"/>
         <source>Key Database Required</source>
         <translation>需要密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="924"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="947"/>
         <source>GpgFrontend needs at least one key database. Add another one first, then turn this off.</source>
         <translation>GpgFrontend 至少需要一个密钥数据库。请先添加另一个，然后再关闭此选项。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="990"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1013"/>
         <source>Key Database Folder Already Exists</source>
         <translation>密钥数据库文件夹已存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="991"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1014"/>
         <source>A folder named after &apos;%1&apos; is already there. Its contents are not ours to replace, so choose another name.</source>
         <translation>那里已有一个名为“%1”的文件夹。其中的内容不是我们可以替换的，请另选名称。</translation>
     </message>
@@ -6106,16 +6106,16 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">GpgFrontend 无法重命名此密钥数据库所在的文件夹。该文件夹可能仍在使用中；请重启 GpgFrontend 后重试。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1013"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1099"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1166"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1036"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1122"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1189"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>编辑的密钥数据库路径不是 GpgFrontend 可以使用的有效路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="876"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1062"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1144"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="899"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1085"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1167"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>已达到密钥数据库上限</translation>
     </message>
@@ -6124,26 +6124,26 @@ Results will appear here as a summary document.</source>
         <translation type="vanished">目前，GpgFrontend 最多支持 8 个密钥数据库。要添加新数据库，请移除现有数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1110"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1174"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1133"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1197"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>新添加的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1078"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1101"/>
         <source>Invalid Key Database Path</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="191"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="637"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="660"/>
         <source>Used when an operation does not explicitly select a key database.</source>
         <translation>用于操作未明确选择密钥数据库时。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="193"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="250"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="284"/>
         <source>Use as Default</source>
         <translation>设为默认</translation>
     </message>
@@ -6153,125 +6153,195 @@ Results will appear here as a summary document.</source>
         <translation>复制文件夹路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="215"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="197"/>
+        <source>Move Up</source>
+        <translation>上移</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="199"/>
+        <source>Move this key database up in the list</source>
+        <translation>在列表中上移此密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="200"/>
+        <source>Move Down</source>
+        <translation>下移</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="202"/>
+        <source>Move this key database down in the list</source>
+        <translation>在列表中下移此密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="203"/>
+        <source>Move to Top</source>
+        <translation>移到顶部</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="205"/>
+        <source>Move this key database to the top of the list</source>
+        <translation>将此密钥数据库移到列表顶部</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="206"/>
+        <source>Open</source>
+        <translation>打开</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="208"/>
+        <source>Open this key database&apos;s folder in the file manager</source>
+        <translation>在文件管理器中打开此密钥数据库的文件夹</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="209"/>
+        <source>Edit</source>
+        <translation>编辑</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="210"/>
+        <source>Edit this key database</source>
+        <translation>编辑此密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="211"/>
+        <source>Remove</source>
+        <translation>移除</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="213"/>
+        <source>Remove this key database from the list</source>
+        <translation>从列表中移除此密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="233"/>
         <source>Built-in Key Database</source>
         <translation>内置密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="217"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="235"/>
         <source>Key engine:</source>
         <translation>密钥引擎：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
         <source>Key engine for the built-in database</source>
         <translation>内置数据库的密钥引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="227"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="245"/>
         <source>Applies only to the built-in database. Other databases always open with their own engine.</source>
         <translation>仅适用于内置数据库。其他数据库始终使用各自的引擎打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="249"/>
         <source>Location:</source>
         <translation>位置：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="254"/>
         <source>Built-in key database location</source>
         <translation>内置密钥数据库位置</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="256"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="239"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="257"/>
         <source>Copy the full path</source>
         <translation>复制完整路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="241"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="259"/>
         <source>Copy the built-in key database location</source>
         <translation>复制内置密钥数据库位置</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="247"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="656"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="265"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="679"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="271"/>
         <source>Use the built-in key database as default</source>
         <translation>将内置密钥数据库设为默认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="275"/>
+        <source>In Profile</source>
+        <translation>配置文件内</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="277"/>
+        <source>Local Only</source>
+        <translation>仅本机</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="286"/>
         <source>Use the selected key database as default</source>
         <translation>将所选密钥数据库设为默认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="290"/>
         <source>Smart cards stay with the previous default database until GpgFrontend restarts. To move them sooner, apply this change, then use &quot;Restart All Gpg-Agents&quot; in the Smart Card Controller.</source>
         <translation>智能卡会一直使用之前的默认数据库，直到 GpgFrontend 重启。若要更早迁移，请应用此更改，然后在智能卡控制器中使用“重启所有 Gpg-Agent”。</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="531"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="554"/>
         <source>%1: %n operation(s)</source>
         <translation>
             <numerusform>%1：%n 个操作</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="573"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="596"/>
         <source>The OpenPGP engine on this computer does not report a key database, so there is no built-in one to use.</source>
         <translation>此计算机上的 OpenPGP 引擎未报告密钥数据库，因此没有可用的内置数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="585"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="608"/>
         <source>Always available on this computer, and always listed first.</source>
         <translation>始终在此计算机上可用，并始终列在最前面。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="586"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="609"/>
         <source>Always listed first. Never included in a profile package: whoever opens your profile elsewhere gets their own.</source>
         <translation>始终列在首位。从不包含在配置文件包中：在其他地方打开您的配置文件的人会获得自己的。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="600"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="623"/>
         <source>No engine in this build can open it.</source>
         <translation>此版本中没有任何引擎可以打开它。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1079"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1102"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>指定的密钥数据库路径指向一个已存在的文件。请指定一个不存在或指向目录的路径。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1088"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1111"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>创建密钥数据库目录失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1089"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1112"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend 在指定的密钥数据库路径创建目录失败。请检查路径和您的权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1215"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1238"/>
         <source>GpgFrontend needs at least one key database, so the last one cannot be removed.</source>
         <translation>GpgFrontend 至少需要一个密钥数据库，因此无法移除最后一个。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1221"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1244"/>
         <source>Confirm Deletion</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1222"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="1245"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>你确定要从列表中移除选中的密钥数据库吗？</translation>
     </message>
@@ -15119,7 +15189,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="148"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="154"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="279"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="303"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="232"/>
