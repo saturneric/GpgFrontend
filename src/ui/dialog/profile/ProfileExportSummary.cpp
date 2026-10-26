@@ -236,4 +236,22 @@ auto DescribeProfileExportFreeSpace(qint64 free_bytes) -> QString {
   return QObject::tr("%1 free on this drive").arg(HumanSize(free_bytes));
 }
 
+auto BuildProfileExportDoneRows(const QFileInfo& file, qint64 file_bytes)
+    -> QList<MetaListRow> {
+  QList<MetaListRow> rows;
+
+  rows.append({.caption = QObject::tr("File"),
+               .value = file.fileName(),
+               .emphasis = true});
+  rows.append({.caption = QObject::tr("Folder"),
+               .value = QDir::toNativeSeparators(file.absolutePath()),
+               .path = true});
+  if (file_bytes >= 0) {
+    rows.append(
+        {.caption = QObject::tr("Size"), .value = HumanSize(file_bytes)});
+  }
+
+  return rows;
+}
+
 }  // namespace GpgFrontend::UI

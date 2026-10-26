@@ -267,4 +267,18 @@ auto GF_UI_EXPORT BuildProfileExportReviewRows(
  */
 auto GF_UI_EXPORT DescribeProfileExportFreeSpace(qint64 free_bytes) -> QString;
 
+/**
+ * @brief The rows the "exported" dialog names the written file with.
+ *
+ * The size is the file's own, read after the write: by now it is a fact, not
+ * the uncompressed estimate the wizard could only offer before packing.
+ *
+ * @param file the package that was written
+ * @param file_bytes its size on disk, or -1 when it could not be read
+ * @return the rows to hand a MetaListPanel
+ */
+auto GF_UI_EXPORT BuildProfileExportDoneRows(const QFileInfo& file,
+                                             qint64 file_bytes)
+    -> QList<MetaListRow>;
+
 }  // namespace GpgFrontend::UI

@@ -47,7 +47,6 @@
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/dialog/profile/ProfileExportDialog.h"
-#include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -343,34 +342,36 @@ void MainWindow::slot_export_profile() {
                 return;
               }
 
-              // Named in rows rather than in a paragraph, and in the same
-              // rows the file will be described by when somebody opens it
-              // again: this is the same file, at the other end of its life.
+              // Named in rows rather than in a paragraph: where the file is
+              // and how big it came out, now that both are facts.
+              const QFileInfo written(request.dest_path);
               MetaListDialog done(tr("Profile Exported"),
-                                  tr("\"%1\" was written to a single file.")
+                                  tr("\"%1\" was saved as an encrypted backup.")
                                       .arg(request.manifest.display_name),
                                   this);
-              done.AddSection({}, BuildProfilePackageDestinationRows(
-                                      QFileInfo(request.dest_path), -1));
+              done.AddSection(
+                  {}, BuildProfileExportDoneRows(
+                          written, written.exists() ? written.size() : -1));
 
-              // What a package carries is an allow-list, so anything else in
-              // the profile folder stays behind silently. Said here, because
-              // the alternative is the sender finding out from the copy on
-              // somebody else's machine.
+              // What never travels was said on the wizard's first page, in
+              // words; the raw top-level names are internal file names that
+              // read as noise here, so they go to the log instead.
               if (!result->skipped.isEmpty()) {
-                done.AddSection(
-                    {}, {{.caption = tr("Left out"),
-                          .value = result->skipped.join(", "),
-                          .detail = tr("A profile file only carries the "
-                                       "profile itself."),
-                          .dimmed = true}});
+                LOG_I() << "profile export left out:" << result->skipped;
               }
 
               done.AddNote(
-                  tr("It can only be opened with the passphrase you "
-                     "chose. There is no way to recover it."));
+                  tr("Keep your passphrase safe. Without it, this file "
+                     "cannot be opened, and it cannot be recovered."));
               done.AddButton(tr("Done"), QDialogButtonBox::AcceptRole);
+              const auto show_folder = done.AddButton(
+                  tr("Show in Folder"), QDialogButtonBox::ActionRole);
               done.exec();
+
+              if (done.Choice() == show_folder) {
+                QDesktopServices::openUrl(
+                    QUrl::fromLocalFile(written.absolutePath()));
+              }
             },
             "export_profile_package");
       });

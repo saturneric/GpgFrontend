@@ -382,4 +382,26 @@ TEST(ProfileExportSummaryTest, FreeSpaceIsOnlySaidWhenKnown) {
   EXPECT_TRUE(known.contains(UI::HumanSize(4096)));
 }
 
+TEST(ProfileExportSummaryTest, TheDoneRowsNameTheFileAndItsSize) {
+  const auto rows =
+      UI::BuildProfileExportDoneRows(QFileInfo("/tmp/work.gfp"), 10482);
+
+  QStringList values;
+  for (const auto& row : rows) values << row.value;
+
+  EXPECT_TRUE(values.contains("work.gfp"));
+  EXPECT_TRUE(values.contains(UI::HumanSize(10482)));
+}
+
+TEST(ProfileExportSummaryTest, AnUnreadableSizeIsLeftOut) {
+  // A size this application could not read says nothing rather than "0 bytes",
+  // which would read as an empty backup.
+  const auto rows =
+      UI::BuildProfileExportDoneRows(QFileInfo("/tmp/work.gfp"), -1);
+
+  for (const auto& row : rows) {
+    EXPECT_NE(row.caption, QObject::tr("Size"));
+  }
+}
+
 }  // namespace GpgFrontend::Test
