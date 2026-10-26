@@ -547,17 +547,19 @@ void MainWindow::create_menus() {
   }
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
-  // Only show Smart Card Controller if GnuPG is supported, since it is not
-  // useful for other engines.
-  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    advance_menu_->addAction(smart_card_controller_open_act_);
+  // The controllers are left out of any sandbox, where they are not useful and
+  // may confuse users. The menu itself stays for the module entries on it.
+  if (!IsRunningInSandBox()) {
+    // Only show Smart Card Controller if GnuPG is supported, since it is not
+    // useful for other engines.
+    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+      advance_menu_->addAction(smart_card_controller_open_act_);
+    }
+    advance_menu_->addAction(module_controller_open_act_);
   }
-  advance_menu_->addAction(module_controller_open_act_);
 
-  // Hide the "Advanced" menu if running in sandbox, since most of the features
-  // in the "Advanced" menu are not useful in sandbox and may cause confusion to
-  // users.
-  if (IsRunningInSandBox()) {
+  // Hide the whole "Advanced" menu in the macOS app sandbox. Flatpak keeps it.
+  if (IsRunningInAppSandbox()) {
     advance_menu_->menuAction()->setVisible(false);
   }
 
