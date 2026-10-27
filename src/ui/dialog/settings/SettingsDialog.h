@@ -41,6 +41,7 @@ class GeneralTab;
 class AppearanceTab;
 class NetworkTab;
 class KeyDatabasesTab;
+class KeyGenerationTab;
 class GnuPGTab;
 class RpgpTab;
 class AdvancedTab;
@@ -64,6 +65,7 @@ class SettingsDialog : public GeneralDialog {
   AppearanceTab* appearance_tab_;  ///<
   NetworkTab* network_tab_;        ///<
   KeyDatabasesTab* key_dbs_tab_;   ///<
+  KeyGenerationTab* key_gen_tab_;  ///<
   GnuPGTab* gnupg_tab_;            ///<
   RpgpTab* rpgp_tab_;              ///<
   AdvancedTab* advanced_tab_;      ///<

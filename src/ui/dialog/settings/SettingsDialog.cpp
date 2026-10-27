@@ -38,6 +38,7 @@
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsGnuPG.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
+#include "ui/dialog/settings/SettingsKeyGeneration.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/dialog/settings/SettingsPageOrder.h"
 #include "ui/dialog/settings/SettingsRpgp.h"
@@ -76,6 +77,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   appearance_tab_ = new AppearanceTab();
   network_tab_ = new NetworkTab();
   key_dbs_tab_ = new KeyDatabasesTab();
+  key_gen_tab_ = new KeyGenerationTab();
   gnupg_tab_ = new GnuPGTab();
   rpgp_tab_ = new RpgpTab();
   advanced_tab_ = new AdvancedTab();
@@ -132,6 +134,12 @@ SettingsDialog::SettingsDialog(QWidget* parent)
                       "keys_engines",
                       {tr("keyring"), tr("gpg home"), tr("database path"),
                        tr("engine"), tr("built-in"), tr("default")}});
+
+  descriptors.append({key_gen_tab_,
+                      tr("Key Generation"),
+                      "keys_engines",
+                      {tr("profile"), tr("algorithm"), tr("user id"),
+                       tr("quick generate"), tr("pattern"), tr("new key")}});
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     descriptors.append(
@@ -463,6 +471,7 @@ void SettingsDialog::revert_all_tabs() {
   appearance_tab_->SetSettings();
   network_tab_->SetSettings();
   key_dbs_tab_->SetSettings();
+  key_gen_tab_->SetSettings();
   gnupg_tab_->SetSettings();
   rpgp_tab_->SetSettings();
   advanced_tab_->SetSettings();
@@ -541,6 +550,7 @@ void SettingsDialog::SlotAccept() {
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
   key_dbs_tab_->ApplySettings();
+  key_gen_tab_->ApplySettings();
 
   // The GnuPG page declares a deep restart when edited but its ApplySettings()
   // was never wired up, so those changes were dropped on OK and the restart
