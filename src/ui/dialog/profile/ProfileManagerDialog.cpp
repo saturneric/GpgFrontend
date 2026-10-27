@@ -30,6 +30,7 @@
 
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <array>
 #include <optional>
 
 #include "core/function/AESCryptoHelper.h"
@@ -50,18 +51,35 @@
 #include "core/utils/FilesystemUtils.h"
 #include "ui/dialog/profile/ProfileCreateDialog.h"
 #include "ui/dialog/profile/ProfileExportDialog.h"
+#include "ui/dialog/profile/ProfileListSummary.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/ProfileController.h"
+#include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {
 
 namespace {
 
 constexpr int kColumnName = 0;
-constexpr int kColumnId = 1;
-constexpr int kColumnKind = 2;
-constexpr int kColumnLastOpened = 3;
-constexpr int kColumnStatus = 4;
+constexpr int kColumnKind = 1;
+constexpr int kColumnLastOpened = 2;
+constexpr int kColumnStatus = 3;
+constexpr int kColumnCount = 4;
+
+auto StatusColor(const QPalette& palette, ProfileRowStatus status)
+    -> std::optional<QColor> {
+  switch (status) {
+    case ProfileRowStatus::kThisWindow:
+      return AccentColor(palette, true);
+    case ProfileRowStatus::kOpenElsewhere:
+      return WarningColor(palette);
+    case ProfileRowStatus::kNotCreated:
+      return MutedTextColor(palette);
+    case ProfileRowStatus::kNone:
+      break;
+  }
+  return {};
+}
 
 }  // namespace
 
@@ -85,135 +103,183 @@ void ProfileManagerDialog::init_ui() {
   // Says what the list *is* as well as what opening does. Everything here is a
   // profile this computer keeps; a profile file opened directly never appears,
   // which is otherwise only discoverable by not finding it.
-  hint_ = new QLabel(
+  layout->addLayout(CreateDialogHeader(
+      u":/icons/workspace.png"_s, tr("Profiles On This Computer"),
       tr("The profiles kept on this computer. Each one has its own settings, "
          "keys and saved state. Opening one starts a new window; this window "
          "stays exactly as it is."),
-      this);
-  hint_->setWordWrap(true);
-  hint_->setStyleSheet("color: gray;");
-
-  // Word-wrapped labels report one line of height unless asked to declare
-  // heightForWidth, and the dialog is sized from what its layout reports.
-  auto hint_policy = hint_->sizePolicy();
-  hint_policy.setHeightForWidth(true);
-  hint_policy.setVerticalPolicy(QSizePolicy::MinimumExpanding);
-  hint_->setSizePolicy(hint_policy);
-  layout->addWidget(hint_);
+      this));
 
   table_ = new QTableWidget(this);
-  table_->setColumnCount(5);
+  table_->setColumnCount(kColumnCount);
   table_->setHorizontalHeaderLabels(
-      {tr("Name"), tr("Folder"), tr("Type"), tr("Last Opened"), tr("Status")});
+      {tr("Name"), tr("Type"), tr("Last Opened"), tr("Status")});
   table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   table_->setSelectionMode(QAbstractItemView::SingleSelection);
   table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  table_->setContextMenuPolicy(Qt::CustomContextMenu);
+  table_->setShowGrid(false);
+  table_->setAlternatingRowColors(true);
+  table_->setWordWrap(false);
   table_->verticalHeader()->hide();
-  table_->horizontalHeader()->setStretchLastSection(true);
-  table_->setMinimumSize(680, 320);
+  table_->verticalHeader()->setDefaultSectionSize(
+      table_->fontMetrics().height() + 12);
+
+  // The name takes whatever width is left; everything else is sized to what it
+  // says in reload(), so no column is a stretch of nothing.
+  auto* header = table_->horizontalHeader();
+  header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  header->setHighlightSections(false);
+  header->setStretchLastSection(false);
+  header->setSectionResizeMode(kColumnName, QHeaderView::Stretch);
+
+  table_->setMinimumSize(560, 220);
   layout->addWidget(table_);
 
-  auto* buttons = new QHBoxLayout();
-  open_button_ = new QPushButton(tr("Open"), this);
-  open_button_->setDefault(true);
-  create_button_ = new QPushButton(tr("New..."), this);
-  temp_button_ = new QPushButton(tr("New Temporary"), this);
-  import_button_ = new QPushButton(tr("Import..."), this);
-  delete_button_ = new QPushButton(tr("Delete"), this);
-  reveal_button_ = new QPushButton(tr("Open Folder"), this);
+  open_action_ = new QAction(tr("Open"), this);
+  open_action_->setToolTip(tr("Open the selected profile in a new window"));
+  reveal_action_ = new QAction(tr("Show in Folder"), this);
+  reveal_action_->setToolTip(
+      tr("Show the selected profile's folder in the file manager"));
+  delete_action_ = new QAction(tr("Delete..."), this);
+  delete_action_->setToolTip(
+      tr("Remove the selected profile and everything in it, permanently"));
+  delete_action_->setShortcut(QKeySequence::Delete);
+  delete_action_->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  table_->addAction(delete_action_);
 
-  open_button_->setToolTip(tr("Open the selected profile in a new window"));
-  create_button_->setToolTip(tr("Start an empty profile on this computer"));
-  temp_button_->setToolTip(
+  row_menu_ = new QMenu(this);
+  row_menu_->setToolTipsVisible(true);
+  row_menu_->addAction(open_action_);
+  row_menu_->addAction(reveal_action_);
+  row_menu_->addSeparator();
+  row_menu_->addAction(delete_action_);
+
+  // Everything that makes a profile rather than acts on one sits behind a
+  // single button: three of them side by side read as three unrelated things.
+  auto* new_menu = new QMenu(this);
+  new_menu->setToolTipsVisible(true);
+  auto* create_action = new_menu->addAction(tr("New Profile..."));
+  create_action->setToolTip(tr("Start an empty profile on this computer"));
+  auto* temp_action = new_menu->addAction(tr("New Temporary Profile"));
+  temp_action->setToolTip(
       tr("Start an empty, throwaway profile in a new window. Everything in it "
          "is destroyed when that window closes."));
+  new_menu->addSeparator();
+  auto* import_action = new_menu->addAction(tr("Import Profile File..."));
   // Deliberately the same words as Profile -> Import Profile File: it is the
   // same act, and a second phrasing for it is how a user concludes there are
   // two.
-  import_button_->setToolTip(
+  import_action->setToolTip(
       tr("Copy a profile file into a new profile kept on this computer. The "
          "file is not used again afterwards."));
-  delete_button_->setToolTip(
-      tr("Remove the selected profile and everything in it, permanently"));
-  reveal_button_->setToolTip(
-      tr("Show the selected profile's folder in the file manager"));
 
-  buttons->addWidget(open_button_);
-  buttons->addWidget(create_button_);
-  buttons->addWidget(temp_button_);
-  buttons->addWidget(import_button_);
-  buttons->addWidget(delete_button_);
-  buttons->addWidget(reveal_button_);
-  buttons->addStretch();
+  auto* new_button = new QPushButton(tr("New"), this);
+  new_button->setMenu(new_menu);
 
+  // An overflow glyph, so only as wide as one: at a full button's width it
+  // reads as a button that forgot its label.
+  more_button_ = new QPushButton(u"\u22EF"_s, this);
+  more_button_->setToolTip(tr("More actions for the selected profile"));
+  more_button_->setFixedWidth(more_button_->sizeHint().height() * 3 / 2);
+
+  open_button_ = new QPushButton(tr("Open"), this);
+  open_button_->setDefault(true);
+  open_button_->setToolTip(open_action_->toolTip());
   auto* close = new QPushButton(tr("Close"), this);
+
+  auto* buttons = new QHBoxLayout();
+  buttons->addWidget(new_button);
+  buttons->addWidget(more_button_);
+  buttons->addStretch();
   buttons->addWidget(close);
+  buttons->addWidget(open_button_);
   layout->addLayout(buttons);
 
   connect(open_button_, &QPushButton::clicked, this,
           &ProfileManagerDialog::slot_open);
-  connect(import_button_, &QPushButton::clicked, this, [this]() {
+  connect(open_action_, &QAction::triggered, this,
+          &ProfileManagerDialog::slot_open);
+  connect(reveal_action_, &QAction::triggered, this,
+          &ProfileManagerDialog::slot_reveal);
+  connect(delete_action_, &QAction::triggered, this,
+          &ProfileManagerDialog::slot_delete);
+  connect(import_action, &QAction::triggered, this, [this]() {
     ImportProfileInteractive(
         this, [this]() { reload(); }, [this]() { accept(); });
   });
-  connect(create_button_, &QPushButton::clicked, this, [this]() {
+  connect(create_action, &QAction::triggered, this, [this]() {
     CreateProfileInteractive(
         this, [this]() { reload(); }, [this]() { accept(); });
   });
-  connect(temp_button_, &QPushButton::clicked, this, [this]() {
+  connect(temp_action, &QAction::triggered, this, [this]() {
     OpenTemporaryProfileInteractive(this, [this]() { accept(); });
   });
-  connect(delete_button_, &QPushButton::clicked, this,
-          &ProfileManagerDialog::slot_delete);
-  connect(reveal_button_, &QPushButton::clicked, this,
-          &ProfileManagerDialog::slot_reveal);
+  connect(more_button_, &QPushButton::clicked, this, [this]() {
+    row_menu_->exec(
+        more_button_->mapToGlobal(QPoint(0, more_button_->height())));
+  });
   connect(close, &QPushButton::clicked, this, &ProfileManagerDialog::accept);
   connect(table_, &QTableWidget::itemSelectionChanged, this,
           &ProfileManagerDialog::slot_selection_changed);
   connect(table_, &QTableWidget::itemDoubleClicked, this,
           &ProfileManagerDialog::slot_open);
+  connect(table_, &QTableWidget::customContextMenuRequested, this,
+          &ProfileManagerDialog::slot_context_menu);
 }
 
 void ProfileManagerDialog::reload() {
-  data_ = LoadProfiles();
+  // Keep the row the user was on; on first load, start on this window's own
+  // profile so the list opens on something rather than on nothing.
+  const auto previous = selected();
   const auto current = ProfileSession::Instance().Profile().Id();
+  const auto keep = previous.has_value() ? previous->id : current;
+
+  data_ = LoadProfiles();
+  const auto palette = table_->palette();
 
   table_->setRowCount(static_cast<int>(data_.profiles.size()));
+  int keep_row = -1;
   for (int row = 0; row < data_.profiles.size(); ++row) {
     const auto& e = data_.profiles.at(row);
-    const auto is_current = e.id == current;
+    const auto exists = QFileInfo::exists(e.root);
+    const auto view =
+        ProfileRowViewFor(e, current, exists,
+                          exists && ProfileLock::Probe(e.root).status ==
+                                        ProfileLockStatus::kHELD_ELSEWHERE);
 
-    auto* name = new QTableWidgetItem(is_current ? tr("%1  (open)").arg(e.name)
-                                                 : e.name);
-    if (is_current) {
+    auto* name = new QTableWidgetItem(view.name);
+    name->setToolTip(e.root);
+    if (view.is_current) {
       auto font = name->font();
       font.setBold(true);
       name->setFont(font);
     }
-    name->setToolTip(e.root);
-
-    table_->setItem(row, kColumnName, name);
-    table_->setItem(row, kColumnId, new QTableWidgetItem(e.id));
-    table_->setItem(row, kColumnKind,
-                    new QTableWidgetItem(ProfileKindDisplayName(e.kind)));
-    table_->setItem(row, kColumnLastOpened,
-                    new QTableWidgetItem(e.last_opened));
-
-    // "in use elsewhere" is worth showing here rather than only on a failed
-    // switch: it explains the refusal before the user runs into it
-    QString status;
-    if (is_current) {
-      status = tr("This window");
-    } else if (!QFileInfo::exists(e.root)) {
-      status = tr("Not created yet");
-    } else if (ProfileLock::Probe(e.root).status ==
-               ProfileLockStatus::kHELD_ELSEWHERE) {
-      status = tr("Open in another window");
+    auto* status = new QTableWidgetItem(view.status);
+    if (const auto color = StatusColor(palette, view.status_kind)) {
+      status->setForeground(*color);
     }
-    table_->setItem(row, kColumnStatus, new QTableWidgetItem(status));
+
+    const std::array<QTableWidgetItem*, kColumnCount> items{
+        name, new QTableWidgetItem(view.type),
+        new QTableWidgetItem(view.last_opened), status};
+    for (int column = 0; column < kColumnCount; ++column) {
+      table_->setItem(row, column, items.at(column));
+    }
+
+    if (e.id == keep) keep_row = row;
   }
 
-  table_->resizeColumnsToContents();
+  // ResizeToContents packs cells edge to edge, with no gutter between one
+  // column's text and the next one's.
+  auto* header = table_->horizontalHeader();
+  for (int column = 0; column < kColumnCount; ++column) {
+    if (column == kColumnName) continue;
+    table_->resizeColumnToContents(column);
+    header->resizeSection(column, header->sectionSize(column) + 24);
+  }
+
+  if (keep_row >= 0) table_->selectRow(keep_row);
   slot_selection_changed();
 }
 
@@ -226,16 +292,24 @@ auto ProfileManagerDialog::selected() const
 
 void ProfileManagerDialog::slot_selection_changed() {
   const auto entry = selected();
-  const auto current = ProfileSession::Instance().Profile().Id();
+  ProfileRowView view;
+  if (entry.has_value()) {
+    view = ProfileRowViewFor(*entry, ProfileSession::Instance().Profile().Id(),
+                             QFileInfo::exists(entry->root), false);
+  }
 
-  const auto has = entry.has_value();
-  open_button_->setEnabled(has && entry->id != current);
-  reveal_button_->setEnabled(has && QFileInfo::exists(entry->root));
+  open_button_->setEnabled(view.can_open);
+  open_action_->setEnabled(view.can_open);
+  reveal_action_->setEnabled(view.can_reveal);
+  delete_action_->setEnabled(view.can_delete);
+  more_button_->setEnabled(entry.has_value());
+}
 
-  // Classic and portable are resolved by the application itself, so there is
-  // nothing coherent for "delete" to mean; the current profile cannot be
-  // deleted out from under the process that is using it.
-  delete_button_->setEnabled(has && !entry->implicit && entry->id != current);
+void ProfileManagerDialog::slot_context_menu(const QPoint& pos) {
+  const auto index = table_->indexAt(pos);
+  if (!index.isValid()) return;
+  table_->selectRow(index.row());
+  row_menu_->exec(table_->viewport()->mapToGlobal(pos));
 }
 
 void ProfileManagerDialog::slot_open() {

@@ -36,7 +36,8 @@
 
 class QTableWidget;
 class QPushButton;
-class QLabel;
+class QMenu;
+class QAction;
 
 namespace GpgFrontend::UI {
 
@@ -68,16 +69,19 @@ class ProfileManagerDialog : public GeneralDialog {
   void slot_delete();
   void slot_reveal();
   void slot_selection_changed();
+  void slot_context_menu(const QPoint& pos);
 
  private:
   QTableWidget* table_{};
   QPushButton* open_button_{};
-  QPushButton* create_button_{};
-  QPushButton* temp_button_{};
-  QPushButton* import_button_{};
-  QPushButton* delete_button_{};
-  QPushButton* reveal_button_{};
-  QLabel* hint_{};
+  QPushButton* more_button_{};
+
+  /// Open, Show in Folder and Delete: shared by the "..." button and the
+  /// table's context menu, so the two can never disagree about what applies.
+  QMenu* row_menu_{};
+  QAction* open_action_{};
+  QAction* reveal_action_{};
+  QAction* delete_action_{};
 
   ProfileRegistryData data_;
 
