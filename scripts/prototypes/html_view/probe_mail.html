@@ -1,0 +1,74 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!--
+  A hostile mail body. Every URL below points at the probe logger
+  (P = http://127.0.0.1:8765) or at a *.localtest.me name that public DNS
+  resolves to 127.0.0.1, so a leak shows up as an HTTP hit and, for the DNS
+  probes, as a query in tcpdump. The probe name is the URL path.
+
+  Expected under the HTML View mail policy: zero hits, the gfpart image
+  renders, and the manual links only ever produce a "link_activated" line.
+-->
+<html>
+<head>
+  <base href="http://127.0.0.1:8765/base/">
+  <meta http-equiv="refresh" content="1;url=http://127.0.0.1:8765/meta-refresh">
+  <meta http-equiv="Content-Security-Policy" content="default-src *">
+  <link rel="stylesheet" href="http://127.0.0.1:8765/stylesheet">
+  <link rel="icon" href="http://127.0.0.1:8765/favicon">
+  <link rel="prefetch" href="http://127.0.0.1:8765/prefetch">
+  <link rel="preload" as="image" href="http://127.0.0.1:8765/preload">
+  <link rel="preconnect" href="http://gfprobe-preconnect.localtest.me:8765">
+  <link rel="dns-prefetch" href="//gfprobe-dnsprefetch.localtest.me">
+  <style>
+    @import url("http://127.0.0.1:8765/css-import");
+    @font-face { font-family: probe; src: url("http://127.0.0.1:8765/font"); }
+    body { font-family: probe, sans-serif;
+           background: url("http://127.0.0.1:8765/css-bg"); }
+  </style>
+</head>
+<body>
+  <h1>HTML View policy probe</h1>
+
+  <h2>Must render</h2>
+  <p>gfpart image: <img alt="cid part" src="cid:probe-part@gpgfrontend"></p>
+
+  <h2>Must never load (automatic)</h2>
+  <img src="http://127.0.0.1:8765/img">
+  <img srcset="http://127.0.0.1:8765/srcset 2x">
+  <img src="relative-after-base">
+  <picture><source srcset="http://127.0.0.1:8765/picture"><img></picture>
+  <video poster="http://127.0.0.1:8765/video-poster"
+         src="http://127.0.0.1:8765/video" autoplay muted></video>
+  <audio src="http://127.0.0.1:8765/audio" autoplay></audio>
+  <object data="http://127.0.0.1:8765/object"></object>
+  <embed src="http://127.0.0.1:8765/embed">
+  <iframe src="http://127.0.0.1:8765/iframe"></iframe>
+  <svg width="10" height="10">
+    <image href="http://127.0.0.1:8765/svg-image" width="10" height="10"/>
+  </svg>
+  <table background="http://127.0.0.1:8765/table-background"><tr><td>t</td></tr></table>
+  <div style="background-image:url('http://127.0.0.1:8765/inline-style')">s</div>
+  <script src="http://127.0.0.1:8765/script-src"></script>
+  <script>new Image().src = "http://127.0.0.1:8765/inline-script";</script>
+  <img src="x:broken" onerror="new Image().src='http://127.0.0.1:8765/onerror'">
+  <form id="f" action="http://127.0.0.1:8765/form-autosubmit" method="post">
+    <input type="image" src="http://127.0.0.1:8765/input-image">
+  </form>
+  <script>document.getElementById("f").submit();</script>
+
+  <h2>Click each; must only log link_activated</h2>
+  <ul>
+    <li><a href="http://127.0.0.1:8765/link-plain">plain link</a></li>
+    <li><a href="http://127.0.0.1:8765/link-blank" target="_blank">target=_blank</a></li>
+    <li><a href="http://127.0.0.1:8765/link-top" target="_top">target=_top</a></li>
+    <li><a href="http://127.0.0.1:8765/link-download" download>download</a></li>
+    <li><a href="http://127.0.0.1:8765/link-ping" ping="http://127.0.0.1:8765/ping">ping</a></li>
+    <li><a href="http://gfprobe-hover.localtest.me:8765/hover">hover me (DNS)</a></li>
+    <li><a href="mailto:probe@example.invalid">mailto</a></li>
+    <li><a href="file:///etc/hosts">file URL</a></li>
+  </ul>
+  <form action="http://127.0.0.1:8765/form-click" method="get">
+    <button>submit form</button>
+  </form>
+</body>
+</html>
