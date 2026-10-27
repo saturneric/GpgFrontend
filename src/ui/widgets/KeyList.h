@@ -276,6 +276,16 @@ class KeyList : public QWidget {
   auto GetCheckedKeys() -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief Check the key on the current tab when it is the only one there.
+   *
+   * For pickers whose usual case is a single candidate, such as the signer
+   * of a certification: one key needs no choosing.
+   *
+   * @return true when a key was checked
+   */
+  auto CheckSoleKey() -> bool;
+
+  /**
    * @brief Set the Checked object
    *
    * @param keyIds

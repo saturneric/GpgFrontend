@@ -304,6 +304,27 @@ void KeyList::init_ui_visibility() {
   ui_->switchContextButton->setHidden(
       !has_ability(KeyMenuAbility::kKEY_DATABASE));
   ui_->keyGroupButton->setHidden(!has_ability(KeyMenuAbility::kKEY_GROUP));
+
+  // A separator only between two groups that are both shown. Left visible on
+  // its own it draws stray bars, and keeps alive a tool row that would
+  // otherwise collapse when a host wants nothing but the search bar.
+  const auto refresh = has_ability(KeyMenuAbility::kREFRESH);
+  const auto checking = has_ability(KeyMenuAbility::kCHECK_ALL) ||
+                        has_ability(KeyMenuAbility::kUNCHECK_ALL);
+  const auto trailing = has_ability(KeyMenuAbility::kCOLUMN_FILTER) ||
+                        has_ability(KeyMenuAbility::kKEY_GROUP);
+  ui_->toolSeparator1->setVisible(refresh && (checking || trailing));
+  ui_->toolSeparator2->setVisible(checking && trailing);
+
+  // A box layout passes over hidden widgets but never over a spacer, so a row
+  // with every button hidden would still stand as tall as its spacer above the
+  // search bar.
+  const auto any_tool = refresh || checking || trailing ||
+                        has_ability(KeyMenuAbility::kKEY_DATABASE);
+  ui_->horizontalSpacer->changeSize(
+      any_tool ? 40 : 0, any_tool ? 20 : 0, QSizePolicy::Expanding,
+      any_tool ? QSizePolicy::Minimum : QSizePolicy::Fixed);
+  ui_->horizontalLayout->invalidate();
 }
 
 void KeyList::init_ui_style() {
@@ -1847,6 +1868,14 @@ void KeyList::UpdateKeyTableColumnType(GpgKeyTableColumn column_type) {
 
 auto KeyList::GetCurrentGpgContextChannel() const -> int {
   return current_gpg_context_channel_;
+}
+
+auto KeyList::CheckSoleKey() -> bool {
+  auto* key_table = current_page();
+  if (key_table == nullptr || key_table->GetRowCount() != 1) return false;
+
+  key_table->SetRowChecked(0);
+  return true;
 }
 
 auto KeyList::GetSelectedKeys() -> GpgAbstractKeyPtrList {
