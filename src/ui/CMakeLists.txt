@@ -52,10 +52,12 @@ register_library(ui LIBRARY_TARGET ${UI_SOURCE})
 include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
 target_sources(${LIBRARY_TARGET} PRIVATE ${GF_PLATFORM_UI_SOURCES})
 
-# NSWorkspace, for the macOS relaunch
+# NSWorkspace, for the macOS relaunch; WKWebView, for HTML views
 if(APPLE)
   find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
-  target_link_libraries(${LIBRARY_TARGET} ${APPKIT_FRAMEWORK})
+  find_library(WEBKIT_FRAMEWORK WebKit REQUIRED)
+  target_link_libraries(${LIBRARY_TARGET} ${APPKIT_FRAMEWORK}
+    ${WEBKIT_FRAMEWORK})
 endif()
 
 # link qt
