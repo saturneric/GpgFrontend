@@ -1661,7 +1661,7 @@ Möchten Sie fortfahren?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="205"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="706"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="708"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
@@ -2725,88 +2725,88 @@ Möchten Sie fortfahren?</translation>
         <translation>PIN zum Schutz der Schlüsseldatei</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="469"/>
         <source>Save Key File</source>
         <translation>Schlüsseldatei speichern</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="468"/>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="512"/>
         <source>All Files</source>
         <translation>Alle Dateien</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="507"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="509"/>
         <source>Export Key Package</source>
         <translation>Schlüsselpaket exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="512"/>
         <source>Key Package</source>
         <translation>Schlüsselpaket</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="542"/>
         <source>Saved beside the package.</source>
         <translation>Neben dem Paket gespeichert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="543"/>
         <source>Saved in a place of its own.</source>
         <translation>An einem eigenen Speicherort gespeichert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="571"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="573"/>
         <source>Replace File?</source>
         <translation>Datei ersetzen?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="574"/>
         <source>%1 already exists. Do you want to replace it?</source>
         <translation>%1 ist bereits vorhanden. Möchten Sie es ersetzen?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="606"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="608"/>
         <source>Exporting</source>
         <translation>Wird exportiert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="631"/>
         <source>Export Failed</source>
         <translation>Export fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="632"/>
         <source>The key package could not be written.</source>
         <translation>Das Schlüsselpaket konnte nicht geschrieben werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="633"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="635"/>
         <source>Check that both folders still exist and can be written to, then try again. Your choices are kept.</source>
         <translation>Stellen Sie sicher, dass beide Ordner noch vorhanden sind und beschrieben werden können, und versuchen Sie es dann erneut. Ihre Auswahl bleibt erhalten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="645"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="650"/>
         <source>Key Package Exported</source>
         <translation>Schlüsselpaket exportiert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="646"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="651"/>
         <source>The key package and its key file have been saved.</source>
         <translation>Das Schlüsselpaket und seine Schlüsseldatei wurden gespeichert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="650"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="653"/>
         <source>Keep the key file and the PIN apart from the package, and delete both files once the transfer is done.</source>
         <translation>Bewahren Sie die Schlüsseldatei und die PIN getrennt vom Paket auf und löschen Sie beide Dateien, sobald die Übertragung abgeschlossen ist.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="652"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="655"/>
         <source>Done</source>
         <translation>Fertig</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="656"/>
         <source>Show in Folder</source>
         <translation>Im Ordner anzeigen</translation>
     </message>
@@ -2815,7 +2815,7 @@ Möchten Sie fortfahren?</translation>
         <translation type="vanished">Schlüsselpaket-Passphrase exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="470"/>
         <source>Key File</source>
         <translation>Schlüsseldatei</translation>
     </message>
@@ -4382,6 +4382,145 @@ Noch laufende GnuPG-Vorgänge werden unterbrochen.</translation>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="836"/>
         <source>Another operation is still running. Please wait for it to finish.</source>
         <translation>Ein anderer Vorgang läuft noch. Bitte warten Sie, bis er abgeschlossen ist.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ImportKeyPackageDialog</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="94"/>
+        <source>Import keys</source>
+        <translation>Schlüssel importieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="104"/>
+        <source>Import Key Package</source>
+        <translation>Schlüsselpaket importieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="140"/>
+        <source>Choose the key package and the key file that came with it. A key file saved beside the package is found by itself.</source>
+        <translation>Wählen Sie das Schlüsselpaket und die dazugehörige Schlüsseldatei. Eine neben dem Paket gespeicherte Schlüsseldatei wird automatisch gefunden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="157"/>
+        <source>No file chosen yet</source>
+        <translation>Noch keine Datei ausgewählt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="159"/>
+        <source>Browse...</source>
+        <translation>Durchsuchen...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="166"/>
+        <source>Key package</source>
+        <translation>Schlüsselpaket</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="166"/>
+        <source>Choose the key package</source>
+        <translation>Schlüsselpaket auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="168"/>
+        <source>Key file</source>
+        <translation>Schlüsseldatei</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="168"/>
+        <source>Choose the key file</source>
+        <translation>Schlüsseldatei auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="175"/>
+        <source>Use the one beside the package</source>
+        <translation>Die neben dem Paket verwenden</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="201"/>
+        <source>Enter the PIN that protects the key file. It was chosen when the package was exported. Nothing is imported yet.</source>
+        <translation>Geben Sie die PIN ein, die die Schlüsseldatei schützt. Sie wurde beim Exportieren des Pakets festgelegt. Es wird noch nichts importiert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="215"/>
+        <source>PIN that protects the key file</source>
+        <translation>PIN zum Schutz der Schlüsseldatei</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="245"/>
+        <source>These keys are in the package. Untick any you do not want to import.</source>
+        <translation>Diese Schlüssel sind im Paket enthalten. Entfernen Sie das Häkchen bei allen, die Sie nicht importieren möchten.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="252"/>
+        <source>Select all</source>
+        <translation>Alle auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="253"/>
+        <source>Select none</source>
+        <translation>Keine auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="288"/>
+        <source>Keys in the package</source>
+        <translation>Schlüssel im Paket</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="379"/>
+        <source>Choose Key Package</source>
+        <translation>Schlüsselpaket auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="380"/>
+        <source>Key Package</source>
+        <translation>Schlüsselpaket</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="380"/>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="403"/>
+        <source>All Files</source>
+        <translation>Alle Dateien</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="402"/>
+        <source>Choose Key File</source>
+        <translation>Schlüsseldatei auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="403"/>
+        <source>Key File</source>
+        <translation>Schlüsseldatei</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="439"/>
+        <source>Chosen by you.</source>
+        <translation>Von Ihnen ausgewählt.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="441"/>
+        <source>Found beside the package.</source>
+        <translation>Neben dem Paket gefunden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="443"/>
+        <source>No key file was found beside the package.</source>
+        <translation>Neben dem Paket wurde keine Schlüsseldatei gefunden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="523"/>
+        <source>Opening</source>
+        <translation>Wird geöffnet</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="610"/>
+        <source>Importing</source>
+        <translation>Wird importiert</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="666"/>
+        <source>Import Failed</source>
+        <translation>Import fehlgeschlagen</translation>
     </message>
 </context>
 <context>
@@ -7853,7 +7992,7 @@ GpgFrontend wird nun versuchen, den/die Schlüssel zu importieren.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="276"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1469"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1391"/>
         <source>Category</source>
         <translation>Kategorie</translation>
     </message>
@@ -7915,7 +8054,6 @@ GpgFrontend wird nun versuchen, den/die Schlüssel zu importieren.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1166"/>
         <source>Key Package</source>
         <translation>Schlüsselpaket</translation>
     </message>
@@ -8267,11 +8405,6 @@ GpgFrontend wird nun versuchen, den/die Schlüssel zu importieren.</translation>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1119"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1130"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1143"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1175"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1183"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1199"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1207"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1236"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
@@ -8429,27 +8562,25 @@ GpgFrontend wird nun versuchen, den/die Schlüssel zu importieren.</translation>
         <translation>Private Schlüssel gesichert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1213"/>
         <source>Enter PIN</source>
-        <translation>PIN eingeben</translation>
+        <translation type="vanished">PIN eingeben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1214"/>
         <source>Please enter PIN to decrypt the Key:</source>
-        <translation>Bitte geben Sie die PIN ein, um den Schlüssel zu entschlüsseln:</translation>
+        <translation type="vanished">Bitte geben Sie die PIN ein, um den Schlüssel zu entschlüsseln:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1468"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1390"/>
         <source>Category (%1 keys)</source>
         <translation>Kategorie (%1 Schlüssel)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1480"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1402"/>
         <source>Remove From This Category</source>
         <translation>Aus dieser Kategorie entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1516"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1438"/>
         <source>New Category...</source>
         <translation>Neue Kategorie...</translation>
     </message>
@@ -8462,17 +8593,17 @@ GpgFrontend wird nun versuchen, den/die Schlüssel zu importieren.</translation>
         <translation type="vanished">Kategoriename:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1547"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1469"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>%1 Schlüssel · %2 private · %3 läuft bald ab · %4 abgelaufen oder widerrufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1554"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1476"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 Schlüssel läuft innerhalb von %2 Tagen ab. Siehe den Reiter &quot;Bald ablaufend&quot;.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1558"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1480"/>
         <source>No key expires within the next %1 days.</source>
         <translation>Kein Schlüssel läuft innerhalb der nächsten %1 Tage ab.</translation>
     </message>
@@ -8558,38 +8689,31 @@ Fingerabdruck: %2</translation>
         <translation>OpenSSH-Dateien mit öffentlichem Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1166"/>
         <source>Import Key Package</source>
-        <translation>Schlüsselpaket importieren</translation>
+        <translation type="vanished">Schlüsselpaket importieren</translation>
+    </message>
+    <message>
+        <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
+        <translation type="vanished">Kann diese Datei nicht öffnen. Bitte stellen Sie sicher, dass es sich um eine reguläre, lesbare Datei handelt.</translation>
+    </message>
+    <message>
+        <source>The target file is too large for a key package.</source>
+        <translation type="vanished">Die Zieldatei ist zu groß für ein Schlüsselpaket.</translation>
+    </message>
+    <message>
+        <source>Import Key Package Passphrase File</source>
+        <translation type="vanished">Schlüsselpaket-Passphrasendatei importieren</translation>
+    </message>
+    <message>
+        <source>Key Package Passphrase File</source>
+        <translation type="vanished">Schlüsselpaket-Passphrasendatei</translation>
+    </message>
+    <message>
+        <source>The target file is too large for a key package passphrase.</source>
+        <translation type="vanished">Die Zieldatei ist zu groß für eine Schlüsselpaket-Passphrase.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1176"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1200"/>
-        <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
-        <translation>Kann diese Datei nicht öffnen. Bitte stellen Sie sicher, dass es sich um eine reguläre, lesbare Datei handelt.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1184"/>
-        <source>The target file is too large for a key package.</source>
-        <translation>Die Zieldatei ist zu groß für ein Schlüsselpaket.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1189"/>
-        <source>Import Key Package Passphrase File</source>
-        <translation>Schlüsselpaket-Passphrasendatei importieren</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1190"/>
-        <source>Key Package Passphrase File</source>
-        <translation>Schlüsselpaket-Passphrasendatei</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1208"/>
-        <source>The target file is too large for a key package passphrase.</source>
-        <translation>Die Zieldatei ist zu groß für eine Schlüsselpaket-Passphrase.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1242"/>
         <source>key(s) imported</source>
         <translation>Schlüssel importiert</translation>
     </message>
@@ -11056,7 +11180,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="306"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="441"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="595"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="597"/>
         <source>File</source>
         <translation>Datei</translation>
     </message>
@@ -11145,13 +11269,13 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="334"/>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="393"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="443"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Open</source>
         <translation>Öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="448"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="610"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="612"/>
         <source>Workspace</source>
         <translation>Arbeitsbereich</translation>
     </message>
@@ -11171,27 +11295,27 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation>Fortschrittlich</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Open a file or directory</source>
         <translation>Eine Datei oder ein Verzeichnis öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="611"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="613"/>
         <source>Open a text editor or file panel</source>
         <translation>Einen Texteditor oder Dateibereich öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="633"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="635"/>
         <source>Import</source>
         <translation>Importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="634"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="636"/>
         <source>Import a key from file, editor, or clipboard</source>
         <translation>Einen Schlüssel aus Datei, Editor oder Zwischenablage importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="652"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="654"/>
         <source>Text Tools</source>
         <translation>Textwerkzeuge</translation>
     </message>
@@ -11216,7 +11340,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation type="vanished">Aktuelles OpenPGP-Backend und Version</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="799"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="801"/>
         <source>Status Panel</source>
         <translation>Status-Panel</translation>
     </message>
@@ -11563,13 +11687,13 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="463"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="645"/>
         <source>Edit</source>
         <translation>Bearbeiten</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="494"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="625"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="627"/>
         <source>Keys</source>
         <translation>Schlüssel</translation>
     </message>
@@ -11580,18 +11704,18 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation>Schlüssel importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="564"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="566"/>
         <source>View</source>
         <translation>Ansicht</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="574"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="576"/>
         <source>Help</source>
         <translation>Hilfe</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="622"/>
         <source>Operations</source>
         <translation>Aktivieren</translation>
     </message>
@@ -11606,17 +11730,17 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation>Neues Dateipanel öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="718"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="720"/>
         <source>Ready</source>
         <translation>Bereit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="722"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="724"/>
         <source>Key ToolBox</source>
         <translation>Schlüssel-Toolbox</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="747"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="749"/>
         <source>Default</source>
         <translation>Standard</translation>
     </message>
@@ -11625,17 +11749,17 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation type="vanished">Favorit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="755"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="757"/>
         <source>Key Group</source>
         <translation>Schlüsselgruppe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="762"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="764"/>
         <source>Only Public Key</source>
         <translation>Nur öffentlicher Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="770"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="772"/>
         <source>Has Private Key</source>
         <translation>Hat privaten Schlüssel</translation>
     </message>
@@ -12622,84 +12746,94 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>GpgFrontend::UI::ProfileCreateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="148"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="151"/>
         <source>New Profile</source>
         <translation>Neues Profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="174"/>
         <source>Its own keys and settings, opened in a window of its own.</source>
-        <translation>Eigene Schlüssel und Einstellungen, in einem eigenen Fenster geöffnet.</translation>
+        <translation type="vanished">Eigene Schlüssel und Einstellungen, in einem eigenen Fenster geöffnet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="187"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="149"/>
         <source>Create Profile</source>
         <translation>Profil erstellen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="209"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="181"/>
+        <source>Give the new profile a name. It is shown in the profile list and the status bar, and you can change it later.</source>
+        <translation>Geben Sie dem neuen Profil einen Namen. Er wird in der Profilliste und der Statusleiste angezeigt und kann später geändert werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="186"/>
         <source>for example: Work</source>
         <translation>z. B.: Arbeit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="213"/>
-        <source>Shown in the profile list and the status bar. You can change it later.</source>
-        <translation>Wird in der Profilliste und der Statusleiste angezeigt. Sie können ihn später ändern.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="217"/>
-        <source>Name</source>
-        <translation>Name</translation>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="197"/>
+        <source>Choose where this profile&apos;s built-in key database lives.</source>
+        <translation>Wählen Sie, wo die integrierte Schlüsseldatenbank dieses Profils liegt.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="231"/>
-        <source>Keys live inside this profile and can be exported with it as one file.</source>
-        <translation>Schlüssel leben in diesem Profil und können mit ihm als einzelne Datei exportiert werden.</translation>
+        <source>You can add more key databases later in Settings, under Key Databases.</source>
+        <translation>Weitere Schlüsseldatenbanken können Sie später in den Einstellungen unter Schlüsseldatenbanken hinzufügen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="242"/>
+        <source>Choose which of this window&apos;s settings the new profile starts with.</source>
+        <translation>Wählen Sie, mit welchen Einstellungen dieses Fensters das neue Profil beginnt.</translation>
+    </message>
+    <message>
+        <source>Shown in the profile list and the status bar. You can change it later.</source>
+        <translation type="vanished">Wird in der Profilliste und der Statusleiste angezeigt. Sie können ihn später ändern.</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="vanished">Name</translation>
+    </message>
+    <message>
+        <source>Keys live inside this profile and can be exported with it as one file.</source>
+        <translation type="vanished">Schlüssel leben in diesem Profil und können mit ihm als einzelne Datei exportiert werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="211"/>
         <source>Recommended</source>
         <translation>Empfohlen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="236"/>
         <source>Your existing keys, shared with the system. Not carried in a profile file.</source>
-        <translation>Ihre vorhandenen Schlüssel, mit dem System geteilt. Werden nicht in einer Profildatei mitgeführt.</translation>
+        <translation type="vanished">Ihre vorhandenen Schlüssel, mit dem System geteilt. Werden nicht in einer Profildatei mitgeführt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="252"/>
         <source>Keys</source>
-        <translation>Schlüssel</translation>
+        <translation type="vanished">Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="249"/>
         <source>Start with this window&apos;s settings</source>
         <translation>Mit den Einstellungen dieses Fensters starten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="331"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="311"/>
         <source>Never copied: keys, key databases, the workspace folder, key protection and proxy credentials.</source>
         <translation>Niemals kopiert: Schlüssel, Schlüsseldatenbanken, der Arbeitsbereichsordner, Schlüsselschutz und Proxy-Zugangsdaten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="338"/>
         <source>Settings</source>
-        <translation>Einstellungen</translation>
+        <translation type="vanished">Einstellungen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="230"/>
         <source>Start with an empty keyring</source>
-        <translation>Mit leerem Schlüsselbund beginnen</translation>
+        <translation type="vanished">Mit leerem Schlüsselbund beginnen</translation>
     </message>
     <message>
         <source>Keys live inside this profile. It stays separate from everything else and can be exported as a single file. It opens with no keys, so you will import or create them here.</source>
         <translation type="vanished">Schlüssel leben in diesem Profil. Es bleibt von allem anderen getrennt und kann als einzelne Datei exportiert werden. Es wird ohne Schlüssel geöffnet, daher müssen Sie diese hier importieren oder erstellen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
         <source>Use the system GnuPG keyring</source>
-        <translation>System-GnuPG-Schlüsselbund verwenden</translation>
+        <translation type="vanished">System-GnuPG-Schlüsselbund verwenden</translation>
     </message>
     <message>
         <source>The same keys you already have. They are shared with the rest of the system, so they are not really separate and cannot be carried inside a profile file.</source>
@@ -12866,168 +13000,195 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>GpgFrontend::UI::ProfileManagerDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="72"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
         <source>Profiles On This Computer</source>
         <translation>Profile auf diesem Computer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="108"/>
         <source>The profiles kept on this computer. Each one has its own settings, keys and saved state. Opening one starts a new window; this window stays exactly as it is.</source>
         <translation>Die auf diesem Computer gespeicherten Profile. Jedes hat seine eigenen Einstellungen, Schlüssel und gespeicherten Zustand. Beim Öffnen eines Profils wird ein neues Fenster gestartet; dieses Fenster bleibt genau so, wie es ist.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Name</source>
         <translation>Name</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
         <source>Folder</source>
-        <translation>Ordner</translation>
+        <translation type="vanished">Ordner</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Type</source>
         <translation>Typ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Last Opened</source>
         <translation>Zuletzt geöffnet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="186"/>
         <source>Open</source>
         <translation>Öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="119"/>
         <source>New...</source>
-        <translation>Neu...</translation>
+        <translation type="vanished">Neu...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="120"/>
         <source>New Temporary</source>
-        <translation>Neu (temporär)</translation>
+        <translation type="vanished">Neu (temporär)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="121"/>
         <source>Import...</source>
-        <translation>Importieren...</translation>
+        <translation type="vanished">Importieren...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="122"/>
         <source>Delete</source>
-        <translation>Löschen</translation>
+        <translation type="vanished">Löschen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="123"/>
         <source>Open Folder</source>
-        <translation>Ordner öffnen</translation>
+        <translation type="vanished">Ordner öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="140"/>
         <source>Open the selected profile in a new window</source>
         <translation>Ausgewähltes Profil in neuem Fenster öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="141"/>
+        <source>Show in Folder</source>
+        <translation>Im Ordner anzeigen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="144"/>
+        <source>Delete...</source>
+        <translation>Löschen...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="162"/>
+        <source>New Profile...</source>
+        <translation>Neues Profil...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="163"/>
         <source>Start an empty profile on this computer</source>
         <translation>Leeres Profil auf diesem Computer starten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="128"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="164"/>
+        <source>New Temporary Profile</source>
+        <translation>Neues temporäres Profil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="166"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
         <translation>Ein leeres Wegwerfprofil in einem neuen Fenster starten. Alles darin wird zerstört, sobald dieses Fenster geschlossen wird.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="169"/>
+        <source>Import Profile File...</source>
+        <translation>Profildatei importieren...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="174"/>
         <source>Copy a profile file into a new profile kept on this computer. The file is not used again afterwards.</source>
         <translation>Eine Profildatei in ein neues Profil auf diesem Computer kopieren. Die Datei wird danach nicht mehr verwendet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="146"/>
         <source>Remove the selected profile and everything in it, permanently</source>
         <translation>Ausgewähltes Profil und alle Inhalte dauerhaft entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="143"/>
         <source>Show the selected profile&apos;s folder in the file manager</source>
         <translation>Ordner des ausgewählten Profils im Dateimanager anzeigen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="177"/>
+        <source>New</source>
+        <translation>Neu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="183"/>
+        <source>More actions for the selected profile</source>
+        <translation>Weitere Aktionen für das ausgewählte Profil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="189"/>
         <source>Close</source>
         <translation>Schließen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="186"/>
         <source>%1  (open)</source>
-        <translation>%1  (offen)</translation>
+        <translation type="vanished">%1  (offen)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="206"/>
         <source>This window</source>
-        <translation>Dieses Fenster</translation>
+        <translation type="vanished">Dieses Fenster</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="208"/>
         <source>Not created yet</source>
-        <translation>Noch nicht erstellt</translation>
+        <translation type="vanished">Noch nicht erstellt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="211"/>
         <source>Open in another window</source>
-        <translation>In anderem Fenster öffnen</translation>
+        <translation type="vanished">In anderem Fenster öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="324"/>
         <source>Cannot Open Profile</source>
         <translation>Profil kann nicht geöffnet werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="266"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="275"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="349"/>
         <source>Delete Profile</source>
         <translation>Profil löschen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="341"/>
         <source>Delete &quot;%1&quot;?</source>
         <translation>&quot;%1&quot; löschen?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="342"/>
         <source>Its keys, settings and saved state are removed from this computer permanently.</source>
         <translation>Seine Schlüssel, Einstellungen und der gespeicherte Zustand werden dauerhaft von diesem Computer entfernt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="276"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="350"/>
         <source>This cannot be undone. Anything stored only in &quot;%1&quot; will be lost.</source>
         <translation>Dies kann nicht rückgängig gemacht werden. Alles, was nur in &quot;%1&quot; gespeichert ist, geht verloren.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="359"/>
         <source>Profile Is Open</source>
         <translation>Profil ist geöffnet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="360"/>
         <source>&quot;%1&quot; is open in another window. Close it first.</source>
         <translation>&quot;%1&quot; ist in einem anderen Fenster geöffnet. Schließen Sie es zuerst.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="378"/>
         <source>Cannot Delete Profile</source>
         <translation>Profil kann nicht gelöscht werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="379"/>
         <source>The profile folder could not be removed:</source>
         <translation>Der Profilordner konnte nicht entfernt werden:</translation>
     </message>
@@ -13249,19 +13410,23 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation>Erfinden Sie eine starke Passphrase und zeigen Sie sie an, damit Sie sie notieren können</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="220"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="231"/>
         <source>Generate a strong passphrase</source>
         <translation>Generieren Sie eine starke Passphrase</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="389"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="400"/>
         <source>A passphrase could not be generated.</source>
         <translation>Eine Passphrase konnte nicht generiert werden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="408"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="419"/>
+        <source>Copied to the clipboard. Keep it somewhere safe: it cannot be recovered.</source>
+        <translation>In die Zwischenablage kopiert. Bewahren Sie sie an einem sicheren Ort auf: Sie kann nicht wiederhergestellt werden.</translation>
+    </message>
+    <message>
         <source>Copied to the clipboard. Save it somewhere safe now — it is not stored anywhere, and it cannot be recovered later.</source>
-        <translation>In die Zwischenablage kopiert. Speichern Sie sie jetzt an einem sicheren Ort – sie wird nirgendwo gespeichert und kann später nicht wiederhergestellt werden.</translation>
+        <translation type="vanished">In die Zwischenablage kopiert. Speichern Sie sie jetzt an einem sicheren Ort – sie wird nirgendwo gespeichert und kann später nicht wiederhergestellt werden.</translation>
     </message>
 </context>
 <context>
@@ -16041,6 +16206,8 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="167"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="38"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="192"/>
         <source>Name</source>
@@ -16063,9 +16230,135 @@ Wählen Sie „Abbrechen“, um alle im Dialog vorgenommenen Änderungen zu verw
         <translation>Engine</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="51"/>
+        <source>Files</source>
+        <translation>Dateien</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="53"/>
+        <source>Unlock</source>
+        <translation>Entsperren</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="117"/>
+        <source>Choose the key package to import.</source>
+        <translation>Wählen Sie das zu importierende Schlüsselpaket.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="119"/>
+        <source>The key package cannot be read. Make sure it is a regular file you can open.</source>
+        <translation>Das Schlüsselpaket kann nicht gelesen werden. Stellen Sie sicher, dass es sich um eine reguläre Datei handelt, die Sie öffnen können.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="123"/>
+        <source>This file is too large to be a key package.</source>
+        <translation>Diese Datei ist zu groß für ein Schlüsselpaket.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="125"/>
+        <source>Choose the key file that came with the package.</source>
+        <translation>Wählen Sie die Schlüsseldatei, die zum Paket gehört.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="127"/>
+        <source>The key file cannot be read. Make sure it is a regular file you can open.</source>
+        <translation>Die Schlüsseldatei kann nicht gelesen werden. Stellen Sie sicher, dass es sich um eine reguläre Datei handelt, die Sie öffnen können.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="131"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>Diese Datei ist zu groß für eine Schlüsseldatei.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="133"/>
+        <source>The key package and the key file are the same file. Choose the key file that came with the package.</source>
+        <translation>Das Schlüsselpaket und die Schlüsseldatei sind dieselbe Datei. Wählen Sie die Schlüsseldatei, die zum Paket gehört.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="137"/>
+        <source>Enter the PIN that protects the key file.</source>
+        <translation>Geben Sie die PIN ein, die die Schlüsseldatei schützt.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="139"/>
+        <source>Tick at least one key to import.</source>
+        <translation>Wählen Sie mindestens einen Schlüssel zum Importieren aus.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="149"/>
+        <source>The PIN is wrong, or this key file belongs to another package. Check both and try again.</source>
+        <translation>Die PIN ist falsch, oder diese Schlüsseldatei gehört zu einem anderen Paket. Prüfen Sie beides und versuchen Sie es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="154"/>
+        <source>The key file opened, but it does not belong to this package. Choose the key file exported with it.</source>
+        <translation>Die Schlüsseldatei wurde geöffnet, gehört aber nicht zu diesem Paket. Wählen Sie die mit ihm exportierte Schlüsseldatei.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="159"/>
+        <source>The key package could not be read.</source>
+        <translation>Das Schlüsselpaket konnte nicht gelesen werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="162"/>
+        <source>The key file could not be read.</source>
+        <translation>Die Schlüsseldatei konnte nicht gelesen werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="165"/>
+        <source>None of the ticked keys could be read from the package.</source>
+        <translation>Keiner der markierten Schlüssel konnte aus dem Paket gelesen werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="170"/>
+        <source>The package opened, but its keys could not be imported into this key database.</source>
+        <translation>Das Paket wurde geöffnet, aber seine Schlüssel konnten nicht in diese Schlüsseldatenbank importiert werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="174"/>
+        <source>The key package could not be imported.</source>
+        <translation>Das Schlüsselpaket konnte nicht importiert werden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="179"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="186"/>
         <source>Status</source>
         <translation>Status</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="194"/>
+        <source>New, with private key</source>
+        <translation>Neu, mit privatem Schlüssel</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="195"/>
+        <source>New</source>
+        <translation>Neu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="197"/>
+        <source>Adds the private key</source>
+        <translation>Fügt den privaten Schlüssel hinzu</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="201"/>
+        <source>Already here</source>
+        <translation>Bereits vorhanden</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="215"/>
+        <source>The package holds 1 key; it is ticked.</source>
+        <translation>Das Paket enthält 1 Schlüssel; er ist markiert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="216"/>
+        <source>The package holds 1 key; it is not ticked.</source>
+        <translation>Das Paket enthält 1 Schlüssel; er ist nicht markiert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="220"/>
+        <source>%1 of %2 keys ticked.</source>
+        <translation>%1 von %2 Schlüsseln ausgewählt.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="66"/>
@@ -16296,6 +16589,7 @@ Der Link wurde in die Zwischenablage kopiert:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="189"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="212"/>
         <source>Key ID</source>
@@ -16303,6 +16597,7 @@ Der Link wurde in die Zwischenablage kopiert:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <source>Email</source>
         <translation>E-Mail</translation>
     </message>
@@ -16349,18 +16644,21 @@ Der Link wurde in die Zwischenablage kopiert:
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="280"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="300"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="235"/>
         <source>Key package</source>
         <translation>Schlüsselpaket</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="281"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="228"/>
         <source>Not chosen yet</source>
         <translation>Noch nicht ausgewählt</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="286"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="303"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="236"/>
         <source>Key file</source>
         <translation>Schlüsseldatei</translation>
     </message>
@@ -16824,6 +17122,8 @@ Der Link wurde in die Zwischenablage kopiert:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="55"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="40"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
         <source>Keys</source>
         <translation>Schlüssel</translation>
@@ -17139,9 +17439,25 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <translation>Diese Passphrase hat diese Datei nicht geöffnet. Versuchen Sie es erneut.</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="42"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="46"/>
         <source>Settings</source>
         <translation>Einstellungen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="72"/>
+        <source>Starts empty. Its keys are exported with the profile as one file.</source>
+        <translation>Beginnt leer. Die zugehörigen Schlüssel werden mit dem Profil als eine Datei exportiert.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="80"/>
+        <source>Your existing keys in the GnuPG home directory, shared with other programs. Not carried in a profile file.</source>
+        <translation>Ihre vorhandenen Schlüssel im GnuPG-Home-Verzeichnis, die mit anderen Programmen gemeinsam genutzt werden. Werden nicht in einer Profildatei mitgeführt.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="83"/>
+        <source>Shared with the other profiles on this computer that use it. Not carried in a profile file.</source>
+        <translation>Wird mit den anderen Profilen auf diesem Computer geteilt, die es verwenden. Wird nicht in einer Profildatei mitgeführt.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="50"/>
@@ -17412,6 +17728,26 @@ Machen Sie diese Änderungen rückgängig oder wählen Sie Abbrechen, um alle Ih
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="109"/>
         <source>ID %1</source>
         <translation>ID %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="49"/>
+        <source>This window</source>
+        <translation>Dieses Fenster</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="52"/>
+        <source>Not created yet</source>
+        <translation>Noch nicht erstellt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="55"/>
+        <source>Open in another window</source>
+        <translation>In einem anderen Fenster öffnen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="71"/>
+        <source>Never</source>
+        <translation>Nie</translation>
     </message>
 </context>
 <context>

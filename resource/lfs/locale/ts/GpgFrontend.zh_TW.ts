@@ -1659,7 +1659,7 @@ Do you want to continue?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="205"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="706"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="708"/>
         <source>Status</source>
         <translation>狀態</translation>
     </message>
@@ -2723,88 +2723,88 @@ Do you want to continue?</source>
         <translation>保護金鑰檔案的 PIN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="469"/>
         <source>Save Key File</source>
         <translation>儲存金鑰檔案</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="468"/>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="512"/>
         <source>All Files</source>
         <translation>所有檔案</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="507"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="509"/>
         <source>Export Key Package</source>
         <translation>匯出金鑰套件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="512"/>
         <source>Key Package</source>
         <translation>金鑰套件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="542"/>
         <source>Saved beside the package.</source>
         <translation>儲存在套件旁。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="543"/>
         <source>Saved in a place of its own.</source>
         <translation>儲存在獨立位置。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="571"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="573"/>
         <source>Replace File?</source>
         <translation>取代檔案？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="574"/>
         <source>%1 already exists. Do you want to replace it?</source>
         <translation>%1 已存在。您要取代它嗎？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="606"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="608"/>
         <source>Exporting</source>
         <translation>匯出中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="631"/>
         <source>Export Failed</source>
         <translation>匯出失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="632"/>
         <source>The key package could not be written.</source>
         <translation>無法寫入金鑰套件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="633"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="635"/>
         <source>Check that both folders still exist and can be written to, then try again. Your choices are kept.</source>
         <translation>請確認這兩個資料夾仍然存在且可寫入，然後再試一次。您的選擇已保留。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="645"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="650"/>
         <source>Key Package Exported</source>
         <translation>金鑰套件已匯出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="646"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="651"/>
         <source>The key package and its key file have been saved.</source>
         <translation>金鑰套件及其金鑰檔案已儲存。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="650"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="653"/>
         <source>Keep the key file and the PIN apart from the package, and delete both files once the transfer is done.</source>
         <translation>請將金鑰檔案與 PIN 和金鑰套件分開存放，並在傳輸完成後刪除這兩個檔案。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="652"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="655"/>
         <source>Done</source>
         <translation>完成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="656"/>
         <source>Show in Folder</source>
         <translation>在資料夾中顯示</translation>
     </message>
@@ -2813,7 +2813,7 @@ Do you want to continue?</source>
         <translation type="vanished">匯出金鑰套件通行片語</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="470"/>
         <source>Key File</source>
         <translation>金鑰檔案</translation>
     </message>
@@ -4380,6 +4380,145 @@ Any GnuPG operation still running will be interrupted.</source>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="836"/>
         <source>Another operation is still running. Please wait for it to finish.</source>
         <translation>另一個操作仍在執行中。請等候其完成。</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ImportKeyPackageDialog</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="94"/>
+        <source>Import keys</source>
+        <translation>匯入金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="104"/>
+        <source>Import Key Package</source>
+        <translation>匯入金鑰套件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="140"/>
+        <source>Choose the key package and the key file that came with it. A key file saved beside the package is found by itself.</source>
+        <translation>選擇金鑰套件及其隨附的金鑰檔案。若金鑰檔案儲存在套件旁，系統會自動找到它。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="157"/>
+        <source>No file chosen yet</source>
+        <translation>尚未選擇檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="159"/>
+        <source>Browse...</source>
+        <translation>瀏覽...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="166"/>
+        <source>Key package</source>
+        <translation>金鑰套件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="166"/>
+        <source>Choose the key package</source>
+        <translation>選擇金鑰套件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="168"/>
+        <source>Key file</source>
+        <translation>金鑰檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="168"/>
+        <source>Choose the key file</source>
+        <translation>選擇金鑰檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="175"/>
+        <source>Use the one beside the package</source>
+        <translation>使用套件旁的檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="201"/>
+        <source>Enter the PIN that protects the key file. It was chosen when the package was exported. Nothing is imported yet.</source>
+        <translation>輸入保護金鑰檔案的 PIN。此 PIN 是在匯出套件時設定的。目前尚未匯入任何內容。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="215"/>
+        <source>PIN that protects the key file</source>
+        <translation>保護金鑰檔案的 PIN</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="245"/>
+        <source>These keys are in the package. Untick any you do not want to import.</source>
+        <translation>這些金鑰位於套件中。取消勾選任何您不想匯入的金鑰。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="252"/>
+        <source>Select all</source>
+        <translation>全選</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="253"/>
+        <source>Select none</source>
+        <translation>全不選</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="288"/>
+        <source>Keys in the package</source>
+        <translation>套件中的金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="379"/>
+        <source>Choose Key Package</source>
+        <translation>選擇金鑰套件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="380"/>
+        <source>Key Package</source>
+        <translation>金鑰套件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="380"/>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="403"/>
+        <source>All Files</source>
+        <translation>所有檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="402"/>
+        <source>Choose Key File</source>
+        <translation>選擇金鑰檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="403"/>
+        <source>Key File</source>
+        <translation>金鑰檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="439"/>
+        <source>Chosen by you.</source>
+        <translation>由您選擇。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="441"/>
+        <source>Found beside the package.</source>
+        <translation>在套件旁找到。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="443"/>
+        <source>No key file was found beside the package.</source>
+        <translation>在套件旁找不到金鑰檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="523"/>
+        <source>Opening</source>
+        <translation>開啟中</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="610"/>
+        <source>Importing</source>
+        <translation>匯入中</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="666"/>
+        <source>Import Failed</source>
+        <translation>匯入失敗</translation>
     </message>
 </context>
 <context>
@@ -7840,7 +7979,7 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="276"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1469"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1391"/>
         <source>Category</source>
         <translation>類別</translation>
     </message>
@@ -7902,7 +8041,6 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1166"/>
         <source>Key Package</source>
         <translation>金鑰套件</translation>
     </message>
@@ -8254,11 +8392,6 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1119"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1130"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1143"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1175"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1183"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1199"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1207"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1236"/>
         <source>Error</source>
         <translation>錯誤</translation>
     </message>
@@ -8415,27 +8548,25 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation>私鑰已備份</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1213"/>
         <source>Enter PIN</source>
-        <translation>輸入 PIN 碼</translation>
+        <translation type="vanished">輸入 PIN 碼</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1214"/>
         <source>Please enter PIN to decrypt the Key:</source>
-        <translation>請輸入 PIN 碼以解密金鑰：</translation>
+        <translation type="vanished">請輸入 PIN 碼以解密金鑰：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1468"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1390"/>
         <source>Category (%1 keys)</source>
         <translation>分類（%1 個金鑰）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1480"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1402"/>
         <source>Remove From This Category</source>
         <translation>從此分類移除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1516"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1438"/>
         <source>New Category...</source>
         <translation>新增分類...</translation>
     </message>
@@ -8448,17 +8579,17 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">分類名稱：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1547"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1469"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>%1 個金鑰 · %2 個私鑰 · %3 個即將到期 · %4 個已過期或已吊銷</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1554"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1476"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 個金鑰將在 %2 天內到期。請參閱「即將到期」標籤。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1558"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1480"/>
         <source>No key expires within the next %1 days.</source>
         <translation>在未來 %1 天內沒有金鑰到期。</translation>
     </message>
@@ -8544,38 +8675,31 @@ Fingerprint: %2</source>
         <translation>OpenSSH 公開金鑰檔案</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1166"/>
         <source>Import Key Package</source>
-        <translation>匯入金鑰套件</translation>
+        <translation type="vanished">匯入金鑰套件</translation>
+    </message>
+    <message>
+        <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
+        <translation type="vanished">無法開啟此檔案。請確認這是一個一般檔案且可讀取。</translation>
+    </message>
+    <message>
+        <source>The target file is too large for a key package.</source>
+        <translation type="vanished">目標檔案對於金鑰套件而言過大。</translation>
+    </message>
+    <message>
+        <source>Import Key Package Passphrase File</source>
+        <translation type="vanished">匯入金鑰套件通行片語檔案</translation>
+    </message>
+    <message>
+        <source>Key Package Passphrase File</source>
+        <translation type="vanished">金鑰套件通行片語檔案</translation>
+    </message>
+    <message>
+        <source>The target file is too large for a key package passphrase.</source>
+        <translation type="vanished">目標檔案對於金鑰套件通行片語而言過大。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1176"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1200"/>
-        <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
-        <translation>無法開啟此檔案。請確認這是一個一般檔案且可讀取。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1184"/>
-        <source>The target file is too large for a key package.</source>
-        <translation>目標檔案對於金鑰套件而言過大。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1189"/>
-        <source>Import Key Package Passphrase File</source>
-        <translation>匯入金鑰套件通行片語檔案</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1190"/>
-        <source>Key Package Passphrase File</source>
-        <translation>金鑰套件通行片語檔案</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1208"/>
-        <source>The target file is too large for a key package passphrase.</source>
-        <translation>目標檔案對於金鑰套件通行片語而言過大。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1242"/>
         <source>key(s) imported</source>
         <translation>已匯入金鑰</translation>
     </message>
@@ -11041,7 +11165,7 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="306"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="441"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="595"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="597"/>
         <source>File</source>
         <translation>檔案</translation>
     </message>
@@ -11130,13 +11254,13 @@ Would you like to fetch these keys from the key server?</source>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="334"/>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="393"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="443"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Open</source>
         <translation>開啟</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="448"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="610"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="612"/>
         <source>Workspace</source>
         <translation>工作區</translation>
     </message>
@@ -11156,27 +11280,27 @@ Would you like to fetch these keys from the key server?</source>
         <translation>進階</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Open a file or directory</source>
         <translation>開啟檔案或目錄</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="611"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="613"/>
         <source>Open a text editor or file panel</source>
         <translation>開啟文字編輯器或檔案面板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="633"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="635"/>
         <source>Import</source>
         <translation>匯入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="634"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="636"/>
         <source>Import a key from file, editor, or clipboard</source>
         <translation>從檔案、編輯器或剪貼簿匯入金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="652"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="654"/>
         <source>Text Tools</source>
         <translation>文字工具</translation>
     </message>
@@ -11201,7 +11325,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">目前的 OpenPGP 後端與版本</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="799"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="801"/>
         <source>Status Panel</source>
         <translation>狀態面板</translation>
     </message>
@@ -11548,13 +11672,13 @@ Would you like to fetch these keys from the key server?</source>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="463"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="645"/>
         <source>Edit</source>
         <translation>編輯</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="494"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="625"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="627"/>
         <source>Keys</source>
         <translation>金鑰</translation>
     </message>
@@ -11565,18 +11689,18 @@ Would you like to fetch these keys from the key server?</source>
         <translation>匯入金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="564"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="566"/>
         <source>View</source>
         <translation>檢視</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="574"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="576"/>
         <source>Help</source>
         <translation>說明</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="622"/>
         <source>Operations</source>
         <translation>操作</translation>
     </message>
@@ -11591,17 +11715,17 @@ Would you like to fetch these keys from the key server?</source>
         <translation>開啟新的檔案面板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="718"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="720"/>
         <source>Ready</source>
         <translation>就緒</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="722"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="724"/>
         <source>Key ToolBox</source>
         <translation>金鑰工具箱</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="747"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="749"/>
         <source>Default</source>
         <translation>預設</translation>
     </message>
@@ -11610,17 +11734,17 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="vanished">我的最愛</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="755"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="757"/>
         <source>Key Group</source>
         <translation>金鑰群組</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="762"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="764"/>
         <source>Only Public Key</source>
         <translation>僅公開金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="770"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="772"/>
         <source>Has Private Key</source>
         <translation>擁有私密金鑰</translation>
     </message>
@@ -12604,84 +12728,94 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::ProfileCreateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="148"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="151"/>
         <source>New Profile</source>
         <translation>新增設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="174"/>
         <source>Its own keys and settings, opened in a window of its own.</source>
-        <translation>擁有自己的金鑰與設定，並在獨立視窗中開啟。</translation>
+        <translation type="vanished">擁有自己的金鑰與設定，並在獨立視窗中開啟。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="187"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="149"/>
         <source>Create Profile</source>
         <translation>建立設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="209"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="181"/>
+        <source>Give the new profile a name. It is shown in the profile list and the status bar, and you can change it later.</source>
+        <translation>為新設定檔命名。名稱會顯示於設定檔清單與狀態列，之後可以變更。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="186"/>
         <source>for example: Work</source>
         <translation>例如：工作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="213"/>
-        <source>Shown in the profile list and the status bar. You can change it later.</source>
-        <translation>顯示於設定檔清單與狀態列。您之後可以變更。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="217"/>
-        <source>Name</source>
-        <translation>名稱</translation>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="197"/>
+        <source>Choose where this profile&apos;s built-in key database lives.</source>
+        <translation>選擇此設定檔內建金鑰資料庫的存放位置。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="231"/>
-        <source>Keys live inside this profile and can be exported with it as one file.</source>
-        <translation>金鑰位於此設定檔中，可隨設定檔匯出為單一檔案。</translation>
+        <source>You can add more key databases later in Settings, under Key Databases.</source>
+        <translation>您之後可以在「設定」中的「金鑰資料庫」新增更多金鑰資料庫。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="242"/>
+        <source>Choose which of this window&apos;s settings the new profile starts with.</source>
+        <translation>選擇新設定檔要沿用此視窗的哪些設定作為起始設定。</translation>
+    </message>
+    <message>
+        <source>Shown in the profile list and the status bar. You can change it later.</source>
+        <translation type="vanished">顯示於設定檔清單與狀態列。您之後可以變更。</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="vanished">名稱</translation>
+    </message>
+    <message>
+        <source>Keys live inside this profile and can be exported with it as one file.</source>
+        <translation type="vanished">金鑰位於此設定檔中，可隨設定檔匯出為單一檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="211"/>
         <source>Recommended</source>
         <translation>建議</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="236"/>
         <source>Your existing keys, shared with the system. Not carried in a profile file.</source>
-        <translation>您現有的金鑰，與系統共用。不會放入設定檔檔案中攜帶。</translation>
+        <translation type="vanished">您現有的金鑰，與系統共用。不會放入設定檔檔案中攜帶。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="252"/>
         <source>Keys</source>
-        <translation>金鑰</translation>
+        <translation type="vanished">金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="249"/>
         <source>Start with this window&apos;s settings</source>
         <translation>沿用此視窗的設定開始</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="331"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="311"/>
         <source>Never copied: keys, key databases, the workspace folder, key protection and proxy credentials.</source>
         <translation>絕不複製：金鑰、金鑰資料庫、工作區資料夾、金鑰保護與代理伺服器認證資訊。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="338"/>
         <source>Settings</source>
-        <translation>設定</translation>
+        <translation type="vanished">設定</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="230"/>
         <source>Start with an empty keyring</source>
-        <translation>以空白金鑰環開始</translation>
+        <translation type="vanished">以空白金鑰環開始</translation>
     </message>
     <message>
         <source>Keys live inside this profile. It stays separate from everything else and can be exported as a single file. It opens with no keys, so you will import or create them here.</source>
         <translation type="vanished">金鑰位於此設定檔中。此設定檔與其他項目完全分離，可匯出為單一檔案。一開始沒有金鑰，因此您將在此匯入或建立金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
         <source>Use the system GnuPG keyring</source>
-        <translation>使用系統 GnuPG 金鑰環</translation>
+        <translation type="vanished">使用系統 GnuPG 金鑰環</translation>
     </message>
     <message>
         <source>The same keys you already have. They are shared with the rest of the system, so they are not really separate and cannot be carried inside a profile file.</source>
@@ -12848,168 +12982,195 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::ProfileManagerDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="72"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
         <source>Profiles On This Computer</source>
         <translation>此電腦上的設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="108"/>
         <source>The profiles kept on this computer. Each one has its own settings, keys and saved state. Opening one starts a new window; this window stays exactly as it is.</source>
         <translation>儲存在此電腦上的設定檔。每個設定檔都有自己的設定、金鑰和儲存狀態。開啟一個設定檔會啟動新視窗；此視窗保持不變。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Name</source>
         <translation>名稱</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
         <source>Folder</source>
-        <translation>資料夾</translation>
+        <translation type="vanished">資料夾</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Type</source>
         <translation>類型</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Last Opened</source>
         <translation>上次開啟</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Status</source>
         <translation>狀態</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="186"/>
         <source>Open</source>
         <translation>開啟</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="119"/>
         <source>New...</source>
-        <translation>新增...</translation>
+        <translation type="vanished">新增...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="120"/>
         <source>New Temporary</source>
-        <translation>新增臨時</translation>
+        <translation type="vanished">新增臨時</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="121"/>
         <source>Import...</source>
-        <translation>匯入...</translation>
+        <translation type="vanished">匯入...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="122"/>
         <source>Delete</source>
-        <translation>刪除</translation>
+        <translation type="vanished">刪除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="123"/>
         <source>Open Folder</source>
-        <translation>開啟資料夾</translation>
+        <translation type="vanished">開啟資料夾</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="140"/>
         <source>Open the selected profile in a new window</source>
         <translation>在一個新視窗中開啟選取的設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="141"/>
+        <source>Show in Folder</source>
+        <translation>在資料夾中顯示</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="144"/>
+        <source>Delete...</source>
+        <translation>刪除...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="162"/>
+        <source>New Profile...</source>
+        <translation>新增設定檔...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="163"/>
         <source>Start an empty profile on this computer</source>
         <translation>在此電腦上啟動一個空白設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="128"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="164"/>
+        <source>New Temporary Profile</source>
+        <translation>新增臨時設定檔</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="166"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
         <translation>在新視窗中啟動一個空白、用完即丟的設定檔。該視窗關閉時，其中的所有內容都會被銷毀。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="169"/>
+        <source>Import Profile File...</source>
+        <translation>匯入設定檔檔案...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="174"/>
         <source>Copy a profile file into a new profile kept on this computer. The file is not used again afterwards.</source>
         <translation>將設定檔檔案複製到在此電腦上保留的新設定檔。之後不再使用該檔案。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="146"/>
         <source>Remove the selected profile and everything in it, permanently</source>
         <translation>永久移除選取的設定檔及其所有內容</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="143"/>
         <source>Show the selected profile&apos;s folder in the file manager</source>
         <translation>在檔案管理員中顯示選取的設定檔的資料夾</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="177"/>
+        <source>New</source>
+        <translation>新增</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="183"/>
+        <source>More actions for the selected profile</source>
+        <translation>所選設定檔的更多動作</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="189"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="186"/>
         <source>%1  (open)</source>
-        <translation>%1  (開啟)</translation>
+        <translation type="vanished">%1  (開啟)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="206"/>
         <source>This window</source>
-        <translation>此視窗</translation>
+        <translation type="vanished">此視窗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="208"/>
         <source>Not created yet</source>
-        <translation>尚未建立</translation>
+        <translation type="vanished">尚未建立</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="211"/>
         <source>Open in another window</source>
-        <translation>在另一個視窗中開啟</translation>
+        <translation type="vanished">在另一個視窗中開啟</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="324"/>
         <source>Cannot Open Profile</source>
         <translation>無法開啟設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="266"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="275"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="349"/>
         <source>Delete Profile</source>
         <translation>刪除設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="341"/>
         <source>Delete &quot;%1&quot;?</source>
         <translation>刪除「%1」？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="342"/>
         <source>Its keys, settings and saved state are removed from this computer permanently.</source>
         <translation>其金鑰、設定與儲存狀態將從此電腦永久移除。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="276"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="350"/>
         <source>This cannot be undone. Anything stored only in &quot;%1&quot; will be lost.</source>
         <translation>此動作無法復原。僅儲存在「%1」中的任何資料都將遺失。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="359"/>
         <source>Profile Is Open</source>
         <translation>設定檔已開啟</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="360"/>
         <source>&quot;%1&quot; is open in another window. Close it first.</source>
         <translation>「%1」已在另一個視窗中開啟。請先關閉它。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="378"/>
         <source>Cannot Delete Profile</source>
         <translation>無法刪除設定檔</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="379"/>
         <source>The profile folder could not be removed:</source>
         <translation>無法移除設定檔資料夾：</translation>
     </message>
@@ -13230,19 +13391,23 @@ Would you like to fetch these keys from the key server?</source>
         <translation>想出一個強大的通關片語並顯示，以便您抄寫下來</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="220"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="231"/>
         <source>Generate a strong passphrase</source>
         <translation>產生強大的通關片語</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="389"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="400"/>
         <source>A passphrase could not be generated.</source>
         <translation>無法產生通關片語。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="408"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="419"/>
+        <source>Copied to the clipboard. Keep it somewhere safe: it cannot be recovered.</source>
+        <translation>已複製到剪貼簿。請將其保存在安全的地方：之後無法恢復。</translation>
+    </message>
+    <message>
         <source>Copied to the clipboard. Save it somewhere safe now — it is not stored anywhere, and it cannot be recovered later.</source>
-        <translation>已複製到剪貼簿。現在請將其保存在安全的地方——它不會儲存在任何地方，且之後無法恢復。</translation>
+        <translation type="vanished">已複製到剪貼簿。現在請將其保存在安全的地方——它不會儲存在任何地方，且之後無法恢復。</translation>
     </message>
 </context>
 <context>
@@ -16022,6 +16187,8 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="167"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="38"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="192"/>
         <source>Name</source>
@@ -16044,9 +16211,135 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation>引擎</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="51"/>
+        <source>Files</source>
+        <translation>檔案</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="53"/>
+        <source>Unlock</source>
+        <translation>解鎖</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="117"/>
+        <source>Choose the key package to import.</source>
+        <translation>選擇要匯入的金鑰套件。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="119"/>
+        <source>The key package cannot be read. Make sure it is a regular file you can open.</source>
+        <translation>無法讀取金鑰套件。請確認它是您可開啟的一般檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="123"/>
+        <source>This file is too large to be a key package.</source>
+        <translation>此檔案過大，無法作為金鑰套件。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="125"/>
+        <source>Choose the key file that came with the package.</source>
+        <translation>選擇隨套件提供的金鑰檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="127"/>
+        <source>The key file cannot be read. Make sure it is a regular file you can open.</source>
+        <translation>無法讀取金鑰檔案。請確認它是您可開啟的一般檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="131"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>此檔案過大，無法作為金鑰檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="133"/>
+        <source>The key package and the key file are the same file. Choose the key file that came with the package.</source>
+        <translation>金鑰套件與金鑰檔案是同一個檔案。請選擇隨套件提供的金鑰檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="137"/>
+        <source>Enter the PIN that protects the key file.</source>
+        <translation>輸入保護金鑰檔案的 PIN。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="139"/>
+        <source>Tick at least one key to import.</source>
+        <translation>請至少勾選一個要匯入的金鑰。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="149"/>
+        <source>The PIN is wrong, or this key file belongs to another package. Check both and try again.</source>
+        <translation>PIN 錯誤，或此金鑰檔案屬於其他套件。請檢查兩者後再試一次。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="154"/>
+        <source>The key file opened, but it does not belong to this package. Choose the key file exported with it.</source>
+        <translation>金鑰檔案已開啟，但不屬於此套件。請選擇與其一起匯出的金鑰檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="159"/>
+        <source>The key package could not be read.</source>
+        <translation>無法讀取金鑰套件。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="162"/>
+        <source>The key file could not be read.</source>
+        <translation>無法讀取金鑰檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="165"/>
+        <source>None of the ticked keys could be read from the package.</source>
+        <translation>無法從套件讀取任何已勾選的金鑰。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="170"/>
+        <source>The package opened, but its keys could not be imported into this key database.</source>
+        <translation>套件已開啟，但無法將其金鑰匯入此金鑰資料庫。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="174"/>
+        <source>The key package could not be imported.</source>
+        <translation>無法匯入金鑰套件。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="179"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="186"/>
         <source>Status</source>
         <translation>狀態</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="194"/>
+        <source>New, with private key</source>
+        <translation>新增，含私鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="195"/>
+        <source>New</source>
+        <translation>新增</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="197"/>
+        <source>Adds the private key</source>
+        <translation>新增私鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="201"/>
+        <source>Already here</source>
+        <translation>已存在</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="215"/>
+        <source>The package holds 1 key; it is ticked.</source>
+        <translation>套件包含 1 個金鑰；該金鑰已勾選。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="216"/>
+        <source>The package holds 1 key; it is not ticked.</source>
+        <translation>套件包含 1 個金鑰；該金鑰未勾選。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="220"/>
+        <source>%1 of %2 keys ticked.</source>
+        <translation>已勾選 %1 個，共 %2 個金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="66"/>
@@ -16277,6 +16570,7 @@ The link has been copied to your clipboard:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="189"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="212"/>
         <source>Key ID</source>
@@ -16284,6 +16578,7 @@ The link has been copied to your clipboard:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <source>Email</source>
         <translation>電子郵件</translation>
     </message>
@@ -16330,18 +16625,21 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="280"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="300"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="235"/>
         <source>Key package</source>
         <translation>金鑰套件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="281"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="228"/>
         <source>Not chosen yet</source>
         <translation>尚未選擇</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="286"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="303"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="236"/>
         <source>Key file</source>
         <translation>金鑰檔案</translation>
     </message>
@@ -16805,6 +17103,8 @@ The link has been copied to your clipboard:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="55"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="40"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
         <source>Keys</source>
         <translation>金鑰</translation>
@@ -17120,9 +17420,25 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <translation>該通關片語無法開啟此檔案。請再試一次。</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="42"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="46"/>
         <source>Settings</source>
         <translation>設定</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="72"/>
+        <source>Starts empty. Its keys are exported with the profile as one file.</source>
+        <translation>初始為空。其金鑰會與設定檔一起匯出為單一檔案。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="80"/>
+        <source>Your existing keys in the GnuPG home directory, shared with other programs. Not carried in a profile file.</source>
+        <translation>您在 GnuPG 家目錄中既有的金鑰，與其他程式共用。不會包含於設定檔中。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="83"/>
+        <source>Shared with the other profiles on this computer that use it. Not carried in a profile file.</source>
+        <translation>與此電腦上使用它的其他設定檔共用。不會包含於設定檔中。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="50"/>
@@ -17393,6 +17709,26 @@ Undo those changes, or choose Cancel to discard everything you changed in this d
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="109"/>
         <source>ID %1</source>
         <translation>ID %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="49"/>
+        <source>This window</source>
+        <translation>此視窗</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="52"/>
+        <source>Not created yet</source>
+        <translation>尚未建立</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="55"/>
+        <source>Open in another window</source>
+        <translation>在另一個視窗中開啟</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="71"/>
+        <source>Never</source>
+        <translation>永不</translation>
     </message>
 </context>
 <context>

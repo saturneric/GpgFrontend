@@ -1632,7 +1632,7 @@ Devam etmek istiyor musunuz?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="205"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="706"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="708"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
@@ -2619,88 +2619,88 @@ Devam etmek istiyor musunuz?</translation>
         <translation>Anahtar dosyasını koruyacak PIN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="469"/>
         <source>Save Key File</source>
         <translation>Anahtar Dosyasını Kaydet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="468"/>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="470"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="512"/>
         <source>All Files</source>
         <translation>Tüm Dosyalar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="507"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="509"/>
         <source>Export Key Package</source>
         <translation>Anahtar paketini dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="512"/>
         <source>Key Package</source>
         <translation>Anahtar paketi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="542"/>
         <source>Saved beside the package.</source>
         <translation>Paketin yanına kaydedildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="543"/>
         <source>Saved in a place of its own.</source>
         <translation>Ayrı bir yere kaydedildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="571"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="573"/>
         <source>Replace File?</source>
         <translation>Dosyanın üzerine yazılsın mı?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="574"/>
         <source>%1 already exists. Do you want to replace it?</source>
         <translation>%1 zaten mevcut. Değiştirmek istiyor musunuz?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="606"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="608"/>
         <source>Exporting</source>
         <translation>Dışa aktarılıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="631"/>
         <source>Export Failed</source>
         <translation>Dışa Aktarma Başarısız</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="632"/>
         <source>The key package could not be written.</source>
         <translation>Anahtar paketi yazılamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="633"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="635"/>
         <source>Check that both folders still exist and can be written to, then try again. Your choices are kept.</source>
         <translation>Her iki klasörün de hâlâ mevcut ve yazılabilir olduğundan emin olun, sonra yeniden deneyin. Seçimleriniz korunur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="645"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="650"/>
         <source>Key Package Exported</source>
         <translation>Anahtar Paketi Dışa Aktarıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="646"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="651"/>
         <source>The key package and its key file have been saved.</source>
         <translation>Anahtar paketi ve anahtar dosyası kaydedildi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="650"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="653"/>
         <source>Keep the key file and the PIN apart from the package, and delete both files once the transfer is done.</source>
         <translation>Anahtar dosyasını ve PIN&apos;i paketten ayrı tutun ve aktarım tamamlandığında her iki dosyayı da silin.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="652"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="655"/>
         <source>Done</source>
         <translation>Tamam</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="656"/>
         <source>Show in Folder</source>
         <translation>Klasörde Göster</translation>
     </message>
@@ -2709,7 +2709,7 @@ Devam etmek istiyor musunuz?</translation>
         <translation type="vanished">Anahtar paketi parola ifadesini dışa aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="470"/>
         <source>Key File</source>
         <translation>Anahtar dosyası</translation>
     </message>
@@ -4160,6 +4160,145 @@ Hâlâ çalışan herhangi bir GnuPG işlemi kesilecek.</translation>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="836"/>
         <source>Another operation is still running. Please wait for it to finish.</source>
         <translation>Başka bir işlem hâlâ çalışıyor. Lütfen bitmesini bekleyin.</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::ImportKeyPackageDialog</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="94"/>
+        <source>Import keys</source>
+        <translation>Anahtarları içe aktar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="104"/>
+        <source>Import Key Package</source>
+        <translation>Anahtar Paketini İçe Aktar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="140"/>
+        <source>Choose the key package and the key file that came with it. A key file saved beside the package is found by itself.</source>
+        <translation>Anahtar paketini ve onunla birlikte gelen anahtar dosyasını seçin. Paketin yanında kayıtlı bir anahtar dosyası otomatik olarak bulunur.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="157"/>
+        <source>No file chosen yet</source>
+        <translation>Henüz dosya seçilmedi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="159"/>
+        <source>Browse...</source>
+        <translation>Gözat...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="166"/>
+        <source>Key package</source>
+        <translation>Anahtar paketi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="166"/>
+        <source>Choose the key package</source>
+        <translation>Anahtar paketini seçin</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="168"/>
+        <source>Key file</source>
+        <translation>Anahtar dosyası</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="168"/>
+        <source>Choose the key file</source>
+        <translation>Anahtar dosyasını seçin</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="175"/>
+        <source>Use the one beside the package</source>
+        <translation>Paketin yanındakini kullan</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="201"/>
+        <source>Enter the PIN that protects the key file. It was chosen when the package was exported. Nothing is imported yet.</source>
+        <translation>Anahtar dosyasını koruyan PIN&apos;i girin. Paket dışa aktarılırken belirlenmişti. Henüz hiçbir şey içe aktarılmadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="215"/>
+        <source>PIN that protects the key file</source>
+        <translation>Anahtar dosyasını koruyan PIN</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="245"/>
+        <source>These keys are in the package. Untick any you do not want to import.</source>
+        <translation>Bu anahtarlar paketin içinde. İçe aktarmak istemediklerinizin işaretini kaldırın.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="252"/>
+        <source>Select all</source>
+        <translation>Tümünü seç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="253"/>
+        <source>Select none</source>
+        <translation>Hiçbirini seçme</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="288"/>
+        <source>Keys in the package</source>
+        <translation>Paketteki anahtarlar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="379"/>
+        <source>Choose Key Package</source>
+        <translation>Anahtar Paketi Seç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="380"/>
+        <source>Key Package</source>
+        <translation>Anahtar Paketi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="380"/>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="403"/>
+        <source>All Files</source>
+        <translation>Tüm Dosyalar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="402"/>
+        <source>Choose Key File</source>
+        <translation>Anahtar Dosyası Seç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="403"/>
+        <source>Key File</source>
+        <translation>Anahtar Dosyası</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="439"/>
+        <source>Chosen by you.</source>
+        <translation>Sizin tarafınızdan seçildi.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="441"/>
+        <source>Found beside the package.</source>
+        <translation>Paketin yanında bulundu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="443"/>
+        <source>No key file was found beside the package.</source>
+        <translation>Paketin yanında anahtar dosyası bulunamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="523"/>
+        <source>Opening</source>
+        <translation>Açılıyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="610"/>
+        <source>Importing</source>
+        <translation>İçe aktarılıyor</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ImportKeyPackageDialog.cpp" line="666"/>
+        <source>Import Failed</source>
+        <translation>İçe aktarma başarısız</translation>
     </message>
 </context>
 <context>
@@ -7377,7 +7516,7 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="276"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1469"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1391"/>
         <source>Category</source>
         <translation>Kategori</translation>
     </message>
@@ -7439,7 +7578,6 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1166"/>
         <source>Key Package</source>
         <translation>Anahtar paketi</translation>
     </message>
@@ -7771,11 +7909,6 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1119"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1130"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1143"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1175"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1183"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1199"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1207"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1236"/>
         <source>Error</source>
         <translation>Hata</translation>
     </message>
@@ -7921,63 +8054,54 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation>OpenSSH açık anahtar dosyaları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1166"/>
         <source>Import Key Package</source>
-        <translation>Anahtar paketini içe aktar</translation>
+        <translation type="vanished">Anahtar paketini içe aktar</translation>
+    </message>
+    <message>
+        <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
+        <translation type="vanished">Bu dosya açılamıyor. Lütfen bunun normal bir dosya olduğundan ve okunabilir olduğundan emin olun.</translation>
+    </message>
+    <message>
+        <source>The target file is too large for a key package.</source>
+        <translation type="vanished">Hedef dosya bir anahtar paketi için çok büyük.</translation>
+    </message>
+    <message>
+        <source>Import Key Package Passphrase File</source>
+        <translation type="vanished">Anahtar paketi parola ifadesi dosyasını içe aktar</translation>
+    </message>
+    <message>
+        <source>Key Package Passphrase File</source>
+        <translation type="vanished">Anahtar paketi parola ifadesi dosyası</translation>
+    </message>
+    <message>
+        <source>The target file is too large for a key package passphrase.</source>
+        <translation type="vanished">Hedef dosya bir anahtar paketi parola ifadesi için çok büyük.</translation>
+    </message>
+    <message>
+        <source>Enter PIN</source>
+        <translation type="vanished">PIN girin</translation>
+    </message>
+    <message>
+        <source>Please enter PIN to decrypt the Key:</source>
+        <translation type="vanished">Anahtarın şifresini çözmek için lütfen PIN girin:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1176"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1200"/>
-        <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
-        <translation>Bu dosya açılamıyor. Lütfen bunun normal bir dosya olduğundan ve okunabilir olduğundan emin olun.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1184"/>
-        <source>The target file is too large for a key package.</source>
-        <translation>Hedef dosya bir anahtar paketi için çok büyük.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1189"/>
-        <source>Import Key Package Passphrase File</source>
-        <translation>Anahtar paketi parola ifadesi dosyasını içe aktar</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1190"/>
-        <source>Key Package Passphrase File</source>
-        <translation>Anahtar paketi parola ifadesi dosyası</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1208"/>
-        <source>The target file is too large for a key package passphrase.</source>
-        <translation>Hedef dosya bir anahtar paketi parola ifadesi için çok büyük.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1213"/>
-        <source>Enter PIN</source>
-        <translation>PIN girin</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1214"/>
-        <source>Please enter PIN to decrypt the Key:</source>
-        <translation>Anahtarın şifresini çözmek için lütfen PIN girin:</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1242"/>
         <source>key(s) imported</source>
         <translation>anahtar içe aktarıldı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1468"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1390"/>
         <source>Category (%1 keys)</source>
         <translation>Kategori (%1 anahtar)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1480"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1402"/>
         <source>Remove From This Category</source>
         <translation>Bu kategoriden kaldır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1516"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1438"/>
         <source>New Category...</source>
         <translation>Yeni kategori...</translation>
     </message>
@@ -7990,17 +8114,17 @@ GpgFrontend şimdi anahtarları içe aktarmayı deneyecek.</translation>
         <translation type="vanished">Kategori adı:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1547"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1469"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>%1 anahtar · %2 gizli · %3 yakında sona eriyor · %4 süresi dolmuş veya iptal edilmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1554"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1476"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 anahtar %2 gün içinde sona eriyor. &quot;Yakında sona eriyor&quot; sekmesine bakın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1558"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1480"/>
         <source>No key expires within the next %1 days.</source>
         <translation>Önümüzdeki %1 gün içinde sona erecek anahtar yok.</translation>
     </message>
@@ -9415,7 +9539,7 @@ Kurduktan sonra lütfen GpgFrontend&apos;i yeniden başlatın. Yapılandırma do
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="334"/>
         <location filename="../../../../src/ui/main_window/MainWindowCommands.cpp" line="393"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="443"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
@@ -10351,7 +10475,7 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="306"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="441"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="595"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="597"/>
         <source>File</source>
         <translation>Dosya</translation>
     </message>
@@ -10518,25 +10642,25 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="448"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="610"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="612"/>
         <source>Workspace</source>
         <translation>Çalışma alanı</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="463"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="645"/>
         <source>Edit</source>
         <translation>Düzen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="622"/>
         <source>Operations</source>
         <translation>İşlemler</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="494"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="625"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="627"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
     </message>
@@ -10556,72 +10680,72 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Gelişmiş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="564"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="566"/>
         <source>View</source>
         <translation>Görünüm</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="574"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="576"/>
         <source>Help</source>
         <translation>Yardım</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Open a file or directory</source>
         <translation>Bir dosya veya dizin aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="611"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="613"/>
         <source>Open a text editor or file panel</source>
         <translation>Bir metin düzenleyici veya dosya paneli aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="633"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="635"/>
         <source>Import</source>
         <translation>İçe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="634"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="636"/>
         <source>Import a key from file, editor, or clipboard</source>
         <translation>Dosyadan, düzenleyiciden veya panodan bir anahtar içe aktar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="652"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="654"/>
         <source>Text Tools</source>
         <translation>Metin araçları</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="718"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="720"/>
         <source>Ready</source>
         <translation>Hazır</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="722"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="724"/>
         <source>Key ToolBox</source>
         <translation>Anahtar araç kutusu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="747"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="749"/>
         <source>Default</source>
         <translation>Varsayılan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="755"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="757"/>
         <source>Key Group</source>
         <translation>Anahtar grubu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="762"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="764"/>
         <source>Only Public Key</source>
         <translation>Yalnızca açık anahtar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="770"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="772"/>
         <source>Has Private Key</source>
         <translation>Gizli anahtarı var</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="799"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="801"/>
         <source>Status Panel</source>
         <translation>Durum paneli</translation>
     </message>
@@ -11485,84 +11609,94 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::ProfileCreateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="148"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="151"/>
         <source>New Profile</source>
         <translation>Yeni profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="174"/>
         <source>Its own keys and settings, opened in a window of its own.</source>
-        <translation>Kendi anahtarları ve ayarları, kendi penceresinde açılır.</translation>
+        <translation type="vanished">Kendi anahtarları ve ayarları, kendi penceresinde açılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="187"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="149"/>
         <source>Create Profile</source>
         <translation>Profil Oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="209"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="181"/>
+        <source>Give the new profile a name. It is shown in the profile list and the status bar, and you can change it later.</source>
+        <translation>Yeni profile bir ad verin. Profil listesinde ve durum çubuğunda gösterilir; daha sonra değiştirebilirsiniz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="186"/>
         <source>for example: Work</source>
         <translation>örneğin: İş</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="213"/>
-        <source>Shown in the profile list and the status bar. You can change it later.</source>
-        <translation>Profil listesinde ve durum çubuğunda gösterilir. Daha sonra değiştirebilirsiniz.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="217"/>
-        <source>Name</source>
-        <translation>Ad</translation>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="197"/>
+        <source>Choose where this profile&apos;s built-in key database lives.</source>
+        <translation>Bu profilin yerleşik anahtar veritabanının nerede bulunacağını seçin.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="231"/>
-        <source>Keys live inside this profile and can be exported with it as one file.</source>
-        <translation>Anahtarlar bu profilin içinde bulunur ve onunla birlikte tek bir dosya olarak dışa aktarılabilir.</translation>
+        <source>You can add more key databases later in Settings, under Key Databases.</source>
+        <translation>Daha sonra Ayarlar bölümünde, Anahtar Veritabanları altından daha fazla anahtar veritabanı ekleyebilirsiniz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="242"/>
+        <source>Choose which of this window&apos;s settings the new profile starts with.</source>
+        <translation>Yeni profilin bu penceredeki hangi ayarlarla başlayacağını seçin.</translation>
+    </message>
+    <message>
+        <source>Shown in the profile list and the status bar. You can change it later.</source>
+        <translation type="vanished">Profil listesinde ve durum çubuğunda gösterilir. Daha sonra değiştirebilirsiniz.</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="vanished">Ad</translation>
+    </message>
+    <message>
+        <source>Keys live inside this profile and can be exported with it as one file.</source>
+        <translation type="vanished">Anahtarlar bu profilin içinde bulunur ve onunla birlikte tek bir dosya olarak dışa aktarılabilir.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="211"/>
         <source>Recommended</source>
         <translation>Önerilen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="236"/>
         <source>Your existing keys, shared with the system. Not carried in a profile file.</source>
-        <translation>Mevcut anahtarlarınız, sistemle paylaşılır. Bir profil dosyasında taşınmaz.</translation>
+        <translation type="vanished">Mevcut anahtarlarınız, sistemle paylaşılır. Bir profil dosyasında taşınmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="252"/>
         <source>Keys</source>
-        <translation>Anahtarlar</translation>
+        <translation type="vanished">Anahtarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="249"/>
         <source>Start with this window&apos;s settings</source>
         <translation>Bu pencerenin ayarlarıyla başlayın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="331"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="311"/>
         <source>Never copied: keys, key databases, the workspace folder, key protection and proxy credentials.</source>
         <translation>Asla kopyalanmaz: anahtarlar, anahtar veritabanları, çalışma alanı klasörü, anahtar koruması ve proxy kimlik bilgileri.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="338"/>
         <source>Settings</source>
-        <translation>Ayarlar</translation>
+        <translation type="vanished">Ayarlar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="230"/>
         <source>Start with an empty keyring</source>
-        <translation>Boş bir anahtarlıkla başlayın</translation>
+        <translation type="vanished">Boş bir anahtarlıkla başlayın</translation>
     </message>
     <message>
         <source>Keys live inside this profile. It stays separate from everything else and can be exported as a single file. It opens with no keys, so you will import or create them here.</source>
         <translation type="vanished">Anahtarlar bu profilin içindedir. Profil diğer her şeyden ayrı kalır ve tek bir dosya olarak dışa aktarılabilir. Hiç anahtar olmadan açılır, bu nedenle anahtarları burada içe aktaracak veya oluşturacaksınız.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileCreateDialog.cpp" line="235"/>
         <source>Use the system GnuPG keyring</source>
-        <translation>Sistem GnuPG anahtarlığını kullanın</translation>
+        <translation type="vanished">Sistem GnuPG anahtarlığını kullanın</translation>
     </message>
     <message>
         <source>The same keys you already have. They are shared with the rest of the system, so they are not really separate and cannot be carried inside a profile file.</source>
@@ -11657,168 +11791,195 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
 <context>
     <name>GpgFrontend::UI::ProfileManagerDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="72"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
         <source>Profiles On This Computer</source>
         <translation>Bu bilgisayardaki profiller</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="108"/>
         <source>The profiles kept on this computer. Each one has its own settings, keys and saved state. Opening one starts a new window; this window stays exactly as it is.</source>
         <translation>Bu bilgisayarda tutulan profiller. Her birinin kendi ayarları, anahtarları ve kayıtlı durumu vardır. Birini açmak yeni bir pencere başlatır; bu pencere olduğu gibi kalır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Name</source>
         <translation>Ad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
         <source>Folder</source>
-        <translation>Klasör</translation>
+        <translation type="vanished">Klasör</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Type</source>
         <translation>Tür</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Last Opened</source>
         <translation>Son açılma</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="116"/>
         <source>Status</source>
         <translation>Durum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="186"/>
         <source>Open</source>
         <translation>Aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="119"/>
         <source>New...</source>
-        <translation>Yeni...</translation>
+        <translation type="vanished">Yeni...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="120"/>
         <source>New Temporary</source>
-        <translation>Yeni Geçici</translation>
+        <translation type="vanished">Yeni Geçici</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="121"/>
         <source>Import...</source>
-        <translation>İçe aktar...</translation>
+        <translation type="vanished">İçe aktar...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="122"/>
         <source>Delete</source>
-        <translation>Sil</translation>
+        <translation type="vanished">Sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="123"/>
         <source>Open Folder</source>
-        <translation>Klasörü aç</translation>
+        <translation type="vanished">Klasörü aç</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="140"/>
         <source>Open the selected profile in a new window</source>
         <translation>Seçili profili yeni bir pencerede açın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="141"/>
+        <source>Show in Folder</source>
+        <translation>Klasörde göster</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="144"/>
+        <source>Delete...</source>
+        <translation>Sil...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="162"/>
+        <source>New Profile...</source>
+        <translation>Yeni Profil...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="163"/>
         <source>Start an empty profile on this computer</source>
         <translation>Bu bilgisayarda boş bir profil başlatın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="128"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="164"/>
+        <source>New Temporary Profile</source>
+        <translation>Yeni Geçici Profil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="166"/>
         <source>Start an empty, throwaway profile in a new window. Everything in it is destroyed when that window closes.</source>
         <translation>Boş, geçici bir profili yeni bir pencerede başlatın. O pencere kapandığında içindeki her şey yok edilir.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="169"/>
+        <source>Import Profile File...</source>
+        <translation>Profil Dosyasını İçe Aktar...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="174"/>
         <source>Copy a profile file into a new profile kept on this computer. The file is not used again afterwards.</source>
         <translation>Bir profil dosyasını bu bilgisayarda tutulan yeni bir profile kopyalayın. Dosya bundan sonra bir daha kullanılmaz.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="146"/>
         <source>Remove the selected profile and everything in it, permanently</source>
         <translation>Seçili profili ve içindeki her şeyi kalıcı olarak kaldırın</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="143"/>
         <source>Show the selected profile&apos;s folder in the file manager</source>
         <translation>Seçili profilin klasörünü dosya yöneticisinde gösterin</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="177"/>
+        <source>New</source>
+        <translation>Yeni</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="183"/>
+        <source>More actions for the selected profile</source>
+        <translation>Seçili profil için daha fazla işlem</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="189"/>
         <source>Close</source>
         <translation>Kapat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="186"/>
         <source>%1  (open)</source>
-        <translation>%1  (açık)</translation>
+        <translation type="vanished">%1  (açık)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="206"/>
         <source>This window</source>
-        <translation>Bu pencere</translation>
+        <translation type="vanished">Bu pencere</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="208"/>
         <source>Not created yet</source>
-        <translation>Henüz oluşturulmadı</translation>
+        <translation type="vanished">Henüz oluşturulmadı</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="211"/>
         <source>Open in another window</source>
-        <translation>Başka bir pencerede açık</translation>
+        <translation type="vanished">Başka bir pencerede açık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="324"/>
         <source>Cannot Open Profile</source>
         <translation>Profil açılamıyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="266"/>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="275"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="349"/>
         <source>Delete Profile</source>
         <translation>Profili sil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="341"/>
         <source>Delete &quot;%1&quot;?</source>
         <translation>&quot;%1&quot; silinsin mi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="342"/>
         <source>Its keys, settings and saved state are removed from this computer permanently.</source>
         <translation>Anahtarları, ayarları ve kayıtlı durumu bu bilgisayardan kalıcı olarak kaldırılır.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="276"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="350"/>
         <source>This cannot be undone. Anything stored only in &quot;%1&quot; will be lost.</source>
         <translation>Bu geri alınamaz. Yalnızca &quot;%1&quot; içinde saklanan her şey kaybolur.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="359"/>
         <source>Profile Is Open</source>
         <translation>Profil açık</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="360"/>
         <source>&quot;%1&quot; is open in another window. Close it first.</source>
         <translation>&quot;%1&quot; başka bir pencerede açık. Önce onu kapatın.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="378"/>
         <source>Cannot Delete Profile</source>
         <translation>Profil silinemiyor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileManagerDialog.cpp" line="379"/>
         <source>The profile folder could not be removed:</source>
         <translation>Profil klasörü kaldırılamadı:</translation>
     </message>
@@ -12039,19 +12200,23 @@ Bu anahtarları anahtar sunucusundan getirmek ister misiniz?</translation>
         <translation>Güçlü bir parola ifadesi oluşturup gösterir, böylece not edebilirsiniz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="220"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="231"/>
         <source>Generate a strong passphrase</source>
         <translation>Güçlü bir parola ifadesi oluştur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="389"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="400"/>
         <source>A passphrase could not be generated.</source>
         <translation>Bir parola ifadesi oluşturulamadı.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="408"/>
+        <location filename="../../../../src/ui/widgets/SecretEntryPanel.cpp" line="419"/>
+        <source>Copied to the clipboard. Keep it somewhere safe: it cannot be recovered.</source>
+        <translation>Panoya kopyalandı. Güvenli bir yerde saklayın: daha sonra kurtarılamaz.</translation>
+    </message>
+    <message>
         <source>Copied to the clipboard. Save it somewhere safe now — it is not stored anywhere, and it cannot be recovered later.</source>
-        <translation>Panoya kopyalandı. Şimdi güvenli bir yere kaydedin. Hiçbir yerde saklanmaz ve daha sonra kurtarılamaz.</translation>
+        <translation type="vanished">Panoya kopyalandı. Şimdi güvenli bir yere kaydedin. Hiçbir yerde saklanmaz ve daha sonra kurtarılamaz.</translation>
     </message>
 </context>
 <context>
@@ -14047,6 +14212,8 @@ Bu iletişim kutusunda değiştirdiğiniz her şeyi atmak ve geçerli ayarları 
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleMeta.cpp" line="167"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="38"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="192"/>
         <source>Name</source>
@@ -14115,9 +14282,25 @@ Bağlantı panonuza kopyalandı:
         <translation>Güçlü</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="42"/>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="46"/>
         <source>Settings</source>
         <translation>Ayarlar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="72"/>
+        <source>Starts empty. Its keys are exported with the profile as one file.</source>
+        <translation>Boş başlar. Anahtarları, profille birlikte tek bir dosya olarak dışa aktarılır.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="80"/>
+        <source>Your existing keys in the GnuPG home directory, shared with other programs. Not carried in a profile file.</source>
+        <translation>GnuPG ana dizinindeki mevcut anahtarlarınız, diğer programlarla paylaşılır. Bir profil dosyasında taşınmaz.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="83"/>
+        <source>Shared with the other profiles on this computer that use it. Not carried in a profile file.</source>
+        <translation>Bu bilgisayarda bunu kullanan diğer profillerle paylaşılır. Bir profil dosyasında taşınmaz.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/profile/ProfileExportSummary.cpp" line="50"/>
@@ -14362,6 +14545,7 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <source>Email</source>
         <translation>E-posta</translation>
     </message>
@@ -14408,18 +14592,21 @@ Bağlantı panonuza kopyalandı:
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="280"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="300"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="235"/>
         <source>Key package</source>
         <translation>Anahtar paketi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="281"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="228"/>
         <source>Not chosen yet</source>
         <translation>Henüz seçilmedi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="286"/>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="303"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="236"/>
         <source>Key file</source>
         <translation>Anahtar dosyası</translation>
     </message>
@@ -14651,9 +14838,135 @@ Bağlantı panonuza kopyalandı:
         <translation>Motor</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="51"/>
+        <source>Files</source>
+        <translation>Dosyalar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="53"/>
+        <source>Unlock</source>
+        <translation>Kilidi Aç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="117"/>
+        <source>Choose the key package to import.</source>
+        <translation>İçe aktarılacak anahtar paketini seçin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="119"/>
+        <source>The key package cannot be read. Make sure it is a regular file you can open.</source>
+        <translation>Anahtar paketi okunamıyor. Açabileceğiniz normal bir dosya olduğundan emin olun.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="123"/>
+        <source>This file is too large to be a key package.</source>
+        <translation>Bu dosya bir anahtar paketi olamayacak kadar büyük.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="125"/>
+        <source>Choose the key file that came with the package.</source>
+        <translation>Paketle birlikte gelen anahtar dosyasını seçin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="127"/>
+        <source>The key file cannot be read. Make sure it is a regular file you can open.</source>
+        <translation>Anahtar dosyası okunamıyor. Bunun bir anahtar dosyası olduğundan emin olun.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="131"/>
+        <source>This file is too large to be a key file.</source>
+        <translation>Bu dosya bir anahtar dosyası olamayacak kadar büyük.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="133"/>
+        <source>The key package and the key file are the same file. Choose the key file that came with the package.</source>
+        <translation>Anahtar paketi ve anahtar dosyası aynı dosya. Paketle birlikte gelen anahtar dosyasını seçin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="137"/>
+        <source>Enter the PIN that protects the key file.</source>
+        <translation>Anahtar dosyasını koruyan PIN&apos;i girin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="139"/>
+        <source>Tick at least one key to import.</source>
+        <translation>İçe aktarmak için en az bir anahtarı işaretleyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="149"/>
+        <source>The PIN is wrong, or this key file belongs to another package. Check both and try again.</source>
+        <translation>PIN yanlış veya bu anahtar dosyası başka bir pakete ait. İkisini de kontrol edip tekrar deneyin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="154"/>
+        <source>The key file opened, but it does not belong to this package. Choose the key file exported with it.</source>
+        <translation>Anahtar dosyası açıldı, ancak bu pakete ait değil. Onunla birlikte dışa aktarılan anahtar dosyasını seçin.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="159"/>
+        <source>The key package could not be read.</source>
+        <translation>Anahtar paketi okunamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="162"/>
+        <source>The key file could not be read.</source>
+        <translation>Anahtar dosyası okunamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="165"/>
+        <source>None of the ticked keys could be read from the package.</source>
+        <translation>İşaretlenen anahtarların hiçbiri paketten okunamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="170"/>
+        <source>The package opened, but its keys could not be imported into this key database.</source>
+        <translation>Paket açıldı, ancak anahtarları bu anahtar veritabanına aktarılamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="174"/>
+        <source>The key package could not be imported.</source>
+        <translation>Anahtar paketi içe aktarılamadı.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="179"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="186"/>
         <source>Status</source>
         <translation>Durum</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="194"/>
+        <source>New, with private key</source>
+        <translation>Yeni, özel anahtarlı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="195"/>
+        <source>New</source>
+        <translation>Yeni</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="197"/>
+        <source>Adds the private key</source>
+        <translation>Özel anahtarı ekler</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="201"/>
+        <source>Already here</source>
+        <translation>Zaten burada</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="215"/>
+        <source>The package holds 1 key; it is ticked.</source>
+        <translation>Paket 1 anahtar içeriyor; işaretli.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="216"/>
+        <source>The package holds 1 key; it is not ticked.</source>
+        <translation>Paket 1 anahtar içeriyor; işaretli değil.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="220"/>
+        <source>%1 of %2 keys ticked.</source>
+        <translation>%2 anahtardan %1 tanesi işaretli.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="60"/>
@@ -15107,6 +15420,7 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="178"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="189"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="212"/>
         <source>Key ID</source>
@@ -15323,6 +15637,8 @@ Bağlantı panonuza kopyalandı:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyPackageExportSummary.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyPackageImportSummary.cpp" line="55"/>
+        <location filename="../../../../src/ui/dialog/profile/ProfileCreateSummary.cpp" line="40"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
         <source>Keys</source>
         <translation>Anahtarlar</translation>
@@ -15690,6 +16006,26 @@ Bu değişiklikleri geri alın veya bu iletişim kutusunda yaptığınız tüm d
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="109"/>
         <source>ID %1</source>
         <translation>ID %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="49"/>
+        <source>This window</source>
+        <translation>Bu pencere</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="52"/>
+        <source>Not created yet</source>
+        <translation>Henüz oluşturulmadı</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="55"/>
+        <source>Open in another window</source>
+        <translation>Başka bir pencerede aç</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/profile/ProfileListSummary.cpp" line="71"/>
+        <source>Never</source>
+        <translation>Asla</translation>
     </message>
 </context>
 </TS>
