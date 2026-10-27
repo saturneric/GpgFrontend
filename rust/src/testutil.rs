@@ -2122,7 +2122,25 @@ pub mod interop {
     impl Sq {
         /// `None` only when `sq` is missing and that was explicitly allowed.
         pub fn new() -> Option<Self> {
-            require("sq").then(|| Sq {
+            if !require("sq") {
+                return None;
+            }
+            // Every call below uses the 1.x CLI; the 0.x one (still what some
+            // distros ship) rejects it with an unhelpful "unexpected argument".
+            let version = Command::new("sq").arg("version").output().expect("run sq");
+            let version = String::from_utf8_lossy(&version.stdout).into_owned()
+                + &String::from_utf8_lossy(&version.stderr);
+            let major = version
+                .split_whitespace()
+                .nth(1)
+                .and_then(|v| v.split('.').next())
+                .and_then(|v| v.parse::<u32>().ok());
+            assert!(
+                major.is_some_and(|m| m >= 1),
+                "interop tests need sq >= 1.0, found: {}",
+                version.lines().next().unwrap_or("").trim()
+            );
+            Some(Sq {
                 dir: tempfile::tempdir().expect("tempdir"),
             })
         }

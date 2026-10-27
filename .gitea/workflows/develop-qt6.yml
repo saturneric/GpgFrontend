@@ -62,8 +62,10 @@ jobs:
           sudo apt-get -y install build-essential binutils git cmake ccache
           sudo apt-get -y install autoconf automake gettext texinfo
           # gnupg and sq drive the Rust interop tests, which fail rather than
-          # skip when either is missing (testutil::interop::require).
-          sudo apt-get -y install gcc g++ ninja-build gnupg sq
+          # skip when either is missing (testutil::interop::require). sq itself
+          # is built from crates.io below; these are its build dependencies.
+          sudo apt-get -y install gcc g++ ninja-build gnupg
+          sudo apt-get -y install clang pkg-config nettle-dev capnproto libsqlite3-dev
           sudo apt-get -y install libarchive-dev libssl-dev libgpgme-dev libgl1-mesa-dev libfuse2 libsodium-dev
           # System libraries the aqt-installed Qt links against.
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
@@ -80,6 +82,22 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache sq
+        id: cache-sq
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/sq
+          key: ${{ runner.os }}-sequoia-sq-1.3.1
+
+      - name: Install sq 1.x
+        # The apt sq on Ubuntu 24.04 is the 0.x CLI; the interop tests use the
+        # 1.x syntax (--batch, --cert-store=none, --for-file, ...).
+        if: steps.cache-sq.outputs.cache-hit != 'true'
+        run: cargo install sequoia-sq --version 1.3.1 --locked
+
+      - name: Check sq
+        run: sq version
 
       - name: Cache Cargo
         uses: actions/cache@v3
