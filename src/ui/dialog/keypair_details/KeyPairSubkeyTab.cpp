@@ -51,6 +51,10 @@
 
 namespace {
 
+/// Room the list keeps even for a key with fewer keys, so it never shrinks
+/// to a sliver under the header.
+constexpr int kMinVisibleSubkeyRows = 4;
+
 /// Past this many keys the list scrolls instead of growing the dialog.
 constexpr int kMaxVisibleSubkeyRows = 5;
 
@@ -380,16 +384,19 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     row++;
   }
 
-  // AdjustToContents grows the list with every key; past a few it scrolls.
-  int max_height = QWIDGETSIZE_MAX;
-  if (subkey_list_->rowCount() > kMaxVisibleSubkeyRows) {
-    subkey_list_->ensurePolished();
-    max_height = subkey_list_->horizontalHeader()->sizeHint().height() +
-                 (kMaxVisibleSubkeyRows *
-                  subkey_list_->verticalHeader()->defaultSectionSize()) +
-                 (2 * subkey_list_->frameWidth());
-  }
-  subkey_list_->setMaximumHeight(max_height);
+  // AdjustToContents grows the list with every key, from a floor of a few
+  // rows; past a few more it scrolls.
+  subkey_list_->ensurePolished();
+  const auto height_for_rows = [this](int rows) {
+    return subkey_list_->horizontalHeader()->sizeHint().height() +
+           (rows * subkey_list_->verticalHeader()->defaultSectionSize()) +
+           (2 * subkey_list_->frameWidth());
+  };
+  subkey_list_->setMinimumHeight(height_for_rows(kMinVisibleSubkeyRows));
+  subkey_list_->setMaximumHeight(subkey_list_->rowCount() >
+                                         kMaxVisibleSubkeyRows
+                                     ? height_for_rows(kMaxVisibleSubkeyRows)
+                                     : QWIDGETSIZE_MAX);
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
