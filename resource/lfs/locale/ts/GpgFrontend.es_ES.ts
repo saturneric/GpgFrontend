@@ -5858,22 +5858,26 @@ Los resultados aparecerán aquí como un documento resumen.</translation>
         <translation>Esta clave no tiene dirección de correo electrónico.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="175"/>
-        <source>Certifying is for vouching for someone else&apos;s key.</source>
-        <translation>Certificar es para avalar la clave de otra persona.</translation>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="176"/>
+        <source>You need a private key to certify with.</source>
+        <translation>Necesita una clave privada para certificar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="197"/>
+        <source>Certifying is for vouching for someone else&apos;s key.</source>
+        <translation type="vanished">Certificar es para avalar la clave de otra persona.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="198"/>
         <source>Tick the box beside at least one key first.</source>
         <translation>Marque la casilla junto a al menos una clave primero.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="219"/>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="220"/>
         <source>Expiry can only be changed on keys you own.</source>
         <translation>La caducidad solo se puede cambiar en claves que usted posea.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="230"/>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="231"/>
         <source>This keyring holds no private keys.</source>
         <translation>Este anillo de claves no contiene claves privadas.</translation>
     </message>
@@ -8364,12 +8368,12 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
 <context>
     <name>GpgFrontend::UI::KeyList</name>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="650"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="671"/>
         <source>Refresh</source>
         <translation>Actualizar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="652"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="673"/>
         <source>Refresh the key list to synchronize changes.</source>
         <translation>Actualizar la lista de claves para sincronizar los cambios.</translation>
     </message>
@@ -8378,42 +8382,42 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         <translation type="vanished">Sincronizar la Clave Pública</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="814"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="835"/>
         <source>Key ID</source>
         <translation>ID de Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="824"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="845"/>
         <source>Subkeys</source>
         <translation>Subclaves</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="832"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="853"/>
         <source>No optional columns</source>
         <translation>Sin columnas opcionales</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1513"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1534"/>
         <source>Edit Category...</source>
         <translation>Editar Categoría...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1622"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1643"/>
         <source>Refreshing Key List...</source>
         <translation>Actualizando la Lista de Claves...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1679"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1700"/>
         <source>Import Keys</source>
         <translation>Importar Claves</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1627"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1648"/>
         <source>Key List Refreshed.</source>
         <translation>Lista de Claves Actualizada.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="816"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="837"/>
         <source>Algorithm</source>
         <translation>Algoritmo</translation>
     </message>
@@ -8422,8 +8426,8 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         <translation type="vanished">Sincronizar claves públicas con el servidor de claves predeterminado.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="379"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1492"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="400"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1513"/>
         <source>New Category...</source>
         <translation>Nueva Categoría...</translation>
     </message>
@@ -8432,48 +8436,48 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         <translation type="vanished">Sincronizar claves públicas con el servidor de claves configurado como predeterminado.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="654"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="675"/>
         <source>Uncheck All</source>
         <translation>Desmarcar todo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="655"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="994"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="676"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1015"/>
         <source>Uncheck all keys in the current tab.</source>
         <translation>Desmarcar todas las claves en la pestaña actual.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="657"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="678"/>
         <source>Check All</source>
         <translation>Marcar todo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="658"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="679"/>
         <source>Check all keys in the current tab.</source>
         <translation>Marcar todas las claves en la pestaña actual.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="661"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="682"/>
         <source>Search keys by user ID, key ID, fingerprint...</source>
         <translation>Buscar claves por ID de usuario, ID de clave, huella digital...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="663"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="684"/>
         <source>Columns</source>
         <translation>Columnas</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="664"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="685"/>
         <source>Choose visible key table columns.</source>
         <translation>Elegir las columnas visibles de la tabla de claves.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="668"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="689"/>
         <source>Create a key group from checked encryption-capable keys.</source>
         <translation>Crear un grupo de claves a partir de las claves aptas para cifrado marcadas.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="781"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="802"/>
         <source>Switch between key databases.</source>
         <translation>Cambiar entre bases de datos de claves.</translation>
     </message>
@@ -8482,42 +8486,42 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         <translation type="vanished">Canal %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="762"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="783"/>
         <source>No key database available</source>
         <translation>No hay ninguna base de datos de claves disponible</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="771"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="792"/>
         <source>Key Database</source>
         <translation>Base de datos de claves</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="782"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="803"/>
         <source>Click to switch key databases.</source>
         <translation>Haga clic para cambiar entre bases de datos de claves.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="820"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="841"/>
         <source>Expire Date</source>
         <translation>Fecha de expiración</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="822"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="843"/>
         <source>Owner Trust</source>
         <translation>Confianza del Propietario</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="828"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="849"/>
         <source>Status</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="837"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="858"/>
         <source>Reset Column Widths</source>
         <translation>Restablecer anchos de columna</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="996"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1017"/>
         <source>%n key(s) checked</source>
         <translation>
             <numerusform>%n clave(s) marcada(s)</numerusform>
@@ -8525,7 +8529,7 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1004"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1025"/>
         <source>%n of them are not shown by the current category or search filter.</source>
         <translation>
             <numerusform>%n de ellas no se muestran por la categoría o filtro de búsqueda actual.</numerusform>
@@ -8533,27 +8537,27 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1109"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1130"/>
         <source>The key database &quot;%1&quot; is no longer available; showing the default one.</source>
         <translation>La base de datos de claves &quot;%1&quot; ya no está disponible; se muestra la predeterminada.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1420"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1441"/>
         <source>Delete Category</source>
         <translation>Eliminar categoría</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1421"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1442"/>
         <source>Delete category &quot;%1&quot;? This removes the grouping only; the keys themselves are not affected.</source>
         <translation>¿Eliminar la categoría &quot;%1&quot;? Esto solo elimina la agrupación; las claves en sí no se ven afectadas.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1498"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1519"/>
         <source>Set Colour...</source>
         <translation>Establecer Color...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1502"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1523"/>
         <source>Reset Colour</source>
         <translation>Restablecer Color</translation>
     </message>
@@ -8562,12 +8566,12 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         <translation type="vanished">Renombrar categoría...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1517"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1538"/>
         <source>Delete Category...</source>
         <translation>Eliminar categoría...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1534"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1555"/>
         <source>Choose Category Colour</source>
         <translation>Elegir color de la categoría</translation>
     </message>
@@ -8588,24 +8592,24 @@ El grupo se elimina. Las claves que contiene no se modifican y permanecen en su 
         <translation type="vanished">Renombrar categoría</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1681"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1702"/>
         <source>You&apos;ve dropped something on the key list.
 GpgFrontend will now try to import key(s).</source>
         <translation>Ha soltado algo en la lista de claves.
 GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1686"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1707"/>
         <source>Ask before importing keys next time.</source>
         <translation>Preguntar antes de importar claves la próxima vez.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1815"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1836"/>
         <source>No key matches &quot;%1&quot;</source>
         <translation>Ninguna clave coincide con &quot;%1&quot;</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1816"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1837"/>
         <source>%n key(s) match &quot;%1&quot;</source>
         <translation>
             <numerusform>%n clave(s) coincide(n) con &quot;%1&quot;</numerusform>
@@ -8613,17 +8617,17 @@ GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="818"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="839"/>
         <source>Create Date</source>
         <translation>Fecha de Creación</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="826"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="847"/>
         <source>Comment</source>
         <translation>Comentario</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="666"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="687"/>
         <source>New Key Group</source>
         <translation>Nuevo Grupo de Claves</translation>
     </message>
@@ -8716,7 +8720,7 @@ GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="268"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="725"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="727"/>
         <source>Key Operations</source>
         <translation>Operaciones de Clave</translation>
     </message>
@@ -8726,7 +8730,7 @@ GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="277"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1409"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1411"/>
         <source>Category</source>
         <translation>Categoría</translation>
     </message>
@@ -8777,7 +8781,7 @@ GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="372"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="609"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="611"/>
         <source>File</source>
         <translation>Archivo</translation>
     </message>
@@ -8974,42 +8978,42 @@ GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
         <translation>Firmar la identidad de esta clave con su clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="539"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="541"/>
         <source>Set Expiry...</source>
         <translation>Establecer caducidad...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="539"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="541"/>
         <source>Change when this key expires</source>
         <translation>Cambiar cuándo caduca esta clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="553"/>
         <source>Export Public Key...</source>
         <translation>Exportar clave pública...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="552"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="554"/>
         <source>Save this key&apos;s public half to a file you can send</source>
         <translation>Guardar la mitad pública de esta clave en un archivo que pueda enviar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="561"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="563"/>
         <source>Export Private Key...</source>
         <translation>Exportar clave privada...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="562"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="564"/>
         <source>Save this key&apos;s private half to a file — keep it to yourself</source>
         <translation>Guardar la mitad privada de esta clave en un archivo — manténgala para usted</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="571"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="573"/>
         <source>Generate Revocation Certificate...</source>
         <translation>Generar certificado de revocación...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="572"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="574"/>
         <source>Create a certificate that can revoke this key, to store somewhere safe in case you ever lose control of it</source>
         <translation>Crear un certificado que pueda revocar esta clave, para almacenarlo en un lugar seguro por si alguna vez pierde el control de ella</translation>
     </message>
@@ -9034,141 +9038,141 @@ GpgFrontend intentará importar la(s) clave(s) ahora.</translation>
         <translation type="vanished">Obtener la copia más reciente de esta(s) clave(s) del servidor de claves, recogiendo nuevas firmas y revocaciones</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="584"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="586"/>
         <source>Set Owner Trust for Checked Keys...</source>
         <translation>Establecer confianza del propietario para claves marcadas...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="587"/>
         <source>Give every checked key the same owner trust level</source>
         <translation>Asignar a cada clave marcada el mismo nivel de confianza del propietario</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="590"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="592"/>
         <source>Extend Expiry of Checked Keys...</source>
         <translation>Extender caducidad de claves marcadas...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="593"/>
         <source>Push back the expiry date of every checked private key in one step</source>
         <translation>Retrasar la fecha de caducidad de cada clave privada marcada en un solo paso</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="599"/>
         <source>Back Up All Private Keys...</source>
         <translation>Respaldar todas las claves privadas...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="598"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="600"/>
         <source>Export every private key in this keyring to a single key package</source>
         <translation>Exportar cada clave privada de este anillo de claves a un solo paquete de claves</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="613"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="615"/>
         <source>Edit</source>
         <translation>Editar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="622"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="681"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="624"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="683"/>
         <source>Key</source>
         <translation>Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="623"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="625"/>
         <source>Generate Key</source>
         <translation>Generar Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="628"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="704"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="630"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="706"/>
         <source>Import Key</source>
         <translation>Importar Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="635"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="711"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="712"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="637"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="713"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="714"/>
         <source>Export Key</source>
         <translation>Exportar Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="651"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="738"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="653"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="740"/>
         <source>Delete</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="656"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="658"/>
         <source>Operations</source>
         <translation>Operaciones</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="667"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="669"/>
         <source>Bulk</source>
         <translation>Masivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="705"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="707"/>
         <source>Import key</source>
         <translation>Importar clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="726"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="728"/>
         <source>Certify, set expiry, add a subkey, set trust, revoke</source>
         <translation>Certificar, establecer caducidad, añadir subclave, establecer confianza, revocar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="739"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="741"/>
         <source>Delete the selected or the checked keys</source>
         <translation>Eliminar las claves seleccionadas o marcadas</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="745"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="747"/>
         <source>View</source>
         <translation>Ver</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="859"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="861"/>
         <source>Deleting Keys</source>
         <translation>Eliminando Claves</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="860"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="862"/>
         <source>Are you sure that you want to delete the following keys?</source>
         <translation>¿Seguro que desea eliminar las siguientes claves?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="862"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="864"/>
         <source>The action can not be undone.</source>
         <translation>La acción no se puede deshacer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="919"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="931"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1137"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1148"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1161"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="921"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="933"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1139"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1150"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1163"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="948"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="950"/>
         <source>%1 is empty</source>
         <translation>%1 está vacío</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="952"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="954"/>
         <source>%1 copied to clipboard</source>
         <translation>%1 copiado al portapapeles</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1007"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1009"/>
         <source>Nothing to Extend</source>
         <translation>Nada que extender</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1008"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1010"/>
         <source>None of the %n selected key(s) has a private key, so their expiry cannot be changed. Expiry is set on keys you own.</source>
         <translation>
             <numerusform>Ninguna de las %n clave seleccionada tiene una clave privada, por lo que su fecha de caducidad no se puede cambiar. La caducidad se establece en las claves que posees.
@@ -9217,48 +9221,48 @@ Ninguna de las %n claves seleccionadas tiene una clave privada, por lo que su fe
         <translation type="vanished">Subida completa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Undefined</source>
         <translation>Indefinido</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Never</source>
         <translation>Nunca</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Marginal</source>
         <translation>Marginal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Full</source>
         <translation>Completa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="961"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="963"/>
         <source>Ultimate</source>
         <translation>Definitiva</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="965"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="967"/>
         <source>Modify Owner Trust Level</source>
         <translation>Modificar nivel de confianza del propietario</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="966"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
         <source>Trust level to apply to %1 checked key(s):</source>
         <translation>Nivel de confianza a aplicar a %1 clave(s) marcada(s):</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="985"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1060"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="987"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1062"/>
         <source>Partially Failed</source>
         <translation>Falló parcialmente</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="986"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="988"/>
         <source>Failed to set owner trust on %1 key(s).</source>
         <translation>Error al establecer la confianza del propietario en %1 clave(s).</translation>
     </message>
@@ -9267,42 +9271,42 @@ Ninguna de las %n claves seleccionadas tiene una clave privada, por lo que su fe
         <translation type="vanished">Por favor, marque algunas claves privadas antes de realizar esta operación.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1015"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1017"/>
         <source>Extend Expiry of Checked Keys</source>
         <translation>Extender caducidad de las claves marcadas</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1018"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1020"/>
         <source>New expiry date to apply to %1 private key(s):</source>
         <translation>Nueva fecha de caducidad a aplicar a %1 clave(s) privada(s):</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1026"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1028"/>
         <source>Never expires</source>
         <translation>No expira nunca</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1045"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1047"/>
         <source>Extending Expiry</source>
         <translation>Extendiendo caducidad</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1061"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1063"/>
         <source>Failed to update expiry on %1 key(s).</source>
         <translation>Error al actualizar la caducidad de %1 clave(s).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1079"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1081"/>
         <source>No Private Keys</source>
         <translation>Sin claves privadas</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1080"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1082"/>
         <source>There are no private keys in this keyring to back up.</source>
         <translation>No hay claves privadas en este anillo de claves para respaldar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1093"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1095"/>
         <source>private key(s) backed up</source>
         <translation>clave(s) privada(s) respaldada(s)</translation>
     </message>
@@ -9315,17 +9319,17 @@ Ninguna de las %n claves seleccionadas tiene una clave privada, por lo que su fe
         <translation type="vanished">Por favor, introduzca el PIN para descrifrar la Clave:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1408"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1410"/>
         <source>Category (%1 keys)</source>
         <translation>Categoría (%1 claves)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1420"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1422"/>
         <source>Remove From This Category</source>
         <translation>Eliminar de esta categoría</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1456"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1458"/>
         <source>New Category...</source>
         <translation>Nueva categoría...</translation>
     </message>
@@ -9338,17 +9342,17 @@ Ninguna de las %n claves seleccionadas tiene una clave privada, por lo que su fe
         <translation type="vanished">Nombre de la categoría:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1487"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1489"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>%1 claves · %2 privadas · %3 próximas a expirar · %4 expiradas o revocadas</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1494"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1496"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 clave(s) expira(n) dentro de %2 días. Consulte la pestaña &quot;Próximas a expirar&quot;.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1498"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1500"/>
         <source>No key expires within the next %1 days.</source>
         <translation>Ninguna clave expira dentro de los próximos %1 días.</translation>
     </message>
@@ -9365,22 +9369,22 @@ Ninguna de las %n claves seleccionadas tiene una clave privada, por lo que su fe
         <translation type="vanished">Por favor, verifique algunas claves antes de realizar esta operación.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="893"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1176"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="895"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1178"/>
         <source>key(s) exported</source>
         <translation>clave(s) exportadas</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="909"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1127"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="911"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1129"/>
         <source>Exporting</source>
         <translation>Exportando</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="920"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="932"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1138"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1149"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="922"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="934"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1140"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1151"/>
         <source>Unknown error occurred</source>
         <translation>Se produjo un error desconocido</translation>
     </message>
@@ -9401,12 +9405,12 @@ Fingerprint: %2</source>
 Huella: %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1108"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1110"/>
         <source>Invalid Operation</source>
         <translation>Operación no válida</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1109"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1111"/>
         <source>If a key pair does not have a private key then it will not be able to generate sub-keys.</source>
         <translation>Si un par de claves no tiene una clave privada, esta no podrá generar subclaves.</translation>
     </message>
@@ -9419,17 +9423,17 @@ Huella: %2</translation>
         <translation type="vanished">Esta operación solo acepta una única clave.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1162"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1164"/>
         <source>This key may not be able to export as OpenSSH format. Please check the key-size of the subkey(s) used to sign.</source>
         <translation>Es posible que esta clave no se pueda exportar en formato OpenSSH. Por favor, compruebe el tamaño de clave de la subclave(s) utilizada para firmar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1171"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1173"/>
         <source>Export OpenSSH Key To File</source>
         <translation>Exportar Clave OpenSSH A un Archivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1172"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1174"/>
         <source>OpenSSH Public Key Files</source>
         <translation>Archivos de Clave Pública OpenSSH</translation>
     </message>
@@ -9458,7 +9462,7 @@ Huella: %2</translation>
         <translation type="vanished">El archivo es demasiado grande para ser una frase de contraseña de un Paquete de Claves.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1194"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1196"/>
         <source>key(s) imported</source>
         <translation>clave(s) importadas</translation>
     </message>
@@ -10324,9 +10328,8 @@ Huella: %2</translation>
         <translation>UIDs</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="91"/>
         <source>Signature of Selected UID</source>
-        <translation>Firma del UID Seleccionado</translation>
+        <translation type="vanished">Firma del UID Seleccionado</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="143"/>
@@ -10366,37 +10369,37 @@ Huella: %2</translation>
         <translation>Fecha de Expiración</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="272"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="295"/>
         <source>Never Expires</source>
         <translation>Nunca Expira</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="305"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="315"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="470"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="328"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="513"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="525"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="592"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="613"/>
         <source>Invalid Operation</source>
         <translation>Operación no válida</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="329"/>
         <source>This is the only UID of a version 4 key. OpenPGP allows a key without UIDs, but a version 4 key keeps its usage, expiry and preferences in its UID self-signatures, so GpgFrontend could no longer use this key to sign or encrypt. Add another UID first if you want to replace this one.</source>
         <translation>Este es el único UID de una clave de versión 4. OpenPGP permite claves sin UID, pero una clave de versión 4 guarda su uso, su caducidad y sus preferencias en las autofirmas de sus UID, por lo que GpgFrontend ya no podría usar esta clave para firmar ni cifrar. Añada primero otro UID si desea reemplazar este.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="324"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="347"/>
         <source>Are you sure that you want to delete the following UID?</source>
         <translation>¿Está seguro de que desea eliminar el siguiente UID?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="345"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="368"/>
         <source>Successfully deleted the UID.</source>
         <translation>Se eliminó el UID correctamente.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="372"/>
         <source>Deleting UID</source>
         <translation>Eliminando UID</translation>
     </message>
@@ -10405,52 +10408,93 @@ Huella: %2</translation>
         <translation type="vanished">Se estableció el UID principal correctamente.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="412"/>
         <source>Setting Primary UID</source>
         <translation>Estableciendo UID principal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="437"/>
+        <source>Certify User ID...</source>
+        <translation>Certificar ID de usuario...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="502"/>
+        <source>Revoke Certification...</source>
+        <translation>Revocar certificación...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="514"/>
+        <source>Please select a certification before doing this operation.</source>
+        <translation>Seleccione una certificación antes de realizar esta operación.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="526"/>
+        <source>To revoke the certification made by %1, you need its private key in the local database.</source>
+        <translation>Para revocar la certificación realizada por %1, necesita su clave privada en la base de datos local.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="539"/>
+        <source>Revoke Certification</source>
+        <translation>Revocar certificación</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="541"/>
+        <source>Are you sure that you want to revoke the following certification?</source>
+        <translation>¿Está seguro de que desea revocar la siguiente certificación?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="565"/>
+        <source>The certification has been revoked.</source>
+        <translation>La certificación ha sido revocada.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="569"/>
+        <source>Revoking Certification</source>
+        <translation>Revocando certificación</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="599"/>
         <source>&lt;h3&gt;Revoke UID Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;UID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a UID will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this UID?</source>
         <translation>&lt;h3&gt;Confirmación de la Revocación del UID:&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;UID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revocar un UID lo dejará permanentemente inutilizable.Esta acción es &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;¿Seguro que quiere revocar este UID?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="552"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="619"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; Sin motivo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="552"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="619"/>
         <source>4 -&gt; User ID is no longer valid.</source>
         <translation>4 -&gt; El ID de Usuario ya no es válido.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="567"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="634"/>
         <source>Revocation Failed</source>
         <translation>No se pudo Revocar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="568"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="635"/>
         <source>Failed to revoke the UID. Please try again.</source>
         <translation>No se pudo revocar el UID. Por favor, inténtelo de nuevo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="639"/>
         <source>Revocation Successful</source>
         <translation>Revocación Exitosa</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="573"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="640"/>
         <source>The UID has been successfully revoked.</source>
         <translation>La UID ha sido revocado correctamente.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="577"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="644"/>
         <source>Revoking UID</source>
         <translation>Revocando UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="367"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="564"/>
         <source>Successful Operation</source>
         <translation>Operación Exitosa</translation>
     </message>
@@ -10459,101 +10503,100 @@ Huella: %2</translation>
         <translation type="vanished">Se agregó un nuevo UID correctamente.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="338"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="382"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="405"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="557"/>
         <source>Operation Failed</source>
         <translation>Operación Fallida</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="383"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="502"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="558"/>
         <source>An error occurred during the operation.</source>
         <translation>Se produjo un error durante la operación.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="316"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="614"/>
         <source>Cannot delete the Primary UID.</source>
         <translation>No se puede eliminar el UID Primario.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="321"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="91"/>
+        <source>Certifications of Selected User ID</source>
+        <translation>Certificaciones del ID de usuario seleccionado</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="344"/>
         <source>Deleting UIDs</source>
         <translation>Eliminando UIDs</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="326"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="369"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="495"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="544"/>
         <source>The action can not be undone.</source>
         <translation>La acción no se puede deshacer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="362"/>
         <source>An error occurred during the delete %1 operation.</source>
         <translation>Se produjo un error durante la operación de eliminación %1.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="389"/>
         <source>Set Primary UID</source>
         <translation>Establecer cómo UID principal</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="367"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="390"/>
         <source>Are you sure that you want to set the Primary UID to?</source>
         <translation>¿Está seguro de que también quiere configurar el UID Primario?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="434"/>
         <source>Set As Primary</source>
         <translation>Establecer como Primario</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="409"/>
         <source>Sign UID</source>
-        <translation>Firmar UID</translation>
+        <translation type="vanished">Firmar UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="412"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="539"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="606"/>
         <source>Revoke UID</source>
         <translation>Revocar UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="415"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="443"/>
         <source>Delete UID</source>
         <translation>Eliminar UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="526"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="593"/>
         <source>Please select one UID before doing this operation.</source>
         <translation>Por favor, seleccione un UID antes de realizar esta operación.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="459"/>
         <source>Delete(Revoke) Key Signature</source>
-        <translation>Eliminar (Revocar) Firma de Clave</translation>
+        <translation type="vanished">Eliminar (Revocar) Firma de Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="471"/>
         <source>Please select one Key Signature before doing this operation.</source>
-        <translation>Por favor, seleccione una Firma de Clave antes de realizar esta operación.</translation>
+        <translation type="vanished">Por favor, seleccione una Firma de Clave antes de realizar esta operación.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="480"/>
         <source>To delete the signature, you need to have its corresponding public key in the local database.</source>
-        <translation>Para eliminar la firma, necesitas tener la clave pública correspondiente en la base de datos local.</translation>
+        <translation type="vanished">Para eliminar la firma, necesitas tener la clave pública correspondiente en la base de datos local.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="490"/>
         <source>Deleting Key Signature</source>
-        <translation>Eliminando la Firma de Clave</translation>
+        <translation type="vanished">Eliminando la Firma de Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="492"/>
         <source>Are you sure that you want to delete the following signature?</source>
-        <translation>¿Seguro que desea eliminar la siguiente firma?</translation>
+        <translation type="vanished">¿Seguro que desea eliminar la siguiente firma?</translation>
     </message>
 </context>
 <context>
@@ -10774,39 +10817,128 @@ Haga clic derecho en una clave de otra pestaña y use Categoría para archivarla
 <context>
     <name>GpgFrontend::UI::KeyUIDSignDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="59"/>
         <source>Signers</source>
-        <translation>Firmantes</translation>
+        <translation type="vanished">Firmantes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="100"/>
         <source>Expire Date</source>
-        <translation>Fecha de Expiración</translation>
+        <translation type="vanished">Fecha de Expiración</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="110"/>
         <source>Sign For Key&apos;s UID(s)</source>
-        <translation>Firmar para obtener los UID(s) de la Clave</translation>
+        <translation type="vanished">Firmar para obtener los UID(s) de la Clave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="132"/>
         <source>Unsuccessful Operation</source>
-        <translation>No se pudo realizar la Operación</translation>
+        <translation type="vanished">No se pudo realizar la Operación</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="133"/>
         <source>Signature operation failed for UID %1</source>
-        <translation>No se pudo completar la Operación de Firma  para el UID %1</translation>
+        <translation type="vanished">No se pudo completar la Operación de Firma  para el UID %1</translation>
+    </message>
+    <message>
+        <source>Operation Complete</source>
+        <translation type="vanished">Operación Completada</translation>
+    </message>
+    <message>
+        <source>The signature operation of the UID is complete</source>
+        <translation type="vanished">Se ha completado la Operación de Firma del UID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="67"/>
+        <source>Certify Key</source>
+        <translation>Certificar clave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="67"/>
+        <source>Certify User ID</source>
+        <translation>Certificar ID de usuario</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="78"/>
+        <source>Say that you have checked this key belongs to the person it names. Compare the fingerprint with them first, in person or over a channel you trust.</source>
+        <translation>Indique que ha comprobado que esta clave pertenece a la persona que se indica. Compare antes la huella con esa persona, en persona o a través de un canal de confianza.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="95"/>
+        <source>Key</source>
+        <translation>Clave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="95"/>
+        <source>User ID</source>
+        <translation>ID de usuario</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="99"/>
+        <source>All %1 user IDs of this key are certified.</source>
+        <translation>Todos los %1 ID de usuario de esta clave están certificados.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="111"/>
+        <source>Fingerprint</source>
+        <translation>Huella</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="231"/>
+        <source>Certifying</source>
+        <translation>Certificando</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="121"/>
+        <source>Certifying Keys</source>
+        <translation>Claves de certificación</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="131"/>
+        <source>None of your private keys can certify. A key needs its primary secret key, and must not be expired, revoked or disabled.</source>
+        <translation>Ninguna de sus claves privadas puede certificar. Una clave necesita su clave secreta primaria y no debe estar expirada, revocada ni deshabilitada.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="137"/>
-        <source>Operation Complete</source>
-        <translation>Operación Completada</translation>
+        <source>Certify with</source>
+        <translation>Certificar con</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="138"/>
-        <source>The signature operation of the UID is complete</source>
-        <translation>Se ha completado la Operación de Firma del UID</translation>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="149"/>
+        <source>Expires</source>
+        <translation>Expira</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="154"/>
+        <source>Certify</source>
+        <translation>Certificar</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="178"/>
+        <source>No Key Selected</source>
+        <translation>Ninguna clave seleccionada</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="179"/>
+        <source>Please check the key to certify with.</source>
+        <translation>Compruebe la clave con la que certificar.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="208"/>
+        <source>Certification Failed</source>
+        <translation>Error de certificación</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="209"/>
+        <source>Failed to certify %1.</source>
+        <translation>No se pudo certificar %1.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="221"/>
+        <source>Certification Complete</source>
+        <translation>Certificación completada</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="223"/>
+        <source>%1 has been certified.</source>
+        <translation>Se ha certificado %1.</translation>
     </message>
 </context>
 <context>

@@ -5831,22 +5831,26 @@ Results will appear here as a summary document.</source>
         <translation>此金鑰未包含電子郵件地址。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="175"/>
-        <source>Certifying is for vouching for someone else&apos;s key.</source>
-        <translation>認證用於為他人的金鑰擔保。</translation>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="176"/>
+        <source>You need a private key to certify with.</source>
+        <translation>您需要私鑰才能進行認證。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="197"/>
+        <source>Certifying is for vouching for someone else&apos;s key.</source>
+        <translation type="vanished">認證用於為他人的金鑰擔保。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="198"/>
         <source>Tick the box beside at least one key first.</source>
         <translation>請先勾選至少一個金鑰旁的核取方塊。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="219"/>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="220"/>
         <source>Expiry can only be changed on keys you own.</source>
         <translation>僅能變更您自己金鑰的有效期限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="230"/>
+        <location filename="../../../../src/ui/main_window/KeyActionState.cpp" line="231"/>
         <source>This keyring holds no private keys.</source>
         <translation>此金鑰環中不包含任何私鑰。</translation>
     </message>
@@ -8335,12 +8339,12 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
 <context>
     <name>GpgFrontend::UI::KeyList</name>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="650"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="671"/>
         <source>Refresh</source>
         <translation>重新整理</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="652"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="673"/>
         <source>Refresh the key list to synchronize changes.</source>
         <translation>重新整理金鑰列表以同步變更。</translation>
     </message>
@@ -8349,32 +8353,32 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">同步公開金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="814"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="835"/>
         <source>Key ID</source>
         <translation>金鑰 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="816"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="837"/>
         <source>Algorithm</source>
         <translation>演算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="822"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="843"/>
         <source>Owner Trust</source>
         <translation>擁有者信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="818"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="839"/>
         <source>Create Date</source>
         <translation>建立日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="826"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="847"/>
         <source>Comment</source>
         <translation>註解</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="666"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="687"/>
         <source>New Key Group</source>
         <translation>新增金鑰群組</translation>
     </message>
@@ -8383,12 +8387,12 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">金鑰資料庫</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1622"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1643"/>
         <source>Refreshing Key List...</source>
         <translation>正在重新整理金鑰列表...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1679"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1700"/>
         <source>Import Keys</source>
         <translation>匯入金鑰</translation>
     </message>
@@ -8397,8 +8401,8 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">與預設金鑰伺服器同步公開金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="379"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1492"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="400"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1513"/>
         <source>New Category...</source>
         <translation>新增類別...</translation>
     </message>
@@ -8407,48 +8411,48 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">與預設金鑰伺服器同步公鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="654"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="675"/>
         <source>Uncheck All</source>
         <translation>取消全選</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="655"/>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="994"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="676"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1015"/>
         <source>Uncheck all keys in the current tab.</source>
         <translation>取消選取目前分頁中的所有金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="657"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="678"/>
         <source>Check All</source>
         <translation>全選</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="658"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="679"/>
         <source>Check all keys in the current tab.</source>
         <translation>選取目前分頁中的所有金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="661"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="682"/>
         <source>Search keys by user ID, key ID, fingerprint...</source>
         <translation>透過使用者 ID、金鑰 ID、指紋搜尋金鑰...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="663"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="684"/>
         <source>Columns</source>
         <translation>欄位</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="664"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="685"/>
         <source>Choose visible key table columns.</source>
         <translation>選擇金鑰表格中要顯示的欄位。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="668"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="689"/>
         <source>Create a key group from checked encryption-capable keys.</source>
         <translation>從已勾選且可用於加密的金鑰建立金鑰群組。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="781"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="802"/>
         <source>Switch between key databases.</source>
         <translation>切換金鑰資料庫。</translation>
     </message>
@@ -8457,86 +8461,86 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">通道 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="762"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="783"/>
         <source>No key database available</source>
         <translation>無可用的金鑰資料庫</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="771"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="792"/>
         <source>Key Database</source>
         <translation>金鑰資料庫</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="782"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="803"/>
         <source>Click to switch key databases.</source>
         <translation>按一下以切換金鑰資料庫。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="820"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="841"/>
         <source>Expire Date</source>
         <translation>到期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="824"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="845"/>
         <source>Subkeys</source>
         <translation>子金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="828"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="849"/>
         <source>Status</source>
         <translation>狀態</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="832"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="853"/>
         <source>No optional columns</source>
         <translation>無可選欄位</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="837"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="858"/>
         <source>Reset Column Widths</source>
         <translation>重設欄位寬度</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="996"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1017"/>
         <source>%n key(s) checked</source>
         <translation>
             <numerusform>已勾選 %n 個金鑰</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1004"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1025"/>
         <source>%n of them are not shown by the current category or search filter.</source>
         <translation>
             <numerusform>%n 個因目前分類或搜尋篩選而未顯示。</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1109"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1130"/>
         <source>The key database &quot;%1&quot; is no longer available; showing the default one.</source>
         <translation>金鑰資料庫「%1」已無法使用，改為顯示預設資料庫。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1420"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1441"/>
         <source>Delete Category</source>
         <translation>刪除分類</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1421"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1442"/>
         <source>Delete category &quot;%1&quot;? This removes the grouping only; the keys themselves are not affected.</source>
         <translation>刪除類別「%1」？此操作僅移除分組，金鑰本身不受影響。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1498"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1519"/>
         <source>Set Colour...</source>
         <translation>設定顏色...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1502"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1523"/>
         <source>Reset Colour</source>
         <translation>重設顏色</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1513"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1534"/>
         <source>Edit Category...</source>
         <translation>編輯類別...</translation>
     </message>
@@ -8545,12 +8549,12 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">重新命名類別...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1517"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1538"/>
         <source>Delete Category...</source>
         <translation>刪除類別...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1534"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1555"/>
         <source>Choose Category Colour</source>
         <translation>選擇類別顏色</translation>
     </message>
@@ -8571,19 +8575,19 @@ The group is removed. The keys in it are not touched and stay in your keyring.</
         <translation type="vanished">重新命名類別</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1627"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1648"/>
         <source>Key List Refreshed.</source>
         <translation>金鑰列表已重新整理。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1681"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1702"/>
         <source>You&apos;ve dropped something on the key list.
 GpgFrontend will now try to import key(s).</source>
         <translation>您已將項目拖放至金鑰列表。
 GpgFrontend 現在將嘗試匯入金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1686"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1707"/>
         <source>Ask before importing keys next time.</source>
         <translation>下次匯入金鑰前先詢問。</translation>
     </message>
@@ -8608,12 +8612,12 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">金鑰列表同步完成。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1815"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1836"/>
         <source>No key matches &quot;%1&quot;</source>
         <translation>沒有金鑰符合 &quot;%1&quot;</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1816"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1837"/>
         <source>%n key(s) match &quot;%1&quot;</source>
         <translation>
             <numerusform>有%n個金鑰與&quot;%1&quot;相符</numerusform>
@@ -8684,7 +8688,7 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="268"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="725"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="727"/>
         <source>Key Operations</source>
         <translation>金鑰操作</translation>
     </message>
@@ -8694,7 +8698,7 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="277"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1409"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1411"/>
         <source>Category</source>
         <translation>類別</translation>
     </message>
@@ -8745,7 +8749,7 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="372"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="609"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="611"/>
         <source>File</source>
         <translation>檔案</translation>
     </message>
@@ -8942,42 +8946,42 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation>使用您的金鑰簽署此金鑰的身份</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="539"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="541"/>
         <source>Set Expiry...</source>
         <translation>設定到期日...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="539"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="541"/>
         <source>Change when this key expires</source>
         <translation>變更此金鑰的到期日</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="553"/>
         <source>Export Public Key...</source>
         <translation>匯出公鑰...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="552"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="554"/>
         <source>Save this key&apos;s public half to a file you can send</source>
         <translation>將此金鑰的公鑰部分儲存到可傳送的檔案</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="561"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="563"/>
         <source>Export Private Key...</source>
         <translation>匯出私鑰...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="562"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="564"/>
         <source>Save this key&apos;s private half to a file — keep it to yourself</source>
         <translation>將此金鑰的私鑰部分儲存到檔案 — 請自行妥善保管</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="571"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="573"/>
         <source>Generate Revocation Certificate...</source>
         <translation>產生吊銷證書...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="572"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="574"/>
         <source>Create a certificate that can revoke this key, to store somewhere safe in case you ever lose control of it</source>
         <translation>建立可用於吊銷此金鑰的憑證，並儲存在安全處，以備您失去金鑰控制權時使用</translation>
     </message>
@@ -9002,141 +9006,141 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">從金鑰伺服器擷取這些金鑰的最新副本，以取得新的簽章與吊銷資訊</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="584"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="586"/>
         <source>Set Owner Trust for Checked Keys...</source>
         <translation>設定勾選金鑰的擁有者信任...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="587"/>
         <source>Give every checked key the same owner trust level</source>
         <translation>為每個已勾選的金鑰設定相同的擁有者信任層級</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="590"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="592"/>
         <source>Extend Expiry of Checked Keys...</source>
         <translation>延長勾選金鑰的到期日...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="593"/>
         <source>Push back the expiry date of every checked private key in one step</source>
         <translation>一次性延後所有已勾選私鑰的到期日</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="599"/>
         <source>Back Up All Private Keys...</source>
         <translation>備份所有私鑰...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="598"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="600"/>
         <source>Export every private key in this keyring to a single key package</source>
         <translation>將此金鑰環中的所有私鑰匯出至單一金鑰套件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="613"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="615"/>
         <source>Edit</source>
         <translation>編輯</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="622"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="681"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="624"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="683"/>
         <source>Key</source>
         <translation>金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="623"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="625"/>
         <source>Generate Key</source>
         <translation>產生金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="628"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="704"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="630"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="706"/>
         <source>Import Key</source>
         <translation>匯入金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="635"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="711"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="712"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="637"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="713"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="714"/>
         <source>Export Key</source>
         <translation>匯出金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="651"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="738"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="653"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="740"/>
         <source>Delete</source>
         <translation>刪除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="656"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="658"/>
         <source>Operations</source>
         <translation>操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="667"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="669"/>
         <source>Bulk</source>
         <translation>批次</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="705"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="707"/>
         <source>Import key</source>
         <translation>匯入金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="726"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="728"/>
         <source>Certify, set expiry, add a subkey, set trust, revoke</source>
         <translation>認證、設定到期日、新增子金鑰、設定信任、吊銷</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="739"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="741"/>
         <source>Delete the selected or the checked keys</source>
         <translation>刪除已選取或已勾選的金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="745"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="747"/>
         <source>View</source>
         <translation>檢視</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="859"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="861"/>
         <source>Deleting Keys</source>
         <translation>正在刪除金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="860"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="862"/>
         <source>Are you sure that you want to delete the following keys?</source>
         <translation>您確定要刪除下列金鑰嗎？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="862"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="864"/>
         <source>The action can not be undone.</source>
         <translation>此操作無法復原。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="919"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="931"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1137"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1148"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1161"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="921"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="933"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1139"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1150"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1163"/>
         <source>Error</source>
         <translation>錯誤</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="948"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="950"/>
         <source>%1 is empty</source>
         <translation>%1 為空</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="952"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="954"/>
         <source>%1 copied to clipboard</source>
         <translation>%1 已複製到剪貼簿</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1007"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1009"/>
         <source>Nothing to Extend</source>
         <translation>無可延長</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1008"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1010"/>
         <source>None of the %n selected key(s) has a private key, so their expiry cannot be changed. Expiry is set on keys you own.</source>
         <translation>
             <numerusform>在所選的 %n 個金鑰中，沒有任何一個擁有私鑰，因此無法更改其過期時間。過期時間僅能設定於您擁有的金鑰上。</numerusform>
@@ -9183,48 +9187,48 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">上傳完成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Undefined</source>
         <translation>未定義</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Never</source>
         <translation>從未</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Marginal</source>
         <translation>邊際</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="960"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="962"/>
         <source>Full</source>
         <translation>完整</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="961"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="963"/>
         <source>Ultimate</source>
         <translation>終極</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="965"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="967"/>
         <source>Modify Owner Trust Level</source>
         <translation>修改擁有者信任層級</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="966"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="968"/>
         <source>Trust level to apply to %1 checked key(s):</source>
         <translation>要套用到 %1 個已勾選金鑰的信任層級：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="985"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1060"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="987"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1062"/>
         <source>Partially Failed</source>
         <translation>部分失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="986"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="988"/>
         <source>Failed to set owner trust on %1 key(s).</source>
         <translation>無法設定 %1 個金鑰的擁有者信任。</translation>
     </message>
@@ -9233,42 +9237,42 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">請先勾選一些私鑰再執行此操作。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1015"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1017"/>
         <source>Extend Expiry of Checked Keys</source>
         <translation>延長已勾選金鑰的有效期限</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1018"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1020"/>
         <source>New expiry date to apply to %1 private key(s):</source>
         <translation>要套用到 %1 個私鑰的新到期日：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1026"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1028"/>
         <source>Never expires</source>
         <translation>永不過期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1045"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1047"/>
         <source>Extending Expiry</source>
         <translation>正在延長有效期限</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1061"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1063"/>
         <source>Failed to update expiry on %1 key(s).</source>
         <translation>無法更新 %1 個金鑰的有效期限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1079"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1081"/>
         <source>No Private Keys</source>
         <translation>無私鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1080"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1082"/>
         <source>There are no private keys in this keyring to back up.</source>
         <translation>此金鑰環中沒有可備份的私鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1093"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1095"/>
         <source>private key(s) backed up</source>
         <translation>私鑰已備份</translation>
     </message>
@@ -9281,17 +9285,17 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">請輸入 PIN 碼以解密金鑰：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1408"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1410"/>
         <source>Category (%1 keys)</source>
         <translation>分類（%1 個金鑰）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1420"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1422"/>
         <source>Remove From This Category</source>
         <translation>從此分類移除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1456"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1458"/>
         <source>New Category...</source>
         <translation>新增分類...</translation>
     </message>
@@ -9304,17 +9308,17 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">分類名稱：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1487"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1489"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
         <translation>%1 個金鑰 · %2 個私鑰 · %3 個即將到期 · %4 個已過期或已吊銷</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1494"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1496"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
         <translation>%1 個金鑰將在 %2 天內到期。請參閱「即將到期」標籤。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1498"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1500"/>
         <source>No key expires within the next %1 days.</source>
         <translation>在未來 %1 天內沒有金鑰到期。</translation>
     </message>
@@ -9331,22 +9335,22 @@ GpgFrontend 現在將嘗試匯入金鑰。</translation>
         <translation type="vanished">執行此操作前，請先勾選金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="893"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1176"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="895"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1178"/>
         <source>key(s) exported</source>
         <translation>金鑰已匯出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="909"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1127"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="911"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1129"/>
         <source>Exporting</source>
         <translation>正在匯出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="920"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="932"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1138"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1149"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="922"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="934"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1140"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1151"/>
         <source>Unknown error occurred</source>
         <translation>發生未知錯誤</translation>
     </message>
@@ -9367,12 +9371,12 @@ Fingerprint: %2</source>
 指紋：%2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1108"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1110"/>
         <source>Invalid Operation</source>
         <translation>無效的操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1109"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1111"/>
         <source>If a key pair does not have a private key then it will not be able to generate sub-keys.</source>
         <translation>若金鑰對不包含私密金鑰，則無法產生子金鑰。</translation>
     </message>
@@ -9385,17 +9389,17 @@ Fingerprint: %2</source>
         <translation type="vanished">此操作僅接受單一金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1162"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1164"/>
         <source>This key may not be able to export as OpenSSH format. Please check the key-size of the subkey(s) used to sign.</source>
         <translation>此金鑰可能無法匯出為 OpenSSH 格式。請檢查用於簽章的子金鑰之金鑰長度。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1171"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1173"/>
         <source>Export OpenSSH Key To File</source>
         <translation>將 OpenSSH 金鑰匯出至檔案</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1172"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1174"/>
         <source>OpenSSH Public Key Files</source>
         <translation>OpenSSH 公開金鑰檔案</translation>
     </message>
@@ -9424,7 +9428,7 @@ Fingerprint: %2</source>
         <translation type="vanished">目標檔案對於金鑰套件通行片語而言過大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1194"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1196"/>
         <source>key(s) imported</source>
         <translation>已匯入金鑰</translation>
     </message>
@@ -10290,9 +10294,8 @@ Fingerprint: %2</source>
         <translation>使用者識別碼</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="91"/>
         <source>Signature of Selected UID</source>
-        <translation>所選使用者識別碼的簽章</translation>
+        <translation type="vanished">所選使用者識別碼的簽章</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="143"/>
@@ -10332,37 +10335,37 @@ Fingerprint: %2</source>
         <translation>過期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="272"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="295"/>
         <source>Never Expires</source>
         <translation>永不過期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="305"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="315"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="470"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="328"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="513"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="525"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="592"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="613"/>
         <source>Invalid Operation</source>
         <translation>無效的操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="329"/>
         <source>This is the only UID of a version 4 key. OpenPGP allows a key without UIDs, but a version 4 key keeps its usage, expiry and preferences in its UID self-signatures, so GpgFrontend could no longer use this key to sign or encrypt. Add another UID first if you want to replace this one.</source>
         <translation>這是一個版本 4 金鑰的唯一使用者 ID。OpenPGP 允許沒有使用者 ID 的金鑰，但版本 4 金鑰將其用途、有效期限和偏好設定保存在使用者 ID 的自我簽章中，因此刪除後 GpgFrontend 將無法再使用此金鑰進行簽署或加密。如需取代此使用者 ID，請先新增另一個。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="324"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="347"/>
         <source>Are you sure that you want to delete the following UID?</source>
         <translation>您確定要刪除下列使用者 ID 嗎？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="345"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="368"/>
         <source>Successfully deleted the UID.</source>
         <translation>已成功刪除 UID。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="372"/>
         <source>Deleting UID</source>
         <translation>刪除 UID</translation>
     </message>
@@ -10371,52 +10374,93 @@ Fingerprint: %2</source>
         <translation type="vanished">已成功設定主要 UID。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="412"/>
         <source>Setting Primary UID</source>
         <translation>設定主要 UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="437"/>
+        <source>Certify User ID...</source>
+        <translation>認證使用者 ID...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="502"/>
+        <source>Revoke Certification...</source>
+        <translation>撤銷認證...</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="514"/>
+        <source>Please select a certification before doing this operation.</source>
+        <translation>請先選擇一個認證，再執行此操作。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="526"/>
+        <source>To revoke the certification made by %1, you need its private key in the local database.</source>
+        <translation>若要撤銷 %1 所做的認證，您需要本機資料庫中的私鑰。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="539"/>
+        <source>Revoke Certification</source>
+        <translation>撤銷認證</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="541"/>
+        <source>Are you sure that you want to revoke the following certification?</source>
+        <translation>您確定要撤銷下列認證嗎？</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="565"/>
+        <source>The certification has been revoked.</source>
+        <translation>認證已撤銷。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="569"/>
+        <source>Revoking Certification</source>
+        <translation>正在撤銷認證</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="599"/>
         <source>&lt;h3&gt;Revoke UID Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;UID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a UID will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this UID?</source>
         <translation>&lt;h3&gt;撤銷使用者 ID 確認&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;使用者 ID：&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;撤銷使用者 ID 將使其永久無法使用。此操作&lt;b&gt;無法復原&lt;/b&gt;。&lt;br /&gt;您確定要撤銷此使用者 ID 嗎？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="552"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="619"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; 無原因。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="552"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="619"/>
         <source>4 -&gt; User ID is no longer valid.</source>
         <translation>4 -&gt; 使用者 ID 不再有效。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="567"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="634"/>
         <source>Revocation Failed</source>
         <translation>撤銷失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="568"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="635"/>
         <source>Failed to revoke the UID. Please try again.</source>
         <translation>撤銷使用者 ID 失敗。請再試一次。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="572"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="639"/>
         <source>Revocation Successful</source>
         <translation>撤銷成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="573"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="640"/>
         <source>The UID has been successfully revoked.</source>
         <translation>該使用者 ID 已成功撤銷。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="577"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="644"/>
         <source>Revoking UID</source>
         <translation>撤銷 UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="367"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="564"/>
         <source>Successful Operation</source>
         <translation>操作成功</translation>
     </message>
@@ -10425,101 +10469,100 @@ Fingerprint: %2</source>
         <translation type="vanished">已成功新增使用者 ID。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="338"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="382"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="405"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="557"/>
         <source>Operation Failed</source>
         <translation>操作失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="383"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="502"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="558"/>
         <source>An error occurred during the operation.</source>
         <translation>操作期間發生錯誤。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="316"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="614"/>
         <source>Cannot delete the Primary UID.</source>
         <translation>無法刪除主要使用者 ID。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="321"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="91"/>
+        <source>Certifications of Selected User ID</source>
+        <translation>所選使用者 ID 的認證</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="344"/>
         <source>Deleting UIDs</source>
         <translation>正在刪除使用者 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="326"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="369"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="495"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="544"/>
         <source>The action can not be undone.</source>
         <translation>此操作無法復原。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="362"/>
         <source>An error occurred during the delete %1 operation.</source>
         <translation>執行刪除 %1 操作時發生錯誤。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="366"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="389"/>
         <source>Set Primary UID</source>
         <translation>設定主要使用者 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="367"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="390"/>
         <source>Are you sure that you want to set the Primary UID to?</source>
         <translation>您確定要將此設定為主要使用者 ID 嗎？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="434"/>
         <source>Set As Primary</source>
         <translation>設為主要</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="409"/>
         <source>Sign UID</source>
-        <translation>簽章使用者 ID</translation>
+        <translation type="vanished">簽章使用者 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="412"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="539"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="606"/>
         <source>Revoke UID</source>
         <translation>撤銷使用者 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="415"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="443"/>
         <source>Delete UID</source>
         <translation>刪除使用者 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="526"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="593"/>
         <source>Please select one UID before doing this operation.</source>
         <translation>執行此操作前，請先選擇一個使用者 ID。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="459"/>
         <source>Delete(Revoke) Key Signature</source>
-        <translation>刪除（撤銷）金鑰簽章</translation>
+        <translation type="vanished">刪除（撤銷）金鑰簽章</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="471"/>
         <source>Please select one Key Signature before doing this operation.</source>
-        <translation>執行此操作前，請先選擇一個金鑰簽章。</translation>
+        <translation type="vanished">執行此操作前，請先選擇一個金鑰簽章。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="480"/>
         <source>To delete the signature, you need to have its corresponding public key in the local database.</source>
-        <translation>若要刪除該簽章，您必須在本地資料庫中擁有其對應的公開金鑰。</translation>
+        <translation type="vanished">若要刪除該簽章，您必須在本地資料庫中擁有其對應的公開金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="490"/>
         <source>Deleting Key Signature</source>
-        <translation>正在刪除金鑰簽章</translation>
+        <translation type="vanished">正在刪除金鑰簽章</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="492"/>
         <source>Are you sure that you want to delete the following signature?</source>
-        <translation>您確定要刪除下列簽章嗎？</translation>
+        <translation type="vanished">您確定要刪除下列簽章嗎？</translation>
     </message>
 </context>
 <context>
@@ -10740,39 +10783,128 @@ Right-click a key in another tab and use Category to file it here.</source>
 <context>
     <name>GpgFrontend::UI::KeyUIDSignDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="59"/>
         <source>Signers</source>
-        <translation>簽章者</translation>
+        <translation type="vanished">簽章者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="100"/>
         <source>Expire Date</source>
-        <translation>過期日期</translation>
+        <translation type="vanished">過期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="110"/>
         <source>Sign For Key&apos;s UID(s)</source>
-        <translation>為金鑰的 UID 簽章</translation>
+        <translation type="vanished">為金鑰的 UID 簽章</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="132"/>
         <source>Unsuccessful Operation</source>
-        <translation>操作失敗</translation>
+        <translation type="vanished">操作失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="133"/>
         <source>Signature operation failed for UID %1</source>
-        <translation>UID %1 的簽章操作失敗</translation>
+        <translation type="vanished">UID %1 的簽章操作失敗</translation>
+    </message>
+    <message>
+        <source>Operation Complete</source>
+        <translation type="vanished">操作完成</translation>
+    </message>
+    <message>
+        <source>The signature operation of the UID is complete</source>
+        <translation type="vanished">UID 的簽章操作已完成</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="67"/>
+        <source>Certify Key</source>
+        <translation>認證金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="67"/>
+        <source>Certify User ID</source>
+        <translation>認證使用者 ID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="78"/>
+        <source>Say that you have checked this key belongs to the person it names. Compare the fingerprint with them first, in person or over a channel you trust.</source>
+        <translation>表示您已確認此金鑰屬於其指定的人員。請先親自或透過您信任的管道，與對方比對指紋。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="95"/>
+        <source>Key</source>
+        <translation>金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="95"/>
+        <source>User ID</source>
+        <translation>使用者 ID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="99"/>
+        <source>All %1 user IDs of this key are certified.</source>
+        <translation>此金鑰的所有 %1 個使用者 ID 都已認證。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="111"/>
+        <source>Fingerprint</source>
+        <translation>指紋</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="231"/>
+        <source>Certifying</source>
+        <translation>認證中</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="121"/>
+        <source>Certifying Keys</source>
+        <translation>正在認證金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="131"/>
+        <source>None of your private keys can certify. A key needs its primary secret key, and must not be expired, revoked or disabled.</source>
+        <translation>您的私鑰都無法進行認證。金鑰需要其主私鑰，且必須未過期、未吊銷或未停用。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="137"/>
-        <source>Operation Complete</source>
-        <translation>操作完成</translation>
+        <source>Certify with</source>
+        <translation>使用金鑰認證</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="138"/>
-        <source>The signature operation of the UID is complete</source>
-        <translation>UID 的簽章操作已完成</translation>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="149"/>
+        <source>Expires</source>
+        <translation>到期</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="154"/>
+        <source>Certify</source>
+        <translation>認證</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="178"/>
+        <source>No Key Selected</source>
+        <translation>沒有選取金鑰</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="179"/>
+        <source>Please check the key to certify with.</source>
+        <translation>請確認要用來認證的金鑰。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="208"/>
+        <source>Certification Failed</source>
+        <translation>認證失敗</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="209"/>
+        <source>Failed to certify %1.</source>
+        <translation>無法認證 %1。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="221"/>
+        <source>Certification Complete</source>
+        <translation>認證完成</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp" line="223"/>
+        <source>%1 has been certified.</source>
+        <translation>%1 已通過認證。</translation>
     </message>
 </context>
 <context>
