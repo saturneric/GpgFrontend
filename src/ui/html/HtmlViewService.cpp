@@ -347,8 +347,9 @@ auto HtmlViewService::Load(const QString& caller, quint64 view,
   // flight is answered STALE when it arrives.
   v->parts = std::move(kept);
   v->session = HtmlView::NewSession();
-  const auto document =
-      HtmlView::BuildDocument(QString::fromUtf8(html_utf8), v->session);
+  const auto document = HtmlView::BuildDocument(
+      QString::fromUtf8(html_utf8), v->session,
+      v->provider->info.frame_same_origin);
   if (!v->provider->info.renderer->Load(view, v->session, document)) {
     v = find_view(view);  // the renderer may have been re-entered
     if (v != nullptr) {

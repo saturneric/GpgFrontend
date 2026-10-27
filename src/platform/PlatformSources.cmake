@@ -55,6 +55,10 @@ if(MINGW OR WIN32)
   list(APPEND GF_PLATFORM_CORE_SOURCES
     ${GF_PLATFORM_DIR}/windows/WinFs.cpp
     ${GF_PLATFORM_DIR}/windows/WinModule.cpp)
+  # Compiles to nothing unless the UI target found the WebView2 SDK and
+  # defined GF_HAS_WEBVIEW2_SDK; the common stub answers then.
+  list(APPEND GF_PLATFORM_UI_SOURCES
+    ${GF_PLATFORM_DIR}/windows/WinHtmlView.cpp)
   list(APPEND GF_PLATFORM_APP_SOURCES
     ${GF_PLATFORM_DIR}/windows/WinSecretStore.cpp)
 elseif(APPLE)

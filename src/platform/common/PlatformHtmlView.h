@@ -40,7 +40,13 @@ constexpr auto kPlatformHtmlViewRendererName = "platform";
  * On macOS that is WKWebView. The engine's content rules compile
  * asynchronously, so the renderer is registered when they have compiled, and
  * never if they fail to: HTML mail then stays source, which is what a Host
- * with no renderer shows. Elsewhere this does nothing.
+ * with no renderer shows.
+ *
+ * On Windows it is WebView2, registered at once when the loader and an
+ * Evergreen runtime new enough to enforce the policy are on the machine, and
+ * never otherwise. The engine itself starts only when a view is created.
+ *
+ * Elsewhere this does nothing.
  *
  * GUI thread, after the application exists. Calling it again once the rules
  * have compiled registers the same renderer again at once -- a test that
