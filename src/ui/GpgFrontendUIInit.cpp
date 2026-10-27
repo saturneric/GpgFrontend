@@ -399,71 +399,19 @@ void PreInitGpgFrontendUI() {
   RegisterPlatformHtmlViewRenderer();
 }
 
-void SetFusionAsDefaultStyle() {
-  // Set Fusion style for better dark mode support across platforms
-  QApplication::setStyle(QStyleFactory::create("Fusion"));
-
-  // Check if system is using dark mode by comparing text/background lightness
-  QPalette system_palette = QApplication::palette();
-  QColor window_color = system_palette.color(QPalette::Window);
-  QColor text_color = system_palette.color(QPalette::WindowText);
-
-  // In dark themes, text is typically lighter than the background
-  bool is_dark_mode = text_color.lightness() > window_color.lightness();
-  LOG_D() << "dark mode status:" << is_dark_mode;
-
-  if (is_dark_mode) {
-    LOG_D() << "applying dark palette...";
-
-    QApplication::setPalette(DarkFusionPalette());
-  }
-}
-
 void InitGpgFrontendUI(QApplication* app) {
   // init locale
   InitUITranslations();
 
   auto settings = GetSettings();
-  auto theme = SettingItems::kTheme.Read(settings).toLower();
-
-  // Resolve the effective style. If the user has explicitly chosen a valid
-  // style, honor it; otherwise fall back to Fusion on macOS and on the AppImage
-  // build to make them look better.
-  auto available_styles = QStyleFactory::keys();
-  for (QString& s : available_styles) s = s.toLower();
-
-  QString effective_style;
-  if (!theme.isEmpty() && available_styles.contains(theme)) {
-    effective_style = theme;
-  } else {
+  // The style the user picked, if it is installed. Otherwise Fusion on macOS
+  // and the platform's default style elsewhere. Either way the colours come
+  // from the system palette.
+  auto* style = QStyleFactory::create(SettingItems::kTheme.Read(settings));
 #if defined(Q_OS_MACOS)
-    effective_style = "fusion";
-#else
-    if (IsAppImageENV()) effective_style = "fusion";
+  if (style == nullptr) style = QStyleFactory::create("Fusion");
 #endif
-  }
-
-  // Apply the resolved style.
-#if defined(Q_OS_MACOS)
-  // On macOS apply the style plainly. SetFusionAsDefaultStyle's hand-rolled
-  // dark palette does not fit the platform; Fusion picks up the native system
-  // palette on its own.
-  if (!effective_style.isEmpty()) {
-    QApplication::setStyle(QStyleFactory::create(effective_style));
-  }
-#else
-  // Elsewhere, Fusion goes through the dedicated default treatment (which also
-  // sets the dark palette), regardless of whether it comes from the fallback
-  // above or from an explicitly saved setting. This keeps the appearance
-  // identical across launches: previously the dark palette was only applied
-  // when no theme was saved, so once "fusion" got persisted (e.g. by opening
-  // and closing the settings dialog) later launches silently dropped it.
-  if (effective_style.compare("fusion", Qt::CaseInsensitive) == 0) {
-    SetFusionAsDefaultStyle();
-  } else if (!effective_style.isEmpty()) {
-    QApplication::setStyle(QStyleFactory::create(effective_style));
-  }
-#endif
+  if (style != nullptr) QApplication::setStyle(style);
 
   // init signal station
   UISignalStation::GetInstance();
