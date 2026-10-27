@@ -255,6 +255,10 @@ void GpgFrontendContext::LoadEnvProperties() {
 }
 
 void GpgFrontendContext::InitApplication() {
+  // An HTML renderer module may bring QtWebEngine in after the application
+  // exists, and WebEngine needs contexts shared from the start. Harmless
+  // when no engine ever loads, and the host links nothing of WebEngine.
+  QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
   app_ = new UI::GpgFrontendApplication(argc, argv);
 
   // A double-clicked document does not reach argv on macOS; it arrives as an
