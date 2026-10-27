@@ -88,7 +88,7 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   auto* sign_group_box = new QGroupBox();
   sign_group_box->setLayout(sign_grid_layout);
-  sign_group_box->setTitle(tr("Signature of Selected UID"));
+  sign_group_box->setTitle(tr("Certifications of Selected User ID"));
   // Named for the manual's screenshots, which crop to this box.
   sign_group_box->setObjectName(u"uidSignatureBox"_s);
 
@@ -434,7 +434,7 @@ void KeyPairUIDTab::create_uid_popup_menu() {
   set_primary_uid_act_ = new QAction(tr("Set As Primary"), this);
   connect(set_primary_uid_act_, &QAction::triggered, this,
           &KeyPairUIDTab::slot_set_primary_uid);
-  sign_uid_act_ = new QAction(tr("Sign UID"), this);
+  sign_uid_act_ = new QAction(tr("Certify User ID..."), this);
   connect(sign_uid_act_, &QAction::triggered, this,
           &KeyPairUIDTab::slot_add_sign_single);
   rev_uid_act_ = new QAction(tr("Revoke UID"), this);
@@ -499,7 +499,7 @@ void KeyPairUIDTab::slot_add_sign_single() {
 void KeyPairUIDTab::create_sign_popup_menu() {
   sign_popup_menu_ = new QMenu(this);
 
-  auto* del_sign_act = new QAction(tr("Delete(Revoke) Key Signature"), this);
+  auto* del_sign_act = new QAction(tr("Revoke Certification..."), this);
   connect(del_sign_act, &QAction::triggered, this,
           &KeyPairUIDTab::slot_del_sign);
 
@@ -511,7 +511,7 @@ void KeyPairUIDTab::slot_del_sign() {
   if (selected_signs.empty()) {
     QMessageBox::information(
         this, tr("Invalid Operation"),
-        tr("Please select one Key Signature before doing this operation."));
+        tr("Please select a certification before doing this operation."));
     return;
   }
 
@@ -523,8 +523,8 @@ void KeyPairUIDTab::slot_del_sign() {
     if (!signer.IsGood() || !signer.IsPrivateKey()) {
       QMessageBox::critical(
           this, tr("Invalid Operation"),
-          tr("To revoke the signature made by %1, you need its private key in "
-             "the local database.")
+          tr("To revoke the certification made by %1, you need its private key "
+             "in the local database.")
               .arg(sign.first));
       return;
     }
@@ -536,10 +536,10 @@ void KeyPairUIDTab::slot_del_sign() {
     keynames.append("<br/>");
   }
 
-  int ret = QMessageBox::warning(this, tr("Deleting Key Signature"),
+  int ret = QMessageBox::warning(this, tr("Revoke Certification"),
                                  "<b>" +
-                                     tr("Are you sure that you want to delete "
-                                        "the following signature?") +
+                                     tr("Are you sure that you want to revoke "
+                                        "the following certification?") +
                                      "</b><br/><br/>" + keynames + +"<br/>" +
                                      tr("The action can not be undone."),
                                  QMessageBox::No | QMessageBox::Yes);
@@ -562,11 +562,11 @@ void KeyPairUIDTab::slot_del_sign() {
                            }
                            QMessageBox::information(
                                this, tr("Successful Operation"),
-                               tr("Successfully revoked the key signature."));
+                               tr("The certification has been revoked."));
                            emit SignalUpdateUIDInfo();
                          });
   };
-  GpgOperaHelper::WaitForOpera(this, tr("Revoking Key Signature"), f);
+  GpgOperaHelper::WaitForOpera(this, tr("Revoking Certification"), f);
 }
 
 void KeyPairUIDTab::slot_refresh_key() {
