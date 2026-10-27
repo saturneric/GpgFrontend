@@ -1647,4 +1647,39 @@ auto RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys)
   return MixesPostQuantumAndClassical(recipients);
 }
 
+namespace {
+
+template <typename Capability>
+auto HasAmbiguousSubkey(const GpgAbstractKeyPtrList& keys,
+                        Capability&& capability) -> bool {
+  for (const auto& key : keys) {
+    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+      continue;
+    }
+    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+    if (gpg_key == nullptr) continue;
+
+    int usable = 0;
+    for (const auto& s_key : gpg_key->SubKeys()) {
+      if (capability(s_key) && !s_key.IsRevoked() && !s_key.IsExpired()) {
+        usable++;
+      }
+    }
+    if (usable > 1) return true;
+  }
+  return false;
+}
+
+}  // namespace
+
+auto HasAmbiguousSigningSubkey(const GpgAbstractKeyPtrList& keys) -> bool {
+  return HasAmbiguousSubkey(
+      keys, [](const GpgSubKey& s_key) { return s_key.IsHasSignCap(); });
+}
+
+auto HasAmbiguousEncryptionSubkey(const GpgAbstractKeyPtrList& keys) -> bool {
+  return HasAmbiguousSubkey(
+      keys, [](const GpgSubKey& s_key) { return s_key.IsHasEncrCap(); });
+}
+
 }  // namespace GpgFrontend

@@ -943,6 +943,21 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief Let the user pick the signing key(s) or a specific signing subkey
+   * when none was given or a key has more than one usable signing subkey.
+   *
+   * Otherwise @p keys is returned unchanged and the engine auto-selects the
+   * signing subkey.
+   *
+   * @param channel the key database the keys come from.
+   * @param keys the sign-capable keys checked in the key list.
+   * @param canceled set to true when the user dismissed the picker.
+   * @return the (possibly subkey-pinned) signing keys.
+   */
+  auto resolve_sign_keys_helper(int channel, const GpgAbstractKeyPtrList& keys,
+                                bool& canceled) -> GpgAbstractKeyPtrList;
+
+  /**
    * @brief When the user opted in (basic/confirm_multiple_recipients), ask
    * before encrypting to more than one recipient, listing them all.
    *

@@ -1215,4 +1215,26 @@ MixesPostQuantumAndClassical(const QList<QList<bool>>& recipients) -> bool;
 auto GF_CORE_EXPORT
 RecipientsMixPostQuantumAndClassical(const GpgAbstractKeyPtrList& keys) -> bool;
 
+/**
+ * @brief Whether any of these keys has more than one usable (not revoked, not
+ * expired) signing subkey, the primary key included. The engine would then
+ * pick one by itself, so the user should be asked which to sign with. Key
+ * groups are left out.
+ *
+ * @param keys the signers
+ * @return bool
+ */
+auto GF_CORE_EXPORT HasAmbiguousSigningSubkey(const GpgAbstractKeyPtrList& keys)
+    -> bool;
+
+/**
+ * @brief HasAmbiguousSigningSubkey() for encryption: whether any recipient has
+ * more than one usable encryption subkey.
+ *
+ * @param keys the recipients
+ * @return bool
+ */
+auto GF_CORE_EXPORT
+HasAmbiguousEncryptionSubkey(const GpgAbstractKeyPtrList& keys) -> bool;
+
 }  // namespace GpgFrontend

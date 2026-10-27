@@ -439,27 +439,9 @@ auto MainWindow::resolve_encrypt_recipients_helper(
     return confirmed_mix(keys);
   }
 
-  // Only prompt when a recipient exposes more than one usable (non-revoked)
-  // encryption subkey — otherwise the auto-selection is unambiguous.
-  bool ambiguous = false;
-  for (const auto& key : keys) {
-    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
-      continue;
-    }
-    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
-    if (gpg_key == nullptr) continue;
-
-    int encr_subkey_count = 0;
-    for (const auto& s_key : gpg_key->SubKeys()) {
-      if (s_key.IsHasEncrCap() && !s_key.IsRevoked()) encr_subkey_count++;
-    }
-    if (encr_subkey_count > 1) {
-      ambiguous = true;
-      break;
-    }
-  }
-
-  if (!ambiguous) return confirmed_mix(keys);
+  // Only prompt when a recipient exposes more than one usable encryption
+  // subkey — otherwise the auto-selection is unambiguous.
+  if (!HasAmbiguousEncryptionSubkey(keys)) return confirmed_mix(keys);
 
   auto picker = QSharedPointer<EncryptionKeysPicker>(
       new EncryptionKeysPicker(channel, keys, this),
@@ -470,6 +452,24 @@ auto MainWindow::resolve_encrypt_recipients_helper(
     return {};
   }
   return confirmed_mix(picker->GetKeys());
+}
+
+auto MainWindow::resolve_sign_keys_helper(int channel,
+                                          const GpgAbstractKeyPtrList& keys,
+                                          bool& canceled)
+    -> GpgAbstractKeyPtrList {
+  canceled = false;
+  if (!keys.isEmpty() && !HasAmbiguousSigningSubkey(keys)) return keys;
+
+  auto picker = QSharedPointer<SigningKeysPicker>(
+      new SigningKeysPicker(channel, keys, this),
+      [](SigningKeysPicker* p) { p->deleteLater(); });
+  picker->exec();
+  if (picker->result() == QDialog::Rejected) {
+    canceled = true;
+    return {};
+  }
+  return picker->GetKeys();
 }
 
 void MainWindow::SlotEncrypt() {
@@ -521,33 +521,9 @@ void MainWindow::SlotSign() {
     if (k->IsHasSignCap()) sign_keys.push_back(k);
   }
 
-  bool ambiguous = false;
-  for (const auto& key : sign_keys) {
-    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
-    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
-    if (gpg_key == nullptr) continue;
-    int sign_subkey_count = 0;
-    for (const auto& s_key : gpg_key->SubKeys()) {
-      if (s_key.IsHasSignCap()) sign_subkey_count++;
-    }
-    if (sign_subkey_count > 1) {
-      ambiguous = true;
-      break;
-    }
-  }
-
-  if (sign_keys.isEmpty() || ambiguous) {
-    auto picker = QSharedPointer<SigningKeysPicker>(
-        new SigningKeysPicker(channel, sign_keys, this),
-        [](SigningKeysPicker* p) { p->deleteLater(); });
-    picker->exec();
-    if (picker->result() == QDialog::Rejected) return;
-    contexts->keys = picker->GetKeys();
-  } else {
-    contexts->keys = sign_keys;
-  }
-
-  if (contexts->keys.isEmpty()) return;
+  bool canceled = false;
+  contexts->keys = resolve_sign_keys_helper(channel, sign_keys, canceled);
+  if (canceled || contexts->keys.isEmpty()) return;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
   if (!same_key_database_helper(channel)) return;
@@ -983,6 +959,10 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
       tr("The selected key contains a key that does not actually have a "
          "sign usage."));
   if (contexts->keys.empty()) return;
+
+  bool canceled = false;
+  contexts->keys = resolve_sign_keys_helper(channel, contexts->keys, canceled);
+  if (canceled || contexts->keys.isEmpty()) return;
 
   if (!check_read_file_paths_helper(paths)) return;
 

@@ -1074,6 +1074,79 @@ TEST_F(RpgpCoreTest, CoreRecipientMixIsReadFromKeyAlgoMetadataTest) {
       .DeleteKeys({pq, classical});
 }
 
+// The subkey pickers open only when a key has more than one usable subkey for
+// the operation: the primary key counts when it can sign, and a revoked
+// subkey does not.
+TEST_F(RpgpCoreTest, CoreAmbiguousSubkeyNeedsTwoUsableSubkeysTest) {
+  auto key = GenerateThrowawayRpgpKey("ambiguous@gpgfrontend.bktus.com");
+  ASSERT_TRUE(key != nullptr);
+  const auto fpr = key->Fingerprint();
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+
+  // Signing primary + one encryption subkey: nothing to choose.
+  EXPECT_FALSE(HasAmbiguousSigningSubkey({key}));
+  EXPECT_FALSE(HasAmbiguousEncryptionSubkey({key}));
+
+  const auto add_subkey = [&](const QString& algo_id, bool sign) {
+    auto params = QSharedPointer<KeyGenerateInfo>::create();
+    params->SetIsSubKey(true);
+    auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo(algo_id);
+    ASSERT_TRUE(found);
+    params->SetAlgo(algo);
+    params->SetAllowSign(sign);
+    params->SetAllowEncr(!sign);
+    params->SetNonExpired(true);
+    params->SetNonPassPhrase(true);
+    auto [err, data_object] =
+        KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+            .GenerateSubkeySync(key, params);
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    repo.FlushKeyCache();
+    key = repo.GetKeyPtr(fpr);
+    ASSERT_TRUE(key != nullptr);
+  };
+
+  add_subkey("ed25519", /*sign=*/true);
+  EXPECT_TRUE(HasAmbiguousSigningSubkey({key}));
+  EXPECT_FALSE(HasAmbiguousEncryptionSubkey({key}));
+
+  add_subkey("cv25519", /*sign=*/false);
+  EXPECT_TRUE(HasAmbiguousEncryptionSubkey({key}));
+
+  // One ambiguous key among several is enough; a key group is left out.
+  auto plain = GenerateThrowawayRpgpKey("plain@gpgfrontend.bktus.com");
+  ASSERT_TRUE(plain != nullptr);
+  EXPECT_FALSE(HasAmbiguousSigningSubkey({plain}));
+  EXPECT_TRUE(HasAmbiguousSigningSubkey({plain, key}));
+  EXPECT_FALSE(HasAmbiguousSigningSubkey({nullptr}));
+
+  // Revoking the added subkeys leaves one usable subkey of each kind.
+  const auto revoke_last =
+      [&](const std::function<bool(const GpgSubKey&)>& pick) {
+        auto s_keys = key->SubKeys();
+        for (int i = static_cast<int>(s_keys.size()) - 1; i > 0; --i) {
+          if (!pick(s_keys[i]) || s_keys[i].IsRevoked()) continue;
+          ASSERT_TRUE(
+              KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .RevokeSubkey(key, i, 0, QString("retired")));
+          repo.FlushKeyCache();
+          key = repo.GetKeyPtr(fpr);
+          ASSERT_TRUE(key != nullptr);
+          return;
+        }
+        FAIL() << "no subkey to revoke";
+      };
+
+  revoke_last([](const GpgSubKey& s) { return s.IsHasSignCap(); });
+  EXPECT_FALSE(HasAmbiguousSigningSubkey({key}));
+
+  revoke_last([](const GpgSubKey& s) { return s.IsHasEncrCap(); });
+  EXPECT_FALSE(HasAmbiguousEncryptionSubkey({key}));
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+      .DeleteKeys({key, plain});
+}
+
 // Encrypt+sign gets one engine status for both halves. An unusable key is the
 // recipients' fault only when the engine named refused recipients; otherwise
 // the signer may not sign, and neither half may blame the recipients.
