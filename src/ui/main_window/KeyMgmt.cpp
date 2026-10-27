@@ -531,8 +531,10 @@ void KeyMgmt::create_quick_actions() {
   connect(certify_key_act_, &QAction::triggered, this, [this]() {
     auto key = key_list_->GetSelectedGpgKey();
     if (key == nullptr) return;
-    new KeyUIDSignDialog(key_list_->GetCurrentGpgContextChannel(), key,
-                         key->UID(), this);
+    // An empty user ID certifies every user ID of the key.
+    auto* dialog = new KeyUIDSignDialog(
+        key_list_->GetCurrentGpgContextChannel(), key, QString{}, this);
+    dialog->show();
   });
 
   set_expiry_act_ =

@@ -91,18 +91,31 @@ auto KeyManagementOperation::AddADSKSync(const GpgKeyPtr& key,
   return RunRegisteredSync<AddADSKOpTag>(ctx_, key, adsk);
 }
 
-auto KeyManagementOperation::SignKey(const GpgKeyPtr& key,
+void KeyManagementOperation::SignKey(const GpgKeyPtr& key,
                                      const GpgAbstractKeyPtrList& keys,
                                      const QString& uid,
-                                     const std::optional<QDateTime>& expires)
-    -> bool {
-  return RunRegisteredForward<SignKeyOpTag>(ctx_, key, keys, uid, expires);
+                                     const std::optional<QDateTime>& expires,
+                                     const GpgOperationCallback& cb) {
+  RunRegisteredAsync<SignKeyOpTag>(ctx_, cb, key, keys, uid, expires);
 }
 
-auto KeyManagementOperation::RevKeySignature(const GpgKeyPtr& key,
-                                             const SignIdArgsList& signature_id)
-    -> bool {
-  return RunRegisteredForward<RevKeySignatureOpTag>(ctx_, key, signature_id);
+auto KeyManagementOperation::SignKeySync(
+    const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys, const QString& uid,
+    const std::optional<QDateTime>& expires)
+    -> std::tuple<GpgError, DataObjectPtr> {
+  return RunRegisteredSync<SignKeyOpTag>(ctx_, key, keys, uid, expires);
+}
+
+void KeyManagementOperation::RevKeySignature(const GpgKeyPtr& key,
+                                             const SignIdArgsList& signature_id,
+                                             const GpgOperationCallback& cb) {
+  RunRegisteredAsync<RevKeySignatureOpTag>(ctx_, cb, key, signature_id);
+}
+
+auto KeyManagementOperation::RevKeySignatureSync(
+    const GpgKeyPtr& key, const SignIdArgsList& signature_id)
+    -> std::tuple<GpgError, DataObjectPtr> {
+  return RunRegisteredSync<RevKeySignatureOpTag>(ctx_, key, signature_id);
 }
 
 auto KeyManagementOperation::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,

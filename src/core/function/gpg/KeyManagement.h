@@ -139,31 +139,36 @@ auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     -> GpgError;
 
 /**
- * @brief
+ * @brief Certify user IDs of a key with the given signer keys.
+ *
+ * Only private keys able to certify are used as signers. When none is left the
+ * operation fails instead of letting gpg fall back to its default key.
  *
  * @param ctx
- * @param key
- * @param keys
- * @param uid
- * @param expires
- * @return true
- * @return false
+ * @param key key to certify
+ * @param keys signer keys
+ * @param uid exact user ID to certify, empty for all user IDs
+ * @param expires expiry of the certification, std::nullopt for none
+ * @param data_object
+ * @return GpgError
  */
 auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                       const GpgAbstractKeyPtrList& keys, const QString& uid,
-                      const std::optional<QDateTime>& expires) -> bool;
+                      const std::optional<QDateTime>& expires,
+                      const DataObjectPtr& data_object) -> GpgError;
 
 /**
- * @brief
+ * @brief Revoke certifications on a key.
  *
  * @param ctx
- * @param key
- * @param signature_id
- * @return true
- * @return false
+ * @param key certified key
+ * @param signature_id pairs of (signer key id, user ID on key)
+ * @param data_object
+ * @return GpgError
  */
 auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                              const SignIdArgsList& signature_id) -> bool;
+                              const SignIdArgsList& signature_id,
+                              const DataObjectPtr& data_object) -> GpgError;
 
 /**
  * @brief

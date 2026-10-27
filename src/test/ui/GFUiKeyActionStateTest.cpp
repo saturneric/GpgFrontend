@@ -118,9 +118,16 @@ TEST(KeyActionStateTest, OwnKeyEnablesTheLifecycleOperations) {
   EXPECT_TRUE(EvaluateKeyAction(KeyAction::kSetOwnerTrust, ctx).enabled);
 }
 
-TEST(KeyActionStateTest, CertifyingYourOwnKeyIsDisabled) {
-  // gpg already trusts it ultimately by virtue of you holding the private half.
-  const auto state = EvaluateKeyAction(KeyAction::kCertify, OneOwnKey());
+TEST(KeyActionStateTest, CertifyingYourOwnKeyIsEnabled) {
+  // One of your keys may vouch for another, e.g. an old key for its successor.
+  EXPECT_TRUE(EvaluateKeyAction(KeyAction::kCertify, OneOwnKey()).enabled);
+}
+
+TEST(KeyActionStateTest, CertifyingWithoutAnyPrivateKeyIsBlocked) {
+  auto ctx = OneForeignKey();
+  ctx.any_private_key_in_keyring = false;
+
+  const auto state = EvaluateKeyAction(KeyAction::kCertify, ctx);
   EXPECT_FALSE(state.enabled);
   EXPECT_TRUE(state.supported);
   EXPECT_FALSE(state.reason.isEmpty());

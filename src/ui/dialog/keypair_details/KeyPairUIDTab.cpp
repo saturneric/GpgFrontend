@@ -174,6 +174,17 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
 
   uid_list_->setSelectionMode(QAbstractItemView::SingleSelection);
 
+  // Keep the user on the UID they were looking at, e.g. the one just signed,
+  // instead of jumping back to the first.
+  QString selected_uid;
+  for (int i = 0; i < uid_list_->rowCount() && i < buffered_uids_.size(); i++) {
+    if (uid_list_->item(i, 0) != nullptr &&
+        uid_list_->item(i, 0)->isSelected()) {
+      selected_uid = buffered_uids_[i].GetUID();
+      break;
+    }
+  }
+
   this->buffered_uids_.clear();
 
   for (auto& uid : m_key_->UIDs()) {
@@ -220,13 +231,26 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
   }
 
   if (uid_list_->rowCount() > 0) {
-    uid_list_->selectRow(0);
+    int select_row = 0;
+    for (int i = 0; i < buffered_uids_.size(); i++) {
+      if (buffered_uids_[i].GetUID() == selected_uid) {
+        select_row = i;
+        break;
+      }
+    }
+    uid_list_->selectRow(select_row);
   }
 
   slot_refresh_sig_list();
 }
 
 void KeyPairUIDTab::slot_refresh_sig_list() {
+  // Reset first: with no UID selected the loop below never reaches its own
+  // reset, which left the previous UID's signatures on screen and in the
+  // buffer get_sign_selected() reads.
+  buffered_signatures_.clear();
+  sig_list_->setRowCount(0);
+
   int uid_row = 0;
   int sig_row = 0;
   for (const auto& uid : buffered_uids_) {
@@ -235,7 +259,6 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
       continue;
     }
 
-    buffered_signatures_.clear();
     auto signatures = uid.GetSignatures();
     for (auto& sig : *signatures) {
       if (sig.IsInvalid() || sig.IsRevoked()) {
@@ -391,10 +414,15 @@ void KeyPairUIDTab::slot_set_primary_uid() {
 
 auto KeyPairUIDTab::get_sign_selected() -> SignIdArgsList {
   auto signatures = SignIdArgsList{};
-  for (int i = 0; i < sig_list_->rowCount(); i++) {
+  if (uid_list_->selectedItems().isEmpty()) return signatures;
+
+  // The signature's own GetUID() names the signer; revoking needs the user
+  // ID on this key that the signature certifies.
+  const auto target_uid = get_selected_uid().GetUID();
+  for (int i = 0; i < sig_list_->rowCount() && i < buffered_signatures_.size();
+       i++) {
     if (sig_list_->item(i, 0)->isSelected()) {
-      auto& sign = buffered_signatures_[i];
-      signatures.push_back({sign.GetKeyID(), sign.GetUID()});
+      signatures.push_back({buffered_signatures_[i].GetKeyID(), target_uid});
     }
   }
   return signatures;
@@ -431,18 +459,33 @@ void KeyPairUIDTab::create_uid_popup_menu() {
 }
 
 void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
-  if (uid_popup_menu_->isEmpty()) return;
+  // Pick the menu by the table under the cursor, not by which table happens
+  // to hold a selection: a selected signature used to suppress the UID menu,
+  // and the signature menu was never shown at all.
+  auto* child = childAt(event->pos());
+  const auto in = [child](QWidget* table) {
+    return child != nullptr && (child == table || table->isAncestorOf(child));
+  };
 
-  if (uid_list_->selectedItems().length() > 0 &&
-      sig_list_->selectedItems().isEmpty()) {
-    const auto is_primary_uid =
-        get_selected_uid().GetUID() == buffered_uids_.front().GetUID();
-    set_primary_uid_act_->setDisabled(is_primary_uid);
-    rev_uid_act_->setDisabled(is_primary_uid);
-    del_uid_act_->setDisabled(is_primary_uid);
-
-    uid_popup_menu_->exec(event->globalPos());
+  if (in(sig_list_)) {
+    if (!sig_list_->selectedItems().isEmpty()) {
+      sign_popup_menu_->exec(event->globalPos());
+    }
+    return;
   }
+
+  if (!in(uid_list_) || uid_popup_menu_->isEmpty()) return;
+  if (uid_list_->selectedItems().isEmpty()) return;
+
+  const auto& uid = get_selected_uid();
+  const auto is_primary_uid = uid.GetUID() == buffered_uids_.front().GetUID();
+  set_primary_uid_act_->setDisabled(is_primary_uid);
+  rev_uid_act_->setDisabled(is_primary_uid);
+  del_uid_act_->setDisabled(is_primary_uid);
+  // gpg refuses to certify a revoked or invalid user ID.
+  sign_uid_act_->setDisabled(uid.GetRevoked() || uid.GetInvalid());
+
+  uid_popup_menu_->exec(event->globalPos());
 }
 
 void KeyPairUIDTab::slot_add_sign_single() {
@@ -472,20 +515,26 @@ void KeyPairUIDTab::slot_del_sign() {
     return;
   }
 
-  if (!GpgKeyRepository::GetInstance(current_gpg_context_channel_)
-           .GetKey(selected_signs.front().first)
-           .IsGood()) {
-    QMessageBox::critical(
-        this, tr("Invalid Operation"),
-        tr("To delete the signature, you need to have its corresponding public "
-           "key in the local database."));
-    return;
+  // Revoking makes a new signature, so every signer's private key is needed.
+  auto& key_getter =
+      GpgKeyRepository::GetInstance(current_gpg_context_channel_);
+  for (const auto& sign : selected_signs) {
+    auto signer = key_getter.GetKey(sign.first);
+    if (!signer.IsGood() || !signer.IsPrivateKey()) {
+      QMessageBox::critical(
+          this, tr("Invalid Operation"),
+          tr("To revoke the signature made by %1, you need its private key in "
+             "the local database.")
+              .arg(sign.first));
+      return;
+    }
   }
 
   QString keynames;
-
-  keynames.append(selected_signs.front().second);
-  keynames.append("<br/>");
+  for (const auto& sign : selected_signs) {
+    keynames.append(sign.first.toHtmlEscaped());
+    keynames.append("<br/>");
+  }
 
   int ret = QMessageBox::warning(this, tr("Deleting Key Signature"),
                                  "<b>" +
@@ -495,13 +544,29 @@ void KeyPairUIDTab::slot_del_sign() {
                                      tr("The action can not be undone."),
                                  QMessageBox::No | QMessageBox::Yes);
 
-  if (ret == QMessageBox::Yes) {
-    if (!KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-             .RevKeySignature(m_key_, selected_signs)) {
-      QMessageBox::critical(this, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
-    }
-  }
+  if (ret != QMessageBox::Yes) return;
+
+  auto f = [this, selected_signs](const OperaWaitingHd& hd) {
+    KeyManagementOperation::GetInstance(current_gpg_context_channel_)
+        .RevKeySignature(m_key_, selected_signs,
+                         [this, hd](GpgError err, const DataObjectPtr&) {
+                           hd();
+                           if (CheckGpgError(err) == GPG_ERR_CANCELED) return;
+                           if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                             QMessageBox::critical(
+                                 this, tr("Operation Failed"),
+                                 tr("An error occurred during the "
+                                    "operation.") +
+                                     "\n\n" + DescribeGpgErrCode(err).second);
+                             return;
+                           }
+                           QMessageBox::information(
+                               this, tr("Successful Operation"),
+                               tr("Successfully revoked the key signature."));
+                           emit SignalUpdateUIDInfo();
+                         });
+  };
+  GpgOperaHelper::WaitForOpera(this, tr("Revoking Key Signature"), f);
 }
 
 void KeyPairUIDTab::slot_refresh_key() {
@@ -509,12 +574,14 @@ void KeyPairUIDTab::slot_refresh_key() {
   auto refreshed_key =
       GpgKeyRepository::GetInstance(current_gpg_context_channel_)
           .GetKeyPtr(m_key_->ID());
-  assert(refreshed_key != nullptr);
+  // The key may have been deleted while its details are open; keep showing
+  // the last state rather than dereferencing nothing.
+  if (refreshed_key == nullptr || !refreshed_key->IsGood()) return;
 
   std::swap(this->m_key_, refreshed_key);
 
+  // Refreshes the signature list too.
   this->slot_refresh_uid_list();
-  this->slot_refresh_sig_list();
 }
 
 void KeyPairUIDTab::slot_rev_uid() {

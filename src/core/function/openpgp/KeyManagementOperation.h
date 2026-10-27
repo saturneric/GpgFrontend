@@ -153,21 +153,40 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param keys list of signer keys to certify with
    * @param uid user ID string to certify (empty means all user IDs)
    * @param expires optional expiry for the certification signature
-   * @return true on success, false on failure
+   * @param cb callback invoked on completion
    */
-  auto SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
-               const QString& uid, const std::optional<QDateTime>& expires)
-      -> bool;
+  void SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
+               const QString& uid, const std::optional<QDateTime>& expires,
+               const GpgOperationCallback& cb);
 
   /**
-   * @brief Revoke specific certifications (key signatures) on the given key.
+   * @brief Synchronous variant of SignKey().
+   *
+   * @return tuple of (GpgError, DataObjectPtr)
+   */
+  auto SignKeySync(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
+                   const QString& uid, const std::optional<QDateTime>& expires)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief Revoke specific certifications (key signatures) on the given key
+   * (async).
    *
    * @param key key whose certifications are to be revoked
-   * @param signature_id list of signature IDs to revoke
-   * @return true if the revocations were applied successfully
+   * @param signature_id pairs of (signer key id, user ID on key) to revoke
+   * @param cb callback invoked on completion
    */
-  auto RevKeySignature(const GpgKeyPtr& key, const SignIdArgsList& signature_id)
-      -> bool;
+  void RevKeySignature(const GpgKeyPtr& key, const SignIdArgsList& signature_id,
+                       const GpgOperationCallback& cb);
+
+  /**
+   * @brief Synchronous variant of RevKeySignature().
+   *
+   * @return tuple of (GpgError, DataObjectPtr)
+   */
+  auto RevKeySignatureSync(const GpgKeyPtr& key,
+                           const SignIdArgsList& signature_id)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Set the owner-trust level for the given key.

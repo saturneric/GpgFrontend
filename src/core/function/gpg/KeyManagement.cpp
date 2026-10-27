@@ -505,7 +505,6 @@ auto SetOwnerTrustLevelGnuPGImpl(OpenPGPContext& ctx,
 
   bool all_succ = true;
   for (const auto& gpg_key : gpg_keys) {
-    LOG_D() << "AAAA: " << gpg_key->Fingerprint();
     auto [err, succ] =
         ah.DoInteract(gpg_key, next_state_handler, action_handler);
 
@@ -516,42 +515,74 @@ auto SetOwnerTrustLevelGnuPGImpl(OpenPGPContext& ctx,
 }
 
 auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                              const SignIdArgsList& signature_id) -> bool {
+                              const SignIdArgsList& signature_id,
+                              const DataObjectPtr&) -> GpgError {
   auto& g_ctx = GpgCtx(ctx);
   auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());
 
   for (const auto& sign_id : signature_id) {
+    // Revoking a certification makes a new signature, so it needs the
+    // signer's private key, not just its public half.
     auto signing_key = key_getter.GetKey(sign_id.first);
-    assert(signing_key.IsGood());
+    if (!signing_key.IsGood() || !signing_key.IsPrivateKey()) {
+      return GPG_ERR_NO_SECKEY;
+    }
 
+    // An empty user ID would make gpg search for "", so pass NULL to mean
+    // every user ID instead.
+    const auto uid = sign_id.second.toUtf8();
     auto err = CheckGpgError(gpgme_op_revsig(
         g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
-        static_cast<gpgme_key_t>(signing_key), sign_id.second.toUtf8(), 0));
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
+        static_cast<gpgme_key_t>(signing_key),
+        sign_id.second.isEmpty() ? nullptr : uid.constData(), 0));
+    if (err != GPG_ERR_NO_ERROR) return err;
   }
-  return true;
+  return GPG_ERR_NO_ERROR;
 }
 
 auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                       const GpgAbstractKeyPtrList& keys, const QString& uid,
-                      const std::optional<QDateTime>& expires) -> bool {
+                      const std::optional<QDateTime>& expires,
+                      const DataObjectPtr&) -> GpgError {
   auto& g_ctx = GpgCtx(ctx);
-  SetSignersGnuPGImpl(ctx, keys, true);
+  auto* gpg_ctx = g_ctx.DefaultContext();
 
   unsigned int flags = 0;
-  unsigned int expires_time_t = 0;
+  unsigned long expires_time = 0;
 
+  // gpgme takes the expiry as seconds from now, not as a point in time.
   if (expires == std::nullopt) {
     flags |= GPGME_KEYSIGN_NOEXPIRE;
   } else {
-    expires_time_t = expires->toSecsSinceEpoch();
+    const auto secs = QDateTime::currentDateTime().secsTo(*expires);
+    if (secs <= 0) return GPG_ERR_INV_VALUE;
+    expires_time = static_cast<unsigned long>(secs);
   }
 
-  auto err = CheckGpgError(
-      gpgme_op_keysign(g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
-                       uid.toUtf8(), expires_time_t, flags));
+  // Not SetSignersGnuPGImpl(): that keeps only keys able to sign data, while a
+  // certification needs the certify capability. A signer dropped here would
+  // leave gpg to pick its default key, so refuse when none is usable.
+  gpgme_signers_clear(gpg_ctx);
+  for (const auto& signer : ConvertKey2GpgKeyList(ctx.GetChannel(), keys)) {
+    if (!signer->IsGood() || !signer->IsPrivateKey() ||
+        !signer->IsHasCertCap()) {
+      continue;
+    }
+    CheckGpgError(
+        gpgme_signers_add(gpg_ctx, static_cast<gpgme_key_t>(*signer)));
+  }
+  if (gpgme_signers_count(gpg_ctx) == 0) return GPG_ERR_NO_SECKEY;
 
-  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
+  // An empty user ID would make gpg search for "", so pass NULL to certify
+  // every user ID instead.
+  const auto uid_bytes = uid.toUtf8();
+  auto err = CheckGpgError(gpgme_op_keysign(
+      gpg_ctx, static_cast<gpgme_key_t>(*key),
+      uid.isEmpty() ? nullptr : uid_bytes.constData(), expires_time, flags));
+
+  // The context is shared; don't leave these signers behind for the next op.
+  gpgme_signers_clear(gpg_ctx);
+  return err;
 }
 
 }  // namespace GpgFrontend

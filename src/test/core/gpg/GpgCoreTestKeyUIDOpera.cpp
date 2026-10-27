@@ -35,7 +35,7 @@
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
-static const char *test_private_key_data = R"(
+static const char* test_private_key_data = R"(
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lHQEZ0N2exMFK4EEAAoCAwTmBGWDMqzfdx1fkGjuWHP/R6F2ZvvlolcVNJAImWKl
@@ -131,6 +131,194 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
 
   KeyManagementOperation::GetInstance().DeleteKey(key);
   GpgKeyRepository::GetInstance().FlushKeyCache();
+}
+
+namespace {
+
+// Unprotected RSA test key from :/test/gpg_keys (pv3.key), able to certify.
+constexpr auto kCertifierKeyId = "8465C55B25C9B7D1";
+constexpr auto kTargetKeyId = "F2D8DFA5F109DE47";
+
+auto ImportCertifyTarget() -> GpgKeyPtr {
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  KeyImportExportOperation::GetInstance().ImportKey(
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
+  return GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+      .GetKeyPtr(kTargetKeyId);
+}
+
+auto ReloadKey(const QString& key_id) -> GpgKeyPtr {
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  return GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+      .GetKeyPtr(key_id);
+}
+
+auto CertifierKeys() -> GpgAbstractKeyPtrList {
+  auto signer = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                    .GetKeyPtr(kCertifierKeyId);
+  if (signer == nullptr) return {};
+  return {signer};
+}
+
+// The certifier's signatures on a user ID, ignoring revocation packets.
+auto CertificationsBy(const GpgUID& uid, const QString& signer_id)
+    -> QList<GpgKeySignature> {
+  QList<GpgKeySignature> found;
+  auto signatures = uid.GetSignatures();
+  for (const auto& sig : *signatures) {
+    if (sig.GetKeyID() == signer_id && !sig.IsRevoked()) found.push_back(sig);
+  }
+  return found;
+}
+
+auto RevocationsBy(const GpgUID& uid, const QString& signer_id) -> int {
+  int count = 0;
+  auto signatures = uid.GetSignatures();
+  for (const auto& sig : *signatures) {
+    if (sig.GetKeyID() == signer_id && sig.IsRevoked()) count++;
+  }
+  return count;
+}
+
+void DeleteCertifyTarget() {
+  auto key = ReloadKey(kTargetKeyId);
+  if (key != nullptr) KeyManagementOperation::GetInstance().DeleteKey(key);
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+}
+
+}  // namespace
+
+TEST_F(GpgCoreTest, CoreSignKeyUIDWithExpiryTestA) {
+  auto key = ImportCertifyTarget();
+  ASSERT_TRUE(key != nullptr);
+  const auto signers = CertifierKeys();
+  ASSERT_EQ(signers.size(), 1);
+
+  const auto target_uid = key->UIDs()[1].GetUID();
+  const auto expires = QDateTime::currentDateTime().addYears(1);
+
+  auto [err, _] = KeyManagementOperation::GetInstance().SignKeySync(
+      key, signers, target_uid, expires);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(kTargetKeyId);
+  ASSERT_TRUE(key != nullptr);
+  const auto uids = key->UIDs();
+  ASSERT_EQ(uids.size(), 4);
+
+  // Only the chosen user ID is certified, by the chosen signer (not gpg's
+  // default key).
+  for (int i = 0; i < uids.size(); i++) {
+    const auto sigs = CertificationsBy(uids[i], kCertifierKeyId);
+    if (i != 1) {
+      EXPECT_TRUE(sigs.isEmpty()) << "uid " << i;
+      continue;
+    }
+    ASSERT_EQ(sigs.size(), 1);
+
+    // gpgme takes seconds from now; an absolute timestamp there would land
+    // decades later.
+    const auto delta = std::llabs(sigs.front().GetExpireTime().secsTo(expires));
+    EXPECT_LT(delta, 120)
+        << sigs.front().GetExpireTime().toString().toStdString();
+  }
+
+  DeleteCertifyTarget();
+}
+
+TEST_F(GpgCoreTest, CoreSignKeyUIDNoExpiryTestA) {
+  auto key = ImportCertifyTarget();
+  ASSERT_TRUE(key != nullptr);
+
+  auto [err, _] = KeyManagementOperation::GetInstance().SignKeySync(
+      key, CertifierKeys(), key->UIDs()[2].GetUID(), std::nullopt);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(kTargetKeyId);
+  ASSERT_TRUE(key != nullptr);
+  const auto sigs = CertificationsBy(key->UIDs()[2], kCertifierKeyId);
+  ASSERT_EQ(sigs.size(), 1);
+  EXPECT_EQ(sigs.front().GetExpireTime().toSecsSinceEpoch(), 0);
+
+  DeleteCertifyTarget();
+}
+
+TEST_F(GpgCoreTest, CoreSignKeyAllUIDsTestA) {
+  auto key = ImportCertifyTarget();
+  ASSERT_TRUE(key != nullptr);
+
+  // An empty user ID means every user ID, not a search for "".
+  auto [err, _] = KeyManagementOperation::GetInstance().SignKeySync(
+      key, CertifierKeys(), QString{}, std::nullopt);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(kTargetKeyId);
+  ASSERT_TRUE(key != nullptr);
+  for (const auto& uid : key->UIDs()) {
+    EXPECT_EQ(CertificationsBy(uid, kCertifierKeyId).size(), 1)
+        << uid.GetUID().toStdString();
+  }
+
+  DeleteCertifyTarget();
+}
+
+TEST_F(GpgCoreTest, CoreSignKeyRejectsBadInputTestA) {
+  auto key = ImportCertifyTarget();
+  ASSERT_TRUE(key != nullptr);
+  const auto target_uid = key->UIDs()[1].GetUID();
+
+  // No usable signer must fail, never fall back to gpg's default key.
+  auto [no_signer_err, _1] = KeyManagementOperation::GetInstance().SignKeySync(
+      key, {}, target_uid, std::nullopt);
+  EXPECT_EQ(CheckGpgError(no_signer_err), GPG_ERR_NO_SECKEY);
+
+  auto [past_err, _2] = KeyManagementOperation::GetInstance().SignKeySync(
+      key, CertifierKeys(), target_uid,
+      QDateTime::currentDateTime().addDays(-1));
+  EXPECT_EQ(CheckGpgError(past_err), GPG_ERR_INV_VALUE);
+
+  key = ReloadKey(kTargetKeyId);
+  ASSERT_TRUE(key != nullptr);
+  for (const auto& uid : key->UIDs()) {
+    auto signatures = uid.GetSignatures();
+    for (const auto& sig : *signatures) {
+      // Only the key's own self-signatures.
+      EXPECT_EQ(sig.GetKeyID(), kTargetKeyId) << uid.GetUID().toStdString();
+    }
+  }
+
+  DeleteCertifyTarget();
+}
+
+TEST_F(GpgCoreTest, CoreRevKeySignatureTestA) {
+  auto key = ImportCertifyTarget();
+  ASSERT_TRUE(key != nullptr);
+  const auto target_uid = key->UIDs()[1].GetUID();
+
+  auto [sign_err, _1] = KeyManagementOperation::GetInstance().SignKeySync(
+      key, CertifierKeys(), target_uid, std::nullopt);
+  ASSERT_EQ(CheckGpgError(sign_err), GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(kTargetKeyId);
+  ASSERT_TRUE(key != nullptr);
+
+  // A signer with no key here at all cannot revoke.
+  auto [missing_err, _2] =
+      KeyManagementOperation::GetInstance().RevKeySignatureSync(
+          key, {{"0123456789ABCDEF", target_uid}});
+  EXPECT_EQ(CheckGpgError(missing_err), GPG_ERR_NO_SECKEY);
+
+  // The pair names the user ID on the certified key, not the signer's.
+  auto [rev_err, _3] =
+      KeyManagementOperation::GetInstance().RevKeySignatureSync(
+          key, {{kCertifierKeyId, target_uid}});
+  ASSERT_EQ(CheckGpgError(rev_err), GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(kTargetKeyId);
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(RevocationsBy(key->UIDs()[1], kCertifierKeyId), 1);
+
+  DeleteCertifyTarget();
 }
 
 }  // namespace GpgFrontend::Test

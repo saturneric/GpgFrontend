@@ -169,12 +169,13 @@ auto EvaluateKeyAction(KeyAction action, const KeyActionContext& ctx)
 
       const auto base = SingleGpgKey(ctx);
       if (!base.enabled) return base;
-      if (ctx.selection_is_private) {
-        // Certifying your own key says nothing: gpg already trusts it
-        // ultimately by virtue of you holding the private half.
+      // Your own keys are fair targets too: one of them can vouch for another,
+      // e.g. an old key for its replacement. What it always takes is a private
+      // key to certify with.
+      if (!ctx.any_private_key_in_keyring) {
         return Blocked(QCoreApplication::translate(
             "GpgFrontend::UI::KeyActionState",
-            "Certifying is for vouching for someone else's key."));
+            "You need a private key to certify with."));
       }
       return Ok();
     }
