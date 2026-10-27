@@ -1008,6 +1008,88 @@ TEST_F(GFCoreTest, GnuPGSocketBudgetIsMeasuredInBytesNotCharacters) {
   EXPECT_FALSE(GnuPGSocketBudget::Fits(path));
 }
 
+// The tests above are all relative to Bytes(), so they cannot catch a wrong
+// constant. One was: the budget only reserved the NUL, gpg-agent wants one byte
+// more, and an 83-byte ephemeral profile home on macOS passed here and then
+// made gpg-agent exit with "socket name ... is too long".
+TEST_F(GFCoreTest, GnuPGSocketBudgetMatchesGnuPGsOwnCheck) {
+#if defined(Q_OS_WINDOWS)
+  EXPECT_EQ(GnuPGSocketBudget::Bytes(), -1);
+#elif defined(Q_OS_MACOS)
+  EXPECT_EQ(GnuPGSocketBudget::Bytes(), 82);
+#else
+  EXPECT_EQ(GnuPGSocketBudget::Bytes(), 86);
+#endif
+}
+
+#ifndef Q_OS_WINDOWS
+namespace {
+
+// A directory whose path is exactly `bytes` long, under the short `base`.
+auto MakeDirOfLength(const QString& base, int bytes) -> QString {
+  const auto pad = bytes - static_cast<int>(base.toUtf8().size()) - 1;
+  if (pad < 1) return {};
+
+  const auto path = base + "/" + QString(pad, QLatin1Char('a'));
+  return QDir().mkpath(path) ? path : QString{};
+}
+
+// gpg-agent checks the socket name before it forks, so the exit code of a
+// --daemon start alone says whether the home was short enough.
+auto AgentStartsIn(const QString& agent, const QString& gpgconf,
+                   const QString& home, QString& output) -> bool {
+  QProcess proc;
+  proc.setProcessChannelMode(QProcess::MergedChannels);
+  proc.start(agent, {"--homedir", home, "--daemon"});
+  const auto finished = proc.waitForFinished(10000);
+  if (!finished) proc.kill();
+  output = QString::fromUtf8(proc.readAll());
+
+  QProcess::execute(gpgconf, {"--homedir", home, "--kill", "gpg-agent"});
+  return finished && proc.exitStatus() == QProcess::NormalExit &&
+         proc.exitCode() == 0;
+}
+
+}  // namespace
+
+// The budget checked against GnuPG itself rather than against a copy of its
+// arithmetic: a home exactly at the budget starts, one byte more does not.
+TEST_F(GFCoreTest, GnuPGSocketBudgetIsAcceptedByARealAgent) {
+  const auto agent = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gnupg.components.gpg-agent.path", QString{});
+  const auto gpgconf = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gpgconf_path", QString{});
+  if (agent.isEmpty() || gpgconf.isEmpty()) {
+    GTEST_SKIP() << "GnuPG is not available";
+  }
+
+  // Short and fixed, so both lengths are reachable whatever TMPDIR is.
+  QTemporaryDir base("/tmp/gfsb-XXXXXX");
+  ASSERT_TRUE(base.isValid());
+
+  const auto budget = GnuPGSocketBudget::Bytes();
+  const auto at = MakeDirOfLength(base.path() + "/at", budget);
+  const auto over = MakeDirOfLength(base.path() + "/over", budget + 1);
+  ASSERT_FALSE(at.isEmpty());
+  ASSERT_FALSE(over.isEmpty());
+
+  // With /run/user/<uid> present GnuPG keeps the sockets there instead, and
+  // the home length no longer matters.
+  QProcess dirs;
+  dirs.start(gpgconf, {"--homedir", at, "--list-dirs", "socketdir"});
+  ASSERT_TRUE(dirs.waitForFinished(10000));
+  if (QString::fromUtf8(dirs.readAllStandardOutput()).trimmed() != at) {
+    GTEST_SKIP() << "GnuPG keeps its sockets outside the home directory here";
+  }
+
+  QString output;
+  EXPECT_TRUE(AgentStartsIn(agent, gpgconf, at, output))
+      << output.toStdString();
+  EXPECT_FALSE(AgentStartsIn(agent, gpgconf, over, output))
+      << output.toStdString();
+}
+#endif
+
 namespace {
 
 // A directory whose path is comfortably past the budget, so the resolver has to

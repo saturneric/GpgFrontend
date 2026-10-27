@@ -99,8 +99,14 @@ auto GnuPGSocketBudget::Bytes() -> int {
   constexpr int kLongestSocketSuffix =
       static_cast<int>(sizeof("/S.gpg-agent.browser") - 1);
 
-  // -1 for the terminating NUL, which sun_path has to hold too.
-  return kSunPathSize - kLongestSocketSuffix - 1;
+  // -2, not -1. One byte is the terminating NUL, which sun_path has to hold
+  // too. The other is gpg-agent's own check, which is strict:
+  //
+  //   if (strlen (name) + 1 >= DIMof (struct sockaddr_un, sun_path))
+  //
+  // so a name that exactly fills sun_path with its NUL is still refused. With
+  // only -1, an 83-byte home on macOS passed here and then made gpg-agent exit.
+  return kSunPathSize - kLongestSocketSuffix - 2;
 #endif
 }
 

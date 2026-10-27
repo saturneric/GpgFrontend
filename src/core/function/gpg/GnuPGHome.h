@@ -63,6 +63,10 @@ struct GF_CORE_EXPORT GnuPGSocketBudget {
    * instead would pass a directory gpg-agent then rejects, which is exactly the
    * failure this is meant to catch.
    *
+   * gpg-agent also wants the name plus its NUL to be strictly shorter than
+   * sun_path, not merely to fit in it, so the budget is one byte tighter than
+   * the buffer alone would suggest.
+   *
    * @return the maximum home directory length in bytes, or -1 where no such
    *         limit applies (Windows, which does not address these by path)
    */
