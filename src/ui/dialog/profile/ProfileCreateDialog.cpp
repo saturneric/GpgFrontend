@@ -32,98 +32,11 @@
 #include "core/function/SettingCatalog.h"
 #include "core/profile/Profile.h"
 #include "ui/function/UIStyle.h"
+#include "ui/widgets/ChoiceTile.h"
 
 namespace GpgFrontend::UI {
 
 namespace {
-
-/**
- * @brief One answer to a choice, as a tile the whole of which is clickable.
- *
- * A radio button with a grey paragraph under it asks the reader to aim at a
- * 14px circle and leaves them unsure which paragraph belongs to which answer.
- * A tile makes the answer and its explanation one object, and the selected one
- * says so with its border rather than with a dot.
- */
-class ChoiceTile : public QFrame {
- public:
-  ChoiceTile(const QString& title, const QString& detail, const QString& chip,
-             QWidget* parent)
-      : QFrame(parent) {
-    setObjectName(u"GFChoiceTile"_s);
-    setCursor(Qt::PointingHandCursor);
-
-    radio_ = new QRadioButton(this);
-    radio_->setFocusPolicy(Qt::StrongFocus);
-
-    auto* title_label = new QLabel(title, this);
-    auto title_font = title_label->font();
-    title_font.setBold(true);
-    title_label->setFont(title_font);
-
-    auto* title_row = new QHBoxLayout();
-    title_row->setSpacing(8);
-    title_row->addWidget(title_label);
-    if (!chip.isEmpty()) {
-      auto* chip_label = new QLabel(this);
-      SetChip(chip_label, chip, AccentColor(palette(), true));
-      title_row->addWidget(chip_label);
-    }
-    title_row->addStretch(1);
-
-    auto* detail_label = CreateDetailLabel(detail, this);
-
-    // The labels would otherwise take the click for themselves, and a tile
-    // that only answers to its radio button is a radio button with a border.
-    for (auto* label : findChildren<QLabel*>()) {
-      label->setAttribute(Qt::WA_TransparentForMouseEvents);
-    }
-
-    auto* text = new QVBoxLayout();
-    text->setSpacing(2);
-    text->addLayout(title_row);
-    text->addWidget(detail_label);
-
-    auto* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(12, 10, 12, 10);
-    layout->setSpacing(10);
-    layout->addWidget(radio_, 0, Qt::AlignTop);
-    layout->addLayout(text, 1);
-
-    connect(radio_, &QRadioButton::toggled, this, [this]() { restyle(); });
-    restyle();
-  }
-
-  [[nodiscard]] auto Radio() const -> QRadioButton* { return radio_; }
-
- protected:
-  void mousePressEvent(QMouseEvent* event) override {
-    radio_->setChecked(true);
-    radio_->setFocus(Qt::MouseFocusReason);
-    QFrame::mousePressEvent(event);
-  }
-
- private:
-  QRadioButton* radio_;
-
-  void restyle() {
-    // Palette-derived, like every card in the application, so it follows a
-    // dark theme without a second set of colours.
-    const auto selected = radio_->isChecked();
-    auto accent = palette().color(QPalette::Highlight);
-    auto tint = accent;
-    tint.setAlpha(24);
-
-    setStyleSheet(
-        u"QFrame#GFChoiceTile {"
-        "  border: %1px solid %2;"
-        "  border-radius: 8px;"
-        "  background: %3;"
-        "}"_s.arg(selected ? 2 : 1)
-            .arg(selected ? accent.name() : BorderColor(palette()).name())
-            .arg(selected ? tint.name(QColor::HexArgb) : u"transparent"_s));
-  }
-};
 
 /**
  * @brief What a group covers, for its tooltip.
