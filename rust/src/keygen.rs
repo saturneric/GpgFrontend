@@ -331,18 +331,31 @@ pub fn create_key_internal(
 
     if !primary_pwd_bytes.is_empty() {
         // Encrypt Primary Key with the primary password
-        let primary_password = password_from_zeroizing_bytes(primary_pwd_bytes);
+        let primary_password = password_from_zeroizing_bytes(primary_pwd_bytes.clone());
         secret_key
             .primary_key
             .set_password(thread_rng(), &primary_password)
             .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
     }
 
-    // Each subkey is protected as its own configuration asks, independent of
-    // the primary (§3.7.2.1: protection is per secret key packet). Subkeys
-    // follow their configurations in order.
+    // Whether a subkey is protected follows its own configuration (§3.7.2.1:
+    // protection is per secret key packet), but a protected subkey shares the
+    // primary's passphrase, as GnuPG does: the user sets one passphrase for the
+    // new key, not one per component. Only a subkey under an unprotected
+    // primary is asked for its own. Subkeys follow their configurations in
+    // order.
     for (index, subkey) in secret_key.secret_subkeys.iter_mut().enumerate() {
         if !s_key_configs.get(index).is_some_and(|c| c.has_passphrase) {
+            continue;
+        }
+        if !primary_pwd_bytes.is_empty() {
+            subkey
+                .key
+                .set_password(
+                    thread_rng(),
+                    &password_from_zeroizing_bytes(primary_pwd_bytes.clone()),
+                )
+                .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
             continue;
         }
         let subkey_pwd_bytes = fetch_password_with_cache(
@@ -1330,6 +1343,40 @@ mod keygen_more_tests {
             "subkey asked for none"
         );
         assert_eq!(cb::prompt_count(), 1, "only the primary was prompted for");
+    }
+
+    #[test]
+    fn a_protected_subkey_shares_the_primary_passphrase_without_a_second_prompt() {
+        // One passphrase for the new key, as GnuPG asks for: a protected
+        // subkey under a protected primary is locked with the primary's
+        // passphrase, and the user is prompted once.
+        use crate::testutil::{cb, keys::cfg};
+        use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+        let mut subkey = cfg(GfrKeyAlgo::ED25519, false, true, GfrOpenPGPKeyVersion::V4);
+        subkey.has_passphrase = true;
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+
+        cb::reset_prompt_count();
+        let out = create_key_internal(
+            "Shared <shared@example.test>",
+            primary,
+            &[subkey],
+            Some(cb::pwd_correct),
+        )
+        .expect("create");
+        assert_eq!(cb::prompt_count(), 1, "one prompt for the whole key");
+
+        let key = SignedSecretKey::from_string(&out.secret).unwrap().0;
+        let pwd = Password::from(cb::CORRECT_PASSPHRASE);
+        assert!(key.primary_key.unlock(&pwd, |_, _| Ok(())).is_ok());
+        assert!(
+            key.secret_subkeys[0]
+                .key
+                .unlock(&pwd, |_, _| Ok(()))
+                .is_ok(),
+            "the subkey opens with the primary's passphrase"
+        );
     }
 
     #[test]
