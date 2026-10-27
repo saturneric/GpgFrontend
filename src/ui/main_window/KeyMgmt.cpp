@@ -339,7 +339,7 @@ void KeyMgmt::create_actions() {
   connect(close_act_, &QAction::triggered, this, &KeyMgmt::close);
 
   generate_key_pair_act_ =
-      make_action(tr("New Keypair"), ":/icons/key_generate.png",
+      make_action(tr("New Keypair"), ":/icons/keypair-new.png",
                   tr("Generate KeyPair"), {QKeySequence(Qt::CTRL | Qt::Key_N)});
   generate_key_pair_act_->setDisabled(
       !IsOpSupported<GenerateKeyTag>(key_list_->GetCurrentGpgContextChannel()));
