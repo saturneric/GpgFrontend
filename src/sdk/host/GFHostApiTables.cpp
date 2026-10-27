@@ -91,6 +91,8 @@ static_assert(GF_HOST_CAP_EDITOR == 1U << 3, "capability bits moved");
 static_assert(GF_HOST_CAP_STORAGE == 1U << 4, "capability bits moved");
 static_assert(GF_HOST_CAP_PROCESS == 1U << 5, "capability bits moved");
 static_assert(GF_HOST_CAP_UI_CUSTOM == 1U << 6, "capability bits moved");
+static_assert(GF_HOST_CAP_HTML_VIEW == 1U << 7, "capability bits moved");
+static_assert(GF_HOST_CAP_HTML_PROVIDER == 1U << 8, "capability bits moved");
 
 auto ModuleIdOf(GFHostContextRef ctx) -> QByteArray {
   return gf_sdk_internal::ContextModuleId(ctx).toUtf8();
@@ -1019,6 +1021,11 @@ void FillHostApiGroups(GFHostApi& table, uint32_t granted) {
   table.script = (granted & GF_HOST_CAP_UI) != 0 ? &kScriptApi : nullptr;
   constexpr uint32_t kCustom = GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM;
   table.native = (granted & kCustom) == kCustom ? &kNativeApi : nullptr;
+  constexpr uint32_t kView = kCustom | GF_HOST_CAP_HTML_VIEW;
+  table.html_view = (granted & kView) == kView ? &kHtmlViewApi : nullptr;
+  constexpr uint32_t kProvider = kCustom | GF_HOST_CAP_HTML_PROVIDER;
+  table.html_provider =
+      (granted & kProvider) == kProvider ? &kHtmlProviderApi : nullptr;
 }
 
 }  // namespace gf_sdk_internal

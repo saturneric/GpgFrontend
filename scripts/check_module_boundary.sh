@@ -32,7 +32,7 @@
 #
 #   4. No host artifact -- neither a host library nor the application itself --
 #      exports a public SDK entry point (GFSDK*, GFGpg*, GFUI*, GFPgp*,
-#      GFCommand*, GFNative*, and the rest of the domain prefixes). The public SDK is module-side and static
+#      GFCommand*, GFNative*, GFHtml*, and the rest of the domain prefixes). The public SDK is module-side and static
 #      now; a host artifact exporting one of these names would mean the old
 #      bypass had come back, and a module could reach it by name again.
 #   5. GFHostApiInstallBridge is not dynamically visible. Caller and
@@ -219,7 +219,7 @@ check_pe() {
 
 # The public SDK's domain prefixes, as §4 of the API redesign named them. A
 # host artifact defining any of these is the bypass the whole design removed.
-readonly PUBLIC_SDK_PREFIXES='GF(SDK|Gpg|Pgp|UI|Editor|Storage|Process|App|Log|Mem|Buffer|Module|Event|Compare|Command|Native)'
+readonly PUBLIC_SDK_PREFIXES='GF(SDK|Gpg|Pgp|UI|Editor|Storage|Process|App|Log|Mem|Buffer|Module|Event|Compare|Command|Native|Html)'
 readonly HIDDEN_HOST_SYMBOLS='GFHostApiInstallBridge'
 
 check_host_elf() {

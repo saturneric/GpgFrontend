@@ -85,6 +85,10 @@ enum class ModuleCapability : uint32_t {
   /// Module-owned native widgets mounted into Host containers. Declared
   /// explicitly and only together with `ui`; see ModuleManifest.
   kUI_CUSTOM = 1U << 6,
+  /// Embedding read-only HTML views; requires `ui.custom`.
+  kHTML_VIEW = 1U << 7,
+  /// Providing the renderer behind them; requires `ui.custom`.
+  kHTML_PROVIDER = 1U << 8,
 };
 
 /// How a declared name was classified.

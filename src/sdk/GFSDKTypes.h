@@ -462,6 +462,161 @@ typedef struct GFNativeWidgetSpec {
   const GFDialogWidgetOps* dialog;
 } GFNativeWidgetSpec;
 
+/* --- HTML views (see GFSDKHtmlView.h) ----------------------------------- */
+
+/* Status. Every call in GFSDKHtmlView.h answers one of these. */
+#define GF_HTML_VIEW_OK 0
+#define GF_HTML_VIEW_E_UNAVAILABLE (-1) /**< no renderer is present */
+/** A renderer is installed but needs the application restarted first. */
+#define GF_HTML_VIEW_E_RESTART_REQUIRED (-2)
+/** No renderer present can enforce every bit of the policy. */
+#define GF_HTML_VIEW_E_POLICY (-3)
+/** Not the caller's: the instance, slot, view, session or request. */
+#define GF_HTML_VIEW_E_DENIED (-4)
+/** A bad argument, or a call off the GUI thread. */
+#define GF_HTML_VIEW_E_INVALID (-5)
+#define GF_HTML_VIEW_E_TOO_LARGE (-6) /**< over a limit of the policy */
+/** The renderer refused at run time; nothing was created or shown. */
+#define GF_HTML_VIEW_E_FAILED (-7)
+
+/** The policies a consumer may ask for. It names one; it never sets bits. */
+#define GF_HTML_VIEW_PRESET_MAIL 1
+
+/*
+ * What a view must never do, as bits. The Host fills a policy in from the
+ * preset; a renderer declares which bits its engine enforces, and a view is
+ * only created on a renderer that enforces every bit asked for. Each bit is
+ * enforced by the engine itself -- its settings, content rules, scheme
+ * handler and request hooks -- never by asking the Host per request.
+ */
+/** No request leaves the process. */
+#define GF_HTML_POLICY_NO_NETWORK (1u << 0)
+/** The only scheme anything loads from is GF_HTML_PART_SCHEME. */
+#define GF_HTML_POLICY_PARTS_ONLY (1u << 1)
+#define GF_HTML_POLICY_NO_SCRIPT (1u << 2)
+/** Only the document the Host gave, and its own srcdoc frame, load. */
+#define GF_HTML_POLICY_NO_NAVIGATION (1u << 3)
+#define GF_HTML_POLICY_NO_POPUPS (1u << 4)
+#define GF_HTML_POLICY_NO_DOWNLOADS (1u << 5)
+/** An ephemeral store: no cookies, cache or storage on disk. */
+#define GF_HTML_POLICY_NO_PERSISTENCE (1u << 6)
+/** Camera, microphone, location, notifications, clipboard read, full
+ *  screen, pointer lock: every permission prompt is refused. */
+#define GF_HTML_POLICY_NO_PERMISSIONS (1u << 7)
+#define GF_HTML_POLICY_NO_DNS_PREFETCH (1u << 8)
+#define GF_HTML_POLICY_NO_PLUGINS (1u << 9)
+
+/**
+ * @brief The fixed policy a view is created under. Built by the Host.
+ *
+ * Read-only to everyone else, and the same for the view's whole life: a load
+ * cannot change it. Append-only.
+ */
+typedef struct GFHtmlViewPolicy {
+  size_t struct_size;
+  int preset;        /**< GF_HTML_VIEW_PRESET_* */
+  uint32_t required; /**< GF_HTML_POLICY_* bits, all of which are enforced */
+  uint64_t max_document_bytes;
+  uint64_t max_part_bytes;
+  uint64_t max_total_part_bytes;
+} GFHtmlViewPolicy;
+
+/*
+ * The part scheme. The one scheme a view loads anything from, the same for
+ * every renderer: `gfpart://<session>/<cid>`, where <session> is the 32 hex
+ * digits the Host minted for the current document and <cid> the part's
+ * Content-ID, percent-encoded. Secure, local, with no CORS and no fetch API.
+ * A renderer whose engine needs schemes registered registers exactly this
+ * one, with exactly these properties, before it creates anything else.
+ */
+#define GF_HTML_PART_SCHEME "gfpart"
+
+/** One part of the message the document may show: an inline image. */
+typedef struct GFHtmlPart {
+  size_t struct_size;
+  const char* cid;  /**< Content-ID, with or without the angle brackets */
+  const char* mime; /**< checked against the Host's allowlist */
+  GFBufferRef data; /**< transferred to the Host, as command blobs are */
+} GFHtmlPart;
+
+/* What a view tells the module that embedded it. */
+#define GF_HTML_VIEW_EVENT_LOADED 1 /**< @p value: 1 shown, 0 failed */
+/** The user activated a link; @p text is its URL, borrowed for the call. The
+ *  Host has already asked the user and opened it, or not -- this is news,
+ *  not a request. */
+#define GF_HTML_VIEW_EVENT_LINK 2
+/** The renderer went away. The view is gone; show the source instead. */
+#define GF_HTML_VIEW_EVENT_LOST 3
+
+/** On the GUI thread, into the module that created @p view. */
+typedef void (*GFHtmlViewEventFn)(void* user, uint64_t view, int event,
+                                  int value, const char* text);
+
+/* How a part request ended. */
+#define GF_HTML_PART_OK 0
+#define GF_HTML_PART_NOT_FOUND 1
+#define GF_HTML_PART_TOO_LARGE 2
+/** The document it was asked for has been replaced, cleared or destroyed. */
+#define GF_HTML_PART_STALE 3
+
+/**
+ * @brief A part request finished. On the GUI thread, into the renderer.
+ *
+ * @p data is the renderer's to release with GFBufferRelease, and NULL unless
+ * @p status is GF_HTML_PART_OK. Never called for a request that was
+ * cancelled, nor once the view is destroyed.
+ */
+typedef void (*GFHtmlPartDoneFn)(void* user, uint64_t request, int status,
+                                 const char* mime, GFBufferRef data);
+
+/** The renderer interface generation this header describes. */
+#define GF_HTML_VIEW_PROVIDER_V1 1
+
+/**
+ * The renderer is installed but cannot serve views until the application is
+ * restarted -- its engine refused to register GF_HTML_PART_SCHEME, say,
+ * because the engine had already started. It is listed, so a consumer can
+ * say so, and never used: a view is never served on a scheme the engine
+ * does not know.
+ */
+#define GF_HTML_PROVIDER_FEATURE_RESTART_REQUIRED (1u << 0)
+
+/**
+ * @brief A renderer: what the Host asks of it.
+ *
+ * Every call is on the GUI thread and names the view. Append-only.
+ */
+typedef struct GFHtmlViewProviderOps {
+  size_t struct_size;
+  /**
+   * Build the view's widget, enforcing every bit of @p policy (borrowed for
+   * the call). A QWidget*, owned by the Host after; NULL refuses, and the
+   * view is then never created.
+   */
+  void* (*create)(void* user, uint64_t view, const GFHtmlViewPolicy* policy);
+  /**
+   * Show @p document, which the Host built. Its parts are requested under
+   * @p session. Replaces whatever was shown. 0 when it is being shown.
+   */
+  int (*load)(void* user, uint64_t view, const char* session,
+              GFBufferView document);
+  /** Show nothing, and forget what was shown. */
+  void (*clear)(void* user, uint64_t view);
+  /** @p view is gone; the renderer forgets it. */
+  void (*destroyed)(void* user, uint64_t view);
+} GFHtmlViewProviderOps;
+
+/** A renderer, registered once by the module that provides it. */
+typedef struct GFHtmlViewProviderSpec {
+  size_t struct_size;
+  uint32_t interface_version; /**< GF_HTML_VIEW_PROVIDER_V1 */
+  const char* name;           /**< the module's own name for it */
+  uint32_t enforceable;       /**< GF_HTML_POLICY_* bits its engine enforces */
+  uint32_t features;          /**< GF_HTML_PROVIDER_FEATURE_* */
+  void* user;
+  const GFHtmlViewProviderOps* ops;
+} GFHtmlViewProviderSpec;
+
 /* --- commands (see GFSDKCommand.h) ------------------------------------- */
 
 /* --- status ---------------------------------------------------------------- */

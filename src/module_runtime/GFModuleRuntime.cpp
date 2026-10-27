@@ -34,6 +34,7 @@
 #include "GFModuleRuntimeBoot.h"
 #include "GFModuleRuntimeCommand.h"
 #include "GFModuleRuntimeDispatch.h"
+#include "GFModuleRuntimeHtmlView.h"
 #include "GFModuleRuntimeI18n.h"
 #include "GFModuleRuntimeNative.h"
 #include "include/GFModule.h"
@@ -164,6 +165,7 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
   }
 
   gf::runtime::ResetNativeRegistrations();
+  gf::runtime::ResetHtmlRenderers();
 
   const auto hooked = IndexHooks(g_hooks);
   if (!ReconcileSubscriptions(hooked)) return -1;
@@ -252,6 +254,7 @@ auto RuntimeDeactivate() -> int {
   // anything still owed to the module is forgotten here, on its side.
   gf::runtime::DropContinuations();
   gf::runtime::ForgetNativeWidgets();
+  gf::runtime::ForgetHtmlViews();
   if (g_hooks != nullptr &&
       HooksCover(g_hooks, &GFModuleHooks::on_deactivate) &&
       g_hooks->on_deactivate != nullptr) {

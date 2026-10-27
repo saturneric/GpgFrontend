@@ -40,6 +40,7 @@ add_library(gf_module_runtime STATIC
   GFModuleRuntimeBoot.cpp
   GFModuleRuntimeCommand.cpp
   GFModuleRuntimeNative.cpp
+  GFModuleRuntimeHtmlView.cpp
   GFModuleRuntimeDispatch.cpp
   GFModuleRuntimeI18n.cpp)
 

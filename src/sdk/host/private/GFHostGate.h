@@ -83,4 +83,8 @@ extern const GFHostScriptApi kScriptApi;
 /// The native widget group, defined in GFHostNative.cpp.
 extern const GFHostNativeWidgetApi kNativeApi;
 
+/// The HTML view groups, defined in GFHostHtmlView.cpp.
+extern const GFHostHtmlViewApi kHtmlViewApi;
+extern const GFHostHtmlProviderApi kHtmlProviderApi;
+
 }  // namespace gf_sdk_internal

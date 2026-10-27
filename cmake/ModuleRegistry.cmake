@@ -377,7 +377,7 @@ set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_host_api gf_test)
 # compares the two so they cannot drift.
 #
 # Enforceable: maps to a GFHostApi group the Host hands over or withholds.
-set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui ui.custom editor storage process)
+set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui ui.custom html.view html.provider editor storage process)
 # Advisory: signed, recorded and shown to the user, but not Host-mediated --
 # a module opens a socket through Qt, so there is nothing here to withhold.
 # Kept separate rather than mixed in, so a grant mask never claims more than
@@ -531,6 +531,15 @@ function(gf_add_module)
       "widgets are mounted by the module's Lua UI script, which only exists "
       "for a module that declares \"ui\".")
   endif()
+  foreach(html_capability IN ITEMS html.view html.provider)
+    if(html_capability IN_LIST module_capabilities AND
+       NOT "ui.custom" IN_LIST module_capabilities)
+      message(FATAL_ERROR
+        "${manifest_file}: \"${html_capability}\" requires \"ui.custom\" "
+        "as well. An HTML view lives in one of the module's native widgets, "
+        "and a renderer's widget in a Host container.")
+    endif()
+  endforeach()
 
   # events: the subscription allowlist, required. The runtime subscribes to
   # exactly these and refuses to activate if the module's handler table

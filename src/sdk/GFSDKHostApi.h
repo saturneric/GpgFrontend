@@ -122,6 +122,10 @@ typedef struct GFHostContextImpl* GFHostContextRef;
 #define GF_HOST_CAP_PROCESS (1u << 5)
 /** Module-owned native widgets in Host containers. Requires GF_HOST_CAP_UI. */
 #define GF_HOST_CAP_UI_CUSTOM (1u << 6)
+/** Embedding read-only HTML views. Requires GF_HOST_CAP_UI_CUSTOM. */
+#define GF_HOST_CAP_HTML_VIEW (1u << 7)
+/** Providing the renderer behind them. Requires GF_HOST_CAP_UI_CUSTOM. */
+#define GF_HOST_CAP_HTML_PROVIDER (1u << 8)
 
 /* --- always-granted groups ----------------------------------------------- */
 
@@ -544,6 +548,44 @@ typedef struct GFHostNativeWidgetApi {
   int (*dialog_close)(GFHostContextRef ctx, uint64_t instance);
 } GFHostNativeWidgetApi;
 
+/**
+ * @brief Read-only HTML views in the module's own widgets. Capability
+ *        "html.view".
+ *
+ * Present whenever granted, renderer or not: without one every call answers
+ * GF_HTML_VIEW_E_UNAVAILABLE. See GFSDKHtmlView.h.
+ */
+typedef struct GFHostHtmlViewApi {
+  size_t struct_size;
+  int (*available)(GFHostContextRef ctx, int preset);
+  int (*create_view)(GFHostContextRef ctx, uint64_t instance, void* slot,
+                     int preset, GFHtmlViewEventFn fn, void* user,
+                     uint64_t* out_view);
+  int (*load)(GFHostContextRef ctx, uint64_t view, GFBufferRef html_utf8,
+              const GFHtmlPart* parts, size_t part_count, size_t* out_dropped);
+  int (*clear)(GFHostContextRef ctx, uint64_t view);
+  int (*destroy_view)(GFHostContextRef ctx, uint64_t view);
+} GFHostHtmlViewApi;
+
+/**
+ * @brief The renderer behind HTML views. Capability "html.provider".
+ *
+ * Every call names a view the calling renderer serves, and is refused for
+ * any other. See GFSDKHtmlView.h.
+ */
+typedef struct GFHostHtmlProviderApi {
+  size_t struct_size;
+  int (*register_provider)(GFHostContextRef ctx,
+                           const GFHtmlViewProviderSpec* spec);
+  int (*unregister_provider)(GFHostContextRef ctx, const char* name);
+  int (*request_part)(GFHostContextRef ctx, uint64_t view, const char* session,
+                      const char* cid, GFHtmlPartDoneFn done, void* user,
+                      uint64_t* out_request);
+  int (*cancel_part)(GFHostContextRef ctx, uint64_t request);
+  int (*link_activated)(GFHostContextRef ctx, uint64_t view, const char* url);
+  int (*loaded)(GFHostContextRef ctx, uint64_t view, int ok);
+} GFHostHtmlProviderApi;
+
 /* --- the table ----------------------------------------------------------- */
 
 /**
@@ -585,6 +627,12 @@ typedef struct GFHostApi {
 
   /* NULL unless "ui.custom" was granted */
   const GFHostNativeWidgetApi* native;
+
+  /* NULL unless "html.view" was granted */
+  const GFHostHtmlViewApi* html_view;
+
+  /* NULL unless "html.provider" was granted */
+  const GFHostHtmlProviderApi* html_provider;
 } GFHostApi;
 
 #ifdef __cplusplus

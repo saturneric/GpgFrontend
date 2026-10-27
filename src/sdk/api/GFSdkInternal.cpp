@@ -59,7 +59,7 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
     const char* capabilities;
     uint32_t bits;
   };
-  static const std::array<Grantable, 8> kGrantable = {{
+  static const std::array<Grantable, 10> kGrantable = {{
       {"gpg", "gpg", GF_HOST_CAP_GPG},
       {"pgp", "pgp", GF_HOST_CAP_PGP},
       {"ui", "ui", GF_HOST_CAP_UI},
@@ -69,6 +69,10 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
       {"script", "ui", GF_HOST_CAP_UI},
       {"native", "ui\" and \"ui.custom",
        GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM},
+      {"html_view", "ui\", \"ui.custom\" and \"html.view",
+       GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM | GF_HOST_CAP_HTML_VIEW},
+      {"html_provider", "ui\", \"ui.custom\" and \"html.provider",
+       GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM | GF_HOST_CAP_HTML_PROVIDER},
   }};
   const Grantable* grantable = nullptr;
   for (const auto& g : kGrantable) {

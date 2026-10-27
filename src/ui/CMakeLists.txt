@@ -41,6 +41,7 @@ aux_source_directory(function UI_SOURCE)
 aux_source_directory(model UI_SOURCE)
 aux_source_directory(command UI_SOURCE)
 aux_source_directory(lua UI_SOURCE)
+aux_source_directory(html UI_SOURCE)
 
 # register module
 register_library(ui LIBRARY_TARGET ${UI_SOURCE})

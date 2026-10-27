@@ -67,6 +67,15 @@ auto Vocabulary() -> const QList<CapabilityEntry>& {
       // module code inside the Host's window.
       {"ui.custom", ModuleCapabilityKind::kENFORCEABLE,
        static_cast<uint32_t>(ModuleCapability::kUI_CUSTOM)},
+      // An HTML view inside one of the module's own widgets. Separate from
+      // "ui.custom" because the content is foreign: a mail, rendered by an
+      // engine the module never sees, under a policy the Host owns.
+      {"html.view", ModuleCapabilityKind::kENFORCEABLE,
+       static_cast<uint32_t>(ModuleCapability::kHTML_VIEW)},
+      // The engine behind those views. The one capability that puts module
+      // code between foreign content and the user, so it is its own name.
+      {"html.provider", ModuleCapabilityKind::kENFORCEABLE,
+       static_cast<uint32_t>(ModuleCapability::kHTML_PROVIDER)},
 
       // Advisory. A module reaches the network through Qt, not through the
       // Host, so there is nothing here for the Host to withhold. Recorded and

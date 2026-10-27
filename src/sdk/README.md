@@ -68,6 +68,8 @@ context even if reached another way.
 | `command`   | `"ui"`                 | register, invoke, cancel and describe typed commands                                          |
 | `script`    | `"ui"`                 | load the module's embedded UI scripts                                                         |
 | `native`    | `"ui"` + `"ui.custom"` | register native widgets; a mounted widget's notifications                                     |
+| `html_view` | `"ui.custom"` + `"html.view"` | embed a read-only HTML view in one of the module's own widgets; answers Unavailable without a renderer |
+| `html_provider` | `"ui.custom"` + `"html.provider"` | provide the renderer behind HTML views, and ask for a document's parts                  |
 | `editor`    | `"editor"`             | the current document's exact octets, and what it is (never its content)                       |
 | `storage`   | `"storage"`            | the module's settings group, the three caches (scoped per module), the runtime register table |
 | `process`   | `"process"`            | running an external program                                                                   |
@@ -201,6 +203,8 @@ module's lifecycle.
 | ----------- | ------------------------------------------------------------------------------------------------------------------ |
 | `ui`        | the module's Lua state: `commands`, `ui.action`, `ui.subscribe`, `state`, `theme`; C++ command register and invoke |
 | `ui.custom` | adds `native.*` and `ui.mount` in Lua, and native widget registration in C++. Requires `ui`                        |
+| `html.view` | embedding read-only HTML views in the module's own native widgets. Requires `ui.custom`                            |
+| `html.provider` | providing the engine behind HTML views. Requires `ui.custom`; the module's library is never unmapped afterwards |
 
 There is no third level and no Host-handle escape hatch. A grant check needs
 **every** capability it names: `native` is NULL in a table that has `ui` but
@@ -452,6 +456,52 @@ page's own switcher, which the view may ask for; `SourceLockReason` keeps it
 read-only while the content is protected (a signed message, say). An editor
 mount's `extensions` makes the Host open those files as that document type,
 and the Host saves them through `PrepareSave`.
+
+### HTML views
+
+A read-only HTML view (`GFSDKHtmlView.h`, `GFModuleHtmlView.h`) shows a
+foreign document, a mail body, inside a widget of the module's own. The
+module never chooses or sees the engine, and without one every call answers
+`GF_HTML_VIEW_E_UNAVAILABLE`, so a consumer always has another way to show the
+content.
+
+```cpp
+if (gf::ui::HtmlViewAvailability() == gf::ui::HtmlViewStatus::kOK) {
+  view_.Create(*this, slot_, {.lost = [this] { ShowSourceAgain(); }});
+  view_.Load(body, {{"part1@example", "image/png", png}});
+}
+```
+
+Everything that decides safety is the Host's:
+
+- **The policy.** A consumer names a preset (`GF_HTML_VIEW_PRESET_MAIL`) and
+  never sets bits. The Host fills in an immutable `GFHtmlViewPolicy`: no
+  network, parts only, no script, navigation, popups, downloads, persistence,
+  permissions, DNS prefetch or plugins, and size limits. A renderer declares
+  which bits its engine enforces; a view is only created on one that enforces
+  them all, and never in a weaker form.
+- **The document.** The body is never parsed. The Host writes the document:
+  its Content-Security-Policy first in `<head>`, and the body, escaped, as
+  the `srcdoc` of a sandboxed iframe. `cid:` references become
+  `gfpart://<session>/<cid>`.
+- **The slot.** It must be the caller's own live native-widget instance, or
+  a descendant of it, found by address in that tree before it is followed.
+- **The parts.** Images on an allowlist (no SVG), within the limits, served
+  asynchronously to the renderer that serves the view and only for its
+  current session. A new document, a clear or a destroy makes everything in
+  flight STALE; a cancelled request is never answered.
+- **Links.** The renderer reports a click; the Host asks the user, showing
+  the address as it would be opened, and opens it outside the application.
+
+A renderer (`gf::ui::RegisterHtmlViewRenderer`) is drained in a fixed order
+when its module goes: no new view, pending parts dropped, every view it
+serves destroyed with `GF_HTML_VIEW_EVENT_LOST`, then unregistered. Its
+library stays mapped until exit. Registering the part scheme with an engine
+that needs it is the renderer's first act at activation; if the engine
+refused, the renderer registers with
+`GF_HTML_PROVIDER_FEATURE_RESTART_REQUIRED` and is never selected.
+
+Editing rich text is not this interface, and will not become flags on it.
 
 ### Queries
 

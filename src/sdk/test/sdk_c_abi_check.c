@@ -51,6 +51,7 @@
 #include "GFSDKGpgList.h"
 #include "GFSDKGpgResult.h"
 #include "GFSDKHostApi.h"
+#include "GFSDKHtmlView.h"
 #include "GFSDKLog.h"
 #include "GFSDKModuleApi.h"
 #include "GFSDKPgp.h"
