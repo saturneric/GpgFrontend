@@ -27,6 +27,7 @@
  */
 
 #include "GpgCoreTest.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
@@ -817,6 +818,138 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
 
   KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(p_key);
+}
+
+namespace {
+
+std::atomic<int> g_passphrase_prompts{0};
+
+auto CountingPassphraseCb(void*, const char*, const char*, int, int fd)
+    -> gpgme_error_t {
+  g_passphrase_prompts++;
+  const QByteArray passphrase("abcdefg\n");
+  return gpgme_io_writen(fd, passphrase.constData(), passphrase.size()) == 0
+             ? GPG_ERR_NO_ERROR
+             : GPG_ERR_CANCELED;
+}
+
+auto MakeKeyWithSubkeyInfo(const QString& name, const QString& algo_id,
+                           const QString& sub_algo_id)
+    -> std::pair<QSharedPointer<KeyGenerateInfo>,
+                 QSharedPointer<KeyGenerateInfo>> {
+  auto p_info = QSharedPointer<KeyGenerateInfo>::create();
+  p_info->SetName(name);
+  p_info->SetEmail(name + "@gpgfrontend.bktus.com");
+  p_info->SetAlgo(std::get<1>(KeyGenerateInfo::SearchPrimaryKeyAlgo(algo_id)));
+  p_info->SetNonExpired(true);
+  p_info->SetNonPassPhrase(true);
+
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+  s_info->SetAlgo(std::get<1>(KeyGenerateInfo::SearchSubKeyAlgo(sub_algo_id)));
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
+  return {p_info, s_info};
+}
+
+}  // namespace
+
+TEST_F(GpgCoreTest, GenerateKeyWithSubkeyAsksPassphraseOnceTest) {
+  // A key and its subkey are made in one gpg run, so the user sets the
+  // passphrase once instead of setting it and then unlocking the new key for
+  // the subkey.
+  auto [p_info, s_info] =
+      MakeKeyWithSubkeyInfo("foo_once", "ed25519", "cv25519");
+  p_info->SetComment("one prompt");
+  p_info->SetNonExpired(false);
+  p_info->SetExpireTime(QDateTime::currentDateTime().addDays(1));
+  p_info->SetNonPassPhrase(false);
+  p_info->SetAllowAuth(false);
+  s_info->SetNonPassPhrase(false);
+
+  auto& ctx = GpgCtx(OpenPGPContext::GetInstance(kGpgFrontendDefaultChannel));
+  gpgme_passphrase_cb_t prev_cb = nullptr;
+  void* prev_hook = nullptr;
+  gpgme_get_passphrase_cb(ctx.DefaultContext(), &prev_cb, &prev_hook);
+  gpgme_set_passphrase_cb(ctx.DefaultContext(), CountingPassphraseCb,
+                          prev_hook);
+  g_passphrase_prompts = 0;
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
+          .GenerateKeyWithSubkeySync(p_info, s_info);
+
+  gpgme_set_passphrase_cb(ctx.DefaultContext(), prev_cb, prev_hook);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_EQ(g_passphrase_prompts.load(), 1);
+  ASSERT_TRUE(
+      (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  auto s_result = ExtractParams<GpgGenerateKeyResult>(data_object, 1);
+  auto p_key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+
+  ASSERT_EQ(p_key->Name(), "foo_once");
+  ASSERT_EQ(p_key->Comment(), "one prompt");
+  ASSERT_GT(p_key->ExpirationTime(), QDateTime::currentDateTime());
+
+  auto s_keys = p_key->SubKeys();
+  ASSERT_EQ(s_keys.size(), 2);
+  ASSERT_TRUE(s_keys.front().IsHasCertCap());
+  ASSERT_TRUE(s_keys.front().IsHasSignCap());
+  ASSERT_FALSE(s_keys.front().IsHasAuthCap());
+  ASSERT_FALSE(s_keys.front().IsHasEncrCap());
+
+  const auto& s_key = s_keys.back();
+  ASSERT_EQ(s_result.GetFingerprint(), s_key.Fingerprint());
+  ASSERT_EQ(s_key.Algo(), "CV25519");
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
+
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
+}
+
+TEST_F(GpgCoreTest, GenerateKeyWithSubkeyCurveNamesTest) {
+  // GnuPG's parameter block wants libgcrypt's spelling of the curve names,
+  // which is not always the id the algorithm is listed under.
+  const QList<std::tuple<QString, QString, QString, QString>> pairs{
+      {"nistp384", "brainpoolp256r1", "NISTP384", "BRAINPOOLP256R1"},
+      {"ed448", "x448", "ED448", "CV448"},
+  };
+
+  for (const auto& [algo_id, sub_algo_id, algo, sub_algo] : pairs) {
+    auto [p_info, s_info] =
+        MakeKeyWithSubkeyInfo("foo_curve", algo_id, sub_algo_id);
+
+    auto [err, data_object] =
+        KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
+            .GenerateKeyWithSubkeySync(p_info, s_info);
+    if (CheckGpgError(err) == GPG_ERR_UNKNOWN_CURVE ||
+        CheckGpgError(err) == GPG_ERR_INV_VALUE) {
+      GTEST_SKIP() << algo_id.toStdString() << " / "
+                   << sub_algo_id.toStdString()
+                   << " is not supported by this GnuPG version";
+    }
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR)
+        << algo_id.toStdString() << " / " << sub_algo_id.toStdString();
+
+    auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+    auto p_key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                     .GetKeyPtr(result.GetFingerprint());
+    ASSERT_TRUE(p_key != nullptr);
+    ASSERT_EQ(p_key->Algo(), algo);
+
+    auto s_keys = p_key->SubKeys();
+    ASSERT_EQ(s_keys.size(), 2);
+    ASSERT_EQ(s_keys.back().Algo(), sub_algo);
+
+    KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+        .DeleteKey(p_key);
+  }
 }
 
 }  // namespace GpgFrontend::Test

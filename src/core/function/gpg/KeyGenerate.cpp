@@ -132,11 +132,144 @@ auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   return CheckGpgError(err);
 }
 
+namespace {
+
+/// The "Key-Type" (or "Subkey-Type") lines of a batch parameter block for one
+/// algorithm, prefixed with `prefix`. Empty when the batch format cannot name
+/// it, in which case the caller keeps the two-call path.
+auto BatchAlgoLines(const KeyAlgo& algo, const QString& prefix) -> QString {
+  if (algo.IsPostQuantum() || algo.Type().isEmpty()) return {};
+
+  // The algorithm's type is already a name the batch format knows.
+  if (!algo.IsEcc()) {
+    if (algo.KeyLength() <= 0) return {};
+    return u"%1-Type: %2\n%1-Length: %3\n"_s.arg(
+        prefix, algo.Type(), QString::number(algo.KeyLength()));
+  }
+
+  // The curve is the algorithm id, except where the agent's curve lookup is
+  // case-sensitive about a spelling the id does not carry.
+  auto curve = algo.Id();
+  if (curve == u"x448"_s) curve = u"X448"_s;
+  if (curve.startsWith(u"brainpoolp"_s)) curve[9] = u'P';
+  return u"%1-Type: %2\n%1-Curve: %3\n"_s.arg(prefix, algo.Type(), curve);
+}
+
+auto BatchUsage(const KeyGenerateInfo& params) -> QString {
+  QStringList usage;
+  if (!params.IsSubKey()) usage << u"cert"_s;
+  if (params.IsAllowSign()) usage << u"sign"_s;
+  if (params.IsAllowEncr()) usage << u"encrypt"_s;
+  if (params.IsAllowAuth()) usage << u"auth"_s;
+  return usage.join(u',');
+}
+
+auto BatchExpire(const KeyGenerateInfo& params) -> QString {
+  if (params.IsNonExpired()) return u"0"_s;
+  return u"seconds=%1"_s.arg(
+      QDateTime::currentDateTime().secsTo(params.GetExpireTime()));
+}
+
+/**
+ * @brief The parameter block that makes the primary key and its subkey in a
+ * single gpg run.
+ *
+ * Two runs (createkey, then createsubkey) cost the user a third prompt: the
+ * agent does not keep the passphrase it was given for the new key, so adding
+ * the subkey has to unlock that key again. One run asks once, and commits both
+ * keys or neither.
+ *
+ * @return std::nullopt when the block cannot describe this pair
+ */
+auto BuildGenKeyParams(const KeyGenerateInfo& p_params,
+                       const KeyGenerateInfo& s_params)
+    -> std::optional<QString> {
+  // A hybrid key is named by two algorithms; the batch format has no way to.
+  for (const auto* params : {&p_params, &s_params}) {
+    if (!params->SubAlgo().Id().isEmpty() &&
+        params->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id()) {
+      return std::nullopt;
+    }
+  }
+
+  // One block protects both keys the same way.
+  if (p_params.IsNoPassPhrase() != s_params.IsNoPassPhrase()) {
+    return std::nullopt;
+  }
+
+  const auto key_type = BatchAlgoLines(p_params.GetAlgo(), u"Key"_s);
+  const auto subkey_type = BatchAlgoLines(s_params.GetAlgo(), u"Subkey"_s);
+  if (key_type.isEmpty() || subkey_type.isEmpty()) return std::nullopt;
+
+  // The block is line-based: a line break in a value would start a new line.
+  const auto name = p_params.GetName();
+  const auto email = p_params.GetEmail();
+  const auto comment = p_params.GetComment();
+  for (const auto& value : {name, email, comment}) {
+    if (value.contains(u'\n') || value.contains(u'\r')) return std::nullopt;
+  }
+
+  auto params = u"<GnupgKeyParms format=\"internal\">\n"_s;
+  params += key_type;
+  params += u"Key-Usage: %1\n"_s.arg(BatchUsage(p_params));
+  params += subkey_type;
+  params += u"Subkey-Usage: %1\n"_s.arg(BatchUsage(s_params));
+  params += u"Name-Real: %1\n"_s.arg(name);
+  if (!email.isEmpty()) params += u"Name-Email: %1\n"_s.arg(email);
+  if (!comment.isEmpty()) params += u"Name-Comment: %1\n"_s.arg(comment);
+  params += u"Expire-Date: %1\n"_s.arg(BatchExpire(p_params));
+  params += u"Subkey-Expire-Date: %1\n"_s.arg(BatchExpire(s_params));
+  if (p_params.IsNoPassPhrase()) params += u"%no-protection\n"_s;
+  params += u"%commit\n</GnupgKeyParms>\n"_s;
+  return params;
+}
+
+}  // namespace
+
 auto GenerateKeyWithSubkeyGnuPGImpl(
     OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
   auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());
+
+  const auto batch_params =
+      p_params != nullptr && s_params != nullptr && !p_params->IsSubKey() &&
+              s_params->IsSubKey() &&
+              p_params->GetAlgo() != KeyGenerateInfo::kNoneAlgo &&
+              s_params->GetAlgo() != KeyGenerateInfo::kNoneAlgo
+          ? BuildGenKeyParams(*p_params, *s_params)
+          : std::nullopt;
+
+  if (batch_params) {
+    auto& g_ctx = GpgCtx(ctx);
+    LOG_D() << "generating key with subkey in one run, algos:"
+            << p_params->GetAlgo().Id() << s_params->GetAlgo().Id();
+
+    auto err = CheckGpgError(gpgme_op_genkey(
+        g_ctx.DefaultContext(), batch_params->toUtf8(), nullptr, nullptr));
+    if (err != GPG_ERR_NO_ERROR) {
+      data_object->Swap({GpgGenerateKeyResult{}});
+      return err;
+    }
+
+    auto result =
+        GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())};
+    auto key = key_getter.GetKeyPtr(result.GetFingerprint());
+    if (key == nullptr) {
+      LOG_W() << "cannot get key which has been generated, fpr: "
+              << result.GetFingerprint();
+      return GPG_ERR_CANCELED;
+    }
+
+    // SubKeys() lists the primary first; the one subkey made here is last.
+    const auto s_keys = key->SubKeys();
+    auto s_result = s_keys.size() > 1
+                        ? GpgGenerateKeyResult{s_keys.back().Fingerprint()}
+                        : GpgGenerateKeyResult{};
+
+    data_object->Swap({result, s_result});
+    return err;
+  }
 
   auto err = GenerateKeyGnuPGImpl(ctx, p_params, data_object);
 
