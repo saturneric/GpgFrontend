@@ -113,9 +113,18 @@ auto GF_UI_EXPORT EscapeAttribute(const QString& text) -> QString;
 /// The Content-Security-Policy the outer document carries.
 auto GF_UI_EXPORT ContentSecurityPolicy() -> QString;
 
-/// The sandbox the body's frame runs in. Never allow-scripts, allow-forms,
-/// allow-same-origin or allow-downloads.
-auto GF_UI_EXPORT SandboxTokens() -> QString;
+/// The sandbox the body's frame runs in. Never allow-scripts, allow-forms or
+/// allow-downloads.
+///
+/// @p frame_same_origin grants the frame allow-same-origin: it then shares the
+/// document's own origin (the part scheme) instead of an opaque one. A renderer
+/// asks for this only when its engine will not otherwise load the part scheme
+/// into the frame -- WebView2 refuses a custom scheme from an opaque origin,
+/// where WebKit and QtWebEngine allow it. It stays safe because no script can
+/// ever run (no allow-scripts, scripting off in the engine, no CSP script-src),
+/// so the only thing same-origin unlocks is loading the view's own parts, each
+/// still gated to the current session by the host.
+auto GF_UI_EXPORT SandboxTokens(bool frame_same_origin = false) -> QString;
 
 /**
  * @brief The whole document a renderer is handed, as UTF-8.
@@ -125,8 +134,8 @@ auto GF_UI_EXPORT SandboxTokens() -> QString;
  * downloads, an opaque origin, and navigation only on a user's click,
  * before the engine's own enforcement is even reached.
  */
-auto GF_UI_EXPORT BuildDocument(const QString& body, const QString& session)
-    -> QByteArray;
+auto GF_UI_EXPORT BuildDocument(const QString& body, const QString& session,
+                                bool frame_same_origin = false) -> QByteArray;
 
 /// Whether a part of type @p mime may be shown at all. Images only, and
 /// not SVG, which is a document rather than a picture.

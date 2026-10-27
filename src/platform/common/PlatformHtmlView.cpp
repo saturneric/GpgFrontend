@@ -30,7 +30,9 @@
 
 // Platforms with an engine of their own provide the real renderer; this keeps
 // gf_ui linkable everywhere else, where HTML views come from modules alone.
-#if !defined(Q_OS_MACOS)
+// Windows has one only when the build found the WebView2 SDK.
+#if !defined(Q_OS_MACOS) && \
+    !(defined(Q_OS_WINDOWS) && defined(GF_HAS_WEBVIEW2_SDK))
 
 #include "platform/common/PlatformHtmlView.h"
 

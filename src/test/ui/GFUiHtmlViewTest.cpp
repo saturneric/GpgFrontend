@@ -415,6 +415,26 @@ TEST(HtmlViewDocumentTest, ThePolicyComesFirstAndTheBodyStaysAnAttribute) {
   EXPECT_FALSE(doc.contains("navigate-to")) << "not a directive any engine has";
 }
 
+TEST(HtmlViewDocumentTest, FrameSameOriginIsOptInAndOtherwiseOpaque) {
+  // The opaque origin is the default; a renderer opts into allow-same-origin
+  // only because its engine will not load the part scheme otherwise (WebView2).
+  // Either way no script may run, so same-origin unlocks nothing but parts.
+  EXPECT_FALSE(HtmlView::SandboxTokens().contains("allow-same-origin"));
+  EXPECT_FALSE(HtmlView::SandboxTokens(false).contains("allow-same-origin"));
+  EXPECT_TRUE(HtmlView::SandboxTokens(true).contains("allow-same-origin"));
+  for (const bool same_origin : {false, true}) {
+    const auto tokens = HtmlView::SandboxTokens(same_origin);
+    EXPECT_FALSE(tokens.contains("allow-scripts")) << same_origin;
+    EXPECT_FALSE(tokens.contains("allow-forms")) << same_origin;
+    EXPECT_FALSE(tokens.contains("allow-downloads")) << same_origin;
+  }
+  const auto session = HtmlView::NewSession();
+  EXPECT_TRUE(QString::fromUtf8(HtmlView::BuildDocument("x", session, true))
+                  .contains("<iframe sandbox=\"allow-same-origin "));
+  EXPECT_FALSE(QString::fromUtf8(HtmlView::BuildDocument("x", session))
+                   .contains("allow-same-origin"));
+}
+
 TEST(HtmlViewDocumentTest, EscapingCoversEveryCharacterThatEndsAnAttribute) {
   EXPECT_EQ(HtmlView::EscapeAttribute("a&b\"c<d>e"),
             "a&amp;b&quot;c&lt;d&gt;e");
@@ -864,11 +884,13 @@ TEST_F(HtmlViewTest, AnInstanceThatGoesTakesItsViewsWithIt) {
   EXPECT_EQ(g_renderer.destroyed, 1);
 }
 
-#ifdef Q_OS_MACOS
-TEST(HtmlViewPlatformTest, TheHostsOwnWebKitRendererServesTheMailPreset) {
+#if defined(Q_OS_MACOS) || defined(Q_OS_WINDOWS)
+TEST(HtmlViewPlatformTest, TheHostsOwnEngineRendererServesTheMailPreset) {
   // Built in, with nothing to install: once the UI is up, mail has a
-  // renderer that enforces every bit the preset asks for.
-  ASSERT_TRUE(WaitForHostRenderer()) << "WebKit's content rules never compiled";
+  // renderer that enforces every bit the preset asks for. On Windows that
+  // takes the WebView2 SDK at build time and the Evergreen runtime here.
+  ASSERT_TRUE(WaitForHostRenderer())
+      << "the platform's engine never registered its renderer";
   int available = HtmlViewService::kFAILED;
   OnGui([&] {
     available = HtmlViewService::Instance().Available(GF_HTML_VIEW_PRESET_MAIL);

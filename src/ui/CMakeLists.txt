@@ -60,6 +60,31 @@ if(APPLE)
     ${WEBKIT_FRAMEWORK})
 endif()
 
+# WebView2, for HTML views on Windows: the pinned SDK header, and the loader
+# that finds the Evergreen runtime at run time. Without the SDK the renderer
+# is not compiled and the portable stub keeps HTML mail as source.
+if(MINGW OR WIN32)
+  include(FetchWebView2)
+  if(WEBVIEW2_FOUND)
+    target_compile_definitions(${LIBRARY_TARGET} PRIVATE GF_HAS_WEBVIEW2_SDK)
+    target_include_directories(${LIBRARY_TARGET} PRIVATE
+      ${WEBVIEW2_INCLUDE_DIR})
+    # SHCreateMemStream, which serves part bytes as an IStream.
+    target_link_libraries(${LIBRARY_TARGET} shlwapi)
+    # The loader is resolved with LoadLibrary beside the binaries, so it is
+    # placed there, and installed where the application goes.
+    add_custom_command(TARGET ${LIBRARY_TARGET} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${WEBVIEW2_LOADER_DLL}" "$<TARGET_FILE_DIR:${LIBRARY_TARGET}>")
+    include(GNUInstallDirs)
+    install(FILES "${WEBVIEW2_LOADER_DLL}"
+      DESTINATION ${CMAKE_INSTALL_BINDIR})
+  else()
+    message(WARNING
+      "No WebView2 SDK, so no built-in HTML view renderer on Windows")
+  endif()
+endif()
+
 # link qt
 target_link_libraries(${LIBRARY_TARGET}
   Qt::Core Qt::Widgets Qt::Network Qt::PrintSupport)

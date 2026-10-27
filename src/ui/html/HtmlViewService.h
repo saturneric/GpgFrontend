@@ -65,6 +65,10 @@ struct GF_UI_EXPORT HtmlViewProviderInfo {
   int priority = 0;               ///< kBuiltInPriority or kModulePriority
   uint32_t enforceable = 0;       ///< HtmlView::PolicyBit
   bool restart_required = false;  ///< installed, not usable until a restart
+  /// The engine needs the mail frame to carry allow-same-origin to load the
+  /// part scheme at all (WebView2). Safe only because no script ever runs;
+  /// see HtmlView::SandboxTokens. Opaque origin otherwise.
+  bool frame_same_origin = false;
   std::shared_ptr<HtmlViewRenderer> renderer;
 };
 

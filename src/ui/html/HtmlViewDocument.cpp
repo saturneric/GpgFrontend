@@ -174,13 +174,21 @@ auto EscapeAttribute(const QString& text) -> QString {
   return out;
 }
 
-auto SandboxTokens() -> QString {
+auto SandboxTokens(bool frame_same_origin) -> QString {
   // Only what turns a user's click into something the renderer can see.
   // Top navigation needs that click (a refresh, a form or a timer gets none),
   // and lands on the hook, which refuses it and reports the link. A popup
-  // reaches createWindow, which shows nothing. No scripts, forms, same
-  // origin, downloads, modals or pointer lock, and no escaping the sandbox.
-  return u"allow-popups allow-top-navigation-by-user-activation"_s;
+  // reaches createWindow, which shows nothing. No scripts, forms, downloads,
+  // modals or pointer lock, and no escaping the sandbox.
+  //
+  // allow-same-origin is added only at a renderer's request: WebView2 will
+  // not load the part scheme into an opaque-origin frame, so there the frame
+  // takes the document's own origin instead. With no script anywhere this
+  // grants nothing but loading the view's own, session-gated parts; see
+  // SandboxTokens() in the header.
+  auto tokens = u"allow-popups allow-top-navigation-by-user-activation"_s;
+  if (frame_same_origin) tokens = u"allow-same-origin "_s + tokens;
+  return tokens;
 }
 
 auto ContentSecurityPolicy() -> QString {
@@ -196,7 +204,8 @@ auto ContentSecurityPolicy() -> QString {
       .arg(QLatin1StringView(kPartScheme));
 }
 
-auto BuildDocument(const QString& body, const QString& session) -> QByteArray {
+auto BuildDocument(const QString& body, const QString& session,
+                   bool frame_same_origin) -> QByteArray {
   // Every link in the body targets the top document unless it names a
   // target of its own: the frame itself may navigate nowhere (frame-src
   // 'none' covers it too), and the top document is where the renderer's
@@ -215,7 +224,8 @@ auto BuildDocument(const QString& body, const QString& session) -> QByteArray {
           "height:100%;display:block}</style></head><body>"
           "<iframe sandbox=\"%3\" referrerpolicy=\"no-referrer\" "
           "srcdoc=\"%2\"></iframe></body></html>")
-          .arg(ContentSecurityPolicy(), srcdoc, SandboxTokens());
+          .arg(ContentSecurityPolicy(), srcdoc,
+               SandboxTokens(frame_same_origin));
   return document.toUtf8();
 }
 
