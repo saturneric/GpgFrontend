@@ -105,7 +105,7 @@ if(XCODE_BUILD)
   string(TIMESTAMP MACOSX_APP_BUILD_NUMBER "%Y%m%d%H%M" UTC)
   set(MACOSX_APP_BUNDLE_ID "com.bktus.gpgfrontend")
 
-  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+  if(APPLE_SANDBOX)
     message(STATUS "Build Application With App Sandbox")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
     set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Sandbox.entitlements")

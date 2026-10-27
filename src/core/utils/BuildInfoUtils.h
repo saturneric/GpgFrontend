@@ -146,7 +146,7 @@ auto GF_CORE_EXPORT GetAppProfileName() -> QString;
 
 /**
  * @brief Return whether this is an official stable release build.
- * @return true when built with -DGPGFRONTEND_BUILD_STABLE=ON
+ * @return true when built with -DGPGFRONTEND_BUILD_MODE=release
  */
 auto GF_CORE_EXPORT IsStableBuild() -> bool;
 
@@ -158,7 +158,7 @@ auto GF_CORE_EXPORT IsStableBuild() -> bool;
  * and never at run time: it chooses which directory holds the user's keys, so
  * it must not be switchable by dropping a file beside the binary.
  *
- * @return true when built with -DGPGFRONTEND_BUILD_PORTABLE=ON
+ * @return true when built with -DGPGFRONTEND_BUILD_FLAVOR=portable
  */
 auto GF_CORE_EXPORT IsPortableBuild() -> bool;
 

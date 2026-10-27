@@ -129,7 +129,7 @@ jobs:
         # an unset input and gets the full lists unchanged.
         os: ${{ fromJSON(inputs.screenshot && '["windows-2022"]' || '["ubuntu-22.04", "ubuntu-24.04-arm", "windows-2022"]') }}
         # Portable vs installed is a compile-time decision
-        # (GPGFRONTEND_BUILD_PORTABLE decides where the profile, and with it the
+        # (GPGFRONTEND_BUILD_FLAVOR decides where the profile, and with it the
         # user's keys, lives), so each flavour needs its own configure + build.
         # They run as separate matrix jobs on purpose: the generated build
         # headers land in the source tree, so two flavours cannot share one
@@ -196,10 +196,8 @@ jobs:
           # "installed" is the default flavour, so only "portable" is spelled
           # out in artifact names.
           if [[ "${{ matrix.flavor }}" == "portable" ]]; then
-            echo "GPGFRONTEND_BUILD_PORTABLE=ON" >> $GITHUB_ENV
             echo "FLAVOR_SUFFIX=-portable" >> $GITHUB_ENV
           else
-            echo "GPGFRONTEND_BUILD_PORTABLE=OFF" >> $GITHUB_ENV
             echo "FLAVOR_SUFFIX=" >> $GITHUB_ENV
           fi
 
@@ -225,16 +223,17 @@ jobs:
             BUILD_TYPE_EFFECTIVE="Release"
           fi
 
-          # Stable release builds drop the "Testing" suffix from the app name.
+          # Stable release builds drop the "Testing" suffix from the app name;
+          # nightly and PR builds are both "nightly" to CMake.
           if [[ "${BUILD_MODE}" == "release" ]]; then
-            GPGFRONTEND_BUILD_STABLE="ON"
+            GPGFRONTEND_BUILD_MODE="release"
           else
-            GPGFRONTEND_BUILD_STABLE="OFF"
+            GPGFRONTEND_BUILD_MODE="nightly"
           fi
 
           echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
           echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
-          echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}" >> $GITHUB_ENV
+          echo "GPGFRONTEND_BUILD_MODE=${GPGFRONTEND_BUILD_MODE}" >> $GITHUB_ENV
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
           echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
@@ -477,8 +476,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_INSTALL_LIBDIR=lib \
-            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
-            -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
+            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
+            -DGPGFRONTEND_BUILD_FLAVOR=${{matrix.flavor}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED \
             -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=FILE_SHA256
@@ -777,8 +776,8 @@ jobs:
           cd $(cygpath -u "${{github.workspace}}")
           cmake -G "Ninja" -S . -B build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
-            -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
+            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
+            -DGPGFRONTEND_BUILD_FLAVOR=${{matrix.flavor}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED \
             -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=PE_AUTHENTICODE_SHA256 \
@@ -1324,17 +1323,18 @@ jobs:
             BUILD_TYPE_EFFECTIVE="Release"
           fi
 
-          # Stable release builds drop the "Testing" suffix from the app name.
+          # Stable release builds drop the "Testing" suffix from the app name;
+          # nightly and PR builds are both "nightly" to CMake.
           if [[ "${BUILD_MODE}" == "release" ]]; then
-            GPGFRONTEND_BUILD_STABLE="ON"
+            GPGFRONTEND_BUILD_MODE="release"
           else
-            GPGFRONTEND_BUILD_STABLE="OFF"
+            GPGFRONTEND_BUILD_MODE="nightly"
           fi
 
           {
             echo "BUILD_MODE=${BUILD_MODE}"
             echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}"
-            echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}"
+            echo "GPGFRONTEND_BUILD_MODE=${GPGFRONTEND_BUILD_MODE}"
           } >> "$GITHUB_ENV"
 
           echo "Build mode: ${BUILD_MODE}"
@@ -1447,8 +1447,8 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
-            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
-            -DGPGFRONTEND_BUILD_PORTABLE=OFF \
+            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
+            -DGPGFRONTEND_BUILD_FLAVOR=installed \
             -DOPENSSL_ROOT_DIR="${OPENSSL_ROOT}" \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
 

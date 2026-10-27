@@ -149,19 +149,20 @@ jobs:
             BUILD_TYPE_EFFECTIVE="Release"
           fi
 
-          # Stable release builds drop the "Testing" suffix from the app name.
+          # Stable release builds drop the "Testing" suffix from the app name;
+          # nightly and PR builds are both "nightly" to CMake.
           # The bundle identifier is fixed either way, so both modes still match
           # the App Store provisioning profile.
           if [[ "${BUILD_MODE}" == "release" ]]; then
-            GPGFRONTEND_BUILD_STABLE="ON"
+            GPGFRONTEND_BUILD_MODE="release"
           else
-            GPGFRONTEND_BUILD_STABLE="OFF"
+            GPGFRONTEND_BUILD_MODE="nightly"
           fi
 
           {
             echo "BUILD_MODE=${BUILD_MODE}"
             echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}"
-            echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}"
+            echo "GPGFRONTEND_BUILD_MODE=${GPGFRONTEND_BUILD_MODE}"
           } >> "$GITHUB_ENV"
 
           echo "Build mode: ${BUILD_MODE}"
@@ -247,10 +248,9 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
-            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
-            -DGPGFRONTEND_BUILD_PORTABLE=OFF \
+            -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            -DGPGFRONTEND_XCODE_ENABLE_SANDBOX=ON
+            -DGPGFRONTEND_BUILD_FLAVOR=sandbox
 
           # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as
           # well as the identity: src/CMakeLists.txt bakes a profile specifier

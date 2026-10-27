@@ -149,6 +149,8 @@ jobs:
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_BUILD_MODE=nightly \
+            -DGPGFRONTEND_BUILD_FLAVOR=installed \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             -DGPGFRONTEND_BUILD_TESTS=ON \
             -DGPGFRONTEND_MODULES_BUILD_TESTS=ON

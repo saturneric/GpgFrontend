@@ -56,16 +56,78 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
-option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
-option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
-option(GPGFRONTEND_BUILD_PORTABLE "Build as a portable release (data lives beside the application, not in the OS user-data location)" OFF)
+# A package for a system package manager installs into a fixed prefix, so it
+# strips the RPATH unless told otherwise.
+option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging"
+  ${GPGFRONTEND_BUILD_APP_FOR_PACKAGE})
 option(GPGFRONTEND_BUILD_SCREENSHOT_MODE "Build the hidden --screenshot mode that renders UI states for the user manual" OFF)
 option(GPGFRONTEND_BUILD_TESTS "Build the unit tests and the -t test mode (requires GoogleTest)" OFF)
 
+# Release channel. "release" is an official stable build; "nightly" is every
+# other one (nightlies, PR builds, local development) and is marked "Testing".
+set(_gf_build_modes nightly release)
+set(GPGFRONTEND_BUILD_MODE "nightly"
+  CACHE STRING "nightly | release")
+set_property(CACHE GPGFRONTEND_BUILD_MODE PROPERTY STRINGS ${_gf_build_modes})
+
+# What kind of distribution this is: "installed" uses the OS user-data
+# location, "portable" keeps its data beside the application, "sandbox" is the
+# Mac App Store build (Xcode only), "flatpak" is the Flathub build. Which
+# modules ship is decided by it as well (modules/src/CMakeLists.txt).
+set(_gf_build_flavors installed portable sandbox flatpak)
+set(GPGFRONTEND_BUILD_FLAVOR "installed"
+  CACHE STRING "installed | portable | sandbox | flatpak")
+set_property(CACHE GPGFRONTEND_BUILD_FLAVOR PROPERTY STRINGS ${_gf_build_flavors})
+
 # xcode build options
-option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
-option(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
-option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
+set(GPGFRONTEND_XCODE_TEAM_ID "NONE" CACHE STRING "GpgFrontend Apple Team ID")
+set(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "NONE" CACHE STRING "GpgFrontend Signing Certificate")
+
+# Options replaced by GPGFRONTEND_BUILD_MODE and GPGFRONTEND_BUILD_FLAVOR. An
+# old command line or build cache still configures: the value is carried over
+# once, with a warning, and the old cache entry is dropped.
+if(DEFINED GPGFRONTEND_BUILD_STABLE)
+  message(DEPRECATION "GPGFRONTEND_BUILD_STABLE is replaced by "
+    "GPGFRONTEND_BUILD_MODE=release|nightly")
+  if(GPGFRONTEND_BUILD_STABLE)
+    set(GPGFRONTEND_BUILD_MODE "release" CACHE STRING "nightly | release" FORCE)
+  endif()
+  unset(GPGFRONTEND_BUILD_STABLE CACHE)
+endif()
+
+macro(_gf_migrate_legacy_flavor_option legacy_option flavor)
+  if(DEFINED ${legacy_option})
+    message(DEPRECATION "${legacy_option} is replaced by "
+      "GPGFRONTEND_BUILD_FLAVOR=${flavor}")
+    if(${legacy_option})
+      if(NOT GPGFRONTEND_BUILD_FLAVOR MATCHES "^(installed|${flavor})$")
+        message(FATAL_ERROR "${legacy_option}=ON contradicts "
+          "GPGFRONTEND_BUILD_FLAVOR=${GPGFRONTEND_BUILD_FLAVOR}")
+      endif()
+      set(GPGFRONTEND_BUILD_FLAVOR "${flavor}"
+        CACHE STRING "installed | portable | sandbox | flatpak" FORCE)
+    endif()
+    unset(${legacy_option} CACHE)
+  endif()
+endmacro()
+
+_gf_migrate_legacy_flavor_option(GPGFRONTEND_BUILD_PORTABLE portable)
+_gf_migrate_legacy_flavor_option(GPGFRONTEND_XCODE_ENABLE_SANDBOX sandbox)
+
+if(NOT GPGFRONTEND_BUILD_MODE IN_LIST _gf_build_modes)
+  message(FATAL_ERROR "Unknown GPGFRONTEND_BUILD_MODE "
+    "\"${GPGFRONTEND_BUILD_MODE}\"; expected one of: ${_gf_build_modes}")
+endif()
+
+if(NOT GPGFRONTEND_BUILD_FLAVOR IN_LIST _gf_build_flavors)
+  message(FATAL_ERROR "Unknown GPGFRONTEND_BUILD_FLAVOR "
+    "\"${GPGFRONTEND_BUILD_FLAVOR}\"; expected one of: ${_gf_build_flavors}")
+endif()
+
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox" AND NOT XCODE_BUILD)
+  message(FATAL_ERROR
+    "GPGFRONTEND_BUILD_FLAVOR=sandbox requires the Xcode generator")
+endif()
 
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
@@ -111,7 +173,6 @@ set_property(CACHE GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM
 
 if(GPGFRONTEND_BUILD_APP_FOR_PACKAGE)
   set(BUILD_APP_FOR_PACKAGE 1)
-  set(BUILD_STRIP_RPATH 1) # suppose that it's a standard for deb or rpm packaging
 
   if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
     set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Normal installing path" FORCE)
@@ -136,7 +197,7 @@ else()
   set(BUILD_AND_STATIC_LINK_GPGME 0)
 endif()
 
-if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox")
   set(APPLE_SANDBOX 1)
 endif()
 
@@ -390,7 +451,7 @@ message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 # Decide the name of the app
 set(GPGFRONTEND_APP_BASE_DISPLAY_NAME "GpgFrontend")
 
-if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+if(APPLE_SANDBOX)
   set(GPGFRONTEND_APP_BASE_DISPLAY_NAME "GpgFrontend Lite")
 endif()
 
@@ -398,13 +459,19 @@ set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
 
 # Non-stable builds (nightly / local development / any untagged trunk build) are
 # marked "Testing" so users can tell them apart from official releases. Stable
-# release builds set -DGPGFRONTEND_BUILD_STABLE=ON. This is decoupled from the
+# release builds set -DGPGFRONTEND_BUILD_MODE=release. This is decoupled from the
 # git branch name on purpose: with a single-branch (trunk + release tags) model,
 # `main` produces both nightlies and, via tags, releases, so the branch name can
 # no longer distinguish the two. A screenshot build shows the name users see:
 # the manual's images are of the release, and only the display name changes,
 # never the profile name below.
-if(NOT GPGFRONTEND_BUILD_STABLE AND NOT GPGFRONTEND_BUILD_SCREENSHOT_MODE)
+if(GPGFRONTEND_BUILD_MODE STREQUAL "release")
+  set(GPGFRONTEND_BUILD_STABLE_INT 1)
+else()
+  set(GPGFRONTEND_BUILD_STABLE_INT 0)
+endif()
+
+if(NOT GPGFRONTEND_BUILD_STABLE_INT AND NOT GPGFRONTEND_BUILD_SCREENSHOT_MODE)
   set(GPGFRONTEND_APP_DISPLAY_NAME
     "${GPGFRONTEND_APP_BASE_DISPLAY_NAME} Testing")
 endif()
@@ -418,12 +485,10 @@ message(STATUS "App Display Name: ${GPGFRONTEND_APP_DISPLAY_NAME}")
 # nightly against a stable profile has silently rewritten and garbage-collected
 # it. Deliberately spelled without a space, since it becomes a directory
 # component and a Windows registry key.
-if(GPGFRONTEND_BUILD_STABLE)
+if(GPGFRONTEND_BUILD_STABLE_INT)
   set(GPGFRONTEND_APP_PROFILE_NAME "${CMAKE_PROJECT_NAME}")
-  set(GPGFRONTEND_BUILD_STABLE_INT 1)
 else()
   set(GPGFRONTEND_APP_PROFILE_NAME "${CMAKE_PROJECT_NAME}Testing")
-  set(GPGFRONTEND_BUILD_STABLE_INT 0)
 endif()
 
 message(STATUS "App Profile Name: ${GPGFRONTEND_APP_PROFILE_NAME}")
@@ -431,9 +496,9 @@ message(STATUS "App Profile Name: ${GPGFRONTEND_APP_PROFILE_NAME}")
 # The screenshot mode drives the UI from the command line against a demo
 # keyring. It has no place in a release, so a stable build refuses it outright
 # rather than shipping it disabled.
-if(GPGFRONTEND_BUILD_SCREENSHOT_MODE AND GPGFRONTEND_BUILD_STABLE)
+if(GPGFRONTEND_BUILD_SCREENSHOT_MODE AND GPGFRONTEND_BUILD_STABLE_INT)
   message(FATAL_ERROR
-    "GPGFRONTEND_BUILD_SCREENSHOT_MODE cannot be combined with GPGFRONTEND_BUILD_STABLE")
+    "GPGFRONTEND_BUILD_SCREENSHOT_MODE cannot be combined with GPGFRONTEND_BUILD_MODE=release")
 endif()
 
 # The screenshot mode's own tests are compiled into gf_test, so it cannot be
@@ -448,13 +513,11 @@ endif()
 # time: it decides which directory holds the user's keys, so it must not be
 # switchable by dropping a file next to the binary, and a portable release is a
 # separately packaged artifact anyway.
-if(GPGFRONTEND_BUILD_PORTABLE)
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "portable")
   set(GPGFRONTEND_BUILD_PORTABLE_INT 1)
 else()
   set(GPGFRONTEND_BUILD_PORTABLE_INT 0)
 endif()
-
-message(STATUS "Portable Build: ${GPGFRONTEND_BUILD_PORTABLE}")
 
 # The module ABI generation, bumped BY HAND on any breaking change. It lives
 # here rather than only in GFSDKBuildInfo.h.in because the packaging function
@@ -481,29 +544,8 @@ set(GPGFRONTEND_BUILD_REPOSITORY "saturneric/GpgFrontend"
   CACHE STRING "The repository this build claims to come from")
 set(GPGFRONTEND_BUILD_REF "${GIT_BRANCH_NAME}"
   CACHE STRING "The ref this build was made from")
-# What kind of distribution this is. Left at "installed", the options above
-# refine it, since an installed build cannot be sandboxed or portable; Flatpak
-# has no option of its own, so its manifest passes it. Which modules ship is
-# decided by it as well (modules/src/CMakeLists.txt).
-set(_gf_build_flavors installed portable sandbox flatpak)
-set(GPGFRONTEND_BUILD_FLAVOR "installed"
-  CACHE STRING "installed | portable | sandbox | flatpak")
-set_property(CACHE GPGFRONTEND_BUILD_FLAVOR
-  PROPERTY STRINGS ${_gf_build_flavors})
-if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "installed")
-  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
-    set(GPGFRONTEND_BUILD_FLAVOR "sandbox")
-  elseif(GPGFRONTEND_BUILD_PORTABLE)
-    set(GPGFRONTEND_BUILD_FLAVOR "portable")
-  endif()
-endif()
-if(NOT GPGFRONTEND_BUILD_FLAVOR IN_LIST _gf_build_flavors)
-  message(FATAL_ERROR "Unknown GPGFRONTEND_BUILD_FLAVOR "
-    "\"${GPGFRONTEND_BUILD_FLAVOR}\"; expected one of: ${_gf_build_flavors}")
-endif()
 message(STATUS "GpgFrontend Build Flavor: ${GPGFRONTEND_BUILD_FLAVOR}")
-set(GPGFRONTEND_BUILD_MODE "nightly"
-  CACHE STRING "nightly | release")
+message(STATUS "GpgFrontend Build Mode: ${GPGFRONTEND_BUILD_MODE}")
 
 if(WIN32)
   set(_gf_build_os "windows")

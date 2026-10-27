@@ -155,7 +155,7 @@
          always lay down fresh files.
          bin\ENV.ini used to be excluded here (it was on disk but not in the AIP's file
          table). The payload no longer contains one: portable vs installed is decided at
-         compile time by GPGFRONTEND_BUILD_PORTABLE, and this package is always built
+         compile time by GPGFRONTEND_BUILD_FLAVOR, and this package is always built
          from the installed flavour. -->
     <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
       <Files Include="$(PayloadDir)\**" />
