@@ -33,6 +33,7 @@
 
 namespace GpgFrontend::UI {
 class KeyList;
+class ExpiryPicker;
 
 class KeyUIDSignDialog : public GeneralDialog {
   Q_OBJECT
@@ -57,13 +58,17 @@ class KeyUIDSignDialog : public GeneralDialog {
 
  private:
   int current_gpg_context_channel_;
-  KeyList* m_key_list_;           ///<
-  QPushButton* sign_key_button_;  ///<
-  QDateTimeEdit* expires_edit_;   ///<
-  QCheckBox* non_expire_check_;   ///<
-  QString m_uid_;                 ///<
+  KeyList* m_key_list_;          ///< the keys to certify with
+  QPushButton* sign_button_;     ///< enabled once a signer is checked
+  ExpiryPicker* expiry_picker_;  ///< when the certification expires
+  QString m_uid_;                ///< user ID to certify, empty for all
 
   GpgKeyPtr m_key_;  ///<
+
+  /**
+   * @brief Enable the sign button only while a signer is checked.
+   */
+  void refresh_sign_button();
 
  private slots:
   /**

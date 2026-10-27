@@ -29,13 +29,24 @@
 #include "KeyUIDSignDialog.h"
 
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
+#include "ui/function/UIStyle.h"
+#include "ui/widgets/ExpiryPicker.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
+
+namespace {
+
+const auto kSignerColumns = GpgKeyTableColumn::kNAME |
+                            GpgKeyTableColumn::kEMAIL_ADDRESS |
+                            GpgKeyTableColumn::kKEY_ID;
+
+}  // namespace
 
 KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKeyPtr& key,
                                    const QString& uid, QWidget* parent)
@@ -51,134 +62,173 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKeyPtr& key,
 
   assert(m_key_ != nullptr);
   const auto key_id = m_key_->ID();
+  const auto all_uids = m_uid_.isEmpty();
 
-  m_key_list_ = new KeyList(
-      channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
-      GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
-          GpgKeyTableColumn::kKEY_ID,
-      this);
+  const auto title = all_uids ? tr("Certify Key") : tr("Certify User ID");
+  setWindowTitle(title);
+  setModal(true);
+  setAttribute(Qt::WA_DeleteOnClose, true);
+  setMinimumWidth(560);
+
+  auto* layout = new QVBoxLayout(this);
+  layout->setSpacing(12);
+
+  layout->addLayout(CreateDialogHeader(
+      u":/icons/signature.png"_s, title,
+      tr("Say that you have checked this key belongs to the person it names. "
+         "Compare the fingerprint with them first, in person or over a "
+         "channel you trust."),
+      this));
+
+  // What is being vouched for, with the fingerprint the user should have
+  // compared: the one fact the whole act rests on.
+  auto* target = new QWidget(this);
+  auto* target_form = new QFormLayout(target);
+  target_form->setContentsMargins(0, 0, 0, 0);
+  target_form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  target_form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
+  auto* uid_label = new QLabel(all_uids ? m_key_->UID() : m_uid_, target);
+  uid_label->setTextFormat(Qt::PlainText);
+  uid_label->setWordWrap(true);
+  uid_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  target_form->addRow(all_uids ? tr("Key") : tr("User ID"), uid_label);
+
+  if (all_uids && m_key_->UIDs().size() > 1) {
+    target_form->addRow(QString{},
+                        CreateDetailLabel(tr("All %1 user IDs of this key are "
+                                             "certified.")
+                                              .arg(m_key_->UIDs().size()),
+                                          target));
+  }
+
+  auto* fpr_label =
+      new QLabel(BeautifyFingerprint(m_key_->Fingerprint()), target);
+  fpr_label->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+  fpr_label->setTextFormat(Qt::PlainText);
+  fpr_label->setWordWrap(true);
+  fpr_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  target_form->addRow(tr("Fingerprint"), fpr_label);
+
+  layout->addWidget(CreateCard(tr("Certifying"), target, this));
+
+  // Only the search bar: one fixed tab and three columns leave the rail and
+  // the column filter nothing to do.
+  m_key_list_ =
+      new KeyList(channel, KeyMenuAbility::kSEARCH_BAR, kSignerColumns, this);
+  m_key_list_->SetPersistenceScope("uid_sign", kSignerColumns);
   m_key_list_->AddListGroupTab(
-      tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      tr("Certifying Keys"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [key_id](const GpgAbstractKey* key) -> bool {
         if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) return false;
         return !(key->IsDisabled() || !key->IsHasCertCap() ||
                  !dynamic_cast<const GpgKey*>(key)->IsHasMasterKey() ||
                  key->IsExpired() || key->IsRevoked() || key_id == key->ID());
       });
+  m_key_list_->SetCategoryRailVisible(false);
+  m_key_list_->SetChromeInset({0, 0, 0, 0}, {0, 0, 0, 0});
+  m_key_list_->SetFilteredOutText(
+      tr("None of your private keys can certify. A key needs its primary "
+         "secret key, and must not be expired, revoked or disabled."));
   m_key_list_->SlotRefresh();
+  // The usual case is one key of your own: nothing to choose.
+  m_key_list_->CheckSoleKey();
 
-  sign_key_button_ = new QPushButton(tr("Sign"));
+  auto* signer_label = new QLabel(tr("Certify with"), this);
+  auto signer_font = signer_label->font();
+  signer_font.setBold(true);
+  signer_label->setFont(signer_font);
+  layout->addWidget(signer_label);
+  layout->addWidget(m_key_list_, 1);
 
-  /**
-   * A DateTime after 5 Years is recommend.
-   */
-  expires_edit_ = new QDateTimeEdit(QDateTime::currentDateTime().addYears(5));
-  expires_edit_->setMinimumDateTime(QDateTime::currentDateTime());
+  // gpg's own default is a certification that never expires.
+  expiry_picker_ = new ExpiryPicker(this);
+  expiry_picker_->SetValidity(u"forever"_s);
+  auto* expiry_form = new QFormLayout();
+  expiry_form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+  expiry_form->addRow(tr("Expires"), expiry_picker_);
+  layout->addLayout(expiry_form);
 
-  /**
-   * Note further that the OpenPGP protocol uses 32 bit values for timestamps
-   * and thus can only encode dates up to the year 2106.
-   */
-  expires_edit_->setMaximumDate(QDate(2106, 1, 1));
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, this);
+  sign_button_ =
+      buttons->addButton(tr("Certify"), QDialogButtonBox::AcceptRole);
+  sign_button_->setDefault(true);
+  layout->addWidget(buttons);
 
-  non_expire_check_ = new QCheckBox(tr("Non Expired"));
-  non_expire_check_->setTristate(false);
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(non_expire_check_, &QCheckBox::checkStateChanged, this,
-          [this](Qt::CheckState state) -> void {
-            expires_edit_->setEnabled(state == Qt::Unchecked);
-          });
-#else
-  connect(non_expire_check_, &QCheckBox::stateChanged, this,
-          [this](int state) -> void { expires_edit_->setEnabled(state == 0); });
-#endif
-
-  // Say what is being certified: the dialog otherwise only lists signers.
-  auto* target_label = new QLabel(
-      m_uid_.isEmpty() ? tr("Certify all user IDs of: %1").arg(m_key_->UID())
-                       : tr("Certify user ID: %1").arg(m_uid_));
-  target_label->setTextFormat(Qt::PlainText);
-  target_label->setWordWrap(true);
-
-  auto* layout = new QGridLayout();
-  auto* time_layout = new QGridLayout();
-
-  layout->addWidget(target_label, 0, 0);
-  layout->addWidget(m_key_list_, 1, 0);
-  layout->addWidget(sign_key_button_, 3, 0, Qt::AlignRight);
-  time_layout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
-  time_layout->addWidget(expires_edit_, 0, 1);
-  time_layout->addWidget(non_expire_check_, 0, 2);
-  layout->addLayout(time_layout, 2, 0);
-
-  connect(sign_key_button_, &QPushButton::clicked, this,
-          &KeyUIDSignDialog::slot_sign_key);
-
-  this->setLayout(layout);
-  this->setModal(true);
-  this->setWindowTitle(tr("Sign For Key's UID(s)"));
-  this->adjustSize();
-
-  setAttribute(Qt::WA_DeleteOnClose, true);
+  connect(buttons, &QDialogButtonBox::accepted, this,
+          [this]() { slot_sign_key(true); });
+  connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(m_key_list_, &KeyList::SignalKeyChecked, this,
+          &KeyUIDSignDialog::refresh_sign_button);
+  refresh_sign_button();
 
   connect(this, &KeyUIDSignDialog::SignalKeyUIDSignUpdate,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
+void KeyUIDSignDialog::refresh_sign_button() {
+  sign_button_->setEnabled(!m_key_list_->GetCheckedKeys().isEmpty());
+}
+
 void KeyUIDSignDialog::slot_sign_key(bool) {
   // The signers are the ticked rows, not the highlighted ones.
   auto keys = m_key_list_->GetCheckedKeys();
   if (keys.isEmpty()) {
-    QMessageBox::information(this, tr("No Signer Selected"),
-                             tr("Please check at least one signer key."));
+    QMessageBox::information(this, tr("No Key Selected"),
+                             tr("Please check the key to certify with."));
     return;
   }
 
   std::optional<QDateTime> expires = std::nullopt;
-  if (!non_expire_check_->isChecked()) expires = expires_edit_->dateTime();
+  if (!expiry_picker_->NonExpired()) expires = expiry_picker_->Expire();
 
   auto f = [this, keys, expires](const OperaWaitingHd& hd) {
     KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-        .SignKey(
-            m_key_, keys, m_uid_, expires,
-            [this, self = QPointer<KeyUIDSignDialog>(this), hd](
-                GpgError err, const DataObjectPtr&) {
-              hd();
-              // A reload of the key databases may have closed the dialog.
-              if (self == nullptr) return;
+        .SignKey(m_key_, keys, m_uid_, expires,
+                 [this, self = QPointer<KeyUIDSignDialog>(this), hd](
+                     GpgError err, const DataObjectPtr&) {
+                   hd();
+                   // A reload of the key databases may have closed the dialog.
+                   if (self == nullptr) return;
 
-              if (CheckGpgError(err) == GPG_ERR_CANCELED) {
-                // The user dismissed the passphrase prompt: nothing failed,
-                // and the dialog stays open for another try.
-                return;
-              }
+                   if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+                     // The user dismissed the passphrase prompt: nothing
+                     // failed, and the dialog stays open for another try.
+                     return;
+                   }
 
-              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                QMessageBox::critical(
-                    this, tr("Unsuccessful Operation"),
-                    tr("Signature operation failed for UID %1")
-                            .arg(m_uid_.isEmpty() ? m_key_->UID() : m_uid_) +
-                        "\n\n" + DescribeGpgErrCode(err).second);
-                return;
-              }
+                   // Plain text: auto-detected rich text would swallow the
+                   // "<email>" of the user ID as a tag.
+                   const auto target =
+                       m_uid_.isEmpty() ? m_key_->UID() : m_uid_;
 
-              auto* msg_box =
-                  new QMessageBox(qobject_cast<QWidget*>(this->parent()));
-              msg_box->setAttribute(Qt::WA_DeleteOnClose);
-              msg_box->setStandardButtons(QMessageBox::Ok);
-              msg_box->setWindowTitle(tr("Operation Complete"));
-              msg_box->setText(
-                  tr("The signature operation of the UID is complete"));
-              msg_box->setModal(true);
-              msg_box->open();
+                   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                     QMessageBox box(
+                         QMessageBox::Critical, tr("Certification Failed"),
+                         tr("Failed to certify %1.").arg(target) + "\n\n" +
+                             DescribeGpgErrCode(err).second,
+                         QMessageBox::Ok, this);
+                     box.setTextFormat(Qt::PlainText);
+                     box.exec();
+                     return;
+                   }
 
-              emit SignalKeyUIDSignUpdate();
-              this->close();
-            });
+                   auto* msg_box =
+                       new QMessageBox(qobject_cast<QWidget*>(this->parent()));
+                   msg_box->setAttribute(Qt::WA_DeleteOnClose);
+                   msg_box->setStandardButtons(QMessageBox::Ok);
+                   msg_box->setWindowTitle(tr("Certification Complete"));
+                   msg_box->setTextFormat(Qt::PlainText);
+                   msg_box->setText(tr("%1 has been certified.").arg(target));
+                   msg_box->setModal(true);
+                   msg_box->open();
+
+                   emit SignalKeyUIDSignUpdate();
+                   this->close();
+                 });
   };
-  GpgOperaHelper::WaitForOpera(this, tr("Signing UID"), f);
+  GpgOperaHelper::WaitForOpera(this, tr("Certifying"), f);
 }
 
 }  // namespace GpgFrontend::UI
