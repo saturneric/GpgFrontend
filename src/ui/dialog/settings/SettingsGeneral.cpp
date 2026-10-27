@@ -129,8 +129,8 @@ GeneralTab::GeneralTab(QWidget* parent)
   // confuse users.
   if (IsRunningInSandBox()) {
     ui_->dataBox->setHidden(true);
-    ui_->modulePolicyComboBox->setHidden(true);
-    ui_->modulePolicyLabel->setHidden(true);
+    // Module discovery is all the Base box holds.
+    ui_->baseBox->setHidden(true);
     ui_->defaultWorkspaceAsLabel->setHidden(true);
     ui_->filePanelRadioButton->setHidden(true);
     ui_->textEditorRadioButton->setHidden(true);
