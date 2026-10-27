@@ -33,9 +33,14 @@
 #include <QUrl>
 #include <QWidget>
 
+#ifdef Q_OS_MACOS
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
 #include "core/module/ModuleLibraryPin.h"
+#include "platform/common/PlatformHtmlView.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKHtmlView.h"
 #include "sdk/GFSDKUI.h"
@@ -89,6 +94,32 @@ void OnGui(const std::function<void()>& fn) {
 void Settle() {
   OnGui([] {});
   OnGui([] {});
+}
+
+/// Whether the Host's own renderer -- the empty owner -- is registered.
+auto HasHostRenderer() -> bool {
+  bool has = false;
+  OnGui([&] {
+    has = HtmlViewService::Instance().ProviderOwners().contains(QString());
+  });
+  return has;
+}
+
+/// Where the platform has an engine, wait for its renderer: it registers
+/// once the engine's rules have compiled, which may still be under way when
+/// the first test starts. Once: after that it is there or it never will be.
+auto WaitForHostRenderer() -> bool {
+#ifdef Q_OS_MACOS
+  static bool waited = false;
+  for (int i = 0; !waited && i < 200 && !HasHostRenderer(); ++i) {
+    // WebKit answers on the main run loop, which the offscreen platform the
+    // tests run under never spins on its own; the application, on Cocoa,
+    // always does.
+    OnGui([] { CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, false); });
+  }
+  waited = true;
+#endif
+  return HasHostRenderer();
 }
 
 // --- the consumer's native widget: a root with an empty slot inside
@@ -209,6 +240,9 @@ class HtmlViewTest : public ::testing::Test {
     g_events = {};
     g_parts.clear();
     g_part_ctx = provider_();
+    // The Host's own renderer outranks any module's: detached for the test,
+    // and put back after it.
+    host_renderer_ = WaitForHostRenderer();
     OnGui([this] {
       // The process may have a real renderer: gf_test starts the
       // application, modules and all, and a tree built with the WebEngine
@@ -217,13 +251,17 @@ class HtmlViewTest : public ::testing::Test {
       for (const auto& owner : service.ProviderOwners()) {
         if (!owner.startsWith(u"com.example."_s)) service.WithdrawModule(owner);
       }
+      if (host_renderer_) {
+        service.UnregisterProvider(
+            {}, QString::fromLatin1(UI::kPlatformHtmlViewRendererName));
+      }
       HtmlViewService::Instance().SetLinkHandler(
           [this](const QUrl& url) { opened_ << url.toString(); });
     });
   }
 
   void TearDown() override {
-    OnGui([] {
+    OnGui([this] {
       auto& service = HtmlViewService::Instance();
       for (const auto* m :
            {kConsumer, kOtherConsumer, kProvider, kOtherProvider}) {
@@ -232,6 +270,7 @@ class HtmlViewTest : public ::testing::Test {
         UI::NativeWidgetRegistry::Instance().RemoveAllFor(m);
       }
       service.SetLinkHandler({});
+      if (host_renderer_) UI::RegisterPlatformHtmlViewRenderer();
     });
     OnGui([this] {
       for (const auto& root : roots_) delete root.data();
@@ -336,6 +375,7 @@ class HtmlViewTest : public ::testing::Test {
   SdkTestContext provider_{kProvider, kProviderCaps};
   SdkTestContext other_provider_{kOtherProvider, kProviderCaps};
   Container container_;
+  bool host_renderer_ = false;
   QStringList opened_;
   QList<QPointer<QWidget>> roots_;
 };
@@ -823,5 +863,18 @@ TEST_F(HtmlViewTest, AnInstanceThatGoesTakesItsViewsWithIt) {
   });
   EXPECT_EQ(g_renderer.destroyed, 1);
 }
+
+#ifdef Q_OS_MACOS
+TEST(HtmlViewPlatformTest, TheHostsOwnWebKitRendererServesTheMailPreset) {
+  // Built in, with nothing to install: once the UI is up, mail has a
+  // renderer that enforces every bit the preset asks for.
+  ASSERT_TRUE(WaitForHostRenderer()) << "WebKit's content rules never compiled";
+  int available = HtmlViewService::kFAILED;
+  OnGui([&] {
+    available = HtmlViewService::Instance().Available(GF_HTML_VIEW_PRESET_MAIL);
+  });
+  EXPECT_EQ(available, HtmlViewService::kOK);
+}
+#endif
 
 }  // namespace GpgFrontend::Test
