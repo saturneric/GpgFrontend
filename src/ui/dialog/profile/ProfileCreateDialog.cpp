@@ -28,6 +28,7 @@
 
 #include "ui/dialog/profile/ProfileCreateDialog.h"
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/profile/Profile.h"
 #include "ui/function/UIStyle.h"
@@ -140,145 +141,125 @@ auto DescribeGroup(SettingGroup group) -> QString {
   return titles.join("\n");
 }
 
+auto StepIndex(ProfileCreateStep step) -> int { return static_cast<int>(step); }
+
 }  // namespace
 
 ProfileCreateDialog::ProfileCreateDialog(QWidget* parent)
-    : GeneralDialog("profile_create_dialog", parent) {
-  init_ui();
+    : GeneralWizard(typeid(ProfileCreateDialog).name(), tr("Create Profile"),
+                    parent) {
   setWindowTitle(tr("New Profile"));
-  setModal(true);
 
-  // GeneralDialog deletes itself on close. This dialog is read *after*
-  // exec() returns — it exists to hand back a name and a keyring choice —
-  // so that would free it while the caller is still using it.
-  setAttribute(Qt::WA_DeleteOnClose, false);
+  build_name_page();
+  build_keys_page();
+  build_settings_page();
 
-  movePosition2CenterOfParent();
-}
+  connect(name_edit_, &QLineEdit::textChanged, this, [this]() {
+    for (auto* page : pages_) emit page->completeChanged();
+  });
+  connect(this, &QWizard::currentIdChanged, this,
+          &ProfileCreateDialog::slot_page_changed);
 
-void ProfileCreateDialog::init_ui() {
-  auto* layout = new QVBoxLayout(this);
-  layout->setSpacing(12);
-
-  // Never smaller than its content. The dialog restores a remembered size,
-  // and one remembered from an earlier, shorter layout would otherwise shave
-  // the bottom line off every description.
-  layout->setSizeConstraint(QLayout::SetMinimumSize);
-
-  // The same width as the export dialog, its sibling: word-wrapped labels ask
-  // for almost no width, and a dialog left to itself opens as a tall ribbon.
-  setMinimumWidth(560);
-
-  layout->addLayout(CreateDialogHeader(
-      u":/icons/keypairs.png"_s, tr("New Profile"),
-      tr("Its own keys and settings, opened in a window of its own."), this));
-
-  build_name(layout);
-  build_keyring(layout);
-  build_settings(layout);
-
-  // Whatever height the remembered geometry gives beyond what is needed goes
-  // here, below everything, rather than between a label and its control.
-  layout->addStretch(1);
-
-  buttons_ = new QDialogButtonBox(
-      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
-  auto* create = buttons_->button(QDialogButtonBox::Ok);
-  create->setText(tr("Create Profile"));
-  create->setDefault(true);
-  layout->addWidget(buttons_);
-
-  connect(name_edit_, &QLineEdit::textChanged, this,
-          &ProfileCreateDialog::slot_name_changed);
-  connect(buttons_, &QDialogButtonBox::accepted, this,
-          &ProfileCreateDialog::slot_accept);
-  connect(buttons_, &QDialogButtonBox::rejected, this,
-          &ProfileCreateDialog::reject);
-
-  slot_name_changed();
   name_edit_->setFocus();
 }
 
-void ProfileCreateDialog::build_name(QVBoxLayout* layout) {
-  auto* content = new QWidget(this);
-  auto* content_layout = new QVBoxLayout(content);
-  content_layout->setContentsMargins(0, 0, 0, 0);
-  content_layout->setSpacing(6);
-
-  name_edit_ = new QLineEdit(content);
-  name_edit_->setPlaceholderText(tr("for example: Work"));
-  name_edit_->setClearButtonEnabled(true);
-  content_layout->addWidget(name_edit_);
-  content_layout->addWidget(CreateDetailLabel(
-      tr("Shown in the profile list and the status bar. You can change it "
-         "later."),
-      content));
-
-  layout->addWidget(CreateCard(tr("Name"), content, this));
+auto ProfileCreateDialog::add_page(ProfileCreateStep step)
+    -> GeneralWizardPage* {
+  auto* page = AddStep(StepIndex(step), kProfileCreateStepCount,
+                       ProfileCreateStepTitle(step));
+  page->complete = [this, step]() {
+    return CanAdvanceProfileCreate(step, name_edit_->text());
+  };
+  pages_.at(StepIndex(step)) = page;
+  return page;
 }
 
-void ProfileCreateDialog::build_keyring(QVBoxLayout* layout) {
-  auto* content = new QWidget(this);
-  auto* content_layout = new QVBoxLayout(content);
-  content_layout->setContentsMargins(0, 0, 0, 0);
-  content_layout->setSpacing(8);
+void ProfileCreateDialog::build_name_page() {
+  auto* page = add_page(ProfileCreateStep::kName);
+  auto* layout = PageLayout(page);
+  AddLead(layout,
+          tr("Give the new profile a name. It is shown in the profile list and "
+             "the status bar, and you can change it later."),
+          page);
+
+  name_edit_ = new QLineEdit(page);
+  name_edit_->setPlaceholderText(tr("for example: Work"));
+  name_edit_->setClearButtonEnabled(true);
+  layout->addWidget(name_edit_);
+
+  layout->addStretch(1);
+}
+
+void ProfileCreateDialog::build_keys_page() {
+  auto* page = add_page(ProfileCreateStep::kKeys);
+  auto* layout = PageLayout(page);
+  AddLead(layout,
+          tr("Choose where this profile's built-in key database lives."), page);
 
   // Asked rather than defaulted because both answers are wrong for somebody;
   // see the class comment. The isolated one is the recommendation because it
   // is the only one that is actually a separate profile.
-  auto* own = new ChoiceTile(
-      tr("Start with an empty keyring"),
-      tr("Keys live inside this profile and can be exported with it as one "
-         "file."),
-      tr("Recommended"), content);
-  auto* system = new ChoiceTile(
-      tr("Use the system GnuPG keyring"),
-      tr("Your existing keys, shared with the system. Not carried in a "
-         "profile file."),
-      {}, content);
+  //
+  // Worded from what this computer actually has: without GnuPG, "this
+  // computer's" database is a shared rPGP one, and a tile promising the GnuPG
+  // keyring would describe something the profile would never open.
+  const auto gnupg = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  const auto own_text = DescribeProfileKeyringChoice(true, gnupg);
+  const auto shared_text = DescribeProfileKeyringChoice(false, gnupg);
+
+  auto* own =
+      new ChoiceTile(own_text.title, own_text.detail, tr("Recommended"), page);
+  auto* system =
+      new ChoiceTile(shared_text.title, shared_text.detail, {}, page);
 
   own_keyring_ = own->Radio();
   system_keyring_ = system->Radio();
 
   // Two radios in two tiles are two exclusive groups unless told otherwise.
-  auto* group = new QButtonGroup(this);
+  auto* group = new QButtonGroup(page);
   group->addButton(own_keyring_);
   group->addButton(system_keyring_);
   own_keyring_->setChecked(true);
 
-  content_layout->addWidget(own);
-  content_layout->addWidget(system);
+  layout->addWidget(own);
+  layout->addWidget(system);
 
-  layout->addWidget(CreateCard(tr("Keys"), content, this));
+  // The built-in one is only where a profile starts; the settings are where
+  // the rest are added, and saying so keeps this from reading as final.
+  layout->addSpacing(4);
+  layout->addWidget(CreateDetailLabel(
+      tr("You can add more key databases later in Settings, under Key "
+         "Databases."),
+      page));
+
+  layout->addStretch(1);
 }
 
-void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
-  auto* content = new QWidget(this);
-  auto* content_layout = new QVBoxLayout(content);
-  content_layout->setContentsMargins(0, 0, 0, 0);
-  content_layout->setSpacing(10);
+void ProfileCreateDialog::build_settings_page() {
+  auto* page = add_page(ProfileCreateStep::kSettings);
+  auto* layout = PageLayout(page);
+  AddLead(layout,
+          tr("Choose which of this window's settings the new profile starts "
+             "with."),
+          page);
 
   // A select-all, not a gate: its state is what the groups below add up to,
   // so it can never say "on" over a set of boxes that are all off.
   inherit_settings_ =
-      new QCheckBox(tr("Start with this window's settings"), content);
+      new QCheckBox(tr("Start with this window's settings"), page);
   auto master_font = inherit_settings_->font();
   master_font.setBold(true);
   inherit_settings_->setFont(master_font);
-  content_layout->addWidget(inherit_settings_);
+  layout->addWidget(inherit_settings_);
 
   // One entry per group the catalog says a new profile may start with, so a
   // group added there appears here without anyone remembering to.
-  //
-  // One column rather than two: each description fits on one line at this
-  // width, and a wrapped label in a grid is given the height of one line by a
-  // top-level dialog, which clips the second.
   auto* groups = new QVBoxLayout();
   groups->setContentsMargins(24, 0, 0, 0);
   groups->setSpacing(8);
 
   for (const auto group : InheritableSettingGroups()) {
-    auto* cell = new QWidget(content);
+    auto* cell = new QWidget(page);
     auto* cell_layout = new QVBoxLayout(cell);
     cell_layout->setContentsMargins(0, 0, 0, 0);
     cell_layout->setSpacing(1);
@@ -289,7 +270,6 @@ void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
 
     // Indented to sit under the label rather than under the box.
     auto* detail = CreateDetailLabel(SettingGroupDescription(group), cell);
-    detail->setWordWrap(false);
     detail->setContentsMargins(
         box->style()->pixelMetric(QStyle::PM_IndicatorWidth, nullptr, box) +
             box->style()->pixelMetric(QStyle::PM_CheckBoxLabelSpacing, nullptr,
@@ -299,7 +279,7 @@ void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
     cell->setToolTip(DescribeGroup(group));
 
     // A title and its sentence are one object; spare height belongs to the
-    // stretch below the cards, not between the two.
+    // stretch below, not between the two.
     cell->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
     groups->addWidget(cell);
@@ -308,7 +288,7 @@ void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
     connect(box, &QCheckBox::toggled, this,
             [this]() { sync_inherit_master(); });
   }
-  content_layout->addLayout(groups);
+  layout->addLayout(groups);
 
   connect(inherit_settings_, &QCheckBox::clicked, this, [this](bool checked) {
     for (const auto& entry : group_boxes_) {
@@ -321,7 +301,7 @@ void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
   // What never follows, said once and plainly, beside the choice it limits.
   auto* note = new QHBoxLayout();
   note->setSpacing(8);
-  auto* note_icon = new QLabel(content);
+  auto* note_icon = new QLabel(page);
   note_icon->setPixmap(
       QPixmap(u":/icons/info.png"_s)
           .scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -330,29 +310,35 @@ void ProfileCreateDialog::build_settings(QVBoxLayout* layout) {
   note->addWidget(
       CreateDetailLabel(tr("Never copied: keys, key databases, the workspace "
                            "folder, key protection and proxy credentials."),
-                        content),
+                        page),
       1);
-  content_layout->addLayout(note);
+  layout->addSpacing(4);
+  layout->addLayout(note);
+
+  layout->addStretch(1);
 
   sync_inherit_master();
-  layout->addWidget(CreateCard(tr("Settings"), content, this));
 }
 
-void ProfileCreateDialog::showEvent(QShowEvent* event) {
-  GeneralDialog::showEvent(event);
+void ProfileCreateDialog::slot_page_changed(int id) {
+  // Queued: QWizard settles focus on its own buttons after announcing the new
+  // page, and this has to land after that.
+  QTimer::singleShot(0, this, [this, id]() {
+    if (currentId() != id) return;
 
-  // A top-level window's automatic size is capped at two thirds of the screen,
-  // and wrapped text is measured at one line until it has a width. Asked once
-  // it has one, the layout knows how tall this really is -- still kept on the
-  // screen, where a scroll bar would be better than a cut-off button row.
-  if (layout() == nullptr || !layout()->hasHeightForWidth()) return;
-
-  auto wanted = layout()->totalHeightForWidth(width());
-  if (const auto* current = screen(); current != nullptr) {
-    wanted = qMin(wanted, current->availableGeometry().height() -
-                              (frameGeometry().height() - height()));
-  }
-  if (wanted > height()) resize(width(), wanted);
+    switch (static_cast<ProfileCreateStep>(id)) {
+      case ProfileCreateStep::kName:
+        name_edit_->setFocus();
+        break;
+      case ProfileCreateStep::kKeys:
+        (own_keyring_->isChecked() ? own_keyring_ : system_keyring_)
+            ->setFocus();
+        break;
+      case ProfileCreateStep::kSettings:
+        inherit_settings_->setFocus();
+        break;
+    }
+  });
 }
 
 void ProfileCreateDialog::sync_inherit_master() {
@@ -369,18 +355,6 @@ void ProfileCreateDialog::sync_inherit_master() {
   } else {
     inherit_settings_->setCheckState(Qt::PartiallyChecked);
   }
-}
-
-void ProfileCreateDialog::slot_name_changed() {
-  // A name is the only thing that can be wrong here, and only by being absent:
-  // it is shown in the profile list and nothing else is derived from it.
-  buttons_->button(QDialogButtonBox::Ok)
-      ->setEnabled(!name_edit_->text().trimmed().isEmpty());
-}
-
-void ProfileCreateDialog::slot_accept() {
-  if (name_edit_->text().trimmed().isEmpty()) return;
-  accept();
 }
 
 auto ProfileCreateDialog::DisplayName() const -> QString {

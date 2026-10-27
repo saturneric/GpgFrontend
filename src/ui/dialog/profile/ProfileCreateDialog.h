@@ -28,32 +28,39 @@
 
 #pragma once
 
+#include <array>
+
 #include "core/function/SettingItem.h"
-#include "ui/dialog/GeneralDialog.h"
+#include "ui/dialog/GeneralWizard.h"
+#include "ui/dialog/profile/ProfileCreateSummary.h"
 
 class QLineEdit;
 class QRadioButton;
-class QDialogButtonBox;
-class QVBoxLayout;
 class QCheckBox;
 
 namespace GpgFrontend::UI {
 
 /**
- * @brief Ask for the name and the keyring choice of a new profile.
+ * @brief Ask for the name, the keyring and the starting settings of a new
+ * profile, one step each.
  *
- * The keyring question is asked rather than defaulted because both answers are
- * wrong for somebody. An empty keyring is isolated and can be packaged, but the
- * profile opens with no keys at all, which reads as "my keys are gone". The
- * system keyring is familiar, but the profile is then not really separate and
- * its keys cannot travel inside a package.
+ * The keyring question is where the profile's built-in key database lives,
+ * and it is asked rather than defaulted because both answers are wrong for
+ * somebody. Inside the profile it is isolated and can be packaged, but the
+ * profile opens with no keys at all, which reads as "my keys are gone". This
+ * computer's database (the GnuPG home, where there is GnuPG) is familiar, but
+ * the profile is then not really separate and its keys cannot travel inside a
+ * package.
+ *
+ * A GeneralWizard, the same frame as Export Profile, so creating a profile and
+ * carrying one away read as one family.
  */
-class ProfileCreateDialog : public GeneralDialog {
+class ProfileCreateDialog : public GeneralWizard {
   Q_OBJECT
 
  public:
   /**
-   * @brief Construct the dialog.
+   * @brief Construct the wizard.
    *
    * A name is all that is asked for. The directory a profile lives in is named
    * by a generated id that nobody types and nobody has to keep unique, so there
@@ -73,25 +80,29 @@ class ProfileCreateDialog : public GeneralDialog {
   /// it starts from the defaults.
   [[nodiscard]] auto InheritedGroups() const -> QList<SettingGroup>;
 
- protected:
-  void showEvent(QShowEvent* event) override;
-
  private slots:
-  void slot_name_changed();
-  void slot_accept();
+  void slot_page_changed(int id);
 
  private:
+  std::array<GeneralWizardPage*, kProfileCreateStepCount> pages_{};
+
   QLineEdit* name_edit_{};
   QRadioButton* own_keyring_{};
   QRadioButton* system_keyring_{};
   QCheckBox* inherit_settings_{};
   QList<std::pair<SettingGroup, QCheckBox*>> group_boxes_;
-  QDialogButtonBox* buttons_{};
 
-  void init_ui();
-  void build_name(QVBoxLayout* layout);
-  void build_keyring(QVBoxLayout* layout);
-  void build_settings(QVBoxLayout* layout);
+  /// @brief Step 1: what the profile is called.
+  void build_name_page();
+
+  /// @brief Step 2: whose keyring it uses.
+  void build_keys_page();
+
+  /// @brief Step 3: which of this window's settings it starts with.
+  void build_settings_page();
+
+  /// @brief A page for a step, titled and registered under the step's id.
+  auto add_page(ProfileCreateStep step) -> GeneralWizardPage*;
 
   /// Make the select-all say what the group boxes add up to.
   void sync_inherit_master();
