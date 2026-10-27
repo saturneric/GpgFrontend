@@ -481,7 +481,13 @@ void KeyGenerateInfo::SetExpireTime(const QDateTime &m_expired) {
 }
 
 void KeyGenerateInfo::SetNonExpired(bool m_non_expired) {
-  if (!m_non_expired) this->expired_ = QDateTime::fromSecsSinceEpoch(0);
+  // Turning expiry back on keeps a date that is still ahead, and otherwise
+  // falls back to the constructor's two years: resetting it to the epoch made
+  // an untick of "never expires" fail the minimum-lifetime check.
+  if (!m_non_expired &&
+      (!expired_.isValid() || expired_ <= CurrentDateTime())) {
+    expired_ = CurrentDateTime().toLocalTime().addYears(2);
+  }
   KeyGenerateInfo::non_expired_ = m_non_expired;
 }
 

@@ -187,6 +187,24 @@ TEST_F(GpgCoreTest, KeyVersionRoundTripTest) {
   ASSERT_EQ(info->GetKeyVersion(), 6);
 }
 
+TEST_F(GpgCoreTest, SetNonExpiredFalseKeepsAUsableExpiry) {
+  auto info = QSharedPointer<KeyGenerateInfo>::create();
+
+  // A date still ahead survives ticking "never expires" on and off again.
+  const auto chosen = QDateTime::currentDateTime().addDays(30);
+  info->SetExpireTime(chosen);
+  info->SetNonExpired(true);
+  info->SetNonExpired(false);
+  ASSERT_FALSE(info->IsNonExpired());
+  ASSERT_EQ(info->GetExpireTime(), chosen);
+
+  // One already past is replaced by the two-year default, never the epoch.
+  info->SetExpireTime(QDateTime::fromSecsSinceEpoch(0));
+  info->SetNonExpired(false);
+  ASSERT_GT(info->GetExpireTime(),
+            QDateTime::currentDateTime().addYears(2).addDays(-1));
+}
+
 TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   auto p_info = QSharedPointer<KeyGenerateInfo>::create();
   p_info->SetName("foo_0");

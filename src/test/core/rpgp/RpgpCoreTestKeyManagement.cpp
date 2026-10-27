@@ -670,8 +670,8 @@ auto MakeExpiringKeyInfo(int version, const QString& email,
   if (!found) return nullptr;
   info->SetAlgo(algo);
 
-  // Order matters: SetNonExpired(false) resets the stored expiry, so the
-  // expiration time must be set afterwards.
+  // SetNonExpired(false) only fills in a default when the stored expiry is not
+  // ahead; the explicit time set afterwards is the one that counts.
   info->SetNonExpired(false);
   info->SetExpireTime(expires);
   info->SetNonPassPhrase(true);
