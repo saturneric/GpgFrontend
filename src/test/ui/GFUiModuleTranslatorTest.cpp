@@ -234,6 +234,9 @@ TEST(ModuleTranslatorTest, EveryModuleFilesItsStringsUnderItsOwnContext) {
       ASSERT_TRUE(f.open(QIODevice::ReadOnly)) << name.toStdString();
       const auto text = QString::fromUtf8(f.readAll());
       EXPECT_FALSE(text.contains("<name>GTrC</name>")) << name.toStdString();
+      // A module with no translatable strings (m_web_engine) still gets its
+      // .ts files, with no context at all; nothing is misfiled there.
+      if (!text.contains("<context>")) continue;
       EXPECT_TRUE(text.contains("<name>" + context + "</name>"))
           << name.toStdString() << " has nothing in " << context.toStdString();
       checked++;
