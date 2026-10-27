@@ -33,69 +33,41 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/key_generate/KeyGenerateSummary.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
-#include "ui/function/KeyGenerateHelper.h"
 #include "ui/function/KeyDatabaseRefresh.h"
-
-//
-#include "ui_SubkeyGenDialog.h"
+#include "ui/function/KeyGenSettings.h"
+#include "ui/function/UIStyle.h"
+#include "ui/widgets/ChoiceTile.h"
+#include "ui/widgets/ExpiryPicker.h"
+#include "ui/widgets/KeyAlgoEditor.h"
+#include "ui/widgets/ToggleSwitch.h"
 
 namespace GpgFrontend::UI {
 
 namespace {
 
-auto ComboCurrentNameType(QComboBox* combo) -> QPair<QString, QString> {
-  if (combo == nullptr) return {};
-
-  const auto data = combo->currentData().toMap();
-  return {data.value("name").toString(), data.value("type").toString()};
+auto PurposeId(SubkeyPurpose purpose) -> int {
+  return static_cast<int>(purpose);
 }
 
-auto SetComboCurrentAlgo(QComboBox* combo, const GpgFrontend::KeyAlgo& algo)
-    -> bool {
-  if (combo == nullptr) return false;
-
-  for (int i = 0; i < combo->count(); ++i) {
-    const auto data = combo->itemData(i).toMap();
-
-    if (data.value("id").toString() == algo.Id() &&
-        data.value("name").toString() == algo.Name() &&
-        data.value("type").toString() == algo.Type()) {
-      combo->setCurrentIndex(i);
-      return true;
-    }
-  }
-
-  return false;
-}
-
-auto IsAlgoInList(const GpgFrontend::KeyAlgo& algo,
-                  const QList<GpgFrontend::KeyAlgo>& algos) -> bool {
-  return std::any_of(
-      algos.cbegin(), algos.cend(),
-      [&](const GpgFrontend::KeyAlgo& item) { return item == algo; });
-}
-
-auto ComboCurrentAlgo(QComboBox* combo,
-                      const QList<GpgFrontend::KeyAlgo>& algos)
-    -> GpgFrontend::KeyAlgo {
-  if (combo == nullptr || combo->currentIndex() < 0) {
-    return GpgFrontend::KeyGenerateInfo::kNoneAlgo;
-  }
-
-  const auto data = combo->currentData().toMap();
-  const auto id = data.value("id").toString();
-  const auto type = data.value("type").toString();
-
-  auto it = std::find_if(algos.cbegin(), algos.cend(),
-                         [&](const GpgFrontend::KeyAlgo& algo) {
-                           return algo.Id() == id && algo.Type() == type;
-                         });
-
-  return it != algos.cend() ? *it : GpgFrontend::KeyGenerateInfo::kNoneAlgo;
+/// A quiet line with the info icon, for what the reader should know but need
+/// not act on.
+auto MakeNote(const QString& text, QWidget* parent) -> QLayout* {
+  auto* row = new QHBoxLayout();
+  row->setSpacing(8);
+  auto* icon = new QLabel(parent);
+  icon->setPixmap(
+      QPixmap(u":/icons/info.png"_s)
+          .scaled(16, 16, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  icon->setFixedSize(16, 16);
+  row->addWidget(icon, 0, Qt::AlignTop);
+  row->addWidget(CreateDetailLabel(text, parent), 1);
+  return row;
 }
 
 }  // namespace
@@ -103,49 +75,109 @@ auto ComboCurrentAlgo(QComboBox* combo,
 SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
                                            QWidget* parent)
     : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
-      ui_(QSharedPointer<Ui_SubkeyGenDialog>::create()),
       current_gpg_context_channel_(channel),
       key_(std::move(key)),
       gen_subkey_info_(SecureCreateSharedObject<KeyGenerateInfo>(true)),
       supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(
-          current_gpg_context_channel_, *key_)) {
+          current_gpg_context_channel_, *key_)),
+      primary_algo_(NormalizeKeyAlgoId(key_->Algo())),
+      purpose_group_(new QButtonGroup(this)),
+      editor_(new KeyAlgoEditor(channel, supported_subkey_algos_, this)),
+      no_passphrase_check_(new QCheckBox(tr("Without a passphrase"), this)) {
+  assert(key_ != nullptr);
+
   // A reload of the key databases replaces the channel this works on; find
   // the database again, or say it is gone.
   KeepBoundToKeyDatabase(
       this, [this]() { return current_gpg_context_channel_; },
       [this](int channel) { current_gpg_context_channel_ = channel; });
 
-  ui_->setupUi(this);
-  assert(key_ != nullptr);
+  setWindowTitle(tr("Add Subkey"));
+  setAttribute(Qt::WA_DeleteOnClose);
+  setModal(true);
+  // Room for the header and each tile's sentence on one or two lines.
+  setMinimumWidth(480);
 
-  auto if_expire_options_supported = IsOpSupported<SetExpireOpTag>(channel);
+  auto* layout = new QVBoxLayout(this);
+  layout->setSpacing(10);
 
-  ui_->expireLabel->setHidden(!if_expire_options_supported);
-  ui_->expireDateTimeEdit->setHidden(!if_expire_options_supported);
-  ui_->nonExpiredCheckBox->setHidden(!if_expire_options_supported);
+  const auto who = key_->Email().isEmpty()
+                       ? key_->Name()
+                       : u"%1 <%2>"_s.arg(key_->Name(), key_->Email());
+  layout->addLayout(CreateDialogHeader(
+      u":/icons/key_generate.png"_s, tr("Add Subkey"),
+      tr("A new subkey for %1 (%2). Others who have your public key need its "
+         "updated copy to use it.")
+          .arg(who, key_->ID()),
+      this));
 
-  ui_->algoLabel->setText(tr("Algorithm"));
-  ui_->keyLengthLabel->setText(tr("Key Length"));
-  ui_->expireLabel->setText(tr("Expire Date"));
-  ui_->usageLabel->setText(tr("Usage"));
-  ui_->encrCheckBox->setText(tr("Encrypt"));
-  ui_->signCheckBox->setText(tr("Sign"));
-  ui_->authCheckBox->setText(tr("Authentication"));
-  ui_->nonExpiredCheckBox->setText(tr("Non Expired"));
-  ui_->nonPassphraseCheckBox->setText(tr("No Passphrase"));
-  ui_->scndAlgoLabel->setText(tr("Second Algorithm"));
-  ui_->scndKeyLengthLabel->setText(tr("Second Key Length"));
+  // Two views of one choice: the purposes, or with Expert Mode the editor.
+  // Swapped, not stacked one under the other, so neither crowds the other.
+  auto* views = new QStackedWidget(this);
+  auto* easy = new QWidget(views);
+  auto* easy_layout = new QVBoxLayout(easy);
+  easy_layout->setContentsMargins(0, 0, 0, 0);
+  easy_layout->setAlignment(Qt::AlignTop);
+  easy_layout->addWidget(new QLabel(tr("What is the subkey for?"), easy));
 
-  const auto min_date_time = QDateTime::currentDateTime().addDays(3);
-  ui_->expireDateTimeEdit->setMinimumDateTime(min_date_time);
-  ui_->expireDateTimeEdit->setDateTime(
-      QDateTime::currentDateTime().addYears(2));
+  struct Purpose {
+    SubkeyPurpose purpose;
+    QString title;
+    QString detail;
+  };
+  const QList<Purpose> purposes{
+      {SubkeyPurpose::kEncrypt, tr("Encryption"),
+       tr("For messages and files others send to you.")},
+      {SubkeyPurpose::kSign, tr("Signing"),
+       tr("For signing everyday, so the primary key can be kept somewhere "
+          "safer.")},
+      {SubkeyPurpose::kAuthenticate, tr("Authentication"),
+       tr("For logging in, for example over SSH.")},
+  };
 
-  // populate algo combo box with supported subkey algos
-  PopulateAlgoComboBox(ui_->algoComboBox, supported_subkey_algos_);
+  // Each a name and one sentence; the algorithm it picks is in the tooltip
+  // and, with Expert Mode, in the editor below.
+  for (const auto& p : purposes) {
+    const auto algo =
+        SuggestSubkeyAlgo(p.purpose, primary_algo_, supported_subkey_algos_);
+    const auto available = algo != KeyGenerateInfo::kNoneAlgo;
+    auto* tile = new ChoiceTile(
+        p.title, available ? p.detail : tr("Not available for this key."), {},
+        easy);
+    tile->setEnabled(available);
+    // The algorithm the purpose picks, quietly, as on the Key Type step.
+    if (available) {
+      tile->SetSecondary(DescribeKeyAlgo(algo, KeyGenerateInfo::kNoneAlgo));
+    }
+    purpose_group_->addButton(tile->Radio(), PurposeId(p.purpose));
+    easy_layout->addWidget(tile);
+  }
 
-  ui_->expireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
-  ui_->expireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
+  auto* expert = new QWidget(views);
+  auto* expert_layout = new QVBoxLayout(expert);
+  expert_layout->setContentsMargins(0, 0, 0, 0);
+  expert_layout->setAlignment(Qt::AlignTop);
+  expert_layout->addWidget(new QLabel(
+      tr("Choose the algorithm, key length and usage yourself."), expert));
+  editor_->setParent(expert);
+  editor_->SetExpiryVisible(false);  // the row below says when
+  expert_layout->addWidget(editor_);
+  no_passphrase_check_->setParent(expert);
+  expert_layout->addWidget(no_passphrase_check_);
+
+  views->addWidget(easy);
+  views->addWidget(expert);
+  layout->addWidget(views);
+
+  const auto expiry_supported =
+      IsOpSupported<SetExpireOpTag>(current_gpg_context_channel_);
+  if (expiry_supported) {
+    expiry_ = new ExpiryPicker(this);
+    auto* expiry_row = new QFormLayout();
+    expiry_row->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+    expiry_row->addRow(tr("Expires"), expiry_);
+    layout->addLayout(expiry_row);
+  }
 
   const auto engine =
       OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
@@ -153,9 +185,10 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   // The "subkey passphrase must equal the primary key's" constraint is a GnuPG
   // behaviour; rPGP does not impose it, so only show this tip for GnuPG.
   if (engine == OpenPGPEngine::kGNUPG) {
-    ui_->statusPlainTextEdit->appendPlainText(
-        tr("Tipps: if the key pair has a passphrase, the subkey's "
-           "passphrase must be equal to it."));
+    layout->addLayout(
+        MakeNote(tr("GnuPG asks for the key pair's passphrase. The subkey is "
+                    "protected by the same one."),
+                 this));
   }
 
   // Post-quantum (PQC) subkey algorithms require a v6 primary key; for a v4
@@ -164,346 +197,150 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   // could not be determined, so only show this when the key is known to be v4.
   if (GpgKeyRepository::GetInstance(current_gpg_context_channel_)
           .GetKeyVersion(key_->Fingerprint()) == 4) {
-    ui_->statusPlainTextEdit->appendPlainText(
-        tr("Note: post-quantum (PQC) subkey algorithms are unavailable here "
-           "because the primary key uses the v4 key format. Generate a v6 key "
-           "to use PQC algorithms."));
+    layout->addLayout(MakeNote(
+        tr("Post-quantum subkeys are not offered: this key uses the v4 key "
+           "format. Generate a v6 key to use them."),
+        this));
   }
 
-  this->setWindowTitle(tr("Generate New Subkey"));
-  this->setAttribute(Qt::WA_DeleteOnClose);
-  this->setModal(true);
+  layout->addStretch(1);
 
-  set_signal_slot_config();
-  refresh_widgets_state();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, this);
+  generate_button_ =
+      buttons->addButton(tr("Generate"), QDialogButtonBox::AcceptRole);
+  generate_button_->setDefault(true);
+  // Named for the manual's screenshots.
+  generate_button_->setObjectName(u"generateButton"_s);
 
-  this->show();
-  this->raise();
-  this->activateWindow();
-}
+  // Expert Mode beside the buttons, as in the key generation wizard, and the
+  // same remembered switch.
+  expert_switch_ = new ToggleSwitch(tr("Expert Mode"), this);
+  expert_switch_->setToolTip(
+      tr("Choose the algorithm, key length and usage yourself."));
+  auto* button_row = new QHBoxLayout();
+  button_row->addWidget(expert_switch_);
+  button_row->addStretch(1);
+  button_row->addWidget(buttons);
+  layout->addLayout(button_row);
 
-void SubkeyGenerateDialog::set_signal_slot_config() {
-  connect(ui_->generateButton, &QPushButton::clicked, this,
+  // A stack is as tall as its tallest view; only the one shown counts here,
+  // so what follows sits right under it in either mode.
+  const auto show_view = [views](bool on) {
+    for (int i = 0; i < views->count(); ++i) {
+      const auto current = i == (on ? 1 : 0);
+      views->widget(i)->setSizePolicy(
+          QSizePolicy::Preferred,
+          current ? QSizePolicy::Preferred : QSizePolicy::Ignored);
+    }
+    views->setCurrentIndex(on ? 1 : 0);
+    views->updateGeometry();
+  };
+  const auto expert_on = LoadKeyGenSettings().expert_mode;
+  expert_switch_->setChecked(expert_on);
+  show_view(expert_on);
+  connect(expert_switch_, &QAbstractButton::toggled, this,
+          [this, show_view](bool on) {
+            show_view(on);
+            StoreKeyGenExpertMode(on);
+            fit_height();
+          });
+
+  editor_->SetInfo(gen_subkey_info_);
+
+  connect(buttons, &QDialogButtonBox::accepted, this,
           &SubkeyGenerateDialog::slot_key_gen_accept);
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(ui_->nonExpiredCheckBox, &QCheckBox::checkStateChanged, this,
-          [=](Qt::CheckState state) {
-            gen_subkey_info_->SetNonExpired(state == Qt::Checked);
-            refresh_widgets_state();
+  connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(purpose_group_, &QButtonGroup::idToggled, this,
+          [this](int id, bool checked) {
+            if (checked) apply_purpose(static_cast<SubkeyPurpose>(id));
           });
-#else
-  connect(ui_->nonExpiredCheckBox, &QCheckBox::stateChanged, this,
-          [=](int state) {
-            gen_subkey_info_->SetNonExpired(state == Qt::Checked);
-            refresh_widgets_state();
-          });
-#endif
+  connect(editor_, &KeyAlgoEditor::SignalChanged, this,
+          &SubkeyGenerateDialog::mark_custom);
+  if (expiry_ != nullptr) {
+    connect(expiry_, &ExpiryPicker::SignalChanged, this, [this]() {
+      gen_subkey_info_->SetExpireTime(expiry_->Expire());
+      gen_subkey_info_->SetNonExpired(expiry_->NonExpired());
+    });
+  }
+  connect(no_passphrase_check_, &QCheckBox::toggled, this,
+          [this](bool on) { gen_subkey_info_->SetNonPassPhrase(on); });
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(ui_->encrCheckBox, &QCheckBox::checkStateChanged, this,
-          [this](Qt::CheckState state) {
-            gen_subkey_info_->SetAllowEncr(state == Qt::Checked);
-          });
-#else
-  connect(ui_->encrCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
-    gen_subkey_info_->SetAllowEncr(state == Qt::Checked);
-  });
-#endif
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(ui_->signCheckBox, &QCheckBox::checkStateChanged, this,
-          [this](Qt::CheckState state) {
-            gen_subkey_info_->SetAllowSign(state == Qt::Checked);
-          });
-#else
-  connect(ui_->signCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
-    gen_subkey_info_->SetAllowSign(state == Qt::Checked);
-  });
-#endif
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(ui_->authCheckBox, &QCheckBox::checkStateChanged, this,
-          [this](Qt::CheckState state) {
-            gen_subkey_info_->SetAllowAuth(state == Qt::Checked);
-          });
-#else
-  connect(ui_->authCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
-    gen_subkey_info_->SetAllowAuth(state == Qt::Checked);
-  });
-#endif
-
-  auto get_exact_algo = [](QComboBox* algo_combo, QComboBox* len_combo,
-                           const QList<KeyAlgo>& algos) {
-    if (algo_combo == nullptr || len_combo == nullptr ||
-        algo_combo->currentIndex() < 0) {
-      return std::make_tuple(false, KeyAlgo{});
-    }
-
-    const auto data = algo_combo->currentData().toMap();
-    const auto name = data.value("name").toString();
-    const auto type = data.value("type").toString();
-    const auto key_len = len_combo->currentText().toInt();
-
-    return GetAlgoByNameTypeAndKeyLength(name, type, key_len, algos);
-  };
-
-  auto validate_generate_button = [this, get_exact_algo]() -> void {
-    const auto [primary_found, primary_algo] = get_exact_algo(
-        ui_->algoComboBox, ui_->keyLengthComboBox, supported_subkey_algos_);
-
-    bool secondary_found = true;
-    const auto sub_algos =
-        gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-    if (!sub_algos.isEmpty()) {
-      secondary_found =
-          gen_subkey_info_->SubAlgo() != KeyGenerateInfo::kNoneAlgo;
-    }
-
-    ui_->generateButton->setDisabled(!(primary_found && secondary_found));
-  };
-
-  auto on_primary_algo_changed = [this, validate_generate_button](int index) {
-    if (index < 0) {
-      gen_subkey_info_->SetAlgo(KeyGenerateInfo::kNoneAlgo);
-      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-      refresh_widgets_state();
-      validate_generate_button();
-      return;
-    }
-
-    auto algo = ComboCurrentAlgo(ui_->algoComboBox, supported_subkey_algos_);
-    gen_subkey_info_->SetAlgo(algo);
-    gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-
-    refresh_widgets_state();
-    validate_generate_button();
-  };
-
-  auto on_primary_length_changed = [this, get_exact_algo,
-                                    validate_generate_button](const QString&) {
-    const auto [found, exact_algo] = get_exact_algo(
-        ui_->algoComboBox, ui_->keyLengthComboBox, supported_subkey_algos_);
-
-    if (!found) {
-      validate_generate_button();
-      return;
-    }
-
-    const auto old_sub_algo = gen_subkey_info_->SubAlgo();
-
-    gen_subkey_info_->SetAlgo(exact_algo);
-
-    const auto sub_algos =
-        gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-    if (old_sub_algo != KeyGenerateInfo::kNoneAlgo &&
-        IsAlgoInList(old_sub_algo, sub_algos)) {
-      gen_subkey_info_->SetSubAlgo(old_sub_algo);
-    } else {
-      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-    }
-
-    refresh_widgets_state();
-    validate_generate_button();
-  };
-
-  auto on_secondary_algo_changed = [this, validate_generate_button](int index) {
-    const auto sub_algos =
-        gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-    if (index < 0 || sub_algos.isEmpty()) {
-      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-      refresh_hybrid_algo_widgets_state();
-      validate_generate_button();
-      return;
-    }
-
-    auto algo = ComboCurrentAlgo(ui_->scndAlgoComboBox, sub_algos);
-    gen_subkey_info_->SetSubAlgo(algo);
-
-    refresh_hybrid_algo_widgets_state();
-    validate_generate_button();
-  };
-
-  auto on_secondary_length_changed =
-      [this, get_exact_algo, validate_generate_button](const QString&) {
-        const auto sub_algos =
-            gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-        const auto [found, exact_algo] = get_exact_algo(
-            ui_->scndAlgoComboBox, ui_->scndKeyLengthComboBox, sub_algos);
-
-        if (found) {
-          gen_subkey_info_->SetSubAlgo(exact_algo);
-        }
-
-        validate_generate_button();
-      };
-
-  connect(ui_->algoComboBox, &QComboBox::currentIndexChanged, this,
-          on_primary_algo_changed);
-
-  connect(ui_->keyLengthComboBox, &QComboBox::currentTextChanged, this,
-          on_primary_length_changed);
-
-  connect(ui_->scndAlgoComboBox, &QComboBox::currentIndexChanged, this,
-          on_secondary_algo_changed);
-
-  connect(ui_->scndKeyLengthComboBox, &QComboBox::currentTextChanged, this,
-          on_secondary_length_changed);
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(ui_->nonPassphraseCheckBox, &QCheckBox::checkStateChanged, this,
-          [this](Qt::CheckState state) -> void {
-            gen_subkey_info_->SetNonPassPhrase(state == Qt::Checked);
-          });
-#else
-  connect(ui_->nonPassphraseCheckBox, &QCheckBox::stateChanged, this,
-          [this](int state) -> void {
-            gen_subkey_info_->SetNonPassPhrase(state == Qt::Checked);
-          });
-#endif
-}
-
-void SubkeyGenerateDialog::refresh_widgets_state() {
-  ui_->algoComboBox->blockSignals(true);
-  SetComboCurrentAlgo(ui_->algoComboBox, gen_subkey_info_->GetAlgo());
-  ui_->algoComboBox->blockSignals(false);
-
-  ui_->keyLengthComboBox->blockSignals(true);
-
-  auto data = ui_->algoComboBox->currentData().toMap();
-  auto name = data["name"].toString();
-  auto type = data["type"].toString();
-  SetKeyLengthComboxBoxByAlgo(
-      ui_->keyLengthComboBox,
-      SearchAlgoByNameType(name, type, supported_subkey_algos_));
-
-  ui_->keyLengthComboBox->setCurrentText(
-      QString::number(gen_subkey_info_->GetKeyLength()));
-  ui_->keyLengthComboBox->blockSignals(false);
-
-  ui_->encrCheckBox->blockSignals(true);
-  ui_->encrCheckBox->setChecked(gen_subkey_info_->IsAllowEncr());
-  ui_->encrCheckBox->setEnabled(gen_subkey_info_->IsAllowModifyEncr());
-  ui_->encrCheckBox->blockSignals(false);
-
-  ui_->signCheckBox->blockSignals(true);
-  ui_->signCheckBox->setChecked(gen_subkey_info_->IsAllowSign());
-  ui_->signCheckBox->setEnabled(gen_subkey_info_->IsAllowModifySign());
-  ui_->signCheckBox->blockSignals(false);
-
-  ui_->authCheckBox->blockSignals(true);
-  ui_->authCheckBox->setChecked(gen_subkey_info_->IsAllowAuth());
-  ui_->authCheckBox->setEnabled(gen_subkey_info_->IsAllowModifyAuth());
-  ui_->authCheckBox->blockSignals(false);
-
-  ui_->nonPassphraseCheckBox->setEnabled(
-      gen_subkey_info_->IsAllowNoPassPhrase());
-
-  ui_->expireDateTimeEdit->blockSignals(true);
-  ui_->expireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
-  ui_->expireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
-  ui_->expireDateTimeEdit->blockSignals(false);
-
-  ui_->nonExpiredCheckBox->blockSignals(true);
-  ui_->nonExpiredCheckBox->setChecked(gen_subkey_info_->IsNonExpired());
-  ui_->nonExpiredCheckBox->blockSignals(false);
-
-  // Enable or disable second algo combo box according to whether current algo
-  // has sub algos
-  const auto sub_algos =
-      gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-  if (!sub_algos.empty()) {
-    ui_->scndAlgoComboBox->setEnabled(true);
-    ui_->scndAlgoComboBox->setHidden(false);
-    ui_->scndAlgoLabel->setHidden(false);
-    ui_->scndKeyLengthLabel->setHidden(false);
-
-    ui_->scndAlgoComboBox->blockSignals(true);
-    ui_->scndAlgoComboBox->clear();
-    PopulateAlgoComboBox(ui_->scndAlgoComboBox, sub_algos);
-
-    const auto current_sub_algo = gen_subkey_info_->SubAlgo();
-    const bool current_sub_algo_supported =
-        current_sub_algo != KeyGenerateInfo::kNoneAlgo &&
-        IsAlgoInList(current_sub_algo, sub_algos);
-
-    const auto first_selectable =
-        FirstSelectableComboIndex(ui_->scndAlgoComboBox);
-    if (current_sub_algo_supported) {
-      SetComboCurrentAlgo(ui_->scndAlgoComboBox, current_sub_algo);
-    } else if (first_selectable >= 0) {
-      // Skip any leading section header (e.g. "ECC") so the default lands on a
-      // real algorithm rather than a non-selectable family label.
-      ui_->scndAlgoComboBox->setCurrentIndex(first_selectable);
-
-      const auto default_sub_algo =
-          ComboCurrentAlgo(ui_->scndAlgoComboBox, sub_algos);
-      gen_subkey_info_->SetSubAlgo(default_sub_algo);
-    } else {
-      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-    }
-
-    ui_->scndAlgoComboBox->blockSignals(false);
+  // The usual reason to add a subkey, when it can be made here.
+  auto* first = purpose_group_->button(PurposeId(SubkeyPurpose::kEncrypt));
+  if (first != nullptr && first->parentWidget()->isEnabled()) {
+    first->setChecked(true);
   } else {
-    gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-
-    ui_->scndAlgoComboBox->blockSignals(true);
-    ui_->scndAlgoComboBox->clear();
-    ui_->scndAlgoComboBox->setEnabled(false);
-    ui_->scndAlgoComboBox->setHidden(true);
-    ui_->scndAlgoComboBox->blockSignals(false);
-
-    ui_->scndAlgoLabel->setHidden(true);
-    ui_->scndKeyLengthLabel->setHidden(true);
-
-    ui_->scndKeyLengthComboBox->blockSignals(true);
-    ui_->scndKeyLengthComboBox->clear();
-    ui_->scndKeyLengthComboBox->setEnabled(false);
-    ui_->scndKeyLengthComboBox->setHidden(true);
-    ui_->scndKeyLengthComboBox->blockSignals(false);
+    // Nothing to suggest: the choice is the user's, so show it.
+    editor_->Refresh();
+    expert_switch_->setChecked(true);
+    refresh_generate();
   }
 
-  refresh_hybrid_algo_widgets_state();
+  if (expiry_ != nullptr) {
+    expiry_->SetExpiry(gen_subkey_info_->IsNonExpired(),
+                       gen_subkey_info_->GetExpireTime());
+  }
+  no_passphrase_check_->setEnabled(gen_subkey_info_->IsAllowNoPassPhrase());
+
+  show();
+  raise();
+  activateWindow();
+  fit_height();
+}
+
+void SubkeyGenerateDialog::fit_height() {
+  // As tall as what is shown and no taller: the views differ in height, and a
+  // height remembered from a longer layout is only blank space. The width the
+  // user chose stays. Queued, so the new view has been laid out first.
+  QTimer::singleShot(0, this, [this]() {
+    const auto needed = layout()->hasHeightForWidth()
+                            ? layout()->totalHeightForWidth(width())
+                            : sizeHint().height();
+    if (needed > 0 && needed != height()) resize(width(), needed);
+  });
+}
+
+void SubkeyGenerateDialog::apply_purpose(SubkeyPurpose purpose) {
+  const auto algo =
+      SuggestSubkeyAlgo(purpose, primary_algo_, supported_subkey_algos_);
+  gen_subkey_info_->SetAlgo(algo);
+  gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+
+  // One job each: an algorithm that could also sign is not made to.
+  gen_subkey_info_->SetAllowEncr(purpose == SubkeyPurpose::kEncrypt);
+  gen_subkey_info_->SetAllowSign(purpose == SubkeyPurpose::kSign);
+  gen_subkey_info_->SetAllowAuth(purpose == SubkeyPurpose::kAuthenticate);
+
+  editor_->Refresh();
+  refresh_generate();
+}
+
+void SubkeyGenerateDialog::mark_custom() {
+  // Changed by hand: no purpose stands for it any more. An exclusive group
+  // never lets its last checked button go.
+  {
+    const QSignalBlocker blocker(purpose_group_);
+    purpose_group_->setExclusive(false);
+    for (auto* button : purpose_group_->buttons()) button->setChecked(false);
+    purpose_group_->setExclusive(true);
+  }
+  refresh_generate();
+}
+
+void SubkeyGenerateDialog::refresh_generate() {
+  const auto usable = gen_subkey_info_->IsAllowEncr() ||
+                      gen_subkey_info_->IsAllowSign() ||
+                      gen_subkey_info_->IsAllowAuth();
+  generate_button_->setEnabled(editor_->IsComplete() && usable);
 }
 
 void SubkeyGenerateDialog::slot_key_gen_accept() {
-  QString buffer;
-  QTextStream err_stream(&buffer);
-
-  if (gen_subkey_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
-    err_stream << " -> " << tr("Please give a valid subkey algorithm.")
-               << Qt::endl;
-  }
-
-  const auto sub_algos =
-      gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-  if (!sub_algos.isEmpty()) {
-    if (gen_subkey_info_->SubAlgo() == KeyGenerateInfo::kNoneAlgo ||
-        !IsAlgoInList(gen_subkey_info_->SubAlgo(), sub_algos)) {
-      err_stream << " -> " << tr("Please give a valid second algorithm.")
-                 << Qt::endl;
-    }
-  }
-
   if (!gen_subkey_info_->IsNonExpired() &&
-      gen_subkey_info_->GetExpireTime() <
-          QDateTime::currentDateTime().addSecs(120)) {
-    err_stream
-        << " -> "
-        << tr("Time to subkey expiration must not be less than 120 seconds.")
-        << Qt::endl;
-  }
-
-  const auto err_string = err_stream.readAll();
-  if (!err_string.isEmpty()) {
-    ui_->statusPlainTextEdit->clear();
-    ui_->statusPlainTextEdit->appendPlainText(err_string);
+      gen_subkey_info_->GetExpireTime() < CurrentDateTime().addSecs(120)) {
+    QMessageBox::warning(
+        this, tr("Add Subkey"),
+        tr("The subkey would expire in less than two minutes. Choose a later "
+           "date."));
     return;
   }
 
@@ -514,86 +351,46 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Generating"),
-      [this, succeeded, key = this->key_,
-       gen_key_info =
-           this->gen_subkey_info_](const OperaWaitingHd& hd) -> void {
+      [this, succeeded, key = key_,
+       info = gen_subkey_info_](const OperaWaitingHd& hd) -> void {
         KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
-            .GenerateSubkey(key, gen_key_info,
-                            [this, hd, succeeded](
-                                GpgError err,
-                                const DataObjectPtr& data_obj) -> void {
-                              // stop showing waiting dialog
-                              hd();
+            .GenerateSubkey(
+                key, info,
+                [this, hd, succeeded](GpgError err,
+                                      const DataObjectPtr& data_obj) -> void {
+                  hd();
 
-                              if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                                QMessageBox::critical(
-                                    this, tr("Error"),
-                                    tr("Unknown error occurred"));
-                                return;
-                              }
+                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
 
-                              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                                // Report the failure on the still-open dialog
-                                // so the user can adjust and retry; success is
-                                // handled by the caller.
-                                RaiseFailureMessageBox(
-                                    this, err,
-                                    KeyGenerationErrorDetail(data_obj));
-                                return;
-                              }
+                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                    // Reported on the still-open dialog, so the user can
+                    // adjust and retry.
+                    RaiseFailureMessageBox(this, err,
+                                           KeyGenerationErrorDetail(data_obj));
+                    return;
+                  }
 
-                              *succeeded = true;
-                              emit UISignalStation::GetInstance()
-                                  -> SignalKeyDatabaseRefresh();
-                            });
+                  *succeeded = true;
+                  emit UISignalStation::GetInstance()
+                      -> SignalKeyDatabaseRefresh();
+                });
       });
 
-  // Keep the dialog open on failure so the user can adjust and retry without
-  // losing the entered configuration. Only close on success.
   if (!*succeeded) return;
 
   // Close the dialog first, then confirm to the user anchored to the parent
   // window, so the success notice doesn't appear layered over a dialog that is
   // about to disappear.
-  auto* notify_parent = this->parentWidget();
-  this->accept();
+  auto* notify_parent = parentWidget();
+  accept();
 
-  QMessageBox::information(notify_parent, tr("Success"),
-                           tr("Subkey generation completed successfully."));
-}
-
-void SubkeyGenerateDialog::refresh_hybrid_algo_widgets_state() {
-  const auto sub_algos =
-      gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
-
-  if (sub_algos.isEmpty() || ui_->scndAlgoComboBox->isHidden()) {
-    ui_->scndKeyLengthComboBox->blockSignals(true);
-    ui_->scndKeyLengthComboBox->clear();
-    ui_->scndKeyLengthComboBox->setEnabled(false);
-    ui_->scndKeyLengthComboBox->setHidden(true);
-    ui_->scndKeyLengthComboBox->blockSignals(false);
-
-    ui_->scndKeyLengthLabel->setHidden(true);
-    return;
-  }
-
-  ui_->scndKeyLengthLabel->setHidden(false);
-  ui_->scndKeyLengthComboBox->setEnabled(true);
-  ui_->scndKeyLengthComboBox->setHidden(false);
-
-  ui_->scndKeyLengthComboBox->blockSignals(true);
-
-  const auto [name, type] = ComboCurrentNameType(ui_->scndAlgoComboBox);
-
-  SetKeyLengthComboxBoxByAlgo(ui_->scndKeyLengthComboBox,
-                              SearchAlgoByNameType(name, type, sub_algos));
-
-  if (gen_subkey_info_->SubAlgo() != KeyGenerateInfo::kNoneAlgo) {
-    ui_->scndKeyLengthComboBox->setCurrentText(
-        QString::number(gen_subkey_info_->SubAlgo().KeyLength()));
-  }
-
-  ui_->scndKeyLengthComboBox->blockSignals(false);
+  QMessageBox::information(notify_parent, tr("Subkey Added"),
+                           tr("The subkey was generated and added to the key "
+                              "pair."));
 }
 
 }  // namespace GpgFrontend::UI

@@ -115,7 +115,7 @@ auto KeyGenerateDialogScenario(ScenarioContext& ctx) -> bool {
                     [&]() {
                       for (auto* w : QApplication::topLevelWidgets()) {
                         if (w->isVisible() &&
-                            w->inherits("GpgFrontend::UI::KeyGenerateDialog")) {
+                            w->inherits("GpgFrontend::UI::KeyGenerateWizard")) {
                           dialog = w;
                           return true;
                         }
@@ -132,7 +132,11 @@ auto KeyGenerateDialogScenario(ScenarioContext& ctx) -> bool {
   auto* name = dialog->findChild<QLineEdit*>(u"nameEdit"_s);
   auto* email = dialog->findChild<QLineEdit*>(u"emailEdit"_s);
   auto* comment = dialog->findChild<QLineEdit*>(u"commentEdit"_s);
-  auto* generate = dialog->findChild<QPushButton*>(u"generateButton"_s);
+  // The wizard's own Continue button: the first step only asks who the key
+  // is for, and this is what moves on from it.
+  auto* wizard = qobject_cast<QWizard*>(dialog);
+  auto* generate =
+      wizard != nullptr ? wizard->button(QWizard::NextButton) : nullptr;
   if (name == nullptr || email == nullptr || comment == nullptr ||
       generate == nullptr) {
     ctx.Fail(kEXIT_USAGE, u"key-generate-fields-missing"_s);
@@ -416,7 +420,7 @@ void RegisterMainWindowScenarios(QList<Scenario>& scenarios) {
   const QStringList with_waiting{u"GpgFrontend::UI::MainWindow"_s,
                                  u"GpgFrontend::UI::WaitingDialog"_s};
   const QStringList with_keygen{u"GpgFrontend::UI::MainWindow"_s,
-                                u"GpgFrontend::UI::KeyGenerateDialog"_s};
+                                u"GpgFrontend::UI::KeyGenerateWizard"_s};
 
   scenarios.append({u"main-window"_s, QSize(1280, 960), CaptureMode::kWINDOW,
                     main_window, false, true, MainWindowScenario});

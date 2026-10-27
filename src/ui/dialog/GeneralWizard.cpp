@@ -81,12 +81,12 @@ GeneralWizard::GeneralWizard(QString name, const QString& finish_text,
   setMinimumWidth(kWizardMinimumWidth);
 }
 
-auto GeneralWizard::AddStep(int index, int count, const QString& title)
+auto GeneralWizard::AddStep(int index, int count, const QString& title, int id)
     -> GeneralWizardPage* {
   auto* page = new GeneralWizardPage(this);
   page->setTitle(title);
   page->setSubTitle(tr("Step %1 of %2").arg(index + 1).arg(count));
-  setPage(index, page);
+  setPage(id >= 0 ? id : index, page);
   return page;
 }
 
@@ -119,6 +119,10 @@ void GeneralWizard::setVisible(bool visible) {
     QTimer::singleShot(0, this, &GeneralWizard::fit_tallest_page);
   }
   QWizard::setVisible(visible);
+}
+
+void GeneralWizard::RefitPages() {
+  QTimer::singleShot(0, this, &GeneralWizard::fit_tallest_page);
 }
 
 void GeneralWizard::fit_tallest_page() {

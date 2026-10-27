@@ -40,9 +40,10 @@
 #include "ui/dialog/controller/ModuleControllerDialog.h"
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
-#include "ui/dialog/key_generate/KeyGenerateDialog.h"
+#include "ui/dialog/key_generate/KeyGenerateWizard.h"
 #include "ui/dialog/profile/ProfileManagerDialog.h"
 #include "ui/function/ImportKey.h"
+#include "ui/function/KeyGenerateHelper.h"
 #include "ui/function/ProfileController.h"
 #include "ui/function/WindowGeometry.h"
 #include "ui/lua/LuaPlacements.h"
@@ -298,10 +299,19 @@ void MainWindow::create_actions() {
       create_action("generate_key_pair", tr("New Keypair"),
                     ":/icons/keypair-new.png", tr("Generate KeyPair"));
   connect(generate_key_pair_act_, &QAction::triggered, this, [=]() -> void {
-    new KeyGenerateDialog(m_key_list_->GetCurrentGpgContextChannel(), this);
+    new KeyGenerateWizard(m_key_list_->GetCurrentGpgContextChannel(), this);
   });
   generate_key_pair_act_->setDisabled(!IsOpSupported<GenerateKeyTag>(
       m_key_list_->GetCurrentGpgContextChannel()));
+
+  quick_generate_key_act_ = create_action(
+      "quick_generate_key", tr("Quick Generate"), ":/icons/keypair-new.png",
+      tr("Generate a key pair in one click, with the default profile and user "
+         "ID pattern from Settings"));
+  connect(quick_generate_key_act_, &QAction::triggered, this, [=]() -> void {
+    QuickGenerateKey(m_key_list_->GetCurrentGpgContextChannel(), this);
+  });
+  quick_generate_key_act_->setDisabled(!generate_key_pair_act_->isEnabled());
 
   import_key_from_file_act_ = create_action("import_key_from_file", tr("File"),
                                             ":/icons/import_key_from_file.png",
@@ -493,6 +503,7 @@ void MainWindow::create_menus() {
 
   key_menu_ = menuBar()->addMenu(tr("Keys"));
   key_menu_->addAction(generate_key_pair_act_);
+  key_menu_->addAction(quick_generate_key_act_);
   import_key_menu_ = key_menu_->addMenu(tr("Import Key"));
   import_key_menu_->setIcon(QIcon(":/icons/key_import.png"));
   import_key_menu_->addAction(import_key_from_file_act_);
@@ -636,7 +647,14 @@ void MainWindow::create_tool_bars() {
                       tr("Import a key from file, editor, or clipboard"),
                       icon_style_, icon_size_);
 
-  key_tool_bar_->addAction(generate_key_pair_act_);
+  // A click opens the wizard; holding the button offers the one-click
+  // variant, as Encrypt offers Sym. Encrypt.
+  generate_button_ = new QToolButton(this);
+  generate_button_->setObjectName(u"generateKeyButton"_s);
+  SetupActionFamilyToolButton(generate_button_,
+                              {generate_key_pair_act_, quick_generate_key_act_},
+                              1, icon_style_, icon_size_);
+  key_tool_bar_->addWidget(generate_button_);
   key_tool_bar_->addWidget(import_button_);
   key_tool_bar_->addAction(open_key_management_act_);
 
@@ -925,6 +943,7 @@ void MainWindow::apply_tool_bar_appearance() {
   }
 
   QList<QToolButton*> menu_buttons = {
+      generate_button_,
       open_button_,
       workspace_button_,
       import_button_,

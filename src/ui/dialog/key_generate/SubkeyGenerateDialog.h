@@ -31,57 +31,59 @@
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
-
-class Ui_SubkeyGenDialog;
+#include "ui/function/KeyGenerateHelper.h"
 
 namespace GpgFrontend::UI {
+
+class ExpiryPicker;
+class KeyAlgoEditor;
+class ToggleSwitch;
+
 /**
- * @brief
+ * @brief Add a subkey to a key pair.
  *
+ * Asked as what the subkey is for, not which algorithm it uses: each purpose
+ * picks the algorithm that matches the primary key, and Expert Mode shows
+ * every choice for anyone who wants another.
+ *
+ * Opens itself and is deleted when closed.
  */
 class SubkeyGenerateDialog : public GeneralDialog {
   Q_OBJECT
 
  public:
   /**
-   * @brief Construct a new Subkey Generate Dialog object
-   *
-   * @param key_id
-   * @param parent
+   * @param channel the key database the key is in
+   * @param key the key pair the subkey is added to
+   * @param parent parent widget
    */
   explicit SubkeyGenerateDialog(int channel, GpgKeyPtr key, QWidget* parent);
 
- private slots:
-
-  /**
-   * @details check all line edits for false entries. Show error, when there is
-   * one, otherwise generate the key
-   */
-  void slot_key_gen_accept();
-
  private:
-  QSharedPointer<Ui_SubkeyGenDialog> ui_;  ///<
-  int current_gpg_context_channel_;        ///<
+  int current_gpg_context_channel_;
+  GpgKeyPtr key_;
+  QSharedPointer<KeyGenerateInfo> gen_subkey_info_;
+  QList<KeyAlgo> supported_subkey_algos_;
+  QString primary_algo_;
 
-  GpgKeyPtr key_;                                    ///<
-  QSharedPointer<KeyGenerateInfo> gen_subkey_info_;  ///<
-  QList<KeyAlgo> supported_subkey_algos_;            ///<
+  QButtonGroup* purpose_group_;
+  ToggleSwitch* expert_switch_{};
+  ExpiryPicker* expiry_{};
+  KeyAlgoEditor* editor_;
+  QCheckBox* no_passphrase_check_;
+  QPushButton* generate_button_{};
 
-  /**
-   * @brief Set the signal slot object
-   *
-   */
-  void set_signal_slot_config();
+  /// @brief Set the subkey up for a purpose.
+  void apply_purpose(SubkeyPurpose purpose);
 
-  /**
-   * @details Refresh widgets state by GenKeyInfo
-   */
-  void refresh_widgets_state();
+  void mark_custom();
 
-  /**
-   * @details Refresh hybrid subkey algo related widgets state
-   */
-  void refresh_hybrid_algo_widgets_state();
+  void refresh_generate();
+
+  /// @brief Fit the height to the view shown.
+  void fit_height();
+
+  void slot_key_gen_accept();
 };
 
 }  // namespace GpgFrontend::UI

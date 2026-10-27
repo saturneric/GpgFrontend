@@ -52,7 +52,7 @@
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
 #include "ui/dialog/import_export/ImportKeyPackageDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
-#include "ui/dialog/key_generate/KeyGenerateDialog.h"
+#include "ui/dialog/key_generate/KeyGenerateWizard.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
 #include "ui/dialog/keypair_details/KeyUIDSignDialog.h"
@@ -61,6 +61,7 @@
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/ImportKey.h"
+#include "ui/function/KeyGenerateHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/function/ShowKeyDetails.h"
 #include "ui/lua/LuaPlacements.h"
@@ -300,6 +301,7 @@ void KeyMgmt::create_popup_menu() {
   // bar rather than a second copy of it.
   empty_area_menu_ = new QMenu(this);
   empty_area_menu_->addAction(generate_key_pair_act_);
+  empty_area_menu_->addAction(quick_generate_key_act_);
   empty_area_menu_->addAction(import_key_from_clipboard_act_);
   empty_area_menu_->addSeparator();
   empty_area_menu_->addAction(open_key_file_act_);
@@ -345,6 +347,16 @@ void KeyMgmt::create_actions() {
       !IsOpSupported<GenerateKeyTag>(key_list_->GetCurrentGpgContextChannel()));
   connect(generate_key_pair_act_, &QAction::triggered, this,
           &KeyMgmt::SlotGenerateKeyDialog);
+
+  quick_generate_key_act_ = make_action(
+      tr("Quick Generate"), ":/icons/keypair-new.png",
+      tr("Generate a key pair in one click, with the default profile and user "
+         "ID pattern from Settings"),
+      {QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_N)});
+  quick_generate_key_act_->setDisabled(!generate_key_pair_act_->isEnabled());
+  connect(quick_generate_key_act_, &QAction::triggered, this, [this]() {
+    QuickGenerateKey(key_list_->GetCurrentGpgContextChannel(), this);
+  });
 
   generate_subkey_act_ =
       make_action(tr("New Subkey"), ":/icons/key_generate.png",
@@ -610,6 +622,7 @@ void KeyMgmt::create_menus() {
   key_menu_ = menuBar()->addMenu(tr("Key"));
   generate_key_menu_ = key_menu_->addMenu(tr("Generate Key"));
   generate_key_menu_->addAction(generate_key_pair_act_);
+  generate_key_menu_->addAction(quick_generate_key_act_);
   generate_key_menu_->addAction(generate_subkey_act_);
 
   import_key_menu_ = key_menu_->addMenu(tr("Import Key"));
@@ -672,8 +685,15 @@ void KeyMgmt::create_tool_bars() {
   key_tool_bar_->setObjectName("keytoolbar");
   SetupToolBar(key_tool_bar_, icon_style_, icon_size_);
 
-  // generate key pair
-  key_tool_bar_->addAction(generate_key_pair_act_);
+  // Generate key pair, with the one-click variant behind it the way
+  // Sym. Encrypt sits behind Encrypt: a click opens the wizard, holding the
+  // button lists both.
+  generate_tool_button_ = new QToolButton(this);
+  generate_tool_button_->setObjectName(u"generateKeyButton"_s);
+  SetupActionFamilyToolButton(generate_tool_button_,
+                              {generate_key_pair_act_, quick_generate_key_act_},
+                              1, icon_style_, icon_size_);
+  key_tool_bar_->addWidget(generate_tool_button_);
   key_tool_bar_->addSeparator();
 
   // add button with popup menu for import
@@ -781,10 +801,8 @@ void KeyMgmt::apply_tool_bar_appearance() {
   }
 
   const QList<QToolButton*> menu_buttons = {
-      import_tool_button_,
-      export_tool_button_,
-      key_ops_tool_button_,
-      delete_tool_button_,
+      generate_tool_button_, import_tool_button_, export_tool_button_,
+      key_ops_tool_button_,  delete_tool_button_,
   };
 
   for (auto* button : menu_buttons) {
@@ -1079,7 +1097,7 @@ void KeyMgmt::backup_all_private_keys() {
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this);
+  new KeyGenerateWizard(key_list_->GetCurrentGpgContextChannel(), this);
 }
 
 void KeyMgmt::SlotGenerateSubKey() {

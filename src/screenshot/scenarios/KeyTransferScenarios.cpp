@@ -169,15 +169,8 @@ auto SubkeyGenerateScenario(ScenarioContext& ctx) -> bool {
       ctx, [&]() { button->click(); }, "GpgFrontend::UI::SubkeyGenerateDialog",
       u"subkey-generate-shown"_s);
   if (dialog == nullptr) return false;
-  // An algorithm picked, as the reader is about to: the dialog opens on none.
-  auto* algo = dialog->findChild<QComboBox*>(u"algoComboBox"_s);
-  const auto picked =
-      algo != nullptr ? algo->findText(u"25519"_s, Qt::MatchContains) : -1;
-  if (picked < 0) {
-    ctx.Fail(kEXIT_USAGE, u"subkey-algorithm-missing"_s);
-    return false;
-  }
-  algo->setCurrentIndex(picked);
+  // Opens on the encryption purpose with its algorithm already chosen, which
+  // is what the reader sees first.
   ctx.SetTarget(dialog, CaptureMode::kDIALOG);
   return SettleActive(ctx, dialog, u"subkey-generate-settled"_s);
 }

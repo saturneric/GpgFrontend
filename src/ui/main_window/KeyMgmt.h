@@ -161,6 +161,7 @@ class KeyMgmt : public GeneralMainWindow {
   ///< The bar's menu-backed buttons. Held as members rather than locals so the
   ///< appearance pass can reach them: a QToolButton added with addWidget() does
   ///< not follow the tool bar's icon size or button style on its own.
+  QToolButton* generate_tool_button_{};
   QToolButton* import_tool_button_{};
   QToolButton* export_tool_button_{};
   QToolButton* key_ops_tool_button_{};
@@ -191,6 +192,7 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* delete_checked_keys_act_{};           ///<
   QAction* delete_selected_keys_act_{};          ///<
   QAction* generate_key_pair_act_{};             ///<
+  QAction* quick_generate_key_act_{};            ///<
   QAction* generate_subkey_act_{};               ///<
   QAction* import_key_from_clipboard_act_{};     ///<
   QAction* import_key_from_file_act_{};          ///<

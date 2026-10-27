@@ -98,9 +98,11 @@ class GF_UI_EXPORT GeneralWizard : public QWizard {
    * @param index the step, from 0
    * @param count how many steps there are
    * @param title what the step is called
+   * @param id the page id, when it is not the step: two pages that are
+   * alternatives for one step share its number but not its id. -1 for the step
    * @return the page, owned by the wizard
    */
-  auto AddStep(int index, int count, const QString& title)
+  auto AddStep(int index, int count, const QString& title, int id = -1)
       -> GeneralWizardPage*;
 
   /// @brief A page's body: no margins of its own, since the wizard frames it.
@@ -109,6 +111,11 @@ class GF_UI_EXPORT GeneralWizard : public QWizard {
   /// @brief The one sentence a page opens with: what this step is for, before
   /// any control asks for anything.
   static void AddLead(QVBoxLayout* layout, const QString& text, QWidget* page);
+
+  /// @brief Grow, never shrink, to fit the tallest page again, once a page's
+  /// content has grown: QWizard would squeeze it instead. Queued, so the
+  /// change has been laid out first.
+  void RefitPages();
 
  private:
   QString name_;

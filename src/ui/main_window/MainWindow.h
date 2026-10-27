@@ -684,6 +684,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
   QToolButton*
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
+  QToolButton* generate_button_{};   ///<
   QToolButton* open_button_{};       ///<
   QToolButton* workspace_button_{};  ///<
 
@@ -715,6 +716,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
   QAction* generate_key_pair_act_{};
+  QAction* quick_generate_key_act_{};
 
   QAction* module_controller_open_act_{};      ///<
   QAction* smart_card_controller_open_act_{};  ///<
