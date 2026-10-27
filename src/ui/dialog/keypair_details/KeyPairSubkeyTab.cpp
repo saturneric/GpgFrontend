@@ -47,6 +47,18 @@
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/MoveKeyToCard.h"
+#include "ui/widgets/CopyableLabel.h"
+
+namespace {
+
+/// Past this many keys the list scrolls instead of growing the dialog.
+constexpr int kMaxVisibleSubkeyRows = 5;
+
+/// A v6 fingerprint takes two lines; every key reserves both, so switching
+/// between keys never changes the height of the detail box.
+constexpr int kFingerprintLines = 2;
+
+}  // namespace
 
 namespace GpgFrontend::UI {
 
@@ -120,6 +132,16 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
         "Exporting subkeys is not supported by the current OpenPGP backend."));
   }
 
+  // Its text names the selected key's kind; sized for the longer one, so the
+  // grid's columns do not shift when switching between keys.
+  int export_button_width = 0;
+  for (const auto& text : {tr("Export Primary Key"), tr("Export Subkey")}) {
+    export_subkey_button_->setText(text);
+    export_button_width = std::max(export_button_width,
+                                   export_subkey_button_->sizeHint().width());
+  }
+  export_subkey_button_->setMinimumWidth(export_button_width);
+
   auto* base_layout = new QVBoxLayout();
 
   auto* subkey_list_layout = new QGridLayout();
@@ -130,7 +152,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   auto* subkey_detail_layout = new QGridLayout();
 
   key_type_var_label_ = new QLabel();
-  key_id_var_label_ = new QLabel();
+  key_id_var_label_ = new CopyableLabel();
   key_size_var_label_ = new QLabel();
   expire_var_label_ = new QLabel();
   revoke_var_label_ = new QLabel();
@@ -139,16 +161,14 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   created_var_label_ = new QLabel();
   usage_var_label_ = new QLabel();
   master_key_exist_var_label_ = new QLabel();
-  fingerprint_var_label_ = new QLabel();
+  fingerprint_var_label_ = new CopyableLabel();
   card_key_label_ = new QLabel();
 
-  created_var_label_->setWordWrap(true);
-  expire_var_label_->setWordWrap(true);
-  usage_var_label_->setWordWrap(true);
-  fingerprint_var_label_->setWordWrap(true);
-
-  key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  // Values stay on one line (the fingerprint breaks at a fixed place), so a
+  // longer value for another key cannot wrap and change the box's height.
+  fingerprint_var_label_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  fingerprint_var_label_->setMinimumHeight(
+      kFingerprintLines * fingerprint_var_label_->fontMetrics().lineSpacing());
 
   auto add_title_label = [](const QString& text) {
     auto* label = new QLabel(text + ": ");
@@ -221,6 +241,10 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   subkey_detail_layout->addWidget(fingerprint_var_label_, detail_row, 1, 1, 2);
   ++detail_row;
 
+  // Spare width goes to the values, never to the titles, so the values start
+  // at the same place whichever key is selected.
+  subkey_detail_layout->setColumnStretch(1, 1);
+
   connect(export_subkey_button_, &QPushButton::clicked, this,
           &KeyPairSubkeyTab::slot_export_subkey);
 
@@ -263,10 +287,17 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
 void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_ = new QTableWidget(this);
 
-  subkey_list_->setColumnCount(set_expire_supported_ ? 7 : 6);
+  // Only what tells the keys apart; the rest is in the detail box below.
+  subkey_list_->setColumnCount(4);
 
+  // The Key ID is never cut short; the three short columns share the rest
+  // evenly, none left lopsided.
+  subkey_list_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   subkey_list_->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::ResizeToContents);
+      0, QHeaderView::ResizeToContents);
+  // Sized to its rows, not to the scroll area's default, which left most of
+  // the list empty and made the whole dialog tall.
+  subkey_list_->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
   subkey_list_->verticalHeader()->hide();
   subkey_list_->setShowGrid(false);
   subkey_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -276,15 +307,9 @@ void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Key ID") << tr("Key Type") << tr("Key Size") << tr("Algorithm")
-         << tr("Algorithm Detail") << tr("Create Date");
-
-  if (set_expire_supported_) {
-    labels << tr("Expire Date");
-  }
+  labels << tr("Key ID") << tr("Key Type") << tr("Algorithm") << tr("Usage");
 
   subkey_list_->setHorizontalHeaderLabels(labels);
-  subkey_list_->horizontalHeader()->setStretchLastSection(true);
 }
 void KeyPairSubkeyTab::slot_refresh_subkey_list() {
   int row = 0;
@@ -310,32 +335,13 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp1->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 1, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::number(s_key.KeyLength()));
+    auto* tmp2 = new QTableWidgetItem(s_key.Algo());
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(s_key.PublicKeyAlgo());
+    auto* tmp3 = new QTableWidgetItem(GetUsagesByAbstractKey(&s_key));
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 3, tmp3);
-
-    auto* tmp4 = new QTableWidgetItem(s_key.Algo());
-    tmp4->setTextAlignment(Qt::AlignCenter);
-    subkey_list_->setItem(row, 4, tmp4);
-
-    auto* tmp5 = new QTableWidgetItem(ShortDateTimeText(s_key.CreationTime()));
-    tmp5->setToolTip(tmp5->text());
-    tmp5->setTextAlignment(Qt::AlignCenter);
-    subkey_list_->setItem(row, 5, tmp5);
-
-    if (set_expire_supported_) {
-      auto* tmp6 =
-          new QTableWidgetItem(s_key.ExpirationTime().toSecsSinceEpoch() == 0
-                                   ? tr("Never Expire")
-                                   : ShortDateTimeText(s_key.ExpirationTime()));
-      tmp6->setToolTip(tmp6->text());
-      tmp6->setTextAlignment(Qt::AlignCenter);
-      subkey_list_->setItem(row, 6, tmp6);
-    }
 
     if (row == 0) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
@@ -374,6 +380,17 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     row++;
   }
 
+  // AdjustToContents grows the list with every key; past a few it scrolls.
+  int max_height = QWIDGETSIZE_MAX;
+  if (subkey_list_->rowCount() > kMaxVisibleSubkeyRows) {
+    subkey_list_->ensurePolished();
+    max_height = subkey_list_->horizontalHeader()->sizeHint().height() +
+                 (kMaxVisibleSubkeyRows *
+                  subkey_list_->verticalHeader()->defaultSectionSize()) +
+                 (2 * subkey_list_->frameWidth());
+  }
+  subkey_list_->setMaximumHeight(max_height);
+
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
   }
@@ -401,7 +418,7 @@ void KeyPairSubkeyTab::slot_add_adsk() {
 void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   const auto& s_key = get_selected_subkey();
 
-  key_id_var_label_->setText(s_key.ID());
+  key_id_var_label_->SetValue(s_key.ID());
   key_size_var_label_->setText(QString::number(s_key.KeyLength()));
 
   algorithm_var_label_->setText(s_key.PublicKeyAlgo());
@@ -466,8 +483,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
     expire_var_label_->clear();
   }
 
-  fingerprint_var_label_->setText(BeautifyFingerprint(s_key.Fingerprint()));
-  fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
+  fingerprint_var_label_->SetValue(FingerprintDisplayText(s_key.Fingerprint()),
+                                   s_key.Fingerprint());
 
   auto if_export_subkey_supported =
       IsOpSupported<ExportSubkeyOpTag>(current_gpg_context_channel_);

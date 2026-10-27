@@ -32,6 +32,8 @@
 
 namespace GpgFrontend::UI {
 
+class CopyableLabel;
+
 class KeyPairSubkeyTab : public QWidget {
   Q_OBJECT
 
@@ -147,9 +149,10 @@ class KeyPairSubkeyTab : public QWidget {
   QLabel* created_var_label_;    ///< Label containing the keys creation date
   QLabel* algorithm_var_label_;  ///< Label containing the keys algorithm
   QLabel* algorithm_detail_var_label_;  ///<
-  QLabel* key_id_var_label_;            ///< Label containing the keys keyid
-  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
-  QLabel* usage_var_label_;        ///<
+  CopyableLabel* key_id_var_label_;     ///< Label containing the keys keyid
+  CopyableLabel*
+      fingerprint_var_label_;  ///< Label containing the keys fingerprint
+  QLabel* usage_var_label_;    ///<
   QLabel* master_key_exist_var_label_;  ///<
   QLabel* card_key_label_;              ///<
 

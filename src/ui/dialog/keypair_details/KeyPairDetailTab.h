@@ -33,16 +33,12 @@
 
 namespace GpgFrontend::UI {
 
+class CopyableLabel;
+
 class KeyPairDetailTab : public QWidget {
   Q_OBJECT
 
  private slots:
-
-  /**
-   * @details Copy the fingerprint to clipboard
-   */
-  void slot_copy_fingerprint();
-
   /**
    * @brief
    *
@@ -80,9 +76,10 @@ class KeyPairDetailTab : public QWidget {
   QLabel* last_update_var_label_;  ///<
   QLabel* algorithm_var_label_;    ///< Label containing the keys algorithm
   QLabel*
-      algorithm_detail_var_label_;  ///< containing the keys algorithm detail
-  QLabel* key_id_var_label_;        ///< Label containing the keys keyid
-  QLabel* fingerprint_var_label_;   ///< Label containing the keys fingerprint
+      algorithm_detail_var_label_;   ///< containing the keys algorithm detail
+  CopyableLabel* key_id_var_label_;  ///< Label containing the keys keyid
+  CopyableLabel*
+      fingerprint_var_label_;  ///< Label containing the keys fingerprint
   QLabel* usage_var_label_;
   QLabel* primary_key_exist_var_label_;
   QLabel* owner_trust_var_label_;

@@ -36,9 +36,13 @@
 #include "ui/UISignalStation.h"
 #include "ui/function/DateTimeText.h"
 #include "ui/function/KeyDatabaseRefresh.h"
+#include "ui/widgets/CopyableLabel.h"
 
 namespace {
 constexpr int kNoticeIconSize = 24;
+
+/// A v6 fingerprint takes two lines; a v4 one reserves the same height.
+constexpr int kFingerprintLines = 2;
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -84,8 +88,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   comment_var_label_ = new QLabel();
   comment_var_label_->setWordWrap(true);
   comment_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  key_id_var_label_ = new QLabel();
-  key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  key_id_var_label_ = new CopyableLabel();
 
   usage_var_label_ = new QLabel();
   usage_var_label_->setWordWrap(true);
@@ -126,18 +129,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   int key_row = 0;
 
   vbox_kd->addWidget(add_title_label(tr("Key ID")), key_row, 0);
-  vbox_kd->addWidget(key_id_var_label_, key_row, 1, 1, 1);
-
-  auto* copy_key_id_button = new QPushButton(tr("Copy"));
-  copy_key_id_button->setFlat(true);
-  copy_key_id_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  vbox_kd->addWidget(copy_key_id_button, key_row, 2);
-
-  connect(copy_key_id_button, &QPushButton::clicked, this, [=]() {
-    const auto key_id = key_id_var_label_->text().trimmed();
-    QApplication::clipboard()->setText(key_id);
-  });
-
+  vbox_kd->addWidget(key_id_var_label_, key_row, 1, 1, 2);
   ++key_row;
 
   vbox_kd->addWidget(add_title_label(tr("Algorithm")), key_row, 0);
@@ -197,41 +189,21 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   vbox_kd->addWidget(primary_key_exist_var_label_, key_row, 1, 1, 2);
   ++key_row;
 
-  copy_key_id_button->setFlat(true);
-  copy_key_id_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  vbox_kd->addWidget(copy_key_id_button, 0, 2);
-  connect(copy_key_id_button, &QPushButton::clicked, this, [=]() {
-    QString fpr = key_id_var_label_->text().trimmed();
-    QClipboard* cb = QApplication::clipboard();
-    cb->setText(fpr);
-  });
-
   owner_box_->setLayout(vbox_od);
   mvbox->addWidget(owner_box_);
   key_box_->setLayout(vbox_kd);
   mvbox->addWidget(key_box_);
 
-  fingerprint_var_label_ = new QLabel();
-  // wrapping is needed for the long fingerprints of x448/ed448. It must be set
-  // before the first layout pass: flipping it later changes the size hint and
-  // makes the dialog grow after it is already on screen.
-  fingerprint_var_label_->setWordWrap(true);
-  fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  fingerprint_var_label_->setStyleSheet("margin-left: 0; margin-right: 5;");
+  fingerprint_var_label_ = new CopyableLabel();
+  // The long v6 fingerprint breaks at a fixed place instead of wrapping, and
+  // its two lines are reserved for every key, so the box never changes height.
   fingerprint_var_label_->setAlignment(Qt::AlignCenter);
-  fingerprint_var_label_->setMinimumWidth(400);
+  fingerprint_var_label_->setMinimumHeight(
+      kFingerprintLines * fingerprint_var_label_->fontMetrics().lineSpacing());
   auto* hbox_fp = new QHBoxLayout();
 
   hbox_fp->addStretch();
   hbox_fp->addWidget(fingerprint_var_label_);
-
-  auto* copy_fingerprint_button = new QPushButton(tr("Copy"));
-  copy_fingerprint_button->setFlat(true);
-  copy_fingerprint_button->setToolTip(tr("copy fingerprint to clipboard"));
-  connect(copy_fingerprint_button, &QPushButton::clicked, this,
-          &KeyPairDetailTab::slot_copy_fingerprint);
-
-  hbox_fp->addWidget(copy_fingerprint_button);
   hbox_fp->addStretch();
 
   fingerprint_box_->setLayout(hbox_fp);
@@ -267,13 +239,6 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   setLayout(mvbox);
 }
 
-void KeyPairDetailTab::slot_copy_fingerprint() {
-  QString fpr =
-      fingerprint_var_label_->text().trimmed().replace(" ", QString());
-  QClipboard* cb = QApplication::clipboard();
-  cb->setText(fpr);
-}
-
 void KeyPairDetailTab::slot_refresh_key_info() {
   // Show the situation that primary key not exists.
   primary_key_exist_var_label_->setText(
@@ -294,7 +259,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   email_var_label_->setText(key_->Email());
 
   comment_var_label_->setText(key_->Comment());
-  key_id_var_label_->setText(key_->ID());
+  key_id_var_label_->SetValue(key_->ID());
 
   QString buffer;
   QTextStream usage_steam(&buffer);
@@ -357,7 +322,8 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   key_size_var_label_->setText(key_size_val);
   algorithm_var_label_->setText(key_algo_val);
   algorithm_detail_var_label_->setText(key_algo_detail_val);
-  fingerprint_var_label_->setText(BeautifyFingerprint(key_->Fingerprint()));
+  fingerprint_var_label_->SetValue(FingerprintDisplayText(key_->Fingerprint()),
+                                   key_->Fingerprint());
 
   slot_refresh_notice({}, {});
 

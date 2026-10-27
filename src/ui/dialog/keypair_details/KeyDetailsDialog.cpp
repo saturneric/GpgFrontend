@@ -41,15 +41,21 @@
 #include "ui/function/KeyDatabaseRefresh.h"
 
 namespace {
-constexpr int kMinDialogWidth = 680;
-constexpr int kMinDialogHeight = 560;
+// Only a guard against a degenerate size hint: the tab pages themselves decide
+// how big the dialog opens.
+constexpr int kMinDialogWidth = 480;
+constexpr int kMinDialogHeight = 400;
+
+// Versioned: the slimmer pages make every size saved before them too big,
+// and a saved size wins over the hint, so the old entries must not be read.
+constexpr auto kDialogStateName = "KeyDetailsDialog.v2";
 }  // namespace
 
 namespace GpgFrontend::UI {
 
 KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
                                    QWidget* parent)
-    : GeneralDialog(typeid(KeyDetailsDialog).name(), parent),
+    : GeneralDialog(kDialogStateName, parent),
       current_gpg_context_channel_(channel) {
   // A reload of the key databases replaces the channel this works on; find
   // the database again, or say it is gone.
