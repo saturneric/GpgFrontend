@@ -33,6 +33,7 @@
 
 #include "core/module/ModuleCapability.h"
 #include "core/module/ModuleDispatchGate.h"
+#include "core/module/ModuleLibraryPin.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/module/ModuleSdkBridge.h"
@@ -241,6 +242,13 @@ class Module::Impl {
     ReleaseGrant();
 
     if (module_library_ == nullptr) return false;
+    // Pinned: everything is withdrawn and the gate is shut, but the image
+    // stays mapped. QLibrary's destructor never unloads, so dropping the
+    // handle without unload() is exactly that.
+    if (IsModuleLibraryPinned(identifier_)) {
+      module_library_.reset();
+      return false;
+    }
     const auto unloaded = module_library_->unload();
     module_library_.reset();
     return unloaded;
