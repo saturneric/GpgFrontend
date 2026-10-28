@@ -557,7 +557,8 @@ void MainWindow::create_menus() {
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
   // The controllers are left out of any sandbox, where they are not useful and
-  // may confuse users. The menu itself stays for the module entries on it.
+  // may confuse users. The menu itself stays for the module entries on it (the
+  // IMAP controller and the OpenPGP inspector).
   if (!IsRunningInSandBox()) {
     // Only show Smart Card Controller if GnuPG is supported, since it is not
     // useful for other engines.
@@ -565,11 +566,6 @@ void MainWindow::create_menus() {
       advance_menu_->addAction(smart_card_controller_open_act_);
     }
     advance_menu_->addAction(module_controller_open_act_);
-  }
-
-  // Hide the whole "Advanced" menu in the macOS app sandbox. Flatpak keeps it.
-  if (IsRunningInAppSandbox()) {
-    advance_menu_->menuAction()->setVisible(false);
   }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
