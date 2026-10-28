@@ -192,8 +192,6 @@ class GF_UI_EXPORT HtmlViewService : public QObject {
   HtmlViewService();
 
   auto register_now(HtmlViewProviderInfo info) -> int;
-  [[nodiscard]] auto select(const HtmlView::Policy& policy) const
-      -> const Provider*;
   [[nodiscard]] auto find_view(quint64 view) -> View*;
   /// The view @p caller embedded, or nullptr.
   auto consumer_view(const QString& caller, quint64 view) -> View*;

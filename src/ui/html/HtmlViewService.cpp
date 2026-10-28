@@ -28,15 +28,11 @@
 
 #include "HtmlViewService.h"
 
-#include <QDesktopServices>
-#include <QMessageBox>
 #include <QPointer>
 #include <QRandomGenerator>
-#include <QThread>
-#include <QVBoxLayout>
 
 #include "core/module/ModuleLibraryPin.h"
-#include "ui/lua/NativeInstances.h"
+#include "ui/html/EmbeddedViewCommon.h"
 
 namespace GpgFrontend::UI {
 
@@ -71,38 +67,21 @@ struct HtmlViewService::Pending {
 
 namespace {
 
-auto OnGuiThread() -> bool {
-  auto* app = QCoreApplication::instance();
-  return app != nullptr && QThread::currentThread() == app->thread();
-}
+using Embedded::OnGuiThread;
 
 auto Covers(const HtmlViewProviderInfo& info, const HtmlView::Policy& policy)
     -> bool {
   return (info.enforceable & policy.required) == policy.required;
 }
 
-/// The Host's question, with the address exactly as it would be opened.
-/// Fully encoded, so an internationalised host name shows as its punycode
-/// rather than as whatever it was chosen to look like.
 void AskThenOpen(const QUrl& url) {
-  const auto scheme = url.scheme().toLower();
-  const auto shown = url.toString(QUrl::FullyEncoded);
-  auto* parent = QApplication::activeWindow();
-  if (scheme != u"http"_s && scheme != u"https"_s && scheme != u"mailto"_s) {
-    QMessageBox::information(
-        parent, HtmlViewService::tr("Link Not Opened"),
-        HtmlViewService::tr("This kind of link cannot be opened from a "
-                            "message:\n\n%1")
-            .arg(shown));
-    return;
-  }
-  const auto answer = QMessageBox::question(
-      parent, HtmlViewService::tr("Open Link?"),
-      HtmlViewService::tr("The message links to this address:\n\n%1\n\nOpen "
-                          "it in your browser?")
-          .arg(shown),
-      QMessageBox::Open | QMessageBox::Cancel, QMessageBox::Cancel);
-  if (answer == QMessageBox::Open) QDesktopServices::openUrl(url);
+  Embedded::AskThenOpen(
+      url, {HtmlViewService::tr("Link Not Opened"),
+            HtmlViewService::tr("This kind of link cannot be opened from a "
+                                "message:\n\n%1"),
+            HtmlViewService::tr("Open Link?"),
+            HtmlViewService::tr("The message links to this address:\n\n%1\n\n"
+                                "Open it in your browser?")});
 }
 
 }  // namespace
@@ -201,19 +180,6 @@ void HtmlViewService::drain(const QString& owner, const QString& name) {
 
 /* --- consumers ----------------------------------------------------------- */
 
-auto HtmlViewService::select(const HtmlView::Policy& policy) const
-    -> const Provider* {
-  const Provider* best = nullptr;
-  for (const auto& p : providers_) {
-    if (p->draining || p->info.restart_required) continue;
-    if (!Covers(p->info, policy)) continue;
-    if (best == nullptr || p->info.priority > best->info.priority) {
-      best = p.get();
-    }
-  }
-  return best;
-}
-
 auto HtmlViewService::Available(int preset) const -> int {
   const auto policy = HtmlView::PolicyFor(preset);
   if (!policy.has_value()) return kINVALID;
@@ -241,61 +207,22 @@ auto HtmlViewService::CreateView(const QString& caller, quint64 instance,
   const auto policy = HtmlView::PolicyFor(preset);
   if (!policy.has_value()) return kINVALID;
 
-  // Who is asking is the grant's answer, never an argument's; and the
-  // instance must be one the Host made for that module, still alive.
-  const auto live = NativeInstances::Instance().Find(instance);
-  if (!live.has_value() || live->owner != caller || live->widget.isNull()) {
-    return kDENIED;
-  }
-  QWidget* root = live->widget.data();
-
-  // The slot is the caller's pointer, so it is not followed until it has
-  // been found, by address, in the instance's own tree. Asking the slot for
-  // its ancestors would dereference whatever the caller passed.
-  QWidget* target = nullptr;
-  if (slot == root) {
-    target = root;
-  } else {
-    for (auto* child : root->findChildren<QWidget*>()) {
-      if (child == slot) {
-        target = child;
-        break;
-      }
-    }
-  }
+  auto* target = Embedded::FindSlot(caller, instance, slot);
   if (target == nullptr) return kDENIED;
-  if (target->layout() != nullptr && target->layout()->count() > 0) {
-    return kINVALID;  // the view fills its slot; the slot must be empty
-  }
+  if (!Embedded::IsEmptySlot(target)) return kINVALID;
 
-  const auto* chosen = select(*policy);
-  if (chosen == nullptr) {
+  const auto provider = Embedded::PickProvider(
+      providers_, [&](const Provider& p) { return Covers(p.info, *policy); });
+  if (provider == nullptr) {
     const auto status = Available(preset);
     return status == kOK ? kUNAVAILABLE : status;
-  }
-  std::shared_ptr<Provider> provider;
-  for (const auto& p : providers_) {
-    if (p.get() == chosen) provider = p;
   }
 
   const auto id = new_id();
   auto* widget = provider->info.renderer->Create(id, *policy);
   if (widget == nullptr) return kFAILED;
 
-  auto* frame = new QWidget(target);
-  frame->setObjectName(u"GFHtmlViewFrame"_s);
-  auto* frame_layout = new QVBoxLayout(frame);
-  frame_layout->setContentsMargins(0, 0, 0, 0);
-  frame_layout->setSpacing(0);
-  widget->setParent(frame);
-  frame_layout->addWidget(widget);
-  auto* slot_layout = target->layout();
-  if (slot_layout == nullptr) {
-    slot_layout = new QVBoxLayout(target);
-    slot_layout->setContentsMargins(0, 0, 0, 0);
-    slot_layout->setSpacing(0);
-  }
-  slot_layout->addWidget(frame);
+  auto* frame = Embedded::MountInSlot(target, widget, u"GFHtmlViewFrame"_s);
 
   auto v = std::make_shared<View>();
   v->id = id;
