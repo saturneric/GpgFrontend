@@ -498,6 +498,126 @@ TEST(GFUiStatusDockPresenterTest, LeavingTheCompactContextRestoresThePrevious) {
   });
 }
 
+TEST(GFUiStatusDockPresenterTest, EachPageGetsBackWhatItWasLeftShowing) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    QObject a;
+    QObject b;
+    f.presenter->SetPage(&a, false);
+    ASSERT_FALSE(f.Collapsed());
+
+    f.presenter->SetPage(&b, false);
+    f.Collapse();  // only on b
+
+    f.presenter->SetPage(&a, false);
+    EXPECT_FALSE(f.Collapsed()) << "a was left expanded";
+    f.presenter->SetPage(&b, false);
+    EXPECT_TRUE(f.Collapsed()) << "b was left collapsed";
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, ACompactPageTheUserExpandedStaysExpanded) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    QObject ordinary;
+    QObject note;
+    QObject other_note;
+    f.presenter->SetPage(&ordinary, false);
+    f.presenter->SetPage(&note, true);
+    ASSERT_TRUE(f.Collapsed());
+    f.Expand();  // the user opens it on this note
+
+    f.presenter->SetPage(&ordinary, false);
+    EXPECT_FALSE(f.Collapsed());
+    f.presenter->SetPage(&note, true);
+    EXPECT_FALSE(f.Collapsed()) << "not collapsed again on coming back";
+
+    // A compact page nobody touched still collapses, every time.
+    f.presenter->SetPage(&ordinary, false);
+    f.presenter->SetPage(&other_note, true);
+    EXPECT_TRUE(f.Collapsed());
+    f.presenter->SetPage(&ordinary, false);
+    f.presenter->SetPage(&other_note, true);
+    EXPECT_TRUE(f.Collapsed());
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, ANewPageStartsFromItsOwnConfiguration) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    QObject ordinary;
+    QObject other_ordinary;
+    QObject note;
+    QObject other_note;
+
+    f.presenter->SetPage(&ordinary, false);
+    f.Collapse();
+    f.presenter->SetPage(&other_ordinary, false);
+    EXPECT_FALSE(f.Collapsed()) << "not the last page's collapse";
+
+    f.presenter->SetPage(&note, true);
+    f.Expand();
+    f.presenter->SetPage(&other_note, true);
+    EXPECT_TRUE(f.Collapsed()) << "not the last note's expansion";
+
+    // And each still gets back its own.
+    f.presenter->SetPage(&ordinary, false);
+    EXPECT_TRUE(f.Collapsed());
+    f.presenter->SetPage(&note, true);
+    EXPECT_FALSE(f.Collapsed());
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, AFloatingPanelWaitsToCollapseForANewNote) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    QObject note;
+    f.dock->setFloating(true);
+    PresenterFixture::Settle();
+
+    f.presenter->SetPage(&note, true);
+    EXPECT_FALSE(f.Collapsed()) << "it takes no room from the editor";
+    f.dock->setFloating(false);
+    PresenterFixture::Settle();
+    EXPECT_TRUE(f.Collapsed());
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, ComingBackToAPageKeepsAHiddenDockHidden) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    QObject a;
+    QObject b;
+    f.presenter->SetPage(&a, false);
+    f.Collapse();
+    f.presenter->SetPage(&b, false);
+    f.Expand();
+    f.UserCloses();
+
+    f.presenter->SetPage(&a, false);
+    EXPECT_TRUE(f.dock->isHidden());
+  });
+}
+
+TEST(GFUiStatusDockPresenterTest, APageThatGoesAwayIsForgotten) {
+  OnGuiThread([] {
+    PresenterFixture f;
+    QObject stays;
+    auto* gone = new QObject();
+    f.presenter->SetPage(gone, false);
+    f.Collapse();
+    f.presenter->SetPage(&stays, false);
+    f.Expand();
+    delete gone;
+
+    // A new page at the same address is a page never seen.
+    auto* fresh = new QObject();
+    f.presenter->SetPage(fresh, false);
+    EXPECT_FALSE(f.Collapsed());
+    delete fresh;
+  });
+}
+
 TEST(GFUiStatusDockPresenterTest, ResetChangesNeitherAxis) {
   OnGuiThread([] {
     PresenterFixture f;

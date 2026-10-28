@@ -60,6 +60,9 @@ enum class StatusDockPresentation : uint8_t {
  *  - SetCompactContext() collapses on entering a context that asked for a
  *    compact panel, keeps the user's choice while inside it, and restores
  *    what was there before on leaving it;
+ *  - SetPage() remembers what each page was left showing, so coming back to
+ *    a tab brings back its panel as it was, and starts a page with nothing
+ *    remembered from its own configuration;
  *  - a floating panel takes no room from the editor, so a compact context
  *    never collapses it: dragging an automatically collapsed panel out
  *    expands it, and docking it back inside the context collapses it again.
@@ -141,6 +144,19 @@ class GF_UI_EXPORT StatusDockPresenter : public QObject {
   void SetCompactContext(bool compact);
 
   /**
+   * @brief Tells the presenter which page is in front, and whether it asked
+   * for compact.
+   *
+   * A page seen before gets back the presentation it was left in; a page
+   * with nothing remembered gets what it was made with: collapsed when it
+   * asked for compact, expanded otherwise. Only a choice is remembered: a
+   * compact context's own collapse, or the expansion a floating panel got,
+   * leaves the page with nothing remembered. A hidden dock stays hidden, and
+   * a page that goes away is forgotten.
+   */
+  void SetPage(QObject* page, bool compact);
+
+  /**
    * @brief The panel's expanded geometry, from a default layout.
    *
    * Applied now when expanded; only remembered when collapsed, so a layout
@@ -182,6 +198,9 @@ class GF_UI_EXPORT StatusDockPresenter : public QObject {
   StatusDockPresentation presentation_ = StatusDockPresentation::kExpanded;
   /// Set exactly while inside a compact context: what to restore on leaving.
   std::optional<StatusDockPresentation> before_compact_;
+  /// The page in front (SetPage), and what each page was left showing.
+  QPointer<QObject> page_;
+  QHash<const QObject*, StatusDockPresentation> left_as_;
   /// The current Collapsed came from a compact context, not from the user.
   bool auto_collapsed_ = false;
   /// Inside a compact context, its collapse was skipped or undone because

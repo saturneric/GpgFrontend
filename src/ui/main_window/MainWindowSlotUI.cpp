@@ -391,7 +391,8 @@ void MainWindow::sync_status_dock_context() {
   // Opted into by the page's document view, never inferred from having one.
   if (status_dock_presenter_ == nullptr) return;
   const auto* text_page = edit_->CurPageTextEdit();
-  status_dock_presenter_->SetCompactContext(
+  status_dock_presenter_->SetPage(
+      edit_->CurPage(),
       text_page != nullptr && text_page->PrefersCompactStatusDock());
 }
 

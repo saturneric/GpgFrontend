@@ -428,6 +428,55 @@ void StatusDockPresenter::SetCompactContext(bool compact) {
   transition_to(restore, false);
 }
 
+void StatusDockPresenter::SetPage(QObject* page, bool compact) {
+  if (page == page_.data()) {
+    SetCompactContext(compact);
+    return;
+  }
+
+  // What the page being left shows, when that was a choice rather than a
+  // compact context's collapse or a float's expansion.
+  if (const QObject* leaving = page_.data(); leaving != nullptr) {
+    if (auto_collapsed_ || compact_owed_) {
+      left_as_.remove(leaving);
+    } else {
+      if (!left_as_.contains(leaving)) {
+        connect(leaving, &QObject::destroyed, this,
+                [this, leaving]() { left_as_.remove(leaving); });
+      }
+      left_as_.insert(leaving, presentation_);
+    }
+  }
+  page_ = page;
+
+  SetCompactContext(compact);
+  if (dock_ == nullptr || dock_->isHidden()) return;
+
+  const auto it = left_as_.constFind(page);
+  if (it != left_as_.constEnd()) {
+    auto_collapsed_ = false;
+    compact_owed_ = false;
+    float_expand_->stop();
+    transition_to(*it, false);
+    return;
+  }
+
+  // Nothing remembered: what the page was made with, not what the last page
+  // showed. A compact page collapses (or, floating, once docked again); any
+  // other is expanded.
+  if (!compact) {
+    auto_collapsed_ = false;
+    compact_owed_ = false;
+    float_expand_->stop();
+    transition_to(StatusDockPresentation::kExpanded, false);
+  } else if (dock_->isFloating()) {
+    compact_owed_ = presentation_ != StatusDockPresentation::kCollapsed;
+  } else if (presentation_ != StatusDockPresentation::kCollapsed) {
+    transition_to(StatusDockPresentation::kCollapsed, false);
+    auto_collapsed_ = true;
+  }
+}
+
 void StatusDockPresenter::on_floating_changed(bool floating) {
   if (dock_ == nullptr) return;
   if (floating) {
