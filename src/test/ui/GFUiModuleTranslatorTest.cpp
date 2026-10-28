@@ -179,7 +179,7 @@ constexpr std::array<ModuleText, 7> kModuleUiText = {{
     {"com.bktus.gpgfrontend.module.email", "ModuleEMail", "Mail Editor"},
     {"com.bktus.gpgfrontend.module.im", "ModuleIM", "Instant Messaging"},
     {"com.bktus.gpgfrontend.module.im", "ModuleIM", "IM Encrypt"},
-    {"com.bktus.gpgfrontend.module.notes", "ModuleNotes", "Encrypted Note"},
+    {"com.bktus.gpgfrontend.module.notes", "ModuleNotes", "Note Editor"},
     {"com.bktus.gpgfrontend.module.key_server_sync", "ModuleKeyServerSync",
      "Key Servers"},
     {"com.bktus.gpgfrontend.module.version_checking", "ModuleVersionChecking",
