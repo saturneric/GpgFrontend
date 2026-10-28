@@ -30,10 +30,11 @@
 
 #include <QByteArray>
 #include <QCborValue>
-#include <QVariant>
 #include <QList>
 #include <QString>
 #include <QStringList>
+#include <QVariant>
+#include <optional>
 #include <vector>
 
 #include "GFSDKBuffer.h"
@@ -250,6 +251,30 @@ inline auto PublicKey(GFSDKContext* ctx, int channel, const QString& key_id,
   return TakeBytes(
       ctx,
       GFGpgPublicKey(ctx, channel, key_id.toUtf8().constData(), ascii ? 1 : 0));
+}
+
+/// A key's primary UID, as GFGpgKeyPrimaryUid() gives it.
+struct KeyUid {
+  QString name;
+  QString email;
+
+  /// "Name <email>", or just the name when there is no e-mail.
+  [[nodiscard]] auto Address() const -> QString {
+    return email.isEmpty() ? name : QString("%1 <%2>").arg(name, email);
+  }
+};
+
+/// @return nullopt when the key is unknown or has no UID
+inline auto PrimaryUid(GFSDKContext* ctx, int channel, const QString& key_id)
+    -> std::optional<KeyUid> {
+  if (key_id.isEmpty()) return std::nullopt;
+  GFBufferRef name = nullptr;
+  GFBufferRef email = nullptr;
+  if (GFGpgKeyPrimaryUid(ctx, channel, key_id.toUtf8().constData(), &name,
+                         &email, nullptr) != 0) {
+    return std::nullopt;
+  }
+  return KeyUid{TakeString(ctx, name), TakeString(ctx, email)};
 }
 
 /**
