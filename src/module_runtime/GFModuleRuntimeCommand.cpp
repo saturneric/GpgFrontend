@@ -75,12 +75,9 @@ class ModuleBlobStorage : public gf::cmd::BlobStorage {
 };
 
 auto ReadMap(GFBufferView view) -> QCborMap {
-  auto* ctx = gf::runtime::SdkContext();
-  const auto* data = static_cast<const char*>(GFBufferData(ctx, view));
-  const auto size = GFBufferSize(ctx, view);
-  if (data == nullptr || size == 0) return {};
-  return QCborValue::fromCbor(QByteArray(data, static_cast<qsizetype>(size)))
-      .toMap();
+  const auto bytes = gf::runtime::ViewBytes(view);
+  if (bytes.isEmpty()) return {};
+  return QCborValue::fromCbor(bytes).toMap();
 }
 
 /// Take a handle's CBOR and release the handle.

@@ -28,9 +28,7 @@
 
 #include "GFModuleRuntimeHtmlView.h"
 
-#include <QCoreApplication>
 #include <QHash>
-#include <QThread>
 #include <list>
 
 #include "GFModuleRuntimeBoot.h"
@@ -74,14 +72,6 @@ auto Registrations() -> std::list<Registration>& {
   return r;
 }
 
-auto Bytes(GFBufferView view) -> QByteArray {
-  auto* ctx = gf::runtime::SdkContext();
-  const auto* data = static_cast<const char*>(GFBufferData(ctx, view));
-  return data == nullptr
-             ? QByteArray()
-             : QByteArray(data, static_cast<int>(GFBufferSize(ctx, view)));
-}
-
 // --- consumer events
 
 void OnEvent(void* /*user*/, uint64_t view, int event, int value,
@@ -121,7 +111,7 @@ auto OpCreate(void* user, uint64_t view, const GFHtmlViewPolicy* policy)
 auto OpLoad(void* user, uint64_t view, const char* session,
             GFBufferView document) -> int {
   return RendererOf(user)->Load(view, QString::fromUtf8(session),
-                                Bytes(document))
+                                gf::runtime::ViewBytes(document))
              ? 0
              : -1;
 }
@@ -135,7 +125,8 @@ void OpDestroyed(void* user, uint64_t view) {
 void OnPartDone(void* /*user*/, uint64_t request, int status, const char* mime,
                 GFBufferRef data) {
   auto* ctx = gf::runtime::SdkContext();
-  const auto bytes = data == nullptr ? QByteArray() : Bytes(data);
+  const auto bytes =
+      data == nullptr ? QByteArray() : gf::runtime::ViewBytes(data);
   if (data != nullptr) GFBufferRelease(ctx, data);
   const auto done = PartRequests().take(request);
   if (done) done(status, QString::fromUtf8(mime), bytes);
@@ -282,16 +273,10 @@ namespace gf::runtime {
 void ForgetHtmlViews() {
   // The Host has withdrawn this module's views and drained its renderers
   // (or is about to, on the GUI thread, ahead of this): nothing calls in.
-  auto forget = []() {
+  RunOnGuiThread([]() {
     ViewHandlers().clear();
     PartRequests().clear();
-  };
-  auto* app = QCoreApplication::instance();
-  if (app == nullptr || QThread::currentThread() == app->thread()) {
-    forget();
-  } else {
-    QMetaObject::invokeMethod(app, forget, Qt::QueuedConnection);
-  }
+  });
 }
 
 void ResetHtmlRenderers() {

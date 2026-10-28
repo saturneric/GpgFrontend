@@ -30,6 +30,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <functional>
 
 #include "GFSDKContext.h"
 #include "GFSDKModuleApi.h"
@@ -99,6 +100,13 @@ void AdoptHostApi(const GFHostApi* host, const char* module_id);
  * pointer that never changes again.
  */
 auto SdkContext() -> GFSDKContext*;
+
+/// A borrowed buffer's octets, copied; empty for NULL.
+auto ViewBytes(GFBufferView view) -> QByteArray;
+
+/// Run @p fn on the GUI thread: now when already there, or when there is no
+/// application to queue it on; queued otherwise.
+void RunOnGuiThread(std::function<void()> fn);
 
 /**
  * @brief Copy a host bootstrap payload into owned storage.

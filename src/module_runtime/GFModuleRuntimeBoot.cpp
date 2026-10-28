@@ -29,9 +29,12 @@
 #include "GFModuleRuntimeBoot.h"
 
 #include <QByteArray>
+#include <QCoreApplication>
+#include <QThread>
 #include <atomic>
 #include <cstddef>
 
+#include "GFSDKBuffer.h"
 #include "GFSDKBuildInfo.h"
 
 namespace gf::runtime {
@@ -186,6 +189,24 @@ auto AdoptBootstrapInfo(const GFModuleBootstrapInfo* info,
   }
 
   return facts;
+}
+
+auto ViewBytes(GFBufferView view) -> QByteArray {
+  auto* ctx = SdkContext();
+  const auto* data = static_cast<const char*>(GFBufferData(ctx, view));
+  return data == nullptr
+             ? QByteArray()
+             : QByteArray(data,
+                          static_cast<qsizetype>(GFBufferSize(ctx, view)));
+}
+
+void RunOnGuiThread(std::function<void()> fn) {
+  auto* app = QCoreApplication::instance();
+  if (app == nullptr || QThread::currentThread() == app->thread()) {
+    fn();
+  } else {
+    QMetaObject::invokeMethod(app, std::move(fn), Qt::QueuedConnection);
+  }
 }
 
 }  // namespace gf::runtime
