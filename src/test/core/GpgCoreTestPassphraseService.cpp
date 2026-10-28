@@ -26,6 +26,7 @@
  *
  */
 
+#include <array>
 #include <atomic>
 
 #include "GFCoreTest.h"
@@ -254,6 +255,22 @@ class ScopedRequesterGrace : public ScopedSetting {
 };
 
 }  // namespace
+
+// A fresh context says nothing about earlier tries, whatever memory it was
+// made in: it comes from the secure allocator, whose recycled blocks once made
+// a first prompt open with "the passphrase you entered was incorrect".
+TEST_F(GFCoreTest, AFreshPassphraseContextCarriesNoEarlierState) {
+  alignas(GpgPassphraseContext)
+      std::array<unsigned char, sizeof(GpgPassphraseContext)>
+          dirty;
+  dirty.fill(0xFF);
+  auto* ctx = new (dirty.data()) GpgPassphraseContext();
+  EXPECT_FALSE(ctx->IsPreWasBad());
+  EXPECT_FALSE(ctx->IsAskForNew());
+  EXPECT_FALSE(ctx->ShouldConfirm());
+  EXPECT_EQ(ctx->GetChannel(), -1);
+  ctx->~GpgPassphraseContext();
+}
 
 /**
  * Two operations queued on the same runner must not overlap. Waiting for a

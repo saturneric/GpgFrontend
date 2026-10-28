@@ -93,13 +93,15 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   void SetTimeoutSeconds(int seconds);
 
  private:
-  int channel_;
+  // Initialised here: the object comes from the secure allocator, whose
+  // memory is recycled.
+  int channel_ = -1;
   QString passphrase_info_;
   GpgAbstractKeyPtr key_;
   GFBuffer passphrase_;
-  bool prev_was_bad_;
-  bool ask_for_new_;
-  bool should_confirm_;
+  bool prev_was_bad_ = false;
+  bool ask_for_new_ = false;
+  bool should_confirm_ = false;
   bool cancelled_ = false;
   int timeout_seconds_ = 0;
 };
