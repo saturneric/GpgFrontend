@@ -287,6 +287,12 @@ struct GF_CORE_EXPORT ArchiveMemberEntry {
  */
 using ArchiveMemberProvider = std::function<bool(ArchiveMemberEntry &)>;
 
+/**
+ * @brief Receives a built archive a chunk at a time; returning false says the
+ * chunk could not be kept.
+ */
+using ArchiveChunkSink = std::function<bool(const char *data, qint64 size)>;
+
 class GF_CORE_EXPORT ArchiveFileOperator {
  public:
   /**
@@ -467,6 +473,28 @@ class GF_CORE_EXPORT ArchiveFileOperator {
   static auto NewArchiveFromMembersSync(
       const ArchiveMemberProvider &next,
       const QSharedPointer<GFDataExchanger> &exchanger,
+      ArchiveCompression compression,
+      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
+
+  /**
+   * @brief NewArchiveFromMembersSync(), with the archive handed to @p sink
+   * as it is produced.
+   *
+   * Owns the pipe and the producer thread, so a caller cannot get the two
+   * things wrong that every hand-written copy had to get right: the pipe
+   * blocks its writer once full, so the producer has to run on its own thread;
+   * and joining that thread while it is blocked deadlocks, so the pipe is
+   * drained to the end even after @p sink has failed. A failed sink is not
+   * called again.
+   *
+   * @param next yields entries until it returns false
+   * @param sink receives the archive bytes in order
+   * @param compression whether to gzip
+   * @param format container format to write
+   * @return 0 when the archive was built and every chunk was kept
+   */
+  static auto NewArchiveFromMembersToSink(
+      const ArchiveMemberProvider &next, const ArchiveChunkSink &sink,
       ArchiveCompression compression,
       ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
 };

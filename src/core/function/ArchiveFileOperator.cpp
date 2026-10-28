@@ -758,6 +758,33 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
   return ret;
 }
 
+auto ArchiveFileOperator::NewArchiveFromMembersToSink(
+    const ArchiveMemberProvider &next, const ArchiveChunkSink &sink,
+    ArchiveCompression compression, ArchiveFormat format) -> GFError {
+  constexpr qint64 kChunk = 64 * 1024;
+  auto exchanger = CreateStandardGFDataExchanger();
+
+  // Set by the producer, read after it is joined.
+  GFError archive_error = 0;
+  std::thread producer([&]() {
+    archive_error =
+        NewArchiveFromMembersSync(next, exchanger, compression, format);
+  });
+
+  QByteArray chunk(static_cast<int>(kChunk), Qt::Uninitialized);
+  bool kept = true;
+  while (true) {
+    const auto n =
+        exchanger->Read(reinterpret_cast<std::byte *>(chunk.data()), kChunk);
+    if (n <= 0) break;
+    if (kept) kept = sink(chunk.constData(), n);
+  }
+  producer.join();
+
+  if (archive_error != 0) return archive_error;
+  return kept ? 0 : -1;
+}
+
 namespace {
 
 /// The one extraction walk, however the archive is opened.

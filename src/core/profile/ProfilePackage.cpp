@@ -61,7 +61,6 @@ namespace GpgFrontend {
 namespace {
 
 constexpr int kMaxHeaderLength = 64 * 1024;
-constexpr qint64 kDrainChunk = 64 * 1024;
 
 /// Headroom below which an unpacking failure is read as "the storage filled up"
 /// rather than "the package is damaged". Deliberately generous: the last write
@@ -174,36 +173,6 @@ auto WriteProfilePackage(const ArchiveMemberProvider &next,
     -> ProfilePackageWriteResult {
   ProfilePackageWriteResult result;
 
-  auto exchanger = CreateStandardGFDataExchanger();
-  GFError archive_error = 0;
-
-  // The archive is produced on another thread because the exchanger is a
-  // pipe: it holds a few megabytes and then blocks its writer until someone
-  // reads.
-  std::thread producer([&]() {
-    archive_error = ArchiveFileOperator::NewArchiveFromMembersSync(
-        next, exchanger, ArchiveCompression::kGZIP);
-  });
-
-  // Joining the producer while it is blocked writing into a full pipe is a
-  // deadlock, so nothing may join it without closing the pipe first. Written as
-  // a guard rather than as care at each call site because care is exactly what
-  // the early returns below were missing, and a fourth one would miss it too.
-  //
-  // The drain path below joins explicitly, once it has emptied the pipe and can
-  // read `archive_error`; this then finds the thread already joined and does
-  // nothing.
-  struct ProducerGuard {
-    std::thread &thread;
-    GFDataExchanger &pipe;
-
-    ~ProducerGuard() {
-      if (!thread.joinable()) return;
-      pipe.CloseWrite();
-      thread.join();
-    }
-  } const producer_guard{producer, *exchanger};
-
   const auto header_bytes = EncodeProfilePackageHeader(header);
 
   // Written beside the destination, so the final step is a rename inside
@@ -253,26 +222,15 @@ auto WriteProfilePackage(const ArchiveMemberProvider &next,
       return abandon("the package could not be encrypted");
     }
 
-    QByteArray chunk(static_cast<int>(kDrainChunk), Qt::Uninitialized);
     bool sink_failed = false;
-    while (true) {
-      const auto read = exchanger->Read(
-          reinterpret_cast<std::byte *>(chunk.data()), kDrainChunk);
-      if (read <= 0) break;
-
-      payload_bytes += read;
-      if (!writer.Write(chunk.constData(), read)) {
-        // Drain to the end regardless: the producer is blocked on this pipe
-        // and joining it while it waits would deadlock.
-        sink_failed = true;
-        while (exchanger->Read(reinterpret_cast<std::byte *>(chunk.data()),
-                               kDrainChunk) > 0) {
-        }
-        break;
-      }
-    }
-
-    producer.join();
+    const auto archive_error = ArchiveFileOperator::NewArchiveFromMembersToSink(
+        next,
+        [&](const char *data, qint64 size) {
+          payload_bytes += size;
+          sink_failed = !writer.Write(data, size);
+          return !sink_failed;
+        },
+        ArchiveCompression::kGZIP);
 
     if (sink_failed) {
       temporary.close();

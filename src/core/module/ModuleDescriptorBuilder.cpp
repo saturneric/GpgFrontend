@@ -35,7 +35,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QSaveFile>
-#include <thread>
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
@@ -429,49 +428,25 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
     return Fail(QString("\"%1\" could not be written").arg(spec.output_path));
   }
 
-  auto exchanger = CreateStandardGFDataExchanger();
+  qsizetype index = 0;
+  const auto archive_error = ArchiveFileOperator::NewArchiveFromMembersToSink(
+      [&](ArchiveMemberEntry& entry) {
+        if (index >= members.size()) return false;
+        const auto& source = members.at(index++);
+        entry.relative_path = source.archive_path;
+        if (source.source_file.isEmpty()) {
+          entry.bytes = GFBuffer(source.bytes);
+        } else {
+          entry.source_file = source.source_file;
+        }
+        return true;
+      },
+      [&](const char* data, qint64 size) {
+        return out.write(data, size) == size;
+      },
+      ArchiveCompression::kNONE, ArchiveFormat::kZIP);
 
-  // Set by the producer, read after it is joined.
-  GFError archive_error = 0;
-
-  std::thread producer([&]() {
-    qsizetype index = 0;
-    archive_error = ArchiveFileOperator::NewArchiveFromMembersSync(
-        [&](ArchiveMemberEntry& entry) {
-          if (index >= members.size()) return false;
-          const auto& source = members.at(index++);
-          entry.relative_path = source.archive_path;
-          if (source.source_file.isEmpty()) {
-            entry.bytes = GFBuffer(source.bytes);
-          } else {
-            entry.source_file = source.source_file;
-          }
-          return true;
-        },
-        exchanger, ArchiveCompression::kNONE, ArchiveFormat::kZIP);
-  });
-
-  auto write_ok = true;
-  {
-    std::array<std::byte, 64 * 1024> chunk{};
-    while (true) {
-      const auto n = exchanger->Read(chunk.data(), chunk.size());
-      if (n <= 0) break;
-      // A failed write does NOT stop the loop. There is no way to close the
-      // read side of this pipe, so a producer that is still pushing into a
-      // full one blocks forever -- and the join below would then never
-      // return. Draining to the end costs a rebuild of an archive that is
-      // about to be discarded, which is cheaper than a hung build.
-      if (!write_ok) continue;
-      if (out.write(reinterpret_cast<const char*>(chunk.data()), n) != n) {
-        write_ok = false;
-      }
-    }
-  }
-
-  producer.join();
-
-  if (!write_ok || archive_error != 0) {
+  if (archive_error != 0) {
     out.cancelWriting();
     return Fail(QString("\"%1\" could not be written").arg(spec.output_path));
   }
