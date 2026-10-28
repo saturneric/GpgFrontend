@@ -129,6 +129,20 @@ class DocumentWidget : public NativeWidgetBase {
     return std::nullopt;
   }
 
+  // --- a document the module persists itself (persistence = "module") ---
+
+  /// Open the file at @p path; the Host has not read it. false: refused.
+  virtual auto OpenPath(const QString& /*path*/) -> bool { return false; }
+  /// Save, or Save As. true: taken; NotifySaved() says when it is done.
+  virtual auto SaveRequested(bool /*save_as*/) -> bool { return false; }
+  /// The tab or the application is closing. false keeps it open. May ask.
+  virtual auto CloseRequested() -> bool { return true; }
+  /// The user asked to find text in the document.
+  virtual void FindRequested() {}
+  /// The user pressed Encrypt: encrypt the document yourself. true: taken.
+  /// Offered while CryptoOperations() includes GF_CRYPTO_OP_ENCRYPT.
+  virtual auto EncryptRequested() -> bool { return false; }
+
  protected:
   /// An edit happened; the tab now has unsaved changes.
   void NotifyModified();
@@ -138,6 +152,8 @@ class DocumentWidget : public NativeWidgetBase {
   void RequestCrypto(uint32_t op);
   /// CryptoOperations() would now answer differently.
   void NotifyOpsChanged();
+  /// Saved to @p path; the tab now reads @p title and is no longer modified.
+  void NotifySaved(const QString& path, const QString& title);
 };
 
 /// A page in the Host's Settings dialog.

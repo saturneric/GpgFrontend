@@ -172,14 +172,6 @@ auto FailOperation(GFGpgResultImpl* impl, GpgFrontend::GFError err,
   return GF_GPG_OP_FAILED;
 }
 
-/// Borrowed view -> a core GFBuffer, copying the octets verbatim.
-auto ViewToBuffer(GFBufferView v) -> GpgFrontend::GFBuffer {
-  const auto* data = static_cast<const char*>(GFBufferData(v));
-  const auto size = GFBufferSize(v);
-  if (data == nullptr || size == 0) return {};
-  return GpgFrontend::GFBuffer{data, size};
-}
-
 auto KeysOf(int channel, const char* const* key_ids, size_t key_ids_size)
     -> GpgFrontend::GpgAbstractKeyPtrList {
   GpgFrontend::GpgAbstractKeyPtrList keys;
@@ -226,6 +218,67 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
   impl->data = GFBufferNewFromBytes(out_buffer.Data(), out_buffer.Size());
 }
 
+/// Finish() with the result model and payload every op but Verify carries:
+/// the model first, the bytes second.
+template <typename ResultT>
+void FinishWithPayload(GFGpgResultImpl* impl,
+                       const GpgFrontend::DataObjectPtr& data_object,
+                       GpgFrontend::GFError err) {
+  Finish(impl, GpgFrontend::ExtractParams<ResultT>(data_object, 0),
+         GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1),
+         err);
+}
+
+/**
+ * @brief The shape every operation shares.
+ *
+ * The engine is leased for the whole call: a handle from another run of the
+ * context, or one never issued, names no database, and is refused here rather
+ * than handed to GetInstance(), which would build a placeholder context for
+ * it. Then @p prepare may refuse the request (a non-null reason) before
+ * anything is attempted, @p run performs it, and @p fill records what it
+ * produced. An owned result comes back either way, and no C++ exception
+ * crosses the C ABI.
+ */
+template <typename Prepare, typename Run, typename Fill>
+auto RunOperation(int channel, const char* origin, GFGpgResultRef* out,
+                  Prepare&& prepare, Run&& run, Fill&& fill) -> int {
+  if (out == nullptr) return -1;
+  *out = nullptr;
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) {
+    return FailRequest(out, "the channel names no open key database", origin);
+  }
+
+  // Declared outside the try so an exception cannot orphan a registered
+  // result: the catch releases it.
+  GFGpgResultImpl* impl = nullptr;
+  try {
+    if (const char* why = prepare(); why != nullptr) {
+      return FailRequest(out, why, origin);
+    }
+    impl = NewResult(origin);
+    if (impl == nullptr) return -1;
+
+    auto [err, data_object] = run();
+    if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      return FailOperation(impl, err, out);
+    }
+    fill(impl, data_object, err);
+    *out = impl;
+    return GF_GPG_OK;
+  } catch (...) {
+    LOG_E() << origin << ": unexpected exception";
+    if (impl != nullptr) {
+      GFGpgResultRelease(impl);
+      *out = nullptr;
+    }
+    return -1;
+  }
+}
+
+constexpr auto kNothingToPrepare = []() -> const char* { return nullptr; };
+
 }  // namespace
 
 auto TakeResultModel(const char* capsule_id) -> std::any {
@@ -252,191 +305,89 @@ auto TakeResultModel(const char* capsule_id) -> std::any {
 auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
                GFBufferView in, int sign_mode, int ascii, GFGpgResultRef* out)
     -> int {
-  if (out == nullptr) return -1;
-  *out = nullptr;
-  // A handle from another run of the context, or one never issued, names no
-  // database. Refused here rather than handed to GetInstance(), which would
-  // build a placeholder context for it. Held for the whole call, so the
-  // database cannot be reclaimed while the call is still using it.
-  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
-  if (!lease) {
-    return FailRequest(out, "the channel names no open key database",
-                       "GFGpgSign");
-  }
-
-  // Declared outside the try so an exception cannot orphan a registered
-  // result: the catch releases it.
-  GFGpgResultImpl* impl = nullptr;
-  try {
-    auto signer_keys = KeysOf(channel, key_ids, key_ids_size);
-    if (signer_keys.empty()) {
-      return FailRequest(out, "no usable signing key was given", "GFGpgSign");
-    }
-
-    impl = NewResult("GFGpgSign");
-    if (impl == nullptr) return -1;
-
-    auto [err, data_object] =
-        GpgFrontend::MessageCryptoOperation::GetInstance(channel).SignSync(
-            signer_keys, ViewToBuffer(in),
-            sign_mode == 0 ? GPGME_SIG_MODE_NORMAL : GPGME_SIG_MODE_DETACH,
-            ascii != 0);
-
-    if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      return FailOperation(impl, err, out);
-    }
-
-    auto result =
-        GpgFrontend::ExtractParams<GpgFrontend::GpgSignResult>(data_object, 0);
-    auto out_buffer =
-        GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
-
-    Finish(impl, result, out_buffer, err);
-    impl->hash_algo = result.HashAlgo().toUtf8();
-    *out = impl;
-    return GF_GPG_OK;
-  } catch (...) {
-    // No C++ exception may cross the C ABI.
-    LOG_E() << "GFGpgSign: unexpected exception";
-    if (impl != nullptr) {
-      GFGpgResultRelease(impl);
-      *out = nullptr;
-    }
-    return -1;
-  }
+  GpgFrontend::GpgAbstractKeyPtrList signer_keys;
+  return RunOperation(
+      channel, "GFGpgSign", out,
+      [&]() -> const char* {
+        signer_keys = KeysOf(channel, key_ids, key_ids_size);
+        return signer_keys.empty() ? "no usable signing key was given"
+                                   : nullptr;
+      },
+      [&] {
+        return GpgFrontend::MessageCryptoOperation::GetInstance(channel)
+            .SignSync(
+                signer_keys, GFBufferViewToCore(in),
+                sign_mode == 0 ? GPGME_SIG_MODE_NORMAL : GPGME_SIG_MODE_DETACH,
+                ascii != 0);
+      },
+      [](GFGpgResultImpl* impl, const GpgFrontend::DataObjectPtr& data_object,
+         GpgFrontend::GFError err) {
+        auto result = GpgFrontend::ExtractParams<GpgFrontend::GpgSignResult>(
+            data_object, 0);
+        Finish(
+            impl, result,
+            GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1),
+            err);
+        impl->hash_algo = result.HashAlgo().toUtf8();
+      });
 }
 
 auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
                   GFBufferView in, int ascii, GFGpgResultRef* out) -> int {
-  if (out == nullptr) return -1;
-  *out = nullptr;
-  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
-  if (!lease) {
-    return FailRequest(out, "the channel names no open key database",
-                       "GFGpgEncrypt");
-  }
+  GpgFrontend::GpgAbstractKeyPtrList recipients;
+  return RunOperation(
+      channel, "GFGpgEncrypt", out,
+      [&]() -> const char* {
+        recipients = KeysOf(channel, key_ids, key_ids_size);
+        return recipients.empty() ? "no usable recipient key was given"
+                                  : nullptr;
+      },
+      [&] {
+        return GpgFrontend::MessageCryptoOperation::GetInstance(channel)
+            .EncryptSync(recipients, GFBufferViewToCore(in), ascii != 0);
+      },
+      &FinishWithPayload<GpgFrontend::GpgEncryptResult>);
+}
 
-  // Declared outside the try so an exception cannot orphan a registered
-  // result: the catch releases it.
-  GFGpgResultImpl* impl = nullptr;
-  try {
-    auto recipients = KeysOf(channel, key_ids, key_ids_size);
-    if (recipients.empty()) {
-      return FailRequest(out, "no usable recipient key was given",
-                         "GFGpgEncrypt");
-    }
-
-    impl = NewResult("GFGpgEncrypt");
-    if (impl == nullptr) return -1;
-
-    auto [err, data_object] =
-        GpgFrontend::MessageCryptoOperation::GetInstance(channel).EncryptSync(
-            recipients, ViewToBuffer(in), ascii != 0);
-
-    if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      return FailOperation(impl, err, out);
-    }
-
-    auto result = GpgFrontend::ExtractParams<GpgFrontend::GpgEncryptResult>(
-        data_object, 0);
-    auto out_buffer =
-        GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
-
-    Finish(impl, result, out_buffer, err);
-    *out = impl;
-    return GF_GPG_OK;
-  } catch (...) {
-    LOG_E() << "GFGpgEncrypt: unexpected exception";
-    if (impl != nullptr) {
-      GFGpgResultRelease(impl);
-      *out = nullptr;
-    }
-    return -1;
-  }
+auto GFGpgEncryptSymmetric(int channel, GFBufferView in, int ascii,
+                           GFGpgResultRef* out) -> int {
+  return RunOperation(
+      channel, "GFGpgEncryptSymmetric", out, kNothingToPrepare,
+      [&] {
+        // The passphrase is asked for the Host's own way: the caller never
+        // sees it.
+        return GpgFrontend::MessageCryptoOperation::GetInstance(channel)
+            .EncryptSymmetricSync(GFBufferViewToCore(in), ascii != 0);
+      },
+      &FinishWithPayload<GpgFrontend::GpgEncryptResult>);
 }
 
 auto GFGpgDecrypt(int channel, GFBufferView in, GFGpgResultRef* out) -> int {
-  if (out == nullptr) return -1;
-  *out = nullptr;
-  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
-  if (!lease) {
-    return FailRequest(out, "the channel names no open key database",
-                       "GFGpgDecrypt");
-  }
-
-  // Declared outside the try so an exception cannot orphan a registered
-  // result: the catch releases it.
-  GFGpgResultImpl* impl = nullptr;
-  try {
-    impl = NewResult("GFGpgDecrypt");
-    if (impl == nullptr) return -1;
-
-    auto [err, data_object] =
-        GpgFrontend::MessageCryptoOperation::GetInstance(channel).DecryptSync(
-            ViewToBuffer(in));
-
-    if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      return FailOperation(impl, err, out);
-    }
-
-    auto result = GpgFrontend::ExtractParams<GpgFrontend::GpgDecryptResult>(
-        data_object, 0);
-    auto out_buffer =
-        GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
-
-    Finish(impl, result, out_buffer, err);
-    *out = impl;
-    return GF_GPG_OK;
-  } catch (...) {
-    LOG_E() << "GFGpgDecrypt: unexpected exception";
-    if (impl != nullptr) {
-      GFGpgResultRelease(impl);
-      *out = nullptr;
-    }
-    return -1;
-  }
+  return RunOperation(
+      channel, "GFGpgDecrypt", out, kNothingToPrepare,
+      [&] {
+        return GpgFrontend::MessageCryptoOperation::GetInstance(channel)
+            .DecryptSync(GFBufferViewToCore(in));
+      },
+      &FinishWithPayload<GpgFrontend::GpgDecryptResult>);
 }
 
 auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
                  GFGpgResultRef* out) -> int {
-  if (out == nullptr) return -1;
-  *out = nullptr;
-  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
-  if (!lease) {
-    return FailRequest(out, "the channel names no open key database",
-                       "GFGpgVerify");
-  }
-
-  // Declared outside the try so an exception cannot orphan a registered
-  // result: the catch releases it.
-  GFGpgResultImpl* impl = nullptr;
-  try {
-    impl = NewResult("GFGpgVerify");
-    if (impl == nullptr) return -1;
-
-    auto [err, data_object] =
-        GpgFrontend::MessageCryptoOperation::GetInstance(channel).VerifySync(
-            ViewToBuffer(in), ViewToBuffer(signature));
-
-    if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      return FailOperation(impl, err, out);
-    }
-
-    auto result = GpgFrontend::ExtractParams<GpgFrontend::GpgVerifyResult>(
-        data_object, 0);
-
-    // Verification produces no payload: the input IS the message.
-    Finish(impl, result, GpgFrontend::GFBuffer{}, err);
-    *out = impl;
-    return GF_GPG_OK;
-  } catch (...) {
-    LOG_E() << "GFGpgVerify: unexpected exception";
-    if (impl != nullptr) {
-      GFGpgResultRelease(impl);
-      *out = nullptr;
-    }
-    return -1;
-  }
+  return RunOperation(
+      channel, "GFGpgVerify", out, kNothingToPrepare,
+      [&] {
+        return GpgFrontend::MessageCryptoOperation::GetInstance(channel)
+            .VerifySync(GFBufferViewToCore(in), GFBufferViewToCore(signature));
+      },
+      [](GFGpgResultImpl* impl, const GpgFrontend::DataObjectPtr& data_object,
+         GpgFrontend::GFError err) {
+        // Verification produces no payload: the input IS the message.
+        Finish(impl,
+               GpgFrontend::ExtractParams<GpgFrontend::GpgVerifyResult>(
+                   data_object, 0),
+               GpgFrontend::GFBuffer{}, err);
+      });
 }
 
 /* --- accessors ----------------------------------------------------------- */

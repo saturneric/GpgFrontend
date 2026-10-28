@@ -271,14 +271,16 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
         !m.capabilities.contains("ui")) {
       return Malformed("\"capabilities\" names \"ui.custom\" without \"ui\"");
     }
-    // A view lives in a widget of the module's own, and a renderer's widget
-    // in a Host container; neither exists without native widgets.
-    for (const auto* html : {"html.view", "html.provider"}) {
-      if (m.capabilities.contains(QLatin1StringView(html)) &&
+    // A view or an editor lives in a widget of the module's own, and a
+    // provider's widget in a Host container; none exists without native
+    // widgets.
+    for (const auto* needs_custom :
+         {"html.view", "html.provider", "web.editor", "web.editor.provider"}) {
+      if (m.capabilities.contains(QLatin1StringView(needs_custom)) &&
           !m.capabilities.contains("ui.custom")) {
         return Malformed(QString("\"capabilities\" names \"%1\" without "
                                  "\"ui.custom\"")
-                             .arg(QLatin1StringView(html)));
+                             .arg(QLatin1StringView(needs_custom)));
       }
     }
   }

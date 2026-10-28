@@ -87,4 +87,11 @@ extern const GFHostNativeWidgetApi kNativeApi;
 extern const GFHostHtmlViewApi kHtmlViewApi;
 extern const GFHostHtmlProviderApi kHtmlProviderApi;
 
+/// The web editor groups, defined in GFHostWebEditor.cpp.
+extern const GFHostWebEditorApi kWebEditorApi;
+extern const GFHostWebEditorProviderApi kWebEditorProviderApi;
+
+/// The archive group, defined in GFHostArchive.cpp.
+extern const GFHostArchiveApi kArchiveApi;
+
 }  // namespace gf_sdk_internal

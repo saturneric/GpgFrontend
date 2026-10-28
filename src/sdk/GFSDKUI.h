@@ -110,6 +110,9 @@ int GFNativeDocumentOpsChanged(GFSDKContext* ctx, uint64_t instance);
 int GFNativeSettingsRestartNeeded(GFSDKContext* ctx, uint64_t instance,
                                   int level);
 int GFNativeDialogClose(GFSDKContext* ctx, uint64_t instance);
+/** A module-persisted document was saved; see GFDocumentWidgetOps. */
+int GFNativeDocumentSaved(GFSDKContext* ctx, uint64_t instance,
+                          const char* path, const char* title);
 
 /**
  * @brief A file size as the rest of the application writes it. PURE.

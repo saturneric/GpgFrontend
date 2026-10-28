@@ -596,6 +596,9 @@ class NativeDocumentPort : public NativeContainer {
   void OnWithdrawn() override {
     if (!page_.isNull()) page_->withdraw_native_view();
   }
+  void OnSaved(const QString &path, const QString &title) override {
+    if (!page_.isNull()) page_->module_saved(path, title);
+  }
 
  private:
   QPointer<PlainTextEditorPage> page_;
@@ -764,9 +767,81 @@ auto PlainTextEditorPage::AttachPublicKeyToPrimaryView(const QByteArray &key,
   return e->document.attach_public_key(native_instance_, key, name) ? 1 : 0;
 }
 
+void PlainTextEditorPage::SetModulePersisted(bool persisted) {
+  module_persisted_ = persisted;
+  if (!persisted || primary_view_.isNull()) return;
+  // Nothing of the document lives in the page, so there is no source to
+  // switch to: the view is all there is.
+  if (view_switcher_ != nullptr) view_switcher_->setVisible(false);
+  show_primary_view(true);
+  ui_->textPage->setVisible(false);
+}
+
+auto PlainTextEditorPage::module_document() const
+    -> std::optional<NativeWidgetEntry> {
+  if (!module_persisted_ || native_instance_ == 0) return std::nullopt;
+  return NativeInstances::Instance().Entry(native_instance_);
+}
+
+auto PlainTextEditorPage::ModuleOpenPath(const QString &path) -> bool {
+  const auto e = module_document();
+  if (!e.has_value() || !e->document.open_path ||
+      !e->document.open_path(native_instance_, path)) {
+    return false;
+  }
+  SetFilePath(path);
+  return true;
+}
+
+auto PlainTextEditorPage::ModuleSaveRequested(bool save_as) -> bool {
+  const auto e = module_document();
+  return e.has_value() && e->document.save_requested &&
+         e->document.save_requested(native_instance_, save_as);
+}
+
+auto PlainTextEditorPage::ModuleCloseRequested() -> bool {
+  const auto e = module_document();
+  return !e.has_value() || !e->document.close_requested ||
+         e->document.close_requested(native_instance_);
+}
+
+void PlainTextEditorPage::ModuleFindRequested() {
+  const auto e = module_document();
+  if (e.has_value() && e->document.find_requested) {
+    e->document.find_requested(native_instance_);
+  }
+}
+
+auto PlainTextEditorPage::ModuleEncryptRequested() -> bool {
+  const auto e = module_document();
+  return e.has_value() && e->document.encrypt_requested &&
+         e->document.encrypt_requested(native_instance_);
+}
+
+void PlainTextEditorPage::module_saved(const QString &path,
+                                       const QString &title) {
+  if (!module_persisted_) return;
+  if (!path.isEmpty()) SetFilePath(path);
+  NotifyFileSaved();
+  emit SignalModuleSaved(full_file_path_, title);
+}
+
 auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
     -> QStringList {
   has_opinion = false;
+  // The Host's crypto never touches a document it does not hold. Encrypt
+  // alone may be offered: the view does it itself, when it says it can.
+  if (module_persisted_) {
+    has_opinion = true;
+    const auto e = module_document();
+    if (!e.has_value() || !e->document.encrypt_requested ||
+        !e->document.crypto_ops) {
+      return {};
+    }
+    const auto bits = e->document.crypto_ops(native_instance_);
+    if (!bits.has_value() || (*bits & GF_CRYPTO_OP_ENCRYPT) == 0) return {};
+    return {u"encrypt"_s};
+  }
   if (primary_view_.isNull()) return {};
   const auto e = NativeInstances::Instance().Entry(native_instance_);
   if (!e.has_value() || !e->document.crypto_ops) return {};
@@ -814,6 +889,7 @@ void PlainTextEditorPage::slot_primary_view_modified() {
   if (primary_view_syncing_) return;
   ui_->textPage->document()->setModified(true);
   set_editor_modified(true);
+  emit SignalPrimaryViewEdited();
 }
 
 auto PlainTextEditorPage::PrimaryView() const -> QWidget * {

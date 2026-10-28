@@ -125,7 +125,7 @@ TEST(ModuleSettingsPolicyTest, SettingsRoundTripAndStayPrivate) {
 // The Host's commands are types, and everything about them is derived: a
 // wrong field here would be a wrong schema everywhere.
 TEST(ModuleSettingsPolicyTest, HostCommandDescriptorsAreWellFormed) {
-  const std::array<QCborMap, 16> all = {
+  const std::array<QCborMap, 18> all = {
       gf::cmd::Describe<gf::cmd::host::DocumentNew>(),
       gf::cmd::Describe<gf::cmd::host::DocumentOpen>(),
       gf::cmd::Describe<gf::cmd::host::DocumentSave>(),
@@ -139,6 +139,8 @@ TEST(ModuleSettingsPolicyTest, HostCommandDescriptorsAreWellFormed) {
       gf::cmd::Describe<gf::cmd::host::CryptoDecryptVerify>(),
       gf::cmd::Describe<gf::cmd::host::KeysImport>(),
       gf::cmd::Describe<gf::cmd::host::KeysOpenManager>(),
+      gf::cmd::Describe<gf::cmd::host::KeysChecked>(),
+      gf::cmd::Describe<gf::cmd::host::KeysSetChecked>(),
       gf::cmd::Describe<gf::cmd::host::ViewOpen>(),
       gf::cmd::Describe<gf::cmd::host::AppOpenSettings>(),
       gf::cmd::Describe<gf::cmd::host::AppMessage>(),

@@ -62,6 +62,13 @@ auto GFGpgEncrypt(GFSDKContext* ctx, int channel, const char* const* key_ids,
   return g->encrypt(hctx, channel, key_ids, key_ids_size, in, ascii, out);
 }
 
+auto GFGpgEncryptSymmetric(GFSDKContext* ctx, int channel, GFBufferView in,
+                           int ascii, GFGpgResultRef* out) -> int {
+  GF_SDK_REQUIRE(ctx, gpg, "GFGpgEncryptSymmetric", -1);
+  if (!GF_SDK_GROUP_HAS(g, encrypt_symmetric)) return -1;
+  return g->encrypt_symmetric(hctx, channel, in, ascii, out);
+}
+
 auto GFGpgDecrypt(GFSDKContext* ctx, int channel, GFBufferView in,
                   GFGpgResultRef* out) -> int {
   GF_SDK_REQUIRE(ctx, gpg, "GFGpgDecrypt", -1);

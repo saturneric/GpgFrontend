@@ -133,11 +133,19 @@ void TextEdit::SlotSave() {
   LOG_D() << "Saving file for tab type: " << type
           << ", page object name: " << page->objectName();
 
+  auto* text_page = CurPageTextEdit();
+
+  // A document its view persists itself: the view saves it.
+  if (text_page != nullptr && text_page->IsModulePersisted()) {
+    text_page->ModuleSaveRequested(false);
+    return;
+  }
+
   // A plain text tab, or a document whose view is a module's native widget:
   // either way the Host saves it, asking the view to prepare the bytes.
-  if (type == "text" || (CurPageTextEdit() != nullptr &&
-                         CurPageTextEdit()->NativeInstanceId() != 0)) {
-    auto filename = CurPageTextEdit()->GetFilePath();
+  if (type == "text" ||
+      (text_page != nullptr && text_page->NativeInstanceId() != 0)) {
+    auto filename = text_page->GetFilePath();
     filename.isEmpty() ? SlotSaveAs() : saveFile(filename);
     return;
   }
@@ -223,6 +231,7 @@ auto TextEdit::SlotSaveAs() -> bool {
   }
 
   PlainTextEditorPage* page = CurPageTextEdit();
+  if (page->IsModulePersisted()) return page->ModuleSaveRequested(true);
   QString path;
   if (!page->GetFilePath().isEmpty()) {
     path = page->GetFilePath();
@@ -320,6 +329,9 @@ auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
   if (page == nullptr) return true;
 
+  // Its view decides, and asks the user itself if it must.
+  if (page->IsModulePersisted()) return page->ModuleCloseRequested();
+
   QTextDocument* document = page->GetTextPage()->document();
   if (document == nullptr) return true;
 
@@ -357,6 +369,18 @@ auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
 }
 
 auto TextEdit::MaybeSaveAnyTab() -> bool {
+  // Documents their views persist: each view is asked, and may ask the user.
+  // One that says no keeps the application open.
+  for (int i = 0; i < tab_widget_->count(); ++i) {
+    auto* page = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
+    if (page == nullptr || !page->IsModulePersisted()) continue;
+    // Shown first only when there is something it may ask about.
+    if (page->GetTextPage()->document()->isModified()) {
+      tab_widget_->setCurrentIndex(i);
+    }
+    if (!page->ModuleCloseRequested()) return false;
+  }
+
   // get a list of all unsaved documents and their tab ids
   auto const unsaved_docs = this->UnsavedDocuments();
 
@@ -687,7 +711,8 @@ auto TextEdit::UnsavedDocuments() const -> QHash<int, QString> {
 
   for (int i = 0; i < tab_widget_->count(); i++) {
     auto* ep = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
-    if (ep == nullptr || ep->GetTextPage() == nullptr ||
+    if (ep == nullptr || ep->IsModulePersisted() ||
+        ep->GetTextPage() == nullptr ||
         ep->GetTextPage()->document() == nullptr ||
         !ep->GetTextPage()->document()->isModified()) {
       continue;

@@ -38,6 +38,8 @@ class QToolButton;
 
 namespace GpgFrontend::UI {
 
+struct NativeWidgetEntry;
+
 /**
  * @brief Plain-text editor page used as one editor tab.
  *
@@ -54,7 +56,7 @@ namespace GpgFrontend::UI {
  * font for each platform, and lightly formats OpenPGP cleartext signature
  * headers after loading.
  */
-class PlainTextEditorPage : public QWidget {
+class GF_UI_EXPORT PlainTextEditorPage : public QWidget {
   Q_OBJECT
 
  public:
@@ -199,6 +201,29 @@ class PlainTextEditorPage : public QWidget {
    * or a crypto operation, so the bytes they read are never stale.
    */
   void FlushPrimaryView();
+
+  /**
+   * @brief The mounted view persists the document itself
+   *        (persistence = "module").
+   *
+   * The page then holds no raw source and runs no Host crypto on it; the
+   * recovery cache holds only what the view's Save() hands over. Saving,
+   * closing, Find and Encrypt are the view's, through the Module* calls
+   * below.
+   */
+  void SetModulePersisted(bool persisted);
+  [[nodiscard]] auto IsModulePersisted() const -> bool {
+    return module_persisted_;
+  }
+  /// The view opens @p path itself. false: it refused.
+  auto ModuleOpenPath(const QString& path) -> bool;
+  /// The view saves. false: it did not take the request.
+  auto ModuleSaveRequested(bool save_as) -> bool;
+  /// true: the tab may close now (the view may have asked the user).
+  auto ModuleCloseRequested() -> bool;
+  void ModuleFindRequested();
+  /// Encrypt, handed to the view. false: it has no such op, or declined.
+  auto ModuleEncryptRequested() -> bool;
 
   /**
    * @brief A name the mounted view suggests for saving this tab, if any.
@@ -407,6 +432,17 @@ class PlainTextEditorPage : public QWidget {
   /// changed, so whoever drives a menu from it can ask again.
   void SignalCryptoOperationsChanged();
 
+  /// A module-persisted document was saved by its view.
+  void SignalModuleSaved(const QString& path, const QString& title);
+
+  /**
+   * @brief A mounted view reported an edit -- every time, not only the first.
+   *
+   * The document's own modified flag changes once; a view keeps editing after
+   * that, and the recovery cache has to hear about each change to keep up.
+   */
+  void SignalPrimaryViewEdited();
+
  protected:
   QSharedPointer<Ui_PlainTextEditor> ui_;  ///< Generated editor page UI object.
 
@@ -466,7 +502,12 @@ class PlainTextEditorPage : public QWidget {
   QToolButton* source_unlock_ = nullptr;
   bool source_unlocked_ = false;
   bool prefers_compact_status_dock_ = false;
+  bool module_persisted_ = false;
   void refresh_source_lock();
+  void module_saved(const QString& path, const QString& title);
+  /// The view's entry, while it persists the document itself.
+  [[nodiscard]] auto module_document() const
+      -> std::optional<NativeWidgetEntry>;
 
   /**
    * @brief Mounts a module-supplied widget as this page's primary view.

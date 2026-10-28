@@ -93,6 +93,9 @@ static_assert(GF_HOST_CAP_PROCESS == 1U << 5, "capability bits moved");
 static_assert(GF_HOST_CAP_UI_CUSTOM == 1U << 6, "capability bits moved");
 static_assert(GF_HOST_CAP_HTML_VIEW == 1U << 7, "capability bits moved");
 static_assert(GF_HOST_CAP_HTML_PROVIDER == 1U << 8, "capability bits moved");
+static_assert(GF_HOST_CAP_WEB_EDITOR == 1U << 9, "capability bits moved");
+static_assert(GF_HOST_CAP_WEB_EDITOR_PROVIDER == 1U << 10,
+              "capability bits moved");
 
 auto ModuleIdOf(GFHostContextRef ctx) -> QByteArray {
   return gf_sdk_internal::ContextModuleId(ctx).toUtf8();
@@ -528,6 +531,12 @@ auto GpgListAddresses(GFHostContextRef ctx, int channel, int secret_only,
   return GFGpgListAddresses(channel, secret_only, out);
 }
 
+auto GpgEncryptSymmetric(GFHostContextRef ctx, int channel, GFBufferView in,
+                         int ascii, GFGpgResultRef* out) -> int {
+  GATE(ctx, GF_HOST_CAP_GPG, "gpg.encrypt_symmetric", -1);
+  return GFGpgEncryptSymmetric(channel, in, ascii, out);
+}
+
 const GFHostGpgApi kGpgApi = {
     sizeof(GFHostGpgApi),  &GpgCurrentChannel,   &GpgSign,
     &GpgEncrypt,           &GpgDecrypt,          &GpgVerify,
@@ -538,6 +547,7 @@ const GFHostGpgApi kGpgApi = {
     &GpgFindKeys,          &GpgKeyBriefCount,    &GpgKeyBriefAt,
     &GpgKeyBriefRelease,   &GpgSniffRecipients,  &GpgRecipientCount,
     &GpgRecipientAt,       &GpgRecipientRelease, &GpgListAddresses,
+    &GpgEncryptSymmetric,
 };
 
 /* --- list ---------------------------------------------------------------- */
@@ -1007,6 +1017,7 @@ void FillHostApiGroups(GFHostApi& table, uint32_t granted) {
   table.event = &kEventApi;
   table.bootstrap = &kBootstrapApi;
   table.list = &kListApi;
+  table.archive = &kArchiveApi;
 
   table.gpg = (granted & GF_HOST_CAP_GPG) != 0 ? &kGpgApi : nullptr;
   table.pgp = (granted & GF_HOST_CAP_PGP) != 0 ? &kPgpApi : nullptr;
@@ -1026,6 +1037,13 @@ void FillHostApiGroups(GFHostApi& table, uint32_t granted) {
   constexpr uint32_t kProvider = kCustom | GF_HOST_CAP_HTML_PROVIDER;
   table.html_provider =
       (granted & kProvider) == kProvider ? &kHtmlProviderApi : nullptr;
+  constexpr uint32_t kEditor = kCustom | GF_HOST_CAP_WEB_EDITOR;
+  table.web_editor = (granted & kEditor) == kEditor ? &kWebEditorApi : nullptr;
+  constexpr uint32_t kEditorProvider =
+      kCustom | GF_HOST_CAP_WEB_EDITOR_PROVIDER;
+  table.web_editor_provider = (granted & kEditorProvider) == kEditorProvider
+                                  ? &kWebEditorProviderApi
+                                  : nullptr;
 }
 
 }  // namespace gf_sdk_internal

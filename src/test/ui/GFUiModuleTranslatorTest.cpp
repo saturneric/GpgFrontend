@@ -174,11 +174,12 @@ struct ModuleText {
 // What the Settings sidebar and the menus show. Each was once marked where
 // lupdate could not see it (a GC_TR macro, a local Tr() wrapper), so none of
 // it reached a .ts file and all of it shipped in English.
-constexpr std::array<ModuleText, 6> kModuleUiText = {{
+constexpr std::array<ModuleText, 7> kModuleUiText = {{
     {"com.bktus.gpgfrontend.module.email", "ModuleEMail", "Mail Accounts"},
     {"com.bktus.gpgfrontend.module.email", "ModuleEMail", "Mail Editor"},
     {"com.bktus.gpgfrontend.module.im", "ModuleIM", "Instant Messaging"},
     {"com.bktus.gpgfrontend.module.im", "ModuleIM", "IM Encrypt"},
+    {"com.bktus.gpgfrontend.module.notes", "ModuleNotes", "Encrypted Note"},
     {"com.bktus.gpgfrontend.module.key_server_sync", "ModuleKeyServerSync",
      "Key Servers"},
     {"com.bktus.gpgfrontend.module.version_checking", "ModuleVersionChecking",

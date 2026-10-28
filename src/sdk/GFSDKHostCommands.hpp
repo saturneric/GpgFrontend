@@ -264,6 +264,57 @@ struct KeysImport {
   using Result = Unit;
 };
 
+/// The keys checked in the main window's Key ToolBox, on the page it shows.
+///
+/// What the user ticked there, read when they act on it -- a module asks at
+/// the moment of Save, so the answer is the user's choice right then.
+struct KeysChecked {
+  static constexpr Meta kMeta{"org.gpgfrontend.keys.checked",
+                              "Checked Keys",
+                              "",
+                              "",
+                              GF_HOST_CAP_GPG,
+                              kNeedsGuiThread};
+  using Args = Unit;
+  struct Result {
+    qint64 channel = -1;  ///< the key database the Key ToolBox shows
+    QList<KeyRef> keys;
+    static constexpr auto Fields() {
+      return std::make_tuple(F("channel", &Result::channel),
+                             F("keys", &Result::keys));
+    }
+  };
+};
+
+/// Check exactly these keys in the Key ToolBox, by primary fingerprint.
+///
+/// Only while it shows key database @p channel: a list of another database's
+/// keys means nothing there, so then nothing changes and `applied` is false.
+struct KeysSetChecked {
+  static constexpr Meta kMeta{"org.gpgfrontend.keys.set_checked",
+                              "Check Keys",
+                              "",
+                              "",
+                              GF_HOST_CAP_GPG,
+                              kNeedsGuiThread};
+  struct Args {
+    qint64 channel = -1;  ///< -1: whatever the Key ToolBox shows
+    QStringList fingerprints;
+    static constexpr auto Fields() {
+      return std::make_tuple(F("channel", &Args::channel),
+                             F("fingerprints", &Args::fingerprints));
+    }
+  };
+  struct Result {
+    bool applied = false;
+    qint64 checked = 0;  ///< how many of the fingerprints were on the page
+    static constexpr auto Fields() {
+      return std::make_tuple(F("applied", &Result::applied),
+                             F("checked", &Result::checked));
+    }
+  };
+};
+
 struct KeysOpenManager {
   static constexpr Meta kMeta{"org.gpgfrontend.keys.open_manager",
                               "Key Management",

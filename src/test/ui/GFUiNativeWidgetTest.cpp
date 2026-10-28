@@ -42,6 +42,7 @@
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 #include "ui/struct/settings_object/WindowStateSO.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 
 /**
  * @file GFUiNativeWidgetTest.cpp
@@ -142,6 +143,146 @@ TEST(NativeWidgetTest, NativeWidgetsNeedUiCustomAsWellAsUi) {
   EXPECT_EQ(ui_only()->host->native, nullptr);
   auto spec = Spec("viewer", GF_NATIVE_DIALOG);
   EXPECT_NE(GFNativeWidgetRegister(ui_only(), &spec), 0);
+}
+
+namespace {
+
+/// What a module-persisted document view was asked.
+struct PersistedLog {
+  QString opened;
+  int saves = 0;
+  int save_as = 0;
+  int closes = 0;
+  int finds = 0;
+  int bytes_asked = 0;
+  int encrypts = 0;
+  bool allow_close = true;
+  bool can_encrypt = false;
+};
+PersistedLog g_persisted;
+
+auto PersistedOpen(void*, uint64_t, const char* path) -> int {
+  g_persisted.opened = QString::fromUtf8(path);
+  return 0;
+}
+auto PersistedSave(void*, uint64_t, int save_as) -> int {
+  (save_as != 0 ? g_persisted.save_as : g_persisted.saves)++;
+  return 0;
+}
+auto PersistedClose(void*, uint64_t) -> int {
+  ++g_persisted.closes;
+  return g_persisted.allow_close ? 0 : 1;
+}
+void PersistedFind(void*, uint64_t) { ++g_persisted.finds; }
+auto PersistedEncrypt(void*, uint64_t) -> int {
+  ++g_persisted.encrypts;
+  return 0;
+}
+auto PersistedCryptoOps(void*, uint64_t, uint32_t* out) -> int {
+  *out = g_persisted.can_encrypt ? GF_CRYPTO_OP_ENCRYPT : 0U;
+  return 0;
+}
+auto PersistedBytes(void*, uint64_t) -> GFBufferRef {
+  ++g_persisted.bytes_asked;
+  return nullptr;
+}
+auto PersistedDirty(void*, uint64_t) -> int { return 1; }
+
+GFDocumentWidgetOps PersistedOps() {
+  GFDocumentWidgetOps ops{};
+  ops.struct_size = sizeof(ops);
+  ops.load = &DocLoad;
+  ops.save = &PersistedBytes;
+  ops.is_dirty = &PersistedDirty;
+  ops.open_path = &PersistedOpen;
+  ops.save_requested = &PersistedSave;
+  ops.close_requested = &PersistedClose;
+  ops.find_requested = &PersistedFind;
+  ops.encrypt_requested = &PersistedEncrypt;
+  ops.crypto_ops = &PersistedCryptoOps;
+  return ops;
+}
+
+}  // namespace
+
+// persistence = "module": the page holds nothing of the document and hands
+// everything about its file to the view.
+TEST(NativeWidgetTest, AModulePersistedDocumentIsTheViewsToOpenSaveAndClose) {
+  g_persisted = {};
+  SdkTestContext owner(kOwner, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  static const auto kOps = PersistedOps();
+  auto spec = Spec("persisted", GF_NATIVE_DOCUMENT);
+  spec.document = &kOps;
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+
+  UI::PlainTextEditorPage* page = nullptr;
+  OnGui([&] {
+    page = new UI::PlainTextEditorPage();
+    ASSERT_TRUE(page->MountNativeView(QString(kOwner) + ".persisted"));
+    page->SetModulePersisted(true);
+  });
+  ASSERT_NE(page, nullptr);
+
+  QStringList saved;
+  OnGui([&] {
+    QObject::connect(page, &UI::PlainTextEditorPage::SignalModuleSaved, page,
+                     [&saved](const QString& path, const QString& title) {
+                       saved << path << title;
+                     });
+    EXPECT_TRUE(page->ModuleOpenPath(u"/tmp/a.textpack.gpg"_s));
+    EXPECT_EQ(page->GetFilePath(), u"/tmp/a.textpack.gpg"_s);
+
+    EXPECT_TRUE(page->ModuleSaveRequested(false));
+    EXPECT_TRUE(page->ModuleSaveRequested(true));
+    page->ModuleFindRequested();
+
+    // Asked like any view, for what the recovery cache keeps of unsaved
+    // work; the file itself is still the view's own business.
+    page->FlushPrimaryView();
+
+    // No Host crypto on a document it does not hold: Encrypt alone, handed
+    // to the view, and only while the view says it can.
+    bool has_opinion = false;
+    g_persisted.can_encrypt = false;
+    EXPECT_TRUE(page->PrimaryViewCryptoOperations(has_opinion).isEmpty());
+    EXPECT_TRUE(has_opinion);
+    g_persisted.can_encrypt = true;
+    EXPECT_EQ(page->PrimaryViewCryptoOperations(has_opinion),
+              QStringList{u"encrypt"_s});
+    EXPECT_TRUE(page->ModuleEncryptRequested());
+
+    g_persisted.allow_close = false;
+    EXPECT_FALSE(page->ModuleCloseRequested());
+    g_persisted.allow_close = true;
+    EXPECT_TRUE(page->ModuleCloseRequested());
+
+    // Every edit the view reports reaches the recovery cache, not only the
+    // first one that made the tab dirty.
+    int edits = 0;
+    QObject::connect(page, &UI::PlainTextEditorPage::SignalPrimaryViewEdited,
+                     page, [&edits] { ++edits; });
+    EXPECT_EQ(GFNativeDocumentModified(owner(), page->NativeInstanceId()), 0);
+    EXPECT_EQ(GFNativeDocumentModified(owner(), page->NativeInstanceId()), 0);
+    EXPECT_EQ(edits, 2);
+
+    EXPECT_EQ(GFNativeDocumentSaved(owner(), page->NativeInstanceId(),
+                                    "/tmp/b.textpack.gpg", "b"),
+              0);
+  });
+  EXPECT_EQ(g_persisted.opened, u"/tmp/a.textpack.gpg"_s);
+  EXPECT_EQ(g_persisted.saves, 1);
+  EXPECT_EQ(g_persisted.save_as, 1);
+  EXPECT_EQ(g_persisted.finds, 1);
+  EXPECT_EQ(g_persisted.encrypts, 1);
+  EXPECT_EQ(g_persisted.closes, 2);
+  EXPECT_EQ(g_persisted.bytes_asked, 1);
+  EXPECT_EQ(saved, (QStringList{u"/tmp/b.textpack.gpg"_s, u"b"_s}));
+
+  OnGui([&] {
+    EXPECT_EQ(page->GetFilePath(), u"/tmp/b.textpack.gpg"_s);
+    delete page;
+  });
+  GFNativeWidgetUnregister(owner(), "persisted");
 }
 
 TEST(NativeWidgetTest, AnInstanceAnswersOnlyToItsOwnerAndItsKind) {

@@ -126,6 +126,10 @@ typedef struct GFHostContextImpl* GFHostContextRef;
 #define GF_HOST_CAP_HTML_VIEW (1u << 7)
 /** Providing the renderer behind them. Requires GF_HOST_CAP_UI_CUSTOM. */
 #define GF_HOST_CAP_HTML_PROVIDER (1u << 8)
+/** Embedding an editable page of the module's own. Requires UI_CUSTOM. */
+#define GF_HOST_CAP_WEB_EDITOR (1u << 9)
+/** Providing the engine behind it. Requires GF_HOST_CAP_UI_CUSTOM. */
+#define GF_HOST_CAP_WEB_EDITOR_PROVIDER (1u << 10)
 
 /* --- always-granted groups ----------------------------------------------- */
 
@@ -329,6 +333,13 @@ typedef struct GFHostGpgApi {
 
   int (*list_addresses)(GFHostContextRef ctx, int channel, int secret_only,
                         GFStringListRef* out);
+
+  /* --- appended; check struct_size before reading (GF_SDK_REQUIRE does) --- */
+
+  /** Encrypt with a passphrase only; the Host asks for it, as its own
+   *  symmetric encryption does. See GFGpgEncryptSymmetric. */
+  int (*encrypt_symmetric)(GFHostContextRef ctx, int channel, GFBufferView in,
+                           int ascii, GFGpgResultRef* out);
 } GFHostGpgApi;
 
 /**
@@ -546,6 +557,13 @@ typedef struct GFHostNativeWidgetApi {
 
   /* dialogs */
   int (*dialog_close)(GFHostContextRef ctx, uint64_t instance);
+
+  /* --- appended; check struct_size before reading (GF_SDK_REQUIRE does) --- */
+
+  /** A module-persisted document was saved to @p path; @p title is what its
+   *  tab says now. Clears the tab's modified mark. */
+  int (*document_saved)(GFHostContextRef ctx, uint64_t instance,
+                        const char* path, const char* title);
 } GFHostNativeWidgetApi;
 
 /**
@@ -585,6 +603,56 @@ typedef struct GFHostHtmlProviderApi {
   int (*link_activated)(GFHostContextRef ctx, uint64_t view, const char* url);
   int (*loaded)(GFHostContextRef ctx, uint64_t view, int ok);
 } GFHostHtmlProviderApi;
+
+/**
+ * @brief Editable pages of the module's own in its widgets. Capability
+ *        "web.editor". See GFSDKWebEditor.h.
+ */
+typedef struct GFHostWebEditorApi {
+  size_t struct_size;
+  int (*available)(GFHostContextRef ctx);
+  int (*create)(GFHostContextRef ctx, uint64_t instance, void* slot,
+                GFWebEditorEventFn fn, void* user, uint64_t* out_editor);
+  int (*post)(GFHostContextRef ctx, uint64_t editor, const char* json,
+              size_t len);
+  /** @p data is TRANSFERRED to the Host. */
+  int (*put_resource)(GFHostContextRef ctx, uint64_t editor, const char* path,
+                      const char* mime, GFBufferRef data);
+  int (*remove_resource)(GFHostContextRef ctx, uint64_t editor,
+                         const char* path);
+  int (*destroy)(GFHostContextRef ctx, uint64_t editor);
+} GFHostWebEditorApi;
+
+/**
+ * @brief The engine behind web editors. Capability "web.editor.provider".
+ */
+typedef struct GFHostWebEditorProviderApi {
+  size_t struct_size;
+  int (*register_provider)(GFHostContextRef ctx,
+                           const GFWebEditorProviderSpec* spec);
+  int (*unregister_provider)(GFHostContextRef ctx, const char* name);
+  /** Answer a request for @p url of @p editor's session. GUI thread. Both
+   *  out-parameters owned; NOT_FOUND answers a URL the editor does not serve.
+   */
+  int (*resolve)(GFHostContextRef ctx, uint64_t editor, const char* url,
+                 GFBufferRef* out_data, GFBufferRef* out_mime);
+  int (*message)(GFHostContextRef ctx, uint64_t editor, const char* json,
+                 size_t len);
+  int (*link_activated)(GFHostContextRef ctx, uint64_t editor, const char* url);
+  int (*ready)(GFHostContextRef ctx, uint64_t editor);
+} GFHostWebEditorProviderApi;
+
+/**
+ * @brief In-memory ZIP archives. Always granted. See GFSDKArchive.h.
+ */
+typedef struct GFHostArchiveApi {
+  size_t struct_size;
+  int (*zip_write)(GFHostContextRef ctx, const GFArchiveEntry* entries,
+                   size_t count, GFBufferRef* out);
+  int (*zip_read)(GFHostContextRef ctx, GFBufferView in,
+                  const GFArchiveLimits* limits, GFArchiveEntryFn fn,
+                  void* user, GFBufferRef* reason);
+} GFHostArchiveApi;
 
 /* --- the table ----------------------------------------------------------- */
 
@@ -633,6 +701,15 @@ typedef struct GFHostApi {
 
   /* NULL unless "html.provider" was granted */
   const GFHostHtmlProviderApi* html_provider;
+
+  /* always present */
+  const GFHostArchiveApi* archive;
+
+  /* NULL unless "web.editor" was granted */
+  const GFHostWebEditorApi* web_editor;
+
+  /* NULL unless "web.editor.provider" was granted */
+  const GFHostWebEditorProviderApi* web_editor_provider;
 } GFHostApi;
 
 #ifdef __cplusplus

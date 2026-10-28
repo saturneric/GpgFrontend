@@ -37,6 +37,7 @@
 #include "GFModuleRuntimeHtmlView.h"
 #include "GFModuleRuntimeI18n.h"
 #include "GFModuleRuntimeNative.h"
+#include "GFModuleRuntimeWebEditor.h"
 #include "include/GFModule.h"
 
 using namespace Qt::StringLiterals;
@@ -166,6 +167,7 @@ auto RuntimeActivate(const GFHostApi* host, void* reserved) -> int {
 
   gf::runtime::ResetNativeRegistrations();
   gf::runtime::ResetHtmlRenderers();
+  gf::runtime::ResetWebEditorEngines();
 
   const auto hooked = IndexHooks(g_hooks);
   if (!ReconcileSubscriptions(hooked)) return -1;
@@ -255,6 +257,7 @@ auto RuntimeDeactivate() -> int {
   gf::runtime::DropContinuations();
   gf::runtime::ForgetNativeWidgets();
   gf::runtime::ForgetHtmlViews();
+  gf::runtime::ForgetWebEditors();
   if (g_hooks != nullptr &&
       HooksCover(g_hooks, &GFModuleHooks::on_deactivate) &&
       g_hooks->on_deactivate != nullptr) {

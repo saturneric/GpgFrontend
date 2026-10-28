@@ -66,6 +66,15 @@ int GFGpgEncrypt(GFSDKContext* ctx, int channel, const char* const* key_ids,
                  size_t key_ids_size, GFBufferView in, int ascii,
                  GFGpgResultRef* out);
 
+/**
+ * @brief Encrypt @p in with a passphrase only, no key.
+ *
+ * The Host asks the user for the passphrase, exactly as its own symmetric
+ * encryption does; the caller never sees it. Blocks until answered.
+ */
+int GFGpgEncryptSymmetric(GFSDKContext* ctx, int channel, GFBufferView in,
+                          int ascii, GFGpgResultRef* out);
+
 /** @brief Decrypt @p in with whatever secret key is available. */
 int GFGpgDecrypt(GFSDKContext* ctx, int channel, GFBufferView in,
                  GFGpgResultRef* out);

@@ -222,4 +222,20 @@ TEST(GFUiTabTypeOperationMaskTest,
   EXPECT_EQ(kPlainDocument & kNothingClearedWithAKeyChecked, kPlainDocument);
 }
 
+// A note encrypts with the checked keys, or with a passphrase when none are
+// checked. So an empty Key ToolBox must not grey its Encrypt out,
+// while an ordinary tab with nothing checked still has no key Encrypt.
+TEST(GFUiTabTypeOperationMaskTest,
+     AViewThatEncryptsItselfAllowsAnEmptySelection) {
+  QString reason;
+  const auto plain =
+      MainWindow::OperationsMaskForCheckedKeys({}, false, &reason);
+  EXPECT_EQ(plain & OperationMenu::kEncrypt, 0U);
+  EXPECT_TRUE((plain & OperationMenu::kSymmetricEncrypt) != 0U);
+
+  const auto note = MainWindow::OperationsMaskForCheckedKeys({}, true, &reason);
+  EXPECT_TRUE((note & OperationMenu::kEncrypt) != 0U);
+  EXPECT_TRUE(reason.isEmpty());
+}
+
 }  // namespace GpgFrontend::Test

@@ -29,6 +29,7 @@
 #include "NativeInstances.h"
 
 #include "ui/html/HtmlViewService.h"
+#include "ui/html/WebEditorService.h"
 
 namespace GpgFrontend::UI {
 
@@ -70,6 +71,7 @@ void NativeInstances::Destroy(quint64 id) {
   // Views inside it go first: their renderer must not outlive the widget
   // it was placed in.
   HtmlViewService::Instance().InstanceGone(id);
+  WebEditorService::Instance().InstanceGone(id);
   const auto entry = NativeWidgetRegistry::Instance().Find(widget_id);
   if (entry.has_value() && entry->destroyed) entry->destroyed(id);
 }
@@ -112,6 +114,7 @@ void NativeInstances::WithdrawAll(const QString& module) {
     if (it->instance.owner == module) {
       if (it->container != nullptr) containers.append(it->container);
       HtmlViewService::Instance().InstanceGone(it->instance.id);
+      WebEditorService::Instance().InstanceGone(it->instance.id);
       it = live_.erase(it);
     } else {
       ++it;

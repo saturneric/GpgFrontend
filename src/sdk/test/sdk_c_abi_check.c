@@ -43,6 +43,7 @@
    is a build failure here rather than a surprise for an out-of-tree module
    that does not happen to include them in the order this tree does. */
 #include "GFSDKApp.h"
+#include "GFSDKArchive.h"
 #include "GFSDKBuffer.h"
 #include "GFSDKCommand.h"
 #include "GFSDKContext.h"
@@ -59,6 +60,7 @@
 #include "GFSDKStorage.h"
 #include "GFSDKTypes.h"
 #include "GFSDKUI.h"
+#include "GFSDKWebEditor.h"
 
 /* Force the compiler to actually instantiate a few declarations rather than
    skipping over them: taking a function's address needs its full type. */

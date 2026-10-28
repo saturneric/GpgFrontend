@@ -659,7 +659,7 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
       return FailWith(out, "ui.anchor.settings{section = \"...\"}");
     }
   } else if (spec->kind == AnchorKind::kEDITOR) {
-    known = {"document_type", "extensions", "compact_status"};
+    known = {"document_type", "extensions", "compact_status", "persistence"};
     ref.document_type = text("document_type");
     if (!IdIsValid(ref.document_type)) {
       return FailWith(out, "ui.anchor.editor{document_type = \"...\"}");
@@ -668,7 +668,10 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
     if (it != fields.constEnd()) {
       for (const int c : ChildrenOf(tree, *it)) {
         const auto& n = tree[static_cast<size_t>(c)];
-        static const QRegularExpression kExt(u"^[a-z0-9]{1,16}$"_s);
+        // A compound suffix ("textpack.gpg") is one extension: matched
+        // against the end of the file name, longest first.
+        static const QRegularExpression kExt(
+            u"^[a-z0-9]{1,16}(\\.[a-z0-9]{1,16}){0,2}$"_s);
         const auto ext = QString::fromUtf8(n.text);
         if (n.type != LuaNode::Type::kSTRING || !kExt.match(ext).hasMatch()) {
           return FailWith(out, "extensions are lower-case, without the dot");
@@ -685,6 +688,20 @@ void LuaApi::UiMountAnchor(lua_State* L, BindingOutcome& out) {
         return FailWith(out, "compact_status is a boolean");
       }
       ref.compact_status = n.boolean;
+    }
+    // Who reads and writes the document's file. "host" (the default): the
+    // Host, as bytes it holds. "module": the view, entirely -- the Host never
+    // reads the file, never runs its own crypto on it, and hands Save, close,
+    // Find and Encrypt to the view.
+    if (const auto p = fields.constFind(u"persistence"_s);
+        p != fields.constEnd()) {
+      const auto& n = tree[static_cast<size_t>(*p)];
+      const auto value = QString::fromUtf8(n.text);
+      if (n.type != LuaNode::Type::kSTRING ||
+          (value != u"host"_s && value != u"module"_s)) {
+        return FailWith(out, "persistence is \"host\" or \"module\"");
+      }
+      ref.module_persisted = value == u"module"_s;
     }
   }
   const auto unknown = UnknownField(fields, known);
@@ -930,6 +947,7 @@ void LuaApi::UiMount(lua_State* L, BindingOutcome& out) {
   m.document_type = aref.document_type;
   m.extensions = aref.extensions;
   m.compact_status = aref.compact_status;
+  m.module_persisted = aref.module_persisted;
   m.order = order;
   m.chunk = rt->chunk_;
   rt->mounts_.append(m);
@@ -1325,7 +1343,7 @@ Call:cancel() -> bool
 
 ui.anchor(id) -> Anchor                           menu and button anchors
 ui.anchor.settings{section}
-ui.anchor.editor{document_type, extensions, compact_status?}
+ui.anchor.editor{document_type, extensions, compact_status?, persistence?}
 ui.anchor.dialog{} -> Anchor                      mount anchors
 ui.action{id, anchor, command, order?, icon?, shortcut?, update?}
                                                   while loading; shortcut:

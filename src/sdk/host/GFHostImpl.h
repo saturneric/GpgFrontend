@@ -74,6 +74,8 @@ namespace gf_host {
 auto GFBufferNewFromBytes(const void* data, size_t size) -> GFBufferRef;
 auto GFBufferData(GFBufferView buf) -> const void*;
 auto GFBufferSize(GFBufferView buf) -> size_t;
+/// Borrowed view -> a core GFBuffer, copying the octets verbatim.
+auto GFBufferViewToCore(GFBufferView buf) -> GpgFrontend::GFBuffer;
 void GFBufferZeroize(GFBufferRef buf);
 void GFBufferRelease(GFBufferRef buf);
 auto GFBufferOutstandingCount(const char* module_id) -> size_t;
@@ -117,6 +119,8 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
 auto GFGpgDecrypt(int channel, GFBufferView in, GFGpgResultRef* out) -> int;
 auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
                  GFGpgResultRef* out) -> int;
+auto GFGpgEncryptSymmetric(int channel, GFBufferView in, int ascii,
+                           GFGpgResultRef* out) -> int;
 
 auto GFGpgResultStatusOf(GFGpgResultRef r) -> int;
 auto GFGpgResultError(GFGpgResultRef r) -> uint32_t;

@@ -107,6 +107,20 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const std::function<bool(const QString&)>& is_listening) -> unsigned int;
 
   /**
+   * @brief Which operations the keys checked in the Key ToolBox allow.
+   *
+   * Nothing checked: no Encrypt (the Host's own would be symmetric, which is
+   * its own entry). A key that cannot encrypt or sign takes that away, and
+   * @p block_reason says why. When @p view_encrypts -- a document its module
+   * keeps, which encrypts with a passphrase when nothing is checked -- an
+   * empty selection still allows Encrypt; checked keys restrict it as usual.
+   */
+  static auto OperationsMaskForCheckedKeys(const GpgAbstractKeyPtrList& keys,
+                                           bool view_encrypts,
+                                           QString* block_reason)
+      -> unsigned int;
+
+  /**
    * @brief Whether Sym. Encrypt applies to the current tab under @p mask.
    *
    * A plain text tab encrypts its text and a file tab its selected files; a

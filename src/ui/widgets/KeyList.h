@@ -286,6 +286,14 @@ class KeyList : public QWidget {
   auto CheckSoleKey() -> bool;
 
   /**
+   * @brief Check exactly the keys with these primary fingerprints on the page
+   * on screen, and uncheck the rest.
+   *
+   * @return how many of @p fingerprints were found there
+   */
+  auto CheckOnly(const QStringList& fingerprints) -> int;
+
+  /**
    * @brief Set the Checked object
    *
    * @param keyIds

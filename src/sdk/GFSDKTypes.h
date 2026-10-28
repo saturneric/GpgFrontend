@@ -410,6 +410,28 @@ typedef struct GFDocumentWidgetOps {
    * with the reason, for the user, in @p reason. Absent: it may.
    */
   int (*source_policy)(void* user, uint64_t instance, GFBufferRef* reason);
+
+  /* --- appended: documents the module persists itself -------------------
+   * (an editor mount with persistence = "module"). The Host never reads
+   * or writes such a document's file and hands Save, Save As, close, Find
+   * and Encrypt to the view instead. Recovery still goes through save/load:
+   * the Host caches what save gives and hands it back to load. */
+
+  /** Open the file at @p path; the Host has not read it. 0: taken. */
+  int (*open_path)(void* user, uint64_t instance, const char* path);
+  /** Save (Save As when @p save_as). 0: taken -- it may finish later and
+   *  says so with document_saved. */
+  int (*save_requested)(void* user, uint64_t instance, int save_as);
+  /** The tab, or the application, is closing. 0: it may; non-zero: keep it.
+   *  May ask the user, modally, before answering. */
+  int (*close_requested)(void* user, uint64_t instance);
+  /** The user asked to find text in this document. */
+  void (*find_requested)(void* user, uint64_t instance);
+  /** The user pressed Encrypt on this document. The view encrypts it itself,
+   *  for the keys checked in the Key ToolBox (keys.checked), or with a
+   *  passphrase when none are. Offered only while crypto_ops reports
+   *  GF_CRYPTO_OP_ENCRYPT. 0: taken. */
+  int (*encrypt_requested)(void* user, uint64_t instance);
 } GFDocumentWidgetOps;
 
 /** A settings page: what the Host asks of it. Append-only. */
@@ -478,6 +500,8 @@ typedef struct GFNativeWidgetSpec {
 #define GF_HTML_VIEW_E_TOO_LARGE (-6) /**< over a limit of the policy */
 /** The renderer refused at run time; nothing was created or shown. */
 #define GF_HTML_VIEW_E_FAILED (-7)
+/** No such resource (web editors: GFWebEditorRemoveResource, resolving). */
+#define GF_HTML_VIEW_E_NOT_FOUND (-8)
 
 /** The policies a consumer may ask for. It names one; it never sets bits. */
 #define GF_HTML_VIEW_PRESET_MAIL 1
@@ -696,6 +720,87 @@ typedef struct GFCommandSpec {
  * @return 0 on success
  */
 typedef int (*GFTranslatorDataReader)(const char* locale, char** data);
+
+/* --- in-memory archives (see GFSDKArchive.h) ---------------------------- */
+
+/** @brief One entry to write. Borrowed for the duration of the call. */
+typedef struct GFArchiveEntry {
+  const char* path;  /**< UTF-8, relative, '/'-separated */
+  GFBufferView data; /**< file contents; ignored for a directory */
+  int directory;     /**< non-zero: an (empty) directory entry */
+} GFArchiveEntry;
+
+/** @brief Budgets for reading; -1 disables one. Enforced while streaming. */
+typedef struct GFArchiveLimits {
+  size_t struct_size;
+  int64_t max_total_bytes; /**< sum of all entries, uncompressed */
+  int64_t max_entry_bytes; /**< any one entry, uncompressed */
+  int32_t max_entries;
+} GFArchiveLimits;
+
+/**
+ * @brief One file entry read. @p data is borrowed for the call only.
+ * @return 0 to go on, non-zero to stop (the read then fails).
+ */
+typedef int (*GFArchiveEntryFn)(void* user, const char* path,
+                                GFBufferView data);
+
+/* --- web editors (see GFSDKWebEditor.h) ---------------------------------- */
+
+/* Status: the GF_HTML_VIEW_* codes, which mean the same things here. */
+
+/** What a consumer hears about its editor. */
+#define GF_WEB_EDITOR_EVENT_READY 1   /**< the page loaded; text NULL */
+#define GF_WEB_EDITOR_EVENT_MESSAGE 2 /**< text: one validated JSON object */
+#define GF_WEB_EDITOR_EVENT_LINK 3    /**< text: the URL the user activated */
+#define GF_WEB_EDITOR_EVENT_LOST 4    /**< the engine went away; text NULL */
+
+/** Schemes the page is served under, with the editor's session as host. */
+#define GF_WEB_EDITOR_ASSET_SCHEME "gfasset"  /**< the bundled page */
+#define GF_WEB_EDITOR_RESOURCE_SCHEME "gfres" /**< what the consumer put */
+
+/** Ceilings the Host enforces on what crosses the bridge. */
+#define GF_WEB_EDITOR_MAX_MESSAGE_BYTES (48u * 1024u * 1024u)
+#define GF_WEB_EDITOR_MAX_RESOURCE_BYTES (20u * 1024u * 1024u)
+#define GF_WEB_EDITOR_MAX_TOTAL_RESOURCE_BYTES (256u * 1024u * 1024u)
+
+/**
+ * @brief An editor event. @p text is borrowed for the call, @p text_len its
+ *        length in bytes; NULL/0 where the event carries none.
+ */
+typedef void (*GFWebEditorEventFn)(void* user, uint64_t editor, int event,
+                                   const char* text, size_t text_len);
+
+/** The engine generation a provider implements. */
+#define GF_WEB_EDITOR_PROVIDER_V1 1
+
+/**
+ * @brief What the Host asks of a web editor engine. GUI thread only.
+ */
+typedef struct GFWebEditorProviderOps {
+  size_t struct_size;
+  /**
+   * Build @p editor's widget and load
+   * `gfasset://<session>/index.html` in it; NULL refuses. The engine must
+   * run script, block every request that is not to one of the two schemes,
+   * keep nothing on disk, refuse navigation, pop-ups, downloads and
+   * permissions, and pass page messages to `message` unaltered.
+   */
+  void* (*create)(void* user, uint64_t editor, const char* session);
+  /** Deliver @p json (one JSON object) to the page. 0 on success. */
+  int (*post)(void* user, uint64_t editor, const char* json, size_t len);
+  /** The editor is gone; its widget is already scheduled for deletion. */
+  void (*destroyed)(void* user, uint64_t editor);
+} GFWebEditorProviderOps;
+
+typedef struct GFWebEditorProviderSpec {
+  size_t struct_size;
+  uint32_t interface_version; /**< GF_WEB_EDITOR_PROVIDER_V1 */
+  const char* name;
+  uint32_t features; /**< GF_HTML_PROVIDER_FEATURE_* */
+  const GFWebEditorProviderOps* ops;
+  void* user;
+} GFWebEditorProviderSpec;
 
 #ifdef __cplusplus
 }

@@ -41,11 +41,13 @@
 #include "GFModuleLog.h"
 #include "GFModuleMemory.h"
 #include "GFModuleNativeWidget.h"
+#include "GFModuleWebEditor.h"
 #include "GFSDKBuildInfo.h"
 // The whole public SDK, so a module author includes one header. Each of
 // these declares functions that take a GFSDKContext*; the context comes from
 // the event (`e.Context()`) or, outside a handler, from GFModuleSdkContext().
 #include "GFSDKApp.h"
+#include "GFSDKArchive.h"
 #include "GFSDKBuffer.h"
 #include "GFSDKContext.h"
 #include "GFSDKEditor.h"
@@ -59,6 +61,7 @@
 #include "GFSDKProcess.h"
 #include "GFSDKStorage.h"
 #include "GFSDKUI.h"
+#include "GFSDKWebEditor.h"
 
 // The C++ conveniences over the same ABI: QString in and out, fallbacks, and
 // RAII for the handles. Still stateless, and still context-explicit.

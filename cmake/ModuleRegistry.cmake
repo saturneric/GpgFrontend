@@ -344,8 +344,10 @@ endfunction()
 #   [LINK        <target>...]          extra libraries to link privately
 #   [INCLUDE_DIRS <dir>...]            extra private include directories
 #   [RESOURCES   <archive path>=<source file>...]
-#   [LUA_SCRIPTS <file>...])           UI scripts, embedded; loaded after
+#   [LUA_SCRIPTS <file>...]            UI scripts, embedded; loaded after
 #                                      on_activate, in name order
+#   [WEB_ASSETS  <dir>])               a web page and everything it loads,
+#                                      embedded under :/gf_module/<id>/web
 #
 # Everything about the module's identity -- id, version, name, description,
 # author, capabilities, minimum host version, translation context -- comes from
@@ -377,7 +379,7 @@ set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_host_api gf_test)
 # compares the two so they cannot drift.
 #
 # Enforceable: maps to a GFHostApi group the Host hands over or withholds.
-set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui ui.custom html.view html.provider editor storage process)
+set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui ui.custom html.view html.provider web.editor web.editor.provider editor storage process)
 # Advisory: signed, recorded and shown to the user, but not Host-mediated --
 # a module opens a socket through Qt, so there is nothing here to withhold.
 # Kept separate rather than mixed in, so a grant mask never claims more than
@@ -453,7 +455,7 @@ endfunction()
 function(gf_add_module)
   cmake_parse_arguments(GAM
     ""
-    "NAME;UI_DIR"
+    "NAME;UI_DIR;WEB_ASSETS"
     "QT;SOURCES;LINK;INCLUDE_DIRS;RESOURCES;LUA_SCRIPTS"
     ${ARGN})
 
@@ -531,13 +533,14 @@ function(gf_add_module)
       "widgets are mounted by the module's Lua UI script, which only exists "
       "for a module that declares \"ui\".")
   endif()
-  foreach(html_capability IN ITEMS html.view html.provider)
-    if(html_capability IN_LIST module_capabilities AND
+  foreach(web_capability IN ITEMS
+          html.view html.provider web.editor web.editor.provider)
+    if(web_capability IN_LIST module_capabilities AND
        NOT "ui.custom" IN_LIST module_capabilities)
       message(FATAL_ERROR
-        "${manifest_file}: \"${html_capability}\" requires \"ui.custom\" "
-        "as well. An HTML view lives in one of the module's native widgets, "
-        "and a renderer's widget in a Host container.")
+        "${manifest_file}: \"${web_capability}\" requires \"ui.custom\" "
+        "as well. A view or an editor lives in one of the module's native "
+        "widgets, and a provider's widget in a Host container.")
     endif()
   endforeach()
 
@@ -623,8 +626,36 @@ function(gf_add_module)
     list(APPEND module_sources "${lua_qrc}")
   endif()
 
+  # A web page rides inside the binary for the same reason the scripts do:
+  # what the binary's signature covers is what the page is. Never fetched,
+  # never read from disk at run time.
+  if(GAM_WEB_ASSETS)
+    if(NOT "web.editor" IN_LIST module_capabilities)
+      message(FATAL_ERROR
+        "gf_add_module(${GAM_NAME}): WEB_ASSETS needs the \"web.editor\" capability")
+    endif()
+    get_filename_component(web_root "${GAM_WEB_ASSETS}" ABSOLUTE)
+    file(GLOB_RECURSE web_files CONFIGURE_DEPENDS LIST_DIRECTORIES false
+      "${web_root}/*")
+    if(NOT web_files)
+      message(FATAL_ERROR
+        "gf_add_module(${GAM_NAME}): WEB_ASSETS ${GAM_WEB_ASSETS} is empty")
+    endif()
+    set(web_qrc "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_web.qrc")
+    set(web_qrc_body
+      "<RCC>\n  <qresource prefix=\"/gf_module/${module_id}/web\">\n")
+    foreach(asset IN LISTS web_files)
+      file(RELATIVE_PATH asset_alias "${web_root}" "${asset}")
+      string(APPEND web_qrc_body
+        "    <file alias=\"${asset_alias}\">${asset}</file>\n")
+    endforeach()
+    string(APPEND web_qrc_body "  </qresource>\n</RCC>\n")
+    file(GENERATE OUTPUT "${web_qrc}" CONTENT "${web_qrc_body}")
+    list(APPEND module_sources "${web_qrc}")
+  endif()
+
   add_library(${target_name} SHARED ${module_sources})
-  if(GAM_LUA_SCRIPTS)
+  if(GAM_LUA_SCRIPTS OR GAM_WEB_ASSETS)
     set_target_properties(${target_name} PROPERTIES AUTORCC ON)
   endif()
 

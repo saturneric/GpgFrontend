@@ -118,6 +118,13 @@ auto GFBufferSize(GFBufferView buf) -> size_t {
   return impl->buf.Size();
 }
 
+auto GFBufferViewToCore(GFBufferView buf) -> GpgFrontend::GFBuffer {
+  const auto* data = static_cast<const char*>(GFBufferData(buf));
+  const auto size = GFBufferSize(buf);
+  if (data == nullptr || size == 0) return {};
+  return GpgFrontend::GFBuffer{data, size};
+}
+
 void GFBufferZeroize(GFBufferRef buf) {
   const auto* impl = ResolveLive(buf, "GFBufferZeroize");
   if (impl == nullptr) return;

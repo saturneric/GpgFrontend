@@ -51,6 +51,7 @@ class GF_UI_EXPORT NativeContainer {
   virtual void OnShowSource(bool /*source*/) {}
   virtual void OnRequestCrypto(uint32_t /*op*/) {}
   virtual void OnOpsChanged() {}
+  virtual void OnSaved(const QString& /*path*/, const QString& /*title*/) {}
   virtual void OnRestartNeeded(int /*level*/) {}
   virtual void OnClose() {}
 

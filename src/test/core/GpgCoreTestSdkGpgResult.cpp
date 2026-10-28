@@ -41,6 +41,7 @@
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
 #include "sdk/GFSDKGpg.h"
+#include "sdk/GFSDKGpgList.h"
 #include "sdk/GFSDKGpgResult.h"
 #include "sdk/GFSDKGpgResult.hpp"
 
@@ -76,6 +77,7 @@ TEST(SdkGpgResultTest, ANullOutParameterIsRejectedRatherThanDereferenced) {
   EXPECT_LT(GFGpgVerify(Ctx(), 0, in.View(), nullptr, nullptr), 0);
   EXPECT_LT(GFGpgSign(Ctx(), 0, nullptr, 0, in.View(), 0, 1, nullptr), 0);
   EXPECT_LT(GFGpgEncrypt(Ctx(), 0, nullptr, 0, in.View(), 1, nullptr), 0);
+  EXPECT_LT(GFGpgEncryptSymmetric(Ctx(), 0, in.View(), 1, nullptr), 0);
 }
 
 // The contract that the old API broke by accident: a non-negative return
@@ -274,6 +276,27 @@ TEST_P(GpgCoreEngineTest, AResultModelIsItsHoldersAndIsConsumedOnce) {
   EXPECT_LT(analyse(Ctx()), 0) << "the model is consumed by its analysis";
 
   DeleteKey(key);
+}
+
+// A passphrase alone, asked for the Host's way: the module never sees it,
+// and the message names no key, so only that passphrase opens it.
+TEST_P(GpgCoreEngineTest, SdkSymmetricEncryptionNamesNoKeyAndRoundTrips) {
+  auto in = GFBuf::Copy(Ctx(), QByteArray("passphrase only"));
+  GFGpgResult enc(Ctx());
+  ASSERT_EQ(GFGpgEncryptSymmetric(Ctx(), Channel(), in.View(), 0, enc.Out()),
+            GF_GPG_OK);
+  const auto cipher = enc.DataCopy();
+  ASSERT_FALSE(cipher.isEmpty());
+
+  auto c = GFBuf::Copy(Ctx(), cipher);
+  GFGpgRecipientListRef list = nullptr;
+  ASSERT_EQ(GFGpgSniffRecipients(Ctx(), Channel(), c.View(), &list), 0);
+  EXPECT_EQ(GFGpgRecipientCount(Ctx(), list), 0U);
+  GFGpgRecipientRelease(Ctx(), list);
+
+  GFGpgResult dec(Ctx());
+  ASSERT_EQ(GFGpgDecrypt(Ctx(), Channel(), c.View(), dec.Out()), GF_GPG_OK);
+  EXPECT_EQ(dec.DataCopy(), QByteArray("passphrase only"));
 }
 
 }  // namespace GpgFrontend::Test

@@ -89,6 +89,10 @@ enum class ModuleCapability : uint32_t {
   kHTML_VIEW = 1U << 7,
   /// Providing the renderer behind them; requires `ui.custom`.
   kHTML_PROVIDER = 1U << 8,
+  /// Embedding an editable page of the module's own; requires `ui.custom`.
+  kWEB_EDITOR = 1U << 9,
+  /// Providing the engine behind it; requires `ui.custom`.
+  kWEB_EDITOR_PROVIDER = 1U << 10,
 };
 
 /// How a declared name was classified.

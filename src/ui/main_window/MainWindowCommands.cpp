@@ -30,11 +30,13 @@
 
 #include "MainWindow.h"
 #include "core/module/ModuleNamespace.h"
+#include "core/utils/GpgUtils.h"
 #include "sdk/GFSDKHostCommands.hpp"
 #include "ui/command/CommandRegistry.h"
 #include "ui/function/FileTypeUtils.h"
 #include "ui/function/ImportKey.h"
 #include "ui/lua/LuaMounts.h"
+#include "ui/widgets/KeyList.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -290,6 +292,40 @@ struct HostCommandHandlers {
     return Ok();
   }
 
+  static auto CheckedKeys(const CommandContext&, const Unit&)
+      -> Outcome<host::KeysChecked::Result> {
+    using R = Outcome<host::KeysChecked::Result>;
+    if (window.isNull()) return R::Failure(GF_CMD_E_UNAVAILABLE, {});
+    host::KeysChecked::Result result;
+    result.channel = window->m_key_list_->GetCurrentGpgContextChannel();
+    // Key groups stand for their members: the answer is always real keys.
+    QSet<QString> seen;
+    for (const auto& key :
+         ConvertKey2GpgKeyList(static_cast<int>(result.channel),
+                               window->m_key_list_->GetCheckedKeys())) {
+      if (key == nullptr || seen.contains(key->Fingerprint())) continue;
+      seen.insert(key->Fingerprint());
+      result.keys.append(gf::cmd::KeyRef{
+          result.channel, key->ID(), key->Fingerprint(), key->IsPrivateKey()});
+    }
+    return R::Success(result);
+  }
+
+  static auto SetCheckedKeys(const CommandContext&,
+                             const host::KeysSetChecked::Args& a)
+      -> Outcome<host::KeysSetChecked::Result> {
+    using R = Outcome<host::KeysSetChecked::Result>;
+    if (window.isNull()) return R::Failure(GF_CMD_E_UNAVAILABLE, {});
+    host::KeysSetChecked::Result result;
+    if (a.channel >= 0 &&
+        a.channel != window->m_key_list_->GetCurrentGpgContextChannel()) {
+      return R::Success(result);
+    }
+    result.applied = true;
+    result.checked = window->m_key_list_->CheckOnly(a.fingerprints);
+    return R::Success(result);
+  }
+
   static auto Message(const CommandContext&, const host::AppMessage::Args& a)
       -> Outcome<Unit> {
     if (window.isNull()) return NoWindow();
@@ -391,6 +427,10 @@ void MainWindow::register_host_commands() {
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Open settings dialog"));
   reg(gf::cmd::Bind<host::ViewOpen, &H::ViewOpen>(),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Open"));
+  reg(gf::cmd::Bind<host::KeysChecked, &H::CheckedKeys>(),
+      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Checked Keys"));
+  reg(gf::cmd::Bind<host::KeysSetChecked, &H::SetCheckedKeys>(),
+      QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Check Keys"));
   reg(gf::cmd::Bind<host::AppMessage, &H::Message>(),
       QT_TRANSLATE_NOOP("GpgFrontend::UI::MainWindow", "Message"));
 }

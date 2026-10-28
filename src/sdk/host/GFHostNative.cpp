@@ -37,6 +37,7 @@
 #include "private/GFHostEnter.h"
 #include "private/GFHostGate.h"
 #include "private/GFHostTransfer.h"
+#include "private/GFHostVersioned.h"
 #include "private/GFSDKPrivate.h"
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
@@ -206,6 +207,45 @@ void AdaptDocument(NativeWidgetEntry& e, const GFDocumentWidgetOps ops,
       return out;
     };
   }
+  if (ops.open_path != nullptr) {
+    d.open_path = [=](quint64 i, const QString& path) {
+      bool taken = false;
+      EnterModule(m, [&] {
+        const auto p = path.toUtf8();
+        taken = ops.open_path(user, i, p.constData()) == 0;
+      });
+      return taken;
+    };
+  }
+  if (ops.save_requested != nullptr) {
+    d.save_requested = [=](quint64 i, bool save_as) {
+      bool taken = false;
+      EnterModule(m, [&] {
+        taken = ops.save_requested(user, i, save_as ? 1 : 0) == 0;
+      });
+      return taken;
+    };
+  }
+  if (ops.close_requested != nullptr) {
+    d.close_requested = [=](quint64 i) {
+      // A module that cannot be entered any more cannot object.
+      bool may = true;
+      EnterModule(m, [&] { may = ops.close_requested(user, i) == 0; });
+      return may;
+    };
+  }
+  if (ops.find_requested != nullptr) {
+    d.find_requested = [=](quint64 i) {
+      EnterModule(m, [&] { ops.find_requested(user, i); });
+    };
+  }
+  if (ops.encrypt_requested != nullptr) {
+    d.encrypt_requested = [=](quint64 i) {
+      bool taken = false;
+      EnterModule(m, [&] { taken = ops.encrypt_requested(user, i) == 0; });
+      return taken;
+    };
+  }
   if (ops.source_policy != nullptr) {
     d.source_lock = [=](quint64 i) -> std::optional<QString> {
       std::optional<QString> reason;
@@ -265,14 +305,10 @@ auto RegisterWidget(GFHostContextRef ctx, const GFNativeWidgetSpec* spec)
   const auto create = spec->create;
   const auto destroyed = spec->destroyed;
   e.create = [=](quint64 instance, const QCborMap& args) -> QWidget* {
-    QWidget* widget = nullptr;
-    EnterModule(m, [&] {
+    return gf_sdk_internal::AdoptModuleWidget(m, [&] {
       const Lent lent(QCborValue(args).toCbor(), module);
-      auto* object = static_cast<QObject*>(create(user, instance, lent.ref));
-      widget = qobject_cast<QWidget*>(object);
-      if (widget == nullptr && object != nullptr) delete object;
+      return create(user, instance, lent.ref);
     });
-    return widget;
   };
   if (destroyed != nullptr) {
     e.destroyed = [=](quint64 instance) {
@@ -281,15 +317,11 @@ auto RegisterWidget(GFHostContextRef ctx, const GFNativeWidgetSpec* spec)
   }
 
   if (spec->document != nullptr) {
-    GFDocumentWidgetOps ops{};
-    std::memcpy(&ops, spec->document,
-                std::min(sizeof(ops), spec->document->struct_size));
+    const auto ops = gf_sdk_internal::CopyVersioned(*spec->document);
     AdaptDocument(e, ops, user, m);
   }
   if (spec->settings != nullptr) {
-    GFSettingsWidgetOps ops{};
-    std::memcpy(&ops, spec->settings,
-                std::min(sizeof(ops), spec->settings->struct_size));
+    const auto ops = gf_sdk_internal::CopyVersioned(*spec->settings);
     if (ops.load != nullptr) {
       e.settings.load = [=](quint64 i) {
         EnterModule(m, [&] { ops.load(user, i); });
@@ -304,9 +336,7 @@ auto RegisterWidget(GFHostContextRef ctx, const GFNativeWidgetSpec* spec)
     }
   }
   if (spec->dialog != nullptr) {
-    GFDialogWidgetOps ops{};
-    std::memcpy(&ops, spec->dialog,
-                std::min(sizeof(ops), spec->dialog->struct_size));
+    const auto ops = gf_sdk_internal::CopyVersioned(*spec->dialog);
     if (ops.opened != nullptr) {
       e.dialog.opened = [=](quint64 i, const QCborMap& args) {
         EnterModule(m, [&] {
@@ -388,6 +418,14 @@ auto DocumentOpsChanged(GFHostContextRef ctx, uint64_t instance) -> int {
                 [](auto* c) { c->OnOpsChanged(); });
 }
 
+auto DocumentSaved(GFHostContextRef ctx, uint64_t instance, const char* path,
+                   const char* title) -> int {
+  NATIVE_GATE("native.document_saved");
+  return Notify(
+      ctx, instance, NativeWidgetKind::kDOCUMENT,
+      [p = Text(path), t = Text(title)](auto* c) { c->OnSaved(p, t); });
+}
+
 auto SettingsRestartNeeded(GFHostContextRef ctx, uint64_t instance, int level)
     -> int {
   NATIVE_GATE("native.settings_restart_needed");
@@ -406,9 +444,16 @@ auto DialogClose(GFHostContextRef ctx, uint64_t instance) -> int {
 namespace gf_sdk_internal {
 
 const GFHostNativeWidgetApi kNativeApi = {
-    sizeof(GFHostNativeWidgetApi), &RegisterWidget,        &UnregisterWidget,
-    &DocumentModified,             &DocumentShowSource,    &DocumentRequestCrypto,
-    &DocumentOpsChanged,           &SettingsRestartNeeded, &DialogClose,
+    sizeof(GFHostNativeWidgetApi),
+    &RegisterWidget,
+    &UnregisterWidget,
+    &DocumentModified,
+    &DocumentShowSource,
+    &DocumentRequestCrypto,
+    &DocumentOpsChanged,
+    &SettingsRestartNeeded,
+    &DialogClose,
+    &DocumentSaved,
 };
 
 }  // namespace gf_sdk_internal

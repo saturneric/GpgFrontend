@@ -109,6 +109,12 @@ void MainWindow::slot_find() {
     return;
   }
 
+  // A document its view persists: the page holds none of the text.
+  if (edit_->CurPageTextEdit()->IsModulePersisted()) {
+    edit_->CurPageTextEdit()->ModuleFindRequested();
+    return;
+  }
+
   // At first close verifynotification, if existing
   edit_->CurPageTextEdit()->CloseNoteByClass("FindWidget");
 

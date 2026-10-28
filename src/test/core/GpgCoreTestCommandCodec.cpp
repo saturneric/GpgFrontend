@@ -256,6 +256,31 @@ TEST(CommandCodecTest, DocumentNewTakesATypeNotATarget) {
   EXPECT_EQ(out.type, u"text"_s);
 }
 
+// A note asks the Key ToolBox for exactly its recipients: the fingerprints
+// and the key database they belong to survive the trip intact.
+TEST(CommandCodecTest, CheckedKeysTravelWithTheirKeyDatabase) {
+  gf::cmd::EncodeState st;
+  const auto encoded = gf::cmd::EncodeMap(
+      gf::cmd::host::KeysSetChecked::Args{3, {u"AA11"_s, u"BB22"_s}}, st);
+  gf::cmd::host::KeysSetChecked::Args args;
+  QString error;
+  ASSERT_TRUE(gf::cmd::DecodeMap(encoded, {}, args, &error))
+      << error.toStdString();
+  EXPECT_EQ(args.channel, 3);
+  EXPECT_EQ(args.fingerprints, (QStringList{u"AA11"_s, u"BB22"_s}));
+
+  gf::cmd::host::KeysChecked::Result in;
+  in.channel = 2;
+  in.keys = {gf::cmd::KeyRef{2, u"ID"_s, u"FPR"_s, true}};
+  const auto back = gf::cmd::EncodeMap(in, st);
+  gf::cmd::host::KeysChecked::Result out;
+  ASSERT_TRUE(gf::cmd::DecodeMap(back, {}, out, &error)) << error.toStdString();
+  EXPECT_EQ(out.channel, 2);
+  ASSERT_EQ(out.keys.size(), 1);
+  EXPECT_EQ(out.keys[0].fingerprint, u"FPR"_s);
+  EXPECT_TRUE(out.keys[0].has_secret);
+}
+
 TEST(CommandCodecTest, TheDescriptorIsDerivedFromTheType) {
   const auto d = gf::cmd::Describe<Echo>();
   EXPECT_EQ(d.value(u"id"_s).toString(), "com.example.codec.echo");

@@ -456,8 +456,15 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
     // Kept out of operations_menu_mask_ on purpose: that member is overwritten
     // wholesale every time the key list changes, which would silently lift the
     // restriction this tab's type imposes.
-    tab_type_menu_mask_ = OperationsMaskForTabType(
-        type, [](const QString& id) { return Module::IsEventListening(id); });
+    // A document its module keeps is no event's to answer: its view says
+    // what it does (Encrypt, at most), and that alone decides.
+    const auto* text_page = edit_->CurPageTextEdit();
+    tab_type_menu_mask_ =
+        text_page != nullptr && text_page->IsModulePersisted()
+            ? ~0U
+            : OperationsMaskForTabType(type, [](const QString& id) {
+                return Module::IsEventListening(id);
+              });
 
     // ...and narrowed again by what the open document actually admits of.
     // There is nothing to decrypt in a message that is not encrypted.
@@ -695,6 +702,13 @@ void MainWindow::dispatch_general_op(
 }
 
 void MainWindow::SlotGeneralEncrypt(bool) {
+  // A document its module keeps: the view encrypts it, by the same rule
+  // (the checked keys, or a passphrase when none are).
+  if (auto* page = edit_->CurPageTextEdit();
+      page != nullptr && page->IsModulePersisted()) {
+    page->ModuleEncryptRequested();
+    return;
+  }
   dispatch_general_op(
       [this](FilePage* p) {
         SlotFileEncrypt(p->GetSelected(), p->IsASCIIMode());
@@ -739,14 +753,14 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
       [this](const QString& type) { SlotCustomDecryptVerify(type); });
 }
 
-void MainWindow::slot_update_operations_menu_by_checked_keys(
-    unsigned int mask) {
-  auto keys = m_key_list_->GetCheckedKeys();
-
+auto MainWindow::OperationsMaskForCheckedKeys(const GpgAbstractKeyPtrList& keys,
+                                              bool view_encrypts,
+                                              QString* block_reason)
+    -> unsigned int {
   unsigned int temp = ~0;
-  QString encrypt_block_reason;
-
   if (keys.isEmpty()) {
+    // Nothing checked means a passphrase to a view that encrypts itself.
+    if (view_encrypts) return temp;
     temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign |
               OperationMenu::kSign);
 
@@ -758,8 +772,8 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
 
       if (!key->IsHasEncrCap()) {
         temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign);
-        if (encrypt_block_reason.isEmpty()) {
-          encrypt_block_reason = DescribeEncryptBlock(key);
+        if (block_reason != nullptr && block_reason->isEmpty()) {
+          *block_reason = DescribeEncryptBlock(key);
         }
       }
       if (!key->IsHasSignCap()) {
@@ -767,6 +781,16 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
       }
     }
   }
+  return temp;
+}
+
+void MainWindow::slot_update_operations_menu_by_checked_keys(
+    unsigned int mask) {
+  const auto* page = edit_->CurPageTextEdit();
+  QString encrypt_block_reason;
+  const auto temp = OperationsMaskForCheckedKeys(
+      m_key_list_->GetCheckedKeys(),
+      page != nullptr && page->IsModulePersisted(), &encrypt_block_reason);
 
   slot_update_crypto_operations_menu(operations_menu_mask_ &
                                      tab_type_menu_mask_ & mask & temp);

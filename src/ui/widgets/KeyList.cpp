@@ -1657,18 +1657,40 @@ auto KeyList::GetCheckedKeys() -> GpgAbstractKeyPtrList {
   return key_table->GetCheckedKeys();
 }
 
-void KeyList::SetChecked(const KeyIdArgsList& key_ids,
-                         const KeyTable& key_table) {
-  if (!key_ids.empty()) {
-    for (int i = 0; i < key_table.GetRowCount(); i++) {
-      if (std::find(
-              key_ids.begin(), key_ids.end(),
-              key_table.GetKeyByIndex(key_table.model()->index(i, 0))->ID()) !=
-          key_ids.end()) {
-        key_table.SetRowChecked(i);
-      }
+namespace {
+
+/// Checks every row whose key @p wanted takes; how many it checked.
+template <typename Wanted>
+auto CheckRows(const KeyTable& table, Wanted wanted) -> int {
+  int checked = 0;
+  for (int i = 0; i < table.GetRowCount(); i++) {
+    const auto key = table.GetKeyByIndex(table.model()->index(i, 0));
+    if (key != nullptr && wanted(key)) {
+      table.SetRowChecked(i);
+      ++checked;
     }
   }
+  return checked;
+}
+
+}  // namespace
+
+auto KeyList::CheckOnly(const QStringList& fingerprints) -> int {
+  auto* key_table = current_page();
+  if (key_table == nullptr) return 0;
+  key_table->UncheckAll();
+  return CheckRows(*key_table, [&](const auto& key) {
+    return fingerprints.contains(key->Fingerprint(), Qt::CaseInsensitive);
+  });
+}
+
+void KeyList::SetChecked(const KeyIdArgsList& key_ids,
+                         const KeyTable& key_table) {
+  if (key_ids.empty()) return;
+  CheckRows(key_table, [&](const auto& key) {
+    return std::find(key_ids.begin(), key_ids.end(), key->ID()) !=
+           key_ids.end();
+  });
 }
 
 [[maybe_unused]] auto KeyList::ContainsPrivateKeys() -> bool {

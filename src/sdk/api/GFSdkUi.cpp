@@ -116,6 +116,13 @@ auto GFNativeDocumentOpsChanged(GFSDKContext* ctx, uint64_t instance) -> int {
   return g->document_ops_changed(hctx, instance);
 }
 
+auto GFNativeDocumentSaved(GFSDKContext* ctx, uint64_t instance,
+                           const char* path, const char* title) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDocumentSaved", -1);
+  if (!GF_SDK_GROUP_HAS(g, document_saved)) return -1;
+  return g->document_saved(hctx, instance, path, title);
+}
+
 auto GFNativeSettingsRestartNeeded(GFSDKContext* ctx, uint64_t instance,
                                    int level) -> int {
   GF_SDK_REQUIRE(ctx, native, "GFNativeSettingsRestartNeeded", -1);

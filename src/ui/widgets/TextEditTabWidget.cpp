@@ -357,12 +357,50 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
   // A document type a module's UI script mounted an editor for: the Host
   // opens the file itself, in a tab of that type, and the module's view
   // loads it like any other document.
-  const auto suffix = file_info.suffix().toLower();
-  for (const auto& m :
-       Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR)) {
-    if (!m.info.extensions.contains(suffix)) continue;
+  // Matched on the end of the name, the longest extension winning: a
+  // compound one ("textpack.gpg") must not be taken for its last part.
+  const auto name = file_info.fileName().toLower();
+  const auto mounts =
+      Lua::LuaHost::Instance().MountsOf(Lua::AnchorKind::kEDITOR);
+  qsizetype best_length = 0;
+  const Lua::PlacedMount* best = nullptr;
+  for (const auto& m : mounts) {
+    for (const auto& ext : m.info.extensions) {
+      if (ext.size() > best_length && name.endsWith(u"."_s + ext)) {
+        best_length = ext.size();
+        best = &m;
+      }
+    }
+  }
+  if (best != nullptr) {
+    const auto& m = *best;
     if (const int existing = find_tab_by_file_path(path); existing >= 0) {
       setCurrentIndex(existing);
+      return;
+    }
+    const auto new_page = [&]() -> PlainTextEditorPage* {
+      const auto entry = NativeWidgetRegistry::Instance().Find(m.info.widget);
+      const auto icon = entry.has_value() ? entry->icon : QString();
+      return qobject_cast<PlainTextEditorPage*>(
+          SlotNewTab(m.info.document_type, stripped_name(path), QIcon(), icon));
+    };
+    if (m.info.module_persisted) {
+      // The view reads the file; the Host does not.
+      auto* page = new_page();
+      if (page == nullptr) return;
+      if (!page->ModuleOpenPath(path)) {
+        // Undone the way a closed tab is, so a module that heard it created
+        // also hears it gone.
+        const auto index = indexOf(page);
+        removeTab(index);
+        Module::TriggerEvent(
+            "TAB_CLOSED",
+            {{"tab_index", GFBuffer{QString::number(index)}},
+             {"tab_type", GFBuffer{page->property("type").toString()}}});
+        page->deleteLater();
+        return;
+      }
+      setTabToolTip(indexOf(page), path);
       return;
     }
     QString error_message;
@@ -375,10 +413,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
       QMessageBox::warning(this, tr("File Open Error"), file.errorString());
       return;
     }
-    const auto entry = NativeWidgetRegistry::Instance().Find(m.info.widget);
-    const auto icon = entry.has_value() ? entry->icon : QString();
-    auto* page = qobject_cast<PlainTextEditorPage*>(
-        SlotNewTab(m.info.document_type, stripped_name(path), QIcon(), icon));
+    auto* page = new_page();
     if (page == nullptr) return;
     page->SetContentFromBytes(file.readAll());
     page->SetFilePath(path);
@@ -510,6 +545,7 @@ void TextEditTabWidget::mount_module_view(PlainTextEditorPage* page,
       return;
     }
     page->SetPrefersCompactStatusDock(m.info.compact_status);
+    page->SetModulePersisted(m.info.module_persisted);
     if (page == currentWidget()) emit SignalCurrentPageViewMounted();
     return;
   }
@@ -1134,6 +1170,18 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
 
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
           this, [this, page]() -> void { schedule_recovery_cache(page); });
+  // A mounted view's later edits never touch the document until it is asked
+  // for them, so they are announced here; the cache timer debounces them.
+  connect(page, &PlainTextEditorPage::SignalPrimaryViewEdited, this,
+          [this, page]() -> void { schedule_recovery_cache(page); });
+  // Only a module-persisted view saves by itself, and says so here.
+  connect(page, &PlainTextEditorPage::SignalModuleSaved, this,
+          [this, page](const QString& path, const QString& title) {
+            page->setProperty("base_title", title);
+            update_tab_modified_mark(page, false);
+            const auto index = indexOf(page);
+            if (index >= 0) setTabToolTip(index, path);
+          });
 
   connect(page, &PlainTextEditorPage::SignalTextDirectionModeChanged, this,
           &TextEditTabWidget::SignalTextDirectionModeChanged);

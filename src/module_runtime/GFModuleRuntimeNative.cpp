@@ -29,11 +29,9 @@
 #include "GFModuleRuntimeNative.h"
 
 #include <QCborValue>
-#include <QCoreApplication>
 #include <QFont>
 #include <QHash>
 #include <QPointer>
-#include <QThread>
 #include <QWidget>
 #include <list>
 
@@ -96,14 +94,6 @@ auto As(uint64_t instance) -> T* {
   return dynamic_cast<T*>(it->base);
 }
 
-auto Bytes(GFBufferView view) -> QByteArray {
-  auto* ctx = gf::runtime::SdkContext();
-  const auto* data = static_cast<const char*>(GFBufferData(ctx, view));
-  return data == nullptr
-             ? QByteArray()
-             : QByteArray(data, static_cast<int>(GFBufferSize(ctx, view)));
-}
-
 auto Buffer(const QByteArray& bytes) -> GFBufferRef {
   return GFBufferNewFromBytes(gf::runtime::SdkContext(), bytes.constData(),
                               static_cast<size_t>(bytes.size()));
@@ -114,7 +104,8 @@ auto Buffer(const QByteArray& bytes) -> GFBufferRef {
 auto Create(void* user, uint64_t instance, GFBufferView args) -> void* {
   auto* reg = static_cast<Registration*>(user);
   NativeWidgetBase* base = nullptr;
-  auto* widget = reg->make(QCborValue::fromCbor(Bytes(args)).toMap(), &base);
+  auto* widget = reg->make(
+      QCborValue::fromCbor(gf::runtime::ViewBytes(args)).toMap(), &base);
   if (widget == nullptr || base == nullptr) return nullptr;
   gf::ui::NativeWidgetAccess::SetInstance(base, instance);
   Instances().insert(instance, Live{widget, base});
@@ -128,7 +119,7 @@ void Destroyed(void* /*user*/, uint64_t instance) {
 // --- documents
 
 void DocLoad(void*, uint64_t i, GFBufferView bytes) {
-  if (auto* d = As<DocumentWidget>(i)) d->Load(Bytes(bytes));
+  if (auto* d = As<DocumentWidget>(i)) d->Load(gf::runtime::ViewBytes(bytes));
 }
 auto DocSave(void*, uint64_t i) -> GFBufferRef {
   auto* d = As<DocumentWidget>(i);
@@ -155,16 +146,21 @@ auto DocSuggestedFileName(void*, uint64_t i) -> GFBufferRef {
   return name.isEmpty() ? nullptr : Buffer(name.toUtf8());
 }
 void DocApplyVerification(void*, uint64_t i, GFBufferView json) {
-  if (auto* d = As<DocumentWidget>(i)) d->ApplyVerification(Bytes(json));
+  if (auto* d = As<DocumentWidget>(i))
+    d->ApplyVerification(gf::runtime::ViewBytes(json));
 }
 auto DocAppendText(void*, uint64_t i, GFBufferView utf8) -> int {
   auto* d = As<DocumentWidget>(i);
-  return d != nullptr && d->AppendText(QString::fromUtf8(Bytes(utf8))) ? 1 : 0;
+  return d != nullptr &&
+                 d->AppendText(QString::fromUtf8(gf::runtime::ViewBytes(utf8)))
+             ? 1
+             : 0;
 }
 auto DocAttachPublicKey(void*, uint64_t i, GFBufferView key, const char* name)
     -> int {
   auto* d = As<DocumentWidget>(i);
-  return d != nullptr && d->AttachPublicKey(Bytes(key), QString::fromUtf8(name))
+  return d != nullptr && d->AttachPublicKey(gf::runtime::ViewBytes(key),
+                                            QString::fromUtf8(name))
              ? 1
              : 0;
 }
@@ -181,7 +177,7 @@ auto DocPrepareSave(void*, uint64_t i, GFBufferView bytes, GFBufferRef* out)
   if (out != nullptr) *out = nullptr;
   auto* d = As<DocumentWidget>(i);
   if (d == nullptr) return 0;
-  const auto decision = d->PrepareSave(Bytes(bytes));
+  const auto decision = d->PrepareSave(gf::runtime::ViewBytes(bytes));
   if (decision.cancelled) return 1;
   if (decision.bytes.has_value() && out != nullptr)
     *out = Buffer(*decision.bytes);
@@ -198,6 +194,26 @@ auto DocSourcePolicy(void*, uint64_t i, GFBufferRef* reason) -> int {
   return 0;
 }
 
+auto DocOpenPath(void*, uint64_t i, const char* path) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d != nullptr && d->OpenPath(QString::fromUtf8(path)) ? 0 : -1;
+}
+auto DocSaveRequested(void*, uint64_t i, int save_as) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d != nullptr && d->SaveRequested(save_as != 0) ? 0 : -1;
+}
+auto DocCloseRequested(void*, uint64_t i) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d == nullptr || d->CloseRequested() ? 0 : 1;
+}
+void DocFindRequested(void*, uint64_t i) {
+  if (auto* d = As<DocumentWidget>(i)) d->FindRequested();
+}
+auto DocEncryptRequested(void*, uint64_t i) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d != nullptr && d->EncryptRequested() ? 0 : -1;
+}
+
 const GFDocumentWidgetOps kDocumentOps = {
     sizeof(GFDocumentWidgetOps),
     &DocLoad,
@@ -212,6 +228,11 @@ const GFDocumentWidgetOps kDocumentOps = {
     &DocWipe,
     &DocPrepareSave,
     &DocSourcePolicy,
+    &DocOpenPath,
+    &DocSaveRequested,
+    &DocCloseRequested,
+    &DocFindRequested,
+    &DocEncryptRequested,
 };
 
 // --- settings
@@ -231,7 +252,7 @@ const GFSettingsWidgetOps kSettingsOps = {sizeof(GFSettingsWidgetOps), &SetLoad,
 
 void DlgOpened(void*, uint64_t i, GFBufferView args) {
   if (auto* d = As<DialogWidget>(i)) {
-    d->Opened(QCborValue::fromCbor(Bytes(args)).toMap());
+    d->Opened(QCborValue::fromCbor(gf::runtime::ViewBytes(args)).toMap());
   }
 }
 auto DlgCloseRequested(void*, uint64_t i) -> int {
@@ -258,6 +279,10 @@ void DocumentWidget::RequestCrypto(uint32_t op) {
 }
 void DocumentWidget::NotifyOpsChanged() {
   GFNativeDocumentOpsChanged(gf::runtime::SdkContext(), Instance());
+}
+void DocumentWidget::NotifySaved(const QString& path, const QString& title) {
+  GFNativeDocumentSaved(gf::runtime::SdkContext(), Instance(),
+                        path.toUtf8().constData(), title.toUtf8().constData());
 }
 void SettingsWidget::NotifyRestartNeeded(int level) {
   GFNativeSettingsRestartNeeded(gf::runtime::SdkContext(), Instance(), level);
@@ -318,13 +343,7 @@ void ForgetNativeWidgets() {
   // closed this module's gate before this runs, so nothing calls in. The
   // instance map belongs to the GUI thread, where every op touching it runs,
   // so it is cleared there -- this runs on the module runner.
-  auto* app = QCoreApplication::instance();
-  if (app == nullptr || QThread::currentThread() == app->thread()) {
-    Instances().clear();
-  } else {
-    QMetaObject::invokeMethod(
-        app, []() { Instances().clear(); }, Qt::QueuedConnection);
-  }
+  RunOnGuiThread([]() { Instances().clear(); });
 }
 
 void ResetNativeRegistrations() {

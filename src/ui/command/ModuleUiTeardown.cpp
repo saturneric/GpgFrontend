@@ -34,6 +34,7 @@
 #include "ui/UIModuleManager.h"
 #include "ui/command/CommandRegistry.h"
 #include "ui/html/HtmlViewService.h"
+#include "ui/html/WebEditorService.h"
 #include "ui/lua/LuaHost.h"
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
@@ -64,6 +65,7 @@ void ModuleUiTeardown(const QString& module) {
     // Before its widgets: a renderer the module provides is drained while
     // the views it serves still have the containers they sit in.
     HtmlViewService::Instance().WithdrawModule(module);
+    WebEditorService::Instance().WithdrawModule(module);
     NativeInstances::Instance().WithdrawAll(module);
   };
 

@@ -76,6 +76,15 @@ auto Vocabulary() -> const QList<CapabilityEntry>& {
       // code between foreign content and the user, so it is its own name.
       {"html.provider", ModuleCapabilityKind::kENFORCEABLE,
        static_cast<uint32_t>(ModuleCapability::kHTML_PROVIDER)},
+      // An EDITABLE page inside one of the module's own widgets: script runs,
+      // but only the module's own bundled script, and the content is the
+      // module's document. A different trust question from a read-only mail
+      // view, so a different name.
+      {"web.editor", ModuleCapabilityKind::kENFORCEABLE,
+       static_cast<uint32_t>(ModuleCapability::kWEB_EDITOR)},
+      // The engine behind those editors.
+      {"web.editor.provider", ModuleCapabilityKind::kENFORCEABLE,
+       static_cast<uint32_t>(ModuleCapability::kWEB_EDITOR_PROVIDER)},
 
       // Advisory. A module reaches the network through Qt, not through the
       // Host, so there is nothing here for the Host to withhold. Recorded and

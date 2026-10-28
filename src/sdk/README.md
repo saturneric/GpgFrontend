@@ -62,7 +62,8 @@ context even if reached another way.
 | `event`     | always                 | `subscribe`, `answer`                                                                         |
 | `bootstrap` | always                 | translator registration: runtime plumbing, not a permission                                   |
 | `list`      | always                 | the generic string list, which `gpg` and `storage` both produce                               |
-| `gpg`       | `"gpg"`                | operations, results, keys, key and recipient lists, analysis                                  |
+| `archive`   | always                 | ZIP in memory (GFSDKArchive.h): write entries, read them under the Host's extraction policy   |
+| `gpg`       | `"gpg"`                | operations, results, keys, key and recipient lists, analysis; `GFGpgEncryptSymmetric` (a passphrase the Host asks for) |
 | `pgp`       | `"pgp"`                | packet-structure inspection; no keyring, no engine                                            |
 | `ui`        | `"ui"`                 | theme colors by role, the user file path                                                      |
 | `command`   | `"ui"`                 | register, invoke, cancel and describe typed commands                                          |
@@ -70,6 +71,8 @@ context even if reached another way.
 | `native`    | `"ui"` + `"ui.custom"` | register native widgets; a mounted widget's notifications                                     |
 | `html_view` | `"ui.custom"` + `"html.view"` | embed a read-only HTML view in one of the module's own widgets; answers Unavailable without a renderer |
 | `html_provider` | `"ui.custom"` + `"html.provider"` | provide the renderer behind HTML views, and ask for a document's parts                  |
+| `web_editor` | `"ui.custom"` + `"web.editor"` | embed an editable page of the module's own (its `WEB_ASSETS`) and talk to it in JSON objects; see GFSDKWebEditor.h |
+| `web_editor_provider` | `"ui.custom"` + `"web.editor.provider"` | provide the engine behind web editors                                     |
 | `editor`    | `"editor"`             | the current document's exact octets, and what it is (never its content)                       |
 | `storage`   | `"storage"`            | the module's settings group, the three caches (scoped per module), the runtime register table |
 | `process`   | `"process"`            | running an external program                                                                   |
@@ -205,6 +208,8 @@ module's lifecycle.
 | `ui.custom` | adds `native.*` and `ui.mount` in Lua, and native widget registration in C++. Requires `ui`                        |
 | `html.view` | embedding read-only HTML views in the module's own native widgets. Requires `ui.custom`                            |
 | `html.provider` | providing the engine behind HTML views. Requires `ui.custom`; the module's library is never unmapped afterwards |
+| `web.editor` | an editable page of the module's own in one of its native widgets: its bundled script runs under a Host policy (no network, no eval, no inline script). Requires `ui.custom` |
+| `web.editor.provider` | providing the engine behind web editors. Requires `ui.custom`; never unmapped afterwards |
 
 There is no third level and no Host-handle escape hatch. A grant check needs
 **every** capability it names: `native` is NULL in a table that has `ui` but
@@ -270,6 +275,8 @@ Host commands (types in `GFSDKHostCommands.hpp`, titles in `src/ui`):
 | `org.gpgfrontend.crypto.{encrypt, decrypt, sign, verify, encrypt_sign, decrypt_verify}` | `target: DocumentRef`                               |
 | `org.gpgfrontend.keys.import`                                                           | `data: Blob`                                        |
 | `org.gpgfrontend.keys.open_manager`                                                     |                                                     |
+| `org.gpgfrontend.keys.checked`                                                          | → `channel, keys: [KeyRef]` (groups expanded)       |
+| `org.gpgfrontend.keys.set_checked`                                                      | `channel, fingerprints` → `applied, checked`        |
 | `org.gpgfrontend.view.open`                                                             | `view: ViewRef`, the caller's own mount only        |
 | `org.gpgfrontend.app.open_settings`                                                     |                                                     |
 | `org.gpgfrontend.app.message`                                                           | `severity, title, text`                             |
@@ -351,7 +358,7 @@ Call:cancel() -> bool
 
 ui.anchor(id) -> Anchor                           menu and button anchors
 ui.anchor.settings{section}
-ui.anchor.editor{document_type, extensions, compact_status?}
+ui.anchor.editor{document_type, extensions, compact_status?, persistence?}
 ui.anchor.dialog{} -> Anchor                      mount anchors
 ui.action{id, anchor, command, order?, icon?, shortcut?, update?}
                                                   while loading; shortcut:
@@ -442,7 +449,7 @@ Three typed protocols, and no generic request or query:
 
 | class                    | the Host calls                                                                                                                                                     | the widget may ask                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
-| `gf::ui::DocumentWidget` | `Load`, `Save`, `IsDirty`, `CryptoOperations`, `ApplyVerification`, `AppendText`, `AttachPublicKey`, `ApplyFont`, `PrepareSave`, `SourceLockReason`, `WipeContent` | modified, show source, run a crypto op, ops changed |
+| `gf::ui::DocumentWidget` | `Load`, `Save`, `IsDirty`, `CryptoOperations`, `ApplyVerification`, `AppendText`, `AttachPublicKey`, `ApplyFont`, `PrepareSave`, `SourceLockReason`, `WipeContent`; with `persistence = "module"`: `OpenPath`, `SaveRequested`, `CloseRequested`, `FindRequested`, `EncryptRequested` | modified, show source, run a crypto op, ops changed, saved |
 | `gf::ui::SettingsWidget` | `LoadSettings`, `ApplySettings`                                                                                                                                    | restart needed                                      |
 | `gf::ui::DialogWidget`   | `Opened`, `CloseRequested`                                                                                                                                         | close                                               |
 
@@ -450,6 +457,14 @@ Three typed protocols, and no generic request or query:
 per mount (every document tab needs its own). The widget pointer goes module
 to Host only. Every notification names its instance, and the Host refuses one
 from a module that does not own it or of the wrong kind.
+
+An editor mount with `persistence = "module"` is a document whose file only
+the module reads and writes: the Host never reads it (it hands the view the
+path, `OpenPath`), never runs its own crypto on it, and passes Save, Save As,
+closing, Find and Encrypt to the view. Unsaved work is recovered like any
+other tab's: the Host caches what `Save` returns and hands it back to `Load`
+after a crash. Its `extensions` may be compound (`"textpack.gpg"`), matched
+against the end of the file name, longest first. `m_notes` is the example.
 
 A document view never receives the Host's editor. The raw source is the
 page's own switcher, which the view may ask for; `SourceLockReason` keeps it

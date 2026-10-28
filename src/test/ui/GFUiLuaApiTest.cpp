@@ -431,6 +431,56 @@ TEST_F(LuaApiTest, EditorCompactStatusIsAnExplicitBoolean) {
   EXPECT_FALSE(mount(", compact_status=1").first);
 }
 
+TEST_F(LuaApiTest, EditorPersistenceIsHostOrModule) {
+  const auto mount = [this](const char* extra) {
+    auto rt = Make();
+    const auto code = QString(
+                          "ui.mount{ id='e', anchor=ui.anchor.editor{"
+                          "document_type='x', extensions={'eml'}%1}, "
+                          "widget=native.factory('editor') }")
+                          .arg(QString::fromLatin1(extra))
+                          .toUtf8();
+    const bool ok = Load(*rt, code.constData());
+    return std::pair{ok, ok ? rt->Mounts().value(0) : UI::Lua::MountInfo{}};
+  };
+
+  const auto [absent_ok, absent] = mount("");
+  ASSERT_TRUE(absent_ok);
+  EXPECT_FALSE(absent.module_persisted) << "the Host's, unless asked for";
+
+  const auto [module_ok, module] = mount(", persistence='module'");
+  ASSERT_TRUE(module_ok);
+  EXPECT_TRUE(module.module_persisted);
+
+  const auto [host_ok, host] = mount(", persistence='host'");
+  ASSERT_TRUE(host_ok);
+  EXPECT_FALSE(host.module_persisted);
+
+  EXPECT_FALSE(mount(", persistence='disk'").first);
+  EXPECT_FALSE(mount(", persistence=true").first);
+}
+
+TEST_F(LuaApiTest, EditorExtensionsMayBeCompound) {
+  const auto mount = [this](const char* extensions) {
+    auto rt = Make();
+    const auto code = QString(
+                          "ui.mount{ id='e', anchor=ui.anchor.editor{"
+                          "document_type='x', extensions={%1}}, "
+                          "widget=native.factory('editor') }")
+                          .arg(QString::fromLatin1(extensions))
+                          .toUtf8();
+    const bool ok = Load(*rt, code.constData());
+    return std::pair{ok, ok ? rt->Mounts().value(0) : UI::Lua::MountInfo{}};
+  };
+  const auto [ok, m] = mount("'textpack.gpg'");
+  ASSERT_TRUE(ok);
+  EXPECT_EQ(m.extensions, QStringList{u"textpack.gpg"_s});
+  EXPECT_FALSE(mount("'.gpg'").first) << "without the leading dot";
+  EXPECT_FALSE(mount("'a..b'").first);
+  EXPECT_FALSE(mount("'TEXT.GPG'").first) << "lower-case";
+  EXPECT_FALSE(mount("'a.b.c.d'").first) << "at most three parts";
+}
+
 // ------------------------------------------------------------ evaluation
 
 TEST_F(LuaApiTest, UpdateComputesStateAndTypedArguments) {

@@ -107,6 +107,8 @@ struct MountInfo {
   QStringList extensions;
   /// The document view asks for a compact Status Panel while it is current.
   bool compact_status = false;
+  /// The view reads and writes the document's file itself.
+  bool module_persisted = false;
   int order = 0;
   QString chunk;
 };
@@ -232,6 +234,7 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
     QString document_type;
     QStringList extensions;
     bool compact_status = false;
+    bool module_persisted = false;
   };
 
   struct NativeRef {

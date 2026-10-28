@@ -58,6 +58,15 @@ struct GF_UI_EXPORT NativeDocumentOps {
       prepare_save;
   /// nullopt: the source may be unlocked; otherwise why it may not.
   std::function<std::optional<QString>(quint64)> source_lock;
+
+  // A document the module persists itself (persistence = "module").
+  std::function<bool(quint64, const QString&)> open_path;
+  std::function<bool(quint64, bool save_as)> save_requested;
+  /// true: it may close now.
+  std::function<bool(quint64)> close_requested;
+  std::function<void(quint64)> find_requested;
+  /// true: taken; the view encrypts the document itself.
+  std::function<bool(quint64)> encrypt_requested;
 };
 
 struct GF_UI_EXPORT NativeSettingsOps {
