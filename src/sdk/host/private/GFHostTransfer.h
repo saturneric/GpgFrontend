@@ -52,6 +52,13 @@ namespace gf_sdk_internal {
 auto TakeBufferForTransfer(GFBufferRef buf, const char* what)
     -> std::optional<GpgFrontend::GFBuffer>;
 
+/// TakeBufferForTransfer(), where NULL -- nothing handed over -- is nullopt.
+inline auto TakeIfGiven(GFBufferRef buf, const char* what)
+    -> std::optional<GpgFrontend::GFBuffer> {
+  if (buf == nullptr) return std::nullopt;
+  return TakeBufferForTransfer(buf, what);
+}
+
 /// A new handle owned by @p module_id, sharing @p buffer's storage.
 auto NewBufferFor(GpgFrontend::GFBuffer buffer, const QString& module_id,
                   const char* origin) -> GFBufferRef;

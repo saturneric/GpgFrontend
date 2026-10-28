@@ -29,6 +29,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QWidget>
 
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleSdkBridge.h"
@@ -57,6 +58,25 @@ auto EnterModule(const QByteArray& module_utf8, Fn&& fn) -> bool {
       module_utf8.constData());
   fn();
   return true;
+}
+
+/**
+ * @brief The widget @p make returns from inside module @p module_utf8.
+ *
+ * A factory hands back an untyped pointer; whatever it is, if it is not a
+ * QWidget it is deleted rather than leaked or used.
+ *
+ * @return nullptr when the module is not entered or made no widget
+ */
+template <typename Make>
+auto AdoptModuleWidget(const QByteArray& module_utf8, Make&& make) -> QWidget* {
+  QWidget* widget = nullptr;
+  EnterModule(module_utf8, [&] {
+    auto* object = static_cast<QObject*>(make());
+    widget = qobject_cast<QWidget*>(object);
+    if (widget == nullptr && object != nullptr) delete object;
+  });
+  return widget;
 }
 
 }  // namespace gf_sdk_internal

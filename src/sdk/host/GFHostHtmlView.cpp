@@ -27,7 +27,6 @@
  */
 
 #include <QWidget>
-#include <cstring>
 
 #include "GFHostImpl.h"
 #include "GFSDKHostApi.h"
@@ -36,6 +35,7 @@
 #include "private/GFHostEnter.h"
 #include "private/GFHostGate.h"
 #include "private/GFHostTransfer.h"
+#include "private/GFHostVersioned.h"
 #include "ui/html/HtmlViewService.h"
 
 /**
@@ -98,12 +98,6 @@ auto Text(const char* s) -> QString {
   return s == nullptr ? QString() : QString::fromUtf8(s);
 }
 
-/// Take a buffer the caller handed over; empty for none.
-auto Take(GFBufferRef ref, const char* what) -> std::optional<GFBuffer> {
-  if (ref == nullptr) return std::nullopt;
-  return gf_sdk_internal::TakeBufferForTransfer(ref, what);
-}
-
 /// Borrowed bytes, as a handle the module may read for one call.
 struct Lent {
   Lent(const GFBuffer& bytes, const QString& module)
@@ -138,13 +132,8 @@ class ModuleRenderer : public HtmlViewRenderer {
     c.max_part_bytes = static_cast<uint64_t>(policy.max_part_bytes);
     c.max_total_part_bytes = static_cast<uint64_t>(policy.max_total_part_bytes);
 
-    QWidget* widget = nullptr;
-    EnterModule(module_, [&] {
-      auto* object = static_cast<QObject*>(ops_.create(user_, view, &c));
-      widget = qobject_cast<QWidget*>(object);
-      if (widget == nullptr && object != nullptr) delete object;
-    });
-    return widget;
+    return gf_sdk_internal::AdoptModuleWidget(
+        module_, [&] { return ops_.create(user_, view, &c); });
   }
 
   auto Load(quint64 view, const QString& session, const QByteArray& document)
@@ -211,12 +200,11 @@ auto Load(GFHostContextRef ctx, uint64_t view, GFBufferRef html_utf8,
   if (out_dropped != nullptr) *out_dropped = 0;
   // Every buffer is the Host's from here, whatever happens next: taken
   // before the gate, so a refusal does not leave them behind.
-  const auto html = Take(html_utf8, "html_view.load");
+  const auto html = gf_sdk_internal::TakeIfGiven(html_utf8, "html_view.load");
   QList<HtmlViewPart> taken;
   for (size_t i = 0; parts != nullptr && i < part_count; ++i) {
-    GFHtmlPart part{};
-    std::memcpy(&part, &parts[i], std::min(sizeof(part), parts[i].struct_size));
-    auto data = Take(part.data, "html_view.load.part");
+    const auto part = gf_sdk_internal::CopyVersioned(parts[i]);
+    auto data = gf_sdk_internal::TakeIfGiven(part.data, "html_view.load.part");
     if (!data.has_value()) continue;
     taken.append(
         HtmlViewPart{Text(part.cid), Text(part.mime), std::move(*data)});
@@ -257,16 +245,14 @@ auto RegisterProvider(GFHostContextRef ctx, const GFHtmlViewProviderSpec* spec)
   if (spec == nullptr || spec->struct_size < sizeof(size_t)) {
     return GF_HTML_VIEW_E_INVALID;
   }
-  GFHtmlViewProviderSpec s{};
-  std::memcpy(&s, spec, std::min(sizeof(s), spec->struct_size));
+  const auto s = gf_sdk_internal::CopyVersioned(*spec);
   // A generation this Host does not know is refused, not guessed at: its
   // ops may mean something else.
   if (s.interface_version != GF_HTML_VIEW_PROVIDER_V1 || s.ops == nullptr ||
       s.name == nullptr || *s.name == '\0') {
     return GF_HTML_VIEW_E_INVALID;
   }
-  GFHtmlViewProviderOps ops{};
-  std::memcpy(&ops, s.ops, std::min(sizeof(ops), s.ops->struct_size));
+  const auto ops = gf_sdk_internal::CopyVersioned(*s.ops);
   if (ops.create == nullptr || ops.load == nullptr) {
     return GF_HTML_VIEW_E_INVALID;
   }
