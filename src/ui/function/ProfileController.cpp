@@ -747,12 +747,16 @@ void ImportProfileInteractive(QWidget* parent, const QString& path,
       });
 }
 
-void CreateProfileInteractive(QWidget* parent,
-                              const std::function<void()>& on_changed,
-                              const std::function<void()>& on_opened) {
-  ProfileCreateDialog dialog(parent);
-  if (dialog.exec() != QDialog::Accepted) return;
+namespace {
 
+/**
+ * @brief Create the profile the New Profile wizard described, then offer to
+ *        open it.
+ */
+void FinishCreateProfile(QWidget* parent, const QString& display_name,
+                         bool self_contained, const QList<SettingGroup>& groups,
+                         const std::function<void()>& on_changed,
+                         const std::function<void()>& on_opened) {
   const auto profiles_root = CurrentProfileRoots().profiles_root;
   const auto id = MintProfileDirectoryId(profiles_root);
   if (id.isEmpty()) {
@@ -763,13 +767,13 @@ void CreateProfileInteractive(QWidget* parent,
   }
 
   QMap<QString, QVariant> inherited;
-  if (const auto groups = dialog.InheritedGroups(); !groups.isEmpty()) {
+  if (!groups.isEmpty()) {
     auto settings = GetSettings();
     inherited = SnapshotInheritedSettings(settings, groups);
   }
 
-  const auto result = CreateProfile(profiles_root, id, dialog.DisplayName(),
-                                    dialog.SelfContained(), inherited);
+  const auto result =
+      CreateProfile(profiles_root, id, display_name, self_contained, inherited);
 
   if (!result.Ok()) {
     QMessageBox::critical(parent, QObject::tr("Cannot Create Profile"),
@@ -783,7 +787,7 @@ void CreateProfileInteractive(QWidget* parent,
 
   if (QMessageBox::question(
           parent, QObject::tr("Profile Created"),
-          QObject::tr("\"%1\" is ready.").arg(dialog.DisplayName()) + "\n\n" +
+          QObject::tr("\"%1\" is ready.").arg(display_name) + "\n\n" +
               QObject::tr("Open it now? It opens in a new window."),
           QMessageBox::Yes | QMessageBox::No,
           QMessageBox::Yes) != QMessageBox::Yes) {
@@ -798,6 +802,23 @@ void CreateProfileInteractive(QWidget* parent,
   }
 
   if (on_opened) on_opened();
+}
+
+}  // namespace
+
+void CreateProfileInteractive(QWidget* parent,
+                              const std::function<void()>& on_changed,
+                              const std::function<void()>& on_opened) {
+  // Shown rather than exec()'d, so nothing waits in a nested event loop; the
+  // rest runs once the wizard is accepted. Deleted on close, and with its
+  // parent, so a parent closed first takes the continuation with it.
+  auto* dialog = new ProfileCreateDialog(parent);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  QObject::connect(dialog, &QDialog::accepted, dialog, [=]() {
+    FinishCreateProfile(parent, dialog->DisplayName(), dialog->SelfContained(),
+                        dialog->InheritedGroups(), on_changed, on_opened);
+  });
+  dialog->open();
 }
 
 auto IsTemporaryProfileSession() -> bool {

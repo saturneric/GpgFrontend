@@ -90,10 +90,6 @@ ProfileManagerDialog::ProfileManagerDialog(QWidget* parent)
   setWindowTitle(tr("Profiles On This Computer"));
   setModal(true);
 
-  // GeneralDialog deletes itself on close, which would free this one out from
-  // under the caller that allocated it on the stack.
-  setAttribute(Qt::WA_DeleteOnClose, false);
-
   movePosition2CenterOfParent();
 }
 

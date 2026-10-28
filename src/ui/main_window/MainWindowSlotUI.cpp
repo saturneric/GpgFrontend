@@ -257,14 +257,20 @@ void MainWindow::slot_refresh_recent_profiles() {
 }
 
 void MainWindow::slot_export_profile() {
+  // The storage, not the root: the sizes shown come from areas the accessor
+  // knows about, one of which is not on the filesystem at all. Shown rather
+  // than exec()'d, so nothing waits in a nested event loop.
+  auto* dialog = new ProfileExportDialog(
+      CurrentProfileDisplayName(), ProfileSession::Instance().Accessor(), this);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  connect(dialog, &QDialog::accepted, this,
+          [this, dialog]() { export_profile(dialog); });
+  dialog->open();
+}
+
+void MainWindow::export_profile(const ProfileExportDialog* dialog) {
   const auto& session = ProfileSession::Instance();
   const auto& profile = session.Profile();
-
-  // The storage, not the root: the sizes shown come from areas the accessor
-  // knows about, one of which is not on the filesystem at all.
-  ProfileExportDialog dialog(CurrentProfileDisplayName(), session.Accessor(),
-                             this);
-  if (dialog.exec() != QDialog::Accepted) return;
 
   // The key database paths that travel are normalised to the `@profile/` form,
   // so the copy finds its keys at whatever root it is opened under. The
@@ -283,10 +289,10 @@ void MainWindow::slot_export_profile() {
   // the profile, so the copy handed to somebody else does not carry it.
   request.excluded_dirs =
       RecycledKeyDatabaseDirsForPacking(stored.key_databases, profile.Root());
-  request.dest_path = dialog.DestinationPath();
-  request.include_workspace = dialog.IncludeWorkspace();
-  request.protection = dialog.Protection();
-  request.passphrase = dialog.Passphrase();
+  request.dest_path = dialog->DestinationPath();
+  request.include_workspace = dialog->IncludeWorkspace();
+  request.protection = dialog->Protection();
+  request.passphrase = dialog->Passphrase();
 
   // Read here rather than inside the packing: the key manager and QSettings
   // both belong to this thread, and the packing does not run on it.

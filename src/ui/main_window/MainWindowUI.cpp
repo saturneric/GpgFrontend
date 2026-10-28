@@ -122,10 +122,8 @@ void MainWindow::create_actions() {
         "profile_manager", tr("Manage Profiles..."), {},
         tr("See every profile on this computer, and open, rename or remove "
            "one"));
-    connect(open_profile_act_, &QAction::triggered, this, [this]() {
-      ProfileManagerDialog dialog(this);
-      dialog.exec();
-    });
+    connect(open_profile_act_, &QAction::triggered, this,
+            [this]() { (new ProfileManagerDialog(this))->open(); });
 
     new_profile_act_ = create_action(
         "new_profile", tr("New Profile..."), {},

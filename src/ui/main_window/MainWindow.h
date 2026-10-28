@@ -51,6 +51,7 @@ class KeyList;
 class TextEdit;
 class FilePage;
 class InfoBoardWidget;
+class ProfileExportDialog;
 class StatusDockPresenter;
 class SettingsDialog;
 class StatusIndicatorBar;
@@ -600,6 +601,11 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * elsewhere. Exporting a different profile means opening it first.
    */
   void slot_export_profile();
+
+  /**
+   * @brief Pack this profile as the accepted Export Profile @p dialog says.
+   */
+  void export_profile(const ProfileExportDialog* dialog);
 
   /**
    * @brief Rebuild the recently-opened submenu from what is on disk.
