@@ -259,7 +259,9 @@ fix_missing_language() {
     f="${ts_dir}/${base}.${loc}.ts"
     [[ -e "$f" ]] || continue
     grep -q '<TS[^>]*language=' "$f" && continue
-    sed -i.bak "s/<TS\( [^>]*\)\{0,1\}>/<TS\1 language=\"${loc}\">/" "$f" && rm -f "$f.bak"
+    # A fresh stub is self-closing (<TS version="2.1"/>): the attribute goes
+    # before the slash, or the file stops being XML.
+    sed -i.bak "s#<TS\( [^>/]*\)\{0,1\}\(/\{0,1\}\)>#<TS\1 language=\"${loc}\"\2>#" "$f" && rm -f "$f.bak"
     echo "    fixed missing language: $(basename "$f")"
   done
 }
