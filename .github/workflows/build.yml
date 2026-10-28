@@ -249,7 +249,11 @@ jobs:
               echo "::error::the screenshot build cannot be a release build" >&2
               exit 1
             fi
-            echo "SCREENSHOT_CMAKE_FLAG=-DGPGFRONTEND_BUILD_SCREENSHOT_MODE=ON" >> $GITHUB_ENV
+            # CMake refuses the screenshot mode without the tests: its own
+            # tests are compiled into gf_test. Nothing here runs them; the
+            # MSYS2 gtest DLL is collected by the runtime rescan like any
+            # other import, and the smoke launch fails if it is missing.
+            echo "SCREENSHOT_CMAKE_FLAG=-DGPGFRONTEND_BUILD_SCREENSHOT_MODE=ON -DGPGFRONTEND_BUILD_TESTS=ON" >> $GITHUB_ENV
           else
             echo "SCREENSHOT_CMAKE_FLAG=" >> $GITHUB_ENV
           fi
