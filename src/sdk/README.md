@@ -510,6 +510,9 @@ Editing rich text is not this interface, and will not become flags on it.
   group a bundled module always used. `state.host` reads the few Host keys on
   an allowlist (`network/prohibit_update_check`).
 - **Theme.** `GFUIThemeColorForRole(ctx, role)`; no widget involved.
+  `GFModuleTheme.h` has the C++ side for a module's widgets (`ThemeColor`,
+  `Blend`, `IsRestyle`, `SetLabelColor`); it needs QtWidgets, so it is not
+  part of `GFModule.h`.
 - **Current document.** `GFEditorCurrentDocument`: id, type, title, path,
   modified. Never the content.
 
