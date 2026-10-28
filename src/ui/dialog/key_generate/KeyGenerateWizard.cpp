@@ -419,6 +419,8 @@ void KeyGenerateWizard::setup_expert_switch() {
   // next, so it sits with the buttons that move between pages. The same
   // remembered switch as in Add Subkey.
   expert_switch_ = new ToggleSwitch(tr("Expert Mode"), this);
+  // Named for the manual's screenshots.
+  expert_switch_->setObjectName(u"expertSwitch"_s);
   expert_switch_->setToolTip(
       tr("Choose every algorithm, key length, usage and expiry yourself."));
   setButton(QWizard::CustomButton1, expert_switch_);

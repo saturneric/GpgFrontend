@@ -215,6 +215,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   // Expert Mode beside the buttons, as in the key generation wizard, and the
   // same remembered switch.
   expert_switch_ = new ToggleSwitch(tr("Expert Mode"), this);
+  expert_switch_->setObjectName(u"expertSwitch"_s);
   expert_switch_->setToolTip(
       tr("Choose the algorithm, key length and usage yourself."));
   auto* button_row = new QHBoxLayout();

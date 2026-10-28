@@ -240,6 +240,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
 void KeyMgmt::create_popup_menu() {
   popup_menu_ = new QMenu(this);
+  popup_menu_->setObjectName(u"keyPopupMenu"_s);
 
   // Lead with the single most common action; double-click / Enter triggers it.
   popup_menu_->addAction(show_key_details_act_);
@@ -266,6 +267,7 @@ void KeyMgmt::create_popup_menu() {
 
   // Everything that mutates the key itself, in lifecycle order.
   popup_key_ops_menu_ = popup_menu_->addMenu(tr("Key Operations"));
+  popup_key_ops_menu_->setObjectName(u"keyOperationsMenu"_s);
   popup_key_ops_menu_->setIcon(QIcon(":/icons/key.png"));
   popup_key_ops_menu_->addAction(certify_key_act_);
   popup_key_ops_menu_->addAction(set_expiry_act_);
@@ -275,6 +277,7 @@ void KeyMgmt::create_popup_menu() {
   popup_key_ops_menu_->addAction(generate_revoke_cert_act_);
 
   add_key_2_category_menu_ = popup_menu_->addMenu(tr("Category"));
+  add_key_2_category_menu_->setObjectName(u"categoryMenu"_s);
   popup_menu_->addSeparator();
 
   popup_menu_->addAction(delete_selected_keys_act_);
@@ -528,6 +531,8 @@ void KeyMgmt::create_quick_actions() {
 
   certify_key_act_ = make_action(tr("Certify Key..."), {},
                                  tr("Sign this key's identity with your key"));
+  // Named for the manual's screenshots, like the menus that hold it.
+  certify_key_act_->setObjectName(u"certify_key"_s);
   connect(certify_key_act_, &QAction::triggered, this, [this]() {
     auto key = key_list_->GetSelectedGpgKey();
     if (key == nullptr) return;
@@ -667,6 +672,7 @@ void KeyMgmt::create_menus() {
   opera_menu_->addSeparator();
 
   bulk_menu_ = opera_menu_->addMenu(tr("Bulk"));
+  bulk_menu_->setObjectName(u"bulkMenu"_s);
   bulk_menu_->addAction(bulk_set_owner_trust_act_);
   bulk_menu_->addAction(bulk_extend_expiry_act_);
   bulk_menu_->addSeparator();

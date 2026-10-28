@@ -240,6 +240,8 @@ void ExportKeyPackageDialog::build_location_page() {
           .GenerateKeyPackageName(),
       page);
   name_edit_->setMaxLength(200);
+  // Named for the manual's screenshots, which replace the random name.
+  name_edit_->setObjectName(u"packageNameEdit"_s);
   name_label->setBuddy(name_edit_);
 
   auto* generate_button = new QPushButton(tr("Generate name"), page);
