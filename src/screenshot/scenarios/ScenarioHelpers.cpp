@@ -28,11 +28,13 @@
 
 #include "screenshot/scenarios/ScenarioHelpers.h"
 
+#include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
 #include <QDockWidget>
 #include <QGridLayout>
 #include <QHeaderView>
+#include <QKeyEvent>
 #include <QListWidget>
 #include <QMenu>
 #include <QPlainTextEdit>
@@ -42,6 +44,7 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
+#include <QWizard>
 
 #include "core/model/SettingsObject.h"
 #include "screenshot/ScreenshotEnv.h"
@@ -453,6 +456,88 @@ auto OpenKeyDetails(ScenarioContext& ctx, const char* email,
   return WaitForTopLevel(
       ctx, [&]() { action->trigger(); }, kKeyDetailsClass,
       u"key-details-shown"_s);
+}
+
+auto ShowButtonMenu(ScenarioContext& ctx, QAbstractButton* button, QMenu* menu,
+                    QAction* entry) -> bool {
+  if (button == nullptr || menu == nullptr || entry == nullptr) {
+    ctx.Fail(kEXIT_USAGE, u"button-menu-missing"_s);
+    return false;
+  }
+  // popup() rather than showMenu(): the latter runs a nested event loop.
+  if (!ctx.WaitUntil(
+          [&]() {
+            menu->popup(button->mapToGlobal(QPoint(0, button->height())));
+          },
+          [&]() { return menu->isVisible(); },
+          {ScenarioContext::On(menu, &QMenu::aboutToShow)},
+          u"button-menu-shown"_s)) {
+    return false;
+  }
+  menu->setActiveAction(entry);
+  return true;
+}
+
+auto OpenSubmenu(ScenarioContext& ctx, QMenu* menu, QAction* entry) -> QMenu* {
+  auto* submenu = entry != nullptr ? entry->menu() : nullptr;
+  if (submenu == nullptr) {
+    ctx.Fail(kEXIT_USAGE, u"submenu-missing"_s);
+    return nullptr;
+  }
+  // A second independent popup would close the first.
+  menu->setActiveAction(entry);
+  if (!ctx.WaitUntil(
+          [&]() {
+            QKeyEvent right(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
+            QApplication::sendEvent(menu, &right);
+          },
+          [&]() { return submenu->isVisible(); },
+          {ScenarioContext::On(submenu, &QMenu::aboutToShow)},
+          u"submenu-shown"_s)) {
+    return nullptr;
+  }
+  return submenu;
+}
+
+auto SettleActive(ScenarioContext& ctx, QWidget* window, const QString& label)
+    -> bool {
+  return ctx.WaitSettled(
+      window,
+      [&]() {
+        if (!window->isActiveWindow()) window->activateWindow();
+        return window->isActiveWindow();
+      },
+      label);
+}
+
+auto FocusWhenActive(ScenarioContext& ctx, QWidget* window, QWidget* widget)
+    -> bool {
+  if (!ctx.WaitUntil(
+          {},
+          [&]() {
+            if (!window->isActiveWindow()) window->activateWindow();
+            return window->isActiveWindow();
+          },
+          {}, u"window-active"_s)) {
+    return false;
+  }
+  if (widget != nullptr) widget->setFocus();
+  return true;
+}
+
+auto AdvanceWizard(ScenarioContext& ctx, QWizard* wizard, int steps) -> bool {
+  for (int i = 0; i < steps; ++i) {
+    const auto from = wizard->currentId();
+    if (!ctx.WaitUntil(
+            [&]() { wizard->next(); },
+            [&]() { return wizard->currentId() != from; },
+            {ScenarioContext::On(wizard, &QWizard::currentIdChanged)},
+            u"wizard-step-%1"_s.arg(i + 1),
+            [&]() { return u"at=%1"_s.arg(wizard->currentId()); })) {
+      return false;
+    }
+  }
+  return true;
 }
 
 auto GridRowRect(QWidget* box, QWidget* value) -> std::optional<QRect> {

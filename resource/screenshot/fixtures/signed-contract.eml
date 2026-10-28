@@ -1,0 +1,41 @@
+From: Alice Example <alice@example.com>
+To: Bob Example <bob@example.com>
+Subject: Signed contract
+Date: Sat, 01 Feb 2025 12:00:00 +0000
+Message-ID: <signed-contract-20250201@example.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature"; boundary="gf-demo-signed"
+
+--gf-demo-signed
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+Hello Bob,
+
+please find the signed contract terms below.
+
+Term: 12 months, starting 1 March 2025.
+
+Alice
+
+--gf-demo-signed
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQHGBAABCAAwFiEEnydVHmbNwPMOqdyBBzMK4yMG+xYFAmeeDMASHGFsaWNlQGV4
+YW1wbGUuY29tAAoJEAczCuMjBvsWPioL/0dCqQI8oaIh5wOULwxh3BJwUCCVublJ
+97YmTp/hzaIC9NCHGpKRwayTYVyLrw5E/R4x7KIMRp1JjNYN2CgzP5lQjGgqO0CA
+vLtdoMMdL6mSZbx/Qmqo3oZETZRVJ2Ps/CHdasSD5V/kzxlPWL3lj6TZ4ImLQJKr
+9VG21fvpKu3qymHVlWFc8PpYc8VjeBic675M5peeXrwItaKKSOceZ9reNd08qykT
+cT2yodp0fEJ3j+6Oz8wGVRb68z4Ubdpl1d4IIMTDhZTHceuq0Bf4EACo6laOxa6c
+oaqcRr+s/B9lGMkDzB+Rj2hDutR+/CMGwzZeKaur+xB/44cnSeJXxpgQPwGD0WOY
+98RVtUptQdm27Nh2g3wLXsuIzaxPH6LC3rTdU2NAc0elPLVlUf+tKguqpIwge4ch
+dHU0e1zjZy4KJnV6d3eg65iVUlewbqiwNmLq/f4MvoNAZZR9tg2LGxSvxkQQ3+Fo
+dLaZ/xJu7f4sQ5X9B6OcQjs4Pa5a3rXEQw==
+=Rw7b
+-----END PGP SIGNATURE-----
+
+--gf-demo-signed--

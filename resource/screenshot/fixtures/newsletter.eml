@@ -1,0 +1,14 @@
+From: Example News <news@example.org>
+To: Bob Example <bob@example.com>
+Subject: Example News for February
+Date: Sat, 01 Feb 2025 12:00:00 +0000
+Message-ID: <news-20250201@example.org>
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<html><body>
+<h1>Example News</h1>
+<p>Welcome to the February issue.</p>
+<p><a href="https://example.org/news">Read it online</a></p>
+</body></html>

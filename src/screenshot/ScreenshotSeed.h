@@ -50,6 +50,9 @@ auto ScreenshotDatabaseId(const QString& demo_id) -> QString;
 /// Where an extra demo database lives, relative to the profile's app data.
 auto ScreenshotDatabaseDir(const DemoDatabase& db) -> QString;
 
+/// Where a removed copy of @p db sits, under the profile's data folder.
+auto ScreenshotRecycledDir(const DemoDatabase& db) -> QString;
+
 /**
  * @brief The key database list to store before startup: the built-in
  *        database first and the default, then each of @p requested as a

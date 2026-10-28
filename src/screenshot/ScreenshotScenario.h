@@ -150,6 +150,9 @@ struct Scenario {
   /// built-in one is always there. Empty for most scenarios, which then
   /// render exactly as they would without the extra databases.
   QStringList key_databases;
+  /// Demo key databases to leave in the profile's dbs/ folder unlisted, as
+  /// a removed database is: the Recycle Bin shows them.
+  QStringList recycled_databases;
 };
 
 /**
@@ -171,6 +174,9 @@ void RegisterKeyDetailsScenarios(QList<Scenario>& scenarios);
 void RegisterKeyManagementScenarios(QList<Scenario>& scenarios);
 void RegisterOperationScenarios(QList<Scenario>& scenarios);
 void RegisterKeyTransferScenarios(QList<Scenario>& scenarios);
+void RegisterKeyGenerationScenarios(QList<Scenario>& scenarios);
+void RegisterProfileScenarios(QList<Scenario>& scenarios);
+void RegisterEmailScenarios(QList<Scenario>& scenarios);
 void RegisterSelfTestScenarios(QList<Scenario>& scenarios);
 
 }  // namespace GpgFrontend::Screenshot

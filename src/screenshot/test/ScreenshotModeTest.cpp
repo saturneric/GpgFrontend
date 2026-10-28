@@ -150,6 +150,62 @@ TEST(ScreenshotModeTest, RegistryHasThePhaseOneScenarios) {
             QSize(900, 660));
 }
 
+TEST(ScreenshotModeTest, RegistryHasTheRedesignScenarios) {
+  // Key generation, key management, profiles and email, one name each per
+  // manual image; the key package export is one scenario per wizard step.
+  for (const auto* name : {"key-generate-type",
+                           "key-generate-protection",
+                           "key-generate-review",
+                           "key-generate-expert",
+                           "quick-generate-menu",
+                           "subkey-generate-expert",
+                           "key-package-export-contents",
+                           "key-package-export-location",
+                           "key-package-export-protection",
+                           "key-popup-certify",
+                           "key-popup-category",
+                           "key-management-bulk-menu",
+                           "certify-dialog",
+                           "key-category-new",
+                           "settings-key-databases-recycle-bin",
+                           "profile-manager",
+                           "profile-new-keys",
+                           "profile-new-settings",
+                           "profile-export-protection",
+                           "email-security-menu",
+                           "email-verified",
+                           "email-signature-details",
+                           "email-html-notice",
+                           "email-accounts-page"}) {
+    const auto* s = FindScenario(name);
+    ASSERT_NE(s, nullptr) << name;
+    EXPECT_TRUE(s->listed) << name;
+  }
+  // The single-dialog export was replaced by its wizard's steps.
+  EXPECT_EQ(FindScenario("key-package-export-dialog"), nullptr);
+  EXPECT_EQ(FindScenario("key-generate-type")->mode, CaptureMode::kDIALOG);
+  EXPECT_EQ(FindScenario("key-popup-certify")->mode, CaptureMode::kCOMPOSITE);
+
+  // Only the Recycle Bin scenario leaves a removed database behind.
+  for (const auto& s : Scenarios()) {
+    EXPECT_EQ(s.recycled_databases.isEmpty(),
+              s.name != "settings-key-databases-recycle-bin"_L1)
+        << s.name.toStdString();
+  }
+  EXPECT_EQ(
+      FindScenario("settings-key-databases-recycle-bin")->recycled_databases,
+      QStringList({"work"}));
+}
+
+TEST(ScreenshotModeTest, RecycledDatabaseSitsBesideTheListedOne) {
+  DemoDatabase db;
+  db.id = u"work"_s;
+  db.name = u"Work"_s;
+  EXPECT_EQ(ScreenshotDatabaseDir(db), u"dbs/Work"_s);
+  // Its own folder under dbs/, never the one a listed database uses.
+  EXPECT_EQ(ScreenshotRecycledDir(db), u"dbs/Work (old)"_s);
+}
+
 TEST(ScreenshotModeTest, SelfTestsAreRegisteredButUnlisted) {
   for (const auto* name : {"selftest-timeout", "selftest-modal",
                            "selftest-gate", "selftest-agent-clock"}) {

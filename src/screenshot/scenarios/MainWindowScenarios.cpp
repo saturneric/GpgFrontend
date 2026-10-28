@@ -152,7 +152,7 @@ auto KeyGenerateDialogScenario(ScenarioContext& ctx) -> bool {
   ctx.AddHighlight(u"nameEdit"_s, name);
   ctx.AddHighlight(u"emailEdit"_s, email);
   ctx.AddHighlight(u"commentEdit"_s, comment);
-  ctx.AddHighlight(u"generateButton"_s, generate);
+  ctx.AddHighlight(u"continueButton"_s, generate);
 
   return ctx.WaitSettled(
       dialog,

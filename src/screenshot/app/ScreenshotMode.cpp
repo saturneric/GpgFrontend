@@ -340,6 +340,16 @@ auto Seed(Run& run) -> Failure {
     run.databases.append(*db);
     run.database_paths.insert(id, path);
   }
+  for (const auto& id : run.scenario != nullptr
+                            ? run.scenario->recycled_databases
+                            : QStringList{}) {
+    const auto* db = run.demo.Database(id);
+    if (db == nullptr) return {kEXIT_USAGE, "unknown-demo-database", id};
+    const auto path = app_data.filePath(ScreenshotRecycledDir(*db));
+    if (!CopyTree(QDir(demo_root).filePath(id), path)) {
+      return {kEXIT_USAGE, "seed-failed", path};
+    }
+  }
   // Only when asked for: every other render keeps the list startup derives.
   if (!run.databases.isEmpty() && !StoreKeyDatabaseList(run.databases)) {
     return {kEXIT_USAGE, "seed-failed", "key_database_list"};

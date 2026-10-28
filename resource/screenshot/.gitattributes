@@ -7,3 +7,6 @@ demo-dbs/work/** -text -diff
 *.key text eol=lf
 *.cert text eol=lf
 keyserver/** text eol=lf
+# A signed message covers its CRLF line endings byte for byte; converting them
+# would break the signature.
+fixtures/*.eml -text -diff

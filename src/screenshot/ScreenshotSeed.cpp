@@ -75,6 +75,10 @@ auto ScreenshotDatabaseDir(const DemoDatabase& db) -> QString {
   return u"dbs/"_s + db.name;
 }
 
+auto ScreenshotRecycledDir(const DemoDatabase& db) -> QString {
+  return u"dbs/"_s + db.name + u" (old)"_s;
+}
+
 auto BuildKeyDatabaseList(const QList<DemoDatabase>& requested) -> QJsonObject {
   KeyDatabaseListSO list;
 

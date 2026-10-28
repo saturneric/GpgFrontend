@@ -28,6 +28,7 @@
 
 #include "screenshot/ScreenshotScenario.h"
 
+#include <QAbstractAnimation>
 #include <QApplication>
 #include <QDir>
 #include <QEventLoop>
@@ -45,6 +46,17 @@ constexpr int kMaxStabilityGrabs = 20;
 auto IsLaidOut(QWidget* w) -> bool {
   return !w->testAttribute(Qt::WA_PendingResizeEvent) &&
          !w->testAttribute(Qt::WA_PendingMoveEvent);
+}
+
+/// Whether an animation inside @p w is still running: a line edit's clear
+/// button fading in, a switch sliding. Two grabs in a row can catch the
+/// same in-between frame, so a settled frame waits for them to finish.
+auto IsAnimating(QWidget* w) -> bool {
+  const auto animations = w->findChildren<QAbstractAnimation*>();
+  return std::any_of(animations.cbegin(), animations.cend(),
+                     [](const QAbstractAnimation* a) {
+                       return a->state() == QAbstractAnimation::Running;
+                     });
 }
 
 auto IsExposed(QWidget* w) -> bool {
@@ -110,9 +122,11 @@ auto ScenarioContext::WaitSettled(QWidget* target,
                                   const QString& label) -> bool {
   const auto settled = [&]() {
     return target->isVisible() && IsExposed(target) && IsLaidOut(target) &&
+           !IsAnimating(target) &&
            std::all_of(popups_.cbegin(), popups_.cend(),
                        [](const QPointer<QWidget>& p) {
-                         return !p.isNull() && p->isVisible() && IsExposed(p);
+                         return !p.isNull() && p->isVisible() && IsExposed(p) &&
+                                !IsAnimating(p);
                        }) &&
            !WaitingDialogVisible() && (!predicate || predicate());
   };
@@ -201,6 +215,9 @@ auto Scenarios() -> const QList<Scenario>& {
     RegisterKeyManagementScenarios(scenarios);
     RegisterOperationScenarios(scenarios);
     RegisterKeyTransferScenarios(scenarios);
+    RegisterKeyGenerationScenarios(scenarios);
+    RegisterProfileScenarios(scenarios);
+    RegisterEmailScenarios(scenarios);
     RegisterSelfTestScenarios(scenarios);
     return scenarios;
   }();

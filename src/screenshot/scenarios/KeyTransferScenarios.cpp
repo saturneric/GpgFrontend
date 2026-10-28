@@ -40,7 +40,9 @@
 #include <QTabWidget>
 #include <QTableView>
 #include <QTableWidget>
+#include <QTimer>
 #include <QToolButton>
+#include <QWizard>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleSettingsPolicy.h"
@@ -113,40 +115,6 @@ auto FrameHolding(const QString& name) -> QWidget* {
     }
   }
   return nullptr;
-}
-
-/**
- * @brief Open a tool button's menu and make @p entry the active one.
- */
-auto ShowButtonMenu(ScenarioContext& ctx, QAbstractButton* button, QMenu* menu,
-                    QAction* entry) -> bool {
-  if (button == nullptr || menu == nullptr || entry == nullptr) {
-    ctx.Fail(kEXIT_USAGE, u"button-menu-missing"_s);
-    return false;
-  }
-  // popup() rather than showMenu(): the latter runs a nested event loop.
-  if (!ctx.WaitUntil(
-          [&]() {
-            menu->popup(button->mapToGlobal(QPoint(0, button->height())));
-          },
-          [&]() { return menu->isVisible(); },
-          {ScenarioContext::On(menu, &QMenu::aboutToShow)},
-          u"button-menu-shown"_s)) {
-    return false;
-  }
-  menu->setActiveAction(entry);
-  return true;
-}
-
-auto SettleActive(ScenarioContext& ctx, QWidget* window, const QString& label)
-    -> bool {
-  return ctx.WaitSettled(
-      window,
-      [&]() {
-        if (!window->isActiveWindow()) window->activateWindow();
-        return window->isActiveWindow();
-      },
-      label);
 }
 
 // --- Subkeys ---------------------------------------------------------------
@@ -319,10 +287,14 @@ auto KeyPackageImportMenuScenario(ScenarioContext& ctx) -> bool {
   return KeyMgmtMenu(ctx, u"importKeyButton"_s, 2, u"importKeyPackage"_s);
 }
 
+/// The demo PIN typed into the Protection step; only its dots show.
+const auto kDemoPackagePin = u"Correct-Horse-42"_s;
+
 /**
- * @brief Export As Key Package, for Alice.
+ * @brief Export As Key Package for Alice, on the wizard's step @p step
+ *        (0 Contents, 1 Location, 2 Protection).
  */
-auto KeyPackageExportScenario(ScenarioContext& ctx) -> bool {
+auto KeyPackageExport(ScenarioContext& ctx, int step) -> bool {
   auto* mgmt = OpenKeyMgmt(ctx, kBackdropSize);
   auto* table = mgmt != nullptr ? ShowCategory(ctx, mgmt, u"all"_s) : nullptr;
   if (table == nullptr || !CheckKeyRow(ctx, table, kAliceEmail)) return false;
@@ -338,14 +310,63 @@ auto KeyPackageExportScenario(ScenarioContext& ctx) -> bool {
   auto* dialog = WaitForTopLevel(
       ctx, [&]() { entry->trigger(); },
       "GpgFrontend::UI::ExportKeyPackageDialog", u"key-package-shown"_s);
-  if (dialog == nullptr) return false;
-  // The dialog proposes a random name; one of the same shape stands in for
-  // it, so the image does not change on every run.
-  if (auto* name = dialog->findChild<QLabel*>(u"nameValueLabel"_s)) {
-    name->setText(u"KeyPackage_q7Hm2Rk9"_s);
+  auto* wizard = qobject_cast<QWizard*>(dialog);
+  auto* name = dialog != nullptr
+                   ? dialog->findChild<QLineEdit*>(u"packageNameEdit"_s)
+                   : nullptr;
+  if (wizard == nullptr || name == nullptr) {
+    if (dialog != nullptr)
+      ctx.Fail(kEXIT_USAGE, u"key-package-fields-missing"_s);
+    return false;
   }
+  // The wizard proposes a random name; one of the same shape stands in for
+  // it, so the image does not change on every run.
+  name->setText(u"KeyPackage_q7Hm2Rk9"_s);
+
+  if (!AdvanceWizard(ctx, wizard, step)) return false;
+  if (step == 2) {
+    // The PIN and its repeat, so the summary and the Export button show.
+    for (auto* edit : wizard->currentPage()->findChildren<QLineEdit*>()) {
+      if (edit->echoMode() == QLineEdit::Password) {
+        edit->setText(kDemoPackagePin);
+      }
+    }
+  }
+  auto* forward =
+      wizard->button(step == 2 ? QWizard::FinishButton : QWizard::NextButton);
+  if (forward != nullptr && forward->isVisible()) forward->setFocus();
+
   ctx.SetTarget(dialog, CaptureMode::kDIALOG);
-  return SettleActive(ctx, dialog, u"key-package-settled"_s);
+  ctx.AddHighlight(u"packageName"_s, name);
+  if (forward != nullptr && forward->isVisible()) {
+    ctx.AddHighlight(u"forwardButton"_s, forward);
+  }
+  // The focus changes are applied once a later queued call has run, after
+  // the page's own focus move.
+  bool focus_settled = false;
+  QTimer::singleShot(0, dialog, [&]() {
+    if (forward != nullptr && forward->isVisible()) forward->setFocus();
+    focus_settled = true;
+  });
+  return ctx.WaitSettled(
+      dialog,
+      [&]() {
+        if (!dialog->isActiveWindow()) dialog->activateWindow();
+        return focus_settled && dialog->isActiveWindow();
+      },
+      u"key-package-settled"_s);
+}
+
+auto KeyPackageExportContentsScenario(ScenarioContext& ctx) -> bool {
+  return KeyPackageExport(ctx, 0);
+}
+
+auto KeyPackageExportLocationScenario(ScenarioContext& ctx) -> bool {
+  return KeyPackageExport(ctx, 1);
+}
+
+auto KeyPackageExportProtectionScenario(ScenarioContext& ctx) -> bool {
+  return KeyPackageExport(ctx, 2);
 }
 
 // --- Key server ------------------------------------------------------------
@@ -561,9 +582,14 @@ void RegisterKeyTransferScenarios(QList<Scenario>& scenarios) {
       {main_window, mgmt}, KeyPackageExportMenuScenario);
   add(u"key-package-import-menu"_s, QSize(1200, 760), CaptureMode::kCOMPOSITE,
       {main_window, mgmt}, KeyPackageImportMenuScenario);
-  add(u"key-package-export-dialog"_s, QSize(), CaptureMode::kDIALOG,
-      {main_window, mgmt, u"GpgFrontend::UI::ExportKeyPackageDialog"_s},
-      KeyPackageExportScenario);
+  const QStringList export_package{
+      main_window, mgmt, u"GpgFrontend::UI::ExportKeyPackageDialog"_s};
+  add(u"key-package-export-contents"_s, QSize(), CaptureMode::kDIALOG,
+      export_package, KeyPackageExportContentsScenario);
+  add(u"key-package-export-location"_s, QSize(), CaptureMode::kDIALOG,
+      export_package, KeyPackageExportLocationScenario);
+  add(u"key-package-export-protection"_s, QSize(), CaptureMode::kDIALOG,
+      export_package, KeyPackageExportProtectionScenario);
   add(u"key-server-search"_s, QSize(820, 600), CaptureMode::kDIALOG,
       {main_window, QString::fromLatin1(kNativeDialogClass)},
       KeyServerSearchScenario);

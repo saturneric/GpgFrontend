@@ -40,7 +40,9 @@
 
 #include "screenshot/ScreenshotScenario.h"
 
+class QAbstractButton;
 class QMenu;
+class QWizard;
 class QPlainTextEdit;
 
 namespace GpgFrontend::UI {
@@ -181,6 +183,36 @@ auto SwitchKeyDatabase(ScenarioContext& ctx, UI::MainWindow* window,
  */
 auto OpenKeyDetails(ScenarioContext& ctx, const char* email,
                     const QString& database = {}) -> QWidget*;
+
+/**
+ * @brief Open a tool button's menu and make @p entry the active one.
+ */
+auto ShowButtonMenu(ScenarioContext& ctx, QAbstractButton* button, QMenu* menu,
+                    QAction* entry) -> bool;
+
+/**
+ * @brief Open @p entry's submenu of the open @p menu, the way the keyboard
+ *        does, so Qt keeps both open.
+ */
+auto OpenSubmenu(ScenarioContext& ctx, QMenu* menu, QAction* entry) -> QMenu*;
+
+/**
+ * @brief Wait until @p window is settled and active.
+ */
+auto SettleActive(ScenarioContext& ctx, QWidget* window, const QString& label)
+    -> bool;
+
+/**
+ * @brief Once @p window is active, move focus to @p widget: a field focused
+ *        before then gets no focus-out and keeps drawing its cursor.
+ */
+auto FocusWhenActive(ScenarioContext& ctx, QWidget* window, QWidget* widget)
+    -> bool;
+
+/**
+ * @brief Move @p wizard @p steps pages on, as Continue does.
+ */
+auto AdvanceWizard(ScenarioContext& ctx, QWizard* wizard, int steps) -> bool;
 
 /**
  * @brief The whole row of @p value in @p box's grid: its title and itself,
