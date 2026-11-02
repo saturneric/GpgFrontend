@@ -45,7 +45,8 @@ set(GF_PLATFORM_CORE_SOURCES
 
 set(GF_PLATFORM_UI_SOURCES
   ${GF_PLATFORM_DIR}/common/DetachedRelaunch.cpp
-  ${GF_PLATFORM_DIR}/common/PlatformHtmlView.cpp)
+  ${GF_PLATFORM_DIR}/common/PlatformHtmlView.cpp
+  ${GF_PLATFORM_DIR}/common/PlatformWebEditor.cpp)
 
 # Compiles to nothing on platforms that ship a real backend below.
 set(GF_PLATFORM_APP_SOURCES
@@ -66,11 +67,12 @@ elseif(APPLE)
     ${GF_PLATFORM_DIR}/unix/UnixFs.cpp
     ${GF_PLATFORM_DIR}/macos/MacFs.cpp
     ${GF_PLATFORM_DIR}/macos/MacAppSandbox.cpp)
-  # Relaunching the bundle goes through NSWorkspace and HTML views through
-  # WKWebView, so both are Objective-C++.
+  # Relaunching the bundle goes through NSWorkspace, HTML views and web
+  # editors through WKWebView, so all three are Objective-C++.
   list(APPEND GF_PLATFORM_UI_SOURCES
     ${GF_PLATFORM_DIR}/macos/MacRelaunch.mm
-    ${GF_PLATFORM_DIR}/macos/MacHtmlView.mm)
+    ${GF_PLATFORM_DIR}/macos/MacHtmlView.mm
+    ${GF_PLATFORM_DIR}/macos/MacWebEditor.mm)
   list(APPEND GF_PLATFORM_APP_SOURCES
     ${GF_PLATFORM_DIR}/macos/MacSecretStore.cpp)
 else()
@@ -83,11 +85,13 @@ else()
     ${GF_PLATFORM_DIR}/linux/LibSecretSearchPath.cpp)
 endif()
 
-# Only the Objective-C++ sources need the PCH skipped. The HTML view holds
-# WebKit objects in C++ containers, which only ARC keeps alive correctly.
+# Only the Objective-C++ sources need the PCH skipped. The HTML view and the
+# web editor hold WebKit objects in C++ containers, which only ARC keeps alive
+# correctly.
 if(APPLE)
   set_source_files_properties(${GF_PLATFORM_DIR}/macos/MacRelaunch.mm
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
   set_source_files_properties(${GF_PLATFORM_DIR}/macos/MacHtmlView.mm
+    ${GF_PLATFORM_DIR}/macos/MacWebEditor.mm
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON COMPILE_OPTIONS "-fobjc-arc")
 endif()

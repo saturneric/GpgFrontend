@@ -40,6 +40,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "platform/common/PlatformHtmlView.h"
+#include "platform/common/PlatformWebEditor.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/ApplicationRestart.h"
@@ -397,6 +398,8 @@ void PreInitGpgFrontendUI() {
   // Before any module can embed a view; the renderer lands once its engine
   // is ready, and HTML mail shows as source until then.
   RegisterPlatformHtmlViewRenderer();
+  // Likewise for web editors: unavailable until the engine is ready.
+  RegisterPlatformWebEditorEngine();
 }
 
 void InitGpgFrontendUI(QApplication* app) {

@@ -52,7 +52,8 @@ register_library(ui LIBRARY_TARGET ${UI_SOURCE})
 include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
 target_sources(${LIBRARY_TARGET} PRIVATE ${GF_PLATFORM_UI_SOURCES})
 
-# NSWorkspace, for the macOS relaunch; WKWebView, for HTML views
+# NSWorkspace, for the macOS relaunch; WKWebView, for HTML views and web
+# editors
 if(APPLE)
   find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
   find_library(WEBKIT_FRAMEWORK WebKit REQUIRED)
