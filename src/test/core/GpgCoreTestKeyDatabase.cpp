@@ -2658,7 +2658,9 @@ TEST(KeyDatabaseRuntimeTest, ACandidateIsBuiltBesideTheRuntimeInUse) {
   EXPECT_TRUE(WaitFor([&] {
     return !IsKeyDatabaseLocationInUse(root.path() + "/a");
   })) << "the folder stayed open after every runtime on it was reclaimed";
-  EXPECT_FALSE(IsKeyDatabaseLocationInUse(root.path() + "/b"));
+  // Reclaimed in the background like the default one: waited for too.
+  EXPECT_TRUE(
+      WaitFor([&] { return !IsKeyDatabaseLocationInUse(root.path() + "/b"); }));
 }
 
 TEST(KeyDatabaseRuntimeTest, ACandidateWhoseDefaultCannotOpenIsNotOk) {
