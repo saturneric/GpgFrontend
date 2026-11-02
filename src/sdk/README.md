@@ -72,7 +72,7 @@ context even if reached another way.
 | `html_view` | `"ui.custom"` + `"html.view"` | embed a read-only HTML view in one of the module's own widgets; answers Unavailable without a renderer |
 | `html_provider` | `"ui.custom"` + `"html.provider"` | provide the renderer behind HTML views, and ask for a document's parts                  |
 | `web_editor` | `"ui.custom"` + `"web.editor"` | embed an editable page of the module's own (its `WEB_ASSETS`) and talk to it in JSON objects; see GFSDKWebEditor.h |
-| `web_editor_provider` | `"ui.custom"` + `"web.editor.provider"` | provide the engine behind web editors                                     |
+| `web_editor_provider` | `"ui.custom"` + `"web.editor.provider"` | provide the engine behind web editors; the Host's own (WKWebView on macOS) outranks it |
 | `editor`    | `"editor"`             | the current document's exact octets, and what it is (never its content)                       |
 | `storage`   | `"storage"`            | the module's settings group, the three caches (scoped per module), the runtime register table |
 | `process`   | `"process"`            | running an external program                                                                   |
