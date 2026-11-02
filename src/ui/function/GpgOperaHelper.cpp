@@ -201,7 +201,7 @@ auto MakeAbortedOpInfo(
   } else if (code != GPG_ERR_NO_ERROR) {
     e.origin = GpgErrorOrigin::kENGINE;
     e.code = code;
-    e.codeText = QString::fromUtf8(gpgme_strerror(err));
+    e.codeText = DescribeGpgErrCode(err).second;
   } else {
     // No code at all, and no usable result: nothing the engine said explains
     // it, so this is recorded as GpgFrontend's own finding.
