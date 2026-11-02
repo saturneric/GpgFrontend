@@ -2397,7 +2397,13 @@ TEST(EngineLeaseTest, LeasesRacingARetirementAreAllAccountedFor) {
   }
 
   go = true;
-  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+  // Retire once the workers are leasing, however slowly they start on a busy
+  // machine; a fixed pause sometimes let the retirement win every race.
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (granted.load() == 0 && std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::yield();
+  }
   ASSERT_TRUE(RetireChannelHandle(handle));
   for (auto& worker : workers) worker.join();
 
