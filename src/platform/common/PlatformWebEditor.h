@@ -41,6 +41,11 @@ constexpr auto kPlatformWebEditorEngineName = "platform";
  * the engine is registered when they have compiled, and never if they fail
  * to: editors then answer unavailable, as on a Host with no engine at all.
  *
+ * On Windows it is WebView2, registered at once when the loader and an
+ * Evergreen runtime new enough to register the editor's schemes are on the
+ * machine, and never otherwise. The engine itself starts only when an editor
+ * is created.
+ *
  * Elsewhere this does nothing; editors come from modules alone.
  *
  * GUI thread, after the application exists. Calling it again once the rules

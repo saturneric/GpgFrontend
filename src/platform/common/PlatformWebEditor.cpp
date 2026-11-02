@@ -28,9 +28,11 @@
 
 #include "GpgFrontend.h"
 
-// macOS provides the real engine; this keeps gf_ui linkable everywhere else,
-// where web editors come from modules alone.
-#ifndef Q_OS_MACOS
+// Platforms with an engine of their own provide the real one; this keeps
+// gf_ui linkable everywhere else, where web editors come from modules alone.
+// Windows has one only when the build found the WebView2 SDK.
+#if !defined(Q_OS_MACOS) && \
+    !(defined(Q_OS_WINDOWS) && defined(GF_HAS_WEBVIEW2_SDK))
 
 #include "platform/common/PlatformWebEditor.h"
 

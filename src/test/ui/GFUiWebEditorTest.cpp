@@ -487,7 +487,7 @@ TEST_F(WebEditorTest, AWithdrawnEngineTellsItsConsumers) {
 
 // --- the Host's own engine, for real --------------------------------------
 
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS) || defined(Q_OS_WINDOWS)
 
 namespace {
 
@@ -526,6 +526,8 @@ class WebEditorPlatformTest : public WebEditorTest {
 
 }  // namespace
 
+// On Windows that takes the WebView2 SDK at build time and the Evergreen
+// runtime here.
 TEST_F(WebEditorPlatformTest, TheHostsOwnEngineIsTheOneUsed) {
   OnGui([&] {
     EXPECT_EQ(GFWebEditorAvailable(consumer_()), GF_HTML_VIEW_OK);
@@ -533,6 +535,12 @@ TEST_F(WebEditorPlatformTest, TheHostsOwnEngineIsTheOneUsed) {
         QString()));
   });
 }
+
+#endif
+
+// WebView2 needs a real HWND, which the offscreen platform the tests run
+// under has none of; on Windows the page is only seen in the application.
+#ifdef Q_OS_MACOS
 
 TEST_F(WebEditorPlatformTest, ARealPageLoadsTalksAndStaysInsideThePolicy) {
   // An inline script the policy must stop, and the module's own file that

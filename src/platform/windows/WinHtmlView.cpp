@@ -31,11 +31,8 @@
  * @brief The Host's own HTML view renderer on Windows: WebView2.
  *
  * The same shape as the macOS renderer (MacHtmlView.mm), with WebView2's
- * mechanisms where that one has WebKit's. The SDK header is plain COM, so
- * the few interfaces this file implements -- the completed and event
- * handlers, the environment options, the scheme registration -- are written
- * out by hand; their IIDs are spelled here because the header carries them
- * in an MSVC attribute MinGW does not read.
+ * mechanisms where that one has WebKit's. The COM plumbing it shares with
+ * the web editor engine is in WinWebView2.h.
  *
  * WebView2Loader.dll is resolved at run time. No loader, no Evergreen
  * runtime, or a runtime too old to register the part scheme: the renderer
@@ -46,29 +43,27 @@
 
 #if defined(Q_OS_WINDOWS) && defined(GF_HAS_WEBVIEW2_SDK)
 
-#include <QDir>
 #include <QPointer>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QWindow>
 
-#include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "platform/common/PlatformHtmlView.h"
+#include "platform/windows/WinWebView2.h"
 #include "ui/html/HtmlViewService.h"
 
 // clang-format off
-#include <windows.h>
 #include <shlwapi.h>
-#include "WebView2.h"
 // clang-format on
 
 namespace HtmlView = GpgFrontend::UI::HtmlView;
 using GpgFrontend::UI::HtmlViewService;
+using namespace GpgFrontend::UI::WebView2;
 
 namespace {
 
@@ -85,381 +80,6 @@ constexpr uint32_t kEnforceable =
     HtmlView::kNO_NAVIGATION | HtmlView::kNO_POPUPS | HtmlView::kNO_DOWNLOADS |
     HtmlView::kNO_PERSISTENCE | HtmlView::kNO_PERMISSIONS |
     HtmlView::kNO_DNS_PREFETCH | HtmlView::kNO_PLUGINS;
-
-/// The oldest Evergreen runtime with custom scheme registration (110) --
-/// which also has InPrivate controller options (108). Older runtimes cannot
-/// serve gfpart at all, so there is no renderer on them.
-constexpr const wchar_t* kMinRuntime = L"110.0.1587.40";
-
-/// Chromium is told directly: no talking to anyone the document did not ask
-/// for, and no DNS warm-up for links. Everything the document asks for is
-/// policed per request below.
-constexpr const wchar_t* kBrowserArguments =
-    L"--disable-background-networking --dns-prefetch-disable";
-
-// --- the IIDs this file answers for or asks about ---------------------------
-
-constexpr GUID kIidUnknown = {
-    0x00000000, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
-constexpr GUID kIidEnvironmentOptions = {
-    0x2fde08a8, 0x1e9a, 0x4766, {0x8c, 0x05, 0x95, 0xa9, 0xce, 0xb9, 0xd1, 0xc5}};
-constexpr GUID kIidEnvironmentOptions4 = {
-    0xac52d13f, 0x0d38, 0x475a, {0x9d, 0xca, 0x87, 0x65, 0x80, 0xd6, 0x79, 0x3e}};
-constexpr GUID kIidCustomSchemeRegistration = {
-    0xd60ac92c, 0x37a6, 0x4b26, {0xa3, 0x9e, 0x95, 0xcf, 0xe5, 0x90, 0x47, 0xbb}};
-constexpr GUID kIidEnvironment10 = {
-    0xee0eb9df, 0x6f12, 0x46ce, {0xb5, 0x3f, 0x3f, 0x47, 0xb9, 0xc9, 0x28, 0xe0}};
-constexpr GUID kIidWebView2_4 = {
-    0x20d02d59, 0x6df2, 0x42dc, {0xbd, 0x06, 0xf9, 0x8a, 0x69, 0x4b, 0x13, 0x02}};
-constexpr GUID kIidWebView2_18 = {
-    0x7a626017, 0x28be, 0x49b2, {0xb8, 0x65, 0x3b, 0xa2, 0xb3, 0x52, 0x2d, 0x90}};
-constexpr GUID kIidSettings3 = {
-    0xfdb5ab74, 0xaf33, 0x4854, {0x84, 0xf0, 0x0a, 0x63, 0x1d, 0xeb, 0x5e, 0xba}};
-constexpr GUID kIidSettings4 = {
-    0xcb56846c, 0x4168, 0x4d53, {0xb0, 0x4f, 0x03, 0xb6, 0xd6, 0x79, 0x6f, 0xf2}};
-constexpr GUID kIidSettings5 = {
-    0x183e7052, 0x1d03, 0x43a0, {0xab, 0x99, 0x98, 0xe0, 0x43, 0xb6, 0x6b, 0x39}};
-constexpr GUID kIidSettings6 = {
-    0x11cb3acd, 0x9bc8, 0x43b8, {0x83, 0xbf, 0xf4, 0x07, 0x53, 0x71, 0x4f, 0x87}};
-constexpr GUID kIidSettings8 = {
-    0x9e6b0e8f, 0x86ad, 0x4e81, {0x81, 0x47, 0xa9, 0xb5, 0xed, 0xb6, 0x86, 0x50}};
-
-template <typename I>
-struct HandlerTraits;
-#define GF_WV2_HANDLER(IFACE, SENDER, ARGS, ...)                   \
-  template <>                                                      \
-  struct HandlerTraits<IFACE> {                                    \
-    using Sender = SENDER;                                         \
-    using Args = ARGS;                                             \
-    static constexpr GUID kIid = __VA_ARGS__;                      \
-  };
-GF_WV2_HANDLER(ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler,
-               HRESULT, ICoreWebView2Environment*,
-               {0x4e8a3389, 0xc9d8, 0x4bd2,
-                {0xb6, 0xb5, 0x12, 0x4f, 0xee, 0x6c, 0xc1, 0x4d}})
-GF_WV2_HANDLER(ICoreWebView2CreateCoreWebView2ControllerCompletedHandler,
-               HRESULT, ICoreWebView2Controller*,
-               {0x6c4819f3, 0xc9b7, 0x4260,
-                {0x81, 0x27, 0xc9, 0xf5, 0xbd, 0xe7, 0xf6, 0x8c}})
-GF_WV2_HANDLER(ICoreWebView2NavigationStartingEventHandler, ICoreWebView2*,
-               ICoreWebView2NavigationStartingEventArgs*,
-               {0x9adbe429, 0xf36d, 0x432b,
-                {0x9d, 0xdc, 0xf8, 0x88, 0x1f, 0xbd, 0x76, 0xe3}})
-GF_WV2_HANDLER(ICoreWebView2NavigationCompletedEventHandler, ICoreWebView2*,
-               ICoreWebView2NavigationCompletedEventArgs*,
-               {0xd33a35bf, 0x1c49, 0x4f98,
-                {0x93, 0xab, 0x00, 0x6e, 0x05, 0x33, 0xfe, 0x1c}})
-GF_WV2_HANDLER(ICoreWebView2WebResourceRequestedEventHandler, ICoreWebView2*,
-               ICoreWebView2WebResourceRequestedEventArgs*,
-               {0xab00b74c, 0x15f1, 0x4646,
-                {0x80, 0xe8, 0xe7, 0x63, 0x41, 0xd2, 0x5d, 0x71}})
-GF_WV2_HANDLER(ICoreWebView2NewWindowRequestedEventHandler, ICoreWebView2*,
-               ICoreWebView2NewWindowRequestedEventArgs*,
-               {0xd4c185fe, 0xc81c, 0x4989,
-                {0x97, 0xaf, 0x2d, 0x3f, 0xa7, 0xab, 0x56, 0x51}})
-GF_WV2_HANDLER(ICoreWebView2PermissionRequestedEventHandler, ICoreWebView2*,
-               ICoreWebView2PermissionRequestedEventArgs*,
-               {0x15e1c6a3, 0xc72a, 0x4df3,
-                {0x91, 0xd7, 0xd0, 0x97, 0xfb, 0xec, 0x6b, 0xfd}})
-GF_WV2_HANDLER(ICoreWebView2DownloadStartingEventHandler, ICoreWebView2*,
-               ICoreWebView2DownloadStartingEventArgs*,
-               {0xefedc989, 0xc396, 0x41ca,
-                {0x83, 0xf7, 0x07, 0xf8, 0x45, 0xa5, 0x57, 0x24}})
-GF_WV2_HANDLER(ICoreWebView2ProcessFailedEventHandler, ICoreWebView2*,
-               ICoreWebView2ProcessFailedEventArgs*,
-               {0x79e0aea4, 0x990b, 0x42d9,
-                {0xaa, 0x1d, 0x0f, 0xcc, 0x2e, 0x5b, 0xc7, 0xf1}})
-GF_WV2_HANDLER(ICoreWebView2LaunchingExternalUriSchemeEventHandler,
-               ICoreWebView2*,
-               ICoreWebView2LaunchingExternalUriSchemeEventArgs*,
-               {0x74f712e0, 0x8165, 0x43a9,
-                {0xa1, 0x3f, 0x0c, 0xce, 0x59, 0x7e, 0x75, 0xdf}})
-#undef GF_WV2_HANDLER
-
-/// One completed or event handler, as a lambda. The engine owns it after
-/// add_*/Release, and drops it when the view closes.
-template <typename I>
-class Callback final : public I {
- public:
-  using Fn = std::function<HRESULT(typename HandlerTraits<I>::Sender,
-                                   typename HandlerTraits<I>::Args)>;
-  explicit Callback(Fn fn) : fn_(std::move(fn)) {}
-
-  auto STDMETHODCALLTYPE QueryInterface(REFIID riid, void** out)
-      -> HRESULT override {
-    if (out == nullptr) return E_POINTER;
-    if (IsEqualIID(riid, HandlerTraits<I>::kIid) ||
-        IsEqualIID(riid, kIidUnknown)) {
-      *out = static_cast<I*>(this);
-      AddRef();
-      return S_OK;
-    }
-    *out = nullptr;
-    return E_NOINTERFACE;
-  }
-  auto STDMETHODCALLTYPE AddRef() -> ULONG override { return ++refs_; }
-  auto STDMETHODCALLTYPE Release() -> ULONG override {
-    const auto left = --refs_;
-    if (left == 0) delete this;
-    return left;
-  }
-  auto STDMETHODCALLTYPE Invoke(typename HandlerTraits<I>::Sender sender,
-                                typename HandlerTraits<I>::Args args)
-      -> HRESULT override {
-    return fn_(sender, args);
-  }
-
- private:
-  ~Callback() = default;
-  ULONG refs_ = 1;
-  Fn fn_;
-};
-
-/// A reference the scopes here cannot leak.
-template <typename T>
-class Ptr {
- public:
-  Ptr() = default;
-  Ptr(const Ptr&) = delete;
-  auto operator=(const Ptr&) -> Ptr& = delete;
-  Ptr(Ptr&& other) noexcept : p_(other.p_) { other.p_ = nullptr; }
-  auto operator=(Ptr&& other) noexcept -> Ptr& {
-    if (this != &other) {
-      Drop();
-      p_ = other.p_;
-      other.p_ = nullptr;
-    }
-    return *this;
-  }
-  ~Ptr() { Drop(); }
-
-  /// For the T** out-parameter idiom; whatever was held is dropped first.
-  auto Put() -> T** {
-    Drop();
-    return &p_;
-  }
-  void Keep(T* p) {
-    if (p != nullptr) p->AddRef();
-    Drop();
-    p_ = p;
-  }
-  void Drop() {
-    if (p_ != nullptr) p_->Release();
-    p_ = nullptr;
-  }
-  auto Get() const -> T* { return p_; }
-  auto operator->() const -> T* { return p_; }
-  explicit operator bool() const { return p_ != nullptr; }
-
- private:
-  T* p_ = nullptr;
-};
-
-auto DupCoString(const wchar_t* text) -> LPWSTR {
-  const auto bytes = (wcslen(text) + 1) * sizeof(wchar_t);
-  auto* copy = static_cast<LPWSTR>(CoTaskMemAlloc(bytes));
-  if (copy != nullptr) memcpy(copy, text, bytes);
-  return copy;
-}
-
-auto TakeCoString(LPWSTR text) -> QString {
-  if (text == nullptr) return {};
-  auto result = QString::fromWCharArray(text);
-  CoTaskMemFree(text);
-  return result;
-}
-
-void Wipe(QByteArray& bytes) {
-  if (!bytes.isEmpty()) bytes.fill('\0');
-  bytes.clear();
-}
-
-auto PartSchemeW() -> const std::wstring& {
-  static const std::wstring scheme =
-      QString(QLatin1StringView(HtmlView::kPartScheme)).toStdWString();
-  return scheme;
-}
-
-// --- what the loader is handed before anything of the engine exists ----------
-
-/**
- * @brief The part scheme, as the engine must know it before the browser
- *        process starts: an authority (the session), treated as secure, and
- *        open to requests from any document origin -- the mail's frame has
- *        an opaque one -- because every request still lands in this file's
- *        handler, which knows the one session it will serve.
- */
-class SchemeRegistration final : public ICoreWebView2CustomSchemeRegistration {
- public:
-  auto STDMETHODCALLTYPE QueryInterface(REFIID riid, void** out)
-      -> HRESULT override {
-    if (out == nullptr) return E_POINTER;
-    if (IsEqualIID(riid, kIidCustomSchemeRegistration) ||
-        IsEqualIID(riid, kIidUnknown)) {
-      *out = static_cast<ICoreWebView2CustomSchemeRegistration*>(this);
-      AddRef();
-      return S_OK;
-    }
-    *out = nullptr;
-    return E_NOINTERFACE;
-  }
-  auto STDMETHODCALLTYPE AddRef() -> ULONG override { return ++refs_; }
-  auto STDMETHODCALLTYPE Release() -> ULONG override {
-    const auto left = --refs_;
-    if (left == 0) delete this;
-    return left;
-  }
-
-  auto STDMETHODCALLTYPE get_SchemeName(LPWSTR* value) -> HRESULT override {
-    *value = DupCoString(PartSchemeW().c_str());
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE get_TreatAsSecure(BOOL* value) -> HRESULT override {
-    *value = TRUE;
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE put_TreatAsSecure(BOOL) -> HRESULT override {
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE GetAllowedOrigins(UINT32* count, LPWSTR** origins)
-      -> HRESULT override {
-    auto** list = static_cast<LPWSTR*>(CoTaskMemAlloc(sizeof(LPWSTR)));
-    if (list == nullptr) return E_OUTOFMEMORY;
-    list[0] = DupCoString(L"*");
-    *origins = list;
-    *count = 1;
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE SetAllowedOrigins(UINT32, LPCWSTR*)
-      -> HRESULT override {
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE get_HasAuthorityComponent(BOOL* value)
-      -> HRESULT override {
-    *value = TRUE;
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE put_HasAuthorityComponent(BOOL) -> HRESULT override {
-    return S_OK;
-  }
-
- private:
-  ~SchemeRegistration() = default;
-  ULONG refs_ = 1;
-};
-
-class EnvironmentOptions final : public ICoreWebView2EnvironmentOptions,
-                                 public ICoreWebView2EnvironmentOptions4 {
- public:
-  auto STDMETHODCALLTYPE QueryInterface(REFIID riid, void** out)
-      -> HRESULT override {
-    if (out == nullptr) return E_POINTER;
-    if (IsEqualIID(riid, kIidEnvironmentOptions) ||
-        IsEqualIID(riid, kIidUnknown)) {
-      *out = static_cast<ICoreWebView2EnvironmentOptions*>(this);
-      AddRef();
-      return S_OK;
-    }
-    if (IsEqualIID(riid, kIidEnvironmentOptions4)) {
-      *out = static_cast<ICoreWebView2EnvironmentOptions4*>(this);
-      AddRef();
-      return S_OK;
-    }
-    *out = nullptr;
-    return E_NOINTERFACE;
-  }
-  auto STDMETHODCALLTYPE AddRef() -> ULONG override { return ++refs_; }
-  auto STDMETHODCALLTYPE Release() -> ULONG override {
-    const auto left = --refs_;
-    if (left == 0) delete this;
-    return left;
-  }
-
-  auto STDMETHODCALLTYPE get_AdditionalBrowserArguments(LPWSTR* value)
-      -> HRESULT override {
-    *value = DupCoString(kBrowserArguments);
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE put_AdditionalBrowserArguments(LPCWSTR)
-      -> HRESULT override {
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE get_Language(LPWSTR* value) -> HRESULT override {
-    *value = DupCoString(L"");
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE put_Language(LPCWSTR) -> HRESULT override {
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE get_TargetCompatibleBrowserVersion(LPWSTR* value)
-      -> HRESULT override {
-    *value = DupCoString(kMinRuntime);
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE put_TargetCompatibleBrowserVersion(LPCWSTR)
-      -> HRESULT override {
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE get_AllowSingleSignOnUsingOSPrimaryAccount(BOOL* value)
-      -> HRESULT override {
-    *value = FALSE;
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE put_AllowSingleSignOnUsingOSPrimaryAccount(BOOL)
-      -> HRESULT override {
-    return S_OK;
-  }
-
-  auto STDMETHODCALLTYPE GetCustomSchemeRegistrations(
-      UINT32* count, ICoreWebView2CustomSchemeRegistration*** registrations)
-      -> HRESULT override {
-    auto** list = static_cast<ICoreWebView2CustomSchemeRegistration**>(
-        CoTaskMemAlloc(sizeof(void*)));
-    if (list == nullptr) return E_OUTOFMEMORY;
-    list[0] = new SchemeRegistration();
-    *registrations = list;
-    *count = 1;
-    return S_OK;
-  }
-  auto STDMETHODCALLTYPE SetCustomSchemeRegistrations(
-      UINT32, ICoreWebView2CustomSchemeRegistration**) -> HRESULT override {
-    return S_OK;
-  }
-
- private:
-  ~EnvironmentOptions() = default;
-  ULONG refs_ = 1;
-};
-
-// --- the loader and the one environment --------------------------------------
-
-using CreateEnvironmentFn = HRESULT(STDAPICALLTYPE*)(
-    PCWSTR, PCWSTR, ICoreWebView2EnvironmentOptions*,
-    ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler*);
-using AvailableVersionFn = HRESULT(STDAPICALLTYPE*)(PCWSTR, LPWSTR*);
-using CompareVersionsFn = HRESULT(STDAPICALLTYPE*)(PCWSTR, PCWSTR, int*);
-
-/// The Evergreen runtime's version, through the loader, or empty with no
-/// loader or no runtime. Nothing of the engine starts for this.
-auto AvailableRuntime(HMODULE loader) -> QString {
-  const auto available = reinterpret_cast<AvailableVersionFn>(
-      GetProcAddress(loader, "GetAvailableCoreWebView2BrowserVersionString"));
-  if (available == nullptr) return {};
-  LPWSTR version = nullptr;
-  if (FAILED(available(nullptr, &version))) return {};
-  return TakeCoString(version);
-}
-
-auto LoadWebView2Loader() -> HMODULE {
-  // Beside the binaries first -- that is where the build and the package put
-  // it -- then the normal search path.
-  const auto beside =
-      QDir(QCoreApplication::applicationDirPath()).filePath(u"WebView2Loader.dll"_s);
-  auto* loader =
-      LoadLibraryW(reinterpret_cast<const wchar_t*>(beside.utf16()));
-  if (loader == nullptr) loader = LoadLibraryW(L"WebView2Loader.dll");
-  return loader;
-}
 
 }  // namespace
 
@@ -634,37 +254,8 @@ class ViewHost : public std::enable_shared_from_this<ViewHost> {
     s->put_IsScriptEnabled(FALSE);
     s->put_AreDefaultScriptDialogsEnabled(FALSE);
     s->put_IsWebMessageEnabled(FALSE);
-    s->put_AreDevToolsEnabled(FALSE);
     s->put_AreDefaultContextMenusEnabled(FALSE);
-    s->put_AreHostObjectsAllowed(FALSE);
-    s->put_IsStatusBarEnabled(FALSE);
-    s->put_IsBuiltInErrorPageEnabled(FALSE);
-    s->put_IsZoomControlEnabled(FALSE);
-
-    Ptr<ICoreWebView2Settings3> s3;
-    s.Get()->QueryInterface(kIidSettings3,
-                            reinterpret_cast<void**>(s3.Put()));
-    if (s3) s3->put_AreBrowserAcceleratorKeysEnabled(FALSE);
-    Ptr<ICoreWebView2Settings4> s4;
-    s.Get()->QueryInterface(kIidSettings4,
-                            reinterpret_cast<void**>(s4.Put()));
-    if (s4) {
-      s4->put_IsGeneralAutofillEnabled(FALSE);
-      s4->put_IsPasswordAutosaveEnabled(FALSE);
-    }
-    Ptr<ICoreWebView2Settings5> s5;
-    s.Get()->QueryInterface(kIidSettings5,
-                            reinterpret_cast<void**>(s5.Put()));
-    if (s5) s5->put_IsPinchZoomEnabled(FALSE);
-    Ptr<ICoreWebView2Settings6> s6;
-    s.Get()->QueryInterface(kIidSettings6,
-                            reinterpret_cast<void**>(s6.Put()));
-    if (s6) s6->put_IsSwipeNavigationEnabled(FALSE);
-    // SmartScreen looks URLs up over the network.
-    Ptr<ICoreWebView2Settings8> s8;
-    s.Get()->QueryInterface(kIidSettings8,
-                            reinterpret_cast<void**>(s8.Put()));
-    if (s8) s8->put_IsReputationCheckingRequired(FALSE);
+    LockDownCommon(s.Get());
   }
 
   /// The event hooks: every request answered here, every navigation judged,
@@ -1027,30 +618,12 @@ class WinHtmlViewRenderer : public HtmlViewRenderer {
   void EnsureEnvironment() {
     if (creating_) return;
     creating_ = true;
-
-    auto* loader = LoadWebView2Loader();
-    const auto create =
-        loader == nullptr
-            ? nullptr
-            : reinterpret_cast<CreateEnvironmentFn>(GetProcAddress(
-                  loader, "CreateCoreWebView2EnvironmentWithOptions"));
-    if (create == nullptr) {
-      OnEnvironment(E_FAIL, nullptr);
-      return;
-    }
-    const auto folder =
-        QDir::toNativeSeparators(QDir::temp().filePath(u"GpgFrontend.HtmlView"_s))
-            .toStdWString();
-    auto* options = new EnvironmentOptions();
-    const auto hr = create(
-        nullptr, folder.c_str(), options,
-        new Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [this](HRESULT result, ICoreWebView2Environment* environment) {
-              OnEnvironment(result, environment);
-              return S_OK;
-            }));
-    options->Release();
-    if (FAILED(hr)) OnEnvironment(hr, nullptr);
+    CreateEnvironment(
+        u"GpgFrontend.HtmlView"_s,
+        {QString(QLatin1StringView(HtmlView::kPartScheme)).toStdWString()},
+        [this](HRESULT result, ICoreWebView2Environment* environment) {
+          OnEnvironment(result, environment);
+        });
   }
 
   void OnEnvironment(HRESULT result, ICoreWebView2Environment* environment) {
@@ -1106,32 +679,10 @@ void RegisterPlatformHtmlViewRenderer() {
   // anything: the loader must be there, and the Evergreen runtime new
   // enough to register the part scheme. The browser process itself starts
   // only when a view is first created.
-  static int checked = -1;
-  if (checked == -1) {
-    auto* loader = LoadWebView2Loader();
-    if (loader == nullptr) {
-      LOG_I() << "no WebView2Loader.dll; no built-in HTML view renderer";
-      checked = 0;
-    } else {
-      const auto version = AvailableRuntime(loader);
-      const auto compare = reinterpret_cast<CompareVersionsFn>(
-          GetProcAddress(loader, "CompareBrowserVersions"));
-      int newer = -1;
-      if (version.isEmpty() || compare == nullptr ||
-          FAILED(compare(version.toStdWString().c_str(), kMinRuntime,
-                         &newer)) ||
-          newer < 0) {
-        LOG_I() << "no usable WebView2 runtime (found"
-                << (version.isEmpty() ? u"none"_s : version)
-                << "); no built-in HTML view renderer";
-        checked = 0;
-      } else {
-        LOG_D() << "WebView2 runtime" << version << "serves HTML views";
-        checked = 1;
-      }
-    }
+  if (!RuntimeUsable()) {
+    LOG_I() << "no built-in HTML view renderer";
+    return;
   }
-  if (checked != 1) return;
 
   HtmlViewProviderInfo info;
   info.owner = kOwner;

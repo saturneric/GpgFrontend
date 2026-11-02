@@ -61,9 +61,10 @@ if(APPLE)
     ${WEBKIT_FRAMEWORK})
 endif()
 
-# WebView2, for HTML views on Windows: the pinned SDK header, and the loader
-# that finds the Evergreen runtime at run time. Without the SDK the renderer
-# is not compiled and the portable stub keeps HTML mail as source.
+# WebView2, for HTML views and web editors on Windows: the pinned SDK header,
+# and the loader that finds the Evergreen runtime at run time. Without the SDK
+# neither engine is compiled: the portable stubs keep HTML mail as source and
+# leave web editors to modules.
 if(MINGW OR WIN32)
   include(FetchWebView2)
   if(WEBVIEW2_FOUND)
@@ -82,7 +83,7 @@ if(MINGW OR WIN32)
       DESTINATION ${CMAKE_INSTALL_BINDIR})
   else()
     message(WARNING
-      "No WebView2 SDK, so no built-in HTML view renderer on Windows")
+      "No WebView2 SDK, so no built-in HTML view renderer or web editor engine on Windows")
   endif()
 endif()
 
