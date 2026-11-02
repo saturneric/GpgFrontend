@@ -479,6 +479,7 @@ void KeyDatabasesTab::SetSettings() {
   const auto engine_index = ui_->builtInEngineComboBox->findData(model_.engine);
   ui_->builtInEngineComboBox->setCurrentIndex(std::max(0, engine_index));
   model_.engine = ui_->builtInEngineComboBox->currentData().toString();
+  loaded_engine_ = model_.engine;
   refresh_default_key_database_ui();
   loading_ = false;
 
@@ -496,10 +497,11 @@ void KeyDatabasesTab::ApplySettings() {
   model_.ApplyTo(key_database_list);
 
   // Written here because the selector lives here: it says how the built-in
-  // database is opened, and nothing else.
-  {
+  // database is opened, and nothing else. Only when the user changed it.
+  if (model_.engine != loaded_engine_) {
     auto settings = GetSettings();
     SettingItems::kDefaultEngine.Write(settings, model_.engine);
+    loaded_engine_ = model_.engine;
   }
 
   // The stored list is protected from being overwritten when it could not be
