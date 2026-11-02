@@ -92,9 +92,7 @@ class GpgKeyRepository::Impl
   }
 
   auto FetchKey() -> GpgKeyPtrList {
-    if (keys_cache_->empty() || keys_search_cache_->empty()) {
-      FlushKeyCache();
-    }
+    if (cache_empty()) FlushKeyCache();
 
     auto keys_list = GpgKeyPtrList{};
     {
@@ -108,9 +106,7 @@ class GpgKeyRepository::Impl
   }
 
   auto FetchGpgKeyList() -> GpgAbstractKeyPtrList {
-    if (keys_search_cache_->empty()) {
-      FlushKeyCache();
-    }
+    if (cache_empty()) FlushKeyCache();
 
     auto keys_list = GpgAbstractKeyPtrList{};
     {
@@ -125,10 +121,6 @@ class GpgKeyRepository::Impl
   }
 
   auto FlushKeyCache() -> bool {
-    // clear the keys cache
-    keys_cache_->clear();
-    keys_search_cache_->clear();
-
     {
       std::lock_guard<std::mutex> lock(key_version_cache_mutex_);
       key_version_cache_.clear();
@@ -141,8 +133,18 @@ class GpgKeyRepository::Impl
       first_flush_ = false;
     }
 
-    return RunRegisteredForward<FlushKeyCacheOpTag>(ctx_, keys_cache_,
-                                                    keys_search_cache_);
+    // Read into fresh containers and swapped in whole: a reader on another
+    // thread -- a page resolving a fingerprint while a key is generated --
+    // sees the old keyring or the new one, never one being cleared or filled.
+    auto keys = QSharedPointer<GpgKeyPtrList>::create();
+    auto search = QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>::create();
+    const auto flushed =
+        RunRegisteredForward<FlushKeyCacheOpTag>(ctx_, keys, search);
+
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    keys_cache_ = keys;
+    keys_search_cache_ = search;
+    return flushed;
   }
 
   auto GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
@@ -199,6 +201,12 @@ class GpgKeyRepository::Impl
   /// keys_cache_mutex_.
   QMap<QString, int> key_version_cache_;
   mutable std::mutex key_version_cache_mutex_;
+
+  /// Whether nothing has been read into the cache yet.
+  auto cache_empty() const -> bool {
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    return keys_cache_->empty() || keys_search_cache_->empty();
+  }
 
   /**
    * @brief Get the Key object
