@@ -388,4 +388,19 @@ TEST(DataObjectGCTest, KeySetNotSuspectOnEmptyProfile) {
   EXPECT_FALSE(IsWholesaleKeyFailure(/*ok=*/0, /*missing_key=*/0));
 }
 
+// A save under way is "<ref>.<random>" until it is renamed: the collector must
+// not take it for a badly named object and move it away from the writer.
+TEST(DataObjectGCTest, ASaveUnderWayIsLeftAlone) {
+  const QString ref(64, QLatin1Char('a'));
+  const auto now = QDateTime::currentDateTimeUtc();
+  EXPECT_TRUE(IsDataObjectSaveInFlight(ref + ".KlOdoD", now.addSecs(-1), now));
+  // Left by a crash an hour or more ago: the collector's to clean up.
+  EXPECT_FALSE(
+      IsDataObjectSaveInFlight(ref + ".KlOdoD", now.addSecs(-7200), now));
+  // Only beside a real object's name.
+  EXPECT_FALSE(IsDataObjectSaveInFlight("notes.KlOdoD", now, now));
+  EXPECT_FALSE(IsDataObjectSaveInFlight(ref, now, now));
+  EXPECT_FALSE(IsDataObjectSaveInFlight(ref + ".", now, now));
+}
+
 }  // namespace GpgFrontend::Test

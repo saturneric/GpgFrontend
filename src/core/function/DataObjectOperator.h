@@ -247,4 +247,24 @@ class GF_CORE_EXPORT DataObjectOperator
  */
 auto GF_CORE_EXPORT IsWholesaleKeyFailure(int ok, int missing_key) -> bool;
 
+/**
+ * @brief Whether a file in the data object directory is a save still under way.
+ *
+ * Objects are written atomically: QSaveFile writes "<ref>.<random>" beside the
+ * object and renames it over "<ref>" on commit. A collector that takes such a
+ * file for a badly named object moves it away under the writer, whose commit
+ * then fails -- seen on a slow phone emulator, possible anywhere. A fresh one
+ * is left alone; one older than @p window_secs is what a crash left behind,
+ * and stays the collector's to clean up.
+ *
+ * @param name the file's name
+ * @param modified when it was last written
+ * @param now the time to measure against
+ * @param window_secs how long a save may take, at most
+ */
+auto GF_CORE_EXPORT IsDataObjectSaveInFlight(const QString &name,
+                                             const QDateTime &modified,
+                                             const QDateTime &now,
+                                             qint64 window_secs = 3600) -> bool;
+
 }  // namespace GpgFrontend
