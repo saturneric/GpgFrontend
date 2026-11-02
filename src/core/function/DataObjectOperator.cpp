@@ -604,6 +604,13 @@ auto ClassifyDataObjects(const QDir& dir, DataObjectGCContext* ctx)
 
     const auto name = info.fileName();
 
+    // A writer's QSaveFile, about to be renamed into place: not ours to judge.
+    if (GpgFrontend::IsDataObjectSaveInFlight(name, info.lastModified(),
+                                              QDateTime::currentDateTime())) {
+      ctx->report.total--;
+      continue;
+    }
+
     DataObjectCheckResult result;
 
     if (IsValidRefHex(name)) {
@@ -863,6 +870,15 @@ auto DataObjectOperator::RemoveDataObj(const QString& key) -> bool {
 
 auto IsWholesaleKeyFailure(int ok, int missing_key) -> bool {
   return missing_key > 0 && ok == 0;
+}
+
+auto IsDataObjectSaveInFlight(const QString& name, const QDateTime& modified,
+                              const QDateTime& now, qint64 window_secs)
+    -> bool {
+  const auto dot = name.indexOf(QLatin1Char('.'));
+  if (dot < 0 || dot == name.size() - 1) return false;
+  if (!IsValidRefHex(name.left(dot))) return false;
+  return modified.isValid() && modified.secsTo(now) < window_secs;
 }
 
 auto DataObjectOperator::HasDataObj(const QString& key) -> bool {
