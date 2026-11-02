@@ -42,6 +42,10 @@ namespace GpgFrontend {
 auto GF_CORE_EXPORT ReadFileGFBuffer(const QString& file_name)
     -> std::tuple<bool, GFBuffer>;
 
+/// The largest file read as keys to import. Keys, not archives; an export of
+/// a whole keyring, signatures and all, still fits with room to spare.
+inline constexpr qint64 kMaxKeyFileBytes = 16LL * 1024 * 1024;
+
 /**
  * @brief Write a GFBuffer to a file, overwriting any existing content.
  *

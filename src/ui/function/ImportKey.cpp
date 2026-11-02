@@ -82,7 +82,7 @@ void ImportKeyFromFile(QWidget* parent, int channel) {
     return;
   }
 
-  if (file_info.size() > static_cast<qint64>(1024 * 1024)) {
+  if (file_info.size() > kMaxKeyFileBytes) {
     QMessageBox::critical(
         parent, QCoreApplication::translate("GpgFrontend::UI", "Error"),
         QCoreApplication::translate(
