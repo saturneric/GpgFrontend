@@ -145,6 +145,12 @@ class KeyDatabasesTab : public QWidget {
   /// toggled() handler does not mistake being restored for being clicked.
   bool loading_ = false;
 
+  /// The engine the selector showed when the tab was loaded. Only a choice
+  /// the user made is stored: one this build cannot offer shows as the first
+  /// entry, and writing that back would hand the built-in database of a
+  /// shared profile to another engine on every other build.
+  QString loaded_engine_;
+
   /// A folder in the Recycle Bin: under the profile's dbs/ directory, and
   /// referred to by nothing. Its size arrives later, from a worker.
   struct RecycledFolder {
