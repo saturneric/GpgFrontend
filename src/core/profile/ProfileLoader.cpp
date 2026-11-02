@@ -209,6 +209,10 @@ auto ProfileLoader::acquire_lock() -> bool {
     return false;
   }
 
+  // The holder may have quit while the question was up; then it is simply
+  // free, and nobody's lock needs removing.
+  if (ProfileLock::Acquire(root, 0).Ok()) return true;
+
   ProfileLock::ForceUnlock(root);
   if (ProfileLock::Acquire(root, 1000).Ok()) return true;
 
