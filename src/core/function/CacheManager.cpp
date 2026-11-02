@@ -99,7 +99,22 @@ class CacheManager::Impl : public QObject {
       : channel_(channel), flush_timer_(new QTimer(this)) {
     connect(flush_timer_, &QTimer::timeout, this,
             &Impl::slot_flush_cache_storage);
-    flush_timer_->start(15000);
+
+    // Made on whichever thread first asks for the cache -- often a task
+    // runner's, which has stopped long before the core is destroyed on the
+    // main thread. A timer of a thread that is gone cannot be stopped from
+    // there: Qt only warns, and hands its cleanup to that thread's dead
+    // dispatcher. So it lives where it dies.
+    auto* app = QCoreApplication::instance();
+    if (app != nullptr && thread() != app->thread()) {
+      moveToThread(app->thread());
+      // Started there; a timer is only ever started from its own thread.
+      QMetaObject::invokeMethod(
+          flush_timer_, [timer = flush_timer_]() { timer->start(15000); },
+          Qt::QueuedConnection);
+    } else {
+      flush_timer_->start(15000);
+    }
 
     // load data from storage
     load_all_cache_storage();
