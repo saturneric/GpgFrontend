@@ -30,13 +30,20 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPointer>
 #include <QTemporaryDir>
 #include <QUrl>
 #include <QWidget>
 
+#ifdef Q_OS_MACOS
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #include "GpgFrontendTest.h"
 #include "core/SdkTestContext.h"
+#include "platform/common/PlatformWebEditor.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKUI.h"
 #include "sdk/GFSDKWebEditor.h"
@@ -81,6 +88,35 @@ void OnGui(const std::function<void()>& fn) {
 void Settle() {
   OnGui([] {});
   OnGui([] {});
+}
+
+/// WebKit answers on the main run loop, which the offscreen platform the
+/// tests run under never spins on its own; the application, on Cocoa,
+/// always does.
+void SpinRunLoop() {
+#ifdef Q_OS_MACOS
+  OnGui([] { CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, false); });
+#endif
+}
+
+auto HasHostEngine() -> bool {
+  bool has = false;
+  OnGui([&] {
+    has = WebEditorService::Instance().ProviderOwners().contains(QString());
+  });
+  return has;
+}
+
+/// Where the platform has an engine, wait for it: it registers once its
+/// rules have compiled, which may still be under way when the first test
+/// starts. Once: after that it is there or it never will be.
+auto WaitForHostEngine() -> bool {
+#ifdef Q_OS_MACOS
+  static bool waited = false;
+  for (int i = 0; !waited && i < 200 && !HasHostEngine(); ++i) SpinRunLoop();
+  waited = true;
+#endif
+  return HasHostEngine();
 }
 
 auto CreateRoot(void*, uint64_t, GFBufferView) -> void* {
@@ -142,11 +178,18 @@ class WebEditorTest : public ::testing::Test {
           "<body><script src=\"editor.js\"></script></body></html>");
     write("editor.js", "window.x = 1;");
     write("secret.txt", "never served");
+    // The Host's own engine outranks any module's: detached for the test,
+    // and put back after it.
+    host_engine_ = WaitForHostEngine();
     OnGui([this] {
       auto& service = WebEditorService::Instance();
       // The application may have a real engine; these tests use the fake.
       for (const auto& owner : service.ProviderOwners()) {
         if (!owner.startsWith(u"com.example."_s)) service.WithdrawModule(owner);
+      }
+      if (host_engine_) {
+        service.UnregisterProvider(
+            {}, QString::fromLatin1(UI::kPlatformWebEditorEngineName));
       }
       service.SetAssetRootForTest(kConsumer, assets_.path() + u"/"_s);
       service.SetLinkHandler([this](const QUrl& url) { opened_ << url; });
@@ -161,7 +204,7 @@ class WebEditorTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    OnGui([] {
+    OnGui([this] {
       auto& service = WebEditorService::Instance();
       for (const auto* m : {kConsumer, kOtherConsumer, kProvider}) {
         service.WithdrawModule(m);
@@ -170,6 +213,7 @@ class WebEditorTest : public ::testing::Test {
       }
       service.SetAssetRootForTest(kConsumer, {});
       service.SetLinkHandler({});
+      if (host_engine_) UI::RegisterPlatformWebEditorEngine();
     });
     OnGui([this] {
       for (const auto& root : roots_) delete root.data();
@@ -253,6 +297,7 @@ class WebEditorTest : public ::testing::Test {
   Container container_;
   QList<QPointer<QWidget>> roots_;
   QList<QUrl> opened_;
+  bool host_engine_ = false;
 };
 
 }  // namespace
@@ -439,5 +484,136 @@ TEST_F(WebEditorTest, AWithdrawnEngineTellsItsConsumers) {
   EXPECT_EQ(g_heard.last().event, GF_WEB_EDITOR_EVENT_LOST);
   OnGui([&] { EXPECT_NE(GFWebEditorAvailable(consumer_()), GF_HTML_VIEW_OK); });
 }
+
+// --- the Host's own engine, for real --------------------------------------
+
+#ifdef Q_OS_MACOS
+
+namespace {
+
+/// The fixture, with the fake withdrawn and the Host's engine back.
+class WebEditorPlatformTest : public WebEditorTest {
+ protected:
+  void SetUp() override {
+    WebEditorTest::SetUp();
+    ASSERT_TRUE(host_engine_)
+        << "the platform's engine never registered itself";
+    OnGui([] {
+      WebEditorService::Instance().WithdrawModule(kProvider);
+      UI::RegisterPlatformWebEditorEngine();
+    });
+  }
+
+  /// What the page said, by its "type"; and whether it said it at all.
+  [[nodiscard]] static auto said(const QString& type) -> QJsonObject {
+    for (const auto& h : std::as_const(g_heard)) {
+      if (h.event != GF_WEB_EDITOR_EVENT_MESSAGE) continue;
+      const auto obj = QJsonDocument::fromJson(h.text).object();
+      if (obj.value(u"type"_s).toString() == type) return obj;
+    }
+    return {};
+  }
+
+  /// Spin until @p done, or about ten seconds.
+  static auto until(const std::function<bool()>& done) -> bool {
+    for (int i = 0; i < 200; ++i) {
+      if (done()) return true;
+      SpinRunLoop();
+    }
+    return done();
+  }
+};
+
+}  // namespace
+
+TEST_F(WebEditorPlatformTest, TheHostsOwnEngineIsTheOneUsed) {
+  OnGui([&] {
+    EXPECT_EQ(GFWebEditorAvailable(consumer_()), GF_HTML_VIEW_OK);
+    EXPECT_TRUE(WebEditorService::Instance().ProviderOwners().contains(
+        QString()));
+  });
+}
+
+TEST_F(WebEditorPlatformTest, ARealPageLoadsTalksAndStaysInsideThePolicy) {
+  // An inline script the policy must stop, and the module's own file that
+  // it must let run.
+  write("index.html",
+        "<!doctype html><html><head><title>t</title></head><body>"
+        "<script>gfBridge.post({type: \"inline\"});</script>"
+        "<script src=\"editor.js\"></script></body></html>");
+  write("editor.js", R"JS(
+gfBridge.onMessage(function (m) { gfBridge.post({type: "echo", got: m.type}); });
+function probe(type, src, width) {
+  var img = new Image();
+  img.onload = function () {
+    gfBridge.post({type: type, ok: img.naturalWidth === width});
+  };
+  img.onerror = function () { gfBridge.post({type: type, ok: false}); };
+  img.src = src;
+}
+probe("res", "gfres://" + location.host + "/dot.png", 1);
+probe("net", "https://example.invalid/x.png", 1);
+gfBridge.post({type: "hello"});
+)JS");
+  // A 1x1 PNG.
+  const auto png = QByteArray::fromBase64(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA"
+      "60e6kgAAAABJRU5ErkJggg==");
+
+  QWidget* slot = nullptr;
+  const auto instance = make_instance(consumer_, kConsumer, &slot);
+  uint64_t editor = 0;
+  OnGui([&] {
+    auto* ctx = consumer_();
+    ASSERT_EQ(
+        GFWebEditorCreate(ctx, instance, slot, &OnEvent, nullptr, &editor),
+        GF_HTML_VIEW_OK);
+    // Before the page has asked for anything: it is answered on the run
+    // loop, which has not turned yet.
+    ASSERT_EQ(GFWebEditorPutResource(
+                  ctx, editor, "dot.png", "image/png",
+                  GFBufferNewFromBytes(ctx, png.constData(), png.size())),
+              GF_HTML_VIEW_OK);
+    // Kept until the page is ready, then delivered.
+    ASSERT_EQ(GFWebEditorPost(ctx, editor, R"({"type":"early"})", 16),
+              GF_HTML_VIEW_OK);
+  });
+  ASSERT_NE(editor, 0U);
+  EXPECT_EQ(g_engine.created, 0) << "the fake engine was used";
+
+  const auto ready = [] {
+    for (const auto& h : std::as_const(g_heard)) {
+      if (h.event == GF_WEB_EDITOR_EVENT_READY) return true;
+    }
+    return false;
+  };
+  ASSERT_TRUE(until([&] {
+    return ready() && !said(u"hello"_s).isEmpty() &&
+           !said(u"res"_s).isEmpty() && !said(u"net"_s).isEmpty() &&
+           !said(u"echo"_s).isEmpty();
+  })) << "heard " << g_heard.size() << " events";
+
+  EXPECT_EQ(said(u"echo"_s).value(u"got"_s).toString(), u"early"_s);
+  EXPECT_TRUE(said(u"res"_s).value(u"ok"_s).toBool())
+      << "a resource the consumer put was not served";
+  EXPECT_FALSE(said(u"net"_s).value(u"ok"_s).toBool())
+      << "the page reached the network";
+  EXPECT_TRUE(said(u"inline"_s).isEmpty()) << "an inline script ran";
+
+  // Both ways once ready, too.
+  g_heard.clear();
+  OnGui([&] {
+    EXPECT_EQ(GFWebEditorPost(consumer_(), editor, R"({"type":"ping"})", 15),
+              GF_HTML_VIEW_OK);
+  });
+  ASSERT_TRUE(until([&] { return !said(u"echo"_s).isEmpty(); }));
+  EXPECT_EQ(said(u"echo"_s).value(u"got"_s).toString(), u"ping"_s);
+
+  OnGui([&] {
+    EXPECT_EQ(GFWebEditorDestroy(consumer_(), editor), GF_HTML_VIEW_OK);
+  });
+}
+
+#endif
 
 }  // namespace GpgFrontend::Test
