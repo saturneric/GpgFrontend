@@ -1422,6 +1422,15 @@ auto MakeProfileWithDatabases(const QString& root) -> bool {
 
 }  // namespace
 
+TEST(ReanchorKeyDatabasePathTest,
+     OnlyTheTokenAndWhatIsUnderItAreProfileRelative) {
+  EXPECT_TRUE(IsProfileRelativeKeyDatabasePath("@profile"));
+  EXPECT_TRUE(IsProfileRelativeKeyDatabasePath("@profile/db"));
+  EXPECT_FALSE(IsProfileRelativeKeyDatabasePath("@profilefoo"));
+  EXPECT_FALSE(IsProfileRelativeKeyDatabasePath("@profilefoo/db"));
+  EXPECT_FALSE(IsProfileRelativeKeyDatabasePath("/home/u/@profile/db"));
+}
+
 TEST(ReanchorKeyDatabasePathTest, APathFromAnotherMachineFindsTheLocalCopy) {
   // The report this exists for: a profile exported on macOS and opened on
   // Windows, whose key database still named a folder under /Users. The keys

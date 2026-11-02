@@ -120,6 +120,13 @@ auto GF_CORE_EXPORT SetExtensionOfOutputFileForArchive(const QString& path,
 /// move every existing portable installation's keyring.
 constexpr auto kProfilePathToken = "@profile";
 
+/**
+ * @brief Whether @p stored_path is spelled relative to the profile: the token
+ * itself, or the token followed by a separator -- never "@profilefoo".
+ */
+auto GF_CORE_EXPORT IsProfileRelativeKeyDatabasePath(const QString& stored_path)
+    -> bool;
+
 /// The name of the channel-0 database every profile derives rather than stores.
 /// Spelled once because it is what tells the derived database apart from one
 /// the user made, and `basic/default_engine` is a statement about this one.

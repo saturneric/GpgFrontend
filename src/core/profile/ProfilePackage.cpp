@@ -628,7 +628,7 @@ auto RewriteKeyDatabaseListForPacking(const QList<KeyDatabaseItemSO> &databases,
     //
     // It also keeps the sender's absolute path, usually including their
     // username, out of a file meant for somebody else.
-    if (rewritten.isEmpty() || !rewritten.startsWith(kProfilePathToken)) {
+    if (rewritten.isEmpty() || !IsProfileRelativeKeyDatabasePath(rewritten)) {
       LOG_I() << "key database outside the profile, not carried:" << item.name;
       continue;
     }
@@ -684,8 +684,7 @@ auto DescribeKeyDatabasesForManifest(const QList<KeyDatabaseItemSO> &databases)
 
     // After the rewrite, travelling means carrying the token. Anything still
     // holding an absolute path is somewhere this package cannot reach.
-    entry.external =
-        !item.path.startsWith(QLatin1StringView(kProfilePathToken));
+    entry.external = !IsProfileRelativeKeyDatabasePath(item.path);
     out.append(entry);
   }
   return out;

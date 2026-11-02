@@ -558,16 +558,13 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
 auto ReanchorKeyDatabasePath(const QString& stored_path,
                              const QString& profile_root) -> QString {
   if (profile_root.isEmpty() || stored_path.isEmpty()) return stored_path;
-  if (stored_path.startsWith(QLatin1StringView(kProfilePathToken))) {
-    return stored_path;
-  }
+  if (IsProfileRelativeKeyDatabasePath(stored_path)) return stored_path;
 
   // Inside this profile already, just spelled the long way. Tokenising it is
   // the hygiene an export used to do to the live list behind the user's back.
   const auto relative =
       ToProfileRelativeKeyDatabasePath(stored_path, profile_root);
-  if (relative.startsWith(QLatin1StringView(kProfilePathToken)))
-    return relative;
+  if (IsProfileRelativeKeyDatabasePath(relative)) return relative;
 
   if (QFileInfo(stored_path).isDir()) return stored_path;
 
@@ -728,6 +725,11 @@ auto DecideKeyDatabasePathAction(bool exists_as_dir, bool exists_as_file,
                          : KeyDatabasePathAction::kREJECT;
 }
 
+auto IsProfileRelativeKeyDatabasePath(const QString& stored_path) -> bool {
+  return stored_path == QLatin1StringView(kProfilePathToken) ||
+         stored_path.startsWith(QLatin1StringView(kProfilePathToken) + '/');
+}
+
 auto ToProfileRelativeKeyDatabasePath(const QString& absolute_path,
                                       const QString& profile_root) -> QString {
   const auto root = QDir::cleanPath(profile_root);
@@ -767,7 +769,7 @@ auto FromProfileRelativeKeyDatabasePath(const QString& stored_path,
 
 auto ForeignKeyDatabasePathTail(const QString& stored_path) -> QString {
   if (stored_path.isEmpty()) return {};
-  if (stored_path.startsWith(QLatin1StringView(kProfilePathToken))) return {};
+  if (IsProfileRelativeKeyDatabasePath(stored_path)) return {};
 
   // Both separators, because a Windows path is not absolute to a POSIX build
   // and QDir::cleanPath() therefore leaves its backslashes alone.
@@ -803,7 +805,7 @@ auto AnchorKeyDatabasePath(const QDir& app_path, const QString& path)
   // spelling that survives a profile being moved or packaged, and it must not
   // fall through to the relative-to-the-executable branch below, whose anchor
   // is exactly the thing a relocatable profile cannot rely on.
-  if (target_path.startsWith(QLatin1StringView(kProfilePathToken))) {
+  if (IsProfileRelativeKeyDatabasePath(target_path)) {
     target_path = FromProfileRelativeKeyDatabasePath(
         target_path, GlobalSettingStation::GetInstance().GetAppDataPath());
     if (target_path.isEmpty()) return {};
