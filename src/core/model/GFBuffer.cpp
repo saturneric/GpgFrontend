@@ -98,6 +98,9 @@ GFBuffer::GFBuffer(const QString& str) {
   auto b = str.toUtf8();
   impl_ = SecureCreateUniqueObject<Impl>(b.size());
   std::memcpy(impl_->sec_ptr_, b.constData(), impl_->sec_size_);
+  // The text is often a secret, and this copy of it is ours alone: callers
+  // need not convert and wipe by hand.
+  sodium_memzero(b.data(), b.size());
 }
 
 GFBuffer::GFBuffer(const char* str)
