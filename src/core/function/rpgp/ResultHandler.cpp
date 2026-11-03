@@ -28,6 +28,7 @@
 
 #include "ResultHandler.h"
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/utils/RustUtils.h"
 
@@ -66,61 +67,68 @@ void RecordEngineDetail(Rust::GfrStatus err, QString& detail_out,
 }
 }  // namespace
 
-/// The GnuPG error for an engine status any operation can report. Handlers
-/// map their operation-specific statuses first and fall back to this, so no
-/// known status reaches the GUI as GPG_ERR_GENERAL ("unknown error").
-auto CommonEngineError(Rust::GfrStatus err) -> GpgError {
+auto FromRpgpStatus(Rust::GfrStatus err) -> GFError {
+  const auto failed = [err](GFErrorCode code) -> GFError {
+    return {code, GFErrorOrigin::kRPGP, static_cast<std::int32_t>(err)};
+  };
+
   switch (err) {
+    case Rust::GfrStatus::Success:
+      return {};
     case Rust::GfrStatus::ErrorCanceled:
-      return GPG_ERR_CANCELED;
+      return failed(GFErrorCode::kCANCELED);
     case Rust::GfrStatus::ErrorFetchPasswordFailed:
-      return GPG_ERR_NO_PASSPHRASE;
+      return failed(GFErrorCode::kNO_PASSPHRASE);
     case Rust::GfrStatus::ErrorBadPassphrase:
     case Rust::GfrStatus::ErrorWrongPassword:
-      return GPG_ERR_BAD_PASSPHRASE;
+      return failed(GFErrorCode::kBAD_PASSPHRASE);
     case Rust::GfrStatus::ErrorDataCorrupted:
-      return GPG_ERR_BAD_DATA;
+      return failed(GFErrorCode::kBAD_DATA);
     case Rust::GfrStatus::ErrorIo:
-      return GPG_ERR_EIO;
+      return failed(GFErrorCode::kIO);
     case Rust::GfrStatus::ErrorInvalidInput:
     case Rust::GfrStatus::ErrorInvalidData:
-      return GPG_ERR_INV_DATA;
+      return failed(GFErrorCode::kINVALID_DATA);
     case Rust::GfrStatus::ErrorArmorFailed:
     case Rust::GfrStatus::ErrorBadArmor:
-      return GPG_ERR_INV_ARMOR;
+      return failed(GFErrorCode::kBAD_ARMOR);
     case Rust::GfrStatus::ErrorUnsupportedAlgorithm:
-      return GPG_ERR_UNSUPPORTED_ALGORITHM;
+      return failed(GFErrorCode::kUNSUPPORTED_ALGORITHM);
     case Rust::GfrStatus::ErrorUnsupportedFeature:
-      return GPG_ERR_NOT_SUPPORTED;
+      return failed(GFErrorCode::kNOT_SUPPORTED);
     case Rust::GfrStatus::ErrorBadSignature:
-      return GPG_ERR_BAD_SIGNATURE;
+      return failed(GFErrorCode::kBAD_SIGNATURE);
     case Rust::GfrStatus::ErrorNoPublicKey:
-      return GPG_ERR_NO_PUBKEY;
+      return failed(GFErrorCode::kNO_PUBLIC_KEY);
     case Rust::GfrStatus::ErrorNoSecretKey:
-      return GPG_ERR_NO_SECKEY;
+      return failed(GFErrorCode::kNO_SECRET_KEY);
     case Rust::GfrStatus::ErrorExpiredKey:
-      return GPG_ERR_KEY_EXPIRED;
+      return failed(GFErrorCode::kKEY_EXPIRED);
     case Rust::GfrStatus::ErrorRevokedKey:
-      return GPG_ERR_CERT_REVOKED;
+      return failed(GFErrorCode::kKEY_REVOKED);
     case Rust::GfrStatus::ErrorDecryptionFailed:
-      return GPG_ERR_DECRYPT_FAILED;
+      return failed(GFErrorCode::kDECRYPT_FAILED);
     case Rust::GfrStatus::ErrorNoKey:
-      return GPG_ERR_NO_KEY;
+      return failed(GFErrorCode::kNO_KEY);
     case Rust::GfrStatus::ErrorUnusableKey:
-      return GPG_ERR_UNUSABLE_PUBKEY;
+      return failed(GFErrorCode::kUNUSABLE_PUBLIC_KEY);
     case Rust::GfrStatus::ErrorNoData:
-      return GPG_ERR_NO_DATA;
+      return failed(GFErrorCode::kNO_DATA);
     case Rust::GfrStatus::ErrorPasswordFailed:
-      return GPG_ERR_BAD_PASSPHRASE;
+      return failed(GFErrorCode::kBAD_PASSPHRASE);
     case Rust::GfrStatus::ErrorPasswordMismatch:
-      return GPG_ERR_INV_PASSPHRASE;
+      return failed(GFErrorCode::kINVALID_PASSPHRASE);
     case Rust::GfrStatus::ErrorInternal:
-      return GPG_ERR_INTERNAL;
+      return failed(GFErrorCode::kINTERNAL);
     case Rust::GfrStatus::ErrorPanic:
-      return GPG_ERR_BUG;
+      return failed(GFErrorCode::kBUG);
     default:
-      return GPG_ERR_GENERAL;
+      return failed(GFErrorCode::kGENERAL);
   }
+}
+
+auto CommonEngineError(Rust::GfrStatus err) -> GpgError {
+  return ToGpgError(FromRpgpStatus(err));
 }
 
 namespace {

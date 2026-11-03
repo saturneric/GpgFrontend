@@ -32,11 +32,23 @@
 #include "core/function/GFKeyDatabase.h"
 #include "core/model/GFBuffer.h"
 #include "core/model/GpgKey.h"
+#include "core/typedef/GFError.h"
 #include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
 
 class OpenPGPContext;
+
+/**
+ * @brief An rPGP engine status in GpgFrontend's terms.
+ *
+ * The status any operation can report; the engine's own value is kept as the
+ * native one. Success is no error.
+ *
+ * @param err the rPGP engine status
+ * @return GFError
+ */
+auto FromRpgpStatus(Rust::GfrStatus err) -> GFError;
 
 /**
  * @brief The GnuPG error for an engine status any operation can report.
