@@ -54,4 +54,11 @@ void GF_UI_EXPORT RaiseMessageBox(QWidget* parent, GpgError err);
 void GF_UI_EXPORT RaiseFailureMessageBox(QWidget* parent, GpgError err,
                                          const QString& msg = {});
 
+/**
+ * @brief RaiseFailureMessageBox() for an operation family that reports
+ * GFError: shown with GnuPG's code and description, as before.
+ */
+void GF_UI_EXPORT RaiseFailureMessageBox(QWidget* parent, const GFError& err,
+                                         const QString& msg = {});
+
 }  // namespace GpgFrontend::UI

@@ -357,17 +357,17 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
         KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
             .GenerateSubkey(
                 key, info,
-                [this, hd, succeeded](GpgError err,
+                [this, hd, succeeded](GFError err,
                                       const DataObjectPtr& data_obj) -> void {
                   hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  if (err.Aborted()) {
                     QMessageBox::critical(this, tr("Error"),
                                           tr("Unknown error occurred"));
                     return;
                   }
 
-                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  if (!err.Ok()) {
                     // Reported on the still-open dialog, so the user can
                     // adjust and retry.
                     RaiseFailureMessageBox(this, err,

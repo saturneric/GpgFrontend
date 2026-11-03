@@ -280,7 +280,7 @@ auto PinEachSigningSubkey() -> QList<std::pair<GpgAbstractKeyPtr, QString>> {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateSubkeySync(key, params);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return {};
+  if (!err.Ok()) return {};
 
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
   key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)

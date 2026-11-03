@@ -177,7 +177,7 @@ auto GpgCoreEngineTest::GenerateFullKey(const QString& uid_suffix,
       KeyGenerationOperation::GetInstance(Channel()).GenerateKeyWithSubkeySync(
           p_info, s_info);
 
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+  if (!err.Ok()) return nullptr;
   if (!data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()) {
     return nullptr;
   }

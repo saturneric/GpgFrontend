@@ -64,7 +64,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
    * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
    */
   void GenerateKey(const QSharedPointer<KeyGenerateInfo>& params,
-                   const GpgOperationCallback& cb);
+                   const GFOperationCallback& cb);
 
   /**
    * @brief Generate a new primary key pair (sync).
@@ -73,7 +73,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
    * @return tuple of (GpgError, DataObjectPtr)
    */
   auto GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Add a new subkey to an existing primary key pair (async).
@@ -84,7 +84,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
    */
   void GenerateSubkey(const GpgKeyPtr& key,
                       const QSharedPointer<KeyGenerateInfo>& params,
-                      const GpgOperationCallback& cb);
+                      const GFOperationCallback& cb);
 
   /**
    * @brief Add a new subkey to an existing primary key pair (sync).
@@ -95,7 +95,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
    */
   auto GenerateSubkeySync(const GpgKeyPtr& key,
                           const QSharedPointer<KeyGenerateInfo>& params)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Generate a new primary key with an initial subkey (async).
@@ -106,7 +106,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
    */
   void GenerateKeyWithSubkey(const QSharedPointer<KeyGenerateInfo>& p_params,
                              const QSharedPointer<KeyGenerateInfo>& s_params,
-                             const GpgOperationCallback& cb);
+                             const GFOperationCallback& cb);
 
   /**
    * @brief Generate a new primary key with an initial subkey (sync).
@@ -118,7 +118,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
   auto GenerateKeyWithSubkeySync(
       const QSharedPointer<KeyGenerateInfo>& p_params,
       const QSharedPointer<KeyGenerateInfo>& s_params)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
  private:
   // OpenPGP context for this channel.

@@ -874,7 +874,7 @@ auto GenerateThrowawayRpgpKey(const QString& email) -> GpgKeyPtr {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateKeyWithSubkeySync(p_params, s_params);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+  if (!err.Ok()) return nullptr;
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
@@ -910,7 +910,7 @@ auto GeneratePostQuantumRpgpKey(const QString& email) -> GpgKeyPtr {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateKeyWithSubkeySync(p_params, s_params);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+  if (!err.Ok()) return nullptr;
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
@@ -1100,7 +1100,7 @@ TEST_F(RpgpCoreTest, CoreAmbiguousSubkeyNeedsTwoUsableSubkeysTest) {
     auto [err, data_object] =
         KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
             .GenerateSubkeySync(key, params);
-    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err.Ok());
     repo.FlushKeyCache();
     key = repo.GetKeyPtr(fpr);
     ASSERT_TRUE(key != nullptr);

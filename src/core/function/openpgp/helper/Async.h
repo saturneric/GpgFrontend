@@ -31,6 +31,7 @@
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Op.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/utils/AsyncUtils.h"
 
 namespace GpgFrontend {
@@ -100,6 +101,36 @@ auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
             stored_args);
       },
       OpTraits<OpTag>::kOpName, OpTraits<OpTag>::Versions());
+}
+
+/**
+ * @brief RunRegisteredAsync(), reporting the outcome as a GFError.
+ *
+ * For an operation family that has moved to GFError while its engines still
+ * answer in GnuPG's codes: the code is turned into a GFError for the channel's
+ * engine here, where it leaves the family.
+ */
+template <typename OpTag, typename... Args>
+void RunRegisteredAsyncGF(OpenPGPContext& ctx, const GFOperationCallback& cb,
+                          Args&&... args) {
+  RunRegisteredAsync<OpTag>(
+      ctx,
+      [channel = ctx.GetChannel(), cb](GpgError err,
+                                       const DataObjectPtr& data_object) {
+        cb(EngineErrorOf(channel, err), data_object);
+      },
+      std::forward<Args>(args)...);
+}
+
+/**
+ * @brief RunRegisteredSync(), reporting the outcome as a GFError.
+ */
+template <typename OpTag, typename... Args>
+auto RunRegisteredSyncGF(OpenPGPContext& ctx, Args&&... args)
+    -> std::tuple<GFError, DataObjectPtr> {
+  auto [err, data_object] =
+      RunRegisteredSync<OpTag>(ctx, std::forward<Args>(args)...);
+  return {EngineErrorOf(ctx.GetChannel(), err), data_object};
 }
 
 /**

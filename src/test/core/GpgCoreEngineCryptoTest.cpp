@@ -83,7 +83,7 @@ TEST_P(GpgCoreEngineTest, GenerateSubkey) {
       KeyGenerationOperation::GetInstance(Channel()).GenerateSubkeySync(key,
                                                                         s_info);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
@@ -138,7 +138,7 @@ TEST_P(GpgCoreEngineTest, GenerateAllDeclaredPrimaryKeys) {
 
     auto [err, data_object] =
         KeyGenerationOperation::GetInstance(Channel()).GenerateKeySync(p_info);
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
+    if (!err.Ok()) return false;
     if (!data_object->Check<GpgGenerateKeyResult>()) return false;
 
     auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
@@ -222,8 +222,7 @@ TEST_P(GpgCoreEngineTest, GenerateAllDeclaredSubkeys) {
     auto [err, data_object] =
         KeyGenerationOperation::GetInstance(Channel()).GenerateSubkeySync(
             p_key, s_info);
-    return CheckGpgError(err) == GPG_ERR_NO_ERROR &&
-           data_object->Check<GpgGenerateKeyResult>();
+    return err.Ok() && data_object->Check<GpgGenerateKeyResult>();
   };
 
   int generated = 0;

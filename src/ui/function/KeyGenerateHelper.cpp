@@ -314,15 +314,15 @@ auto RunKeyGeneration(QWidget* parent, int channel,
   GpgOperaHelper::WaitForOpera(
       parent, QObject::tr("Generating"), [=](const OperaWaitingHd& hd) -> void {
         KeyGenerationOperation::GetInstance(channel).GenerateKeyWithSubkey(
-            key, subkey, [=](GpgError err, const DataObjectPtr& data_obj) {
+            key, subkey, [=](GFError err, const DataObjectPtr& data_obj) {
               hd();
 
-              if (CheckGpgError(err) == GPG_ERR_USER_1) {
+              if (err.Aborted()) {
                 QMessageBox::critical(parent, QObject::tr("Error"),
                                       QObject::tr("Unknown error occurred"));
                 return;
               }
-              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+              if (!err.Ok()) {
                 RaiseFailureMessageBox(parent, err,
                                        KeyGenerationErrorDetail(data_obj));
                 return;

@@ -514,7 +514,7 @@ auto GenerateRpgpKeyWithVersion(int version, const QString& email)
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateKeySync(info);
 
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+  if (!err.Ok()) return nullptr;
   if (data_object->GetObjectSize() < 1) return nullptr;
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
@@ -692,7 +692,7 @@ TEST_F(RpgpCoreTest, GenerateV4KeyWithExpirationTest) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateKeySync(info);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
@@ -717,7 +717,7 @@ TEST_F(RpgpCoreTest, GenerateV6KeyWithExpirationTest) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateKeySync(info);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
@@ -753,7 +753,7 @@ TEST_F(RpgpCoreTest, GenerateKeyWithSubkeyExpirationTest) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
           .GenerateKeyWithSubkeySync(p_params, s_params);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
@@ -858,7 +858,7 @@ TEST_F(RpgpCoreTest, GenerateSubkeyReportsBadPassphraseTest) {
           .GenerateSubkeySync(key, params);
   RestoreDefaultPassphraseFetcher();
 
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_PASSPHRASE);
+  EXPECT_EQ(err.code, GFErrorCode::kBAD_PASSPHRASE);
 }
 
 // A key edit refused for a wrong passphrase must say why; GPG_ERR_CANCELED or

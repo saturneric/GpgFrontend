@@ -28,6 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
@@ -224,7 +225,7 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -280,7 +281,7 @@ TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -318,7 +319,7 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -375,7 +376,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -439,7 +440,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeyWithSubkeySync(p_info, s_info);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
@@ -517,7 +518,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeyWithSubkeySync(p_info, s_info);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
@@ -595,7 +596,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeyWithSubkeySync(p_info, s_info);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
@@ -666,7 +667,7 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -723,10 +724,10 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+  if (!err.Ok()) {
     GTEST_SKIP() << "ed448 algorithm is not support by this GnuPG version";
   }
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -784,7 +785,7 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 
@@ -880,7 +881,7 @@ TEST_F(GpgCoreTest, GenerateKeyWithSubkeyAsksPassphraseOnceTest) {
 
   gpgme_set_passphrase_cb(ctx.DefaultContext(), prev_cb, prev_hook);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(g_passphrase_prompts.load(), 1);
   ASSERT_TRUE(
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
@@ -928,14 +929,14 @@ TEST_F(GpgCoreTest, GenerateKeyWithSubkeyCurveNamesTest) {
     auto [err, data_object] =
         KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
             .GenerateKeyWithSubkeySync(p_info, s_info);
-    if (CheckGpgError(err) == GPG_ERR_UNKNOWN_CURVE ||
-        CheckGpgError(err) == GPG_ERR_INV_VALUE) {
+    if (gpg_err_code(ToGpgError(err)) == GPG_ERR_UNKNOWN_CURVE ||
+        err.code == GFErrorCode::kINVALID_VALUE) {
       GTEST_SKIP() << algo_id.toStdString() << " / "
                    << sub_algo_id.toStdString()
                    << " is not supported by this GnuPG version";
     }
-    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR)
-        << algo_id.toStdString() << " / " << sub_algo_id.toStdString();
+    ASSERT_TRUE(err.Ok()) << algo_id.toStdString() << " / "
+                          << sub_algo_id.toStdString();
 
     auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
     auto p_key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)

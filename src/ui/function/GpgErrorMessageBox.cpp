@@ -28,6 +28,7 @@
 
 #include "ui/function/GpgErrorMessageBox.h"
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::UI {
@@ -64,6 +65,11 @@ void RaiseFailureMessageBox(QWidget* parent, GpgError err, const QString& msg) {
           "\n" +
           QCoreApplication::translate("GpgFrontend::UI", "Error Message: %1")
               .arg(msg));
+}
+
+void RaiseFailureMessageBox(QWidget* parent, const GFError& err,
+                            const QString& msg) {
+  RaiseFailureMessageBox(parent, ToGpgError(err), msg);
 }
 
 }  // namespace GpgFrontend::UI
