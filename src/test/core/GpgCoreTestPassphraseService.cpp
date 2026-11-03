@@ -527,4 +527,70 @@ TEST_F(GFCoreTest, PassphraseServiceClosesAnUnansweredPrompt) {
   ASSERT_TRUE(outcome.passphrase.isEmpty());
 }
 
+/**
+ * When the interface goes away, an operation waiting for a passphrase is let
+ * go at once instead of holding its thread until the prompt times out (never,
+ * at timeout 0); its prompt is told to close; a later request is refused
+ * without asking; and after the core starts again, requests are asked again.
+ */
+TEST_F(GFCoreTest, ClosingPromptsReleasesWaitersAndRefusesNewRequests) {
+  ScopedPromptTimeout timeout(0);
+  // Prompts are process-global: reopen them whatever happens here, or every
+  // later test in this process would be refused.
+  struct Reopen {
+    ~Reopen() { PassphraseService::ReopenPrompts(); }
+  } reopen;
+
+  QElapsedTimer clock;
+  clock.start();
+
+  {
+    FakePassphrasePrompt prompt;
+    prompt.StopAnswering();
+
+    std::atomic<int> remaining = 1;
+    RequestOutcome waiting;
+    PostRequest(Thread::TaskRunnerGetter::kTaskRunnerType_GPG, "pp_close_wait",
+                MakeState(u"close wait"_s, QString::fromLatin1(kFprA)),
+                &waiting, &remaining, &clock);
+
+    QElapsedTimer shown;
+    shown.start();
+    while (prompt.PromptCount() == 0 && shown.elapsed() < 5000) {
+      QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    }
+    ASSERT_EQ(prompt.PromptCount(), 1);
+
+    PassphraseService::ClosePrompts();
+    ASSERT_TRUE(PumpUntilDone(remaining, 5000));
+    EXPECT_EQ(waiting.status, PassphraseRequestStatus::kCancelled);
+    EXPECT_TRUE(waiting.passphrase.isEmpty());
+
+    // The prompt was told to close; its answer, arriving after, is ignored.
+    Drain(100);
+    EXPECT_EQ(prompt.CloseRequestCount(), 1);
+
+    remaining = 1;
+    RequestOutcome refused;
+    PostRequest(Thread::TaskRunnerGetter::kTaskRunnerType_GPG, "pp_refused",
+                MakeState(u"refused"_s, QString::fromLatin1(kFprB)), &refused,
+                &remaining, &clock);
+    ASSERT_TRUE(PumpUntilDone(remaining, 5000));
+    EXPECT_EQ(refused.status, PassphraseRequestStatus::kCancelled);
+    EXPECT_EQ(prompt.PromptCount(), 1) << "a closed service asked anyway";
+  }
+
+  PassphraseService::ReopenPrompts();
+
+  FakePassphrasePrompt prompt(50);
+  std::atomic<int> remaining = 1;
+  RequestOutcome asked;
+  PostRequest(Thread::TaskRunnerGetter::kTaskRunnerType_GPG, "pp_reopened",
+              MakeState(u"reopened"_s, QString::fromLatin1(kFprB)), &asked,
+              &remaining, &clock);
+  ASSERT_TRUE(PumpUntilDone(remaining, 5000));
+  EXPECT_EQ(asked.status, PassphraseRequestStatus::kProvided);
+  EXPECT_EQ(asked.passphrase, u"secret"_s);
+}
+
 }  // namespace GpgFrontend::Test

@@ -41,6 +41,7 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/openpgp/PassphraseService.h"
 #if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #endif
@@ -400,6 +401,10 @@ void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
   // unit-test runner, which has its own timeout and must fail loudly instead of
   // being force-exited with a success code.
   if (!ctx->unit_test_mode) ArmShutdownWatchdog(kShutdownWatchdogTimeoutMs);
+
+  // Nobody will answer a passphrase prompt from here on: release every
+  // operation waiting for one, close the prompts, refuse new requests.
+  PassphraseService::ClosePrompts();
 
 #if GF_ENGINE_GNUPG
   // Kill the gnupg daemons *before* destroying the contexts. This applies on

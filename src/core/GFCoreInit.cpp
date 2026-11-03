@@ -47,6 +47,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/function/openpgp/PassphraseService.h"
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/CommonTraits.h"
 #include "core/function/rpgp/PasswordFetcher.h"
@@ -516,6 +517,9 @@ auto BuildOpenPGPContext(int channel, OpenPGPContextInitArgs args) -> bool {
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   InstallKeyDatabaseRuntimeReclaimer();
+
+  // A restart in the same process follows a shutdown that closed them.
+  PassphraseService::ReopenPrompts();
 
   auto& progress = CoreInitProgress::GetInstance();
   progress.Report(CoreInitStage::kCORE, 0.0, CoreInitStep::kSTARTING_UP);
