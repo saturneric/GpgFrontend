@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <gpgme.h>
-
 #include <cstdint>
 #include <optional>
 
