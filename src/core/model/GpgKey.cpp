@@ -28,6 +28,7 @@
 
 #include "core/model/GpgKey.h"
 
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/RustUtils.h"
 
@@ -260,7 +261,7 @@ auto GpgKey::UIDs() const -> QList<GpgUID> {
 
   auto *next = key_ref_->uids;
   while (next != nullptr) {
-    uids.push_back(GpgUID(key_ref_, next));
+    uids.push_back(GpgUID(nullptr, ConvertUserId(next)));
     next = next->next;
   }
 

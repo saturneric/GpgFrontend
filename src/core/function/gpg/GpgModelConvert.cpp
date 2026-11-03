@@ -65,4 +65,22 @@ auto ConvertTofuInfo(gpgme_tofu_info_t info) -> GFTofuInfo {
   return out;
 }
 
+auto ConvertUserId(gpgme_user_id_t uid) -> GFUserId {
+  GFUserId out;
+  if (uid == nullptr) return out;
+  out.name = QString::fromUtf8(uid->name);
+  out.email = QString::fromUtf8(uid->email);
+  out.comment = QString::fromUtf8(uid->comment);
+  out.raw = QString::fromUtf8(uid->uid);
+  out.is_revoked = uid->revoked != 0;
+  out.is_invalid = uid->invalid != 0;
+  for (auto* sig = uid->signatures; sig != nullptr; sig = sig->next) {
+    out.signatures.append(ConvertKeySignature(sig));
+  }
+  for (auto* info = uid->tofu; info != nullptr; info = info->next) {
+    out.tofu.append(ConvertTofuInfo(info));
+  }
+  return out;
+}
+
 }  // namespace GpgFrontend

@@ -110,9 +110,6 @@ class GF_CORE_EXPORT GpgUID {
    *
    * @param uid
    */
-  explicit GpgUID(QSharedPointer<struct _gpgme_key> key_ref,
-                  gpgme_user_id_t uid);
-
   /**
    * @brief Construct a new Gpg U I D object
    *
@@ -134,9 +131,6 @@ class GF_CORE_EXPORT GpgUID {
   auto operator=(const GpgUID &) -> GpgUID &;
 
  private:
-  QSharedPointer<struct _gpgme_key> key_ref_;
-  gpgme_user_id_t uid_ref_ = nullptr;  ///<
-
   QSharedPointer<GFKeyMetadata> km_ref_;
   QSharedPointer<GFUserId> um_ref_;
 };

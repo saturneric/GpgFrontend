@@ -44,4 +44,6 @@ auto GF_CORE_EXPORT ConvertKeySignature(gpgme_key_sig_t sig) -> GFKeySignature;
 
 auto GF_CORE_EXPORT ConvertTofuInfo(gpgme_tofu_info_t info) -> GFTofuInfo;
 
+auto GF_CORE_EXPORT ConvertUserId(gpgme_user_id_t uid) -> GFUserId;
+
 }  // namespace GpgFrontend
