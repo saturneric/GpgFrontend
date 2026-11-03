@@ -52,8 +52,12 @@ hex = "0.4"
 # those run 20-100x slower, which is the difference between a ~1 minute and a
 # >10 minute `cargo test`. Our own crate stays unoptimised so backtraces and
 # debug-assertions remain useful, and the release profile is untouched.
+# Dependencies keep line tables only: optimised code can't be stepped with
+# locals anyway, and their full debuginfo was ~80% of every debug artifact.
 [profile.dev.package."*"]
 opt-level = 3
+debug = "line-tables-only"
 
 [profile.test.package."*"]
 opt-level = 3
+debug = "line-tables-only"
