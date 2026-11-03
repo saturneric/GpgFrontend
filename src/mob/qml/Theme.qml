@@ -67,11 +67,19 @@ QtObject {
     // it begins (the window counts it as a safe area); popups are laid over
     // the whole window and make room themselves. The keyboard's rectangle
     // comes in device pixels.
-    readonly property real keyboard: Qt.inputMethod.visible
-                                     ? Math.max(0, windowHeight
-                                                - Qt.inputMethod.keyboardRectangle.y
-                                                / pixelRatio)
-                                     : 0
+    readonly property real keyboard: keyboardCover(Qt.inputMethod.visible,
+                                                   Qt.inputMethod.keyboardRectangle,
+                                                   windowHeight, pixelRatio)
+
+    // What a keyboard of @p rect (device pixels) covers of a window
+    // @p height tall. An input method can be visible with no keyboard on
+    // screen: typed on a hardware keyboard, Android shows only a floating
+    // toolbar and reports an empty rectangle, which covers nothing.
+    function keyboardCover(visible, rect, height, ratio) {
+        if (!visible || rect.height <= 0) return 0
+        return Math.max(0, Math.min(rect.height / ratio,
+                                    height - rect.y / ratio))
+    }
 
     // How an operation went, from a result's report: an icon and its colour,
     // in the desktop's colours; @p neutral for one that was cancelled.
