@@ -357,4 +357,23 @@ auto GF_CORE_EXPORT CheckKeyGenIdentity(const QString& name,
                                         const QString& comment)
     -> KeyGenIdentityCheck;
 
+/// The settings object the key generation settings are stored under.
+inline constexpr const char* kKeyGenSettingsObject = "key_gen_settings";
+
+/// The profiles a profile stores, and the one Quick Generate uses.
+struct StoredKeyGenProfiles {
+  QList<KeyGenProfile> profiles;
+  QString default_profile;  ///< a profile's stored name; empty: the built-in
+};
+
+/**
+ * @brief The key generation profiles stored in kKeyGenSettingsObject, or the
+ * defaults when it holds none.
+ *
+ * Read only: the desktop's settings own the migration from older stores and
+ * write back (ui/function/KeyGenSettings.h); an interface that just generates
+ * keys uses what is there.
+ */
+auto GF_CORE_EXPORT LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles;
+
 }  // namespace GpgFrontend

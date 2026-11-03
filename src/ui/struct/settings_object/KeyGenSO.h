@@ -33,8 +33,8 @@
 
 namespace GpgFrontend::UI {
 
-/// The settings object the key generation settings are stored under.
-inline constexpr const char* kKeyGenSettingsObject = "key_gen_settings";
+// kKeyGenSettingsObject, the settings object they are stored under, is core's
+// (core/function/KeyGenProfile.h): LoadStoredKeyGenProfiles() reads it too.
 
 /// The durable cache the profiles lived in before they moved to Settings.
 inline constexpr const char* kLegacyKeyGenProfileCache =

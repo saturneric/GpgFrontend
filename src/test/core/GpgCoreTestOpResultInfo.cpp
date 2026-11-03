@@ -277,4 +277,34 @@ TEST(GpgOpResultInfoTest, AnalysedDecryptionsAreReleasedByTheirOwnOutcome) {
   EXPECT_FALSE(unprotected.GetOpInfo().OutputReleasable());
 }
 
+// An analysed operation hands out its output only when producing it succeeded.
+TEST(GpgOpResultInfoTest, AnAnalysedOutcomeReleasesOnlyAProducedOutput) {
+  constexpr int kUnusedChannel = 4099;
+  const GFBuffer plaintext(u"plaintext"_s);
+
+  GFSignature bad;
+  bad.issuer_fpr = u"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s;
+  bad.status = GFSignatureStatus::kBAD_SIGNATURE;
+  GFVerifyResult badly_signed;
+  badly_signed.signatures.append(bad);
+
+  const auto decrypted =
+      AnalyseOperaOutcome<GpgDecryptResult, GpgDecryptResultAnalyse,
+                          GpgVerifyResult, GpgVerifyResultAnalyse>(
+          kUnusedChannel, GFError{},
+          TransferParams(GpgDecryptResult(GFDecryptResult{}),
+                         GpgVerifyResult(badly_signed), plaintext));
+  EXPECT_LT(decrypted.info.status, 0);
+  ASSERT_TRUE(decrypted.output.has_value());
+  EXPECT_EQ(*decrypted.output, plaintext);
+
+  GFDecryptResult unprotected;
+  unprotected.integrity_protected = false;
+  const auto withheld =
+      AnalyseOperaOutcome<GpgDecryptResult, GpgDecryptResultAnalyse>(
+          kUnusedChannel, GFError{},
+          TransferParams(GpgDecryptResult(unprotected), plaintext));
+  EXPECT_FALSE(withheld.output.has_value());
+}
+
 }  // namespace GpgFrontend::Test

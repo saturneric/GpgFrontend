@@ -37,15 +37,24 @@
 
 /**
  * @file GpgOperaOutcome.h
- * @brief What an operation's result data object comes to, before it is
- * analysed.
+ * @brief An OpenPGP operation's result data object, analysed.
  *
- * The rule every interface follows: an operation that stopped before it could
+ * The rules every interface follows: an operation that stopped before it could
  * be analysed (cancelled, not supported, stopped by GpgFrontend, or with no
- * usable result) keeps its error as recorded.
+ * usable result) keeps its error as recorded; a combined operation's two
+ * analyses are merged, and the one engine call's error counted once; and the
+ * output is released only when producing it succeeded
+ * (GpgOpResultInfo::OutputReleasable()).
  */
 
 namespace GpgFrontend {
+
+/// What an operation came to: its analysis and, where it has one and it may
+/// be released, its output.
+struct GpgOperaOutcome {
+  GpgOpResultInfo info;
+  std::optional<GFBuffer> output;
+};
 
 /// Whether @p err means the operation stopped before there was a result to
 /// analyse: cancelled, not supported, or stopped by GpgFrontend.
@@ -66,6 +75,16 @@ auto HoldsOperaResults(const DataObjectPtr& data) -> bool {
   } else {
     return data->Check<Results...>();
   }
+}
+
+/// The output at @p index, or nothing when it may not be released.
+template <bool kWithOutput>
+auto ReleasedOutput(const GpgOpResultInfo& info, const DataObjectPtr& data,
+                    int index) -> std::optional<GFBuffer> {
+  if constexpr (kWithOutput) {
+    if (info.OutputReleasable()) return ExtractParams<GFBuffer>(data, index);
+  }
+  return std::nullopt;
 }
 
 }  // namespace detail
@@ -122,6 +141,48 @@ auto StoppedOperaInfo(int channel, const GFError& err,
   return MakeAbortedOpInfo(
       CombineGpgOperations(AnalyseA::kOperation, AnalyseB::kOperation), err,
       DescribeOpenPGPEngine(channel), details);
+}
+
+/// One stage, analysed; see StoppedOperaInfo() for the data object's shape.
+template <typename Result, typename Analyse, bool kWithOutput = true>
+auto AnalyseOperaOutcome(int channel, const GFError& err,
+                         const DataObjectPtr& data) -> GpgOperaOutcome {
+  if (auto stopped =
+          StoppedOperaInfo<Result, Analyse, kWithOutput>(channel, err, data)) {
+    return {*stopped, std::nullopt};
+  }
+
+  Analyse analyse(channel, err, ExtractParams<Result>(data, 0));
+  analyse.Analyse();
+  auto info = analyse.GetOpInfo();
+  auto output = detail::ReleasedOutput<kWithOutput>(info, data, 1);
+  return {std::move(info), std::move(output)};
+}
+
+/// Two stages of one engine call, analysed and merged.
+template <typename ResultA, typename AnalyseA, typename ResultB,
+          typename AnalyseB, bool kWithOutput = true>
+auto AnalyseOperaOutcome(int channel, const GFError& err,
+                         const DataObjectPtr& data) -> GpgOperaOutcome {
+  if (auto stopped =
+          StoppedOperaInfo<ResultA, AnalyseA, ResultB, AnalyseB, kWithOutput>(
+              channel, err, data)) {
+    return {*stopped, std::nullopt};
+  }
+
+  AnalyseA analyse_a(channel, err, ExtractParams<ResultA>(data, 0));
+  analyse_a.Analyse();
+  AnalyseB analyse_b(channel, err, ExtractParams<ResultB>(data, 1));
+  analyse_b.Analyse();
+
+  auto info = analyse_a.GetOpInfo();
+  info.Merge(analyse_b.GetOpInfo());
+  // Both analysers saw the one engine call's error; it is one failure of the
+  // combined call, not one per stage.
+  info.CollapseSharedCallError(
+      err, CombineGpgOperations(AnalyseA::kOperation, AnalyseB::kOperation));
+  auto output = detail::ReleasedOutput<kWithOutput>(info, data, 2);
+  return {std::move(info), std::move(output)};
 }
 
 }  // namespace GpgFrontend

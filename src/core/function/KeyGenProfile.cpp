@@ -28,6 +28,7 @@
 
 #include "core/function/KeyGenProfile.h"
 
+#include "core/model/SettingsObject.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -657,6 +658,20 @@ auto CheckKeyGenIdentity(const QString& name, const QString& email,
 
   if (!IsValidUserIdComponent(comment.trimmed())) check.comment = delimiters;
   return check;
+}
+
+auto LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles {
+  const SettingsObject so(QString::fromLatin1(kKeyGenSettingsObject));
+  StoredKeyGenProfiles stored;
+  if (const auto v = so["profiles"]; v.isArray()) {
+    stored.profiles = KeyGenProfilesFromJson(v.toArray());
+  } else {
+    stored.profiles = MakeDefaultKeyGenProfiles();
+  }
+  if (const auto v = so["default_profile"]; v.isString()) {
+    stored.default_profile = v.toString();
+  }
+  return stored;
 }
 
 }  // namespace GpgFrontend
