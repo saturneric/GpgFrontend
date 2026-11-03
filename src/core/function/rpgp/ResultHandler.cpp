@@ -140,9 +140,9 @@ auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
   for (size_t i = 0; i < m.invalid_recipient_count; ++i) {
     const auto& inv_rec = m.invalid_recipients[i];
 
-    // Name the reason the way GnuPG does for an invalid recipient, so the
-    // analyser can tell the user why the key was skipped.
-    const GpgError reason = CommonEngineError(inv_rec.reason);
+    // The engine's own reason, so the analyser can tell the user why the key
+    // was skipped.
+    const auto reason = FromRpgpStatus(inv_rec.reason);
 
     result.invalid_recipients.push_back({
         QString::fromUtf8(inv_rec.fpr),
@@ -152,13 +152,13 @@ auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
 
   for (size_t i = 0; i < m.recipient_count; ++i) {
     const auto& rec = m.recipients[i];
-    GpgError status;
+    GFError status;
     if (rec.status == Rust::GfrRecipientStatus::Success) {
-      status = GPG_ERR_NO_ERROR;
+      status = GFError{};
     } else if (rec.status == Rust::GfrRecipientStatus::NoKey) {
-      status = GPG_ERR_NO_KEY;
+      status = RpgpError(GFErrorCode::kNO_KEY);
     } else {
-      status = GPG_ERR_GENERAL;
+      status = RpgpError(GFErrorCode::kGENERAL);
     }
     result.recipients.push_back({
         QString::fromUtf8(rec.key_id).toUpper(),
@@ -243,14 +243,14 @@ auto ParseDecryptResultMeta(const Rust::GfrDecryptMetadataC& m)
   result.cipher_warning = QString::fromUtf8(m.cipher_warning);
   for (size_t i = 0; i < m.recipient_count; ++i) {
     const auto& rec = m.recipients[i];
-    GpgError status;
+    GFError status;
     if (rec.status == Rust::GfrRecipientStatus::Success) {
-      status = GPG_ERR_NO_ERROR;
+      status = GFError{};
     } else if (rec.status == Rust::GfrRecipientStatus::NoKey) {
       // A recipient this keyring holds no secret key for.
-      status = GPG_ERR_NO_SECKEY;
+      status = RpgpError(GFErrorCode::kNO_SECRET_KEY);
     } else {
-      status = GPG_ERR_GENERAL;
+      status = RpgpError(GFErrorCode::kGENERAL);
     }
     result.recipients.push_back({
         QString::fromUtf8(rec.key_id).toUpper(),
@@ -323,7 +323,7 @@ auto NoUsableRecipientsResult(const QList<GpgKey>& recipients)
   GFEncryptResult result;
   for (const auto& recipient : recipients) {
     result.invalid_recipients.push_back(
-        {recipient.Fingerprint(), GPG_ERR_NO_PUBKEY});
+        {recipient.Fingerprint(), RpgpError(GFErrorCode::kNO_PUBLIC_KEY)});
   }
   return result;
 }
@@ -497,8 +497,8 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
       bool has_secret_recipient = false;
       result.recipients = SniffRecipients(key_db, in_buffer);
       for (auto& rec : result.recipients) {
-        if (rec.status != GPG_ERR_NO_SECKEY) {
-          rec.status = GPG_ERR_UNUSABLE_SECKEY;
+        if (rec.status.code != GFErrorCode::kNO_SECRET_KEY) {
+          rec.status = RpgpError(GFErrorCode::kUNUSABLE_SECRET_KEY, err);
           has_secret_recipient = true;
         }
       }

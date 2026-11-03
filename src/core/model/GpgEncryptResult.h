@@ -39,7 +39,7 @@ class GF_CORE_EXPORT GpgEncryptResult {
 
   auto GetRaw() -> gpgme_encrypt_result_t;
 
-  auto InvalidRecipients() -> QList<std::tuple<QString, GpgError>>;
+  auto InvalidRecipients() -> QList<std::tuple<QString, GFError>>;
 
   /// Subkeys the session key was actually encrypted to, as reported by the
   /// engine (rPGP). Empty for the GnuPG engine, which does not expose the

@@ -76,8 +76,8 @@ void GpgEncryptResultAnalyse::doAnalyse() {
         stream_ << "### " << tr("Recipients") << " " << ++index << ": "
                 << Qt::endl;
         stream_ << "- " << tr("Fingerprint") << ": " << fpr << Qt::endl;
-        stream_ << "- " << tr("Reason") << ": " << gpgme_strerror(reason)
-                << Qt::endl;
+        stream_ << "- " << tr("Reason") << ": "
+                << DescribeGFError(reason).second << Qt::endl;
         stream_ << Qt::endl << Qt::endl;
       }
     }

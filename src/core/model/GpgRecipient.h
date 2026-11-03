@@ -40,7 +40,7 @@ struct GF_CORE_EXPORT GpgRecipient {
   QString pubkey_algo;
 
   /* The status of the recipient.  */
-  GpgError status;
+  GFError status;
 
   GpgRecipient();
 

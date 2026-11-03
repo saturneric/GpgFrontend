@@ -30,6 +30,7 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GFError.h"
 #include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
@@ -198,12 +199,12 @@ struct GFSignature {
 struct GFRecipient {
   QString key_id;
   QString pub_algo;
-  GpgError status = GPG_ERR_NO_ERROR;
+  GFError status;
 };
 
 struct GFInvalidRecipient {
   QString fpr;
-  GpgError reason = GPG_ERR_NO_ERROR;
+  GFError reason;
 };
 
 struct GFEncryptResult {

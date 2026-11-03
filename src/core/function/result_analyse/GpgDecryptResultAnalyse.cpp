@@ -205,6 +205,6 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
 
   stream << "- " << tr("Public Key Algo") << ": " << recipient.pubkey_algo
          << Qt::endl;
-  stream << "- " << tr("Status") << ": " << gpgme_strerror(recipient.status)
-         << Qt::endl;
+  stream << "- " << tr("Status") << ": "
+         << DescribeGFError(recipient.status).second << Qt::endl;
 }

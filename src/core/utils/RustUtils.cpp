@@ -366,7 +366,9 @@ auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
 
     // No usable secret key for this recipient: NO_SECKEY, as GnuPG reports.
     auto gf_key = GetKeyByKeyIdsForDecryption(key_db, {recipient.key_id});
-    recipient.status = !gf_key ? GPG_ERR_NO_SECKEY : GPG_ERR_NO_ERROR;
+    recipient.status =
+        !gf_key ? GFError{GFErrorCode::kNO_SECRET_KEY, GFErrorOrigin::kRPGP, 0}
+                : GFError{};
 
     recipients.push_back(recipient);
   }

@@ -28,6 +28,8 @@
 
 #include "GpgEncryptResult.h"
 
+#include "core/function/gpg/GpgErrorMap.h"
+
 namespace GpgFrontend {
 GpgEncryptResult::GpgEncryptResult(gpgme_encrypt_result_t r)
     : result_ref_(QSharedPointer<struct _gpgme_op_encrypt_result>(
@@ -53,8 +55,8 @@ auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
 }
 
 auto GpgEncryptResult::InvalidRecipients()
-    -> QList<std::tuple<QString, GpgError>> {
-  QList<std::tuple<QString, GpgError>> result;
+    -> QList<std::tuple<QString, GFError>> {
+  QList<std::tuple<QString, GFError>> result;
 
   if (gf_result_ref_ != nullptr) {
     for (const auto& r : gf_result_ref_->invalid_recipients) {
@@ -72,7 +74,7 @@ auto GpgEncryptResult::InvalidRecipients()
     try {
       result.push_back({
           QString{invalid_key->fpr},
-          invalid_key->reason,
+          FromGpgError(invalid_key->reason),
       });
     } catch (...) {
       FLOG_W(

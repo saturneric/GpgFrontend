@@ -226,7 +226,7 @@ TEST_F(RpgpCoreTest, CoreEncryptToNoUsableRecipientNamesEachOneTest) {
   const auto invalid = result.InvalidRecipients();
   ASSERT_EQ(invalid.size(), 1);
   EXPECT_EQ(std::get<0>(invalid.front()).toUpper(), kFpr);
-  EXPECT_NE(CheckGpgError(std::get<1>(invalid.front())), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(std::get<1>(invalid.front()).Ok());
 }
 
 namespace {

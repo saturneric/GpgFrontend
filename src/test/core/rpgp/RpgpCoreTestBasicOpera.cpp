@@ -938,7 +938,8 @@ auto MakeRpgpSignature(GFSignatureStatus status) -> GFSignature {
 TEST_F(RpgpCoreTest, CoreEncryptResultAnalyseShowsRpgpInvalidRecipientsTest) {
   const QString bad_fpr = "0123456789ABCDEF0123456789ABCDEF01234567";
   GFEncryptResult gf_result;
-  gf_result.invalid_recipients.push_back({bad_fpr, GPG_ERR_CERT_REVOKED});
+  gf_result.invalid_recipients.push_back(
+      {bad_fpr, GFError::Application(GFErrorCode::kKEY_REVOKED)});
 
   GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
                                   GpgEncryptResult(gf_result)};
@@ -1011,7 +1012,7 @@ TEST_F(RpgpCoreTest, CoreEncryptPartialInvalidRecipientIsReportedTest) {
   auto invalid = result.InvalidRecipients();
   ASSERT_FALSE(invalid.empty());
   for (const auto& [inv_fpr, reason] : invalid) {
-    EXPECT_NE(gpg_err_code(reason), GPG_ERR_GENERAL)
+    EXPECT_NE(reason.code, GFErrorCode::kGENERAL)
         << "reason for " << inv_fpr.toStdString() << " was not specific";
   }
 
@@ -1160,7 +1161,8 @@ TEST_F(RpgpCoreTest, CoreEncryptSignNamesTheSideThatMayNotBeUsedTest) {
   EXPECT_EQ(sign_err.code, GFErrorCode::kUNUSABLE_SECRET_KEY);
 
   GFEncryptResult refused;
-  refused.invalid_recipients.push_back({"ABCD", GPG_ERR_CERT_REVOKED});
+  refused.invalid_recipients.push_back(
+      {"ABCD", GFError::Application(GFErrorCode::kKEY_REVOKED)});
   AttributeUnusableKey(true, refused, enc_err, sign_err);
   EXPECT_EQ(enc_err.code, GFErrorCode::kUNUSABLE_PUBLIC_KEY);
   EXPECT_EQ(sign_err.code, GFErrorCode::kUNUSABLE_PUBLIC_KEY);
@@ -1382,7 +1384,7 @@ TEST_F(RpgpCoreTest, CoreDecryptUnusableStoredSecretIsNotBadPassphraseTest) {
   auto result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_FALSE(result.Recipients().empty());
   for (const auto& rec : result.Recipients()) {
-    EXPECT_NE(gpg_err_code(rec.status), GPG_ERR_BAD_PASSPHRASE)
+    EXPECT_NE(rec.status.code, GFErrorCode::kBAD_PASSPHRASE)
         << rec.keyid.toStdString();
   }
 }
