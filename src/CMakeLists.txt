@@ -100,6 +100,11 @@ if(GPGFRONTEND_BUILD_TESTS)
 endif()
 add_subdirectory(res)
 
+# The phone application, on the same core.
+if(GF_BUILD_MOBILE)
+  add_subdirectory(mob)
+endif()
+
 # Everything below is the desktop application and its packaging.
 if(NOT GF_BUILD_DESKTOP)
   return()

@@ -142,13 +142,15 @@ option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core lib
 
 # Which engines and which programs the flavor builds. The android and sandbox
 # flavors are rPGP-only, so they need neither GpgME, libassuan nor
-# libgpg-error. The android flavor builds the core, the startup library and the
-# core tests, not the desktop application.
+# libgpg-error. The android flavor builds the phone application (src/mob)
+# instead of the desktop one.
 set(GF_ENGINE_GNUPG 1)
 set(GF_BUILD_DESKTOP 1)
+set(GF_BUILD_MOBILE 0)
 if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "android")
   set(GF_ENGINE_GNUPG 0)
   set(GF_BUILD_DESKTOP 0)
+  set(GF_BUILD_MOBILE 1)
   set(_gf_refused_options GPGFRONTEND_BUILD_MODULES
     GPGFRONTEND_LINK_GPGME_INTO_CORE GPGFRONTEND_BUILD_SCREENSHOT_MODE)
 elseif(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox")
@@ -486,11 +488,20 @@ if(LINUX)
   set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
 endif()
 
-# Minimum supported Qt version: 6.5 (LTS). The desktop application needs the
-# widgets as well.
+# Minimum supported Qt version: 6.5 (LTS), for what everything builds on.
 find_package(Qt6 6.5 COMPONENTS Core Gui Network LinguistTools Xml Sql REQUIRED)
+
+# The desktop application: widgets.
 if(GF_BUILD_DESKTOP)
   find_package(Qt6 6.5 COMPONENTS Widgets PrintSupport REQUIRED)
+endif()
+
+# The phone application: Qt Quick, from the oldest open-source Qt whose Android
+# libraries run on 16 KB-page devices and target API 36 (6.8 stopped at 6.8.3,
+# 4 KB aligned). Svg draws the icons, and linking it is what makes
+# androiddeployqt ship the svg image format plugin.
+if(GF_BUILD_MOBILE)
+  find_package(Qt6 6.10 COMPONENTS Qml Quick QuickControls2 Svg REQUIRED)
 endif()
 
 # Qt configuration
