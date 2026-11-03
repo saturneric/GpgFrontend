@@ -29,9 +29,13 @@ find_package(Qt6 COMPONENTS Test REQUIRED)
 
 add_executable(gf_mob_tests
   main.cpp
+  AppLifecycleTest.cpp
   InteractionBridgeTest.cpp
+  KeyActionsTest.cpp
+  KeyModelsTest.cpp
   MobileProfileLoaderDelegateTest.cpp
-  StartupTest.cpp)
+  StartupTest.cpp
+  TextCryptoTest.cpp)
 target_include_directories(gf_mob_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/mob)
 target_link_libraries(gf_mob_tests PRIVATE
   gf_mob_lib gf_mob_libplugin GTest::gtest Qt::Test)
