@@ -28,6 +28,8 @@
 
 #include "GpgOpResultInfo.h"
 
+#include "core/utils/GpgUtils.h"
+
 namespace GpgFrontend {
 
 auto CombineGpgOperations(GpgOperation a, GpgOperation b) -> GpgOperation {
@@ -164,6 +166,58 @@ void GpgOpResultInfo::CollapseSharedCallError(const GFError& call_error,
   if (first_shared < 0) return;
   kept.insert(first_shared, shared);
   stageErrors = kept;
+}
+
+auto MakeAbortedOpInfo(
+    GpgOperation scope, const GFError& err, const QString& engine,
+    const QList<QPair<GpgOperation, QString>>& engine_details)
+    -> GpgOpResultInfo {
+  GpgOpResultInfo info;
+  info.status = -1;
+  info.op = scope;
+  info.operation = GpgOperationName(scope);
+  info.engine = engine;
+
+  GpgOpStageError e;
+  e.scope = scope;
+  e.engineDetails = engine_details;
+
+  if (err.Aborted()) {
+    // GpgFrontend's own stop of a task that failed before the engine
+    // answered: the error is kept, but it is not the engine's message.
+    e.error = err;
+    e.codeText = QCoreApplication::translate(
+        "GpgFrontend::UI::GpgOperaHelper",
+        "The operation stopped before the engine returned a result.");
+  } else if (!err.Ok()) {
+    e.error = err;
+    e.codeText = DescribeGFError(err).second;
+  } else {
+    // No code at all, and no usable result: nothing the engine said explains
+    // it, so this is recorded as GpgFrontend's own finding.
+    e.error = GFError::Application(GFErrorCode::kGENERAL);
+    e.codeText =
+        QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                    "The engine returned no usable result.");
+  }
+  info.stageErrors.append(e);
+
+  // The headings keep the context they were always translated in; each is
+  // spelled out in full, which is all lupdate can read.
+  if (err.code == GFErrorCode::kNOT_SUPPORTED) {
+    info.report =
+        "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                           "Operation Not Supported");
+  } else if (err.Canceled()) {
+    info.report =
+        "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                           "Operation Cancelled");
+  } else {
+    info.report =
+        "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
+                                           "Critical Error");
+  }
+  return info;
 }
 
 }  // namespace GpgFrontend

@@ -716,7 +716,7 @@ TEST(GFUiInfoBoardRenderTest, TheSealShowsTheOutcomeAndNeverApprovesAFailure) {
     RenderFixture::Settle();
     EXPECT_EQ(seal->Kind(), UI::ReportSealKind::kFAILURE);
 
-    GpgOpResultInfo cancelled = UI::MakeAbortedOpInfo(
+    GpgOpResultInfo cancelled = MakeAbortedOpInfo(
         GpgOperation::kENCRYPT, FromGpgError(GPG_ERR_CANCELED), {});
     GpgOperaResult r(cancelled);
     r.input_index = 0;
