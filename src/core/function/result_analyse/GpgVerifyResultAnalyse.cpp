@@ -30,10 +30,11 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/LocalizedUtils.h"
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
-    int channel, GpgError error, GpgVerifyResult result)
+    int channel, const GFError& error, GpgVerifyResult result)
     : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
@@ -44,10 +45,10 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
   stream_ << "# " << tr("Verify Operation") << " (" << EngineInfo() << ") ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
+  if (error_.Ok()) {
     stream_ << " - " << tr("Success") << " " << Qt::endl;
   } else {
-    stream_ << " - " << tr("Failed") << ": " << gpgme_strerror(error_)
+    stream_ << " - " << tr("Failed") << ": " << DescribeGFError(error_).second
             << Qt::endl;
     if (!result_.ErrorDetail().isEmpty()) {
       stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()

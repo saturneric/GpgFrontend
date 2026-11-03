@@ -300,7 +300,9 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
   auto* result = std::any_cast<ResultT>(&capsule);
   if (result == nullptr) return -1;
 
-  AnalyseT ra(channel, err, *result);
+  // Modules hand back the GnuPG value they were given: read as the engine
+  // on this channel reported it.
+  AnalyseT ra(channel, GpgFrontend::EngineErrorOf(channel, err), *result);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
   EmitResultCards(ra.GetOpInfo(), cards);

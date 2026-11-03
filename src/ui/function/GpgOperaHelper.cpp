@@ -199,7 +199,7 @@ auto MakeAbortedOpInfo(
         "The operation stopped before the engine returned a result.");
   } else if (!err.Ok()) {
     e.error = err;
-    e.codeText = DescribeGpgErrCode(ToGpgError(err)).second;
+    e.codeText = DescribeGFError(err).second;
   } else {
     // No code at all, and no usable result: nothing the engine said explains
     // it, so this is recorded as GpgFrontend's own finding.
@@ -374,7 +374,7 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
           }
 
           auto result = ExtractParams<ResultType>(data_obj, 0);
-          auto result_analyse = AnalyseType(channel, ToGpgError(err), result);
+          auto result_analyse = AnalyseType(channel, err, result);
           result_analyse.Analyse();
 
           auto opera_result = GpgOperaResult{
@@ -453,12 +453,10 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
           auto result_1 = ExtractParams<ResultTypeA>(data_obj, 0);
           auto result_2 = ExtractParams<ResultTypeB>(data_obj, 1);
 
-          auto result_analyse_1 =
-              AnalyseTypeA(channel, ToGpgError(err), result_1);
+          auto result_analyse_1 = AnalyseTypeA(channel, err, result_1);
           result_analyse_1.Analyse();
 
-          auto result_analyse_2 =
-              AnalyseTypeB(channel, ToGpgError(err), result_2);
+          auto result_analyse_2 = AnalyseTypeB(channel, err, result_2);
           result_analyse_2.Analyse();
 
           auto info = result_analyse_1.GetOpInfo();
@@ -529,7 +527,7 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
 
       auto result = ExtractParams<ResultType>(data_obj, 0);
 
-      auto result_analyse = AnalyseType(channel, ToGpgError(err), result);
+      auto result_analyse = AnalyseType(channel, err, result);
       result_analyse.Analyse();
 
       auto opera_result = GpgOperaResult{result_analyse.GetOpInfo()};
@@ -598,10 +596,10 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       auto result_1 = ExtractParams<ResultTypeA>(data_obj, 0);
       auto result_2 = ExtractParams<ResultTypeB>(data_obj, 1);
 
-      auto result_analyse_1 = AnalyseTypeA(channel, ToGpgError(err), result_1);
+      auto result_analyse_1 = AnalyseTypeA(channel, err, result_1);
       result_analyse_1.Analyse();
 
-      auto result_analyse_2 = AnalyseTypeB(channel, ToGpgError(err), result_2);
+      auto result_analyse_2 = AnalyseTypeB(channel, err, result_2);
       result_analyse_2.Analyse();
 
       auto info = result_analyse_1.GetOpInfo();

@@ -254,7 +254,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedReportsErrorDetail) {
   EXPECT_FALSE(r.ErrorDetail().isEmpty());
 
   // And the result is a failure, so no caller releases output for it.
-  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, ToGpgError(err), r};
+  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, err, r};
   analyse.Analyse();
   EXPECT_LT(analyse.GetStatus(), 0);
 }

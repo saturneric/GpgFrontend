@@ -55,7 +55,7 @@ class GF_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
    * @param result signing result object containing new signatures and invalid
    * signers
    */
-  explicit GpgSignResultAnalyse(int channel, GpgError error,
+  explicit GpgSignResultAnalyse(int channel, const GFError& error,
                                 GpgSignResult result);
 
  protected:
@@ -71,7 +71,7 @@ class GF_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
 
  private:
   // gpgme error code from the sign operation
-  GpgError error_;
+  GFError error_;
   // Signing result containing new signatures and invalid signers
   GpgSignResult result_;
 };

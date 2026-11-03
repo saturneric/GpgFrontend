@@ -57,7 +57,7 @@ class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    * @param error gpgme error code returned by the verify operation
    * @param result verification result object containing the signature list
    */
-  explicit GpgVerifyResultAnalyse(int channel, GpgError error,
+  explicit GpgVerifyResultAnalyse(int channel, const GFError &error,
                                   GpgVerifyResult result);
 
   /**
@@ -119,7 +119,7 @@ class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
   auto print_signer_without_key(QTextStream &stream, GpgSignature sign) -> bool;
 
   // gpgme error code from the verify operation
-  GpgError error_;
+  GFError error_;
   // Verification result containing the signature list
   GpgVerifyResult result_;
   // Fingerprints of signers whose key was not found

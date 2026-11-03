@@ -29,10 +29,12 @@
 #include "GpgEncryptResultAnalyse.h"
 
 #include "core/model/GpgEncryptResult.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(int channel, GpgError error,
+GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(int channel,
+                                                 const GFError& error,
                                                  GpgEncryptResult result)
     : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
@@ -42,10 +44,10 @@ void GpgEncryptResultAnalyse::doAnalyse() {
 
   stream_ << "# " << tr("Encrypt Operation") << " (" << EngineInfo() << ") ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
+  if (error_.Ok()) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;
   } else {
-    stream_ << "- " << tr("Failed") << ": " << gpgme_strerror(error_)
+    stream_ << "- " << tr("Failed") << ": " << DescribeGFError(error_).second
             << Qt::endl;
     if (!result_.ErrorDetail().isEmpty()) {
       stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()
@@ -95,8 +97,7 @@ void GpgEncryptResultAnalyse::doAnalyse() {
     const auto detail = result_.ErrorDetail();
     op_info_.description =
         tr("Encryption failed: %1.")
-            .arg(detail.isEmpty() ? QString::fromUtf8(gpgme_strerror(error_))
-                                  : detail);
+            .arg(detail.isEmpty() ? DescribeGFError(error_).second : detail);
   }
 }
 

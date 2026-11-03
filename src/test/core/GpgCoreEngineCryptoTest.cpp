@@ -390,15 +390,15 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
 
 namespace {
 
-auto AnalyseDecrypt(int channel, GpgError err, const GpgDecryptResult& result)
-    -> GpgOpResultInfo {
+auto AnalyseDecrypt(int channel, const GFError& err,
+                    const GpgDecryptResult& result) -> GpgOpResultInfo {
   GpgDecryptResultAnalyse analyse{channel, err, result};
   analyse.Analyse();
   return analyse.GetOpInfo();
 }
 
-auto AnalyseVerify(int channel, GpgError err, const GpgVerifyResult& result)
-    -> GpgOpResultInfo {
+auto AnalyseVerify(int channel, const GFError& err,
+                   const GpgVerifyResult& result) -> GpgOpResultInfo {
   GpgVerifyResultAnalyse analyse{channel, err, result};
   analyse.Analyse();
   return analyse.GetOpInfo();
@@ -411,10 +411,10 @@ void ExpectValidOutputWithWarning(const GpgOpResultInfo& info) {
   EXPECT_EQ(info.status, 0);
 }
 
-void ExpectMissingSignerIsOnlyAWarning(int channel, GpgError err,
+void ExpectMissingSignerIsOnlyAWarning(int channel, const GFError& err,
                                        const GpgDecryptResult& decrypt_result,
                                        const GpgVerifyResult& verify_result) {
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(verify_result.GetSignature().empty());
   EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
             GPG_ERR_NO_PUBKEY);
@@ -449,7 +449,7 @@ TEST_P(GpgCoreEngineTest, AnalysedFailureRecordsTheEngineErrorAsData) {
   const auto result = data_object->Check<GpgDecryptResult, GFBuffer>()
                           ? ExtractParams<GpgDecryptResult>(data_object, 0)
                           : GpgDecryptResult();
-  const auto info = AnalyseDecrypt(Channel(), ToGpgError(err), result);
+  const auto info = AnalyseDecrypt(Channel(), err, result);
   EXPECT_LT(info.status, 0);
   EXPECT_EQ(info.op, GpgOperation::kDECRYPT);
   EXPECT_EQ(info.operation, GpgOperationName(GpgOperation::kDECRYPT));
@@ -461,7 +461,7 @@ TEST_P(GpgCoreEngineTest, AnalysedFailureRecordsTheEngineErrorAsData) {
   EXPECT_EQ(e.error.origin, GetParam().engine == OpenPGPEngine::kRPGP
                                 ? GFErrorOrigin::kRPGP
                                 : GFErrorOrigin::kGNUPG);
-  EXPECT_EQ(e.codeText, QString::fromUtf8(gpgme_strerror(ToGpgError(err))));
+  EXPECT_EQ(e.codeText, DescribeGFError(err).second);
 }
 
 TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
@@ -488,8 +488,7 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   ExpectMissingSignerIsOnlyAWarning(
-      Channel(), ToGpgError(err_0),
-      ExtractParams<GpgDecryptResult>(data_object_0, 0),
+      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0),
       ExtractParams<GpgVerifyResult>(data_object_0, 1));
   EXPECT_EQ(ExtractParams<GFBuffer>(data_object_0, 2), plain);
 
@@ -527,8 +526,7 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingSignerKey) {
           cipher_path, out_path);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
   ExpectMissingSignerIsOnlyAWarning(
-      Channel(), ToGpgError(err_0),
-      ExtractParams<GpgDecryptResult>(data_object_0, 0),
+      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0),
       ExtractParams<GpgVerifyResult>(data_object_0, 1));
 
   QFile out(out_path);
@@ -650,9 +648,8 @@ TEST_P(GpgCoreEngineTest, DecryptFileWithMissingOtherRecipientKey) {
                                                                   out_path);
   ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
-  const auto info =
-      AnalyseDecrypt(Channel(), ToGpgError(err_0),
-                     ExtractParams<GpgDecryptResult>(data_object_0, 0));
+  const auto info = AnalyseDecrypt(
+      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0));
   ExpectValidOutputWithWarning(info);
   ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
   EXPECT_EQ(ReadAll(out_path), plain);
@@ -690,14 +687,13 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingOtherRecipientKey) {
           cipher_path, out_path);
   ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
-  auto info = AnalyseDecrypt(Channel(), ToGpgError(err_0),
+  auto info = AnalyseDecrypt(Channel(), err_0,
                              ExtractParams<GpgDecryptResult>(data_object_0, 0));
   ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
 
   // The signer is present, so the signature itself is not the warning.
-  const auto verify_info =
-      AnalyseVerify(Channel(), ToGpgError(err_0),
-                    ExtractParams<GpgVerifyResult>(data_object_0, 1));
+  const auto verify_info = AnalyseVerify(
+      Channel(), err_0, ExtractParams<GpgVerifyResult>(data_object_0, 1));
   EXPECT_GT(verify_info.status, 0);
 
   info.Merge(verify_info);
@@ -765,7 +761,7 @@ TEST_P(GpgCoreEngineTest, DecryptArchiveWithMissingOtherRecipientKey) {
   ASSERT_TRUE((decrypt_object->Check<GpgDecryptResult>()));
 
   const auto info =
-      AnalyseDecrypt(Channel(), ToGpgError(decrypt_err),
+      AnalyseDecrypt(Channel(), decrypt_err,
                      ExtractParams<GpgDecryptResult>(decrypt_object, 0));
   ExpectValidOutputWithWarning(info);
   ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
@@ -813,9 +809,7 @@ TEST_P(GpgCoreEngineTest, DecryptArchiveOfNonArchiveFails) {
   if (decrypt_object != nullptr && decrypt_object->Check<GpgDecryptResult>()) {
     decrypt_result = ExtractParams<GpgDecryptResult>(decrypt_object, 0);
   }
-  EXPECT_LT(
-      AnalyseDecrypt(Channel(), ToGpgError(decrypt_err), decrypt_result).status,
-      0);
+  EXPECT_LT(AnalyseDecrypt(Channel(), decrypt_err, decrypt_result).status, 0);
   EXPECT_TRUE(ReadTree(out_dir).isEmpty());
 
   DeleteKey(key);

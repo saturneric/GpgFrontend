@@ -164,7 +164,7 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    * Does nothing for GPG_ERR_NO_ERROR. The entry is scoped to the operation
    * set by setOperation(); @p engine_detail is the result's own detail text.
    */
-  void recordEngineError(GpgError err, const QString& engine_detail);
+  void recordEngineError(const GFError& err, const QString& engine_detail);
 
   // Structured result info populated by doAnalyse()
   GpgOpResultInfo op_info_;

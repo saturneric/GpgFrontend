@@ -55,7 +55,7 @@ class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
    * @param result encryption result object containing invalid-recipient
    * information
    */
-  explicit GpgEncryptResultAnalyse(int channel, GpgError error,
+  explicit GpgEncryptResultAnalyse(int channel, const GFError& error,
                                    GpgEncryptResult result);
 
   /// The underlying encryption result. Used by UI consumers to read the actual
@@ -73,7 +73,7 @@ class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
 
  private:
   // gpgme error code from the encrypt operation
-  GpgError error_;
+  GFError error_;
   // Encryption result containing invalid-recipient details
   GpgEncryptResult result_;
 };

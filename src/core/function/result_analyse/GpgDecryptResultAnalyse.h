@@ -54,7 +54,7 @@ class GF_CORE_EXPORT GpgDecryptResultAnalyse : public GpgResultAnalyse {
    * @param m_error gpgme error code returned by the decrypt operation
    * @param m_result decryption result object containing recipients and metadata
    */
-  explicit GpgDecryptResultAnalyse(int channel, GpgError m_error,
+  explicit GpgDecryptResultAnalyse(int channel, const GFError& m_error,
                                    GpgDecryptResult m_result);
 
  protected:
@@ -81,7 +81,7 @@ class GF_CORE_EXPORT GpgDecryptResultAnalyse : public GpgResultAnalyse {
   void print_recipient(QTextStream& stream, const GpgRecipient& recipient);
 
   // gpgme error code from the decrypt operation
-  GpgError error_;
+  GFError error_;
   // Decryption result containing recipient and metadata info
   GpgDecryptResult result_;
 };

@@ -717,8 +717,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
   auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
-  GpgSignResultAnalyse sign_analyse{kRpgpChannelForUnitTest, ToGpgError(err),
-                                    sign_result};
+  GpgSignResultAnalyse sign_analyse{kRpgpChannelForUnitTest, err, sign_result};
   sign_analyse.Analyse();
   EXPECT_GT(sign_analyse.GetStatus(), 0);
   EXPECT_FALSE(sign_analyse.GetResultReport().isEmpty());
@@ -729,8 +728,8 @@ TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
   ASSERT_TRUE(err_0.Ok());
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
 
-  GpgVerifyResultAnalyse verify_analyse{kRpgpChannelForUnitTest,
-                                        ToGpgError(err_0), verify_result};
+  GpgVerifyResultAnalyse verify_analyse{kRpgpChannelForUnitTest, err_0,
+                                        verify_result};
   verify_analyse.Analyse();
   // A good signature must never be reported as a failure (-1).
   EXPECT_GE(verify_analyse.GetStatus(), 0);
@@ -752,7 +751,7 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptResultAnalyseEngineAgnosticTest) {
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
-  GpgEncryptResultAnalyse encr_analyse{kRpgpChannelForUnitTest, ToGpgError(err),
+  GpgEncryptResultAnalyse encr_analyse{kRpgpChannelForUnitTest, err,
                                        encr_result};
   encr_analyse.Analyse();
   EXPECT_GT(encr_analyse.GetStatus(), 0);
@@ -764,8 +763,8 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptResultAnalyseEngineAgnosticTest) {
   ASSERT_TRUE(err_0.Ok());
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
 
-  GpgDecryptResultAnalyse decr_analyse{kRpgpChannelForUnitTest,
-                                       ToGpgError(err_0), decr_result};
+  GpgDecryptResultAnalyse decr_analyse{kRpgpChannelForUnitTest, err_0,
+                                       decr_result};
   decr_analyse.Analyse();
   // A good decryption must never be reported as a failure (-1).
   EXPECT_GE(decr_analyse.GetStatus(), 0);
@@ -941,7 +940,7 @@ TEST_F(RpgpCoreTest, CoreEncryptResultAnalyseShowsRpgpInvalidRecipientsTest) {
   GFEncryptResult gf_result;
   gf_result.invalid_recipients.push_back({bad_fpr, GPG_ERR_CERT_REVOKED});
 
-  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
                                   GpgEncryptResult(gf_result)};
   analyse.Analyse();
 
@@ -964,7 +963,7 @@ TEST_F(RpgpCoreTest, CoreDecryptResultAnalyseShowsCipherWarningTest) {
   // A password-only message: no recipient (and so no missing key) lowers the
   // status by itself.
 
-  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
                                   GpgDecryptResult(gf_result)};
   analyse.Analyse();
 
@@ -1016,8 +1015,7 @@ TEST_F(RpgpCoreTest, CoreEncryptPartialInvalidRecipientIsReportedTest) {
         << "reason for " << inv_fpr.toStdString() << " was not specific";
   }
 
-  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, ToGpgError(err),
-                                  result};
+  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, err, result};
   analyse.Analyse();
   if (err.Ok()) {
     EXPECT_TRUE(analyse.GetOpInfo().description.contains(
@@ -1038,7 +1036,7 @@ TEST_F(RpgpCoreTest, CoreVerifyRpgpKeyExpiredAtSigningIsRejectedTest) {
   gf_result.signatures.push_back(
       MakeRpgpSignature(GFSignatureStatus::kKEY_EXPIRED));
 
-  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
                                  GpgVerifyResult(gf_result)};
   analyse.Analyse();
 
@@ -1180,7 +1178,7 @@ TEST_F(RpgpCoreTest, CoreVerifyKeyNotAuthorizedSummaryNamesCauseTest) {
   gf_result.signatures.push_back(
       MakeRpgpSignature(GFSignatureStatus::kKEY_NOT_AUTHORIZED));
 
-  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
                                  GpgVerifyResult(gf_result)};
   analyse.Analyse();
 
@@ -1311,7 +1309,7 @@ TEST_F(RpgpCoreTest, CoreSignResultCarriesSignatureModeTest) {
                     GPGME_SIG_MODE_DETACH, true);
   ASSERT_TRUE(err.Ok());
 
-  GpgSignResultAnalyse analyse{kRpgpChannelForUnitTest, ToGpgError(err),
+  GpgSignResultAnalyse analyse{kRpgpChannelForUnitTest, err,
                                ExtractParams<GpgSignResult>(data_object, 0)};
   analyse.Analyse();
   ASSERT_FALSE(analyse.GetOpInfo().newSignatures.isEmpty());
@@ -1395,7 +1393,7 @@ TEST_F(RpgpCoreTest, CoreVerifyRpgpValidSignatureDoesNotClaimTrustTest) {
   GFVerifyResult gf_result{};
   gf_result.signatures.push_back(MakeRpgpSignature(GFSignatureStatus::kVALID));
 
-  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GPG_ERR_NO_ERROR,
+  GpgVerifyResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
                                  GpgVerifyResult(gf_result)};
   analyse.Analyse();
 

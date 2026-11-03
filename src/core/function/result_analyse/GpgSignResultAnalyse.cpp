@@ -29,11 +29,12 @@
 #include "GpgSignResultAnalyse.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/LocalizedUtils.h"
 
 namespace GpgFrontend {
 
-GpgSignResultAnalyse::GpgSignResultAnalyse(int channel, GpgError error,
+GpgSignResultAnalyse::GpgSignResultAnalyse(int channel, const GFError& error,
                                            GpgSignResult result)
     : GpgResultAnalyse(channel), error_(error), result_(std::move(result)) {}
 
@@ -46,10 +47,10 @@ void GpgSignResultAnalyse::doAnalyse() {
 
   stream_ << "# " << tr("Sign Operation") << " (" << EngineInfo() << ") ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
+  if (error_.Ok()) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;
   } else {
-    stream_ << "- " << tr("Failed") << " " << gpgme_strerror(error_)
+    stream_ << "- " << tr("Failed") << " " << DescribeGFError(error_).second
             << Qt::endl;
     if (!result_.ErrorDetail().isEmpty()) {
       stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()
@@ -175,8 +176,7 @@ void GpgSignResultAnalyse::doAnalyse() {
     const auto detail = result_.ErrorDetail();
     op_info_.description =
         tr("Signing failed: %1.")
-            .arg(detail.isEmpty() ? QString::fromUtf8(gpgme_strerror(error_))
-                                  : detail);
+            .arg(detail.isEmpty() ? DescribeGFError(error_).second : detail);
   }
 }
 

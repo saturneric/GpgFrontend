@@ -55,14 +55,13 @@ void GpgFrontend::GpgResultAnalyse::setOperation(GpgOperation op) {
 }
 
 void GpgFrontend::GpgResultAnalyse::recordEngineError(
-    GpgError err, const QString& engine_detail) {
-  const auto error = EngineErrorOf(current_gpg_context_channel_, err);
-  if (error.Ok()) return;
+    const GFError& err, const QString& engine_detail) {
+  if (err.Ok()) return;
 
   GpgOpStageError e;
   e.scope = op_info_.op;
-  e.error = error;
-  e.codeText = QString::fromUtf8(gpgme_strerror(err));
+  e.error = err;
+  e.codeText = DescribeGFError(err).second;
   if (!engine_detail.isEmpty())
     e.engineDetails.append({op_info_.op, engine_detail});
   op_info_.stageErrors.append(e);

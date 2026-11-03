@@ -29,9 +29,10 @@
 #include "GpgDecryptResultAnalyse.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/utils/GpgUtils.h"
 
 GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
-    int channel, GpgError m_error, GpgDecryptResult m_result)
+    int channel, const GFError& m_error, GpgDecryptResult m_result)
     : GpgResultAnalyse(channel), error_(m_error), result_(m_result) {}
 
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
@@ -42,10 +43,10 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 
   stream_ << "# " << tr("Decrypt Operation") << " (" << EngineInfo() << ") ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
+  if (error_.Ok()) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;
   } else {
-    stream_ << "- " << tr("Failed") << ": " << gpgme_strerror(error_)
+    stream_ << "- " << tr("Failed") << ": " << DescribeGFError(error_).second
             << Qt::endl;
     setStatus(-1);
     if (!result_.ErrorDetail().isEmpty()) {
@@ -66,7 +67,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   // rather than released with a warning. This holds for symmetric messages
   // too, which carry no recipients.
   bool unprotected = false;
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR && result_.IsGood()) {
+  if (error_.Ok() && result_.IsGood()) {
     op_info_.messageIntegrityProtected = result_.MessageIntegrityProtected();
     unprotected = !op_info_.messageIntegrityProtected;
     if (unprotected) setStatus(-1);
@@ -76,7 +77,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   // not prefer, is still decrypted, but the user is told. Password messages
   // carry no recipients, so this is reported outside the recipient section.
   const auto cipher_warning = result_.CipherWarning();
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR && !cipher_warning.isEmpty()) {
+  if (error_.Ok() && !cipher_warning.isEmpty()) {
     stream_ << "- " << tr("Cipher Warning") << ": " << cipher_warning
             << Qt::endl;
     setStatus(0);
@@ -158,8 +159,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     const auto detail = result_.ErrorDetail();
     op_info_.description =
         tr("Decryption failed: %1.")
-            .arg(detail.isEmpty() ? QString::fromUtf8(gpgme_strerror(error_))
-                                  : detail);
+            .arg(detail.isEmpty() ? DescribeGFError(error_).second : detail);
   }
 }
 
