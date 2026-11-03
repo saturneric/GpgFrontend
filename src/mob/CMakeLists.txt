@@ -51,6 +51,7 @@ qt_add_library(gf_mob_lib STATIC
   files/StagingArea.cpp
   files/ShareRetentionStore.cpp
   files/FileOperations.cpp
+  files/FileWorkspace.cpp
   ${GF_PLATFORM_APP_SOURCES}
   ${GF_PLATFORM_MOBILE_SOURCES})
 
@@ -130,7 +131,8 @@ target_include_directories(gf_mob_lib PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/startup
   ${CMAKE_CURRENT_SOURCE_DIR}/lifecycle
   ${CMAKE_CURRENT_SOURCE_DIR}/model
-  ${CMAKE_CURRENT_SOURCE_DIR}/crypto)
+  ${CMAKE_CURRENT_SOURCE_DIR}/crypto
+  ${CMAKE_CURRENT_SOURCE_DIR}/files)
 target_link_libraries(gf_mob_lib PUBLIC
   gf_boot gf_core gf_res Qt::Quick Qt::QuickControls2 Qt::Svg)
 
