@@ -116,20 +116,20 @@ class GF_CORE_EXPORT UserIdOperation
    * @param name display name
    * @param comment optional comment string
    * @param email email address
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void AddUID(const GpgKeyPtr& key, const QString& name, const QString& comment,
-              const QString& email, const GpgOperationCallback& cb);
+              const QString& email, const GFOperationCallback& cb);
 
   /**
    * @brief Asynchronously delete a user ID from the given key.
    *
    * @param key key to modify
    * @param uid user ID string identifying the UID to delete
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void DeleteUID(const GpgKeyPtr& key, const QString& uid,
-                 const GpgOperationCallback& cb);
+                 const GFOperationCallback& cb);
 
   /**
    * @brief Asynchronously revoke a user ID on the given key.
@@ -138,20 +138,20 @@ class GF_CORE_EXPORT UserIdOperation
    * @param uid user ID string identifying the UID to revoke
    * @param reason_code revocation reason code
    * @param reason_text human-readable reason description
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void RevokeUID(const GpgKeyPtr& key, const QString& uid, int reason_code,
-                 const QString& reason_text, const GpgOperationCallback& cb);
+                 const QString& reason_text, const GFOperationCallback& cb);
 
   /**
    * @brief Asynchronously set the given user ID as the primary UID.
    *
    * @param key target key pair
    * @param uid user ID string to promote as primary
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void SetPrimaryUID(const GpgKeyPtr& key, const QString& uid,
-                     const GpgOperationCallback& cb);
+                     const GFOperationCallback& cb);
 
  private:
   // OpenPGP context for this channel.

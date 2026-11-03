@@ -104,6 +104,17 @@ auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
 }
 
 /**
+ * @brief A callback that takes the runner's GnuPG code and hands @p cb the
+ * GFError it means on @p channel's engine.
+ */
+inline auto AsGpgOperationCallback(int channel, const GFOperationCallback& cb)
+    -> GpgOperationCallback {
+  return [channel, cb](GpgError err, const DataObjectPtr& data_object) {
+    cb(EngineErrorOf(channel, err), data_object);
+  };
+}
+
+/**
  * @brief RunRegisteredAsync(), reporting the outcome as a GFError.
  *
  * For an operation family that has moved to GFError while its engines still
@@ -113,13 +124,8 @@ auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
 template <typename OpTag, typename... Args>
 void RunRegisteredAsyncGF(OpenPGPContext& ctx, const GFOperationCallback& cb,
                           Args&&... args) {
-  RunRegisteredAsync<OpTag>(
-      ctx,
-      [channel = ctx.GetChannel(), cb](GpgError err,
-                                       const DataObjectPtr& data_object) {
-        cb(EngineErrorOf(channel, err), data_object);
-      },
-      std::forward<Args>(args)...);
+  RunRegisteredAsync<OpTag>(ctx, AsGpgOperationCallback(ctx.GetChannel(), cb),
+                            std::forward<Args>(args)...);
 }
 
 /**

@@ -354,9 +354,9 @@ void KeyPairUIDTab::slot_del_uid() {
     auto f = [this, uid](const OperaWaitingHd& hd) {
       UserIdOperation::GetInstance(current_gpg_context_channel_)
           .DeleteUID(
-              m_key_, uid, [this, hd, uid](GpgError err, const DataObjectPtr&) {
+              m_key_, uid, [this, hd, uid](GFError err, const DataObjectPtr&) {
                 hd();
-                if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                if (!err.Ok()) {
                   QMessageBox::critical(
                       this, tr("Operation Failed"),
                       tr("An error occurred during the delete %1 "
@@ -398,9 +398,9 @@ void KeyPairUIDTab::slot_set_primary_uid() {
   auto f = [this, uid](const OperaWaitingHd& hd) {
     UserIdOperation::GetInstance(current_gpg_context_channel_)
         .SetPrimaryUID(m_key_, uid,
-                       [this, hd](GpgError err, const DataObjectPtr&) {
+                       [this, hd](GFError err, const DataObjectPtr&) {
                          hd();
-                         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                         if (!err.Ok()) {
                            QMessageBox::critical(
                                this, tr("Operation Failed"),
                                tr("An error occurred during the operation."));
@@ -627,9 +627,9 @@ void KeyPairUIDTab::slot_rev_uid() {
                       text](const OperaWaitingHd& hd) {
               UserIdOperation::GetInstance(channel).RevokeUID(
                   key, uid, code == 1 ? 4 : 0, text,
-                  [this, hd](GpgError err, const DataObjectPtr&) {
+                  [this, hd](GFError err, const DataObjectPtr&) {
                     hd();
-                    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                    if (!err.Ok()) {
                       QMessageBox::critical(
                           this, tr("Revocation Failed"),
                           tr("Failed to revoke the UID. Please try again."));

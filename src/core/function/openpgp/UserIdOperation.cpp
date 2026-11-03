@@ -73,12 +73,12 @@ auto UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
 
 void UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
                              const QString& comment, const QString& email,
-                             const GpgOperationCallback& cb) {
+                             const GFOperationCallback& cb) {
   if (name.trimmed().isEmpty() || !IsValidUserIdComponent(name) ||
       !IsValidUserIdComponent(comment)) {
     LOG_E() << "refusing to add UID with empty or malformed name, or malformed "
                "comment component";
-    cb(GPG_ERR_INV_VALUE, nullptr);
+    cb(GFError::Application(GFErrorCode::kINVALID_VALUE), nullptr);
     return;
   }
 
@@ -88,24 +88,25 @@ void UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
           const DataObjectPtr&) -> GpgError {
         return AddUID(key, uid) ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
       },
-      cb, OpTraits<AddUserIdOpTag>::kOpName,
-      OpTraits<AddUserIdOpTag>::Versions());
+      AsGpgOperationCallback(ctx_.GetChannel(), cb),
+      OpTraits<AddUserIdOpTag>::kOpName, OpTraits<AddUserIdOpTag>::Versions());
 }
 
 void UserIdOperation::DeleteUID(const GpgKeyPtr& key, const QString& uid,
-                                const GpgOperationCallback& cb) {
+                                const GFOperationCallback& cb) {
   RunGpgOperaAsync(
       ctx_.GetChannel(),
       [this, key, uid](const DataObjectPtr&) -> GpgError {
         return DeleteUID(key, uid) ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
       },
-      cb, OpTraits<DeleteUserIdOpTag>::kOpName,
+      AsGpgOperationCallback(ctx_.GetChannel(), cb),
+      OpTraits<DeleteUserIdOpTag>::kOpName,
       OpTraits<DeleteUserIdOpTag>::Versions());
 }
 
 void UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
                                 int reason_code, const QString& reason_text,
-                                const GpgOperationCallback& cb) {
+                                const GFOperationCallback& cb) {
   RunGpgOperaAsync(
       ctx_.GetChannel(),
       [this, key, uid, reason_code,
@@ -113,18 +114,20 @@ void UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
         return RevokeUID(key, uid, reason_code, reason_text) ? GPG_ERR_NO_ERROR
                                                              : GPG_ERR_GENERAL;
       },
-      cb, OpTraits<RevokeUserIdOpTag>::kOpName,
+      AsGpgOperationCallback(ctx_.GetChannel(), cb),
+      OpTraits<RevokeUserIdOpTag>::kOpName,
       OpTraits<RevokeUserIdOpTag>::Versions());
 }
 
 void UserIdOperation::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid,
-                                    const GpgOperationCallback& cb) {
+                                    const GFOperationCallback& cb) {
   RunGpgOperaAsync(
       ctx_.GetChannel(),
       [this, key, uid](const DataObjectPtr&) -> GpgError {
         return SetPrimaryUID(key, uid) ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
       },
-      cb, OpTraits<SetPrimaryUserIdOpTag>::kOpName,
+      AsGpgOperationCallback(ctx_.GetChannel(), cb),
+      OpTraits<SetPrimaryUserIdOpTag>::kOpName,
       OpTraits<SetPrimaryUserIdOpTag>::Versions());
 }
 
