@@ -38,6 +38,9 @@ qt_add_library(gf_mob_lib STATIC
   lifecycle/AppLifecycle.cpp
   model/KeyRoleModel.cpp
   model/KeyFilterModel.cpp
+  model/KeyListController.cpp
+  model/KeyImportController.cpp
+  model/KeyActionsController.cpp
   crypto/KeySelection.cpp
   crypto/OutputActions.cpp
   crypto/PassphraseBroker.cpp
