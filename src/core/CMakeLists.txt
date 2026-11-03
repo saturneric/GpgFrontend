@@ -69,6 +69,17 @@ if(APPLE_SANDBOX)
   target_link_libraries(${LIBRARY_TARGET} PRIVATE "-framework Security")
 endif()
 
+# The flavor's settings policy, where it has one: defaults that differ from the
+# catalog's (SettingItem.h, FlavorSettingDefault).
+set(_gf_settings_policy
+  "${CMAKE_SOURCE_DIR}/resource/settings_policy/${GPGFRONTEND_BUILD_FLAVOR}.json")
+if(EXISTS "${_gf_settings_policy}")
+  set_source_files_properties("${_gf_settings_policy}"
+    PROPERTIES QT_RESOURCE_ALIAS "settings_policy.json")
+  qt_add_resources(${LIBRARY_TARGET} "gf_settings_policy"
+    PREFIX "/gf" FILES "${_gf_settings_policy}")
+endif()
+
 # Whether the GnuPG engine is compiled in; tested with `#if GF_ENGINE_GNUPG`.
 target_compile_definitions(${LIBRARY_TARGET} PUBLIC
   GF_ENGINE_GNUPG=${GF_ENGINE_GNUPG})

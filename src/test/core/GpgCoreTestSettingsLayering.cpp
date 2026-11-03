@@ -972,8 +972,9 @@ TEST(SettingCatalogTest, NoSecretIsEverInherited) {
 TEST(SettingCatalogTest, DefaultsAgreeWithTheConstantsTheyMirror) {
   // These defaults are also spelled where their meaning lives. The catalog
   // cannot include those headers without pulling half the core into every
-  // reader, so the agreement is checked here instead.
-  EXPECT_EQ(SettingItems::kArgon2S2kProfile.Default(),
+  // reader, so the agreement is checked here instead. The catalog's own
+  // value: a flavor's settings policy may give another default.
+  EXPECT_EQ(QString(SettingItems::kArgon2S2kProfile.default_value),
             QString(kRpgpArgon2ProfileHighMemory));
   EXPECT_EQ(SettingItems::kModuleLoadingPolicy.Default(),
             Module::ModuleLoadingPolicyKey(

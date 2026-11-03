@@ -42,7 +42,7 @@ aux_source_directory(./core/rpgp CORE_TEST_SOURCE)
 add_executable(gf_core_tests runner/main.cpp GpgFrontendTest.cpp
   ${CORE_TEST_SOURCE})
 target_compile_definitions(gf_core_tests PRIVATE GF_TEST_PRIVATE
-  GF_TEST_EXPORT=)
+  GF_TEST_EXPORT= GF_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
 target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
   gf_res)

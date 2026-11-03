@@ -142,6 +142,26 @@ struct SettingMeta {
  *
  * @tparam T the value's type: bool, int, qint64 or QString
  */
+/**
+ * @brief The defaults a settings policy gives, by key.
+ *
+ * A policy is `{"defaults": {"<key>": <value>}}`. A key the catalog does not
+ * have is left out, with a warning, and so is a value that is not a boolean,
+ * number or string.
+ */
+auto GF_CORE_EXPORT ParseSettingsPolicy(const QByteArray &json)
+    -> QHash<QString, QVariant>;
+
+/**
+ * @brief The default this build's flavor gives @p key in place of the
+ * catalog's, or an invalid QVariant when it gives none.
+ *
+ * From the flavor's settings policy, resource/settings_policy/<flavor>.json,
+ * which the build compiles into gf_core when there is one, and read once. A
+ * desktop flavor has none.
+ */
+auto GF_CORE_EXPORT FlavorSettingDefault(const char *key) -> QVariant;
+
 template <typename T>
 struct SettingItem : SettingMeta {
   /// QString cannot be constexpr; a string default is kept as a literal.
@@ -150,8 +170,14 @@ struct SettingItem : SettingMeta {
 
   Stored default_value{};
 
-  /// The default, as the type a reader gets.
-  [[nodiscard]] auto Default() const -> T { return T(default_value); }
+  /// The default, as the type a reader gets: the flavor's, where its settings
+  /// policy gives one, otherwise the catalog's.
+  [[nodiscard]] auto Default() const -> T {
+    if (const auto flavor = FlavorSettingDefault(key); flavor.isValid()) {
+      return flavor.template value<T>();
+    }
+    return T(default_value);
+  }
 
   /// The stored value, or the default when there is none.
   [[nodiscard]] auto Read(const QSettings &settings) const -> T {
