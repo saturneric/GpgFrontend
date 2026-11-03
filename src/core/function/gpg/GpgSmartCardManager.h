@@ -33,6 +33,7 @@
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgOpenPGPCard.h"
+#include "core/typedef/GpgErrorTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {

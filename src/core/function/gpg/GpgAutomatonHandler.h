@@ -30,6 +30,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/typedef/GpgErrorTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {

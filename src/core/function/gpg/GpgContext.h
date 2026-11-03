@@ -31,6 +31,7 @@
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/function/gpg/GpgAgentProcess.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/typedef/GpgErrorTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {

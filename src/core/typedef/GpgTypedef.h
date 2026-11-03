@@ -28,13 +28,10 @@
 
 #pragma once
 
-#include <gpgme.h>
-
 #include <future>
 
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GFError.h"
-#include "core/typedef/GpgErrorTypedef.h"
 
 // models
 #include "core/model/DataObject.h"

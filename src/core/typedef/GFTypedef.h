@@ -34,7 +34,6 @@
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GFError.h"
-#include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
 

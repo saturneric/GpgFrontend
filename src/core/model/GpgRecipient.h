@@ -29,7 +29,6 @@
 #pragma once
 
 #include "core/typedef/GFTypedef.h"
-#include "core/typedef/GpgErrorTypedef.h"
 namespace GpgFrontend {
 
 struct GF_CORE_EXPORT GpgRecipient {

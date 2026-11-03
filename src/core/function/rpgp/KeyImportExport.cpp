@@ -171,8 +171,8 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     });
 
     if (saved) {
-      info->imported_keys.push_back(
-          {final_gf_key->metadata.fpr.toUpper(), GPG_ERR_NO_ERROR});
+      // No status bits: the key reads as unchanged, whatever the merge did.
+      info->imported_keys.push_back({final_gf_key->metadata.fpr.toUpper(), 0});
       info->imported += 1;
       info->considered += 1;
     } else if (final_gf_key) {

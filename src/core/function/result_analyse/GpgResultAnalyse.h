@@ -29,7 +29,6 @@
 
 #include "GFCoreExport.h"
 #include "GpgOpResultInfo.h"
-#include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
 

@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgKeyGenerateInfo.h"
+#include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
 

@@ -31,6 +31,7 @@
 #include <chrono>
 
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/typedef/GpgErrorTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
