@@ -34,6 +34,7 @@
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"

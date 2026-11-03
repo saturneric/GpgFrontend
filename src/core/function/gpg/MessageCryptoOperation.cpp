@@ -32,6 +32,7 @@
 
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgData.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"

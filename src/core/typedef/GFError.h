@@ -127,4 +127,7 @@ struct GFError {
   }
 };
 
+/// An error's (source, description), as shown to the user.
+using GpgErrorDesc = QPair<QString, QString>;
+
 }  // namespace GpgFrontend

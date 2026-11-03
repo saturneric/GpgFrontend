@@ -38,6 +38,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/gpg/GnuPGHome.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"

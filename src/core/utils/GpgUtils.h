@@ -41,49 +41,7 @@
 namespace GpgFrontend {
 
 /**
- * @brief Log a warning if @p err is non-zero and return the error code.
- *
- * Strips the gpgme error source and returns only the error code portion.
- *
- * @param err gpgme error value
- * @return gpg_err_code_t error code (GPG_ERR_NO_ERROR on success)
- */
-auto GF_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
-
-/**
- * @brief Log a warning with the error and an additional comment if @p err is
- * non-zero.
- *
- * @param gpgmeError gpgme error value
- * @param comment additional context string included in the log message
- * @return the original @p gpgmeError value unchanged
- */
-auto GF_CORE_EXPORT CheckGpgError(GpgError gpgmeError, const QString& comment)
-    -> GpgError;
-
-/**
- * @brief Compare @p err against @p predict and log a warning if they differ.
- *
- * @param err gpgme error value to check
- * @param predict expected error code (default: GPG_ERR_NO_ERROR)
- * @return error code portion of @p err
- */
-auto GF_CORE_EXPORT CheckGpgError2ErrCode(
-    gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR)
-    -> gpg_err_code_t;
-
-/**
- * @brief Return a (source, description) pair describing the given error.
- *
- * @param err gpgme error value
- * @return GpgErrorDesc with the error source name and human-readable
- * description
- */
-auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
-
-/**
- * @brief DescribeGpgErrCode() for a GFError: GnuPG's source and description
- * of the code it stands for.
+ * @brief GnuPG's source and description of the code a GFError stands for.
  */
 auto GF_CORE_EXPORT DescribeGFError(const GFError& err) -> GpgErrorDesc;
 

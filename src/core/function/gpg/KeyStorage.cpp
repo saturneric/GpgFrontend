@@ -29,6 +29,7 @@
 #include "KeyStorage.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/gpg/KeyImportExport.h"
 #include "core/function/openpgp/OpenPGPContext.h"

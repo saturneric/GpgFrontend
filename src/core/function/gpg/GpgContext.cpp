@@ -36,6 +36,7 @@
 #include <utility>
 
 #include "core/function/gpg/GnuPGHome.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 

@@ -29,6 +29,7 @@
 #include "GpgAssuanHelper.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 

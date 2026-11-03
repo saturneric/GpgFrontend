@@ -29,6 +29,7 @@
 #include "KeyGenerate.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/DataObject.h"

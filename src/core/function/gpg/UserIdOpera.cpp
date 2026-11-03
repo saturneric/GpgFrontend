@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/utils/GpgUtils.h"
 

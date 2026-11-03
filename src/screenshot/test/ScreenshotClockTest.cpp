@@ -41,6 +41,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/GFCoreInit.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"

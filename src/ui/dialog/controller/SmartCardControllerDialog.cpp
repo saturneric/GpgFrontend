@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/utils/GpgUtils.h"

@@ -34,6 +34,5 @@ namespace GpgFrontend {
 
 using GpgError = gpgme_error_t;
 using GpgErrorCode = gpg_err_code_t;
-using GpgErrorDesc = QPair<QString, QString>;
 
 }  // namespace GpgFrontend

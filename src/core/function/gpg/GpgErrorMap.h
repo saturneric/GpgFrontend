@@ -34,6 +34,7 @@
 #include <type_traits>
 
 #include "core/typedef/GFError.h"
+#include "core/typedef/GpgErrorTypedef.h"
 
 namespace GpgFrontend {
 
@@ -59,6 +60,47 @@ auto GF_CORE_EXPORT FromGpgError(gpgme_error_t err) -> GFError;
  * @return the GnuPG error
  */
 auto GF_CORE_EXPORT ToGpgError(const GFError& err) -> gpgme_error_t;
+
+/**
+ * @brief Log a warning if @p err is non-zero and return the error code.
+ *
+ * Strips the gpgme error source and returns only the error code portion.
+ *
+ * @param err gpgme error value
+ * @return gpg_err_code_t error code (GPG_ERR_NO_ERROR on success)
+ */
+auto GF_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
+
+/**
+ * @brief Log a warning with the error and an additional comment if @p err is
+ * non-zero.
+ *
+ * @param gpgmeError gpgme error value
+ * @param comment additional context string included in the log message
+ * @return the original @p gpgmeError value unchanged
+ */
+auto GF_CORE_EXPORT CheckGpgError(GpgError gpgmeError, const QString& comment)
+    -> GpgError;
+
+/**
+ * @brief Compare @p err against @p predict and log a warning if they differ.
+ *
+ * @param err gpgme error value to check
+ * @param predict expected error code (default: GPG_ERR_NO_ERROR)
+ * @return error code portion of @p err
+ */
+auto GF_CORE_EXPORT CheckGpgError2ErrCode(GpgError err,
+                                          GpgError predict = GPG_ERR_NO_ERROR)
+    -> GpgErrorCode;
+
+/**
+ * @brief Return a (source, description) pair describing the given error.
+ *
+ * @param err gpgme error value
+ * @return GpgErrorDesc with the error source name and human-readable
+ * description
+ */
+auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
 
 /**
  * @brief A GnuPG implementation registered in an engine dispatch table whose

@@ -54,64 +54,8 @@ namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
-auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {
-  QList<char> buffer(buffer_size);
-
-  gpgme_error_t const ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
-  if (ret == ERANGE && buffer_size < 1024) {
-    return GetGpgmeErrorString(buffer_size * 2, err);
-  }
-
-  return {buffer.data()};
-}
-
-auto GetGpgmeErrorString(gpgme_error_t err) -> QString {
-  return GetGpgmeErrorString(64, err);
-}
-
-auto CheckGpgError(GpgError err) -> GpgError {
-  auto err_code = gpg_err_code(err);
-  if (err_code != GPG_ERR_NO_ERROR) {
-    LOG_W() << "gpg operation failed [error code: " << err_code
-            << "], source: " << gpgme_strsource(err)
-            << " description: " << GetGpgmeErrorString(err);
-  }
-  return err_code;
-}
-
-auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {
-  auto err_code = gpg_err_code(err);
-  if (err_code != gpg_err_code(predict)) {
-    if (err_code == GPG_ERR_NO_ERROR) {
-      LOG_I() << "[Warning " << gpg_err_code(err)
-              << "] Source: " << gpgme_strsource(err)
-              << " description: " << GetGpgmeErrorString(err)
-              << " predict: " << GetGpgmeErrorString(predict);
-    } else {
-      LOG_W() << "[Error " << gpg_err_code(err)
-              << "] Source: " << gpgme_strsource(err)
-              << " description: " << GetGpgmeErrorString(err)
-              << " predict: " << GetGpgmeErrorString(predict);
-    }
-  }
-  return err_code;
-}
-
-auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
-  return {gpgme_strsource(err), GetGpgmeErrorString(err)};
-}
-
 auto DescribeGFError(const GFError& err) -> GpgErrorDesc {
   return DescribeGpgErrCode(ToGpgError(err));
-}
-
-auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {
-  if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG_W() << "[Error " << gpg_err_code(err)
-            << "] Source: " << gpgme_strsource(err)
-            << " description: " << GetGpgmeErrorString(err);
-  }
-  return err;
 }
 
 namespace {
