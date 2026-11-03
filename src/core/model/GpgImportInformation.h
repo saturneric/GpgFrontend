@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <gpgme.h>
-
 namespace GpgFrontend {
 
 /**
@@ -44,8 +42,10 @@ class GF_CORE_EXPORT GpgImportInformation {
    */
   class GpgImportedKey {
    public:
-    QString fpr;        ///<
-    int import_status;  ///<
+    QString fpr;  ///<
+    /// GnuPG's import status bits: 1 new key, 2 new user ID, 4 new
+    /// signature, 8 new subkey, 16 secret key; 0 means unchanged.
+    int import_status;
   };
 
   using GpgImportedKeyList = std::list<GpgImportedKey>;  ///<
@@ -55,13 +55,6 @@ class GF_CORE_EXPORT GpgImportInformation {
    *
    */
   GpgImportInformation();
-
-  /**
-   * @brief Construct a new Gpg Import Information object
-   *
-   * @param result
-   */
-  explicit GpgImportInformation(gpgme_import_result_t result);
 
   int considered = 0;        ///<
   int no_user_id = 0;        ///<

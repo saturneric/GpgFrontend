@@ -29,6 +29,8 @@
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgGenerateKeyResult.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/model/GpgSignature.h"
 #include "core/model/GpgVerifyResult.h"
 
@@ -112,6 +114,42 @@ TEST(SignatureModelTest, GpgmeInvalidRecipientsAreCarriedOver) {
   EXPECT_EQ(std::get<0>(invalids.front()), "ABCD");
   EXPECT_EQ(std::get<1>(invalids.front()).code,
             GFErrorCode::kUNUSABLE_PUBLIC_KEY);
+}
+
+TEST(SignatureModelTest, GpgmeGenerateKeyResultIsCarriedOver) {
+  EXPECT_FALSE(GenerateKeyResultOf(nullptr).IsGood());
+  EXPECT_TRUE(GpgGenerateKeyResult().GetFingerprint().isEmpty());
+
+  std::array<char, 5> fpr{"ABCD"};
+  _gpgme_op_genkey_result raw{};
+  raw.fpr = fpr.data();
+
+  auto result = GenerateKeyResultOf(&raw);
+  EXPECT_TRUE(result.IsGood());
+  EXPECT_EQ(result.GetFingerprint(), "ABCD");
+}
+
+TEST(SignatureModelTest, GpgmeImportResultIsCarriedOver) {
+  EXPECT_EQ(ImportInformationOf(nullptr).considered, 0);
+
+  std::array<char, 5> fpr{"ABCD"};
+  _gpgme_import_status status{};
+  status.fpr = fpr.data();
+  status.status = GPGME_IMPORT_NEW | GPGME_IMPORT_SECRET;
+
+  _gpgme_op_import_result raw{};
+  raw.considered = 2;
+  raw.imported = 1;
+  raw.secret_unchanged = 1;
+  raw.imports = &status;
+
+  auto info = ImportInformationOf(&raw);
+  EXPECT_EQ(info.considered, 2);
+  EXPECT_EQ(info.imported, 1);
+  EXPECT_EQ(info.secret_unchanged, 1);
+  ASSERT_EQ(info.imported_keys.size(), 1U);
+  EXPECT_EQ(info.imported_keys.front().fpr, "ABCD");
+  EXPECT_EQ(info.imported_keys.front().import_status, 17);
 }
 
 TEST(SignatureModelTest, DefaultVerifyResultReturnsNoSignatures) {

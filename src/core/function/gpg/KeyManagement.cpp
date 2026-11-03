@@ -218,7 +218,7 @@ auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   data_object->Swap(
-      {GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())}});
+      {GenerateKeyResultOf(gpgme_op_genkey_result(g_ctx.DefaultContext()))});
   return CheckGpgError(err);
 }
 

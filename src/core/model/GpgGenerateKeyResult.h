@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <gpgme.h>
-
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend {
@@ -39,8 +37,6 @@ class GF_CORE_EXPORT GpgGenerateKeyResult {
   auto IsGood() -> bool;
 
   auto GetFingerprint() -> QString const;
-
-  explicit GpgGenerateKeyResult(gpgme_genkey_result_t);
 
   explicit GpgGenerateKeyResult(const QString &fingerprint);
 
@@ -69,10 +65,9 @@ class GF_CORE_EXPORT GpgGenerateKeyResult {
   virtual ~GpgGenerateKeyResult();
 
  private:
-  using ResultRefHandler = QSharedPointer<struct _gpgme_op_genkey_result>;  ///<
-
-  ResultRefHandler result_ref_ = nullptr;  ///<
-  QString error_detail_;                   ///<
+  bool good_ = false;     ///<
+  QString fingerprint_;   ///<
+  QString error_detail_;  ///<
 };
 
 }  // namespace GpgFrontend

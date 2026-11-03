@@ -47,19 +47,8 @@ auto ImportKeyGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
   auto err = CheckGpgError(gpgme_op_import(g_ctx.BinaryContext(), data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
-  gpgme_import_result_t result;
-  result = gpgme_op_import_result(g_ctx.BinaryContext());
-  gpgme_import_status_t status = result->imports;
-
-  auto import_info = SecureCreateSharedObject<GpgImportInformation>(result);
-  while (status != nullptr) {
-    GpgImportInformation::GpgImportedKey key;
-    key.import_status = static_cast<int>(status->status);
-    key.fpr = status->fpr;
-    import_info->imported_keys.push_back(key);
-    status = status->next;
-  }
-  return import_info;
+  return SecureCreateSharedObject<GpgImportInformation>(
+      ImportInformationOf(gpgme_op_import_result(g_ctx.BinaryContext())));
 }
 
 auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,

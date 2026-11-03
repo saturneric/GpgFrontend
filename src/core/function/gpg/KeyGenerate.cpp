@@ -79,7 +79,7 @@ auto GenerateKeyGnuPGImpl(OpenPGPContext& ctx,
 
   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
     data_object->Swap(
-        {GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())}});
+        {GenerateKeyResultOf(gpgme_op_genkey_result(g_ctx.DefaultContext()))});
   } else {
     data_object->Swap({GpgGenerateKeyResult{}});
   }
@@ -128,7 +128,7 @@ auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   data_object->Swap(
-      {GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())}});
+      {GenerateKeyResultOf(gpgme_op_genkey_result(g_ctx.DefaultContext()))});
   return CheckGpgError(err);
 }
 
@@ -253,7 +253,7 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
     }
 
     auto result =
-        GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())};
+        GenerateKeyResultOf(gpgme_op_genkey_result(g_ctx.DefaultContext()));
     auto key = key_getter.GetKeyPtr(result.GetFingerprint());
     if (key == nullptr) {
       LOG_W() << "cannot get key which has been generated, fpr: "

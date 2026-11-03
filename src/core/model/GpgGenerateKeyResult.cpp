@@ -28,22 +28,12 @@
 
 #include "GpgGenerateKeyResult.h"
 
-#include <gpgme.h>
-
 namespace GpgFrontend {
 
-GpgGenerateKeyResult::GpgGenerateKeyResult(gpgme_genkey_result_t r)
-    : result_ref_(QSharedPointer<struct _gpgme_op_genkey_result>(
-          (gpgme_result_ref(r), r), [](gpgme_genkey_result_t p) {
-            if (p != nullptr) {
-              gpgme_result_unref(p);
-            }
-          })) {}
-
-auto GpgGenerateKeyResult::IsGood() -> bool { return result_ref_ != nullptr; }
+auto GpgGenerateKeyResult::IsGood() -> bool { return good_; }
 
 auto GpgGenerateKeyResult::GetFingerprint() -> QString const {
-  return result_ref_->fpr;
+  return fingerprint_;
 }
 
 GpgGenerateKeyResult::GpgGenerateKeyResult() = default;
@@ -56,20 +46,8 @@ auto GpgGenerateKeyResult::operator=(const GpgGenerateKeyResult &)
 
 GpgGenerateKeyResult::~GpgGenerateKeyResult() = default;
 
-GpgGenerateKeyResult::GpgGenerateKeyResult(const QString &fingerprint) {
-  // The gpgme result struct stores the fingerprint as a raw char*. Keep the
-  // backing buffer alive for as long as the shared result by tying its lifetime
-  // to the QSharedPointer deleter; pointing fpr at a temporary QByteArray would
-  // dangle the moment this constructor returns.
-  auto *fpr_storage = new QByteArray(fingerprint.toUtf8());
-  auto *raw = new struct _gpgme_op_genkey_result();
-  raw->fpr = fpr_storage->data();
-  result_ref_ = QSharedPointer<struct _gpgme_op_genkey_result>(
-      raw, [fpr_storage](gpgme_genkey_result_t p) -> void {
-        delete fpr_storage;
-        delete p;
-      });
-}
+GpgGenerateKeyResult::GpgGenerateKeyResult(const QString &fingerprint)
+    : good_(true), fingerprint_(fingerprint) {}
 
 auto GpgGenerateKeyResult::Failed(const QString &error_detail)
     -> GpgGenerateKeyResult {

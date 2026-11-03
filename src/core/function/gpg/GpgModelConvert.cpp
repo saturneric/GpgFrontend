@@ -275,6 +275,37 @@ auto DecryptResultOf(gpgme_decrypt_result_t result) -> GpgDecryptResult {
   return GpgDecryptResult(out);
 }
 
+auto GenerateKeyResultOf(gpgme_genkey_result_t result) -> GpgGenerateKeyResult {
+  if (result == nullptr) return {};
+  return GpgGenerateKeyResult{QString::fromUtf8(result->fpr)};
+}
+
+auto ImportInformationOf(gpgme_import_result_t result) -> GpgImportInformation {
+  GpgImportInformation info;
+  if (result == nullptr) return info;
+  info.considered = result->considered;
+  info.no_user_id = result->no_user_id;
+  info.imported = result->imported;
+  info.imported_rsa = result->imported_rsa;
+  info.unchanged = result->unchanged;
+  info.new_user_ids = result->new_user_ids;
+  info.new_sub_keys = result->new_sub_keys;
+  info.new_signatures = result->new_signatures;
+  info.new_revocations = result->new_revocations;
+  info.secret_read = result->secret_read;
+  info.secret_imported = result->secret_imported;
+  info.secret_unchanged = result->secret_unchanged;
+  info.not_imported = result->not_imported;
+  for (auto* status = result->imports; status != nullptr;
+       status = status->next) {
+    GpgImportInformation::GpgImportedKey key;
+    key.import_status = static_cast<int>(status->status);
+    key.fpr = QString::fromUtf8(status->fpr);
+    info.imported_keys.push_back(key);
+  }
+  return info;
+}
+
 auto GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t {
   return static_cast<gpgme_key_t>(key.Native().get());
 }
