@@ -140,6 +140,9 @@ if(MINGW)
   # link bcrypt for windows bcrypt is required for the bcrypt implementation of
   # AES, which is used by rpgp engine for crypto operations.
   target_link_libraries(gf_rust INTERFACE bcrypt)
+elseif(ANDROID)
+  # The engine's log goes to logcat.
+  target_link_libraries(gf_rust INTERFACE log)
 endif()
 
 # link rust support library

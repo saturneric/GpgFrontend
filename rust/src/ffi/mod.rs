@@ -220,10 +220,73 @@ pub extern "C" fn gfr_set_channel_cache_scope(channel: i32, scope: *const c_char
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_init_logger() {
     let _ = env_logger::builder()
-        .target(env_logger::Target::Stdout)
+        .target(log_target())
         .filter_level(LevelFilter::Info)
         .parse_default_env()
         .try_init();
+}
+
+#[cfg(not(target_os = "android"))]
+fn log_target() -> env_logger::Target {
+    env_logger::Target::Stdout
+}
+
+/// An Android application's stdout goes nowhere: logcat is where its log is
+/// read, next to the application's own.
+#[cfg(target_os = "android")]
+fn log_target() -> env_logger::Target {
+    env_logger::Target::Pipe(Box::new(logcat::LogcatWriter::default()))
+}
+
+#[cfg(target_os = "android")]
+mod logcat {
+    use std::ffi::{CString, c_char, c_int};
+    use std::io::Write;
+
+    const ANDROID_LOG_INFO: c_int = 4;
+
+    unsafe extern "C" {
+        fn __android_log_write(prio: c_int, tag: *const c_char, text: *const c_char) -> c_int;
+    }
+
+    /// Hands each complete line to logcat; env_logger ends every record
+    /// with a newline.
+    #[derive(Default)]
+    pub struct LogcatWriter {
+        pending: Vec<u8>,
+    }
+
+    impl LogcatWriter {
+        fn emit(line: &[u8]) {
+            if line.is_empty() {
+                return;
+            }
+            let text = CString::new(line.iter().copied().filter(|b| *b != 0).collect::<Vec<_>>())
+                .unwrap_or_default();
+            // SAFETY: both pointers are NUL-terminated strings that outlive
+            // the call.
+            unsafe {
+                __android_log_write(ANDROID_LOG_INFO, c"rpgp".as_ptr(), text.as_ptr());
+            }
+        }
+    }
+
+    impl Write for LogcatWriter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.pending.extend_from_slice(buf);
+            while let Some(end) = self.pending.iter().position(|b| *b == b'\n') {
+                let line: Vec<u8> = self.pending.drain(..=end).collect();
+                Self::emit(&line[..line.len() - 1]);
+            }
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            let rest = std::mem::take(&mut self.pending);
+            Self::emit(&rest);
+            Ok(())
+        }
+    }
 }
 
 #[cfg(test)]
