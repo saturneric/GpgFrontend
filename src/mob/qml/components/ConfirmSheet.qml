@@ -1,0 +1,63 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+import GpgFrontend.Mobile
+
+// A destructive choice the profile loader cannot make alone: forcing a lock
+// another process holds, or discarding the application key. The safe choice
+// is the default; the destructive one has to be picked.
+Alert {
+    id: sheet
+
+    readonly property var request: InteractionBridge.current
+    readonly property bool forceUnlock: request.kind === "confirm_force_unlock"
+    readonly property bool keyReset: request.kind === "confirm_key_reset"
+
+    closePolicy: Popup.NoAutoClose
+    visible: forceUnlock || keyReset
+    title: forceUnlock ? qsTr("Profile already open") : qsTr("Reset the profile key?")
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 12
+
+        Label {
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            color: Material.secondaryTextColor
+            text: sheet.forceUnlock
+                  ? qsTr("Another process (%1, process %2 on %3) has this profile open. "
+                         + "Forcing it open while that process runs can damage "
+                         + "your data.")
+                    .arg(sheet.request.application || qsTr("unknown"))
+                    .arg(sheet.request.pid)
+                    .arg(sheet.request.host || qsTr("this device"))
+                  : qsTr("The key that encrypts this profile cannot be unlocked. "
+                         + "Resetting it makes everything it protected "
+                         + "permanently unreadable.")
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignRight
+
+            Button {
+                objectName: "safeChoice"
+                // A forgotten PIN not reset goes back to the PIN.
+                text: sheet.keyReset && sheet.request.reason === "pin_forgotten"
+                      ? qsTr("Back") : qsTr("Quit")
+                flat: true
+                onClicked: InteractionBridge.decline(sheet.request.id)
+            }
+
+            Button {
+                objectName: "destructiveChoice"
+                text: sheet.forceUnlock ? qsTr("Force open") : qsTr("Reset key")
+                flat: true
+                onClicked: InteractionBridge.answer(sheet.request.id, true)
+            }
+        }
+    }
+}
