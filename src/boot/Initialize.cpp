@@ -41,7 +41,9 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#endif
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileLoader.h"
@@ -399,6 +401,7 @@ void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
   // being force-exited with a success code.
   if (!ctx->unit_test_mode) ArmShutdownWatchdog(kShutdownWatchdogTimeoutMs);
 
+#if GF_ENGINE_GNUPG
   // Kill the gnupg daemons *before* destroying the contexts. This applies on
   // Windows too: the gpg-agent there does not exit with its parent (--daemon is
   // effectively a no-op), so a live agent would otherwise keep an assuan
@@ -424,6 +427,7 @@ void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
       GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache();
     }
   }
+#endif
 
   qDebug() << "GpgFrontend is shutting down...";
 

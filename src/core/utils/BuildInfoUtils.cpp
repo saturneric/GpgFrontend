@@ -29,9 +29,11 @@
 #include "BuildInfoUtils.h"
 
 #include <archive.h>
+#if GF_ENGINE_GNUPG
 #include <assuan.h>
 #include <gpg-error.h>
 #include <gpgme.h>
+#endif
 #include <openssl/opensslv.h>
 #include <sodium.h>
 
@@ -67,11 +69,20 @@ auto GetProjectOpenSSLVersion() -> QString {
   return {OPENSSL_FULL_VERSION_STR};
 }
 
+#if GF_ENGINE_GNUPG
 auto GetProjectGpgMEVersion() -> QString { return {GPGME_VERSION}; }
 
 auto GetProjectAssuanVersion() -> QString { return {ASSUAN_VERSION}; }
 
 auto GetProjectGpgErrorVersion() -> QString { return {GPG_ERROR_VERSION}; }
+#else
+// A build without the GnuPG engine links none of them.
+auto GetProjectGpgMEVersion() -> QString { return {}; }
+
+auto GetProjectAssuanVersion() -> QString { return {}; }
+
+auto GetProjectGpgErrorVersion() -> QString { return {}; }
+#endif
 
 auto GetProjectLibarchiveVersion() -> QString {
   return {ARCHIVE_VERSION_ONLY_STRING};

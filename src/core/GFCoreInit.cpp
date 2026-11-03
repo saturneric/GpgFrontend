@@ -27,7 +27,9 @@
  */
 #include "GFCoreInit.h"
 
+#if GF_ENGINE_GNUPG
 #include <gpgme.h>
+#endif
 
 #include <atomic>
 
@@ -37,8 +39,10 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GnuPGHome.h"
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
@@ -122,6 +126,7 @@ out:
   return default_db_path;
 }
 
+#if GF_ENGINE_GNUPG
 auto RefreshGpgMEBackendEngine(const QString& gpgconf_path,
                                const QString& gnupg_path,
                                const QString& home_path) -> bool {
@@ -147,6 +152,7 @@ auto RefreshGpgMEBackendEngine(const QString& gpgconf_path,
 
   return true;
 }
+#endif
 
 auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
     -> bool {
@@ -341,6 +347,12 @@ auto InitBasicPath() -> bool {
   return true;
 }
 
+#if !GF_ENGINE_GNUPG
+auto InitGpgME() -> bool {
+  LOG_I() << "this build has no GnuPG engine";
+  return false;
+}
+#else
 auto InitGpgME() -> bool {
   const auto* ver = gpgme_check_version(nullptr);
   if (ver == nullptr) {
@@ -468,6 +480,7 @@ auto InitGpgME() -> bool {
 
   return true;
 }
+#endif
 
 auto InitGnuPGEnv() -> bool {
   // initialize gpgme
@@ -566,6 +579,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // refresh gpgme backend engine, if gnupg is supported
   progress.Report(CoreInitStage::kENGINE, 0.3,
                   CoreInitStep::kREFRESHING_BACKEND_ENGINE);
+#if GF_ENGINE_GNUPG
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.gpgconf_path", QString{});
@@ -581,6 +595,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       GetGSS().RemoveSupportedEngine(OpenPGPEngine::kGNUPG);
     }
   }
+#endif
 
   // rarely happens, but just in case
   if (!GetGSS().HasSupportedEngine()) {
@@ -952,8 +967,10 @@ void DestroyGpgFrontendCore() {
   // Remove the short links handed to gnupg before the store that owns them
   // goes. Explicit rather than destructor-driven: teardown ordering here is
   // already delicate, and a link outliving the run it belongs to is litter.
+#if GF_ENGINE_GNUPG
   qDebug() << "Releasing gnupg home links...";
   GnuPGHomeLinkStore::GetInstance().ReleaseAll();
+#endif
 
   // destroy all singleton objects
   qDebug() << "Destroying all singleton objects...";

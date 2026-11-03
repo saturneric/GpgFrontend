@@ -26,7 +26,10 @@
 # gather source files
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/basic CORE_SOURCE)
-aux_source_directory(./function/gpg CORE_SOURCE)
+# The GnuPG engine; an rPGP-only build leaves it out.
+if(GF_ENGINE_GNUPG)
+  aux_source_directory(./function/gpg CORE_SOURCE)
+endif()
 aux_source_directory(./function/openpgp CORE_SOURCE)
 aux_source_directory(./function/secure_memory CORE_SOURCE)
 aux_source_directory(./function/rpgp CORE_SOURCE)
@@ -58,11 +61,15 @@ if(APPLE_SANDBOX)
   target_link_libraries(${LIBRARY_TARGET} PRIVATE "-framework Security")
 endif()
 
+# Whether the GnuPG engine is compiled in; tested with `#if GF_ENGINE_GNUPG`.
+target_compile_definitions(${LIBRARY_TARGET} PUBLIC
+  GF_ENGINE_GNUPG=${GF_ENGINE_GNUPG})
+
 # link gnupg libraries
 if(BUILD_AND_STATIC_LINK_GPGME)
   # if we need to static link gpgme
   target_link_libraries(${LIBRARY_TARGET} PUBLIC GnuPGDeps)
-else()
+elseif(GF_ENGINE_GNUPG)
   target_link_libraries(${LIBRARY_TARGET} PUBLIC gpgme assuan gpg-error)
 endif()
 

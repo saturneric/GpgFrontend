@@ -30,7 +30,9 @@
 
 #include <algorithm>
 
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
 
@@ -91,10 +93,14 @@ auto GpgFrontend::DescribeOpenPGPEngine(int channel) -> QString {
 }
 
 auto GpgFrontend::EngineErrorOf(int channel, GFErrorCode code) -> GFError {
-  if (OpenPGPContext::GetInstance(channel).Engine() == OpenPGPEngine::kRPGP) {
-    return {code, GFErrorOrigin::kRPGP, 0};
+#if GF_ENGINE_GNUPG
+  if (OpenPGPContext::GetInstance(channel).Engine() == OpenPGPEngine::kGNUPG) {
+    return FromGpgError(ToGpgError(GFError::Application(code)));
   }
-  return FromGpgError(ToGpgError(GFError::Application(code)));
+#else
+  Q_UNUSED(channel);
+#endif
+  return {code, GFErrorOrigin::kRPGP, 0};
 }
 
 auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {

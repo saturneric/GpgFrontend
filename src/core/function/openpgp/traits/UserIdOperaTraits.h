@@ -40,25 +40,27 @@
 #include "core/function/openpgp/support/UserIdOperaOpSupport.h"
 
 // Engine Impl
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/UserIdOpera.h"
+#endif
 #include "core/function/rpgp/UserIdOpera.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(AddUserIdOpTag, &AddUIDGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &AddUIDGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &AddUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(AddUserIdOpTag, &AddUIDRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &AddUIDRpgpImpl},
+                      GF_GNUPG_IMPL(&AddUIDGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(SetPrimaryUserIdOpTag, &SetPrimaryUIDGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &SetPrimaryUIDGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &SetPrimaryUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(SetPrimaryUserIdOpTag, &SetPrimaryUIDRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &SetPrimaryUIDRpgpImpl},
+                      GF_GNUPG_IMPL(&SetPrimaryUIDGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(DeleteUserIdOpTag, &DeleteUIDGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &DeleteUIDGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &DeleteUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(DeleteUserIdOpTag, &DeleteUIDRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &DeleteUIDRpgpImpl},
+                      GF_GNUPG_IMPL(&DeleteUIDGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(RevokeUserIdOpTag, &RevokeUIDGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &RevokeUIDGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &RevokeUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(RevokeUserIdOpTag, &RevokeUIDRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &RevokeUIDRpgpImpl},
+                      GF_GNUPG_IMPL(&RevokeUIDGnuPGImpl));
 
 }  // namespace GpgFrontend

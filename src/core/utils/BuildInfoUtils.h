@@ -98,19 +98,19 @@ auto GF_CORE_EXPORT GetProjectLibarchiveVersion() -> QString;
 
 /**
  * @brief Return the GpgME version linked at build time.
- * @return GpgME version string
+ * @return GpgME version string, empty in a build without the GnuPG engine
  */
 auto GF_CORE_EXPORT GetProjectGpgMEVersion() -> QString;
 
 /**
  * @brief Return the Assuan library version linked at build time.
- * @return Assuan version string
+ * @return Assuan version string, empty in a build without the GnuPG engine
  */
 auto GF_CORE_EXPORT GetProjectAssuanVersion() -> QString;
 
 /**
  * @brief Return the gpg-error library version linked at build time.
- * @return gpg-error version string
+ * @return gpg-error version string, empty in a build without the GnuPG engine
  */
 auto GF_CORE_EXPORT GetProjectGpgErrorVersion() -> QString;
 

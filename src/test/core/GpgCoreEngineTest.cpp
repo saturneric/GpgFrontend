@@ -31,7 +31,9 @@
 #include "core/GFConstants.h"
 #include "core/GFCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgContext.h"
+#endif
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
@@ -46,6 +48,7 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+#if GF_ENGINE_GNUPG
 /// @brief Feeds a fixed passphrase to GnuPG. Generated test keys carry no
 /// passphrase, but the callback is installed defensively.
 auto TestPassphraseCb(void* /*opaque*/, const char* /*uid_hint*/,
@@ -70,6 +73,7 @@ auto TestPassphraseCb(void* /*opaque*/, const char* /*uid_hint*/,
   res += gpgme_io_write(fd, "\n", 1);
   return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
 }
+#endif
 
 /// @brief Build the engine context for a channel exactly once per process run.
 auto EnsureEngine(const EngineTestParam& p) -> bool {
@@ -95,11 +99,14 @@ auto EnsureEngine(const EngineTestParam& p) -> bool {
     return false;
   }
 
+#if GF_ENGINE_GNUPG
   if (p.engine == OpenPGPEngine::kGNUPG) {
     auto& ctx = GpgCtx(OpenPGPContext::GetInstance(p.channel));
     ctx.SetPassphraseCb(ctx.DefaultContext(), TestPassphraseCb);
     ctx.SetPassphraseCb(ctx.BinaryContext(), TestPassphraseCb);
-  } else if (p.engine == OpenPGPEngine::kRPGP) {
+  }
+#endif
+  if (p.engine == OpenPGPEngine::kRPGP) {
     const auto fetcher = [](const PassphraseState&) -> GFBuffer {
       return GFBuffer("123456");
     };
@@ -203,12 +210,24 @@ auto GpgCoreEngineTest::StressIterations() -> int {
   return iter > 0 ? iter : kDefaultIterations;
 }
 
+namespace {
+
+/// Every engine this build has.
+auto EngineTestParams() -> std::vector<EngineTestParam> {
+  std::vector<EngineTestParam> params;
+#if GF_ENGINE_GNUPG
+  params.push_back(
+      EngineTestParam{"GnuPG", OpenPGPEngine::kGNUPG, kEngineTestGnupgChannel});
+#endif
+  params.push_back(
+      EngineTestParam{"RPGP", OpenPGPEngine::kRPGP, kEngineTestRpgpChannel});
+  return params;
+}
+
+}  // namespace
+
 INSTANTIATE_TEST_SUITE_P(
-    Engines, GpgCoreEngineTest,
-    ::testing::Values(EngineTestParam{"GnuPG", OpenPGPEngine::kGNUPG,
-                                      kEngineTestGnupgChannel},
-                      EngineTestParam{"RPGP", OpenPGPEngine::kRPGP,
-                                      kEngineTestRpgpChannel}),
+    Engines, GpgCoreEngineTest, ::testing::ValuesIn(EngineTestParams()),
     [](const ::testing::TestParamInfo<EngineTestParam>& info) {
       return info.param.name.toStdString();
     });

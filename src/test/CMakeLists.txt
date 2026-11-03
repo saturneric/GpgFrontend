@@ -28,10 +28,29 @@ include(CTest)
 enable_testing()
 find_package(GTest REQUIRED)
 
-# The core's tests, which gf_core_tests runs without an interface.
+# The core's tests, which gf_core_tests runs without an interface. The GnuPG
+# engine's own tests only where it is compiled in.
 aux_source_directory(./core CORE_TEST_SOURCE)
-aux_source_directory(./core/gpg CORE_TEST_SOURCE)
+if(GF_ENGINE_GNUPG)
+  aux_source_directory(./core/gpg CORE_TEST_SOURCE)
+endif()
 aux_source_directory(./core/rpgp CORE_TEST_SOURCE)
+
+# The core's own test program: the application's startup on a plain
+# QCoreApplication, so what passes here does not depend on gf_ui. The
+# libsecret candidate ordering it tests comes in with gf_boot.
+add_executable(gf_core_tests runner/main.cpp GpgFrontendTest.cpp
+  ${CORE_TEST_SOURCE})
+target_compile_definitions(gf_core_tests PRIVATE GF_TEST_PRIVATE
+  GF_TEST_EXPORT=)
+target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
+target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
+  gf_res)
+
+# The rest needs the desktop application.
+if(NOT GF_BUILD_DESKTOP)
+  return()
+endif()
 
 # The tests that need the interface or the module SDK, which `gpgfrontend -t`
 # runs. The harness is compiled into both programs; neither holds state the
@@ -101,17 +120,6 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
-
-# The core's own test program: the application's startup on a plain
-# QCoreApplication, so what passes here does not depend on gf_ui. The
-# libsecret candidate ordering it tests comes in with gf_boot.
-add_executable(gf_core_tests runner/main.cpp GpgFrontendTest.cpp
-  ${CORE_TEST_SOURCE})
-target_compile_definitions(gf_core_tests PRIVATE GF_TEST_PRIVATE
-  GF_TEST_EXPORT=)
-target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
-target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
-  gf_res)
 
 # A shared library that writes a file when it is mapped.
 #

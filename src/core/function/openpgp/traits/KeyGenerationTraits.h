@@ -36,33 +36,37 @@
  * op tags to GnuPG and rPGP implementations.
  */
 
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 
 // Engine Impl
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/KeyGenerate.h"
+#endif
 #include "core/function/rpgp/KeyGenerate.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GenerateKeyTag, &GenerateKeyRpgpImpl,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&GenerateKeyGnuPGImpl>::Call},
-                      {OpenPGPEngine::kRPGP, &GenerateKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(
+    GenerateKeyTag, &GenerateKeyRpgpImpl,
+    {OpenPGPEngine::kRPGP, &GenerateKeyRpgpImpl},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&GenerateKeyGnuPGImpl>::Call));
 
-GF_DEF_OP_IMPL_TRAITS(GenerateSubKeyTag, &GenerateSubKeyRpgpImpl,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&GenerateSubKeyGnuPGImpl>::Call},
-                      {OpenPGPEngine::kRPGP, &GenerateSubKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(
+    GenerateSubKeyTag, &GenerateSubKeyRpgpImpl,
+    {OpenPGPEngine::kRPGP, &GenerateSubKeyRpgpImpl},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&GenerateSubKeyGnuPGImpl>::Call));
 
-GF_DEF_OP_IMPL_TRAITS(GenerateKeyWithSubKeyTag, &GenerateKeyWithSubkeyRpgpImpl,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&GenerateKeyWithSubkeyGnuPGImpl>::Call},
-                      {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(
+    GenerateKeyWithSubKeyTag, &GenerateKeyWithSubkeyRpgpImpl,
+    {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&GenerateKeyWithSubkeyGnuPGImpl>::Call));
 
-GF_DEF_OP_IMPL_TRAITS(FilterKeyAlgoByKeyTag, &FilterKeyAlgoByKeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &FilterKeyAlgoByKeyGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &FilterKeyAlgoByKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(FilterKeyAlgoByKeyTag, &FilterKeyAlgoByKeyRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &FilterKeyAlgoByKeyRpgpImpl},
+                      GF_GNUPG_IMPL(&FilterKeyAlgoByKeyGnuPGImpl));
 
 }  // namespace GpgFrontend

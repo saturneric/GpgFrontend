@@ -40,25 +40,27 @@
 #include "core/function/openpgp/support/KeyStorageOpSupport.h"
 
 // Engine Impl
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/KeyStorage.h"
+#endif
 #include "core/function/rpgp/KeyStorage.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(FlushKeyDatabaseOpTag, &FlushKeyDatabaseGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &FlushKeyDatabaseGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &FlushKeyDatabaseRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(FlushKeyDatabaseOpTag, &FlushKeyDatabaseRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &FlushKeyDatabaseRpgpImpl},
+                      GF_GNUPG_IMPL(&FlushKeyDatabaseGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(FlushKeyCacheOpTag, &FlushKeyCacheGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &FlushKeyCacheGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &FlushKeyCacheRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(FlushKeyCacheOpTag, &FlushKeyCacheRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &FlushKeyCacheRpgpImpl},
+                      GF_GNUPG_IMPL(&FlushKeyCacheGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(GetKeyPtrOpTag, &GetKeyPtrGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetKeyPtrGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetKeyPtrRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GetKeyPtrOpTag, &GetKeyPtrRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &GetKeyPtrRpgpImpl},
+                      GF_GNUPG_IMPL(&GetKeyPtrGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(GetKeyVersionOpTag, &GetKeyVersionGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetKeyVersionGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetKeyVersionRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GetKeyVersionOpTag, &GetKeyVersionRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &GetKeyVersionRpgpImpl},
+                      GF_GNUPG_IMPL(&GetKeyVersionGnuPGImpl));
 
 }  // namespace GpgFrontend

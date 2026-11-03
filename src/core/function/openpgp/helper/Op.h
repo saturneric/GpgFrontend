@@ -34,6 +34,20 @@
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/OpSupport.h"
 
+/**
+ * @brief One GnuPG row of an engine dispatch table, or nothing.
+ *
+ * Expands to `{OpenPGPEngine::kGNUPG, FN},` in a build with the GnuPG engine
+ * and to nothing in an rPGP-only build, which compiles no GnuPG
+ * implementation. The trailing comma is allowed in a braced list, so the row
+ * can stand anywhere in the table.
+ */
+#if GF_ENGINE_GNUPG
+#define GF_GNUPG_IMPL(...) {OpenPGPEngine::kGNUPG, __VA_ARGS__},
+#else
+#define GF_GNUPG_IMPL(...)
+#endif
+
 namespace GpgFrontend {
 
 // Primary template — specialised by GF_DEF_OP_IMPL_TRAITS for each op tag.

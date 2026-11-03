@@ -32,7 +32,9 @@
 #include <unordered_set>
 
 #include "core/GFCoreRust.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgContext.h"
+#endif
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
@@ -215,6 +217,7 @@ void RequestCancelGpgOperation(int channel) {
   Rust::gfr_set_operation_cancelled(channel, true);
 #endif
 
+#if GF_ENGINE_GNUPG
   // Abort an in-flight GnuPG (gpgme) operation on this channel's context. Only
   // GnuPG channels use a GpgContext; for rPGP channels the cast yields nullptr
   // and the Rust cancel flag above already covers cancellation.
@@ -222,6 +225,7 @@ void RequestCancelGpgOperation(int channel) {
           dynamic_cast<GpgContext*>(&OpenPGPContext::GetInstance(channel))) {
     gpg_ctx->CancelCurrentOperation();
   }
+#endif
 }
 
 void ResetGpgOperationCancelState(int channel) {

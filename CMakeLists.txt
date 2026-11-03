@@ -55,7 +55,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # general build options
 option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
-option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
+# The android flavor has no modules; asking for them there is an error below.
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "android")
+  set(_gf_build_modules_default OFF)
+else()
+  set(_gf_build_modules_default ON)
+endif()
+option(GPGFRONTEND_BUILD_MODULES "Build Modules" ${_gf_build_modules_default})
 # A package for a system package manager installs into a fixed prefix, so it
 # strips the RPATH unless told otherwise.
 option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging"
@@ -72,11 +78,12 @@ set_property(CACHE GPGFRONTEND_BUILD_MODE PROPERTY STRINGS ${_gf_build_modes})
 
 # What kind of distribution this is: "installed" uses the OS user-data
 # location, "portable" keeps its data beside the application, "sandbox" is the
-# Mac App Store build (Xcode only), "flatpak" is the Flathub build. Which
-# modules ship is decided by it as well (modules/src/CMakeLists.txt).
-set(_gf_build_flavors installed portable sandbox flatpak)
+# Mac App Store build (Xcode only), "flatpak" is the Flathub build, "android"
+# is the rPGP-only core for the Android app. Which modules ship is decided by it
+# as well (modules/src/CMakeLists.txt).
+set(_gf_build_flavors installed portable sandbox flatpak android)
 set(GPGFRONTEND_BUILD_FLAVOR "installed"
-  CACHE STRING "installed | portable | sandbox | flatpak")
+  CACHE STRING "installed | portable | sandbox | flatpak | android")
 set_property(CACHE GPGFRONTEND_BUILD_FLAVOR PROPERTY STRINGS ${_gf_build_flavors})
 
 # xcode build options
@@ -105,7 +112,8 @@ macro(_gf_migrate_legacy_flavor_option legacy_option flavor)
           "GPGFRONTEND_BUILD_FLAVOR=${GPGFRONTEND_BUILD_FLAVOR}")
       endif()
       set(GPGFRONTEND_BUILD_FLAVOR "${flavor}"
-        CACHE STRING "installed | portable | sandbox | flatpak" FORCE)
+        CACHE STRING "installed | portable | sandbox | flatpak | android"
+        FORCE)
     endif()
     unset(${legacy_option} CACHE)
   endif()
@@ -131,6 +139,25 @@ endif()
 
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
+
+# Which engines and which programs the flavor builds. The android flavor is
+# rPGP-only, so it needs neither GpgME, libassuan nor libgpg-error, and it
+# builds the core, the startup library and the core tests, not the desktop
+# application.
+if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "android")
+  set(GF_ENGINE_GNUPG 0)
+  set(GF_BUILD_DESKTOP 0)
+  foreach(_gf_option GPGFRONTEND_BUILD_MODULES GPGFRONTEND_LINK_GPGME_INTO_CORE
+                     GPGFRONTEND_BUILD_SCREENSHOT_MODE)
+    if(${_gf_option})
+      message(FATAL_ERROR "${_gf_option}=ON contradicts "
+        "GPGFRONTEND_BUILD_FLAVOR=android")
+    endif()
+  endforeach()
+else()
+  set(GF_ENGINE_GNUPG 1)
+  set(GF_BUILD_DESKTOP 1)
+endif()
 
 # MinGW only: a runtime DLL that cannot be found fails the build, because the
 # result would not start on a machine without MSYS2. A development build may

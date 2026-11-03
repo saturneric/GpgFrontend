@@ -34,7 +34,9 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
@@ -54,9 +56,96 @@ namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
+#if GF_ENGINE_GNUPG
 auto DescribeGFError(const GFError& err) -> GpgErrorDesc {
   return DescribeGpgErrCode(ToGpgError(err));
 }
+#else
+namespace {
+
+/// What a code means, in GpgFrontend's own words, for a build without
+/// GnuPG's error texts.
+auto DescribeGFErrorCode(GFErrorCode code) -> QString {
+  switch (code) {
+    case GFErrorCode::kOK:
+      return QCoreApplication::tr("Success");
+    case GFErrorCode::kCANCELED:
+      return QCoreApplication::tr("Canceled");
+    case GFErrorCode::kABORTED:
+      return QCoreApplication::tr("Aborted");
+    case GFErrorCode::kGENERAL:
+      return QCoreApplication::tr("General error");
+    case GFErrorCode::kNOT_SUPPORTED:
+      return QCoreApplication::tr("Not supported");
+    case GFErrorCode::kUNSUPPORTED_OPERATION:
+      return QCoreApplication::tr("Unsupported operation");
+    case GFErrorCode::kINVALID_ARGUMENT:
+      return QCoreApplication::tr("Invalid argument");
+    case GFErrorCode::kINVALID_VALUE:
+      return QCoreApplication::tr("Invalid value");
+    case GFErrorCode::kINVALID_DATA:
+      return QCoreApplication::tr("Invalid data");
+    case GFErrorCode::kBAD_DATA:
+      return QCoreApplication::tr("Bad data");
+    case GFErrorCode::kNO_DATA:
+      return QCoreApplication::tr("No data");
+    case GFErrorCode::kBAD_ARMOR:
+      return QCoreApplication::tr("Bad ASCII armor");
+    case GFErrorCode::kNO_PUBLIC_KEY:
+      return QCoreApplication::tr("Public key not found");
+    case GFErrorCode::kNO_SECRET_KEY:
+      return QCoreApplication::tr("Secret key not found");
+    case GFErrorCode::kNO_KEY:
+      return QCoreApplication::tr("Key not found");
+    case GFErrorCode::kKEY_EXPIRED:
+      return QCoreApplication::tr("Key expired");
+    case GFErrorCode::kKEY_REVOKED:
+      return QCoreApplication::tr("Key revoked");
+    case GFErrorCode::kUNUSABLE_PUBLIC_KEY:
+      return QCoreApplication::tr("Public key cannot be used");
+    case GFErrorCode::kUNUSABLE_SECRET_KEY:
+      return QCoreApplication::tr("Secret key cannot be used");
+    case GFErrorCode::kWRONG_KEY_USAGE:
+      return QCoreApplication::tr("Key cannot be used for this");
+    case GFErrorCode::kUNSUPPORTED_ALGORITHM:
+      return QCoreApplication::tr("Unsupported algorithm");
+    case GFErrorCode::kNO_PASSPHRASE:
+      return QCoreApplication::tr("No passphrase given");
+    case GFErrorCode::kBAD_PASSPHRASE:
+      return QCoreApplication::tr("Wrong passphrase");
+    case GFErrorCode::kINVALID_PASSPHRASE:
+      return QCoreApplication::tr("Passphrase not acceptable");
+    case GFErrorCode::kDECRYPT_FAILED:
+      return QCoreApplication::tr("Decryption failed");
+    case GFErrorCode::kBAD_SIGNATURE:
+      return QCoreApplication::tr("Bad signature");
+    case GFErrorCode::kSIGNATURE_EXPIRED:
+      return QCoreApplication::tr("Signature expired");
+    case GFErrorCode::kNOT_FOUND:
+      return QCoreApplication::tr("Not found");
+    case GFErrorCode::kNOT_OPERATIONAL:
+      return QCoreApplication::tr("Not ready");
+    case GFErrorCode::kTIMEOUT:
+      return QCoreApplication::tr("Timed out");
+    case GFErrorCode::kIO:
+      return QCoreApplication::tr("Input or output error");
+    case GFErrorCode::kINTERNAL:
+      return QCoreApplication::tr("Internal error");
+    case GFErrorCode::kBUG:
+      return QCoreApplication::tr("Unexpected engine failure");
+  }
+  return QCoreApplication::tr("General error");
+}
+
+}  // namespace
+
+auto DescribeGFError(const GFError& err) -> GpgErrorDesc {
+  const auto source = err.origin == GFErrorOrigin::kRPGP
+                          ? QStringLiteral("rPGP")
+                          : QStringLiteral("GpgFrontend");
+  return {source, DescribeGFErrorCode(err.code)};
+}
+#endif
 
 namespace {
 

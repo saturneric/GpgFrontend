@@ -37,45 +37,57 @@
  * implementations (GnuPG and where applicable rPGP).
  */
 
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 
 // Engine Impl
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/KeyImportExport.h"
+#endif
 #include "core/function/rpgp/KeyImportExport.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(ImportKeyOpTag, &ImportKeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &ImportKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ImportKeyOpTag, &ImportKeyRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &ImportKeyRpgpImpl},
+                      GF_GNUPG_IMPL(&ImportKeyGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(ImportRevCertOpTag, &ImportKeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &ImportRevCertRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ImportRevCertOpTag, &ImportRevCertRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &ImportRevCertRpgpImpl},
+                      GF_GNUPG_IMPL(&ImportKeyGnuPGImpl));
 
-GF_DEF_OP_IMPL_TRAITS(ExportKeysOpTag, &ExportKeysRpgpImpl,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&ExportKeysGnuPGImpl>::Call},
-                      {OpenPGPEngine::kRPGP, &ExportKeysRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(
+    ExportKeysOpTag, &ExportKeysRpgpImpl,
+    {OpenPGPEngine::kRPGP, &ExportKeysRpgpImpl},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&ExportKeysGnuPGImpl>::Call));
 
-GF_DEF_OP_IMPL_TRAITS(ExportKeyAsOpenSSHFormatOpTag, &ExportKeysGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl});
+// Operations only the GnuPG engine implements, named by signature in
+// GpgFrontend's own types: an rPGP-only build has no implementation to take it
+// from, and a GnuPG build checks each implementation against it.
+using ExportKeyAsOpenSSHFormatFn = std::tuple<GFError, GFBuffer> (*)(
+    OpenPGPContext&, const GpgAbstractKeyPtrList&, bool, bool, bool, bool);
+using ExportSubkeyFn = std::tuple<GFError, GFBuffer> (*)(OpenPGPContext&,
+                                                         const QString&, bool);
 
-GF_DEF_OP_IMPL_TRAITS(ExportKeysAsyncOpTag, &ExportKeysAsyncRpgpImpl,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&ExportKeysAsyncGnuPGImpl>::Call},
-                      {OpenPGPEngine::kRPGP, &ExportKeysAsyncRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(
+    ExportKeyAsOpenSSHFormatOpTag, ExportKeyAsOpenSSHFormatFn{},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&ExportKeysGnuPGImpl>::Call));
 
-GF_DEF_OP_IMPL_TRAITS(ExportAllKeysOpTag, &ExportAllKeysRpgpImpl,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&ExportAllKeysGnuPGImpl>::Call},
-                      {OpenPGPEngine::kRPGP, &ExportAllKeysRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(
+    ExportKeysAsyncOpTag, &ExportKeysAsyncRpgpImpl,
+    {OpenPGPEngine::kRPGP, &ExportKeysAsyncRpgpImpl},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&ExportKeysAsyncGnuPGImpl>::Call));
 
-GF_DEF_OP_IMPL_TRAITS(ExportSubkeyOpTag,
-                      &FromGnuPGImpl<&ExportSubkeyGnuPGImpl>::Call,
-                      {OpenPGPEngine::kGNUPG,
-                       &FromGnuPGImpl<&ExportSubkeyGnuPGImpl>::Call});
+GF_DEF_OP_IMPL_TRAITS(
+    ExportAllKeysOpTag, &ExportAllKeysRpgpImpl,
+    {OpenPGPEngine::kRPGP, &ExportAllKeysRpgpImpl},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&ExportAllKeysGnuPGImpl>::Call));
+
+GF_DEF_OP_IMPL_TRAITS(
+    ExportSubkeyOpTag, ExportSubkeyFn{},
+    GF_GNUPG_IMPL(&FromGnuPGImpl<&ExportSubkeyGnuPGImpl>::Call));
 
 }  // namespace GpgFrontend

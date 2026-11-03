@@ -29,7 +29,9 @@ if(APPLE)
 endif()
 
 # Introduce GpgME
-find_package(Gpgme REQUIRED)
+if(GF_ENGINE_GNUPG)
+  find_package(Gpgme REQUIRED)
+endif()
 
 # Introduce libsodium
 # Note: We use libsodium for some non-OpenPGP related cryptographic operations,
@@ -65,15 +67,22 @@ add_custom_target(gf_module_trust_root
 
 add_subdirectory(core)
 add_subdirectory(boot)
-add_subdirectory(ui)
-add_subdirectory(sdk)
-add_subdirectory(tools)
+if(GF_BUILD_DESKTOP)
+  add_subdirectory(ui)
+  add_subdirectory(sdk)
+  add_subdirectory(tools)
+endif()
 # The unit tests are opt-in: a build without them needs no GoogleTest, and the
 # application then has no -t mode.
 if(GPGFRONTEND_BUILD_TESTS)
   add_subdirectory(test)
 endif()
 add_subdirectory(res)
+
+# Everything below is the desktop application and its packaging.
+if(NOT GF_BUILD_DESKTOP)
+  return()
+endif()
 
 # Collecting sources file of app
 aux_source_directory(. APP_SOURCE)

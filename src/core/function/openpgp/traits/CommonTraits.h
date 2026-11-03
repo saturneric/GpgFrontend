@@ -40,19 +40,20 @@
 #include "core/function/openpgp/support/CommonOpSupport.h"
 
 // Engine Impl
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/Common.h"
+#endif
 #include "core/function/rpgp/Common.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GetEngineVersionOpTag, &GetEngineVersionGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetEngineVersionGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetEngineVersionRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GetEngineVersionOpTag, &GetEngineVersionRpgpImpl,
+                      {OpenPGPEngine::kRPGP, &GetEngineVersionRpgpImpl},
+                      GF_GNUPG_IMPL(&GetEngineVersionGnuPGImpl));
 
 GF_DEF_OP_IMPL_TRAITS_RAW(BuildOpenPGPContextOpTag,
-                          &BuildOpenPGPContextGnuPGImpl,
-                          {OpenPGPEngine::kGNUPG,
-                           &BuildOpenPGPContextGnuPGImpl},
-                          {OpenPGPEngine::kRPGP, &BuildOpenPGPContextRpgpImpl});
+                          &BuildOpenPGPContextRpgpImpl,
+                          {OpenPGPEngine::kRPGP, &BuildOpenPGPContextRpgpImpl},
+                          GF_GNUPG_IMPL(&BuildOpenPGPContextGnuPGImpl));
 
 }  // namespace GpgFrontend
