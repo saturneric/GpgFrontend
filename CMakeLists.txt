@@ -155,6 +155,10 @@ elseif(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox")
   set(GF_ENGINE_GNUPG 0)
   set(_gf_refused_options GPGFRONTEND_LINK_GPGME_INTO_CORE)
 endif()
+# An Android target is only ever the android flavor's core.
+if(ANDROID AND NOT GPGFRONTEND_BUILD_FLAVOR STREQUAL "android")
+  message(FATAL_ERROR "An Android build needs GPGFRONTEND_BUILD_FLAVOR=android")
+endif()
 foreach(_gf_option IN LISTS _gf_refused_options)
   if(${_gf_option})
     message(FATAL_ERROR "${_gf_option}=ON contradicts "
@@ -415,8 +419,32 @@ if(APPLE)
   set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.3; rv:123.0) Gecko/20100101 Firefox/123.0")
 endif()
 
-if(UNIX AND NOT APPLE)
+# Android is a Unix that is not Linux here: no host include or library paths,
+# and the NDK's own C++ library rather than libstdc++.
+if(UNIX AND NOT APPLE AND NOT ANDROID)
   set(LINUX TRUE)
+endif()
+
+if(ANDROID)
+  message(STATUS "GpgFrontend Configuration For OS Platform Android")
+
+  set(OS_PLATFORM 3)
+
+  include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+  )
+
+  # Every shared object is linked for 16 KB pages, which Android 15 and later
+  # devices may use and Google Play requires.
+  add_link_options("LINKER:-z,max-page-size=16384")
+
+  # Types are compared by name, as libstdc++ does on Linux, not by the address
+  # of their RTTI. A type with no virtual function (GFBuffer) has a copy of its
+  # RTTI in every library that uses it, and Qt loads each bundled library on its
+  # own, so each binds to its own copy: a result gf_core builds would then fail
+  # DataObject::Check() and std::any_cast in the application.
+  add_compile_definitions(_LIBCPP_TYPEINFO_COMPARISON_IMPLEMENTATION=2)
 endif()
 
 if(LINUX)
@@ -458,8 +486,12 @@ if(LINUX)
   set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
 endif()
 
-# Minimum supported Qt version: 6.5 (LTS)
-find_package(Qt6 6.5 COMPONENTS Core Widgets PrintSupport Network LinguistTools Xml Sql REQUIRED)
+# Minimum supported Qt version: 6.5 (LTS). The desktop application needs the
+# widgets as well.
+find_package(Qt6 6.5 COMPONENTS Core Gui Network LinguistTools Xml Sql REQUIRED)
+if(GF_BUILD_DESKTOP)
+  find_package(Qt6 6.5 COMPONENTS Widgets PrintSupport REQUIRED)
+endif()
 
 # Qt configuration
 set(CMAKE_AUTOMOC ON)

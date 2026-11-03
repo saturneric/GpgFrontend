@@ -84,10 +84,15 @@ endif()
 # The generated module-build trust root: the public key this Host verifies
 # module descriptors with, and the build id they must carry. Generated rather
 # than checked in, because it is different for every build tree.
-set_source_files_properties("${GF_MODULE_TRUST_ROOT_SOURCE}"
-  PROPERTIES GENERATED TRUE SKIP_PRECOMPILE_HEADERS ON)
-target_sources(${LIBRARY_TARGET} PRIVATE "${GF_MODULE_TRUST_ROOT_SOURCE}")
-add_dependencies(${LIBRARY_TARGET} gf_module_trust_root)
+# A cross build has none (src/CMakeLists.txt).
+if(GF_HAS_MODULE_BUILD_KEY)
+  set_source_files_properties("${GF_MODULE_TRUST_ROOT_SOURCE}"
+    PROPERTIES GENERATED TRUE SKIP_PRECOMPILE_HEADERS ON)
+  target_sources(${LIBRARY_TARGET} PRIVATE "${GF_MODULE_TRUST_ROOT_SOURCE}")
+  add_dependencies(${LIBRARY_TARGET} gf_module_trust_root)
+else()
+  target_compile_definitions(${LIBRARY_TARGET} PRIVATE GF_NO_MODULE_BUILD_KEY)
+endif()
 
 # The integrated module native-binding policy this build was configured with.
 # Generated for the same reason the trust root is: one definition, compiled in,
@@ -108,8 +113,11 @@ if(APPLE)
   endif()
 endif()
 
-find_package(LibArchive REQUIRED)
-target_include_directories(${LIBRARY_TARGET} PRIVATE ${LibArchive_INCLUDE_DIR})
+# Android builds it from source instead (third_party/CMakeLists.txt).
+if(NOT TARGET archive)
+  find_package(LibArchive REQUIRED)
+  target_include_directories(${LIBRARY_TARGET} PRIVATE ${LibArchive_INCLUDE_DIR})
+endif()
 
 # link libarchive
 target_link_libraries(${LIBRARY_TARGET} PRIVATE archive)
@@ -146,7 +154,12 @@ if(MINGW)
   target_link_libraries(${LIBRARY_TARGET} PUBLIC wsock32)
 elseif(APPLE)
 else()
-  target_link_libraries(${LIBRARY_TARGET} PUBLIC pthread dl)
+  # Android's libc carries the threads itself; there is no libpthread.
+  if(ANDROID)
+    target_link_libraries(${LIBRARY_TARGET} PUBLIC dl)
+  else()
+    target_link_libraries(${LIBRARY_TARGET} PUBLIC pthread dl)
+  endif()
 
   # Refuse to produce a gf_core with unresolved symbols.
   #

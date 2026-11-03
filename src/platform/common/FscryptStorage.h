@@ -30,7 +30,10 @@
 
 // Whether this build carries the fscrypt backend. Shared by the backend and
 // the portable answers so both translation units agree on which one is live.
-#if defined(Q_OS_LINUX) && __has_include(<linux/fscrypt.h>)
+// Not on Android: its kernel has fscrypt, but the system already encrypts the
+// app's storage with it and does not let an app add keys of its own.
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID) && \
+    __has_include(<linux/fscrypt.h>)
 #define GF_HAS_FSCRYPT 1
 #endif
 

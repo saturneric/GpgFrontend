@@ -30,6 +30,24 @@
 
 namespace GpgFrontend::Module {
 
+#ifdef GF_NO_MODULE_BUILD_KEY
+
+// A cross build builds no modules, so it has no module-build key: the tool
+// that makes one would have to run on the build machine. All zeros is not a
+// valid Ed25519 public key, so nothing verifies against it and an integrated
+// module, should one ever be offered, fails closed.
+auto ModuleBuildPublicKey() -> const QByteArray& {
+  static const QByteArray key(32, '\0');
+  return key;
+}
+
+auto ModuleBuildId() -> const QString& {
+  static const QString id = QStringLiteral("no-modules");
+  return id;
+}
+
+#else
+
 // Defined by ModuleTrustRootGenerated.cpp, which gf_module_keygen writes into
 // the build tree. Declared here rather than included from a generated header:
 // a header would be reachable by anything that went looking, and the key
@@ -54,5 +72,7 @@ auto ModuleBuildId() -> const QString& {
   static const QString id = QString::fromLatin1(generated::kModuleBuildId);
   return id;
 }
+
+#endif
 
 }  // namespace GpgFrontend::Module

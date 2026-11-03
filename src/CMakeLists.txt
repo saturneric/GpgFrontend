@@ -39,31 +39,52 @@ endif()
 # that may not be available in the system OpenSSL library, which can cause
 # compatibility issues and conflicts with other software that relies on the
 # system OpenSSL.
-find_package(Sodium REQUIRED)
+#
+# Android builds it from source instead (third_party/CMakeLists.txt).
+if(NOT TARGET sodium)
+  find_package(Sodium REQUIRED)
+endif()
 
 # add libraries
 include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
-# Before core, because core compiles what it produces. See its CMakeLists.
-add_subdirectory(tools/module_keygen)
+if(CMAKE_CROSSCOMPILING)
+  # gf_module_keygen would be built for the target and cannot run here. A
+  # cross build builds no modules, so there is nothing to sign: gf_core is
+  # built without a module-build key (GF_NO_MODULE_BUILD_KEY, see
+  # core/module/ModuleTrustRoot.cpp), and an integrated module, should one
+  # ever be offered, fails closed.
+  if(GPGFRONTEND_BUILD_MODULES)
+    message(FATAL_ERROR "A cross build cannot build modules: "
+      "gf_module_keygen has to run on the build machine")
+  endif()
+  set(GF_HAS_MODULE_BUILD_KEY OFF)
+  add_custom_target(gf_module_trust_root)
+else()
+  set(GF_HAS_MODULE_BUILD_KEY ON)
 
-# The module-build trust root, generated before core compiles it.
-#
-# The command is NOT marked as always-out-of-date: gf_module_keygen rewrites
-# the source only when the key or the build id actually changed, so a rebuild
-# does not relink the world. What it will do is refuse, loudly, if the seed and
-# the already-generated trust root have fallen out of step -- see its Decide().
-add_custom_command(
-  OUTPUT "${GF_MODULE_TRUST_ROOT_SOURCE}"
-  COMMAND gf_module_keygen
-    --key-dir "${GF_MODULE_BUILD_KEY_DIR}"
-    --source-out "${GF_MODULE_TRUST_ROOT_SOURCE}"
-    --build-id "${GPGFRONTEND_BUILD_ID}"
-  DEPENDS gf_module_keygen
-  COMMENT "Module-build key for ${GPGFRONTEND_BUILD_ID}"
-  VERBATIM)
+  # Before core, because core compiles what it produces. See its CMakeLists.
+  add_subdirectory(tools/module_keygen)
 
-add_custom_target(gf_module_trust_root
-  DEPENDS "${GF_MODULE_TRUST_ROOT_SOURCE}")
+  # The module-build trust root, generated before core compiles it.
+  #
+  # The command is NOT marked as always-out-of-date: gf_module_keygen rewrites
+  # the source only when the key or the build id actually changed, so a
+  # rebuild does not relink the world. What it will do is refuse, loudly, if
+  # the seed and the already-generated trust root have fallen out of step --
+  # see its Decide().
+  add_custom_command(
+    OUTPUT "${GF_MODULE_TRUST_ROOT_SOURCE}"
+    COMMAND gf_module_keygen
+      --key-dir "${GF_MODULE_BUILD_KEY_DIR}"
+      --source-out "${GF_MODULE_TRUST_ROOT_SOURCE}"
+      --build-id "${GPGFRONTEND_BUILD_ID}"
+    DEPENDS gf_module_keygen
+    COMMENT "Module-build key for ${GPGFRONTEND_BUILD_ID}"
+    VERBATIM)
+
+  add_custom_target(gf_module_trust_root
+    DEPENDS "${GF_MODULE_TRUST_ROOT_SOURCE}")
+endif()
 
 add_subdirectory(core)
 add_subdirectory(boot)

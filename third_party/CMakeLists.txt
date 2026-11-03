@@ -23,6 +23,71 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# On Android nothing comes from the system: libsodium and libarchive are built
+# here for the target, pinned by version and hash, and offered under the names
+# gf_core already links ("sodium", "archive").
+if(ANDROID)
+  include(ExternalProject)
+  include(${CMAKE_SOURCE_DIR}/cmake/AndroidCrossBuild.cmake)
+
+  set(GF_ANDROID_DEPS "${CMAKE_BINARY_DIR}/deps")
+  file(MAKE_DIRECTORY "${GF_ANDROID_DEPS}/include")
+
+  # The name gf_core links, for the static library @p ep installs as @p lib
+  # (plus what it needs from the NDK).
+  function(_gf_android_static_dep name ep lib)
+    add_library(${name} INTERFACE)
+    add_dependencies(${name} ${ep})
+    target_include_directories(${name} INTERFACE "${GF_ANDROID_DEPS}/include")
+    target_link_libraries(${name} INTERFACE "${GF_ANDROID_DEPS}/lib/${lib}"
+      ${ARGN})
+  endfunction()
+
+  ExternalProject_Add(
+    EP_Sodium
+    URL "https://download.libsodium.org/libsodium/releases/libsodium-1.0.20.tar.gz"
+    URL_HASH SHA256=ebb65ef6ca439333c2bb41a0c1990587288da07f6c7fd07cb3a18cc18d30ce19
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    CONFIGURE_COMMAND
+    bash -c "${GF_ANDROID_AUTOTOOLS_ENV} CFLAGS='-O2 -fPIC' \
+      <SOURCE_DIR>/configure --host=${GF_ANDROID_TRIPLE} \
+        --prefix=${GF_ANDROID_DEPS} --enable-static --disable-shared \
+        --with-pic --disable-dependency-tracking"
+    BUILD_COMMAND make
+    INSTALL_COMMAND make install
+    BUILD_BYPRODUCTS "${GF_ANDROID_DEPS}/lib/libsodium.a")
+
+  _gf_android_static_dep(sodium EP_Sodium libsodium.a)
+
+  # Only what gf_core reads and writes: tar and zip, deflate from the NDK's
+  # zlib. No command-line tools, crypto backends or other compressors.
+  ExternalProject_Add(
+    EP_Archive
+    URL "https://github.com/libarchive/libarchive/releases/download/v3.8.1/libarchive-3.8.1.tar.xz"
+    URL_HASH SHA256=19f917d42d530f98815ac824d90c7eaf648e9d9a50e4f309c812457ffa5496b5
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    CMAKE_ARGS
+      -DCMAKE_TOOLCHAIN_FILE=${GF_ANDROID_NDK_TOOLCHAIN}
+      -DANDROID_ABI=${CMAKE_ANDROID_ARCH_ABI}
+      -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+      -DCMAKE_BUILD_TYPE=Release
+      -DCMAKE_INSTALL_PREFIX=${GF_ANDROID_DEPS}
+      -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      -DBUILD_SHARED_LIBS=OFF
+      -DENABLE_TEST=OFF -DENABLE_TAR=OFF -DENABLE_CPIO=OFF -DENABLE_CAT=OFF
+      -DENABLE_UNZIP=OFF -DENABLE_INSTALL=ON
+      -DENABLE_ZLIB=ON -DENABLE_BZip2=OFF -DENABLE_LZMA=OFF -DENABLE_ZSTD=OFF
+      -DENABLE_LZ4=OFF -DENABLE_LZO=OFF -DENABLE_LIBB2=OFF
+      -DENABLE_OPENSSL=OFF -DENABLE_MBEDTLS=OFF -DENABLE_NETTLE=OFF
+      -DENABLE_CNG=OFF -DENABLE_LIBXML2=OFF -DENABLE_EXPAT=OFF
+      -DENABLE_ICONV=OFF -DENABLE_ACL=OFF -DENABLE_XATTR=OFF
+      -DENABLE_PCREPOSIX=OFF -DENABLE_PCRE2POSIX=OFF
+    BUILD_BYPRODUCTS "${GF_ANDROID_DEPS}/lib/libarchive.a")
+
+  _gf_android_static_dep(archive EP_Archive libarchive.a z)
+endif()
+
 if(BUILD_AND_STATIC_LINK_GPGME AND NOT MINGW AND NOT XCODE_BUILD)
   include(ExternalProject)
 

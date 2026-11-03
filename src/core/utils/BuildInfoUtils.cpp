@@ -34,7 +34,10 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 #endif
+// The OpenSSL a build was made beside; the Android build has none.
+#if __has_include(<openssl/opensslv.h>)
 #include <openssl/opensslv.h>
+#endif
 #include <sodium.h>
 
 #include "GpgFrontendBuildInfo.h"
@@ -66,7 +69,11 @@ auto GetProjectBuildGitVersion() -> QString { return GIT_VERSION; }
 auto GetProjectQtVersion() -> QString { return {qVersion()}; }
 
 auto GetProjectOpenSSLVersion() -> QString {
+#ifdef OPENSSL_FULL_VERSION_STR
   return {OPENSSL_FULL_VERSION_STR};
+#else
+  return {};
+#endif
 }
 
 #if GF_ENGINE_GNUPG

@@ -77,6 +77,13 @@ elseif(APPLE)
     ${GF_PLATFORM_DIR}/macos/MacWebEditor.mm)
   list(APPEND GF_PLATFORM_APP_SOURCES
     ${GF_PLATFORM_DIR}/macos/MacSecretStore.cpp)
+elseif(ANDROID)
+  # The Linux filesystem helpers hold on Android's kernel; fscrypt, libsecret
+  # and the desktop credential store do not apply. The secret store stays the
+  # stub until a Keystore backend exists.
+  list(APPEND GF_PLATFORM_CORE_SOURCES
+    ${GF_PLATFORM_DIR}/unix/UnixFs.cpp
+    ${GF_PLATFORM_DIR}/linux/LinuxFs.cpp)
 else()
   list(APPEND GF_PLATFORM_CORE_SOURCES
     ${GF_PLATFORM_DIR}/unix/UnixFs.cpp
