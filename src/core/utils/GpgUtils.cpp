@@ -1210,10 +1210,29 @@ auto ChooseOpenPGPEngine(const QString& preferred, bool gnupg_supported,
   return {};
 }
 
+auto MissingKeyDatabaseEngine(const QString& backend_type, bool gnupg_supported,
+                              bool rpgp_supported) -> QString {
+  const auto token = backend_type.trimmed().toLower();
+  if (token == "gnupg" && !gnupg_supported) {
+    return ConvertOpenPGPEngine2String(OpenPGPEngine::kGNUPG);
+  }
+  if (token == "rpgp" && !rpgp_supported) {
+    return ConvertOpenPGPEngine2String(OpenPGPEngine::kRPGP);
+  }
+  return {};
+}
+
 auto ChooseKeyDatabaseEngine(const QString& backend_type,
                              const QString& fallback_engine,
                              bool gnupg_supported, bool rpgp_supported)
     -> EngineChoice {
+  // A database that names an engine this build lacks is that engine's
+  // keyring: the other one would find nothing in it and write a keyring of its
+  // own beside it. It is left alone, as stored, for a build that has it.
+  if (!MissingKeyDatabaseEngine(backend_type, gnupg_supported, rpgp_supported)
+           .isEmpty()) {
+    return {};
+  }
   return ChooseOpenPGPEngine(
       backend_type.trimmed().isEmpty() ? fallback_engine : backend_type,
       gnupg_supported, rpgp_supported);
@@ -1290,10 +1309,59 @@ auto ChooseChannelZeroEngine(const QString& db_name,
   // The reserved-name rule, not string equality: every other site that asks
   // "is this the default one" trims and ignores case, and a channel-0 entry
   // spelled "default" would otherwise be handed the wrong engine.
-  const auto is_default = IsReservedKeyDatabaseName(db_name);
-  return ChooseKeyDatabaseEngine(is_default ? default_engine : backend_type,
-                                 default_engine, gnupg_supported,
+  //
+  // DEFAULT is this machine's own place, not a keyring carried in from
+  // elsewhere: where the preferred engine is missing, it opens with the one the
+  // build has.
+  if (IsReservedKeyDatabaseName(db_name)) {
+    return ChooseOpenPGPEngine(default_engine, gnupg_supported, rpgp_supported);
+  }
+  return ChooseKeyDatabaseEngine(backend_type, default_engine, gnupg_supported,
                                  rpgp_supported);
+}
+
+auto ChooseDefaultKeyDatabaseIndex(const QList<KeyDatabaseInfo>& key_dbs,
+                                   const QString& default_id,
+                                   const QString& default_engine,
+                                   bool gnupg_supported, bool rpgp_supported)
+    -> int {
+  const auto opens = [&](const KeyDatabaseInfo& key_db) -> bool {
+    return ChooseChannelZeroEngine(key_db.name, key_db.backend_type,
+                                   default_engine, gnupg_supported,
+                                   rpgp_supported)
+        .ok;
+  };
+
+  // An id that names none of them falls to the first, as it always has.
+  int chosen = key_dbs.isEmpty() ? -1 : 0;
+  for (int i = 0; i < key_dbs.size(); i++) {
+    if (key_dbs[i].id == default_id) {
+      chosen = i;
+      break;
+    }
+  }
+
+  int reserved = -1;
+  int first_usable = -1;
+  for (int i = 0; i < key_dbs.size(); i++) {
+    if (!opens(key_dbs[i])) continue;
+    if (reserved < 0 && IsReservedKeyDatabaseName(key_dbs[i].name)) {
+      reserved = i;
+    }
+    if (first_usable < 0) first_usable = i;
+  }
+
+  // The chosen default when it can open; else, while it waits for a build
+  // that has its engine, the built-in database, then the first that can.
+  if (chosen >= 0 && opens(key_dbs[chosen])) return chosen;
+  if (chosen >= 0) {
+    LOG_W() << "the chosen default key database cannot be opened by this "
+               "build, using another for this run:"
+            << key_dbs[chosen].name;
+  }
+  if (reserved >= 0) return reserved;
+  if (first_usable >= 0) return first_usable;
+  return 0;
 }
 
 auto ClassifyKeyDatabase(const QString& name, const QString& stored_path,

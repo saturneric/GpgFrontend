@@ -96,7 +96,10 @@ auto CreateTableItem(const QString& text,
   return item;
 }
 
-auto CreateStatusItem(bool active) -> QTableWidgetItem* {
+/// @p missing_engine names the engine an inactive database uses that this
+/// build lacks, when that is why it is inactive.
+auto CreateStatusItem(bool active, const QString& missing_engine = {})
+    -> QTableWidgetItem* {
   auto* item = new QTableWidgetItem(active ? QObject::tr("Active")
                                            : QObject::tr("Inactive"));
   item->setTextAlignment(Qt::AlignCenter);
@@ -109,7 +112,12 @@ auto CreateStatusItem(bool active) -> QTableWidgetItem* {
   // background the theme owns, and every role that looks like it means "dim
   // text" fails on one theme or the other -- which is how the hints on this
   // page came to be invisible on Windows dark mode.
-  if (!active) {
+  if (!active && !missing_engine.isEmpty()) {
+    item->setToolTip(
+        QObject::tr("This key database uses %1, which is not available. It "
+                    "was left as it is.")
+            .arg(missing_engine));
+  } else if (!active) {
     item->setToolTip(QObject::tr(
         "GpgFrontend could not open this key database at the last start."));
   }
@@ -918,7 +926,13 @@ void KeyDatabasesTab::fill_table(QTableWidget* table,
 
     const auto is_active = active != active_key_db_infos_.end();
 
-    table->setItem(index, 3, CreateStatusItem(is_active));
+    table->setItem(
+        index, 3,
+        CreateStatusItem(
+            is_active, MissingKeyDatabaseEngine(
+                           key_db.backend_type,
+                           GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG),
+                           GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP))));
 
     // Filled by refresh_role_controls(), which every change of the default
     // runs; left empty here so there is one place that decides it.

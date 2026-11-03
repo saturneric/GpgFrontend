@@ -645,14 +645,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // comes first, and it is opened on the handle its place in the list gives
   // it. Recorded before anything is built: the agent decides whether to run
   // scdaemon by asking which handle is the default.
-  const auto default_db_id = GetDefaultKeyDatabaseId();
-  int default_index = 0;
-  for (int i = 0; i < key_dbs.size(); i++) {
-    if (key_dbs[i].id == default_db_id) {
-      default_index = i;
-      break;
-    }
-  }
+  const auto default_index = ChooseDefaultKeyDatabaseIndex(
+      key_dbs, GetDefaultKeyDatabaseId(), default_engine, gnupg_supported,
+      rpgp_supported);
   const auto default_handle = kGpgFrontendDefaultChannel + default_index;
   const auto& default_key_db_info = key_dbs[default_index];
   SetDefaultChannelHandle(default_handle);
@@ -776,7 +771,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
               ChooseKeyDatabaseEngine(key_db.backend_type, default_engine,
                                       gnupg_supported, rpgp_supported);
           if (!choice.ok) {
-            LOG_W() << "no usable engine for key db, skip:" << key_db.name
+            LOG_W() << "no usable engine for key db, left as it is:"
+                    << key_db.name
                     << "requested backend:" << key_db.backend_type;
             give_up();
             continue;
@@ -1107,14 +1103,10 @@ auto BuildCandidateRuntime(KeyDatabaseApplyResult& result)
   const auto key_dbs = GetKeyDatabaseInfoBySettings();
   const auto default_id = GetDefaultKeyDatabaseId();
 
-  // As at startup: the chosen default when it is usable, else the first.
-  int default_index = 0;
-  for (int i = 0; i < key_dbs.size(); i++) {
-    if (key_dbs[i].id == default_id) {
-      default_index = i;
-      break;
-    }
-  }
+  // As at startup.
+  const auto default_index = ChooseDefaultKeyDatabaseIndex(
+      key_dbs, default_id, options.default_engine, options.gnupg_supported,
+      options.rpgp_supported);
 
   return PrepareKeyDatabaseRuntime(key_dbs, default_index, options, result);
 }
@@ -1230,6 +1222,14 @@ auto PrepareKeyDatabaseRuntime(const QList<KeyDatabaseInfo>& key_dbs,
     // Shown to the user, under the name the user knows it by.
     const auto shown = KeyDatabaseDisplayName(key_db.id, key_db.name);
     result.unavailable.append(shown);
+    const auto missing = MissingKeyDatabaseEngine(
+        key_db.backend_type, options.gnupg_supported, options.rpgp_supported);
+    if (!missing.isEmpty() && !is_default) {
+      result.errors.append(
+          QCoreApplication::tr("\"%1\" uses %2, which is not available. It "
+                               "was left as it is.")
+              .arg(shown, missing));
+    }
     if (is_default) {
       result.errors.append(
           QCoreApplication::tr("The default key database \"%1\" could not be "
