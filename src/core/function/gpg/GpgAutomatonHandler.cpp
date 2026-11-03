@@ -32,9 +32,9 @@
 #include <thread>
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgData.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/model/GFEngineSupportIf.h"
-#include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 
 namespace GpgFrontend {

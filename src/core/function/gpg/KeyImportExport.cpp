@@ -29,9 +29,9 @@
 #include "KeyImportExport.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgData.h"
 #include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/rpgp/KeyImportExport.h"
-#include "core/model/GpgData.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"

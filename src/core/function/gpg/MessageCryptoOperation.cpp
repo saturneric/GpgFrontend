@@ -31,8 +31,8 @@
 #include <gpg-error.h>
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgData.h"
 #include "core/function/gpg/GpgModelConvert.h"
-#include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"

@@ -29,10 +29,10 @@
 #include <gtest/gtest.h>
 
 #include "GpgCoreTest.h"
+#include "core/function/gpg/GpgData.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
-#include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
 

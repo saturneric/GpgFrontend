@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/model/GpgData.h"
+#include "GpgData.h"
 
 #include <cstddef>
 
