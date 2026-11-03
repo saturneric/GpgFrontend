@@ -36,6 +36,7 @@
 #include "GpgFrontendTest.h"
 #include "core/model/SettingsObject.h"
 #include "host/SdkTestContext.h"
+#include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKUI.h"
 #include "ui/command/ModuleUiTeardown.h"
 #include "ui/lua/LuaMounts.h"
@@ -251,6 +252,12 @@ TEST(NativeWidgetTest, AModulePersistedDocumentIsTheViewsToOpenSaveAndClose) {
               QStringList{u"encrypt"_s});
     EXPECT_TRUE(page->ModuleEncryptRequested());
 
+    // A table without the newer hooks: Decrypt is not the view's, the
+    // actions keep their tooltips, and Save is offered.
+    EXPECT_FALSE(page->ModuleDecryptRequested());
+    EXPECT_FALSE(page->ModuleCryptoTip(GF_CRYPTO_OP_DECRYPT).has_value());
+    EXPECT_TRUE(page->ModuleSaveAllowed());
+
     g_persisted.allow_close = false;
     EXPECT_FALSE(page->ModuleCloseRequested());
     g_persisted.allow_close = true;
@@ -283,6 +290,84 @@ TEST(NativeWidgetTest, AModulePersistedDocumentIsTheViewsToOpenSaveAndClose) {
     delete page;
   });
   GFNativeWidgetUnregister(owner(), "persisted");
+}
+
+namespace {
+
+/// A note-like view: encrypted (Decrypt opens it, nothing to save) or open
+/// with an encrypted snapshot (Decrypt takes the encryption off).
+struct CryptoViewLog {
+  GFSDKContext* ctx = nullptr;
+  bool encrypted = true;
+  int decrypts = 0;
+};
+CryptoViewLog g_crypto_view;
+
+auto CryptoViewOps(void*, uint64_t, uint32_t* out) -> int {
+  *out = g_crypto_view.encrypted ? GF_CRYPTO_OP_DECRYPT
+                                 : GF_CRYPTO_OP_ENCRYPT | GF_CRYPTO_OP_DECRYPT;
+  return 0;
+}
+auto CryptoViewDecrypt(void*, uint64_t) -> int {
+  ++g_crypto_view.decrypts;
+  return 0;
+}
+auto CryptoViewTip(void*, uint64_t, uint32_t op, GFBufferRef* out) -> int {
+  if (g_crypto_view.encrypted || op != GF_CRYPTO_OP_DECRYPT) return 1;
+  static constexpr std::string_view kTip = "Remove encryption";
+  *out = GFBufferNewFromBytes(g_crypto_view.ctx, kTip.data(), kTip.size());
+  return 0;
+}
+auto CryptoViewSaveAllowed(void*, uint64_t) -> int {
+  return g_crypto_view.encrypted ? 0 : 1;
+}
+
+GFDocumentWidgetOps CryptoViewTable() {
+  auto ops = PersistedOps();
+  ops.crypto_ops = &CryptoViewOps;
+  ops.decrypt_requested = &CryptoViewDecrypt;
+  ops.crypto_op_tip = &CryptoViewTip;
+  ops.save_allowed = &CryptoViewSaveAllowed;
+  return ops;
+}
+
+}  // namespace
+
+// A view that persists its document may give Decrypt its own meaning, say
+// what the toolbar action does there, and grey out Save while there is
+// nothing to save.
+TEST(NativeWidgetTest, AModulePersistedViewOwnsDecryptItsTipAndSave) {
+  g_crypto_view = {};
+  SdkTestContext owner(kOwner, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  g_crypto_view.ctx = owner();
+  static const auto kOps = CryptoViewTable();
+  auto spec = Spec("crypto_view", GF_NATIVE_DOCUMENT);
+  spec.document = &kOps;
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+
+  OnGui([&] {
+    auto* page = new UI::PlainTextEditorPage();
+    ASSERT_TRUE(page->MountNativeView(QString(kOwner) + ".crypto_view"));
+    page->SetModulePersisted(true);
+
+    bool has_opinion = false;
+    EXPECT_EQ(page->PrimaryViewCryptoOperations(has_opinion),
+              QStringList{u"decrypt"_s});
+    EXPECT_FALSE(page->ModuleSaveAllowed());
+    EXPECT_FALSE(page->ModuleCryptoTip(GF_CRYPTO_OP_DECRYPT).has_value());
+    EXPECT_TRUE(page->ModuleDecryptRequested());
+
+    g_crypto_view.encrypted = false;
+    EXPECT_EQ(page->PrimaryViewCryptoOperations(has_opinion),
+              (QStringList{u"encrypt"_s, u"decrypt"_s}));
+    EXPECT_TRUE(page->ModuleSaveAllowed());
+    EXPECT_EQ(page->ModuleCryptoTip(GF_CRYPTO_OP_DECRYPT),
+              std::optional<QString>(u"Remove encryption"_s));
+    EXPECT_FALSE(page->ModuleCryptoTip(GF_CRYPTO_OP_ENCRYPT).has_value());
+    delete page;
+  });
+  EXPECT_EQ(g_crypto_view.decrypts, 1);
+  GFNativeWidgetUnregister(owner(), "crypto_view");
 }
 
 TEST(NativeWidgetTest, AnInstanceAnswersOnlyToItsOwnerAndItsKind) {

@@ -41,6 +41,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "sdk/GFSDKTypes.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/LogViewDialog.h"
@@ -402,8 +403,14 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   if (edit_->CurFilePage() != nullptr) disable = true;
 
   print_act_->setDisabled(disable);
-  save_act_->setDisabled(disable);
-  save_as_act_->setDisabled(disable);
+  // A document its module keeps may have nothing to save yet -- a note
+  // still encrypted, say -- and says so.
+  const auto* module_page = edit_->CurPageTextEdit();
+  const bool save_refused = module_page != nullptr &&
+                            module_page->IsModulePersisted() &&
+                            !module_page->ModuleSaveAllowed();
+  save_act_->setDisabled(disable || save_refused);
+  save_as_act_->setDisabled(disable || save_refused);
   cut_act_->setDisabled(disable);
   copy_act_->setDisabled(disable);
   paste_act_->setDisabled(disable);
@@ -440,6 +447,9 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
     // would subtract from that -- an encrypted message's "decrypt only" would
     // follow the user onto the file browser.
     tab_type_menu_mask_ = ~0;
+    // Nor does a note's own meaning for Encrypt or Decrypt follow it there.
+    set_action_context_tip(encrypt_act_, std::nullopt);
+    set_action_context_tip(decrypt_act_, std::nullopt);
 
     auto* file_page = edit_->CurFilePage();
     emit file_page->SignalCurrentTabChanged();
@@ -719,6 +729,12 @@ void MainWindow::SlotGeneralEncrypt(bool) {
 }
 
 void MainWindow::SlotGeneralDecrypt(bool) {
+  // A document its module keeps: what Decrypt means there is the view's.
+  if (auto* page = edit_->CurPageTextEdit();
+      page != nullptr && page->IsModulePersisted()) {
+    page->ModuleDecryptRequested();
+    return;
+  }
   dispatch_general_op(
       [this](FilePage* p) { SlotFileDecrypt(p->GetSelected()); },
       [this]() { SlotDecrypt(); },
@@ -801,19 +817,51 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
   for (auto* act : {encrypt_act_, encrypt_sign_act_}) {
     set_action_block_reason(act, encrypt_block_reason);
   }
+
+  // A document its module keeps may give Encrypt or Decrypt its own meaning
+  // (Decrypt takes the encryption off a note, say); the tooltip says which.
+  const bool module_page = page != nullptr && page->IsModulePersisted();
+  set_action_context_tip(
+      encrypt_act_,
+      module_page ? page->ModuleCryptoTip(GF_CRYPTO_OP_ENCRYPT) : std::nullopt);
+  set_action_context_tip(
+      decrypt_act_,
+      module_page ? page->ModuleCryptoTip(GF_CRYPTO_OP_DECRYPT) : std::nullopt);
 }
 
-void MainWindow::set_action_block_reason(QAction* act, const QString& reason) {
-  if (act == nullptr) return;
+namespace {
 
-  static const char* const kBaseToolTip = "gf_base_tool_tip";
+constexpr const char* kBaseToolTip = "gf_base_tool_tip";
+constexpr const char* kContextToolTip = "gf_context_tool_tip";
+constexpr const char* kBlockReason = "gf_block_reason";
+
+/// The action's tooltip from its parts: what it does here (the context tip,
+/// else its usual tooltip) and why it is unavailable, if it is.
+void RefreshActionToolTip(QAction* act) {
   if (!act->property(kBaseToolTip).isValid()) {
     act->setProperty(kBaseToolTip, act->toolTip());
   }
-
-  const auto base = act->property(kBaseToolTip).toString();
+  const auto context = act->property(kContextToolTip).toString();
+  const auto base =
+      context.isEmpty() ? act->property(kBaseToolTip).toString() : context;
+  const auto reason = act->property(kBlockReason).toString();
   act->setToolTip(reason.isEmpty() ? base
                                    : QString("%1\n\n%2").arg(base, reason));
+}
+
+}  // namespace
+
+void MainWindow::set_action_block_reason(QAction* act, const QString& reason) {
+  if (act == nullptr) return;
+  act->setProperty(kBlockReason, reason);
+  RefreshActionToolTip(act);
+}
+
+void MainWindow::set_action_context_tip(QAction* act,
+                                        const std::optional<QString>& tip) {
+  if (act == nullptr) return;
+  act->setProperty(kContextToolTip, tip.value_or(QString()));
+  RefreshActionToolTip(act);
 }
 
 void MainWindow::slot_update_engine_status() {

@@ -142,6 +142,17 @@ class DocumentWidget : public NativeWidgetBase {
   /// The user pressed Encrypt: encrypt the document yourself. true: taken.
   /// Offered while CryptoOperations() includes GF_CRYPTO_OP_ENCRYPT.
   virtual auto EncryptRequested() -> bool { return false; }
+  /// The user pressed Decrypt; what that does is the view's. true: taken.
+  /// Offered while CryptoOperations() includes GF_CRYPTO_OP_DECRYPT.
+  virtual auto DecryptRequested() -> bool { return false; }
+  /// The tooltip for the toolbar action of @p op (one GF_CRYPTO_OP_* bit)
+  /// when the view gives it its own meaning; nullopt keeps the usual one.
+  [[nodiscard]] virtual auto CryptoOperationTip(uint32_t /*op*/) const
+      -> std::optional<QString> {
+    return std::nullopt;
+  }
+  /// false while Save and Save As mean nothing for the document.
+  [[nodiscard]] virtual auto SaveAllowed() const -> bool { return true; }
 
  protected:
   /// An edit happened; the tab now has unsaved changes.

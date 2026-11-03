@@ -213,6 +213,23 @@ auto DocEncryptRequested(void*, uint64_t i) -> int {
   auto* d = As<DocumentWidget>(i);
   return d != nullptr && d->EncryptRequested() ? 0 : -1;
 }
+auto DocDecryptRequested(void*, uint64_t i) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d != nullptr && d->DecryptRequested() ? 0 : -1;
+}
+auto DocCryptoOpTip(void*, uint64_t i, uint32_t op, GFBufferRef* out) -> int {
+  if (out != nullptr) *out = nullptr;
+  auto* d = As<DocumentWidget>(i);
+  if (d == nullptr || out == nullptr) return -1;
+  const auto tip = d->CryptoOperationTip(op);
+  if (!tip.has_value()) return -1;
+  *out = Buffer(tip->toUtf8());
+  return 0;
+}
+auto DocSaveAllowed(void*, uint64_t i) -> int {
+  auto* d = As<DocumentWidget>(i);
+  return d == nullptr || d->SaveAllowed() ? 1 : 0;
+}
 
 const GFDocumentWidgetOps kDocumentOps = {
     sizeof(GFDocumentWidgetOps),
@@ -233,6 +250,9 @@ const GFDocumentWidgetOps kDocumentOps = {
     &DocCloseRequested,
     &DocFindRequested,
     &DocEncryptRequested,
+    &DocDecryptRequested,
+    &DocCryptoOpTip,
+    &DocSaveAllowed,
 };
 
 // --- settings

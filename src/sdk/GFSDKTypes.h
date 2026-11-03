@@ -432,6 +432,21 @@ typedef struct GFDocumentWidgetOps {
    *  passphrase when none are. Offered only while crypto_ops reports
    *  GF_CRYPTO_OP_ENCRYPT. 0: taken. */
   int (*encrypt_requested)(void* user, uint64_t instance);
+
+  /* --- appended; absent in an older table, which the Host zero-fills --- */
+
+  /** The user pressed Decrypt on this document; what that means is the
+   *  view's (opening an encrypted file, say). Offered only while crypto_ops
+   *  reports GF_CRYPTO_OP_DECRYPT. 0: taken. */
+  int (*decrypt_requested)(void* user, uint64_t instance);
+  /** What the toolbar action for @p op (one GF_CRYPTO_OP_* bit) does here,
+   *  when the view gives it its own meaning. 0 and the text in @p out, owned
+   *  by the Host; non-zero: the action keeps its usual tooltip. */
+  int (*crypto_op_tip)(void* user, uint64_t instance, uint32_t op,
+                       GFBufferRef* out);
+  /** 0 while Save and Save As mean nothing for the document (it is not open
+   *  yet, say); the Host greys them out. Absent: they are offered. */
+  int (*save_allowed)(void* user, uint64_t instance);
 } GFDocumentWidgetOps;
 
 /** A settings page: what the Host asks of it. Append-only. */

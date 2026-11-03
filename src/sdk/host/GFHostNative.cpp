@@ -246,6 +246,33 @@ void AdaptDocument(NativeWidgetEntry& e, const GFDocumentWidgetOps ops,
       return taken;
     };
   }
+  if (ops.decrypt_requested != nullptr) {
+    d.decrypt_requested = [=](quint64 i) {
+      bool taken = false;
+      EnterModule(m, [&] { taken = ops.decrypt_requested(user, i) == 0; });
+      return taken;
+    };
+  }
+  if (ops.crypto_op_tip != nullptr) {
+    d.crypto_op_tip = [=](quint64 i, uint32_t op) -> std::optional<QString> {
+      std::optional<QString> tip;
+      EnterModule(m, [&] {
+        GFBufferRef text = nullptr;
+        const bool given = ops.crypto_op_tip(user, i, op, &text) == 0;
+        const auto b = Take(text);
+        if (given && b.has_value()) tip = QString::fromUtf8(*b);
+      });
+      return tip;
+    };
+  }
+  if (ops.save_allowed != nullptr) {
+    d.save_allowed = [=](quint64 i) {
+      // A module that cannot be entered any more saves nothing either way.
+      bool allowed = true;
+      EnterModule(m, [&] { allowed = ops.save_allowed(user, i) != 0; });
+      return allowed;
+    };
+  }
   if (ops.source_policy != nullptr) {
     d.source_lock = [=](quint64 i) -> std::optional<QString> {
       std::optional<QString> reason;

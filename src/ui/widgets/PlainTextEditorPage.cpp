@@ -818,6 +818,25 @@ auto PlainTextEditorPage::ModuleEncryptRequested() -> bool {
          e->document.encrypt_requested(native_instance_);
 }
 
+auto PlainTextEditorPage::ModuleDecryptRequested() -> bool {
+  const auto e = module_document();
+  return e.has_value() && e->document.decrypt_requested &&
+         e->document.decrypt_requested(native_instance_);
+}
+
+auto PlainTextEditorPage::ModuleCryptoTip(uint32_t op) const
+    -> std::optional<QString> {
+  const auto e = module_document();
+  if (!e.has_value() || !e->document.crypto_op_tip) return std::nullopt;
+  return e->document.crypto_op_tip(native_instance_, op);
+}
+
+auto PlainTextEditorPage::ModuleSaveAllowed() const -> bool {
+  const auto e = module_document();
+  return !e.has_value() || !e->document.save_allowed ||
+         e->document.save_allowed(native_instance_);
+}
+
 void PlainTextEditorPage::module_saved(const QString &path,
                                        const QString &title) {
   if (!module_persisted_) return;
@@ -830,17 +849,22 @@ auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
     -> QStringList {
   has_opinion = false;
   // The Host's crypto never touches a document it does not hold. Encrypt
-  // alone may be offered: the view does it itself, when it says it can.
+  // and Decrypt alone may be offered: the view does them itself, when it
+  // says it can.
   if (module_persisted_) {
     has_opinion = true;
     const auto e = module_document();
-    if (!e.has_value() || !e->document.encrypt_requested ||
-        !e->document.crypto_ops) {
-      return {};
-    }
+    if (!e.has_value() || !e->document.crypto_ops) return {};
     const auto bits = e->document.crypto_ops(native_instance_);
-    if (!bits.has_value() || (*bits & GF_CRYPTO_OP_ENCRYPT) == 0) return {};
-    return {u"encrypt"_s};
+    if (!bits.has_value()) return {};
+    QStringList ops;
+    if ((*bits & GF_CRYPTO_OP_ENCRYPT) != 0 && e->document.encrypt_requested) {
+      ops << u"encrypt"_s;
+    }
+    if ((*bits & GF_CRYPTO_OP_DECRYPT) != 0 && e->document.decrypt_requested) {
+      ops << u"decrypt"_s;
+    }
+    return ops;
   }
   if (primary_view_.isNull()) return {};
   const auto e = NativeInstances::Instance().Entry(native_instance_);

@@ -998,6 +998,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void set_action_block_reason(QAction* act, const QString& reason);
 
   /**
+   * @brief Show what an action does in the current tab, when the tab's view
+   * gives it its own meaning, or restore its usual tooltip on nullopt.
+   *
+   * @param act the action
+   * @param tip the view's tooltip for it, or nullopt
+   */
+  void set_action_context_tip(QAction* act, const std::optional<QString>& tip);
+
+  /**
    * @brief
    *
    * @param context

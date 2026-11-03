@@ -67,6 +67,12 @@ struct GF_UI_EXPORT NativeDocumentOps {
   std::function<void(quint64)> find_requested;
   /// true: taken; the view encrypts the document itself.
   std::function<bool(quint64)> encrypt_requested;
+  /// true: taken; Decrypt means what the view says it does.
+  std::function<bool(quint64)> decrypt_requested;
+  /// The toolbar tooltip for one GF_CRYPTO_OP_* bit, or nullopt.
+  std::function<std::optional<QString>(quint64, uint32_t)> crypto_op_tip;
+  /// false: Save and Save As are greyed out.
+  std::function<bool(quint64)> save_allowed;
 };
 
 struct GF_UI_EXPORT NativeSettingsOps {

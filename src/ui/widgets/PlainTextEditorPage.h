@@ -224,6 +224,13 @@ class GF_UI_EXPORT PlainTextEditorPage : public QWidget {
   void ModuleFindRequested();
   /// Encrypt, handed to the view. false: it has no such op, or declined.
   auto ModuleEncryptRequested() -> bool;
+  /// Decrypt, handed to the view. false: it has no such op, or declined.
+  auto ModuleDecryptRequested() -> bool;
+  /// The view's own tooltip for the toolbar action of @p op, if it has one.
+  [[nodiscard]] auto ModuleCryptoTip(uint32_t op) const
+      -> std::optional<QString>;
+  /// false while the view says Save and Save As mean nothing yet.
+  [[nodiscard]] auto ModuleSaveAllowed() const -> bool;
 
   /**
    * @brief A name the mounted view suggests for saving this tab, if any.
