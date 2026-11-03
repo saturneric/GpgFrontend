@@ -674,15 +674,64 @@ TEST_F(GFCoreTest, TheDefaultEngineOnlyAnswersForADatabaseThatNamesNone) {
             OpenPGPEngine::kGNUPG);
 }
 
-TEST_F(GFCoreTest, ADatabaseBackendThisBuildLacksStillFallsBack) {
-  // The fallback is the one in ChooseOpenPGPEngine(), unchanged: a database
-  // stored as "rpgp" by a build that had it must still open somewhere.
-  const auto choice = ChooseKeyDatabaseEngine("rpgp", "rpgp", true, false);
-
-  EXPECT_TRUE(choice.ok);
-  EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
-
+TEST_F(GFCoreTest, ADatabaseOfAnEngineThisBuildLacksIsLeftAlone) {
+  // Opened with the other engine, a keyring looks empty and gets a keyring of
+  // the other engine written into it, which its own engine never sees.
+  EXPECT_FALSE(ChooseKeyDatabaseEngine("gnupg", "rpgp", false, true).ok);
+  EXPECT_FALSE(ChooseKeyDatabaseEngine("rpgp", "gnupg", true, false).ok);
   EXPECT_FALSE(ChooseKeyDatabaseEngine("rpgp", "gnupg", false, false).ok);
+
+  // One that names none still takes the setting, and its fallback.
+  const auto choice = ChooseKeyDatabaseEngine("", "gnupg", false, true);
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);
+
+  EXPECT_EQ(MissingKeyDatabaseEngine("GnuPG ", false, true), "GnuPG");
+  EXPECT_EQ(MissingKeyDatabaseEngine("rpgp", true, false), "rPGP");
+  EXPECT_TRUE(MissingKeyDatabaseEngine("gnupg", true, false).isEmpty());
+  EXPECT_TRUE(MissingKeyDatabaseEngine("", false, true).isEmpty());
+}
+
+TEST_F(GFCoreTest, TheBuiltInDatabaseOpensWithWhateverEngineTheBuildHas) {
+  // DEFAULT is this machine's own place, not a keyring carried in.
+  const auto choice =
+      ChooseChannelZeroEngine("DEFAULT", "gnupg", "GNUPG", false, true);
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);
+
+  EXPECT_FALSE(
+      ChooseChannelZeroEngine("work", "gnupg", "GNUPG", false, true).ok);
+}
+
+TEST_F(GFCoreTest, AChosenDefaultThisBuildCannotOpenStandsAsideForThisRun) {
+  const auto db = [](const QString& id, const QString& name,
+                     const QString& backend) {
+    KeyDatabaseInfo info;
+    info.id = id;
+    info.name = name;
+    info.backend_type = backend;
+    return info;
+  };
+  const QList<KeyDatabaseInfo> key_dbs = {db("id-work", "work", "gnupg"),
+                                          db("id-notes", "notes", "rpgp"),
+                                          db("id-default", "DEFAULT", "gnupg")};
+
+  // Usable: the choice stands.
+  EXPECT_EQ(
+      ChooseDefaultKeyDatabaseIndex(key_dbs, "id-work", "GNUPG", true, true),
+      0);
+  // Its engine missing: the built-in database stands in.
+  EXPECT_EQ(
+      ChooseDefaultKeyDatabaseIndex(key_dbs, "id-work", "GNUPG", false, true),
+      2);
+  // No built-in database: the first that can open.
+  EXPECT_EQ(ChooseDefaultKeyDatabaseIndex(key_dbs.mid(0, 2), "id-work", "GNUPG",
+                                          false, true),
+            1);
+  // Unknown choice, as before: the first.
+  EXPECT_EQ(
+      ChooseDefaultKeyDatabaseIndex(key_dbs, "id-gone", "GNUPG", true, true),
+      0);
 }
 
 TEST_F(GFCoreTest, TheDefaultEngineAnswersForEverySpellingOfTheReservedName) {
@@ -2661,6 +2710,51 @@ TEST(KeyDatabaseRuntimeTest, ACandidateIsBuiltBesideTheRuntimeInUse) {
   // Reclaimed in the background like the default one: waited for too.
   EXPECT_TRUE(
       WaitFor([&] { return !IsKeyDatabaseLocationInUse(root.path() + "/b"); }));
+}
+
+TEST(KeyDatabaseRuntimeTest, ADatabaseOfAMissingEngineIsSkippedUntouched) {
+  if (!GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    GTEST_SKIP() << "this build has no rPGP engine";
+  }
+
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(QDir(root.path()).mkpath("a"));
+  ASSERT_TRUE(QDir(root.path()).mkpath("gpg"));
+
+  // A GnuPG keyring as another build left it.
+  QFile keyring(root.path() + "/gpg/pubring.kbx");
+  ASSERT_TRUE(keyring.open(QIODevice::WriteOnly));
+  keyring.write("not really a keybox");
+  keyring.close();
+  const auto before =
+      QDir(root.path() + "/gpg")
+          .entryList(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
+
+  auto gnupg_db = RpgpDatabase("id-rt-gpg", "rt-gpg", root.path() + "/gpg");
+  gnupg_db.backend_type = "gnupg";
+  const QList<KeyDatabaseInfo> key_dbs = {
+      RpgpDatabase("id-rt-a", "rt-a", root.path() + "/a"), gnupg_db};
+
+  KeyDatabaseApplyResult result;
+  const auto candidate =
+      PrepareKeyDatabaseRuntime(key_dbs, 0, RpgpOnlyOptions(), result);
+
+  // The others still open; this one is skipped, and the user is told why.
+  ASSERT_TRUE(candidate.ok) << result.errors.join("; ").toStdString();
+  EXPECT_EQ(result.unavailable, QStringList{"rt-gpg"});
+  ASSERT_EQ(result.errors.size(), 1);
+  EXPECT_TRUE(result.errors.front().contains("GnuPG"));
+
+  // Nothing was written into it.
+  EXPECT_EQ(
+      QDir(root.path() + "/gpg")
+          .entryList(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot),
+      before);
+  ASSERT_TRUE(keyring.open(QIODevice::ReadOnly));
+  EXPECT_EQ(keyring.readAll(), QByteArray("not really a keybox"));
+
+  RetireRuntimeGeneration(candidate.generation);
 }
 
 TEST(KeyDatabaseRuntimeTest, ACandidateWhoseDefaultCannotOpenIsNotOk) {

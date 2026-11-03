@@ -1038,12 +1038,29 @@ auto GF_CORE_EXPORT ChooseOpenPGPEngine(const QString& preferred,
  * machine it came from drops out as unusable, the next database moves up into
  * channel 0, and an rPGP keyring is opened with GnuPG.
  *
+ * A database that names an engine this build lacks gets no engine at all: it
+ * is that engine's keyring, and the other one would write its own beside it.
+ * Its stored entry and its folder are left as they are.
+ *
  * @param backend_type the database's own backend, empty if it names none
  * @param fallback_engine what to use when it does not, from settings
  * @param gnupg_supported GnuPG is usable in this build
  * @param rpgp_supported rPGP is usable in this build
  * @return the engine to open this database with, or a choice that is not ok
  */
+/**
+ * @brief The engine a key database names that this build cannot open.
+ *
+ * @param backend_type the database's own backend, empty if it names none
+ * @param gnupg_supported GnuPG is usable in this build
+ * @param rpgp_supported rPGP is usable in this build
+ * @return the engine's display name, or empty when it names none or one that
+ * is usable
+ */
+auto GF_CORE_EXPORT MissingKeyDatabaseEngine(const QString& backend_type,
+                                             bool gnupg_supported,
+                                             bool rpgp_supported) -> QString;
+
 auto GF_CORE_EXPORT ChooseKeyDatabaseEngine(const QString& backend_type,
                                             const QString& fallback_engine,
                                             bool gnupg_supported,
@@ -1078,6 +1095,26 @@ auto GF_CORE_EXPORT ChooseChannelZeroEngine(const QString& db_name,
                                             bool gnupg_supported,
                                             bool rpgp_supported)
     -> EngineChoice;
+
+/**
+ * @brief Which of @p key_dbs is opened as the default database for this run.
+ *
+ * The chosen default, unless it names an engine this build lacks. Then it is
+ * left alone like any other such database, and the built-in one -- or failing
+ * that, the first that can open -- stands in for this run only; the stored
+ * choice is not changed.
+ *
+ * @param key_dbs the databases, in list order
+ * @param default_id the id of the chosen default
+ * @param default_engine the `basic/default_engine` setting
+ * @param gnupg_supported GnuPG is usable in this build
+ * @param rpgp_supported rPGP is usable in this build
+ * @return the index of the database to open as the default
+ */
+auto GF_CORE_EXPORT ChooseDefaultKeyDatabaseIndex(
+    const QList<KeyDatabaseInfo>& key_dbs, const QString& default_id,
+    const QString& default_engine, bool gnupg_supported, bool rpgp_supported)
+    -> int;
 
 /**
  * @brief Convert a GpgComponentType enum value to its string name.
