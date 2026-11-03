@@ -77,10 +77,10 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param skey_fpr fingerprint of the subkey to update, or empty for the
    * primary key
    * @param expires new expiry date, or empty optional to remove the expiry
-   * @return GpgError; GPG_ERR_NO_ERROR on success
+   * @return GFError; Ok() on success
    */
   auto SetExpire(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
-                 const std::optional<QDateTime>& expires) -> GpgError;
+                 const std::optional<QDateTime>& expires) -> GFError;
 
   /**
    * @brief Generate a revocation certificate for the given key and write it to
@@ -102,7 +102,7 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param key key whose passphrase should be changed
    * @param cb callback invoked on completion
    */
-  void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback& cb);
+  void ModifyPassword(const GpgKeyPtr& key, const GFOperationCallback& cb);
 
   /**
    * @brief Change the passphrase protecting a single subkey (async), leaving
@@ -114,16 +114,16 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param cb callback invoked on completion
    */
   void ModifySubkeyPassword(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
-                            const GpgOperationCallback& cb);
+                            const GFOperationCallback& cb);
 
   /**
    * @brief Synchronous variant of ModifyPassword().
    *
    * @param key key whose passphrase should be changed
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto ModifyPasswordSync(const GpgKeyPtr& key)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Synchronous variant of ModifySubkeyPassword().
@@ -131,20 +131,20 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param key primary key owning the subkey
    * @param skey_fpr fingerprint of the subkey whose passphrase should be
    * changed
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto ModifySubkeyPasswordSync(const GpgKeyPtr& key, const SubkeyId& skey_fpr)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Add an Additional Decryption Subkey (ADSK) to the given key (sync).
    *
    * @param key primary key to add the ADSK to
    * @param adsk subkey to add as an ADSK
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Certify (sign) a key's user IDs with the given signer keys.
@@ -157,16 +157,16 @@ class GF_CORE_EXPORT KeyManagementOperation
    */
   void SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
                const QString& uid, const std::optional<QDateTime>& expires,
-               const GpgOperationCallback& cb);
+               const GFOperationCallback& cb);
 
   /**
    * @brief Synchronous variant of SignKey().
    *
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto SignKeySync(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
                    const QString& uid, const std::optional<QDateTime>& expires)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Revoke specific certifications (key signatures) on the given key
@@ -177,16 +177,16 @@ class GF_CORE_EXPORT KeyManagementOperation
    * @param cb callback invoked on completion
    */
   void RevKeySignature(const GpgKeyPtr& key, const SignIdArgsList& signature_id,
-                       const GpgOperationCallback& cb);
+                       const GFOperationCallback& cb);
 
   /**
    * @brief Synchronous variant of RevKeySignature().
    *
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto RevKeySignatureSync(const GpgKeyPtr& key,
                            const SignIdArgsList& signature_id)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Set the owner-trust level for the given key.

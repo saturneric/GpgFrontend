@@ -325,7 +325,7 @@ void KeySetExpireDateDialog::slot_confirm() {
   auto err = KeyManagementOperation::GetInstance(current_gpg_context_channel_)
                  .SetExpire(m_key_, m_subkey_, expires);
 
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+  if (err.Ok()) {
     auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
     msg_box->setAttribute(Qt::WA_DeleteOnClose);
     msg_box->setStandardButtons(QMessageBox::Ok);
@@ -337,7 +337,7 @@ void KeySetExpireDateDialog::slot_confirm() {
     emit SignalKeyExpireDateUpdated();
 
     this->close();
-  } else if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+  } else if (err.Canceled()) {
     // The user dismissed the passphrase prompt: nothing failed, and the
     // dialog stays open for another try.
     return;
@@ -345,7 +345,7 @@ void KeySetExpireDateDialog::slot_confirm() {
     QMessageBox::critical(
         this, tr("Failure"),
         tr("Failed to update the expire date of the key pair.") + "\n\n" +
-            DescribeGpgErrCode(err).second);
+            DescribeGFError(err).second);
   }
 }
 

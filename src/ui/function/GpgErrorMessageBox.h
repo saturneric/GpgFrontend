@@ -44,6 +44,9 @@ namespace GpgFrontend::UI {
  */
 void GF_UI_EXPORT RaiseMessageBox(QWidget* parent, GpgError err);
 
+/// RaiseMessageBox() for an operation family that reports GFError.
+void GF_UI_EXPORT RaiseMessageBox(QWidget* parent, const GFError& err);
+
 /**
  * @brief Report a failed gpg operation, with the engine's own diagnosis.
  *

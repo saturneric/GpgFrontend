@@ -758,9 +758,9 @@ void KeyPairSubkeyTab::slot_modify_subkey_passphrase() {
 
   KeyManagementOperation::GetInstance(current_gpg_context_channel_)
       .ModifySubkeyPassword(key_, s_key.Fingerprint(),
-                            [this](GpgError err, const DataObjectPtr&) {
+                            [this](GFError err, const DataObjectPtr&) {
                               RaiseMessageBox(this, err);
-                              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                              if (err.Ok()) {
                                 emit SignalKeyDatabaseRefresh();
                               }
                             });

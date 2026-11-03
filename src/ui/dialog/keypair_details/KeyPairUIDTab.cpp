@@ -549,15 +549,15 @@ void KeyPairUIDTab::slot_del_sign() {
   auto f = [this, selected_signs](const OperaWaitingHd& hd) {
     KeyManagementOperation::GetInstance(current_gpg_context_channel_)
         .RevKeySignature(m_key_, selected_signs,
-                         [this, hd](GpgError err, const DataObjectPtr&) {
+                         [this, hd](GFError err, const DataObjectPtr&) {
                            hd();
-                           if (CheckGpgError(err) == GPG_ERR_CANCELED) return;
-                           if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                           if (err.Canceled()) return;
+                           if (!err.Ok()) {
                              QMessageBox::critical(
                                  this, tr("Operation Failed"),
                                  tr("An error occurred during the "
                                     "operation.") +
-                                     "\n\n" + DescribeGpgErrCode(err).second);
+                                     "\n\n" + DescribeGFError(err).second);
                              return;
                            }
                            QMessageBox::information(

@@ -132,11 +132,11 @@ void ADSKsPicker::slot_add_adsk(const QList<GpgSubKey>& s_keys) {
           auto [err, _] =
               KeyManagementOperation::GetInstance(channel).AddADSKSync(key,
                                                                        s_key);
-          if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
+          if (err.Ok()) continue;
 
           err_sub_key_infos.append(tr("Key ID: %1 Reason: %2")
                                        .arg(s_key.ID())
-                                       .arg(DescribeGpgErrCode(err).second));
+                                       .arg(DescribeGFError(err).second));
         }
         data_object->Swap({err_sub_key_infos});
         return 0;

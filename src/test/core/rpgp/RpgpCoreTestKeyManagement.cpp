@@ -306,7 +306,7 @@ TEST_F(RpgpCoreTest, CoreModifyKeyPassphraseCoversSubkeysTest) {
 
   auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
                       .ModifyPasswordSync(key);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   // Only the new passphrase is on offer from here on.
   InstallPassphraseScript({.unlock_default = kNewPassphrase});
@@ -339,7 +339,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
 
   auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
                       .ModifySubkeyPasswordSync(key, encr_subkey_fpr);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
 
@@ -359,7 +359,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
   auto [err_p, _p] =
       KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
           .ModifySubkeyPasswordSync(key, key->Fingerprint());
-  EXPECT_EQ(CheckGpgError(err_p), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(err_p.Ok());
 
   RestoreDefaultPassphraseFetcher();
 }
@@ -402,7 +402,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRetriesBadUnlockTest) {
 
   auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
                       .ModifySubkeyPasswordSync(key, encr_subkey_fpr);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(err.Ok());
   EXPECT_FALSE(first_prompt_flagged_retry)
       << "the initial prompt must not claim a previous attempt was wrong";
   EXPECT_TRUE(second_prompt_flagged_retry)
@@ -438,7 +438,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseReportsBadPassphraseTest) {
 
   auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
                       .ModifySubkeyPasswordSync(key, encr_subkey_fpr);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_PASSPHRASE);
+  EXPECT_EQ(err.code, GFErrorCode::kBAD_PASSPHRASE);
 
   RestoreDefaultPassphraseFetcher();
 }
@@ -451,7 +451,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRejectsEmptyFprTest) {
 
   auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
                       .ModifySubkeyPasswordSync(key, {});
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_INV_ARG);
+  EXPECT_EQ(err.code, GFErrorCode::kINVALID_ARGUMENT);
 }
 
 namespace {
@@ -561,10 +561,9 @@ TEST_F(RpgpCoreTest, CoreSetPrimaryKeyExpirationV4Test) {
   EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(), 0);
 
   const auto expires = QDateTime::currentDateTimeUtc().addYears(1);
-  ASSERT_EQ(
-      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
-                        .SetExpire(key, {}, expires)),
-      GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .SetExpire(key, {}, expires)
+                  .Ok());
 
   key = ReloadKey(fpr);
   ASSERT_TRUE(key != nullptr);
@@ -573,10 +572,9 @@ TEST_F(RpgpCoreTest, CoreSetPrimaryKeyExpirationV4Test) {
   EXPECT_FALSE(key->IsExpired());
 
   // Clearing (a null expiry) returns it to never-expires.
-  ASSERT_EQ(
-      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
-                        .SetExpire(key, {}, std::nullopt)),
-      GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .SetExpire(key, {}, std::nullopt)
+                  .Ok());
 
   key = ReloadKey(fpr);
   ASSERT_TRUE(key != nullptr);
@@ -594,10 +592,9 @@ TEST_F(RpgpCoreTest, CoreSetPrimaryKeyExpirationV6Test) {
   const auto fpr = key->Fingerprint();
 
   const auto expires = QDateTime::currentDateTimeUtc().addYears(2);
-  ASSERT_EQ(
-      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
-                        .SetExpire(key, {}, expires)),
-      GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .SetExpire(key, {}, expires)
+                  .Ok());
 
   key = ReloadKey(fpr);
   ASSERT_TRUE(key != nullptr);
@@ -631,10 +628,9 @@ TEST_F(RpgpCoreTest, CoreSetSubkeyExpirationPreservesBindingTest) {
   ASSERT_FALSE(encr_subkey_fpr.isEmpty());
 
   const auto expires = QDateTime::currentDateTimeUtc().addYears(1);
-  ASSERT_EQ(
-      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
-                        .SetExpire(key, encr_subkey_fpr, expires)),
-      GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .SetExpire(key, encr_subkey_fpr, expires)
+                  .Ok());
 
   key = ReloadKey(kFixtureKeyFpr);
   ASSERT_TRUE(key != nullptr);
@@ -878,7 +874,7 @@ TEST_F(RpgpCoreTest, CoreSetExpireReportsBadPassphraseTest) {
 
   // A wrong passphrase is reported as one, not as a general error, a
   // cancel, or the invalid input the failed re-signing would produce.
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_PASSPHRASE);
+  EXPECT_EQ(err.code, GFErrorCode::kBAD_PASSPHRASE);
 
   // The refused edit left the key in place.
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();

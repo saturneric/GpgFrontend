@@ -1056,8 +1056,9 @@ void KeyMgmt::bulk_extend_expiry() {
         int failed = 0;
         for (const auto& key : keys) {
           if (key == nullptr) continue;
-          if (KeyManagementOperation::GetInstance(channel).SetExpire(
-                  key, {}, expires) != GPG_ERR_NO_ERROR) {
+          if (!KeyManagementOperation::GetInstance(channel)
+                   .SetExpire(key, {}, expires)
+                   .Ok()) {
             failed++;
           }
         }

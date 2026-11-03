@@ -95,7 +95,7 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   auto [err, data_object] = KeyManagementOperation::GetInstance().AddADSKSync(
       key, key_b_s_keys.last());
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
 

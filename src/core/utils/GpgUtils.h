@@ -82,6 +82,12 @@ auto GF_CORE_EXPORT CheckGpgError2ErrCode(
 auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
 
 /**
+ * @brief DescribeGpgErrCode() for a GFError: GnuPG's source and description
+ * of the code it stands for.
+ */
+auto GF_CORE_EXPORT DescribeGFError(const GFError& err) -> GpgErrorDesc;
+
+/**
  * @brief Return the output file path with an extension appropriate for the
  * given operation.
  *

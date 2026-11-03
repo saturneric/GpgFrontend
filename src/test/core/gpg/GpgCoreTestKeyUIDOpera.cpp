@@ -199,7 +199,7 @@ TEST_F(GpgCoreTest, CoreSignKeyUIDWithExpiryTestA) {
 
   auto [err, _] = KeyManagementOperation::GetInstance().SignKeySync(
       key, signers, target_uid, expires);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   key = ReloadKey(kTargetKeyId);
   ASSERT_TRUE(key != nullptr);
@@ -232,7 +232,7 @@ TEST_F(GpgCoreTest, CoreSignKeyUIDNoExpiryTestA) {
 
   auto [err, _] = KeyManagementOperation::GetInstance().SignKeySync(
       key, CertifierKeys(), key->UIDs()[2].GetUID(), std::nullopt);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   key = ReloadKey(kTargetKeyId);
   ASSERT_TRUE(key != nullptr);
@@ -250,7 +250,7 @@ TEST_F(GpgCoreTest, CoreSignKeyAllUIDsTestA) {
   // An empty user ID means every user ID, not a search for "".
   auto [err, _] = KeyManagementOperation::GetInstance().SignKeySync(
       key, CertifierKeys(), QString{}, std::nullopt);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   key = ReloadKey(kTargetKeyId);
   ASSERT_TRUE(key != nullptr);
@@ -270,12 +270,12 @@ TEST_F(GpgCoreTest, CoreSignKeyRejectsBadInputTestA) {
   // No usable signer must fail, never fall back to gpg's default key.
   auto [no_signer_err, _1] = KeyManagementOperation::GetInstance().SignKeySync(
       key, {}, target_uid, std::nullopt);
-  EXPECT_EQ(CheckGpgError(no_signer_err), GPG_ERR_NO_SECKEY);
+  EXPECT_EQ(no_signer_err.code, GFErrorCode::kNO_SECRET_KEY);
 
   auto [past_err, _2] = KeyManagementOperation::GetInstance().SignKeySync(
       key, CertifierKeys(), target_uid,
       QDateTime::currentDateTime().addDays(-1));
-  EXPECT_EQ(CheckGpgError(past_err), GPG_ERR_INV_VALUE);
+  EXPECT_EQ(past_err.code, GFErrorCode::kINVALID_VALUE);
 
   key = ReloadKey(kTargetKeyId);
   ASSERT_TRUE(key != nullptr);
@@ -297,7 +297,7 @@ TEST_F(GpgCoreTest, CoreRevKeySignatureTestA) {
 
   auto [sign_err, _1] = KeyManagementOperation::GetInstance().SignKeySync(
       key, CertifierKeys(), target_uid, std::nullopt);
-  ASSERT_EQ(CheckGpgError(sign_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(sign_err.Ok());
 
   key = ReloadKey(kTargetKeyId);
   ASSERT_TRUE(key != nullptr);
@@ -306,13 +306,13 @@ TEST_F(GpgCoreTest, CoreRevKeySignatureTestA) {
   auto [missing_err, _2] =
       KeyManagementOperation::GetInstance().RevKeySignatureSync(
           key, {{"0123456789ABCDEF", target_uid}});
-  EXPECT_EQ(CheckGpgError(missing_err), GPG_ERR_NO_SECKEY);
+  EXPECT_EQ(missing_err.code, GFErrorCode::kNO_SECRET_KEY);
 
   // The pair names the user ID on the certified key, not the signer's.
   auto [rev_err, _3] =
       KeyManagementOperation::GetInstance().RevKeySignatureSync(
           key, {{kCertifierKeyId, target_uid}});
-  ASSERT_EQ(CheckGpgError(rev_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(rev_err.Ok());
 
   key = ReloadKey(kTargetKeyId);
   ASSERT_TRUE(key != nullptr);

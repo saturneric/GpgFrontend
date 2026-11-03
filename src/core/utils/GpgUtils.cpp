@@ -34,6 +34,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
@@ -98,6 +99,10 @@ auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {
 
 auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
   return {gpgme_strsource(err), GetGpgmeErrorString(err)};
+}
+
+auto DescribeGFError(const GFError& err) -> GpgErrorDesc {
+  return DescribeGpgErrCode(ToGpgError(err));
 }
 
 auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {

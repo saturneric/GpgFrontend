@@ -187,12 +187,12 @@ void KeyUIDSignDialog::slot_sign_key(bool) {
     KeyManagementOperation::GetInstance(current_gpg_context_channel_)
         .SignKey(m_key_, keys, m_uid_, expires,
                  [this, self = QPointer<KeyUIDSignDialog>(this), hd](
-                     GpgError err, const DataObjectPtr&) {
+                     GFError err, const DataObjectPtr&) {
                    hd();
                    // A reload of the key databases may have closed the dialog.
                    if (self == nullptr) return;
 
-                   if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+                   if (err.Canceled()) {
                      // The user dismissed the passphrase prompt: nothing
                      // failed, and the dialog stays open for another try.
                      return;
@@ -203,12 +203,12 @@ void KeyUIDSignDialog::slot_sign_key(bool) {
                    const auto target =
                        m_uid_.isEmpty() ? m_key_->UID() : m_uid_;
 
-                   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                     QMessageBox box(
-                         QMessageBox::Critical, tr("Certification Failed"),
-                         tr("Failed to certify %1.").arg(target) + "\n\n" +
-                             DescribeGpgErrCode(err).second,
-                         QMessageBox::Ok, this);
+                   if (!err.Ok()) {
+                     QMessageBox box(QMessageBox::Critical,
+                                     tr("Certification Failed"),
+                                     tr("Failed to certify %1.").arg(target) +
+                                         "\n\n" + DescribeGFError(err).second,
+                                     QMessageBox::Ok, this);
                      box.setTextFormat(Qt::PlainText);
                      box.exec();
                      return;

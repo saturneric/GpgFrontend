@@ -67,6 +67,10 @@ void RaiseFailureMessageBox(QWidget* parent, GpgError err, const QString& msg) {
               .arg(msg));
 }
 
+void RaiseMessageBox(QWidget* parent, const GFError& err) {
+  RaiseMessageBox(parent, ToGpgError(err));
+}
+
 void RaiseFailureMessageBox(QWidget* parent, const GFError& err,
                             const QString& msg) {
   RaiseFailureMessageBox(parent, ToGpgError(err), msg);

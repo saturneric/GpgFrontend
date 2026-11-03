@@ -217,7 +217,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 
 void KeyPairOperaTab::slot_modify_password() {
   KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-      .ModifyPassword(m_key_, [this](GpgError err, const DataObjectPtr&) {
+      .ModifyPassword(m_key_, [this](GFError err, const DataObjectPtr&) {
         RaiseMessageBox(this, err);
       });
 }
