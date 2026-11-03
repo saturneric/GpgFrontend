@@ -34,7 +34,9 @@
 #include <set>
 #include <shared_mutex>
 
+#include "core/GFCoreInit.h"
 #include "core/function/DataObjectOperator.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
@@ -98,7 +100,7 @@ class CacheManager::Impl : public QObject {
   explicit Impl(int channel)
       : channel_(channel), flush_timer_(new QTimer(this)) {
     connect(flush_timer_, &QTimer::timeout, this,
-            &Impl::slot_flush_cache_storage);
+            &Impl::slot_post_flush_cache_storage);
 
     // Made on whichever thread first asks for the cache -- often a task
     // runner's, which has stopped long before the core is destroyed on the
@@ -313,6 +315,28 @@ class CacheManager::Impl : public QObject {
       }
       opera_.StoreDataObj(drk_key_, QJsonDocument(registry));
     }
+  }
+
+  /**
+   * @brief Hand a periodic flush to the IO runner.
+   *
+   * The timer lives on the main thread, but a flush encrypts each entry and
+   * commits it through QSaveFile, which syncs to disk: up to ~150 ms when
+   * measured, too long for the interface. The dirty set is taken inside the
+   * task, so a flush posted too late to run is still done by the final
+   * synchronous one in DestroyGpgFrontendCore().
+   */
+  void slot_post_flush_cache_storage() {
+    if (IsCoreShuttingDown()) return;
+
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+        ->PostTask("cache_flush",
+                   [this](const DataObjectPtr&) -> int {
+                     slot_flush_cache_storage();
+                     return 0;
+                   },
+                   Thread::Task::TaskCallback{}, {});
   }
 
  private:
