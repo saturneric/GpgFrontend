@@ -82,6 +82,11 @@ qt_add_qml_module(gf_mob_lib
     qml/components/ConfirmSheet.qml
     qml/components/PassphraseSheet.qml
     qml/components/KeyChoiceList.qml
+    qml/components/RecipientSheet.qml
+    qml/components/SignerSheet.qml
+    qml/components/ResultSheet.qml
+    qml/components/ImportSheet.qml
+    qml/components/GenerateSheet.qml
     qml/components/Icon.qml
     qml/components/AppBar.qml
     qml/components/NavBar.qml
@@ -90,6 +95,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/BottomSheet.qml
     qml/components/Snackbar.qml
     qml/components/KeyAvatar.qml
+    qml/components/SettingSheet.qml
     qml/components/SecretField.qml
     qml/components/Alert.qml
     qml/components/MessageAlert.qml
