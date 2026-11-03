@@ -404,7 +404,7 @@ auto ArchiveFileOperator::NewArchive2DataExchangerSync(
     const QString &target_directory,
     const QSharedPointer<GFDataExchanger> &exchanger,
     ArchiveCompression compression, const ArchiveEntryFilter &filter,
-    ArchiveFormat format) -> GFError {
+    ArchiveFormat format) -> GFOperaStatus {
   {
     {
       auto ret = 0;
@@ -562,7 +562,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
     const OperationCallback &cb, ArchiveCompression compression,
     const ArchiveEntryFilter &filter) {
   auto *task =
-      new Thread::Task{[=](const DataObjectPtr &) -> GFError {
+      new Thread::Task{[=](const DataObjectPtr &) -> GFOperaStatus {
                          return NewArchive2DataExchangerSync(
                              target_directory, exchanger, compression, filter);
                        },
@@ -576,7 +576,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 auto ArchiveFileOperator::NewArchiveFromMembersSync(
     const ArchiveMemberProvider &next,
     const QSharedPointer<GFDataExchanger> &exchanger,
-    ArchiveCompression compression, ArchiveFormat format) -> GFError {
+    ArchiveCompression compression, ArchiveFormat format) -> GFOperaStatus {
   auto *archive = archive_write_new();
   if (compression == ArchiveCompression::kGZIP) {
     archive_write_add_filter_gzip(archive);
@@ -760,12 +760,12 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
 
 auto ArchiveFileOperator::NewArchiveFromMembersToSink(
     const ArchiveMemberProvider &next, const ArchiveChunkSink &sink,
-    ArchiveCompression compression, ArchiveFormat format) -> GFError {
+    ArchiveCompression compression, ArchiveFormat format) -> GFOperaStatus {
   constexpr qint64 kChunk = 64 * 1024;
   auto exchanger = CreateStandardGFDataExchanger();
 
   // Set by the producer, read after it is joined.
-  GFError archive_error = 0;
+  GFOperaStatus archive_error = 0;
   std::thread producer([&]() {
     archive_error =
         NewArchiveFromMembersSync(next, exchanger, compression, format);
@@ -804,7 +804,7 @@ auto ExtractArchiveSync(
     const QByteArray *archive_bytes, const QString &target_path,
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
     const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
-    QString *reason) -> GFError {
+    QString *reason) -> GFOperaStatus {
   // Not a mode a caller selects, but the absence of a destination. Keeping it
   // derived means there is no way to ask for "no destination" and still hand
   // over a path, which is the combination that would be a lie.
@@ -862,7 +862,7 @@ auto ExtractArchiveSync(
       // absence of a writer rather than a promise about how it is used.
       auto *ext = to_disk ? archive_write_disk_new() : nullptr;
 
-      auto fail = [&](int code) -> GFError {
+      auto fail = [&](int code) -> GFOperaStatus {
         archive_read_free(archive);
         if (ext != nullptr) archive_write_free(ext);
         if (may_remove_destination) QDir(target_path).removeRecursively();
@@ -1296,7 +1296,7 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
     const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
     const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
-    QString *reason) -> GFError {
+    QString *reason) -> GFOperaStatus {
   return ExtractArchiveSync(ex, {}, nullptr, target_path, policy, divert, sink,
                             raw_sink, reason);
 }
@@ -1305,7 +1305,7 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
     const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
     const OperationCallback &cb, const ArchiveExtractPolicy &policy) {
   auto *task = new Thread::Task{
-      [=](const DataObjectPtr &) -> GFError {
+      [=](const DataObjectPtr &) -> GFOperaStatus {
         return ExtractArchiveFromDataExchangerSync(ex, target_path, policy);
       },
       "extract_archive_from_data_exchanger", TransferParams(), cb};
@@ -1319,7 +1319,7 @@ auto ArchiveFileOperator::ExtractArchiveFromFileSync(
     const QString &archive_path, const QString &target_path,
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
     const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
-    QString *reason) -> GFError {
+    QString *reason) -> GFOperaStatus {
   // Readability is checked here rather than left to libarchive, which reports
   // a missing file the same way it reports a malformed one -- and a caller
   // told "this is not an archive" about a file it cannot open has been told
@@ -1339,7 +1339,7 @@ auto ArchiveFileOperator::ExtractArchiveFromFileSync(
 
 auto ArchiveFileOperator::ReadArchiveMembersSync(
     const QByteArray &archive_bytes, const ArchiveExtractPolicy &policy,
-    const ArchiveEntryRawSink &sink, QString *reason) -> GFError {
+    const ArchiveEntryRawSink &sink, QString *reason) -> GFOperaStatus {
   if (!sink) {
     if (reason != nullptr) *reason = "no sink was given for this archive";
     return -1;

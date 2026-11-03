@@ -84,7 +84,7 @@ auto SnapshotOf(const QString& path) -> QSet<QString> {
 auto TinyArchiveBytes(const QMap<QString, QByteArray>& members) -> QByteArray {
   auto exchanger = CreateStandardGFDataExchanger();
 
-  GFError archive_error = 0;
+  GFOperaStatus archive_error = 0;
   std::thread producer([&]() {
     auto it = members.constBegin();
     archive_error = ArchiveFileOperator::NewArchiveFromMembersSync(

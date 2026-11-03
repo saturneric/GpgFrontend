@@ -190,7 +190,7 @@ auto RunOperaAsync(const OperaRunnable& runnable,
                 if (rtn != 0) {
                   callback(-1, TransferParams());
                 } else {
-                  callback(ExtractParams<GFError>(data_object, 0),
+                  callback(ExtractParams<GFOperaStatus>(data_object, 0),
                            ExtractParams<DataObjectPtr>(data_object, 1));
                 }
               },

@@ -389,12 +389,12 @@ TEST_F(GpgCoreTest, ThrowingOperationReportsAnError) {
   EXPECT_EQ(size, 0U);
 
   done = false;
-  GFError plain_reported = 0;
+  GFOperaStatus plain_reported = 0;
   RunOperaAsync(
-      [](const DataObjectPtr&) -> GFError {
+      [](const DataObjectPtr&) -> GFOperaStatus {
         throw std::runtime_error("runnable failed");
       },
-      [&](GFError err, const DataObjectPtr& data_object) {
+      [&](GFOperaStatus err, const DataObjectPtr& data_object) {
         plain_reported = err;
         size = data_object->GetObjectSize();
         done = true;
@@ -409,9 +409,9 @@ TEST_F(GpgCoreTest, ThrowingOperationReportsAnError) {
 // The runnable's own result reaches the callback, not a stand-in for it.
 TEST_F(GpgCoreTest, OperationErrorReachesItsCallback) {
   std::atomic<bool> done{false};
-  GFError reported = 0;
-  RunOperaAsync([](const DataObjectPtr&) -> GFError { return 42; },
-                [&](GFError err, const DataObjectPtr&) {
+  GFOperaStatus reported = 0;
+  RunOperaAsync([](const DataObjectPtr&) -> GFOperaStatus { return 42; },
+                [&](GFOperaStatus err, const DataObjectPtr&) {
                   reported = err;
                   done = true;
                 },

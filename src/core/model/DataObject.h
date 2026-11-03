@@ -93,7 +93,7 @@ auto ExtractParams(const QSharedPointer<DataObject>& d_o, int index) -> T {
 void swap(DataObject& a, DataObject& b) noexcept;
 
 using DataObjectPtr = QSharedPointer<DataObject>;  ///<
-using OperaRunnable = std::function<GFError(DataObjectPtr)>;
-using OperationCallback = std::function<void(GFError, DataObjectPtr)>;
+using OperaRunnable = std::function<GFOperaStatus(DataObjectPtr)>;
+using OperationCallback = std::function<void(GFOperaStatus, DataObjectPtr)>;
 
 }  // namespace GpgFrontend

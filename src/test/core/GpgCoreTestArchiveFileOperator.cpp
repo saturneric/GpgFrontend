@@ -138,14 +138,15 @@ constexpr int kArchiveWaitMs = 10000;
  */
 auto WaitForArchiveTask(
     const std::function<void(const GpgFrontend::OperationCallback&)>& start)
-    -> std::optional<GpgFrontend::GFError> {
+    -> std::optional<GpgFrontend::GFOperaStatus> {
   struct State {
     std::atomic<bool> done{false};
-    std::atomic<GpgFrontend::GFError> err{0};
+    std::atomic<GpgFrontend::GFOperaStatus> err{0};
   };
   const auto state = std::make_shared<State>();
 
-  start([state](GpgFrontend::GFError err, const GpgFrontend::DataObjectPtr&) {
+  start([state](GpgFrontend::GFOperaStatus err,
+                const GpgFrontend::DataObjectPtr&) {
     state->err.store(err);
     state->done.store(true);
   });
@@ -168,7 +169,7 @@ auto ArchiveAsync(const QString& src_dir,
                   GpgFrontend::ArchiveCompression compression =
                       GpgFrontend::ArchiveCompression::kNONE,
                   const GpgFrontend::ArchiveEntryFilter& filter = {})
-    -> std::optional<GpgFrontend::GFError> {
+    -> std::optional<GpgFrontend::GFOperaStatus> {
   return WaitForArchiveTask([&](const GpgFrontend::OperationCallback& cb) {
     GpgFrontend::ArchiveFileOperator::NewArchive2DataExchanger(
         src_dir, exchanger, cb, compression, filter);
@@ -300,7 +301,7 @@ TEST(ArchiveFileOperatorTest, TheSynchronousPairRoundTrips) {
   CreateTestFile(src_dir + "/nested", "test2.txt", "hello world 2");
 
   auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
-  GpgFrontend::GFError archive_error = 0;
+  GpgFrontend::GFOperaStatus archive_error = 0;
 
   QByteArray payload;
   std::thread producer([&]() {
@@ -358,7 +359,7 @@ TEST(ArchiveFileOperatorTest, ExtractsIntoADestinationReachedThroughASymlink) {
   CreateTestFile(src_dir, "manifest.json", "{}");
 
   auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
-  GpgFrontend::GFError archive_error = 0;
+  GpgFrontend::GFOperaStatus archive_error = 0;
   std::thread producer([&]() {
     archive_error =
         GpgFrontend::ArchiveFileOperator::NewArchive2DataExchangerSync(
@@ -804,7 +805,7 @@ TEST(ArchiveFileOperatorTest, AMemberShorterThanItsDeclaredSizeFailsThePack) {
   }
 
   auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
-  GpgFrontend::GFError ret = 0;
+  GpgFrontend::GFOperaStatus ret = 0;
   bool done = false;
   const auto next = [&](GpgFrontend::ArchiveMemberEntry& out) {
     if (done) return false;
@@ -841,7 +842,7 @@ auto PackMembers(const QList<QPair<QString, QByteArray>>& members,
   if (!out.open(QIODevice::WriteOnly)) return false;
 
   auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
-  GpgFrontend::GFError ret = 0;
+  GpgFrontend::GFOperaStatus ret = 0;
   std::thread producer([&]() {
     qsizetype index = 0;
     ret = GpgFrontend::ArchiveFileOperator::NewArchiveFromMembersSync(
@@ -919,7 +920,7 @@ namespace {
 /// Walk an archive with a policy, claiming every entry so nothing is written.
 auto WalkWithPolicy(const QString& archive,
                     const GpgFrontend::ArchiveExtractPolicy& policy)
-    -> GpgFrontend::GFError {
+    -> GpgFrontend::GFOperaStatus {
   QTemporaryDir nowhere;
   if (!nowhere.isValid()) return -1;
   return GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(

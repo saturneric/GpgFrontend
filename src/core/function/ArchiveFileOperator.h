@@ -345,7 +345,7 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const QString &target_directory, const QSharedPointer<GFDataExchanger> &,
       ArchiveCompression compression = ArchiveCompression::kNONE,
       const ArchiveEntryFilter &filter = {},
-      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
+      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFOperaStatus;
 
   /**
    * @brief Unpack a stream into a directory.
@@ -394,7 +394,7 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
       const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {},
       const ArchiveEntryRawSink &raw_sink = {}, QString *reason = nullptr)
-      -> GFError;
+      -> GFOperaStatus;
 
   /**
    * @brief Unpack an archive that is already a file on disk.
@@ -421,7 +421,7 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
       const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {},
       const ArchiveEntryRawSink &raw_sink = {}, QString *reason = nullptr)
-      -> GFError;
+      -> GFOperaStatus;
 
   /**
    * @brief Walk an archive held in memory, handing every member to a sink.
@@ -449,7 +449,8 @@ class GF_CORE_EXPORT ArchiveFileOperator {
   static auto ReadArchiveMembersSync(const QByteArray &archive_bytes,
                                      const ArchiveExtractPolicy &policy,
                                      const ArchiveEntryRawSink &sink,
-                                     QString *reason = nullptr) -> GFError;
+                                     QString *reason = nullptr)
+      -> GFOperaStatus;
 
   /**
    * @brief Pack entries from a provider into a stream.
@@ -474,7 +475,7 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const ArchiveMemberProvider &next,
       const QSharedPointer<GFDataExchanger> &exchanger,
       ArchiveCompression compression,
-      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
+      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFOperaStatus;
 
   /**
    * @brief NewArchiveFromMembersSync(), with the archive handed to @p sink
@@ -496,6 +497,6 @@ class GF_CORE_EXPORT ArchiveFileOperator {
   static auto NewArchiveFromMembersToSink(
       const ArchiveMemberProvider &next, const ArchiveChunkSink &sink,
       ArchiveCompression compression,
-      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
+      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFOperaStatus;
 };
 }  // namespace GpgFrontend

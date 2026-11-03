@@ -57,7 +57,7 @@ inline auto WriteDescriptorArchive(
   if (!out.open(QIODevice::WriteOnly)) return false;
 
   auto exchanger = CreateStandardGFDataExchanger();
-  GFError archive_error = 0;
+  GFOperaStatus archive_error = 0;
   std::thread producer([&]() {
     qsizetype index = 0;
     archive_error = ArchiveFileOperator::NewArchiveFromMembersSync(

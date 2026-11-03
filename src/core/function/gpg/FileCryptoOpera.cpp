@@ -45,12 +45,12 @@ namespace GpgFrontend {
 namespace {
 
 auto ExtractArchiveHelper(const QString& out_path,
-                          std::function<void(GFError)> on_done)
+                          std::function<void(GFOperaStatus)> on_done)
     -> QSharedPointer<GFDataExchanger> {
   auto ex = CreateStandardGFDataExchanger();
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path,
-      [on_done = std::move(on_done)](GFError err, const DataObjectPtr&) {
+      [on_done = std::move(on_done)](GFOperaStatus err, const DataObjectPtr&) {
         FLOG_D("extract archive from data exchanger operation, err: %d", err);
         if (on_done) on_done(err);
       });
@@ -61,9 +61,9 @@ auto ExtractArchiveHelper(const QString& out_path,
 // malformed, or a write may have failed half way. Report that as a failure so
 // the caller discards the staged directory instead of committing a partial
 // tree.
-auto JoinArchiveExtraction(GpgError decrypt_err,
-                           const std::shared_future<GFError>& extract_future)
-    -> GpgError {
+auto JoinArchiveExtraction(
+    GpgError decrypt_err,
+    const std::shared_future<GFOperaStatus>& extract_future) -> GpgError {
   const auto extract_err = extract_future.get();
   if (CheckGpgError(decrypt_err) != GPG_ERR_NO_ERROR) return decrypt_err;
   if (extract_err != 0) {
@@ -79,11 +79,11 @@ void CreateArchiveHelper(const QString& in_path,
   auto w_ex = QWeakPointer<GFDataExchanger>(ex);
 
   ArchiveFileOperator::NewArchive2DataExchanger(
-      in_path, ex, [=](GFError err, const DataObjectPtr&) {
+      in_path, ex, [=](GFOperaStatus err, const DataObjectPtr&) {
         FLOG_D("new archive 2 data exchanger operation, err: %d", err);
-        // `!= 0`, not `< 0`: GFError is unsigned. The signed form was always
-        // false, so a failed archive never closed the pipe and left whoever was
-        // reading it waiting for bytes that were not coming.
+        // `!= 0`, not `< 0`: GFOperaStatus is unsigned. The signed form was
+        // always false, so a failed archive never closed the pipe and left
+        // whoever was reading it waiting for bytes that were not coming.
         if (decltype(ex) p_ex = w_ex.lock(); err != 0 && p_ex != nullptr) {
           ex->CloseWrite();
         }
@@ -214,12 +214,13 @@ auto DecryptIntoArchive(OpenPGPContext& ctx_, const QString& in_path,
   // extractor may still be draining it and writing the trailing files. Join on
   // the extractor so the opera does not report completion (and the caller does
   // not commit / rename the output directory) until every file is on disk.
-  auto extract_done = std::make_shared<std::promise<GFError>>();
-  std::shared_future<GFError> extract_future =
+  auto extract_done = std::make_shared<std::promise<GFOperaStatus>>();
+  std::shared_future<GFOperaStatus> extract_future =
       extract_done->get_future().share();
 
-  auto ex = ExtractArchiveHelper(
-      out_path, [extract_done](GFError err) { extract_done->set_value(err); });
+  auto ex = ExtractArchiveHelper(out_path, [extract_done](GFOperaStatus err) {
+    extract_done->set_value(err);
+  });
 
   RunGpgOperaAsync(
       ctx_.GetChannel(),

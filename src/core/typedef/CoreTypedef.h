@@ -30,6 +30,10 @@
 
 namespace GpgFrontend {
 
-using GFError = uint32_t;
+/// What a task or an archive operation returns: 0 for success, otherwise a
+/// status of whatever ran it, such as libarchive's. A number, not an error:
+/// unsigned, so a negative status reads back as a large one -- compare with
+/// `!= 0`, never `< 0`.
+using GFOperaStatus = uint32_t;
 
 }  // namespace GpgFrontend

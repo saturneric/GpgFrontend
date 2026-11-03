@@ -2246,7 +2246,7 @@ TEST(ProfilePackageLegacyTest, AVersionOnePackageStillOpens) {
 
   // gzip'd tar of the staging tree, exactly as version 1 wrote it.
   auto exchanger = CreateStandardGFDataExchanger();
-  GFError archive_error = 0;
+  GFOperaStatus archive_error = 0;
   std::thread producer([&]() {
     archive_error = ArchiveFileOperator::NewArchive2DataExchangerSync(
         staging, exchanger, ArchiveCompression::kGZIP);
@@ -2284,7 +2284,7 @@ TEST(ProfilePackageLegacyTest, AVersionOnePackageStillOpens) {
 
   // Repack now that the manifest is final.
   auto exchanger2 = CreateStandardGFDataExchanger();
-  GFError archive_error2 = 0;
+  GFOperaStatus archive_error2 = 0;
   std::thread producer2([&]() {
     archive_error2 = ArchiveFileOperator::NewArchive2DataExchangerSync(
         staging, exchanger2, ArchiveCompression::kGZIP);

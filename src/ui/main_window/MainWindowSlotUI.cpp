@@ -340,11 +340,11 @@ void MainWindow::export_profile(const ProfileExportDialog* dialog) {
   GpgOperaHelper::WaitForOpera(
       this, tr("Exporting Profile"), [=](const OperaWaitingHd& op_hd) {
         RunOperaAsync(
-            [=](const DataObjectPtr&) -> GFError {
+            [=](const DataObjectPtr&) -> GFOperaStatus {
               *result = ExportProfilePackage(request);
               return result->ok ? 0 : -1;
             },
-            [=](GFError, const DataObjectPtr&) {
+            [=](GFOperaStatus, const DataObjectPtr&) {
               op_hd();
 
               if (!result->ok) {

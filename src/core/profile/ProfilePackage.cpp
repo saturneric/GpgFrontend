@@ -236,9 +236,9 @@ auto WriteProfilePackage(const ArchiveMemberProvider &next,
       temporary.close();
       return abandon("the package could not be written");
     }
-    // `!= 0`, not `< 0`: GFError is uint32_t, so the signed comparison this
-    // used to make was a tautology the compiler folded away, and no error the
-    // archive producer reported has ever been noticed here.
+    // `!= 0`, not `< 0`: GFOperaStatus is uint32_t, so the signed comparison
+    // this used to make was a tautology the compiler folded away, and no error
+    // the archive producer reported has ever been noticed here.
     if (archive_error != 0 || payload_bytes == 0) {
       temporary.close();
       return abandon("the profile could not be packed");
@@ -1179,9 +1179,9 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
     return result;
   }
 
-  // `!= 0`, not `< 0`: GFError is unsigned, so the comparison this used to make
-  // was always false and an extraction that gave up part way through was
-  // adopted as if it had finished.
+  // `!= 0`, not `< 0`: GFOperaStatus is unsigned, so the comparison this used
+  // to make was always false and an extraction that gave up part way through
+  // was adopted as if it had finished.
   if (error != 0) {
     RemoveDirectoryQuietly(staging_dir);
     result.status = ProfilePackageReadStatus::kMALFORMED;

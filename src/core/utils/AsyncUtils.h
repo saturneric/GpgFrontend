@@ -81,7 +81,7 @@ auto GF_CORE_EXPORT RunGpgOperaSync(int channel,
  * @brief Run a general operation asynchronously on the default task runner.
  *
  * @param runnable operation to execute on the runner thread
- * @param callback function invoked on the calling thread with (GFError,
+ * @param callback function invoked on the calling thread with (GFOperaStatus,
  * DataObjectPtr)
  * @param operation human-readable operation name used for task identification
  * @return TaskHandler for the scheduled task

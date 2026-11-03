@@ -593,11 +593,11 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
   GpgOperaHelper::WaitForOpera(
       parent, QObject::tr("Saving Profile"), [=](const OperaWaitingHd& op_hd) {
         RunOperaAsync(
-            [=](const DataObjectPtr&) -> GFError {
+            [=](const DataObjectPtr&) -> GFOperaStatus {
               *result = ExportProfilePackage(request);
               return result->ok ? 0 : -1;
             },
-            [=](GFError, const DataObjectPtr&) {
+            [=](GFOperaStatus, const DataObjectPtr&) {
               op_hd();
 
               if (!result->ok) {
@@ -734,11 +734,11 @@ void ImportProfileInteractive(QWidget* parent, const QString& path,
   GpgOperaHelper::WaitForOpera(
       parent, QObject::tr("Reading Profile"), [=](const OperaWaitingHd& op_hd) {
         RunOperaAsync(
-            [=](const DataObjectPtr&) -> GFError {
+            [=](const DataObjectPtr&) -> GFOperaStatus {
               *result = ReadProfilePackage(path, staging, passphrase);
               return result->Ok() ? 0 : -1;
             },
-            [=](GFError, const DataObjectPtr&) {
+            [=](GFOperaStatus, const DataObjectPtr&) {
               op_hd();
               FinishImport(parent, path, staging, *result, on_changed,
                            on_opened);
