@@ -86,6 +86,12 @@ else()
     DEPENDS "${GF_MODULE_TRUST_ROOT_SOURCE}")
 endif()
 
+# Install information the core reads (GlobalSettingStation, the module
+# bindings), so every flavor generates it, before the core is built.
+include(GNUInstallDirs)
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in
+  ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
+
 add_subdirectory(core)
 add_subdirectory(boot)
 if(GF_BUILD_DESKTOP)
@@ -290,11 +296,6 @@ endif()
 # see src/res/CMakeLists.txt.
 
 include(GNUInstallDirs)
-
-#
-# Install information read by application
-#
-configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
 
 #
 # Install generated libraries and application
