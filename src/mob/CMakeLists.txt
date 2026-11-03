@@ -34,6 +34,8 @@ include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
 qt_add_library(gf_mob_lib STATIC
   startup/InteractionBridge.cpp
   startup/MobileProfileLoaderDelegate.cpp
+  startup/StartupController.cpp
+  crypto/PassphraseBroker.cpp
   ${GF_PLATFORM_APP_SOURCES}
   ${GF_PLATFORM_MOBILE_SOURCES})
 
