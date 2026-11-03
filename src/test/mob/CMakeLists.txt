@@ -24,18 +24,30 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # The phone application's own tests: its controllers and models on the core
-# (gf_mob_tests).
-find_package(Qt6 COMPONENTS Test REQUIRED)
+# (gf_mob_tests), and its pages (gf_mob_qml_tests).
+find_package(Qt6 COMPONENTS Test QuickTest REQUIRED)
 
 add_executable(gf_mob_tests
   main.cpp
   AppLifecycleTest.cpp
+  InteropTest.cpp
   InteractionBridgeTest.cpp
   KeyActionsTest.cpp
   KeyModelsTest.cpp
   MobileProfileLoaderDelegateTest.cpp
+  PlatformTest.cpp
+  QmlRegistrationTest.cpp
+  SettingsModelTest.cpp
   StartupTest.cpp
   TextCryptoTest.cpp)
 target_include_directories(gf_mob_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/mob)
 target_link_libraries(gf_mob_tests PRIVATE
   gf_mob_lib gf_mob_libplugin GTest::gtest Qt::Test)
+
+add_executable(gf_mob_qml_tests QmlTestMain.cpp)
+target_include_directories(gf_mob_qml_tests PRIVATE
+  ${CMAKE_SOURCE_DIR}/src/mob)
+target_link_libraries(gf_mob_qml_tests PRIVATE
+  gf_mob_lib gf_mob_libplugin Qt::QuickTest)
+target_compile_definitions(gf_mob_qml_tests PRIVATE
+  QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml")
