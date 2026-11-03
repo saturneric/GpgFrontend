@@ -220,7 +220,7 @@ TEST_F(RpgpCoreTest, CoreEncryptToNoUsableRecipientNamesEachOneTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({key}, GFBuffer(QString("hello")), true);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_PUBKEY);
+  EXPECT_EQ(err.code, GFErrorCode::kUNUSABLE_PUBLIC_KEY);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
   const auto invalid = result.InvalidRecipients();
@@ -267,27 +267,31 @@ void RestoreDefaultPassphraseFetcher() {
 // Encrypt to the fixture key, then decrypt again. Decryption unlocks the
 // *encryption subkey*, so this is what proves a passphrase change reached the
 // subkeys and not just the primary key packet.
-auto EncryptThenDecryptRoundTrip() -> GpgError {
+auto EncryptThenDecryptRoundTrip() -> GFError {
   auto encrypt_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
                          .GetPubkeyPtr(kFixtureKeyFpr);
-  if (encrypt_key == nullptr) return GPG_ERR_NO_PUBKEY;
+  if (encrypt_key == nullptr) {
+    return GFError::Application(GFErrorCode::kNO_PUBLIC_KEY);
+  }
 
   auto buffer = GFBuffer(QString("Hello RPGP!"));
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return err;
+  if (!err.Ok()) return err;
 
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
-  if (CheckGpgError(err_0) != GPG_ERR_NO_ERROR) return err_0;
+  if (!err_0.Ok()) return err_0;
 
   auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
-  return decr_out_buffer == buffer ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
+  return decr_out_buffer == buffer
+             ? GFError{}
+             : GFError::Application(GFErrorCode::kGENERAL);
 }
 
 }  // namespace
@@ -312,7 +316,7 @@ TEST_F(RpgpCoreTest, CoreModifyKeyPassphraseCoversSubkeysTest) {
   InstallPassphraseScript({.unlock_default = kNewPassphrase});
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
 
-  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(EncryptThenDecryptRoundTrip().Ok());
 
   RestoreDefaultPassphraseFetcher();
 }
@@ -346,11 +350,10 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
   // The encryption subkey now needs the new passphrase; offering only the old
   // one must fail.
   InstallPassphraseScript({.unlock_default = kDefaultPassphrase});
-  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()),
-            GPG_ERR_BAD_PASSPHRASE);
+  EXPECT_EQ(EncryptThenDecryptRoundTrip().code, GFErrorCode::kBAD_PASSPHRASE);
 
   InstallPassphraseScript({.unlock_default = kNewPassphrase});
-  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(EncryptThenDecryptRoundTrip().Ok());
 
   // ...while the primary key was left alone: it still unlocks with the old
   // passphrase. A wrong one here would fail the unlock.
@@ -412,7 +415,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRetriesBadUnlockTest) {
 
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
   InstallPassphraseScript({.unlock_default = kNewPassphrase});
-  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(EncryptThenDecryptRoundTrip().Ok());
 
   RestoreDefaultPassphraseFetcher();
 }
@@ -649,7 +652,7 @@ TEST_F(RpgpCoreTest, CoreSetSubkeyExpirationPreservesBindingTest) {
 
   // The rebuilt binding must still validate: encrypting to the key and
   // decrypting through the encryption subkey has to keep working.
-  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(EncryptThenDecryptRoundTrip().Ok());
 }
 
 namespace {

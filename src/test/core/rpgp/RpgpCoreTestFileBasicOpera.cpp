@@ -233,7 +233,7 @@ TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .SignSync({sign_key}, GFBuffer(QString("Hello RPGP Clear File!")),
                       mode, true);
-    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err.Ok());
     auto signed_file =
         CreateTempFileAndWriteData(ExtractParams<GFBuffer>(data_object, 1));
 
@@ -358,11 +358,11 @@ TEST_F(RpgpCoreTest, CoreEncryptSignHonorsPinnedSigningSubkeyTest) {
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .EncryptSignSync({encrypt_key}, {pinned},
                              GFBuffer(QString("Hello RPGP Pinned!")), true);
-    ASSERT_EQ(CheckGpgError(err_1), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err_1.Ok());
     auto [err_2, data_object_2] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .DecryptVerifySync(ExtractParams<GFBuffer>(data_object_1, 2));
-    ASSERT_EQ(CheckGpgError(err_2), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err_2.Ok());
     auto msg_verify = ExtractParams<GpgVerifyResult>(data_object_2, 1);
     ASSERT_EQ(msg_verify.GetSignature().size(), 1);
     EXPECT_EQ(msg_verify.GetSignature().at(0).GetFingerprint(), pinned_fpr);

@@ -38,7 +38,8 @@
 #include <cstring>
 
 #include "RpgpCoreTestRfc9580.h"
-#include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core//function/openpgp/MessageCryptoOperation.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/utils/GpgUtils.h"
@@ -48,13 +49,13 @@ namespace GpgFrontend::Test {
 namespace {
 
 // Decrypt a vector and, on success, return the recovered plaintext buffer.
-auto DecryptVector(const QString& name, GpgError* out_err) -> GFBuffer {
+auto DecryptVector(const QString& name, GFError* out_err) -> GFBuffer {
   auto ct = LoadRfc9580Vector(name);
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
   *out_err = err;
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return {};
+  if (!err.Ok()) return {};
   EXPECT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
   return ExtractParams<GFBuffer>(dobj, 1);
 }
@@ -64,9 +65,9 @@ auto DecryptVector(const QString& name, GpgError* out_err) -> GFBuffer {
 // --- v1 SEIPD / MDC (encrypted to fixture key1) -----------------------------
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptV1SeipdRecoversPlaintext) {
-  GpgError err;
+  GFError err;
   auto out = DecryptVector("enc_v1seipd_mdc.pgp", &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
@@ -75,7 +76,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV1SeipdReportsIntegrityProtected) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   // RFC 9580 sec 5.13: a SEIPD packet is integrity protected.
   EXPECT_TRUE(r.MessageIntegrityProtected());
@@ -86,7 +87,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV1SeipdReportsRecipient) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   ASSERT_FALSE(r.Recipients().empty());
   EXPECT_FALSE(r.Recipients().front().keyid.isEmpty());
@@ -106,9 +107,9 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadRecoversPlaintext) {
   // The v2/AEAD vector is encrypted to the aux v6 key, whose secret is not in
   // the default fixture keyring; import it first.
   ImportAuxKeys({"aux_v6.asc"});
-  GpgError err;
+  GFError err;
   auto out = DecryptVector("enc_v2seipd_ocb.pgp", &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
@@ -118,7 +119,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadReportsIntegrityProtected) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   // An AEAD container is inherently integrity protected (sec 5.13.2).
   EXPECT_TRUE(r.MessageIntegrityProtected());
@@ -132,7 +133,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadWithoutKeyFails) {
           .DecryptSync(ct);
   // No secret key matches any recipient: GPG_ERR_NO_SECKEY, as GnuPG says
   // and as signing without a secret key says.
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
+  EXPECT_EQ(err.code, GFErrorCode::kNO_SECRET_KEY);
 }
 
 // --- Multi-recipient PKESK --------------------------------------------------
@@ -144,16 +145,16 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptReportsTheContainerCipherAndMode) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(LoadRfc9580Vector("enc_v2seipd_ocb.pgp"));
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   EXPECT_EQ(r.SymmetricEncryptionAlgorithm(), QString("AES256.OCB"));
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptMultiRecipientRecoversPlaintext) {
   // Encrypted to key1+key2+key3; the fixture holds key1's secret.
-  GpgError err;
+  GFError err;
   auto out = DecryptVector("enc_multi_recipient.pgp", &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
@@ -162,7 +163,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptMultiRecipientReportsRecipients) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   // sq wrote one v3 PKESK per encryption subkey of the three certificates.
   EXPECT_GE(r.Recipients().size(), 1);
@@ -172,9 +173,9 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptMultiRecipientReportsRecipients) {
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV1RecoversPlaintext) {
   // The fixture passphrase fetcher supplies "123456".
-  GpgError err;
+  GFError err;
   auto out = DecryptVector("enc_symmetric_v1.pgp", &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
@@ -182,9 +183,9 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV1RecoversPlaintext) {
 // v4 SKESK + v1 SEIPD/MDC (see MANIFEST.txt). It stands for an independently
 // produced password message, not for AEAD.
 TEST_F(RpgpCoreTest, Rfc9580DecryptSequoiaSymmetricRecoversPlaintext) {
-  GpgError err;
+  GFError err;
   auto out = DecryptVector("enc_symmetric_v2.pgp", &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
@@ -193,7 +194,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV1ReportsNoRecipient) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   // Password-based encryption carries no public-key recipients.
   EXPECT_TRUE(r.Recipients().empty());
@@ -204,7 +205,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptSequoiaSymmetricReportsIntegrityProtected) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   EXPECT_TRUE(r.MessageIntegrityProtected());
 }
@@ -219,7 +220,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedIsRejected) {
   // The engine must refuse a non-integrity-protected packet outright and say
   // why. The packet is well-formed, so it is a refusal by policy (not
   // supported), not invalid input and not a failed integrity check.
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NOT_SUPPORTED);
+  EXPECT_EQ(err.code, GFErrorCode::kNOT_SUPPORTED);
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
   const auto detail =
       ExtractParams<GpgDecryptResult>(dobj, 0).ErrorDetail().toLower();
@@ -233,7 +234,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedReleasesNoPlaintext) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
   // Even though the passphrase is known, no plaintext may be surfaced.
   if (dobj->Check<GpgDecryptResult, GFBuffer>()) {
     auto out = ExtractParams<GFBuffer>(dobj, 1);
@@ -246,14 +247,14 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedReportsErrorDetail) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
   auto r = ExtractParams<GpgDecryptResult>(dobj, 0);
   // The user must learn why the message was refused.
   EXPECT_FALSE(r.ErrorDetail().isEmpty());
 
   // And the result is a failure, so no caller releases output for it.
-  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, err, r};
+  GpgDecryptResultAnalyse analyse{kRpgpChannelForUnitTest, ToGpgError(err), r};
   analyse.Analyse();
   EXPECT_LT(analyse.GetStatus(), 0);
 }
@@ -261,40 +262,40 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptLegacySedReportsErrorDetail) {
 // --- Determinism / stability ------------------------------------------------
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptV1SeipdIsRepeatable) {
-  GpgError e1;
+  GFError e1;
   auto a = DecryptVector("enc_v1seipd_mdc.pgp", &e1);
-  GpgError e2;
+  GFError e2;
   auto b = DecryptVector("enc_v1seipd_mdc.pgp", &e2);
-  ASSERT_EQ(CheckGpgError(e1), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(CheckGpgError(e2), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e1.Ok());
+  ASSERT_TRUE(e2.Ok());
   EXPECT_EQ(a, b);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptExactByteLength) {
-  GpgError err;
+  GFError err;
   auto out = DecryptVector("enc_v1seipd_mdc.pgp", &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   // The known plaintext is a fixed 58-byte string.
   EXPECT_EQ(out.Size(), std::strlen(kRfc9580Payload));
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptSymmetricV1MatchesV2Plaintext) {
-  GpgError e1;
+  GFError e1;
   auto a = DecryptVector("enc_symmetric_v1.pgp", &e1);
-  GpgError e2;
+  GFError e2;
   auto b = DecryptVector("enc_symmetric_v2.pgp", &e2);
-  ASSERT_EQ(CheckGpgError(e1), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(CheckGpgError(e2), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e1.Ok());
+  ASSERT_TRUE(e2.Ok());
   EXPECT_EQ(a, b);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptMultiRecipientMatchesSingle) {
-  GpgError e1;
+  GFError e1;
   auto a = DecryptVector("enc_v1seipd_mdc.pgp", &e1);
-  GpgError e2;
+  GFError e2;
   auto b = DecryptVector("enc_multi_recipient.pgp", &e2);
-  ASSERT_EQ(CheckGpgError(e1), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(CheckGpgError(e2), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e1.Ok());
+  ASSERT_TRUE(e2.Ok());
   EXPECT_EQ(a, b);
 }
 

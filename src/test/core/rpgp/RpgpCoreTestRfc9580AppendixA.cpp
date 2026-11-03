@@ -157,7 +157,7 @@ void ImportBlock(const char* block) {
 }
 
 struct VerifyOutcome {
-  GpgError err;
+  GFError err;
   QList<GpgSignature> sigs;
 };
 
@@ -230,7 +230,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixACleartextVerifiesAsValid) {
   ASSERT_NO_FATAL_FAILURE(ImportBlock(kA3V6Cert));
 
   auto out = RunVerify(Buf(kA6Cleartext), GFBuffer());
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_FALSE(out.sigs.empty());
   ASSERT_EQ(CountValid(out.sigs), 1);
 }
@@ -275,7 +275,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixAInlineVerifiesAsValid) {
   ASSERT_NO_FATAL_FAILURE(ImportBlock(kA3V6Cert));
 
   auto out = RunVerify(Buf(kA7InlineSigned), GFBuffer());
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_EQ(CountValid(out.sigs), 1);
 }
 
@@ -309,7 +309,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbDecryptsToTheKnownPlaintext) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(Buf(kA8X25519AeadOcb));
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
 
   auto plain = ExtractParams<GFBuffer>(dobj, 1);
@@ -324,7 +324,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbWithoutTheSecretKeyFails) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(Buf(kA8X25519AeadOcb));
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbTamperedCiphertextIsRefused) {
@@ -342,7 +342,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbTamperedCiphertextIsRefused) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(GFBuffer(tampered));
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_BAD_DATA)
+  ASSERT_EQ(err.code, GFErrorCode::kBAD_DATA)
       << "a tampered AEAD ciphertext must never release plaintext";
   if (dobj->Check<GpgDecryptResult, GFBuffer>()) {
     EXPECT_TRUE(ExtractParams<GFBuffer>(dobj, 1).Empty());
@@ -360,7 +360,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixAAeadOcbTruncatedIsRefused) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(GFBuffer(truncated));
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_BAD_DATA);
+  ASSERT_EQ(err.code, GFErrorCode::kBAD_DATA);
 }
 
 // ---------------------------------------------------------------------------
@@ -375,7 +375,7 @@ TEST_F(RpgpCoreTest, Rfc9580AppendixADecryptingASignedMessageFailsCleanly) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(Buf(kA7InlineSigned));
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580AppendixAVerifyingAnEncryptedMessageFailsCleanly) {

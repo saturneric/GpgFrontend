@@ -32,6 +32,7 @@
 #include <new>
 
 #include "GFHostImpl.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
@@ -261,10 +262,11 @@ auto RunOperation(int channel, const char* origin, GFGpgResultRef* out,
     impl = NewResult(origin);
     if (impl == nullptr) return -1;
 
-    auto [err, data_object] = run();
-    if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      return FailOperation(impl, err, out);
-    }
+    auto [error, data_object] = run();
+    // Modules have always been handed GnuPG's value, so it is what the result
+    // keeps: one conversion, here, for every operation.
+    const auto err = GpgFrontend::ToGpgError(error);
+    if (!error.Ok()) return FailOperation(impl, err, out);
     fill(impl, data_object, err);
     *out = impl;
     return GF_GPG_OK;

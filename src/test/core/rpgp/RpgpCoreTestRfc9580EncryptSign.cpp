@@ -35,7 +35,8 @@
 // suites by proving the producing side and the consuming side agree.
 
 #include "RpgpCoreTestRfc9580.h"
-#include "core/function/openpgp/GpgKeyRepository.h"
+#include "core//function/openpgp/GpgKeyRepository.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -56,13 +57,13 @@ auto Key1Secret() -> GpgAbstractKeyPtr {
       .GetKeyPtr(kKey1PrimaryFpr);
 }
 
-auto EncryptThenDecrypt(const GFBuffer& plain, bool ascii, GpgError* dec_err)
+auto EncryptThenDecrypt(const GFBuffer& plain, bool ascii, GFError* dec_err)
     -> GFBuffer {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({Key1Pub()}, plain, ascii);
-  EXPECT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
-  if (CheckGpgError(e_err) != GPG_ERR_NO_ERROR) {
+  EXPECT_TRUE(e_err.Ok());
+  if (!e_err.Ok()) {
     *dec_err = e_err;
     return {};
   }
@@ -71,7 +72,7 @@ auto EncryptThenDecrypt(const GFBuffer& plain, bool ascii, GpgError* dec_err)
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
   *dec_err = d_err;
-  if (CheckGpgError(d_err) != GPG_ERR_NO_ERROR) return {};
+  if (!d_err.Ok()) return {};
   return ExtractParams<GFBuffer>(d_obj, 1);
 }
 
@@ -93,17 +94,17 @@ auto MakeLargePayload() -> GFBuffer {
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptDecryptRoundTripAscii) {
   auto plain = GFBuffer(QString("round-trip ascii"));
-  GpgError err;
+  GFError err;
   auto out = EncryptThenDecrypt(plain, true, &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, plain);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptDecryptRoundTripBinary) {
   auto plain = GFBuffer(QString("round-trip binary armor off"));
-  GpgError err;
+  GFError err;
   auto out = EncryptThenDecrypt(plain, false, &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, plain);
 }
 
@@ -112,29 +113,29 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptRejectsEmptyPayload) {
   // encrypt"): there is nothing to protect, so the operation is an input error.
   auto [err, obj] = MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
                         .EncryptSync({Key1Pub()}, GFBuffer(QByteArray()), true);
-  EXPECT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(err.Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptDecryptBinaryPayloadWithNul) {
   auto plain = MakeBinaryPayload();
-  GpgError err;
+  GFError err;
   auto out = EncryptThenDecrypt(plain, true, &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, plain);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptDecryptLargePayload) {
   auto plain = MakeLargePayload();
-  GpgError err;
+  GFError err;
   auto out = EncryptThenDecrypt(plain, false, &err);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(out, plain);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptOutputIsAsciiArmored) {
   auto [err, obj] = MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
                         .EncryptSync({Key1Pub()}, GFBuffer(QString("x")), true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto ct = ExtractParams<GFBuffer>(obj, 1);
   EXPECT_TRUE(QString::fromUtf8(ct.Data(), static_cast<int>(ct.Size()))
                   .startsWith("-----BEGIN PGP MESSAGE-----"));
@@ -151,13 +152,13 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptMultiRecipientRoundTrip) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({k1, k2, k3}, plain, true);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 1);
   // Decrypts with key1's secret (the only one held by the fixture).
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   EXPECT_EQ(ExtractParams<GFBuffer>(d_obj, 1), plain);
 }
 
@@ -172,12 +173,12 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyNormalRoundTrip) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_NORMAL, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto signed_msg = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(signed_msg, GFBuffer());
-  ASSERT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(v_err.Ok());
   auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
   ASSERT_FALSE(r.GetSignature().empty());
   EXPECT_TRUE(SignatureIsValid(r.GetSignature().front()));
@@ -189,12 +190,12 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyDetachedRoundTrip) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(data, sig);
-  ASSERT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(v_err.Ok());
   auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
   ASSERT_FALSE(r.GetSignature().empty());
   EXPECT_TRUE(SignatureIsValid(r.GetSignature().front()));
@@ -205,12 +206,12 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyClearRoundTrip) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_CLEAR, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto cleartext = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(cleartext, GFBuffer());
-  ASSERT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(v_err.Ok());
   auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
   ASSERT_FALSE(r.GetSignature().empty());
   EXPECT_TRUE(SignatureIsValid(r.GetSignature().front()));
@@ -221,7 +222,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignDetachedOutputIsAsciiArmored) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   EXPECT_TRUE(QString::fromUtf8(sig.Data(), static_cast<int>(sig.Size()))
                   .startsWith("-----BEGIN PGP SIGNATURE-----"));
@@ -232,7 +233,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyDetachedTamperedDataFails) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   // Verify the genuine detached signature against tampered data.
   auto [v_err, v_obj] =
@@ -252,7 +253,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignRejectsEmptyPayload) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, GFBuffer(QByteArray()),
                     GPGME_SIG_MODE_DETACH, true);
-  EXPECT_NE(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(s_err.Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580SignVerifyBinaryPayload) {
@@ -260,12 +261,12 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyBinaryPayload) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(data, sig);
-  ASSERT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(v_err.Ok());
   auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
   ASSERT_FALSE(r.GetSignature().empty());
   EXPECT_TRUE(SignatureIsValid(r.GetSignature().front()));
@@ -276,12 +277,12 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyLargePayload) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(s_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(data, sig);
-  ASSERT_EQ(CheckGpgError(v_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(v_err.Ok());
   auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
   ASSERT_FALSE(r.GetSignature().empty());
   EXPECT_TRUE(SignatureIsValid(r.GetSignature().front()));
@@ -294,12 +295,12 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptSignDecryptVerifyRoundTrip) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({Key1Pub()}, {Key1Secret()}, plain, true);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 2);
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   ASSERT_TRUE((d_obj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   auto vr = ExtractParams<GpgVerifyResult>(d_obj, 1);
   auto out = ExtractParams<GFBuffer>(d_obj, 2);
@@ -313,12 +314,12 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptSignDecryptVerifyReportsSigner) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({Key1Pub()}, {Key1Secret()}, plain, true);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 2);
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   auto vr = ExtractParams<GpgVerifyResult>(d_obj, 1);
   ASSERT_FALSE(vr.GetSignature().empty());
   // The combined path must attribute the signature exactly as standalone verify
@@ -331,12 +332,12 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptSignDecryptVerifyBinaryPayload) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({Key1Pub()}, {Key1Secret()}, plain, false);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 2);
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   auto out = ExtractParams<GFBuffer>(d_obj, 2);
   auto vr = ExtractParams<GpgVerifyResult>(d_obj, 1);
   EXPECT_EQ(out, plain);
@@ -352,16 +353,15 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptSignEmptyPayloadIsSafe) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({Key1Pub()}, {Key1Secret()}, GFBuffer(QByteArray()),
                            true);
-  if (CheckGpgError(e_err) == GPG_ERR_NO_ERROR &&
-      e_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
+  if (e_err.Ok() && e_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
     auto [d_err, d_obj] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .DecryptVerifySync(ExtractParams<GFBuffer>(e_obj, 2));
     ADD_FAILURE() << "empty payload encrypted and signed with success; "
                      "decrypt-verify of the result returned "
-                  << gpg_strerror(d_err);
+                  << DescribeGFError(d_err).second.toStdString();
   }
-  EXPECT_EQ(CheckGpgError(e_err), GPG_ERR_INV_DATA);
+  EXPECT_EQ(e_err.code, GFErrorCode::kINVALID_DATA);
 }
 
 // --- symmetric round-trips --------------------------------------------------
@@ -371,12 +371,12 @@ TEST_F(RpgpCoreTest, Rfc9580SymmetricEncryptDecryptRoundTrip) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSymmetricSync(plain, true);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 1);
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   EXPECT_EQ(ExtractParams<GFBuffer>(d_obj, 1), plain);
 }
 
@@ -385,12 +385,12 @@ TEST_F(RpgpCoreTest, Rfc9580SymmetricEncryptDecryptBinaryPayload) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSymmetricSync(plain, false);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 1);
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   EXPECT_EQ(ExtractParams<GFBuffer>(d_obj, 1), plain);
 }
 
@@ -399,12 +399,12 @@ TEST_F(RpgpCoreTest, Rfc9580SymmetricEncryptIsIntegrityProtected) {
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSymmetricSync(plain, true);
-  ASSERT_EQ(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e_err.Ok());
   auto ct = ExtractParams<GFBuffer>(e_obj, 1);
   auto [d_err, d_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(ct);
-  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(d_err.Ok());
   auto r = ExtractParams<GpgDecryptResult>(d_obj, 0);
   // The engine must produce an integrity-protected container, never a SED.
   EXPECT_TRUE(r.MessageIntegrityProtected());
@@ -414,12 +414,12 @@ TEST_F(RpgpCoreTest, Rfc9580SymmetricEncryptIsIntegrityProtected) {
 
 TEST_F(RpgpCoreTest, Rfc9580EncryptAsciiAndBinaryDecryptToSamePlaintext) {
   auto plain = GFBuffer(QString("armor invariance"));
-  GpgError e1;
+  GFError e1;
   auto a = EncryptThenDecrypt(plain, true, &e1);
-  GpgError e2;
+  GFError e2;
   auto b = EncryptThenDecrypt(plain, false, &e2);
-  ASSERT_EQ(CheckGpgError(e1), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(CheckGpgError(e2), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(e1.Ok());
+  ASSERT_TRUE(e2.Ok());
   EXPECT_EQ(a, plain);
   EXPECT_EQ(b, plain);
 }

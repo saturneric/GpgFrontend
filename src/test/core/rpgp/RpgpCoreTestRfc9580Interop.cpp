@@ -52,7 +52,7 @@ namespace GpgFrontend::Test {
 namespace {
 
 struct VerifyOutcome {
-  GpgError err;
+  GFError err;
   QList<GpgSignature> sigs;
   QString detail;
 };
@@ -187,7 +187,7 @@ TEST_F(RpgpCoreTest, Rfc9580InteropCompressedInlineVerifies) {
   ImportAuxKeys({"aux_sha1.asc"});
   auto out = RunVerify(LoadRfc9580Vector("sig_inline_compressed.pgp"),
                        GFBuffer());
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_EQ(out.sigs.front().GetFingerprint(), QString(kAuxSha1Fpr));
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));

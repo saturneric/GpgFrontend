@@ -505,16 +505,15 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
       hash_result ? hash_result->ConvertToQByteArray().toHex() : QString();
 
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
-    opera_func(buffer, [=, &opera_results](GpgError err,
+    opera_func(buffer, [=, &opera_results](GFError err,
                                            const DataObjectPtr& data_obj) {
       // stop waiting
       op_hd();
 
       // Stopped before it could be analysed: cancelled, not supported, or no
       // usable result. The error is kept as recorded either way.
-      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED ||
-          CheckGpgError(err) == GPG_ERR_CANCELED ||
-          CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+      if (err.code == GFErrorCode::kNOT_SUPPORTED || err.Canceled() ||
+          err.Aborted() || data_obj == nullptr ||
           !data_obj->Check<ResultType, GFBuffer>()) {
         QList<QPair<GpgOperation, QString>> details;
         if (data_obj != nullptr && data_obj->Check<ResultType, GFBuffer>()) {
@@ -523,9 +522,9 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
             details.append({AnalyseType::kOperation, result.ErrorDetail()});
           }
         }
-        auto aborted = GpgOperaResult{MakeAbortedOpInfo(
-            AnalyseType::kOperation, EngineErrorOf(channel, err),
-            DescribeOpenPGPEngine(channel), details)};
+        auto aborted = GpgOperaResult{
+            MakeAbortedOpInfo(AnalyseType::kOperation, err,
+                              DescribeOpenPGPEngine(channel), details)};
         aborted.input_index = index;
         opera_results.append(aborted);
         return;
@@ -533,7 +532,7 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
 
       auto result = ExtractParams<ResultType>(data_obj, 0);
 
-      auto result_analyse = AnalyseType(channel, err, result);
+      auto result_analyse = AnalyseType(channel, ToGpgError(err), result);
       result_analyse.Analyse();
 
       auto opera_result = GpgOperaResult{result_analyse.GetOpInfo()};
@@ -568,16 +567,15 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       hash_result ? hash_result->ConvertToQByteArray().toHex() : QString();
 
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
-    opera_func(buffer, [=, &opera_results](GpgError err,
+    opera_func(buffer, [=, &opera_results](GFError err,
                                            const DataObjectPtr& data_obj) {
       // stop waiting
       op_hd();
 
       // Stopped before it could be analysed: cancelled, not supported, or no
       // usable result. The error is kept as recorded either way.
-      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED ||
-          CheckGpgError(err) == GPG_ERR_CANCELED ||
-          CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+      if (err.code == GFErrorCode::kNOT_SUPPORTED || err.Canceled() ||
+          err.Aborted() || data_obj == nullptr ||
           !data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
         QList<QPair<GpgOperation, QString>> details;
         if (data_obj != nullptr &&
@@ -594,8 +592,7 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
         auto aborted = GpgOperaResult{
             MakeAbortedOpInfo(CombineGpgOperations(AnalyseTypeA::kOperation,
                                                    AnalyseTypeB::kOperation),
-                              EngineErrorOf(channel, err),
-                              DescribeOpenPGPEngine(channel), details)};
+                              err, DescribeOpenPGPEngine(channel), details)};
         aborted.input_index = index;
         opera_results.append(aborted);
         return;
@@ -604,10 +601,10 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       auto result_1 = ExtractParams<ResultTypeA>(data_obj, 0);
       auto result_2 = ExtractParams<ResultTypeB>(data_obj, 1);
 
-      auto result_analyse_1 = AnalyseTypeA(channel, err, result_1);
+      auto result_analyse_1 = AnalyseTypeA(channel, ToGpgError(err), result_1);
       result_analyse_1.Analyse();
 
-      auto result_analyse_2 = AnalyseTypeB(channel, err, result_2);
+      auto result_analyse_2 = AnalyseTypeB(channel, ToGpgError(err), result_2);
       result_analyse_2.Analyse();
 
       auto info = result_analyse_1.GetOpInfo();
@@ -618,9 +615,8 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       // Both analysers saw the one engine call's error; it is one failure of
       // the combined call, not one per stage.
       info.CollapseSharedCallError(
-          EngineErrorOf(channel, err),
-          CombineGpgOperations(AnalyseTypeA::kOperation,
-                               AnalyseTypeB::kOperation));
+          err, CombineGpgOperations(AnalyseTypeA::kOperation,
+                                    AnalyseTypeB::kOperation));
 
       auto opera_result = GpgOperaResult{std::move(info)};
       opera_result.input_index = index;

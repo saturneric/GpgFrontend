@@ -45,7 +45,7 @@ namespace GpgFrontend::Test {
 
 namespace {
 
-auto Decrypt(const GFBuffer& in) -> GpgError {
+auto Decrypt(const GFBuffer& in) -> GFError {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(in);
@@ -57,15 +57,14 @@ auto Decrypt(const GFBuffer& in) -> GpgError {
 // --- malformed decrypt inputs -----------------------------------------------
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptGarbageFailsCleanly) {
-  EXPECT_NE(CheckGpgError(Decrypt(LoadRfc9580Vector("garbage.bin"))),
-            GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(Decrypt(LoadRfc9580Vector("garbage.bin")).Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptGarbageReportsDetail) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(LoadRfc9580Vector("garbage.bin"));
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
   EXPECT_FALSE(
       ExtractParams<GpgDecryptResult>(dobj, 0).ErrorDetail().isEmpty());
@@ -74,17 +73,15 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptGarbageReportsDetail) {
 TEST_F(RpgpCoreTest, Rfc9580DecryptEmptyFailsCleanly) {
   // An empty resource cannot be read back as a buffer, so exercise the empty
   // case with a directly-constructed empty buffer.
-  EXPECT_NE(CheckGpgError(Decrypt(GFBuffer())), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(Decrypt(GFBuffer()).Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptTruncatedArmorFailsCleanly) {
-  EXPECT_NE(CheckGpgError(Decrypt(LoadRfc9580Vector("truncated_armor.asc"))),
-            GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(Decrypt(LoadRfc9580Vector("truncated_armor.asc")).Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptPkeskWithoutSeipdFailsCleanly) {
-  EXPECT_NE(CheckGpgError(Decrypt(LoadRfc9580Vector("pkesk_no_seipd.pgp"))),
-            GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(Decrypt(LoadRfc9580Vector("pkesk_no_seipd.pgp")).Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptCorruptCrcNeverYieldsWrongPlaintext) {
@@ -93,7 +90,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptCorruptCrcNeverYieldsWrongPlaintext) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(LoadRfc9580Vector("corrupt_crc.asc"));
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+  if (err.Ok()) {
     ASSERT_TRUE((dobj->Check<GpgDecryptResult, GFBuffer>()));
     EXPECT_EQ(ExtractParams<GFBuffer>(dobj, 1),
               LoadRfc9580Vector("payload.txt"));
@@ -102,22 +99,21 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptCorruptCrcNeverYieldsWrongPlaintext) {
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptDetachedSignatureAsMessageFails) {
   // A bare detached signature is not a decryptable message.
-  EXPECT_NE(CheckGpgError(Decrypt(LoadRfc9580Vector("sig_good_detached.sig"))),
-            GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(Decrypt(LoadRfc9580Vector("sig_good_detached.sig")).Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptRandomLargeGarbageFailsCleanly) {
   QByteArray junk(50000, '\0');
   for (int i = 0; i < junk.size(); ++i)
     junk[i] = static_cast<char>((i * 31) & 0xFF);
-  EXPECT_NE(CheckGpgError(Decrypt(GFBuffer(junk))), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(Decrypt(GFBuffer(junk)).Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptCiphertextWithoutSecretKeyFails) {
   // The v2/AEAD vector is encrypted to aux_v6, whose secret is not imported.
   // No secret key matches any recipient: GPG_ERR_NO_SECKEY, as GnuPG says.
-  EXPECT_EQ(CheckGpgError(Decrypt(LoadRfc9580Vector("enc_v2seipd_ocb.pgp"))),
-            GPG_ERR_NO_SECKEY);
+  EXPECT_EQ(Decrypt(LoadRfc9580Vector("enc_v2seipd_ocb.pgp")).code,
+            GFErrorCode::kNO_SECRET_KEY);
 }
 
 // RFC 9580 §13.7: a truncated or tampered AEAD message "MUST indicate a clear
@@ -129,7 +125,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptTruncatedAeadFailsCleanly) {
   ImportAuxKeys({"aux_v6.asc"});
   auto full = LoadRfc9580Vector("enc_v2seipd_ocb.pgp");
   QByteArray cut(full.Data(), static_cast<int>(full.Size() / 2));
-  EXPECT_EQ(CheckGpgError(Decrypt(GFBuffer(cut))), GPG_ERR_BAD_DATA);
+  EXPECT_EQ(Decrypt(GFBuffer(cut)).code, GFErrorCode::kBAD_DATA);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptTamperedAeadTagIsAnIntegrityFailure) {
@@ -137,7 +133,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptTamperedAeadTagIsAnIntegrityFailure) {
   auto full = LoadRfc9580Vector("enc_v2seipd_ocb.pgp");
   QByteArray tampered(full.Data(), static_cast<int>(full.Size()));
   tampered[tampered.size() - 1] = static_cast<char>(~tampered.back());
-  EXPECT_EQ(CheckGpgError(Decrypt(GFBuffer(tampered))), GPG_ERR_BAD_DATA);
+  EXPECT_EQ(Decrypt(GFBuffer(tampered)).code, GFErrorCode::kBAD_DATA);
 }
 
 // --- malformed verify inputs ------------------------------------------------
@@ -205,7 +201,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptVerifyGarbageFailsCleanly) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(LoadRfc9580Vector("garbage.bin"));
-  EXPECT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(err.Ok());
 }
 
 TEST_F(RpgpCoreTest, Rfc9580DecryptVerifyLegacySedIsRejected) {
@@ -213,7 +209,7 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptVerifyLegacySedIsRejected) {
   auto [err, dobj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(LoadRfc9580Vector("enc_sed_tag9.pgp"));
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NOT_SUPPORTED);
+  EXPECT_EQ(err.code, GFErrorCode::kNOT_SUPPORTED);
   ASSERT_TRUE((dobj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   const auto detail =
       ExtractParams<GpgDecryptResult>(dobj, 0).ErrorDetail().toLower();
@@ -247,7 +243,7 @@ TEST_F(RpgpCoreTest, Rfc9580ImportEmptyDoesNotImportAnything) {
 TEST_F(RpgpCoreTest, Rfc9580RepeatedGarbageDecryptIsStable) {
   auto junk = LoadRfc9580Vector("garbage.bin");
   for (int i = 0; i < 50; ++i) {
-    EXPECT_NE(CheckGpgError(Decrypt(junk)), GPG_ERR_NO_ERROR);
+    EXPECT_FALSE(Decrypt(junk).Ok());
   }
 }
 

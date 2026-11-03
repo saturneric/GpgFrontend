@@ -63,10 +63,10 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param keys recipient public keys
    * @param in_buffer plaintext data to encrypt
    * @param ascii if true, produce ASCII-armored output
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void Encrypt(const GpgAbstractKeyPtrList& keys, const GFBuffer& in_buffer,
-               bool ascii, const GpgOperationCallback& cb);
+               bool ascii, const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt a message buffer with the given recipient keys (sync).
@@ -74,10 +74,10 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param keys recipient public keys
    * @param in_buffer plaintext data to encrypt
    * @param ascii if true, produce ASCII-armored output
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto EncryptSync(const GpgAbstractKeyPtrList& keys, const GFBuffer& in_buffer,
-                   bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
+                   bool ascii) -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Encrypt a message buffer symmetrically (password-based, async).
@@ -87,17 +87,17 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param cb callback invoked on completion
    */
   void EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
-                        const GpgOperationCallback& cb);
+                        const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt a message buffer symmetrically (sync).
    *
    * @param in_buffer plaintext data to encrypt
    * @param ascii if true, produce ASCII-armored output
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto EncryptSymmetricSync(const GFBuffer& in_buffer, bool ascii)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Encrypt and sign a message buffer simultaneously (async).
@@ -111,7 +111,7 @@ class GF_CORE_EXPORT MessageCryptoOperation
   void EncryptSign(const GpgAbstractKeyPtrList& keys,
                    const GpgAbstractKeyPtrList& signers,
                    const GFBuffer& in_buffer, bool ascii,
-                   const GpgOperationCallback& cb);
+                   const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt and sign a message buffer simultaneously (sync).
@@ -120,12 +120,12 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param signers private keys for signing
    * @param in_buffer plaintext data
    * @param ascii if true, produce ASCII-armored output
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto EncryptSignSync(const GpgAbstractKeyPtrList& keys,
                        const GpgAbstractKeyPtrList& signers,
                        const GFBuffer& in_buffer, bool ascii)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Decrypt an encrypted message buffer (async).
@@ -133,16 +133,16 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param in_buffer ciphertext data to decrypt
    * @param cb callback invoked on completion with decryption result
    */
-  void Decrypt(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
+  void Decrypt(const GFBuffer& in_buffer, const GFOperationCallback& cb);
 
   /**
    * @brief Decrypt an encrypted message buffer (sync).
    *
    * @param in_buffer ciphertext data to decrypt
-   * @return tuple of (GpgError, DataObjectPtr) containing the decryption result
+   * @return tuple of (GFError, DataObjectPtr) containing the decryption result
    */
   auto DecryptSync(const GFBuffer& in_buffer)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Decrypt and verify a combined encrypted+signed message buffer
@@ -152,17 +152,17 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param cb callback invoked on completion with both decrypt and verify
    * results
    */
-  void DecryptVerify(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
+  void DecryptVerify(const GFBuffer& in_buffer, const GFOperationCallback& cb);
 
   /**
    * @brief Decrypt and verify a combined encrypted+signed message buffer
    * (sync).
    *
    * @param in_buffer encrypted and signed data
-   * @return tuple of (GpgError, DataObjectPtr) containing both results
+   * @return tuple of (GFError, DataObjectPtr) containing both results
    */
   auto DecryptVerifySync(const GFBuffer& in_buffer)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Verify the signature on a message buffer (async).
@@ -173,7 +173,7 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param cb callback invoked on completion with verification result
    */
   void Verify(const GFBuffer& in_buffer, const GFBuffer& sig_buffer,
-              const GpgOperationCallback& cb);
+              const GFOperationCallback& cb);
 
   /**
    * @brief Verify the signature on a message buffer (sync).
@@ -181,11 +181,11 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param in_buffer signed data
    * @param sig_buffer detached signature buffer; pass empty GFBuffer for inline
    * signatures
-   * @return tuple of (GpgError, DataObjectPtr) containing the verification
+   * @return tuple of (GFError, DataObjectPtr) containing the verification
    * result
    */
   auto VerifySync(const GFBuffer& in_buffer, const GFBuffer& sig_buffer)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Sign a message buffer with the given private keys (async).
@@ -203,7 +203,7 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param cb callback invoked on completion with sign result
    */
   void Sign(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
-            GpgSignMode mode, bool ascii, const GpgOperationCallback& cb);
+            GpgSignMode mode, bool ascii, const GFOperationCallback& cb);
 
   /**
    * @brief Sign a message buffer with the given private keys (sync).
@@ -212,11 +212,11 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @param in_buffer data to sign
    * @param mode signing mode
    * @param ascii if true, produce ASCII-armored output
-   * @return tuple of (GpgError, DataObjectPtr) containing the sign result
+   * @return tuple of (GFError, DataObjectPtr) containing the sign result
    */
   auto SignSync(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
                 GpgSignMode mode, bool ascii)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
  private:
   OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(

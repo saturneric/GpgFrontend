@@ -29,8 +29,9 @@
 #include <algorithm>
 
 #include "RpgpCoreTest.h"
-#include "core/GFCoreRust.h"
+#include "core//GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -69,7 +70,7 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
 
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -82,7 +83,7 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
 
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
@@ -103,7 +104,7 @@ TEST_F(RpgpCoreTest, CoreEncryptReportsActualRecipientSubKeyTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
 
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -122,7 +123,7 @@ TEST_F(RpgpCoreTest, CoreEncryptReportsActualRecipientSubKeyTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
 
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_FALSE(decr_result.Recipients().empty());
@@ -165,7 +166,7 @@ TEST_F(RpgpCoreTest, CoreEncryptHonorsPinnedSubkeyTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({pinned}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
 
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -177,7 +178,7 @@ TEST_F(RpgpCoreTest, CoreEncryptHonorsPinnedSubkeyTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
   EXPECT_EQ(decr_out_buffer, buffer);
 }
@@ -197,7 +198,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSkipsRevokedSubkeyTest) {
             .EncryptSync(
                 {repo.GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497")},
                 GFBuffer(QString("hi")), true);
-    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err.Ok());
     auto r = ExtractParams<GpgEncryptResult>(dobj, 0);
     ASSERT_EQ(r.Recipients().size(), 1);
     EXPECT_EQ(r.Recipients().front().keyid, sub_keyid);
@@ -235,7 +236,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSkipsRevokedSubkeyTest) {
   auto [err2, dobj2] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({pub}, GFBuffer(QString("hi")), true);
-  ASSERT_EQ(CheckGpgError(err2), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err2.Ok());
   ASSERT_TRUE((dobj2->Check<GpgEncryptResult, GFBuffer>()));
 
   auto r2 = ExtractParams<GpgEncryptResult>(dobj2, 0);
@@ -278,7 +279,7 @@ TEST_F(RpgpCoreTest, CoreEncryptRejectsPinnedRevokedSubkeyTest) {
 
   // No usable recipient: an unusable key, named with its reason, not bad
   // input. Nothing is encrypted.
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_PUBKEY);
+  EXPECT_EQ(err.code, GFErrorCode::kUNUSABLE_PUBLIC_KEY);
   ASSERT_TRUE((dobj->Check<GpgEncryptResult, GFBuffer>()));
   EXPECT_EQ(ExtractParams<GpgEncryptResult>(dobj, 0).InvalidRecipients().size(),
             1);
@@ -297,7 +298,7 @@ TEST_F(RpgpCoreTest, CoreDecryptInvalidDataReportsDetailTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(garbage);
 
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgDecryptResult, GFBuffer>()));
 
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object, 0);
@@ -310,7 +311,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSymmetricDecryptTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSymmetricSync(encrypt_text, true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -320,7 +321,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSymmetricDecryptTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
@@ -370,7 +371,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSymmetricLowMemoryProfileRoundTrips) {
   SetRpgpArgon2S2kParams(
       RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileLowMemory));
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
@@ -378,7 +379,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSymmetricLowMemoryProfileRoundTrips) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
   auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
   ASSERT_EQ(decr_out_buffer, encrypt_text);
@@ -395,7 +396,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyNormalTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto result = ExtractParams<GpgSignResult>(data_object, 0);
   auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -405,7 +406,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyNormalTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(sign_out_buffer, GFBuffer());
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
@@ -423,7 +424,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyDetachTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto result = ExtractParams<GpgSignResult>(data_object, 0);
   auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -433,7 +434,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyDetachTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(sign_text, sign_out_buffer);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
@@ -452,7 +453,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyClearTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_CLEAR, true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto result = ExtractParams<GpgSignResult>(data_object, 0);
   auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -462,7 +463,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyClearTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(sign_out_buffer, GFBuffer());
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
@@ -486,7 +487,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSignDecryptVerifyTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({encrypt_key}, {sign_key}, encrypt_text, true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -499,7 +500,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSignDecryptVerifyTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(encr_out_buffer);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   auto decrypt_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
@@ -558,7 +559,7 @@ TEST_F(RpgpCoreTest, CoreEncryptCancelTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_CANCELED);
+  ASSERT_EQ(err.code, GFErrorCode::kCANCELED);
 
   // After resetting the flag, the same operation succeeds again.
   ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
@@ -566,7 +567,7 @@ TEST_F(RpgpCoreTest, CoreEncryptCancelTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgEncryptResult, GFBuffer>()));
 }
 
@@ -584,14 +585,14 @@ TEST_F(RpgpCoreTest, CoreSignCancelTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_CANCELED);
+  ASSERT_EQ(err.code, GFErrorCode::kCANCELED);
 
   ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
 }
 
 // A cancelled encrypt-and-sign must report the cancellation, not success with
@@ -614,7 +615,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSignCancelReportsCanceledTest) {
                            GFBuffer(QString("Hello RPGP Cancel!")), true);
   ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_CANCELED);
+  ASSERT_EQ(err.code, GFErrorCode::kCANCELED);
 }
 
 // A cancelled symmetric encryption must report the cancellation, not a
@@ -629,7 +630,7 @@ TEST_F(RpgpCoreTest, CoreEncryptSymmetricCancelReportsCanceledTest) {
                                 true);
   ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_CANCELED);
+  ASSERT_EQ(err.code, GFErrorCode::kCANCELED);
 }
 
 // A cancel pending on a channel aborts an rPGP decryption on that channel.
@@ -646,7 +647,7 @@ TEST_F(RpgpCoreTest, CoreDecryptCancelTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
   ASSERT_FALSE(encr_out_buffer.Empty());
 
@@ -655,7 +656,7 @@ TEST_F(RpgpCoreTest, CoreDecryptCancelTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_CANCELED);
+  ASSERT_EQ(err_0.code, GFErrorCode::kCANCELED);
 
   ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
 }
@@ -684,7 +685,7 @@ TEST_F(RpgpCoreTest, CoreEncryptCancelOtherChannelTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
 
   // Clean up the unrelated channel's flag.
@@ -712,11 +713,12 @@ TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
   auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
-  GpgSignResultAnalyse sign_analyse{kRpgpChannelForUnitTest, err, sign_result};
+  GpgSignResultAnalyse sign_analyse{kRpgpChannelForUnitTest, ToGpgError(err),
+                                    sign_result};
   sign_analyse.Analyse();
   EXPECT_GT(sign_analyse.GetStatus(), 0);
   EXPECT_FALSE(sign_analyse.GetResultReport().isEmpty());
@@ -724,11 +726,11 @@ TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifySync(sign_text, sign_out_buffer);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
 
-  GpgVerifyResultAnalyse verify_analyse{kRpgpChannelForUnitTest, err_0,
-                                        verify_result};
+  GpgVerifyResultAnalyse verify_analyse{kRpgpChannelForUnitTest,
+                                        ToGpgError(err_0), verify_result};
   verify_analyse.Analyse();
   // A good signature must never be reported as a failure (-1).
   EXPECT_GE(verify_analyse.GetStatus(), 0);
@@ -746,11 +748,11 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptResultAnalyseEngineAgnosticTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, buffer, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
-  GpgEncryptResultAnalyse encr_analyse{kRpgpChannelForUnitTest, err,
+  GpgEncryptResultAnalyse encr_analyse{kRpgpChannelForUnitTest, ToGpgError(err),
                                        encr_result};
   encr_analyse.Analyse();
   EXPECT_GT(encr_analyse.GetStatus(), 0);
@@ -759,11 +761,11 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptResultAnalyseEngineAgnosticTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(encr_out_buffer);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
 
-  GpgDecryptResultAnalyse decr_analyse{kRpgpChannelForUnitTest, err_0,
-                                       decr_result};
+  GpgDecryptResultAnalyse decr_analyse{kRpgpChannelForUnitTest,
+                                       ToGpgError(err_0), decr_result};
   decr_analyse.Analyse();
   // A good decryption must never be reported as a failure (-1).
   EXPECT_GE(decr_analyse.GetStatus(), 0);
@@ -823,7 +825,7 @@ TEST_F(RpgpCoreTest, CoreSignWithRsaUnder2048BitsIsUnusableTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({key}, GFBuffer(QString("rsa 1024")), GPGME_SIG_MODE_DETACH,
                     true);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_UNUSABLE_SECKEY);
+  EXPECT_EQ(err.code, GFErrorCode::kUNUSABLE_SECRET_KEY);
 }
 
 TEST_F(RpgpCoreTest, EngineBuildInfoTest) {
@@ -1014,9 +1016,10 @@ TEST_F(RpgpCoreTest, CoreEncryptPartialInvalidRecipientIsReportedTest) {
         << "reason for " << inv_fpr.toStdString() << " was not specific";
   }
 
-  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, err, result};
+  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, ToGpgError(err),
+                                  result};
   analyse.Analyse();
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+  if (err.Ok()) {
     EXPECT_TRUE(analyse.GetOpInfo().description.contains(
         "Some recipients could not be added"))
         << analyse.GetOpInfo().description.toStdString();
@@ -1206,7 +1209,7 @@ TEST_F(RpgpCoreTest, CoreKeyMissingFromDatabaseDeliversResultTest) {
     auto [err, data_object] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .EncryptSync({key}, buffer, true);
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_PUBKEY);
+    EXPECT_EQ(err.code, GFErrorCode::kNO_PUBLIC_KEY);
     ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
     auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
     EXPECT_FALSE(result.InvalidRecipients().empty());
@@ -1215,14 +1218,14 @@ TEST_F(RpgpCoreTest, CoreKeyMissingFromDatabaseDeliversResultTest) {
     auto [err, data_object] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .SignSync({key}, buffer, GPGME_SIG_MODE_NORMAL, true);
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
+    EXPECT_EQ(err.code, GFErrorCode::kNO_SECRET_KEY);
     EXPECT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   }
   {
     auto [err, data_object] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .EncryptSignSync({key}, {key}, buffer, true);
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_PUBKEY);
+    EXPECT_EQ(err.code, GFErrorCode::kNO_PUBLIC_KEY);
     EXPECT_TRUE(
         (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
   }
@@ -1285,7 +1288,7 @@ TEST_F(RpgpCoreTest, CoreDecryptVerifyFailureDetailOnBothHalvesTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifySync(garbage);
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
 
@@ -1306,9 +1309,9 @@ TEST_F(RpgpCoreTest, CoreSignResultCarriesSignatureModeTest) {
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, GFBuffer(QString("Hello RPGP!")),
                     GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
-  GpgSignResultAnalyse analyse{kRpgpChannelForUnitTest, err,
+  GpgSignResultAnalyse analyse{kRpgpChannelForUnitTest, ToGpgError(err),
                                ExtractParams<GpgSignResult>(data_object, 0)};
   analyse.Analyse();
   ASSERT_FALSE(analyse.GetOpInfo().newSignatures.isEmpty());
@@ -1335,7 +1338,7 @@ TEST_F(RpgpCoreTest, CancelScopeEndsWithItsBatchTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, GFBuffer(QString("after cancel")), true);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(err.Ok());
 
   // A scope without a channel (a non-cancelable wait) leaves a pending cancel
   // alone: it is not its own to clear.
@@ -1358,7 +1361,7 @@ TEST_F(RpgpCoreTest, CoreDecryptUnusableStoredSecretIsNotBadPassphraseTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSync({encrypt_key}, GFBuffer(QString("no key")), true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   auto cipher = ExtractParams<GFBuffer>(data_object, 1);
 
   // Keep the metadata (which says the secret is present) but store a block
@@ -1376,8 +1379,8 @@ TEST_F(RpgpCoreTest, CoreDecryptUnusableStoredSecretIsNotBadPassphraseTest) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptSync(cipher);
-  EXPECT_NE(CheckGpgError(err_0), GPG_ERR_BAD_PASSPHRASE);
-  EXPECT_EQ(CheckGpgError(err_0), GPG_ERR_UNUSABLE_SECKEY);
+  EXPECT_NE(err_0.code, GFErrorCode::kBAD_PASSPHRASE);
+  EXPECT_EQ(err_0.code, GFErrorCode::kUNUSABLE_SECRET_KEY);
   auto result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_FALSE(result.Recipients().empty());
   for (const auto& rec : result.Recipients()) {

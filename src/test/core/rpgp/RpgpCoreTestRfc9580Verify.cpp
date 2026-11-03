@@ -48,7 +48,7 @@ namespace GpgFrontend::Test {
 namespace {
 
 struct VerifyOutcome {
-  GpgError err;
+  GFError err;
   QList<GpgSignature> sigs;
   QString detail;
 };
@@ -82,7 +82,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyGoodDetachedIsValid) {
   ImportAuxKeys({"aux_good.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_good_detached.sig"));
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_FALSE(out.sigs.empty());
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));
 }
@@ -123,7 +123,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyGoodDetachedHasCreationTime) {
 TEST_F(RpgpCoreTest, Rfc9580VerifyGoodCleartextIsValid) {
   ImportAuxKeys({"aux_good.asc"});
   auto out = RunVerify(LoadRfc9580Vector("sig_good_cleartext.asc"), GFBuffer());
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_FALSE(out.sigs.empty());
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));
 }
@@ -136,7 +136,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyGoodCleartextIsValid) {
 TEST_F(RpgpCoreTest, Rfc9580VerifyGoodInlineV6IsValid) {
   ImportAuxKeys({"aux_v6.asc"});
   auto out = RunVerify(LoadRfc9580Vector("sig_good_inline_v6.pgp"), GFBuffer());
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_FALSE(out.sigs.empty());
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));
 }
@@ -145,7 +145,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyV6DetachedIsValid) {
   ImportAuxKeys({"aux_v6.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_v6_detached.sig"));
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   ASSERT_FALSE(out.sigs.empty());
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));
 }
@@ -276,7 +276,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerReportsNoKeyStatus) {
 TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerBothKnownBothValid) {
   ImportAuxKeys({"aux_good.asc", "aux_v6.asc"});
   auto out = RunVerify(LoadRfc9580Vector("two_signer.pgp"), GFBuffer());
-  ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(out.err.Ok());
   EXPECT_EQ(out.sigs.size(), 2);
   EXPECT_EQ(CountValid(out.sigs), 2);
 }

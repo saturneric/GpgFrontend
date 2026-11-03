@@ -33,7 +33,8 @@
 #include <algorithm>
 
 #include "GpgCoreEngineTest.h"
-#include "core/function/openpgp/FileCryptoOperation.h"
+#include "core//function/openpgp/FileCryptoOperation.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -271,7 +272,7 @@ TEST_P(GpgCoreEngineTest, EncryptDecrypt) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).EncryptSync({key}, plain,
                                                                  true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(runs("op_encrypt"), encrypt_runs + 1);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
   auto enc_result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -281,7 +282,7 @@ TEST_P(GpgCoreEngineTest, EncryptDecrypt) {
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(Channel()).DecryptSync(cipher);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
   auto out = ExtractParams<GFBuffer>(data_object_0, 1);
   ASSERT_EQ(out, plain);
@@ -302,7 +303,7 @@ TEST_P(GpgCoreEngineTest, SignVerifyDetached) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).SignSync(
           {key}, text, GPGME_SIG_MODE_DETACH, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
   auto signature = ExtractParams<GFBuffer>(data_object, 1);
@@ -311,7 +312,7 @@ TEST_P(GpgCoreEngineTest, SignVerifyDetached) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(Channel()).VerifySync(text,
                                                                 signature);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
@@ -330,7 +331,7 @@ TEST_P(GpgCoreEngineTest, SignVerifyInline) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).SignSync(
           {key}, text, GPGME_SIG_MODE_NORMAL, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
   auto signed_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -339,7 +340,7 @@ TEST_P(GpgCoreEngineTest, SignVerifyInline) {
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(Channel()).VerifySync(signed_buffer,
                                                                 GFBuffer());
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
@@ -358,14 +359,14 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
           {key}, {key}, plain, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
   auto cipher = ExtractParams<GFBuffer>(data_object, 2);
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(cipher);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
@@ -441,26 +442,26 @@ TEST_P(GpgCoreEngineTest, AnalysedFailureRecordsTheEngineErrorAsData) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).DecryptSync(
           GFBuffer(QString("not openpgp")));
-  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(err.Ok());
 
   // An engine may hand back no result object for input it cannot parse; the
   // error must be recorded either way.
   const auto result = data_object->Check<GpgDecryptResult, GFBuffer>()
                           ? ExtractParams<GpgDecryptResult>(data_object, 0)
                           : GpgDecryptResult();
-  const auto info = AnalyseDecrypt(Channel(), err, result);
+  const auto info = AnalyseDecrypt(Channel(), ToGpgError(err), result);
   EXPECT_LT(info.status, 0);
   EXPECT_EQ(info.op, GpgOperation::kDECRYPT);
   EXPECT_EQ(info.operation, GpgOperationName(GpgOperation::kDECRYPT));
   ASSERT_EQ(info.stageErrors.size(), 1);
   const auto& e = info.stageErrors.first();
   EXPECT_EQ(e.scope, GpgOperation::kDECRYPT);
-  EXPECT_EQ(e.error, EngineErrorOf(Channel(), err));
+  EXPECT_EQ(e.error, err);
   // Told apart by the engine that ran it, not by GnuPG's code it came in.
   EXPECT_EQ(e.error.origin, GetParam().engine == OpenPGPEngine::kRPGP
                                 ? GFErrorOrigin::kRPGP
                                 : GFErrorOrigin::kGNUPG);
-  EXPECT_EQ(e.codeText, QString::fromUtf8(gpgme_strerror(err)));
+  EXPECT_EQ(e.codeText, QString::fromUtf8(gpgme_strerror(ToGpgError(err))));
 }
 
 TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
@@ -474,7 +475,7 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
           {recipient}, {signer}, plain, true);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
   auto cipher = ExtractParams<GFBuffer>(data_object, 2);
@@ -487,7 +488,8 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyWithMissingSignerKey) {
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   ExpectMissingSignerIsOnlyAWarning(
-      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0),
+      Channel(), ToGpgError(err_0),
+      ExtractParams<GpgDecryptResult>(data_object_0, 0),
       ExtractParams<GpgVerifyResult>(data_object_0, 1));
   EXPECT_EQ(ExtractParams<GFBuffer>(data_object_0, 2), plain);
 
@@ -830,7 +832,7 @@ TEST_P(GpgCoreEngineTest, BinaryEncryptSignDecryptVerify) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
           {key}, {key}, plain, false);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE(
       (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
   auto cipher = ExtractParams<GFBuffer>(data_object, 2);
@@ -839,7 +841,7 @@ TEST_P(GpgCoreEngineTest, BinaryEncryptSignDecryptVerify) {
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(cipher);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
@@ -952,29 +954,25 @@ TEST_P(GpgCoreEngineTest, Stress) {
     auto [enc_err, enc_obj] =
         MessageCryptoOperation::GetInstance(Channel()).EncryptSync({key}, plain,
                                                                    true);
-    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
-        << "encrypt failed at iteration " << i;
+    ASSERT_TRUE(enc_err.Ok()) << "encrypt failed at iteration " << i;
     auto cipher = ExtractParams<GFBuffer>(enc_obj, 1);
 
     auto [dec_err, dec_obj] =
         MessageCryptoOperation::GetInstance(Channel()).DecryptSync(cipher);
-    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
-        << "decrypt failed at iteration " << i;
+    ASSERT_TRUE(dec_err.Ok()) << "decrypt failed at iteration " << i;
     auto decrypted = ExtractParams<GFBuffer>(dec_obj, 1);
     ASSERT_EQ(decrypted, plain) << "roundtrip mismatch at iteration " << i;
 
     auto [sign_err, sign_obj] =
         MessageCryptoOperation::GetInstance(Channel()).SignSync(
             {key}, plain, GPGME_SIG_MODE_DETACH, true);
-    ASSERT_EQ(CheckGpgError(sign_err), GPG_ERR_NO_ERROR)
-        << "sign failed at iteration " << i;
+    ASSERT_TRUE(sign_err.Ok()) << "sign failed at iteration " << i;
     auto signature = ExtractParams<GFBuffer>(sign_obj, 1);
 
     auto [verify_err, verify_obj] =
         MessageCryptoOperation::GetInstance(Channel()).VerifySync(plain,
                                                                   signature);
-    ASSERT_EQ(CheckGpgError(verify_err), GPG_ERR_NO_ERROR)
-        << "verify failed at iteration " << i;
+    ASSERT_TRUE(verify_err.Ok()) << "verify failed at iteration " << i;
   }
 
   DeleteKey(key);
@@ -1113,7 +1111,7 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyStress) {
     auto [enc_err, enc_obj] =
         MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
             {key}, {key}, plain, true);
-    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
+    ASSERT_TRUE(enc_err.Ok())
         << "encrypt+sign failed at iteration " << i << " size " << size;
     ASSERT_TRUE((enc_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
     auto cipher = ExtractParams<GFBuffer>(enc_obj, 2);
@@ -1121,7 +1119,7 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyStress) {
     auto [dec_err, dec_obj] =
         MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(
             cipher);
-    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
+    ASSERT_TRUE(dec_err.Ok())
         << "decrypt+verify failed at iteration " << i << " size " << size;
     ASSERT_TRUE(
         (dec_obj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
@@ -1164,16 +1162,14 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
     auto [enc_err, enc_obj] =
         MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
             {key}, {key}, plain, true);
-    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
-        << "encrypt+sign failed at round " << i;
+    ASSERT_TRUE(enc_err.Ok()) << "encrypt+sign failed at round " << i;
     ASSERT_TRUE((enc_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
     auto cipher = ExtractParams<GFBuffer>(enc_obj, 2);
 
     auto [dec_err, dec_obj] =
         MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(
             cipher);
-    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
-        << "decrypt+verify failed at round " << i;
+    ASSERT_TRUE(dec_err.Ok()) << "decrypt+verify failed at round " << i;
     ASSERT_TRUE(
         (dec_obj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
     auto out = ExtractParams<GFBuffer>(dec_obj, 2);
@@ -1215,7 +1211,7 @@ TEST_P(GpgCoreEngineTest, EncryptSymmetricDecryptStress) {
     auto [enc_err, enc_obj] =
         MessageCryptoOperation::GetInstance(Channel()).EncryptSymmetricSync(
             plain, true);
-    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
+    ASSERT_TRUE(enc_err.Ok())
         << "symmetric encrypt failed at iteration " << i << " size " << size;
     ASSERT_TRUE((enc_obj->Check<GpgEncryptResult, GFBuffer>()));
     auto enc_result = ExtractParams<GpgEncryptResult>(enc_obj, 0);
@@ -1225,7 +1221,7 @@ TEST_P(GpgCoreEngineTest, EncryptSymmetricDecryptStress) {
 
     auto [dec_err, dec_obj] =
         MessageCryptoOperation::GetInstance(Channel()).DecryptSync(cipher);
-    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
+    ASSERT_TRUE(dec_err.Ok())
         << "symmetric decrypt failed at iteration " << i << " size " << size;
     ASSERT_TRUE((dec_obj->Check<GpgDecryptResult, GFBuffer>()));
     auto out = ExtractParams<GFBuffer>(dec_obj, 1);
