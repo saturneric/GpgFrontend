@@ -64,17 +64,6 @@ inline auto RpgpError(GFErrorCode code,
 }
 
 /**
- * @brief The GnuPG error for an engine status any operation can report.
- *
- * Handlers map their operation-specific statuses first and fall back to this,
- * so no known status reaches the GUI as GPG_ERR_GENERAL ("unknown error").
- *
- * @param err the rPGP engine status
- * @return GpgError
- */
-auto CommonEngineError(Rust::GfrStatus err) -> GpgError;
-
-/**
  * @brief Drain the engine's error detail for a failed operation on this
  * thread, logging it under @p op.
  *
@@ -179,7 +168,7 @@ auto GF_CORE_EXPORT GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
  * @param in_buffer
  * @param err
  * @param gfr_result
- * @return std::tuple<GpgError, GFEncryptResult>
+ * @return std::tuple<GFError, GFEncryptResult>
  */
 auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                          Rust::GfrEncryptResultC gfr_result)
@@ -191,7 +180,7 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
  * @param in_buffer
  * @param err
  * @param gfr_result
- * @return std::tuple<GpgError, GFDecryptResult>
+ * @return std::tuple<GFError, GFDecryptResult>
  */
 auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
                          Rust::GfrStatus err,
@@ -204,7 +193,7 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
  * @param in_buffer
  * @param err
  * @param gfr_result
- * @return std::tuple<GpgError, GFSignResult>
+ * @return std::tuple<GFError, GFSignResult>
  */
 auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                       Rust::GfrSignResultC gfr_result)

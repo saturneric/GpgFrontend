@@ -51,7 +51,7 @@ auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
  * @param ctx
  * @param key
  * @param data_object
- * @return GpgError
+ * @return GFError
  */
 auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                  const DataObjectPtr& data_object) -> GFError;
@@ -64,7 +64,7 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  * @param key
  * @param skey_fpr fingerprint of the subkey to re-protect
  * @param data_object
- * @return GpgError
+ * @return GFError
  */
 auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                     const SubkeyId& skey_fpr,
@@ -77,7 +77,7 @@ auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  * @param ctx
  * @param key
  * @param skey_idx
- * @return GpgError
+ * @return true if the subkey was deleted
  */
 auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int skey_idx) -> bool;
@@ -122,7 +122,7 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& secret_key,
  * @param key
  * @param skey_fpr fingerprint of the subkey to change, or empty for the primary
  * @param expires absolute expiration time, or nullopt for "never expires"
- * @return GpgError
+ * @return GFError
  */
 auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const SubkeyId& skey_fpr,
@@ -140,9 +140,9 @@ auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  *
  * @param public_key_block armored public key block containing the (sub)key
  * @param subkey_fpr fingerprint of the ECDH (sub)key
- * @return {GPG_ERR_NO_ERROR, hex} on success; a non-zero GpgError otherwise
+ * @return {an ok GFError, hex} on success; a failed GFError otherwise
  */
 auto GF_CORE_EXPORT GetEcdhKdfParamsRpgpImpl(const GFBuffer& public_key_block,
                                              const QString& subkey_fpr)
-    -> std::tuple<GpgError, QString>;
+    -> std::tuple<GFError, QString>;
 }  // namespace GpgFrontend

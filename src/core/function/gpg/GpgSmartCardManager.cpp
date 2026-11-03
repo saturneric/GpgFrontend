@@ -29,6 +29,7 @@
 #include "GpgSmartCardManager.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/KeyImportExport.h"
 #include "core/function/rpgp/KeyManagement.h"
 #include "core/model/GFEngineSupportIf.h"
@@ -85,8 +86,8 @@ auto ResolveEcdhKdfParam(OpenPGPContext& ctx, const GpgKeyPtr& key,
             "Failed to export the public key for ECDH parameters."};
   }
   auto [kerr, hex] = GetEcdhKdfParamsRpgpImpl(pub, skey.Fingerprint());
-  if (kerr != GPG_ERR_NO_ERROR || hex.isEmpty()) {
-    return {kerr == GPG_ERR_NO_ERROR ? GPG_ERR_GENERAL : kerr,
+  if (!kerr.Ok() || hex.isEmpty()) {
+    return {kerr.Ok() ? GPG_ERR_GENERAL : ToGpgError(kerr),
             "Failed to derive the ECDH KDF parameters."};
   }
   return {GPG_ERR_NO_ERROR, hex};

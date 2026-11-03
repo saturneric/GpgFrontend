@@ -814,20 +814,20 @@ TEST_F(RpgpCoreTest, CoreGetEcdhKdfParamsTest) {
       << "fixture key is expected to carry an ECDH encryption subkey";
 
   auto [err, hex] = GetEcdhKdfParamsRpgpImpl(pub, ecdh_fpr);
-  ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   EXPECT_EQ(hex.size(), 8) << "four hex-encoded octets";
   EXPECT_TRUE(hex.startsWith("0301"))
       << "native KDF prefix, got " << hex.toStdString();
 
   if (!non_ecdh_fpr.isEmpty()) {
     auto [serr, shex] = GetEcdhKdfParamsRpgpImpl(pub, non_ecdh_fpr);
-    EXPECT_NE(serr, GPG_ERR_NO_ERROR);
+    EXPECT_FALSE(serr.Ok());
     EXPECT_TRUE(shex.isEmpty());
   }
 
   // an unknown fingerprint is rejected, not silently coerced
   auto [uerr, uhex] = GetEcdhKdfParamsRpgpImpl(pub, "DEADBEEF");
-  EXPECT_NE(uerr, GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(uerr.Ok());
   EXPECT_TRUE(uhex.isEmpty());
 
   KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);

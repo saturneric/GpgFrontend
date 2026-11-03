@@ -127,10 +127,6 @@ auto FromRpgpStatus(Rust::GfrStatus err) -> GFError {
   }
 }
 
-auto CommonEngineError(Rust::GfrStatus err) -> GpgError {
-  return ToGpgError(FromRpgpStatus(err));
-}
-
 namespace {
 
 auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
