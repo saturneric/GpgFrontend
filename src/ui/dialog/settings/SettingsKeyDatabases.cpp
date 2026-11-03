@@ -459,13 +459,17 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
           &UISignalStation::SignalKeyDatabaseChangesApplied, this, [this]() {
             take_saved_snapshot();
             refresh_recycle_bin();
+            continue_deferred_deletion(true);
           });
 
   // ...but only once the old Runtime has let go of it, which can be after
   // the apply has finished.
   connect(CoreSignalStation::GetInstance(),
           &CoreSignalStation::SignalKeyDatabaseChannelReleased, this,
-          [this](int) { refresh_recycle_bin(); });
+          [this](int) {
+            refresh_recycle_bin();
+            continue_deferred_deletion(false);
+          });
 }
 
 void KeyDatabasesTab::SetSettings() {
@@ -1509,6 +1513,28 @@ void KeyDatabasesTab::refresh_recycle_bin() {
     recycled_.append(recycled);
   }
 
+  // Removed on this page and not applied: the stored list and the Runtime
+  // still refer to it, yet this is where it goes, and where it is put back
+  // from.
+  const auto unsaved = unsaved_paths();
+  for (const auto& info : model_.removed_managed) {
+    if (!QFileInfo(info.path).isDir() || is_recycled(info.path)) continue;
+    if (std::any_of(unsaved.begin(), unsaved.end(),
+                    [&](const QString& path) -> bool {
+                      return IsSameKeyDatabaseLocation(path, info.path);
+                    })) {
+      continue;
+    }
+
+    RecycledFolder recycled;
+    recycled.name = info.name;
+    recycled.path = info.path;
+    recycled.backend_type = info.backend_type;
+    recycled.size = known_sizes.value(info.path, -1);
+    recycled.pending_id = info.id;
+    recycled_.append(recycled);
+  }
+
   recycle_generation_++;
   fill_recycle_bin_table();
 
@@ -1565,8 +1591,15 @@ void KeyDatabasesTab::fill_recycle_bin_table() {
   for (int row = 0; row < recycled_.size(); row++) {
     const auto& folder = recycled_[row];
 
-    table->setItem(
-        row, 0, CreateTableItem(folder.name, Qt::AlignLeft | Qt::AlignVCenter));
+    auto* i_name =
+        CreateTableItem(folder.name, Qt::AlignLeft | Qt::AlignVCenter);
+    if (!folder.pending_id.isEmpty()) {
+      i_name->setForeground(MutedTextColor(table->palette()));
+      i_name->setToolTip(
+          tr("Removed from your key databases, and moved here when you "
+             "press OK. Restore keeps it where it was."));
+    }
+    table->setItem(row, 0, i_name);
 
     auto* engine = CreateTableItem(folder.backend_type.isEmpty()
                                        ? tr("Unknown")
@@ -1626,6 +1659,17 @@ void KeyDatabasesTab::slot_restore_recycled() {
         tr("Currently, GpgFrontend supports a maximum of %1 key databases. "
            "Please remove an existing database to add a new one.")
             .arg(kMaxKeyDatabases));
+    return;
+  }
+
+  // Removed on this page and not applied: the removal is simply undone, and
+  // the database keeps what it is known by.
+  if (!folder.pending_id.isEmpty()) {
+    if (!model_.UndoRemoval(folder.pending_id)) return;
+    ui_->keyDatabaseTabs->setCurrentWidget(ui_->profileTab);
+    slot_refresh_key_database_table(
+        static_cast<int>(model_.managed.size() - 1));
+    emit SignalRuntimeApplyNeeded();
     return;
   }
 
@@ -1701,6 +1745,7 @@ void KeyDatabasesTab::slot_delete_recycled() {
   const auto row = current_recycled_row();
   if (row < 0 || deleting_ || IsApplyingKeyDatabaseChanges()) return;
   const auto folder = recycled_[row];
+  const auto pending = !folder.pending_id.isEmpty();
 
   QMessageBox box(QMessageBox::Warning, tr("Delete Permanently"),
                   tr("Delete \"%1\" and everything in it?").arg(folder.name),
@@ -1709,6 +1754,9 @@ void KeyDatabasesTab::slot_delete_recycled() {
       tr("All keys in this folder, including secret keys, are deleted "
          "immediately. This cannot be undone, and Cancel in Settings does not "
          "bring them back.") +
+      (pending ? "\n\n" + tr("It is removed from your key databases now, "
+                             "without waiting for OK.")
+               : QString()) +
       "\n\n" + QDir::toNativeSeparators(folder.path));
   auto* delete_button =
       box.addButton(tr("Delete Permanently"), QMessageBox::DestructiveRole);
@@ -1717,6 +1765,23 @@ void KeyDatabasesTab::slot_delete_recycled() {
   box.setEscapeButton(QMessageBox::Cancel);
   box.exec();
   if (box.clickedButton() != delete_button) return;
+
+  // Still in the stored list and open: its removal alone is stored and
+  // applied now, and the folder deleted once the Runtime has let go of it.
+  if (pending) {
+    auto so = SettingsObject(kKeyDatabaseListObject);
+    if (so.LoadFailed()) {
+      QMessageBox::warning(
+          this, tr("Folder Not Deleted"),
+          tr("Your saved key database list could not be read. Press OK in "
+             "Settings first, then delete \"%1\" from the Recycle Bin.")
+              .arg(folder.name));
+      return;
+    }
+    auto list_so = KeyDatabaseListSO(so);
+    if (!model_.CommitRemoval(folder.pending_id, list_so)) return;
+    so.Store(list_so.ToJson());
+  }
 
   deleting_ = true;
   refresh_role_controls();
@@ -1729,20 +1794,59 @@ void KeyDatabasesTab::slot_delete_recycled() {
   waiting->SetUserClosable(false);
   waiting->show();
 
+  if (pending) {
+    // Written by now: SettingsObject stores when it goes out of scope.
+    take_saved_snapshot();
+    deferred_deletion_ = DeferredDeletion{folder.name, folder.path, waiting};
+    ApplyKeyDatabaseChanges({}, this);
+    return;
+  }
+
+  run_deletion(folder.name, folder.path, waiting);
+}
+
+void KeyDatabasesTab::continue_deferred_deletion(bool applied) {
+  if (!deferred_deletion_ || IsApplyingKeyDatabaseChanges()) return;
+  const auto deletion = *deferred_deletion_;
+
+  // The apply kept it open: something in it failed, and was reported.
+  const auto still_open = [&]() -> bool {
+    const auto channels = ListRuntimeChannels();
+    return std::any_of(
+        channels.begin(), channels.end(), [&](const auto& channel) -> bool {
+          return IsSameKeyDatabaseLocation(channel.path, deletion.path);
+        });
+  };
+  if (applied && still_open()) {
+    deferred_deletion_.reset();
+    deleting_ = false;
+    if (deletion.waiting != nullptr) deletion.waiting->SlotFinish();
+    refresh_recycle_bin();
+    QMessageBox::warning(
+        this, tr("Folder Not Deleted"),
+        tr("\"%1\" was not deleted.").arg(deletion.name) + "\n\n" +
+            tr("The current configuration still refers to this folder."));
+    return;
+  }
+
+  if (IsKeyDatabaseLocationInUse(deletion.path)) return;
+  deferred_deletion_.reset();
+  run_deletion(deletion.name, deletion.path, deletion.waiting);
+}
+
+void KeyDatabasesTab::run_deletion(const QString& name, const QString& path,
+                                   const QPointer<WaitingDialog>& waiting) {
   const auto app_data = GlobalSettingStation::GetInstance().GetAppDataPath();
   const auto extra = unsaved_paths();
-  const auto path = folder.path;
   auto result = QSharedPointer<KeyDatabaseDeleteResult>::create();
   QPointer<KeyDatabasesTab> self(this);
-  QPointer<WaitingDialog> waiting_ptr(waiting);
   auto* task = new Thread::Task(
       [app_data, path, extra, result](const DataObjectPtr&) -> int {
         *result = DeleteRecycledKeyDatabase(app_data, path, extra);
         return 0;
       },
       "delete_recycled_key_database", TransferParams(),
-      [self, waiting_ptr, result, name = folder.name](int,
-                                                      const DataObjectPtr&) {
+      [self, waiting_ptr = waiting, result, name](int, const DataObjectPtr&) {
         if (waiting_ptr != nullptr) waiting_ptr->SlotFinish();
         if (self == nullptr) return;
 

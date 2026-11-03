@@ -57,6 +57,11 @@ class KeyDatabaseSettingsModel {
   QList<KeyDatabaseInfo> managed;   ///< kept inside the profile
   QList<KeyDatabaseInfo> external;  ///< on this computer only
 
+  /// Managed databases removed on this page and not applied yet. Their
+  /// folders are still in the stored list and may still be open, so they are
+  /// shown in the Recycle Bin as pending, and can be put back.
+  QList<KeyDatabaseInfo> removed_managed;
+
   /// The database the user made the default, empty when none was chosen. May
   /// name one that is not in the list; the fallback then applies, as it does
   /// in the core.
@@ -79,6 +84,7 @@ class KeyDatabaseSettingsModel {
     builtin.reset();
     managed.clear();
     external.clear();
+    removed_managed.clear();
     for (const auto& info : all) {
       switch (info.kind) {
         case KeyDatabaseKind::kDEFAULT:
@@ -178,12 +184,59 @@ class KeyDatabaseSettingsModel {
   /**
    * @brief Remove row @p row of @p list, one of managed or external.
    *
-   * Removing the chosen default withdraws the choice.
+   * Removing the chosen default withdraws the choice. A managed one is kept
+   * in removed_managed until the page is applied or loaded again.
    */
   void RemoveAt(QList<KeyDatabaseInfo>& list, int row) {
     if (row < 0 || row >= list.size()) return;
     if (!choice_id.isEmpty() && list[row].id == choice_id) choice_id.clear();
+    if (&list == &managed) removed_managed.append(list[row]);
     list.removeAt(row);
+  }
+
+  /**
+   * @brief Put the managed database @p id, removed on this page, back.
+   *
+   * It keeps its id, so applying leaves it as it was. Being the default is
+   * not given back: it is the default again only by the fallback.
+   *
+   * @return false when @p id was not removed here
+   */
+  auto UndoRemoval(const QString& id) -> bool {
+    const auto it = std::find_if(
+        removed_managed.begin(), removed_managed.end(),
+        [&](const KeyDatabaseInfo& info) -> bool { return info.id == id; });
+    if (it == removed_managed.end()) return false;
+    managed.append(*it);
+    removed_managed.erase(it);
+    return true;
+  }
+
+  /**
+   * @brief Store the removal of @p id, removed on this page, on its own.
+   *
+   * Takes it out of @p list_so, the stored list, and withdraws the stored
+   * choice of it as the default; nothing else the page holds is written. It is
+   * then no longer a removal this page can undo.
+   *
+   * @return false when @p id was not removed here
+   */
+  auto CommitRemoval(const QString& id, KeyDatabaseListSO& list_so) -> bool {
+    const auto it = std::find_if(
+        removed_managed.begin(), removed_managed.end(),
+        [&](const KeyDatabaseInfo& info) -> bool { return info.id == id; });
+    if (it == removed_managed.end()) return false;
+    removed_managed.erase(it);
+
+    list_so.key_databases.erase(
+        std::remove_if(list_so.key_databases.begin(),
+                       list_so.key_databases.end(),
+                       [&](const KeyDatabaseItemSO& item) -> bool {
+                         return item.id == id;
+                       }),
+        list_so.key_databases.end());
+    if (list_so.default_database_id == id) list_so.default_database_id.clear();
+    return true;
   }
 
   /**
