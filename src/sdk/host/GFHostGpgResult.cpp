@@ -32,7 +32,6 @@
 #include <new>
 
 #include "GFHostImpl.h"
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
@@ -164,11 +163,11 @@ auto FailRequest(GFGpgResultRef* out, const char* why, const char* origin)
 }
 
 /// A gpg-level failure. Same rule: an owned result comes back either way.
-auto FailOperation(GFGpgResultImpl* impl, GpgFrontend::GpgError err,
+auto FailOperation(GFGpgResultImpl* impl, const GpgFrontend::GFError& error,
                    GFGpgResultRef* out) -> int {
   impl->status = GF_GPG_OP_FAILED;
-  impl->gpgme_error = static_cast<uint32_t>(err);
-  impl->error_string = GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
+  impl->gpgme_error = GpgFrontend::GnuPGErrorValueOf(error);
+  impl->error_string = GpgFrontend::DescribeGFError(error).second.toUtf8();
   *out = impl;
   return GF_GPG_OP_FAILED;
 }
@@ -191,9 +190,9 @@ auto KeysOf(int channel, const char* const* key_ids, size_t key_ids_size)
 template <typename ResultT>
 void Finish(GFGpgResultImpl* impl, const ResultT& result,
             const GpgFrontend::GFBuffer& out_buffer,
-            GpgFrontend::GpgError err) {
+            const GpgFrontend::GFError& error) {
   impl->status = GF_GPG_OK;
-  impl->gpgme_error = static_cast<uint32_t>(err);
+  impl->gpgme_error = GpgFrontend::GnuPGErrorValueOf(error);
   impl->capsule_id = QUuid::createUuid().toString().toUtf8();
   {
     const auto owner = gf_sdk_internal::CurrentModuleId();
@@ -216,7 +215,7 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
     }
     if (held > kMaxCapsulesPerModule) index.by_id.remove(oldest);
   }
-  impl->error_string = GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
+  impl->error_string = GpgFrontend::DescribeGFError(error).second.toUtf8();
   impl->data = GFBufferNewFromBytes(out_buffer.Data(), out_buffer.Size());
 }
 
@@ -225,10 +224,10 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
 template <typename ResultT>
 void FinishWithPayload(GFGpgResultImpl* impl,
                        const GpgFrontend::DataObjectPtr& data_object,
-                       GpgFrontend::GpgError err) {
+                       const GpgFrontend::GFError& error) {
   Finish(impl, GpgFrontend::ExtractParams<ResultT>(data_object, 0),
          GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1),
-         err);
+         error);
 }
 
 /**
@@ -264,10 +263,9 @@ auto RunOperation(int channel, const char* origin, GFGpgResultRef* out,
 
     auto [error, data_object] = run();
     // Modules have always been handed GnuPG's value, so it is what the result
-    // keeps: one conversion, here, for every operation.
-    const auto err = GpgFrontend::ToGpgError(error);
-    if (!error.Ok()) return FailOperation(impl, err, out);
-    fill(impl, data_object, err);
+    // keeps: one conversion, where it is stored, for every operation.
+    if (!error.Ok()) return FailOperation(impl, error, out);
+    fill(impl, data_object, error);
     *out = impl;
     return GF_GPG_OK;
   } catch (...) {
@@ -324,13 +322,13 @@ auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
                       ascii != 0);
       },
       [](GFGpgResultImpl* impl, const GpgFrontend::DataObjectPtr& data_object,
-         GpgFrontend::GpgError err) {
+         const GpgFrontend::GFError& error) {
         auto result = GpgFrontend::ExtractParams<GpgFrontend::GpgSignResult>(
             data_object, 0);
         Finish(
             impl, result,
             GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1),
-            err);
+            error);
         impl->hash_algo = result.HashAlgo().toUtf8();
       });
 }
@@ -384,12 +382,12 @@ auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
             .VerifySync(GFBufferViewToCore(in), GFBufferViewToCore(signature));
       },
       [](GFGpgResultImpl* impl, const GpgFrontend::DataObjectPtr& data_object,
-         GpgFrontend::GpgError err) {
+         const GpgFrontend::GFError& error) {
         // Verification produces no payload: the input IS the message.
         Finish(impl,
                GpgFrontend::ExtractParams<GpgFrontend::GpgVerifyResult>(
                    data_object, 0),
-               GpgFrontend::GFBuffer{}, err);
+               GpgFrontend::GFBuffer{}, error);
       });
 }
 

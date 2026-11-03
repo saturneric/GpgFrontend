@@ -28,63 +28,62 @@
 
 #include "core/function/gpg/GpgErrorMap.h"
 
-#include <array>
-#include <utility>
+#include "core/function/gpg/GpgErrorCodes.h"
 
 namespace GpgFrontend {
 
-namespace {
-
-/// Each of our codes beside the GnuPG code it corresponds to.
-constexpr std::array<std::pair<GFErrorCode, gpg_err_code_t>, 32> kGpgCodes{{
-    {GFErrorCode::kCANCELED, GPG_ERR_CANCELED},
-    // GnuPG never reports it; GpgFrontend has used it to mark its own stop.
-    {GFErrorCode::kABORTED, GPG_ERR_USER_1},
-    {GFErrorCode::kGENERAL, GPG_ERR_GENERAL},
-    {GFErrorCode::kNOT_SUPPORTED, GPG_ERR_NOT_SUPPORTED},
-    {GFErrorCode::kUNSUPPORTED_OPERATION, GPG_ERR_UNSUPPORTED_OPERATION},
-    {GFErrorCode::kINVALID_ARGUMENT, GPG_ERR_INV_ARG},
-    {GFErrorCode::kINVALID_VALUE, GPG_ERR_INV_VALUE},
-    {GFErrorCode::kINVALID_DATA, GPG_ERR_INV_DATA},
-    {GFErrorCode::kBAD_DATA, GPG_ERR_BAD_DATA},
-    {GFErrorCode::kNO_DATA, GPG_ERR_NO_DATA},
-    {GFErrorCode::kBAD_ARMOR, GPG_ERR_INV_ARMOR},
-    {GFErrorCode::kNO_PUBLIC_KEY, GPG_ERR_NO_PUBKEY},
-    {GFErrorCode::kNO_SECRET_KEY, GPG_ERR_NO_SECKEY},
-    {GFErrorCode::kNO_KEY, GPG_ERR_NO_KEY},
-    {GFErrorCode::kKEY_EXPIRED, GPG_ERR_KEY_EXPIRED},
-    {GFErrorCode::kKEY_REVOKED, GPG_ERR_CERT_REVOKED},
-    {GFErrorCode::kUNUSABLE_PUBLIC_KEY, GPG_ERR_UNUSABLE_PUBKEY},
-    {GFErrorCode::kUNUSABLE_SECRET_KEY, GPG_ERR_UNUSABLE_SECKEY},
-    {GFErrorCode::kWRONG_KEY_USAGE, GPG_ERR_WRONG_KEY_USAGE},
-    {GFErrorCode::kUNSUPPORTED_ALGORITHM, GPG_ERR_UNSUPPORTED_ALGORITHM},
-    {GFErrorCode::kNO_PASSPHRASE, GPG_ERR_NO_PASSPHRASE},
-    {GFErrorCode::kBAD_PASSPHRASE, GPG_ERR_BAD_PASSPHRASE},
-    {GFErrorCode::kINVALID_PASSPHRASE, GPG_ERR_INV_PASSPHRASE},
-    {GFErrorCode::kDECRYPT_FAILED, GPG_ERR_DECRYPT_FAILED},
-    {GFErrorCode::kBAD_SIGNATURE, GPG_ERR_BAD_SIGNATURE},
-    {GFErrorCode::kSIGNATURE_EXPIRED, GPG_ERR_SIG_EXPIRED},
-    {GFErrorCode::kNOT_FOUND, GPG_ERR_NOT_FOUND},
-    {GFErrorCode::kNOT_OPERATIONAL, GPG_ERR_NOT_OPERATIONAL},
-    {GFErrorCode::kTIMEOUT, GPG_ERR_TIMEOUT},
-    {GFErrorCode::kIO, GPG_ERR_EIO},
-    {GFErrorCode::kINTERNAL, GPG_ERR_INTERNAL},
-    {GFErrorCode::kBUG, GPG_ERR_BUG},
-}};
-
-}  // namespace
+// The numbers GpgErrorCodes.h writes out are gpg-error.h's own.
+static_assert(GnuPGCodeOf(GFErrorCode::kCANCELED) == GPG_ERR_CANCELED);
+static_assert(GnuPGCodeOf(GFErrorCode::kABORTED) == GPG_ERR_USER_1);
+static_assert(GnuPGCodeOf(GFErrorCode::kGENERAL) == GPG_ERR_GENERAL);
+static_assert(GnuPGCodeOf(GFErrorCode::kNOT_SUPPORTED) ==
+              GPG_ERR_NOT_SUPPORTED);
+static_assert(GnuPGCodeOf(GFErrorCode::kUNSUPPORTED_OPERATION) ==
+              GPG_ERR_UNSUPPORTED_OPERATION);
+static_assert(GnuPGCodeOf(GFErrorCode::kINVALID_ARGUMENT) == GPG_ERR_INV_ARG);
+static_assert(GnuPGCodeOf(GFErrorCode::kINVALID_VALUE) == GPG_ERR_INV_VALUE);
+static_assert(GnuPGCodeOf(GFErrorCode::kINVALID_DATA) == GPG_ERR_INV_DATA);
+static_assert(GnuPGCodeOf(GFErrorCode::kBAD_DATA) == GPG_ERR_BAD_DATA);
+static_assert(GnuPGCodeOf(GFErrorCode::kNO_DATA) == GPG_ERR_NO_DATA);
+static_assert(GnuPGCodeOf(GFErrorCode::kBAD_ARMOR) == GPG_ERR_INV_ARMOR);
+static_assert(GnuPGCodeOf(GFErrorCode::kNO_PUBLIC_KEY) == GPG_ERR_NO_PUBKEY);
+static_assert(GnuPGCodeOf(GFErrorCode::kNO_SECRET_KEY) == GPG_ERR_NO_SECKEY);
+static_assert(GnuPGCodeOf(GFErrorCode::kNO_KEY) == GPG_ERR_NO_KEY);
+static_assert(GnuPGCodeOf(GFErrorCode::kKEY_EXPIRED) == GPG_ERR_KEY_EXPIRED);
+static_assert(GnuPGCodeOf(GFErrorCode::kKEY_REVOKED) == GPG_ERR_CERT_REVOKED);
+static_assert(GnuPGCodeOf(GFErrorCode::kUNUSABLE_PUBLIC_KEY) ==
+              GPG_ERR_UNUSABLE_PUBKEY);
+static_assert(GnuPGCodeOf(GFErrorCode::kUNUSABLE_SECRET_KEY) ==
+              GPG_ERR_UNUSABLE_SECKEY);
+static_assert(GnuPGCodeOf(GFErrorCode::kWRONG_KEY_USAGE) ==
+              GPG_ERR_WRONG_KEY_USAGE);
+static_assert(GnuPGCodeOf(GFErrorCode::kUNSUPPORTED_ALGORITHM) ==
+              GPG_ERR_UNSUPPORTED_ALGORITHM);
+static_assert(GnuPGCodeOf(GFErrorCode::kNO_PASSPHRASE) ==
+              GPG_ERR_NO_PASSPHRASE);
+static_assert(GnuPGCodeOf(GFErrorCode::kBAD_PASSPHRASE) ==
+              GPG_ERR_BAD_PASSPHRASE);
+static_assert(GnuPGCodeOf(GFErrorCode::kINVALID_PASSPHRASE) ==
+              GPG_ERR_INV_PASSPHRASE);
+static_assert(GnuPGCodeOf(GFErrorCode::kDECRYPT_FAILED) ==
+              GPG_ERR_DECRYPT_FAILED);
+static_assert(GnuPGCodeOf(GFErrorCode::kBAD_SIGNATURE) ==
+              GPG_ERR_BAD_SIGNATURE);
+static_assert(GnuPGCodeOf(GFErrorCode::kSIGNATURE_EXPIRED) ==
+              GPG_ERR_SIG_EXPIRED);
+static_assert(GnuPGCodeOf(GFErrorCode::kNOT_FOUND) == GPG_ERR_NOT_FOUND);
+static_assert(GnuPGCodeOf(GFErrorCode::kNOT_OPERATIONAL) ==
+              GPG_ERR_NOT_OPERATIONAL);
+static_assert(GnuPGCodeOf(GFErrorCode::kTIMEOUT) == GPG_ERR_TIMEOUT);
+static_assert(GnuPGCodeOf(GFErrorCode::kIO) == GPG_ERR_EIO);
+static_assert(GnuPGCodeOf(GFErrorCode::kINTERNAL) == GPG_ERR_INTERNAL);
+static_assert(GnuPGCodeOf(GFErrorCode::kBUG) == GPG_ERR_BUG);
 
 auto FromGpgError(gpgme_error_t err) -> GFError {
   const auto code = gpg_err_code(err);
   if (code == GPG_ERR_NO_ERROR) return {};
 
-  auto mapped = GFErrorCode::kGENERAL;
-  for (const auto& [ours, theirs] : kGpgCodes) {
-    if (theirs == code) {
-      mapped = ours;
-      break;
-    }
-  }
+  const auto mapped = GFErrorCodeOfGnuPG(code);
   return {mapped,
           mapped == GFErrorCode::kABORTED ? GFErrorOrigin::kAPPLICATION
                                           : GFErrorOrigin::kGNUPG,
@@ -95,12 +94,7 @@ auto ToGpgError(const GFError& err) -> gpgme_error_t {
   if (err.origin == GFErrorOrigin::kGNUPG) {
     return static_cast<gpgme_error_t>(err.native);
   }
-  if (err.code == GFErrorCode::kOK) return GPG_ERR_NO_ERROR;
-
-  for (const auto& [ours, theirs] : kGpgCodes) {
-    if (ours == err.code) return theirs;
-  }
-  return GPG_ERR_GENERAL;
+  return static_cast<gpgme_error_t>(GnuPGCodeOf(err.code));
 }
 
 auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {

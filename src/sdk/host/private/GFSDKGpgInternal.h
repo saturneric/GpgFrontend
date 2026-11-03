@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include <gpgme.h>
 #include <stddef.h>
 
 #include <QByteArray>

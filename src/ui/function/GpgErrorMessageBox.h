@@ -28,11 +28,14 @@
 
 #pragma once
 
+#if GF_ENGINE_GNUPG
 #include "core/typedef/GpgErrorTypedef.h"
+#endif
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend::UI {
 
+#if GF_ENGINE_GNUPG
 /**
  * @brief Report the outcome of a gpg operation, whichever way it went.
  *
@@ -44,10 +47,12 @@ namespace GpgFrontend::UI {
  * @param err the error returned by the operation
  */
 void GF_UI_EXPORT RaiseMessageBox(QWidget* parent, GpgError err);
+#endif
 
 /// RaiseMessageBox() for an operation family that reports GFError.
 void GF_UI_EXPORT RaiseMessageBox(QWidget* parent, const GFError& err);
 
+#if GF_ENGINE_GNUPG
 /**
  * @brief Report a failed gpg operation, with the engine's own diagnosis.
  *
@@ -57,6 +62,7 @@ void GF_UI_EXPORT RaiseMessageBox(QWidget* parent, const GFError& err);
  */
 void GF_UI_EXPORT RaiseFailureMessageBox(QWidget* parent, GpgError err,
                                          const QString& msg = {});
+#endif
 
 /**
  * @brief RaiseFailureMessageBox() for an operation family that reports

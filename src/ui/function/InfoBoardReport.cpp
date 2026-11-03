@@ -32,7 +32,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#include "core/function/gpg/GpgErrorMap.h"
+#include "core/function/gpg/GpgErrorCodes.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/function/InfoBoardCardConverter.h"
 
 // Translation contexts are spelled out as literals at every call: lupdate
@@ -317,6 +318,11 @@ auto CodeText(unsigned int code) -> QString {
 
 /// "Encrypt + Sign call · code 99": what an error belongs to, as the line
 /// under its message.
+/// The number an error is shown with: GnuPG's, as it always has been.
+auto ShownErrorCode(const GFError& err) -> unsigned int {
+  return GnuPGErrorValueOf(err) & kGnuPGCodeMask;
+}
+
 auto ErrorNote(const QString& scope, std::optional<unsigned int> code)
     -> QString {
   QStringList parts;
@@ -1178,9 +1184,7 @@ void AppendObjectErrorFields(InfoBoardCard& card,
     QStringList who;
     if (name_scope) who << ScopeText(e.scope);
     if (e.FromEngine() && !object.engine.isEmpty()) who << object.engine;
-    // The code is shown as GnuPG numbers it, as it always has been.
-    const auto note =
-        ErrorNote(who.join(u" · "_s), gpg_err_code(ToGpgError(e.error)));
+    const auto note = ErrorNote(who.join(u" · "_s), ShownErrorCode(e.error));
     if (e.FromEngine()) {
       card.AddField(QCoreApplication::translate(
                         "GpgFrontend::UI::InfoBoardReport", "Engine error"),
@@ -1514,7 +1518,7 @@ auto CanonicalReportBytes(const InfoBoardReport& report) -> QByteArray {
       stage_errors.append(QJsonObject{
           {u"scope"_s, OperationId(e.scope)},
           {u"origin"_s, e.FromEngine() ? u"engine"_s : u"application"_s},
-          {u"code"_s, static_cast<qint64>(gpg_err_code(ToGpgError(e.error)))},
+          {u"code"_s, static_cast<qint64>(ShownErrorCode(e.error))},
           {u"codeText"_s, e.codeText},
           {u"engineDetails"_s, details}});
     }

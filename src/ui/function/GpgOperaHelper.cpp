@@ -29,7 +29,6 @@
 #include "GpgOperaHelper.h"
 
 #include "core/function/GFBufferFactory.h"
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"

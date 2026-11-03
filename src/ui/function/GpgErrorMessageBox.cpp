@@ -28,34 +28,31 @@
 
 #include "ui/function/GpgErrorMessageBox.h"
 
+#include "core/function/gpg/GpgErrorCodes.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::UI {
 
-void RaiseMessageBox(QWidget* parent, GpgError err) {
-  GpgErrorCode err_code = CheckGpgError2ErrCode(err);
+namespace {
 
-  if (err_code == GPG_ERR_NO_ERROR) {
-    QMessageBox::information(
-        parent, QCoreApplication::translate("GpgFrontend::UI", "Success"),
-        QCoreApplication::translate("GpgFrontend::UI",
-                                    "Operation completed successfully."));
-  } else {
-    RaiseFailureMessageBox(parent, err);
-  }
+void ShowSuccess(QWidget* parent) {
+  QMessageBox::information(
+      parent, QCoreApplication::translate("GpgFrontend::UI", "Success"),
+      QCoreApplication::translate("GpgFrontend::UI",
+                                  "Operation completed successfully."));
 }
 
-void RaiseFailureMessageBox(QWidget* parent, GpgError err, const QString& msg) {
-  GpgErrorDesc desc = DescribeGpgErrCode(err);
-  GpgErrorCode err_code = CheckGpgError2ErrCode(err);
-
+void ShowFailure(QWidget* parent, qint64 code, const GpgErrorDesc& desc,
+                 const QString& msg) {
   QMessageBox::critical(
       parent, QCoreApplication::translate("GpgFrontend::UI", "Failure"),
       QCoreApplication::translate("GpgFrontend::UI", "Gpg Operation failed.") +
           "\n\n" +
           QCoreApplication::translate("GpgFrontend::UI", "Error code: %1")
-              .arg(err_code) +
+              .arg(code) +
           "\n\n\n" +
           QCoreApplication::translate("GpgFrontend::UI", "Source:  %1")
               .arg(desc.first) +
@@ -67,13 +64,36 @@ void RaiseFailureMessageBox(QWidget* parent, GpgError err, const QString& msg) {
               .arg(msg));
 }
 
+}  // namespace
+
+#if GF_ENGINE_GNUPG
+void RaiseMessageBox(QWidget* parent, GpgError err) {
+  GpgErrorCode err_code = CheckGpgError2ErrCode(err);
+
+  if (err_code == GPG_ERR_NO_ERROR) {
+    ShowSuccess(parent);
+  } else {
+    RaiseFailureMessageBox(parent, err);
+  }
+}
+
+void RaiseFailureMessageBox(QWidget* parent, GpgError err, const QString& msg) {
+  ShowFailure(parent, CheckGpgError2ErrCode(err), DescribeGpgErrCode(err), msg);
+}
+#endif
+
 void RaiseMessageBox(QWidget* parent, const GFError& err) {
-  RaiseMessageBox(parent, ToGpgError(err));
+  if (err.Ok()) {
+    ShowSuccess(parent);
+  } else {
+    RaiseFailureMessageBox(parent, err);
+  }
 }
 
 void RaiseFailureMessageBox(QWidget* parent, const GFError& err,
                             const QString& msg) {
-  RaiseFailureMessageBox(parent, ToGpgError(err), msg);
+  ShowFailure(parent, GnuPGErrorValueOf(err) & kGnuPGCodeMask,
+              DescribeGFError(err), msg);
 }
 
 }  // namespace GpgFrontend::UI

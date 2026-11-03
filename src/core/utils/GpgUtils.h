@@ -41,9 +41,20 @@
 namespace GpgFrontend {
 
 /**
- * @brief GnuPG's source and description of the code a GFError stands for.
+ * @brief GnuPG's source and description of the code a GFError stands for; in
+ * a build without the GnuPG engine, GpgFrontend's own.
  */
 auto GF_CORE_EXPORT DescribeGFError(const GFError& err) -> GpgErrorDesc;
+
+/**
+ * @brief The GnuPG error value a GFError stands for.
+ *
+ * What the module SDK has always handed modules, and what errors are numbered
+ * by when shown. An error GnuPG reported comes back exactly as it reported
+ * it; any other, and every error in a build without the GnuPG engine, is the
+ * bare code number.
+ */
+auto GF_CORE_EXPORT GnuPGErrorValueOf(const GFError& err) -> std::uint32_t;
 
 /**
  * @brief Return the output file path with an extension appropriate for the

@@ -34,6 +34,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/function/gpg/GpgErrorCodes.h"
 #if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
 #endif
@@ -55,6 +56,14 @@
 namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
+
+auto GnuPGErrorValueOf(const GFError& err) -> std::uint32_t {
+#if GF_ENGINE_GNUPG
+  return ToGpgError(err);
+#else
+  return GnuPGCodeOf(err.code);
+#endif
+}
 
 #if GF_ENGINE_GNUPG
 auto DescribeGFError(const GFError& err) -> GpgErrorDesc {

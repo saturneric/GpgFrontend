@@ -39,7 +39,10 @@
 #include <QJsonObject>
 #include <any>
 
+#include "core/function/gpg/GpgErrorCodes.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgErrorMap.h"
+#endif
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -198,8 +201,8 @@ auto OpInfoToJson(const GpgFrontend::GpgOpResultInfo& info) -> QByteArray {
         {"scope", GpgFrontend::GpgOperationName(e.scope)},
         {"origin", e.FromEngine() ? "engine" : "application"},
         // GnuPG's number, as modules have always been given.
-        {"code",
-         static_cast<qint64>(gpg_err_code(GpgFrontend::ToGpgError(e.error)))},
+        {"code", static_cast<qint64>(GpgFrontend::GnuPGErrorValueOf(e.error) &
+                                     GpgFrontend::kGnuPGCodeMask)},
         {"codeText", e.codeText},
         {"engineDetails", details}});
   }
@@ -275,16 +278,37 @@ void EmitResultInfo(const GpgFrontend::GpgOpResultInfo& info,
   *info_json = GFStrDup(QString::fromUtf8(OpInfoToJson(info)));
 }
 
-// Engine-neutral analysis. The raw gpgme_*_result handles only exist for the
-// native (GnuPG) engine; the rPGP engine stores its result in the Gpg*Result
-// model object instead, which the SDK keeps in the result handle. Recover that
-// model and run the same analyser used by the native path, so
-// both engines produce identical reports and status codes. The report, the
-// cards and the structured form come from one call because the capsule is
-// consumed on first use. Returns -1 when the capsule is missing or holds an
-// unexpected type.
+/// The error a module hands back, the GnuPG value it was given, read as the
+/// engine on @p channel reported it.
+auto ModuleErrorOf(int channel, uint32_t err) -> GpgFrontend::GFError {
+#if GF_ENGINE_GNUPG
+  auto error = GpgFrontend::FromGpgError(err);
+  if (error.origin == GpgFrontend::GFErrorOrigin::kGNUPG &&
+      GpgFrontend::OpenPGPContext::GetInstance(channel).Engine() ==
+          GpgFrontend::OpenPGPEngine::kRPGP) {
+    error = GpgFrontend::EngineErrorOf(channel, error.code);
+  }
+  return error;
+#else
+  const auto code =
+      GpgFrontend::GFErrorCodeOfGnuPG(err & GpgFrontend::kGnuPGCodeMask);
+  if (code == GpgFrontend::GFErrorCode::kOK) return {};
+  // GpgFrontend's own stop, as FromGpgError() reads it.
+  if (code == GpgFrontend::GFErrorCode::kABORTED) {
+    return GpgFrontend::GFError::Application(code);
+  }
+  return GpgFrontend::EngineErrorOf(channel, code);
+#endif
+}
+
+// Engine-neutral analysis. Either engine's result is a Gpg*Result model, which
+// the SDK keeps in the result handle. Recover that model and run the analyser
+// the application uses, so both engines produce identical reports and status
+// codes. The report, the cards and the structured form come from one call
+// because the capsule is consumed on first use. Returns -1 when the capsule is
+// missing or holds an unexpected type.
 template <typename ResultT, typename AnalyseT>
-auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
+auto AnalyseResultInfoByCapsule(int channel, uint32_t err,
                                 const char* capsule_id, const char** analyse,
                                 const char** cards, const char** info_json)
     -> int {
@@ -300,15 +324,7 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
   auto* result = std::any_cast<ResultT>(&capsule);
   if (result == nullptr) return -1;
 
-  // Modules hand back the GnuPG value they were given: read as the engine
-  // on this channel reported it.
-  auto error = GpgFrontend::FromGpgError(err);
-  if (error.origin == GpgFrontend::GFErrorOrigin::kGNUPG &&
-      GpgFrontend::OpenPGPContext::GetInstance(channel).Engine() ==
-          GpgFrontend::OpenPGPEngine::kRPGP) {
-    error = GpgFrontend::EngineErrorOf(channel, error.code);
-  }
-  AnalyseT ra(channel, error, *result);
+  AnalyseT ra(channel, ModuleErrorOf(channel, err), *result);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
   EmitResultCards(ra.GetOpInfo(), cards);
@@ -318,7 +334,7 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
 
 }  // namespace
 
-auto GFAnalyseVerifyResultInfoByCapsule(int channel, gpgme_error_t err,
+auto GFAnalyseVerifyResultInfoByCapsule(int channel, uint32_t err,
                                         const char* capsule_id,
                                         const char** analyse,
                                         const char** cards,
@@ -328,7 +344,7 @@ auto GFAnalyseVerifyResultInfoByCapsule(int channel, gpgme_error_t err,
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GFAnalyseSignResultInfoByCapsule(int channel, gpgme_error_t err,
+auto GFAnalyseSignResultInfoByCapsule(int channel, uint32_t err,
                                       const char* capsule_id,
                                       const char** analyse, const char** cards,
                                       const char** info_json) -> int {
@@ -337,7 +353,7 @@ auto GFAnalyseSignResultInfoByCapsule(int channel, gpgme_error_t err,
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GFAnalyseEncryptResultInfoByCapsule(int channel, gpgme_error_t err,
+auto GFAnalyseEncryptResultInfoByCapsule(int channel, uint32_t err,
                                          const char* capsule_id,
                                          const char** analyse,
                                          const char** cards,
@@ -347,7 +363,7 @@ auto GFAnalyseEncryptResultInfoByCapsule(int channel, gpgme_error_t err,
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GFAnalyseDecryptResultInfoByCapsule(int channel, gpgme_error_t err,
+auto GFAnalyseDecryptResultInfoByCapsule(int channel, uint32_t err,
                                          const char* capsule_id,
                                          const char** analyse,
                                          const char** cards,
