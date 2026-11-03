@@ -37,25 +37,42 @@
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/dialog/QuitDialog.h"
 #include "ui/function/DocumentReplace.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/lua/LuaPlacements.h"
+#include "ui/widgets/EditorEmptyView.h"
+#include "ui/widgets/OpenTabsPopup.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
 
-TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
+TextEdit::TextEdit(QWidget* parent)
+    : QWidget(parent), prompter_(std::make_unique<TabClosePrompter>()) {
   tab_widget_ = new TextEditTabWidget(this);
+  empty_view_ = new EditorEmptyView(this);
+
+  stack_ = new QStackedLayout;
+  stack_->addWidget(tab_widget_);
+  stack_->addWidget(empty_view_);
 
   auto* layout = new QVBoxLayout;
-  layout->addWidget(tab_widget_);
+  layout->addLayout(stack_);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
   setLayout(layout);
 
   connect(tab_widget_, &QTabWidget::tabCloseRequested, this,
           &TextEdit::slot_remove_tab);
+  connect(tab_widget_, &TextEditTabWidget::SignalCloseTabsRequested, this,
+          [this](const QList<quint64>& ids) { CloseTabs(ids); });
+  connect(tab_widget_, &TextEditTabWidget::SignalTabCountChanged, this,
+          &TextEdit::update_empty_view);
+  connect(tab_widget_, &TextEditTabWidget::SignalOpenTabsListRequested, this,
+          &TextEdit::SlotShowOpenTabs);
+  connect(empty_view_, &EditorEmptyView::SignalNewTextRequested, this,
+          [this]() { SlotNewTab(); });
+  connect(empty_view_, &EditorEmptyView::SignalOpenFileRequested, this,
+          &TextEdit::SlotOpenFileDialog);
 
   setAcceptDrops(false);
 
@@ -158,9 +175,12 @@ void TextEdit::SlotSave() {
 }
 
 auto TextEdit::saveFile(const QString& file_name) -> bool {
-  if (file_name.isEmpty()) return false;
+  return save_page(CurPageTextEdit(), file_name);
+}
 
-  PlainTextEditorPage* page = CurPageTextEdit();
+auto TextEdit::save_page(PlainTextEditorPage* page, const QString& file_name)
+    -> bool {
+  if (file_name.isEmpty()) return false;
   if (page == nullptr) return false;
 
   // A mounted view owns the document's real content until it hands it back, so
@@ -190,20 +210,17 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
 
     if (!written) {
       file.cancelWriting();
-      QMessageBox::warning(this, tr("Warning"),
-                           tr("Cannot read file %1:\n%2.")
-                               .arg(file_name)
-                               .arg(file.errorString()));
+      prompter_->SaveFailed(this, file_name, file.errorString());
       return false;
     }
 
     QTextDocument* document = page->GetTextPage()->document();
 
+    page->SetFilePath(file_name);
     document->setModified(false);
 
-    int cur_index = tab_widget_->currentIndex();
-    tab_widget_->setTabText(cur_index, stripped_name(file_name));
-    page->SetFilePath(file_name);
+    const int cur_index = tab_widget_->indexOf(page);
+    tab_widget_->SetTabTitle(page, stripped_name(file_name));
     page->NotifyFileSaved();
 
     Module::TriggerEvent("DOCUMENT_SAVED",
@@ -218,9 +235,7 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     return true;
   }
 
-  QMessageBox::warning(
-      this, tr("Warning"),
-      tr("Cannot read file %1:\n%2.").arg(file_name).arg(file.errorString()));
+  prompter_->SaveFailed(this, file_name, file.errorString());
 
   return false;
 }
@@ -232,6 +247,11 @@ auto TextEdit::SlotSaveAs() -> bool {
 
   PlainTextEditorPage* page = CurPageTextEdit();
   if (page->IsModulePersisted()) return page->ModuleSaveRequested(true);
+  return save_page_as(page);
+}
+
+auto TextEdit::save_page_as(PlainTextEditorPage* page) -> bool {
+  if (page == nullptr) return false;
   QString path;
   if (!page->GetFilePath().isEmpty()) {
     path = page->GetFilePath();
@@ -240,14 +260,9 @@ auto TextEdit::SlotSaveAs() -> bool {
     // has a subject, a tab title does not.
     const auto suggested = page->PrimaryViewSuggestedFileName();
 
-    // The tab's own title, from the property that holds it WITHOUT the
-    // modified marker. This used to chop two characters off the tab text to
-    // drop a "* " that is only there while the tab is modified -- so an
-    // unmodified "untitled.eml" was offered as "titled.eml".
-    auto title = page->property("base_title").toString().trimmed();
-    if (title.isEmpty())
-      title = tab_widget_->tabText(tab_widget_->currentIndex());
-    while (title.startsWith('*')) title = title.remove(0, 1).trimmed();
+    // The tab's own title, never its label: the label may carry the folder
+    // that tells two same-named tabs apart.
+    const auto title = TextEditTabWidget::TabTitleOf(page);
 
     path = suggested.isEmpty() ? title : suggested;
 
@@ -260,174 +275,15 @@ auto TextEdit::SlotSaveAs() -> bool {
     }
   }
 
-  auto chosen = QFileDialog::getSaveFileName(this, tr("Save File"), path,
-                                             page->PrimaryViewFileTypeFilter());
+  auto chosen =
+      prompter_->ChooseSavePath(this, path, page->PrimaryViewFileTypeFilter());
   // The document type's own suffix, when the user typed a bare name.
   const auto suffix = page->PrimaryViewDefaultSuffix();
   if (!chosen.isEmpty() && !suffix.isEmpty() &&
       QFileInfo(chosen).suffix().isEmpty()) {
     chosen += "." + suffix;
   }
-  return saveFile(chosen);
-}
-
-void TextEdit::SlotCloseTab() { slot_remove_tab(tab_widget_->currentIndex()); }
-
-void TextEdit::slot_remove_tab(int index) {
-  // Do nothing if no tab is open
-  if (tab_widget_->count() == 0) {
-    return;
-  }
-
-  // set the focus to argument index
-  tab_widget_->setCurrentIndex(index);
-
-  if (maybe_save_current_tab(true)) {
-    auto* tab = tab_widget_->widget(index);
-    const auto closed_type =
-        tab == nullptr ? QString() : tab->property("type").toString();
-    tab_widget_->removeTab(index);
-
-    // After the removal, because the fact being reported is that the tab is
-    // gone. A module told beforehand would still see it in the widget and
-    // could act on something about to be destroyed.
-    Module::TriggerEvent("TAB_CLOSED",
-                         {{"tab_index", GFBuffer{QString::number(index)}},
-                          {"tab_type", GFBuffer{closed_type}}});
-
-    if (tab_widget_->count() > 0) {
-      const int new_index = std::min(index, tab_widget_->count() - 1);
-      tab_widget_->setCurrentIndex(new_index);
-    }
-
-    // The user intentionally closed this tab. Rewrite recovery cache after
-    // removeTab(), so the closed tab will not be recovered again.
-    tab_widget_->SlotRefreshRecoveryCache();
-
-    if (tab != nullptr) {
-      // Wiped through the page rather than left to close(): by now the widget
-      // is removed, hidden and unparented, and hanging the erasure of a
-      // decrypted message on a QCloseEvent still reaching it is not a bet
-      // worth taking.
-      if (auto* page = qobject_cast<PlainTextEditorPage*>(tab)) {
-        page->WipeContent();
-      }
-
-      tab->close();
-      tab->deleteLater();
-    }
-  }
-}
-
-/**
- * Check whether the current tab needs saving.
- * Call this before closing the active tab.
- *
- * If it returns false, the close event should be aborted.
- */
-auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
-  PlainTextEditorPage* page = CurPageTextEdit();
-  if (page == nullptr) return true;
-
-  // Its view decides, and asks the user itself if it must.
-  if (page->IsModulePersisted()) return page->ModuleCloseRequested();
-
-  QTextDocument* document = page->GetTextPage()->document();
-  if (document == nullptr) return true;
-
-  if (document->isModified()) {
-    QMessageBox::StandardButton result = QMessageBox::Cancel;
-
-    QString doc_name = tab_widget_->tabText(tab_widget_->currentIndex());
-    doc_name = doc_name.trimmed();
-    while (doc_name.startsWith("*")) {
-      doc_name.remove(0, 1);
-      doc_name = doc_name.trimmed();
-    }
-
-    const QString& file_path = page->GetFilePath();
-    if (ask_to_save) {
-      result = QMessageBox::warning(
-          this, tr("Unsaved Document"),
-          tr("The document \"%1\" has been modified. Do you want to "
-             "save your changes?")
-                  .arg(doc_name) +
-              "<br/><b>" + tr("Note:") + "</b> " +
-              tr("If you don't save, your changes will be lost.") + "<br/>",
-          QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-    }
-
-    if ((result == QMessageBox::Save) || (!ask_to_save)) {
-      if (file_path.isEmpty()) return SlotSaveAs();
-      return saveFile(file_path);
-    }
-
-    return result == QMessageBox::Discard;
-  }
-
-  return true;
-}
-
-auto TextEdit::MaybeSaveAnyTab() -> bool {
-  // Documents their views persist: each view is asked, and may ask the user.
-  // One that says no keeps the application open.
-  for (int i = 0; i < tab_widget_->count(); ++i) {
-    auto* page = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
-    if (page == nullptr || !page->IsModulePersisted()) continue;
-    // Shown first only when there is something it may ask about.
-    if (page->GetTextPage()->document()->isModified()) {
-      tab_widget_->setCurrentIndex(i);
-    }
-    if (!page->ModuleCloseRequested()) return false;
-  }
-
-  // get a list of all unsaved documents and their tab ids
-  auto const unsaved_docs = this->UnsavedDocuments();
-
-  // no unsaved documents, so app can be closed
-  if (unsaved_docs.empty()) return true;
-
-  bool restore_text_editor_page =
-      SettingItems::kRestoreTextEditorPage.Read(GetSettings());
-  if (restore_text_editor_page) {
-    FLOG_D("restore_text_editor_page is true, caching messages and exiting");
-    tab_widget_->SlotCacheTextEditors();
-    return true;
-  }
-
-  // only 1 unsaved document -> set modified tab as current and show normal
-  // unsaved doc dialog
-
-  if (unsaved_docs.size() == 1) {
-    int const modified_tab = unsaved_docs.keys().at(0);
-    tab_widget_->setCurrentIndex(modified_tab);
-
-    auto maybe_save = maybe_save_current_tab(true);
-    return maybe_save;
-  }
-
-  // more than one unsaved document
-
-  bool can_close = false;
-  auto* dialog = new QuitDialog(
-      this->parentWidget() != nullptr ? this->parentWidget() : this,
-      unsaved_docs);
-
-  connect(dialog, &QuitDialog::SignalDiscard, this,
-          [&]() { can_close = true; });
-
-  connect(dialog, &QuitDialog::SignalSave, this, [&](const QList<int>& ids) {
-    bool all_saved = true;
-    for (const auto& tab_id : ids) {
-      tab_widget_->setCurrentIndex(tab_id);
-      if (!maybe_save_current_tab(false)) all_saved = false;
-    }
-    can_close = all_saved;
-  });
-
-  dialog->exec();
-  dialog->deleteLater();
-  return can_close;
+  return save_page(page, chosen);
 }
 
 namespace {
@@ -703,33 +559,6 @@ void TextEdit::SlotSwitchTabDown() const {
   }
 }
 
-/*
- *   return a hash of the tab indexes and titles of unsaved tabs
- */
-auto TextEdit::UnsavedDocuments() const -> QHash<int, QString> {
-  QHash<int, QString> unsaved_docs;
-
-  for (int i = 0; i < tab_widget_->count(); i++) {
-    auto* ep = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
-    if (ep == nullptr || ep->IsModulePersisted() ||
-        ep->GetTextPage() == nullptr ||
-        ep->GetTextPage()->document() == nullptr ||
-        !ep->GetTextPage()->document()->isModified()) {
-      continue;
-    }
-
-    QString doc_name = tab_widget_->tabText(i).trimmed();
-    while (doc_name.startsWith("*")) {
-      doc_name.remove(0, 1);
-      doc_name = doc_name.trimmed();
-    }
-
-    unsaved_docs.insert(i, doc_name);
-  }
-
-  return unsaved_docs;
-}
-
 void TextEdit::SlotCut() const {
   if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
@@ -853,6 +682,7 @@ auto TextEdit::OpenDocument(const QString& type, const QString& title,
   if (saved) page->NotifyFileSaved();
   // A draft -- a reply, say -- exists nowhere yet, so closing it asks first.
   if (modified) page->GetTextPage()->document()->setModified(true);
+  tab_widget_->RefreshTabLabels();
   return TextEditTabWidget::DocumentIdOf(page);
 }
 

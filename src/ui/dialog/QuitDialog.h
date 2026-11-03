@@ -45,22 +45,23 @@ class QuitDialog : public GeneralDialog {
    * @brief Construct a new Quit Dialog object
    *
    * @param parent
-   * @param unsavedDocs
+   * @param unsaved_docs the unsaved tabs, by tab id, in the order shown
    */
-  QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs);
+  QuitDialog(QWidget* parent,
+             const QList<QPair<quint64, QString>>& unsaved_docs);
 
   /**
    * @brief Get the Tab Ids To Save object
    *
-   * @return QList<int>
+   * @return QList<quint64>
    */
-  auto GetTabIdsToSave() -> QList<int>;
+  auto GetTabIdsToSave() -> QList<quint64>;
 
  signals:
 
   void SignalDiscard();
 
-  void SignalSave(const QList<int>& tab_ids);
+  void SignalSave(const QList<quint64>& tab_ids);
 
  private:
   QTableWidget* file_list_;  ///<

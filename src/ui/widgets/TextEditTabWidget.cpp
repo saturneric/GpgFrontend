@@ -44,19 +44,13 @@
 #include "ui/lua/LuaHost.h"
 #include "ui/lua/LuaPlacements.h"
 #include "ui/lua/NativeWidgetRegistry.h"
+#include "ui/widgets/EditorTabBar.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 
 namespace GpgFrontend::UI {
 
 namespace {
-
-auto NormalizedExistingFilePath(const QString& path) -> QString {
-  QFileInfo info(path);
-  auto canonical = info.canonicalFilePath();
-  if (!canonical.isEmpty()) return QDir::cleanPath(canonical);
-  return QDir::cleanPath(info.absoluteFilePath());
-}
 
 class ScopedOverrideCursor {
  public:
@@ -67,16 +61,9 @@ class ScopedOverrideCursor {
   ~ScopedOverrideCursor() { QApplication::restoreOverrideCursor(); }
 };
 
-auto NormalizeTabTitle(QString title) -> QString {
-  title = title.trimmed();
-
-  while (title.startsWith("*")) {
-    title.remove(0, 1);
-    title = title.trimmed();
-  }
-
-  return title;
-}
+// Only trimmed: the unsaved mark is drawn by the tab bar, never written into
+// a title, so a "*" or "●" at the start of one is the document's own.
+auto NormalizeTabTitle(QString title) -> QString { return title.trimmed(); }
 
 class ScopedRecoverySuspend {
  public:
@@ -153,69 +140,66 @@ TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
     // widget class it cannot include.
     auto* page = widget(index);
     if (page == nullptr) return;
+
+    // The first tab is current before tabInserted() has named it.
+    if (TabIdOf(page) == 0) page->setProperty("gf_tab_id", next_tab_id_++);
+
+    // A Ctrl+Tab walk passes over tabs; only the one it ends on was used.
+    if (!switch_session_.Active()) mru_.Touch(TabIdOf(page));
+
     Module::TriggerEvent(
         "TAB_ACTIVATED",
         {{"tab_index", GFBuffer{QString::number(index)}},
          {"tab_type", GFBuffer{page->property("type").toString()}},
-         {"tab_title", GFBuffer{tabText(index)}}});
+         {"tab_title", GFBuffer{TabTitleOf(page)}}});
   });
 
   tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(
-      tabBar(), &QTabBar::customContextMenuRequested, this,
-      [this](const QPoint& pos) -> void {
-        const int index = tabBar()->tabAt(pos);
-        if (index < 0) return;
+  connect(tabBar(), &QTabBar::customContextMenuRequested, this,
+          [this](const QPoint& pos) -> void {
+            const int index = tabBar()->tabAt(pos);
+            if (index >= 0) show_tab_menu(index, pos);
+          });
 
-        QMenu menu(this);
-        auto* close_act = menu.addAction(tr("Close"));
-        auto* copy_path_act = menu.addAction(tr("Copy Path"));
-        auto* reveal_act = menu.addAction(tr("Reveal in File Browser"));
-        auto* text_page = qobject_cast<PlainTextEditorPage*>(widget(index));
-        auto* file_page = qobject_cast<FilePage*>(widget(index));
+  // Middle-click and the close buttons arrive as tabCloseRequested(), which
+  // TextEdit turns into the one guarded close path.
+  connect(bar_, &EditorTabBar::SignalNewTabRequested, this,
+          [this]() -> void { SlotNewPlainTextTab(); });
 
-        const auto tab_path = PathForTab(index);
-        copy_path_act->setEnabled(!tab_path.isEmpty());
-        reveal_act->setEnabled(!tab_path.isEmpty());
-
-        const bool has_path =
-            (text_page != nullptr && !text_page->GetFilePath().isEmpty()) ||
-            (file_page != nullptr && !file_page->GetCurrentPath().isEmpty());
-
-        copy_path_act->setEnabled(has_path);
-
-        const auto* selected = menu.exec(tabBar()->mapToGlobal(pos));
-        if (selected == close_act) {
-          emit tabCloseRequested(index);
-        } else if (selected == copy_path_act) {
-          const auto tab_path = PathForTab(index);
-          if (!tab_path.isEmpty()) {
-            QGuiApplication::clipboard()->setText(tab_path);
-          }
-        } else if (selected == reveal_act) {
-          const auto tab_path = PathForTab(index);
-          if (!tab_path.isEmpty()) {
-            const QFileInfo info(tab_path);
-            const auto reveal_path =
-                info.isFile() ? info.absolutePath() : info.absoluteFilePath();
-            QDesktopServices::openUrl(QUrl::fromLocalFile(reveal_path));
-          }
-        }
-      });
+  // The end of the strip: every open tab, searchable.
+  auto* list_button = new QToolButton(this);
+  list_button->setObjectName("gfOpenTabsButton");
+  list_button->setAutoRaise(true);
+  list_button->setArrowType(Qt::DownArrow);
+  list_button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  list_button->setToolTip(tr("Show Open Tabs"));
+  list_button->setFocusPolicy(Qt::NoFocus);
+  connect(list_button, &QToolButton::clicked, this,
+          &TextEditTabWidget::SignalOpenTabsListRequested);
+  setCornerWidget(list_button, Qt::TopRightCorner);
 
   last_current_text_page_ = CurTextPage();
 }
 
 void TextEditTabWidget::init_tab_style() {
+  // Before any tab exists: setTabBar() is only allowed on an empty widget.
+  bar_ = new EditorTabBar(this);
+  setTabBar(bar_);
+
   setAcceptDrops(true);
   setMovable(true);
-  setTabsClosable(true);
+  // The bar draws its own close buttons, which double as the unsaved mark.
+  // QTabWidget relays the bar's close requests only while it is closable
+  // itself, so they are relayed here.
+  setTabsClosable(false);
+  connect(bar_, &QTabBar::tabCloseRequested, this,
+          &QTabWidget::tabCloseRequested);
   setDocumentMode(true);
+  // Document mode turns the bar's own base line back on; the strip's one
+  // separator is drawn in paintEvent() instead.
+  bar_->setDrawBase(false);
   setUsesScrollButtons(true);
   setElideMode(Qt::ElideRight);
-  tabBar()->setExpanding(false);
-  tabBar()->setDrawBase(false);
-  tabBar()->setMovable(true);
 
   tabBar()->setProperty("gfTextEditTabBar", true);
   tabBar()->style()->unpolish(tabBar());
@@ -223,12 +207,13 @@ void TextEditTabWidget::init_tab_style() {
 
   setStyleSheet(R"(
 QTabWidget::pane {
-  border-top: 1px solid palette(mid);
+  border: none;
 }
 
 QTabBar[gfTextEditTabBar="true"]::tab {
-  padding: 5px 12px;
+  padding: 4px 6px 5px 10px;
   margin-right: 0px;
+  border-top: 2px solid transparent;
   border-right: 1px solid palette(mid);
   color: palette(window-text);
   background: transparent;
@@ -241,7 +226,7 @@ QTabBar[gfTextEditTabBar="true"]::tab:first {
 QTabBar[gfTextEditTabBar="true"]::tab:selected {
   background: palette(base);
   color: palette(window-text);
-  font-weight: 600;
+  border-top: 2px solid palette(highlight);
 }
 
 QTabBar[gfTextEditTabBar="true"]::tab:hover:!selected {
@@ -400,7 +385,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
         page->deleteLater();
         return;
       }
-      setTabToolTip(indexOf(page), path);
+      RefreshTabLabels();
       return;
     }
     QString error_message;
@@ -418,7 +403,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
     page->SetContentFromBytes(file.readAll());
     page->SetFilePath(path);
     page->NotifyFileSaved();
-    setTabToolTip(indexOf(page), path);
+    RefreshTabLabels();
     return;
   }
 
@@ -450,7 +435,8 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
 
 auto TextEditTabWidget::find_tab_by_file_path(const QString& path) const
     -> int {
-  const auto target_path = NormalizedExistingFilePath(path);
+  const auto target = FileIdentityKey(path);
+  if (target.isEmpty()) return -1;
 
   for (int i = 0; i < count(); ++i) {
     auto* page = qobject_cast<PlainTextEditorPage*>(widget(i));
@@ -459,19 +445,14 @@ auto TextEditTabWidget::find_tab_by_file_path(const QString& path) const
     const auto page_path = page->GetFilePath();
     if (page_path.isEmpty()) continue;
 
-    if (NormalizedExistingFilePath(page_path) == target_path) {
-      return i;
-    }
+    if (FileIdentityKey(page_path) == target) return i;
   }
 
   return -1;
 }
 
-void TextEditTabWidget::SlotShowModified(bool changed) {
-  auto* page = CurTextPage();
-  if (page == nullptr) return;
-
-  update_tab_modified_mark(page, changed);
+void TextEditTabWidget::SlotShowModified(bool /*changed*/) {
+  RefreshTabLabels();
 }
 
 auto TextEditTabWidget::CurTextPage() const -> PlainTextEditorPage* {
@@ -567,7 +548,7 @@ void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
     ScopedRecoverySuspend recovery_suspend(page);
     page->GetTextPage()->document()->setPlainText(buffer.ConvertToQString());
     page->GetTextPage()->document()->setModified(true);
-    update_tab_modified_mark(page, true);
+    RefreshTabLabels();
   }
 
   page->GetTextPage()->setFocus();
@@ -586,7 +567,7 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
     ScopedRecoverySuspend recovery_suspend(page);
     page->GetTextPage()->document()->setPlainText(content);
     page->GetTextPage()->document()->setModified(true);
-    update_tab_modified_mark(page, true);
+    RefreshTabLabels();
   }
 }
 
@@ -620,16 +601,15 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
 
 auto TextEditTabWidget::find_file_page_by_path(const QString& path) const
     -> int {
-  const auto target_path = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+  const auto target = FileIdentityKey(path);
+  if (target.isEmpty()) return -1;
 
   for (int i = 0; i < count(); ++i) {
     auto* page = qobject_cast<FilePage*>(widget(i));
     if (page == nullptr) continue;
 
-    const auto current_path =
-        QDir::cleanPath(QFileInfo(page->GetCurrentPath()).absoluteFilePath());
-
-    if (!current_path.isEmpty() && current_path == target_path) {
+    const auto current_path = page->GetCurrentPath();
+    if (!current_path.isEmpty() && FileIdentityKey(current_path) == target) {
       return i;
     }
   }
@@ -654,7 +634,6 @@ void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
   page->setProperty("base_title", title);
 
   const int index = addTab(page, QIcon(":/icons/workspace.png"), title);
-  setTabToolTip(index, abs_path);
   setCurrentIndex(index);
 
   Module::TriggerEvent("TAB_CREATED",
@@ -678,16 +657,12 @@ void TextEditTabWidget::update_file_page_tab_title(QWidget* page,
   if (index < 0) return;
 
   if (path.isEmpty()) {
-    setTabText(index, tr("Workspace"));
-    setTabToolTip(index, {});
+    SetTabTitle(page, tr("Workspace"));
     return;
   }
 
   const auto absolute_path = QFileInfo(path).absoluteFilePath();
-  const auto title = workspace_title_from_path(absolute_path);
-  page->setProperty("base_title", title);
-  setTabText(index, title);
-  setTabToolTip(index, absolute_path);
+  SetTabTitle(page, workspace_title_from_path(absolute_path));
 
   emit UISignalStation::GetInstance()
       -> SignalMainWindowUpdateBasicOperaMenu(0);
@@ -717,7 +692,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     target_page->FlushPrimaryView();
 
     auto* document = target_page->GetTextPage()->document();
-    auto tab_title = NormalizeTabTitle(this->tabText(i));
+    auto tab_title = TabTitleOf(target_page);
 
     if (!target_page->isEnabled() || document == nullptr ||
         !document->isModified()) {
@@ -997,7 +972,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
           // unsaved work, and the asterisk and the close prompt depend on
           // this saying so.
           page->GetTextPage()->document()->setModified(true);
-          update_tab_modified_mark(page, true);
+          RefreshTabLabels();
 
           // The page type is restored, so the view that belongs to it has to
           // be restored with it -- otherwise an e-mail comes back as raw text
@@ -1069,29 +1044,14 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
 
 auto TextEditTabWidget::generate_new_title(const QString& prefix,
                                            const QString& suffix) -> QString {
-  const auto normalized_suffix = suffix.trimmed();
-
-  if (normalized_suffix.isEmpty()) {
-    return prefix + QString::number(++count_page_);
-  }
-
-  return prefix + QString::number(++count_page_) + "." + normalized_suffix;
+  // Never the name of a tab already open (one restored from the recovery
+  // cache, say), and never handed out twice.
+  QSet<QString> taken;
+  for (int i = 0; i < count(); ++i) taken.insert(TabTitleOf(widget(i)));
+  return NextUntitledTitle(count_page_, prefix, suffix, taken);
 }
 
 auto TextEditTabWidget::CurPage() -> QWidget* { return this->currentWidget(); }
-
-void TextEditTabWidget::update_tab_modified_mark(QWidget* page, bool modified) {
-  const int index = indexOf(page);
-  if (index < 0) return;
-
-  auto base_title = page->property("base_title").toString().trimmed();
-  if (base_title.isEmpty()) {
-    base_title = NormalizeTabTitle(tabText(index));
-    page->setProperty("base_title", base_title);
-  }
-
-  setTabText(index, modified ? "* " + base_title : base_title);
-}
 
 auto TextEditTabWidget::create_plain_text_tab(const QString& title,
                                               const QString& file_path,
@@ -1128,7 +1088,6 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
 
   const int index = addTab(page, effective_icon, clean_title);
   setCurrentIndex(index);
-  setTabToolTip(index, file_path.isEmpty() ? clean_title : file_path);
 
   Module::TriggerEvent("TAB_CREATED",
                        {{"tab_index", GFBuffer{QString::number(index)}},
@@ -1146,7 +1105,7 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
 
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, [this, page](bool modified) {
-            update_tab_modified_mark(page, modified);
+            RefreshTabLabels();
 
             // On the clean-to-dirty TRANSITION, deliberately, rather than on
             // contentsChanged. A module is being told "this document now has
@@ -1176,11 +1135,9 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
           [this, page]() -> void { schedule_recovery_cache(page); });
   // Only a module-persisted view saves by itself, and says so here.
   connect(page, &PlainTextEditorPage::SignalModuleSaved, this,
-          [this, page](const QString& path, const QString& title) {
-            page->setProperty("base_title", title);
-            update_tab_modified_mark(page, false);
-            const auto index = indexOf(page);
-            if (index >= 0) setTabToolTip(index, path);
+          [this, page](const QString& /*path*/, const QString& title) {
+            // The path is the page's by now; the title is the tab's.
+            SetTabTitle(page, title);
           });
 
   connect(page, &PlainTextEditorPage::SignalTextDirectionModeChanged, this,
@@ -1318,6 +1275,249 @@ auto TextEditTabWidget::DocumentIdOf(const QWidget* page) -> qint64 {
   if (page == nullptr) return 0;
   const auto v = page->property("gf_document_id");
   return v.isValid() ? v.toLongLong() : 0;
+}
+
+auto TextEditTabWidget::TabIdOf(const QWidget* page) -> quint64 {
+  if (page == nullptr) return 0;
+  const auto v = page->property("gf_tab_id");
+  return v.isValid() ? v.toULongLong() : 0;
+}
+
+auto TextEditTabWidget::PageForTab(quint64 id) const -> QWidget* {
+  if (id == 0) return nullptr;
+  for (int i = 0; i < count(); ++i) {
+    if (TabIdOf(widget(i)) == id) return widget(i);
+  }
+  return nullptr;
+}
+
+auto TextEditTabWidget::TabIds() const -> QList<quint64> {
+  QList<quint64> ids;
+  ids.reserve(count());
+  for (int i = 0; i < count(); ++i) ids.append(TabIdOf(widget(i)));
+  return ids;
+}
+
+auto TextEditTabWidget::MruTabIds() const -> QList<quint64> {
+  auto ids = mru_.Order();
+  for (const auto id : TabIds()) {
+    if (!ids.contains(id)) ids.append(id);
+  }
+  return ids;
+}
+
+auto TextEditTabWidget::TabTitleOf(const QWidget* page) -> QString {
+  if (page == nullptr) return {};
+  return page->property("base_title").toString().trimmed();
+}
+
+auto TextEditTabWidget::IsPageModified(const QWidget* page) -> bool {
+  auto* text_page =
+      qobject_cast<PlainTextEditorPage*>(const_cast<QWidget*>(page));
+  if (text_page == nullptr) return false;
+  auto* edit = text_page->GetTextPage();
+  return edit != nullptr && edit->document() != nullptr &&
+         edit->document()->isModified();
+}
+
+void TextEditTabWidget::SetTabTitle(QWidget* page, const QString& title) {
+  if (page == nullptr) return;
+  page->setProperty("base_title", NormalizeTabTitle(title));
+  RefreshTabLabels();
+}
+
+auto TextEditTabWidget::TabLabel(int index) const -> QString {
+  // A tab's text is what it shows, with '&' doubled so it is not taken for a
+  // mnemonic; this is the text before that.
+  return tabText(index).replace(u"&&"_s, u"&"_s);
+}
+
+void TextEditTabWidget::RefreshTabLabels() {
+  QStringList titles;
+  QStringList paths;
+  for (int i = 0; i < count(); ++i) {
+    titles.append(TabTitleOf(widget(i)));
+    paths.append(PathForTab(i));
+  }
+  const auto suffixes = DisambiguatingSuffixes(titles, paths);
+
+  for (int i = 0; i < count(); ++i) {
+    auto* page = widget(i);
+    const bool modified = IsPageModified(page);
+
+    auto label = titles[i];
+    if (!suffixes[i].isEmpty()) {
+      label += u" · "_s + QDir::toNativeSeparators(suffixes[i]);
+    }
+    label.replace(u'&', u"&&"_s);
+    if (tabText(i) != label) setTabText(i, label);
+
+    QStringList tip{titles[i]};
+    if (!paths[i].isEmpty()) {
+      tip.append(QDir::toNativeSeparators(paths[i]));
+    } else if (qobject_cast<PlainTextEditorPage*>(page) != nullptr) {
+      tip.append(tr("Not saved to a file"));
+    }
+    if (modified) tip.append(tr("Unsaved changes"));
+    setTabToolTip(i, tip.join(u'\n'));
+
+    if (bar_ != nullptr) bar_->SetTabModified(i, modified);
+  }
+}
+
+auto TextEditTabWidget::Bar() const -> EditorTabBar* { return bar_; }
+
+void TextEditTabWidget::tabInserted(int index) {
+  QTabWidget::tabInserted(index);
+  if (auto* page = widget(index); page != nullptr && TabIdOf(page) == 0) {
+    page->setProperty("gf_tab_id", next_tab_id_++);
+  }
+  RefreshTabLabels();
+  emit SignalTabCountChanged(count());
+}
+
+void TextEditTabWidget::tabRemoved(int index) {
+  QTabWidget::tabRemoved(index);
+  mru_.Retain(TabIds());
+  RefreshTabLabels();
+  emit SignalTabCountChanged(count());
+}
+
+void TextEditTabWidget::mouseDoubleClickEvent(QMouseEvent* event) {
+  // The strip's row beyond its last tab belongs to this widget, not the bar.
+  const auto pos = event->position().toPoint();
+  const auto bar_rect = tabBar()->geometry();
+  if (event->button() == Qt::LeftButton && pos.y() >= bar_rect.top() &&
+      pos.y() <= bar_rect.bottom() && !bar_rect.contains(pos)) {
+    SlotNewPlainTextTab();
+    event->accept();
+    return;
+  }
+  QTabWidget::mouseDoubleClickEvent(event);
+}
+
+void TextEditTabWidget::paintEvent(QPaintEvent* /*event*/) {
+  // In document mode QTabWidget paints nothing but a tab bar base behind each
+  // corner widget, at the corner's own height, which broke the strip's line
+  // in two. Instead: one rule under the whole strip, the open-tabs button
+  // included, on the bar's last row. The inactive tabs are transparent and
+  // show it; the active one covers it and so reads as part of its page.
+  if (count() == 0) return;
+  QPainter p(this);
+  p.setPen(palette().color(QPalette::Mid));
+  const int y = tabBar()->geometry().bottom();
+  p.drawLine(0, y, width(), y);
+}
+
+void TextEditTabWidget::show_tab_menu(int index, const QPoint& pos) {
+  const auto ids = TabIds();
+  QList<bool> modified;
+  for (int i = 0; i < count(); ++i) modified.append(IsPageModified(widget(i)));
+
+  QMenu menu(this);
+  QHash<QAction*, QList<quint64>> closes;
+  const auto add_close = [&](const QString& text, TabCloseScope scope) {
+    QList<quint64> targets;
+    for (const auto i : TabsToClose(scope, index, modified)) {
+      targets.append(ids[i]);
+    }
+    auto* act = menu.addAction(text);
+    act->setEnabled(!targets.isEmpty());
+    closes.insert(act, targets);
+  };
+
+  add_close(tr("Close"), TabCloseScope::kTHIS);
+  add_close(tr("Close Others"), TabCloseScope::kOTHERS);
+  add_close(tr("Close to the Right"), TabCloseScope::kRIGHT);
+  add_close(tr("Close to the Left"), TabCloseScope::kLEFT);
+  add_close(tr("Close Unmodified"), TabCloseScope::kUNMODIFIED);
+  add_close(tr("Close All"), TabCloseScope::kALL);
+  menu.addSeparator();
+
+  const auto title = TabTitleOf(widget(index));
+  const auto tab_path = PathForTab(index);
+  auto* copy_name_act = menu.addAction(tr("Copy Name"));
+  copy_name_act->setEnabled(!title.isEmpty());
+  auto* copy_path_act = menu.addAction(tr("Copy Path"));
+  copy_path_act->setEnabled(!tab_path.isEmpty());
+  auto* reveal_act = menu.addAction(tr("Reveal in File Browser"));
+  reveal_act->setEnabled(!tab_path.isEmpty());
+
+  // Acted on once the menu is gone, so a save prompt never opens over it.
+  const QPointer<QWidget> page = widget(index);
+  auto* selected = menu.exec(tabBar()->mapToGlobal(pos));
+  if (selected == nullptr) return;
+
+  if (closes.contains(selected)) {
+    emit SignalCloseTabsRequested(closes.value(selected));
+  } else if (selected == copy_name_act) {
+    QGuiApplication::clipboard()->setText(title);
+  } else if (selected == copy_path_act) {
+    QGuiApplication::clipboard()->setText(QDir::toNativeSeparators(tab_path));
+  } else if (selected == reveal_act && !page.isNull()) {
+    const QFileInfo info(tab_path);
+    const auto reveal_path =
+        info.isFile() ? info.absolutePath() : info.absoluteFilePath();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(reveal_path));
+  }
+}
+
+void TextEditTabWidget::StepSwitchSession(int delta) {
+  // A dialog has the keyboard: whatever walk there was is over.
+  if (QApplication::activeModalWidget() != nullptr) {
+    EndSwitchSession();
+    return;
+  }
+
+  if (!switch_session_.Active()) {
+    switch_session_.Begin(MruTabIds());
+    qApp->installEventFilter(this);
+  }
+
+  const auto target = switch_session_.Step(
+      delta, [this](quint64 id) { return PageForTab(id) != nullptr; });
+  if (target.has_value()) setCurrentWidget(PageForTab(*target));
+}
+
+void TextEditTabWidget::EndSwitchSession() {
+  if (!switch_session_.Active()) return;
+  qApp->removeEventFilter(this);
+
+  const auto ended_on = switch_session_.End();
+  auto* page = ended_on.has_value() ? PageForTab(*ended_on) : nullptr;
+  if (page == nullptr) page = currentWidget();
+  if (page != nullptr) mru_.Touch(TabIdOf(page));
+}
+
+auto TextEditTabWidget::SwitchSessionActive() const -> bool {
+  return switch_session_.Active();
+}
+
+auto TextEditTabWidget::eventFilter(QObject* watched, QEvent* event) -> bool {
+  // Installed on the application only while a Ctrl+Tab session runs.
+  if (switch_session_.Active()) {
+    switch (event->type()) {
+      case QEvent::KeyRelease: {
+        const auto key = static_cast<QKeyEvent*>(event)->key();
+        if (key == Qt::Key_Control || key == Qt::Key_Meta) EndSwitchSession();
+        break;
+      }
+      case QEvent::ApplicationStateChange:
+        if (QGuiApplication::applicationState() != Qt::ApplicationActive) {
+          EndSwitchSession();
+        }
+        break;
+      case QEvent::WindowDeactivate:
+        if (watched == window()) EndSwitchSession();
+        break;
+      case QEvent::MouseButtonPress:
+        EndSwitchSession();
+        break;
+      default:
+        break;
+    }
+  }
+  return QTabWidget::eventFilter(watched, event);
 }
 
 }  // namespace GpgFrontend::UI

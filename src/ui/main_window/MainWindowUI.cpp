@@ -111,6 +111,11 @@ void MainWindow::create_actions() {
   connect(close_tab_act_, &QAction::triggered, this,
           [this]() { invoke_host_command("org.gpgfrontend.document.close"); });
 
+  close_all_tabs_act_ = create_action("close_all_tabs", tr("Close All Tabs"),
+                                      "", tr("Close every tab"));
+  connect(close_all_tabs_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotCloseAllTabs);
+
   /* Profile Menu — profiles this computer keeps */
   //
   // Not built at all where profiles are not offered: opening one means a second
@@ -432,17 +437,39 @@ void MainWindow::create_actions() {
           &MainWindow::slot_set_owner_trust_level_of_key);
 
   /* Key-Shortcuts for Tab-Switching-Action */
+  // Ctrl+Tab walks the tabs most recently used first, as long as Ctrl is
+  // held; a quick tap goes back to the previous document.
   switch_tab_up_act_ =
       create_action("switch_tab_up", "", "", "", {QKeySequence::NextChild});
   connect(switch_tab_up_act_, &QAction::triggered, edit_,
-          &TextEdit::SlotSwitchTabUp);
+          &TextEdit::SlotSwitchTabRecent);
   this->addAction(switch_tab_up_act_);
 
   switch_tab_down_act_ = create_action("switch_tab_down", "", "", "",
                                        {QKeySequence::PreviousChild});
   connect(switch_tab_down_act_, &QAction::triggered, edit_,
-          &TextEdit::SlotSwitchTabDown);
+          &TextEdit::SlotSwitchTabRecentBack);
   this->addAction(switch_tab_down_act_);
+
+  // By position, left to right, as the strip shows them.
+  next_tab_act_ = create_action("next_tab", "", "", "",
+                                {QKeySequence(Qt::CTRL | Qt::Key_PageDown)});
+  connect(next_tab_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotSwitchTabUp);
+  this->addAction(next_tab_act_);
+
+  previous_tab_act_ = create_action("previous_tab", "", "", "",
+                                    {QKeySequence(Qt::CTRL | Qt::Key_PageUp)});
+  connect(previous_tab_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotSwitchTabDown);
+  this->addAction(previous_tab_act_);
+
+  show_open_tabs_act_ =
+      create_action("show_open_tabs", tr("Show Open Tabs..."), "",
+                    tr("Search the open tabs and switch to one"),
+                    {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_A)});
+  connect(show_open_tabs_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotShowOpenTabs);
 }
 
 void MainWindow::create_menus() {
@@ -466,7 +493,22 @@ void MainWindow::create_menus() {
   file_menu_->addAction(print_act_);
   file_menu_->addSeparator();
   file_menu_->addAction(close_tab_act_);
+  file_menu_->addAction(close_all_tabs_act_);
   file_menu_->addAction(quit_act_);
+
+  // The empty editor offers New Text and the Workspace menu's ways to start a
+  // document a module added (Note Editor, say), with their shortcuts.
+  edit_->SetEmptyViewActions([this]() {
+    QList<QAction*> actions{new_tab_act_};
+    for (auto* act : workspace_menu_->actions()) {
+      if (act == browser_act_ || act == new_tab_act_ || act->isSeparator() ||
+          act->menu() != nullptr) {
+        continue;
+      }
+      actions.append(act);
+    }
+    return actions;
+  });
 
   edit_menu_ = menuBar()->addMenu(tr("Edit"));
   edit_menu_->addAction(undo_act_);
@@ -576,6 +618,8 @@ void MainWindow::create_menus() {
   // sync_text_direction_action() with whichever page is current. Its title is
   // taken from that page so the label is translated in one place.
   text_direction_menu_ = view_menu_->addMenu(QString{});
+  view_menu_->addSeparator();
+  view_menu_->addAction(show_open_tabs_act_);
   view_menu_->addSeparator();
 
   help_menu_ = menuBar()->addMenu(tr("Help"));

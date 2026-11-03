@@ -30,13 +30,15 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
+#include "ui/function/TabManagement.h"
 
 namespace GpgFrontend::UI {
 
 class PlainTextEditorPage;
 class FilePage;
+class EditorTabBar;
 
-class TextEditTabWidget : public QTabWidget {
+class GF_UI_EXPORT TextEditTabWidget : public QTabWidget {
   Q_OBJECT
  public:
   explicit TextEditTabWidget(QWidget* parent = nullptr);
@@ -101,6 +103,57 @@ class TextEditTabWidget : public QTabWidget {
 
   /// The document id of @p page; 0 when it is not an editor page.
   static auto DocumentIdOf(const QWidget* page) -> qint64;
+
+  /**
+   * @brief The tab id of @p page; 0 when it is not one of the tabs.
+   *
+   * Every tab has one, whatever its type, and keeps it when it is dragged
+   * elsewhere. Never reused. What outlives a dialog, a callback or a Ctrl+Tab
+   * session names a tab by this, never by its index.
+   */
+  static auto TabIdOf(const QWidget* page) -> quint64;
+
+  /// The tab with id @p id, or nullptr when it is gone.
+  [[nodiscard]] auto PageForTab(quint64 id) const -> QWidget*;
+
+  /// Every tab's id, in visual order.
+  [[nodiscard]] auto TabIds() const -> QList<quint64>;
+
+  /// Every tab's id, most recently used first; tabs never shown come last.
+  [[nodiscard]] auto MruTabIds() const -> QList<quint64>;
+
+  /// The name of @p page's document, without any decoration.
+  static auto TabTitleOf(const QWidget* page) -> QString;
+
+  /// Whether @p page holds unsaved changes.
+  static auto IsPageModified(const QWidget* page) -> bool;
+
+  /// Rename @p page's tab.
+  void SetTabTitle(QWidget* page, const QString& title);
+
+  /// The tab's label as shown: its title, and for a title shared with
+  /// another tab the end of its folder that tells the two apart.
+  [[nodiscard]] auto TabLabel(int index) const -> QString;
+
+  /// Recompute every tab's label, tooltip and unsaved mark.
+  void RefreshTabLabels();
+
+  [[nodiscard]] auto Bar() const -> EditorTabBar*;
+
+  /**
+   * @brief One Ctrl+Tab (@p delta 1) or Ctrl+Shift+Tab (-1) press.
+   *
+   * The first press of a session snapshots the most-recently-used order and
+   * goes to the tab used before the current one; later presses, while the
+   * modifier is held, walk that snapshot. The session ends when the modifier
+   * is released, the window loses focus or a dialog opens.
+   */
+  void StepSwitchSession(int delta);
+
+  /// End the Ctrl+Tab session; the tab it ended on becomes the most recent.
+  void EndSwitchSession();
+
+  [[nodiscard]] auto SwitchSessionActive() const -> bool;
 
  public slots:
 
@@ -201,6 +254,12 @@ class TextEditTabWidget : public QTabWidget {
   QString PathForTab(int index) const;
 
  protected:
+  void tabInserted(int index) override;
+  void tabRemoved(int index) override;
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
+  void paintEvent(QPaintEvent* event) override;
+
   /**
    * @brief
    *
@@ -245,8 +304,21 @@ class TextEditTabWidget : public QTabWidget {
    */
   void SignalCurrentPageViewMounted();
 
+  /// The user asked to close the tabs @p ids (context menu, middle click).
+  void SignalCloseTabsRequested(const QList<quint64>& ids);
+
+  /// The number of tabs changed.
+  void SignalTabCountChanged(int count);
+
+  /// The open-tabs list was asked for (the button at the end of the strip).
+  void SignalOpenTabsListRequested();
+
  private:
   int count_page_ = 0;
+  quint64 next_tab_id_ = 1;
+  TabMruOrder mru_;
+  TabSwitchSession switch_session_;
+  EditorTabBar* bar_ = nullptr;
   int text_page_data_modified_count_ = 0;
 
   QTimer* recovery_cache_timer_ = nullptr;
@@ -280,13 +352,8 @@ class TextEditTabWidget : public QTabWidget {
    */
   void init_tab_style();
 
-  /**
-   * @brief
-   *
-   * @param page
-   * @param modified
-   */
-  void update_tab_modified_mark(QWidget* page, bool modified);
+  /// Show the tab menu for tab @p index at @p pos (tab bar coordinates).
+  void show_tab_menu(int index, const QPoint& pos);
 
   /**
    * @brief Create a Plain Text Tab object

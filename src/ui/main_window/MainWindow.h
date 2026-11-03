@@ -716,8 +716,11 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   StatusDockPresenter* status_dock_presenter_{};  ///< Expanded / Collapsed
 
   QAction* new_tab_act_{};               ///<  Action to create new tab
-  QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
-  QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
+  QAction* switch_tab_up_act_{};    ///<  Ctrl+Tab: most recently used order
+  QAction* switch_tab_down_act_{};  ///<  Ctrl+Shift+Tab: back again
+  QAction* next_tab_act_{};         ///<  Ctrl+PgDown: next tab, left to right
+  QAction* previous_tab_act_{};     ///<  Ctrl+PgUp: previous tab
+  QAction* show_open_tabs_act_{};   ///<  the searchable list of open tabs
   QAction* browser_file_act_{};          ///<  Action to open file browser
   QAction* browser_dir_act_{};           ///<  Action to open file browser
   QAction* browser_act_{};               ///<  Action to open file browser
@@ -725,6 +728,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* save_as_act_{};               ///<  Action to save file as
   QAction* print_act_{};                 ///<  Action to print
   QAction* close_tab_act_{};             ///<  Action to print
+  QAction* close_all_tabs_act_{};        ///<  Action to close every tab
   QAction* quit_act_{};                  ///<  Action to quit application
   QAction* sym_encrypt_act_{};           ///<  Action to symmetric encrypt text
   QAction* encrypt_act_{};               ///<  Action to encrypt text

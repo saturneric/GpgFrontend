@@ -33,11 +33,21 @@
 #include "core/model/GFBuffer.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
+#include "ui/widgets/TabClosePrompter.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
 
 class TextEditTabWidget;
+class EditorEmptyView;
+class OpenTabsPopup;
+
+/// What became of the tabs a close was asked for.
+struct GF_UI_EXPORT TabCloseOutcome {
+  QList<quint64> closed;   ///< removed (or, quitting, free to go)
+  QList<quint64> kept;     ///< still open: a save failed, or the view objected
+  bool cancelled = false;  ///< the user cancelled; nothing was closed
+};
 
 /**
  * @brief Main tabbed workspace widget for text editing and file browsing.
@@ -84,6 +94,27 @@ class GF_UI_EXPORT TextEdit : public QWidget {
   auto MaybeSaveAnyTab() -> bool;
 
   /**
+   * @brief Close the tabs @p ids, asking about unsaved changes once.
+   *
+   * The one path every close takes: a tab's button, middle click, the menus,
+   * the open-tabs list. Nothing is closed or wiped until every question has
+   * been answered and every save asked for has succeeded; Cancel leaves every
+   * tab open, and a tab whose save failed stays open with its content. Ids of
+   * tabs already gone are ignored.
+   */
+  auto CloseTabs(const QList<quint64>& ids) -> TabCloseOutcome;
+
+  /// Replace the dialogs closing tabs asks with (tests).
+  void SetTabClosePrompter(std::unique_ptr<TabClosePrompter> prompter);
+
+  /**
+   * @brief The ways to start a document the empty editor offers, asked each
+   *        time it is shown, so module actions added later appear too. Open
+   *        File is always offered after them.
+   */
+  void SetEmptyViewActions(std::function<QList<QAction*>()> provider);
+
+  /**
    * @brief Wipes every open tab on the way out.
    *
    * Closing a tab wipes its page, but quitting did not: MaybeSaveAnyTab()
@@ -115,16 +146,6 @@ class GF_UI_EXPORT TextEdit : public QWidget {
    * @return Current FilePage, or nullptr if the current tab is not a file page.
    */
   [[nodiscard]] auto CurFilePage() const -> FilePage*;
-
-  /**
-   * @brief Returns all modified text-editor tabs.
-   *
-   * Only finished-loading PlainTextEditorPage tabs whose documents are modified
-   * are included.
-   *
-   * @return Hash mapping tab indexes to display names of unsaved documents.
-   */
-  [[nodiscard]] auto UnsavedDocuments() const -> QHash<int, QString>;
 
   /**
    * @brief Returns the plain text of the current text editor page.
@@ -410,15 +431,30 @@ class GF_UI_EXPORT TextEdit : public QWidget {
    */
   void SlotCloseTab();
 
+  /// Closes every tab, asking once about the unsaved ones.
+  void SlotCloseAllTabs();
+
   /**
-   * @brief Switches to the next tab.
+   * @brief Switches to the next tab in visual order.
    */
   void SlotSwitchTabUp() const;
 
   /**
-   * @brief Switches to the previous tab.
+   * @brief Switches to the previous tab in visual order.
    */
   void SlotSwitchTabDown() const;
+
+  /// Ctrl+Tab: towards the tabs used longer ago.
+  void SlotSwitchTabRecent();
+
+  /// Ctrl+Shift+Tab: back towards the tabs used most recently.
+  void SlotSwitchTabRecentBack();
+
+  /// Shows the searchable list of open tabs.
+  void SlotShowOpenTabs();
+
+  /// Asks for a file and opens it in a tab.
+  void SlotOpenFileDialog();
 
   /**
    * @brief Cuts selected text from the current text editor.
@@ -537,10 +573,7 @@ class GF_UI_EXPORT TextEdit : public QWidget {
 
  private slots:
   /**
-   * @brief Removes a tab after checking for unsaved changes.
-   *
-   * The target tab is made current before the save check. If closing is
-   * allowed, the tab is removed and scheduled for deletion.
+   * @brief Closes the tab at @p index through CloseTabs().
    *
    * @param index Tab index to remove.
    */
@@ -548,6 +581,28 @@ class GF_UI_EXPORT TextEdit : public QWidget {
 
  private:
   TextEditTabWidget* tab_widget_;  ///< Tab widget containing workspace pages.
+  QStackedLayout* stack_ = nullptr;
+  EditorEmptyView* empty_view_ = nullptr;
+  QPointer<OpenTabsPopup> open_tabs_popup_;
+  std::unique_ptr<TabClosePrompter> prompter_;
+
+  /// Write @p page to @p file_name; false when nothing was written.
+  auto save_page(PlainTextEditorPage* page, const QString& file_name) -> bool;
+
+  /// Ask where to save @p page, then save it; false when not saved.
+  auto save_page_as(PlainTextEditorPage* page) -> bool;
+
+  /**
+   * @brief The close path: assess, ask, save, then (with @p teardown) remove.
+   *
+   * @param cache_plain unsaved plain-text tabs go to the recovery cache rather
+   *        than being asked about (quitting with restore enabled)
+   */
+  auto run_close(const QList<quint64>& ids, bool teardown, bool cache_plain)
+      -> TabCloseOutcome;
+
+  /// Show the tabs, or the empty view when there are none.
+  void update_empty_view();
 
   /**
    * @brief Extracts the base file name from a full path.
@@ -556,19 +611,6 @@ class GF_UI_EXPORT TextEdit : public QWidget {
    * @return File name without parent directory path.
    */
   static auto stripped_name(const QString& full_file_name) -> QString;
-
-  /**
-   * @brief Checks whether the current text-editor tab should be saved.
-   *
-   * If the current page is not a text editor or is not modified, the method
-   * returns true. If the document has unsaved changes, the user may be asked to
-   * save, discard or cancel depending on @p askToSave.
-   *
-   * @param askToSave true to show a save/discard/cancel dialog, false to save
-   *                  directly without asking.
-   * @return true if closing or continuing is allowed, otherwise false.
-   */
-  auto maybe_save_current_tab(bool askToSave) -> bool;
 };
 
 }  // namespace GpgFrontend::UI

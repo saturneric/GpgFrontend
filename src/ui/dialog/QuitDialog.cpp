@@ -30,7 +30,8 @@
 
 namespace GpgFrontend::UI {
 
-QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
+QuitDialog::QuitDialog(QWidget* parent,
+                       const QList<QPair<quint64, QString>>& unsaved_docs)
     : GeneralDialog("quit_dialog", parent) {
   setWindowTitle(tr("Unsaved Files"));
   setModal(true);
@@ -38,7 +39,6 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   /*
    * Table of unsaved documents
    */
-  QHashIterator<int, QString> i(unsavedDocs);
   int row = 0;
   file_list_ = new QTableWidget(this);
   file_list_->horizontalHeader()->hide();
@@ -51,9 +51,7 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   file_list_->setFocusPolicy(Qt::NoFocus);
   file_list_->horizontalHeader()->setStretchLastSection(true);
   // fill the table
-  i.toFront();  // jump to the end of list to fill the table backwards
-  while (i.hasNext()) {
-    i.next();
+  for (const auto& [tab_id, name] : unsaved_docs) {
     file_list_->setRowCount(file_list_->rowCount() + 1);
 
     // checkbox in front of filename
@@ -63,11 +61,11 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
     file_list_->setItem(row, 0, tmp0);
 
     // filename
-    auto* tmp1 = new QTableWidgetItem(i.value());
+    auto* tmp1 = new QTableWidgetItem(name);
     file_list_->setItem(row, 1, tmp1);
 
-    // tab-index in hidden column
-    auto* tmp2 = new QTableWidgetItem(QString::number(i.key()));
+    // tab id in hidden column
+    auto* tmp2 = new QTableWidgetItem(QString::number(tab_id));
     file_list_->setItem(row, 2, tmp2);
     ++row;
   }
@@ -137,11 +135,11 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
-auto QuitDialog::GetTabIdsToSave() -> QList<int> {
-  QList<int> tab_ids_to_save;
+auto QuitDialog::GetTabIdsToSave() -> QList<quint64> {
+  QList<quint64> tab_ids_to_save;
   for (int i = 0; i < file_list_->rowCount(); i++) {
     if (file_list_->item(i, 0)->checkState() == Qt::Checked) {
-      tab_ids_to_save << file_list_->item(i, 2)->text().toInt();
+      tab_ids_to_save << file_list_->item(i, 2)->text().toULongLong();
     }
   }
   return tab_ids_to_save;

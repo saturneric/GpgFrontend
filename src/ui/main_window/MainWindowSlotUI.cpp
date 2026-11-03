@@ -415,6 +415,9 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   copy_act_->setDisabled(disable);
   paste_act_->setDisabled(disable);
   close_tab_act_->setDisabled(disable);
+  // Every tab, whatever the current one is.
+  close_all_tabs_act_->setDisabled(index == -1);
+  show_open_tabs_act_->setDisabled(index == -1);
   select_all_act_->setDisabled(disable);
   find_act_->setDisabled(disable);
   verify_act_->setDisabled(disable);
