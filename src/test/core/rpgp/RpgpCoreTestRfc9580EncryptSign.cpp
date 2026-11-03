@@ -243,8 +243,8 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyDetachedTamperedDataFails) {
   auto r = ExtractParams<GpgVerifyResult>(v_obj, 0);
   ASSERT_EQ(r.GetSignature().size(), 1);
   EXPECT_FALSE(SignatureIsValid(r.GetSignature().front()));
-  EXPECT_EQ(gpg_err_code(r.GetSignature().front().GetStatus()),
-            GPG_ERR_BAD_SIGNATURE);
+  EXPECT_EQ(r.GetSignature().front().GetStatus().code,
+            GFErrorCode::kBAD_SIGNATURE);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580SignRejectsEmptyPayload) {

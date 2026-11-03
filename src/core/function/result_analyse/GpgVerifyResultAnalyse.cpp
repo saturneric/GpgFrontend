@@ -81,8 +81,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     for (const auto& sign : signatures) {
       stream_ << "### " << tr("Signature [%1]:").arg(count++) << Qt::endl;
       stream_ << "- " << tr("Status") << ": ";
-      switch (gpg_err_code(sign.GetStatus())) {
-        case GPG_ERR_BAD_SIGNATURE:
+      switch (sign.GetStatus().code) {
+        case GFErrorCode::kBAD_SIGNATURE:
           stream_ << tr("Invalid Signature") << Qt::endl;
           print_signer(stream_, GpgSignature(sign));
           stream_ << "  - " << tr("This signature could not be verified")
@@ -90,11 +90,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           can_continue = false;
           setStatus(-1);
           break;
-        case GPG_ERR_NO_ERROR: {
+        case GFErrorCode::kOK: {
           // Determine overall status
-          bool is_fully_valid = (sign.GetSummary() & GPGME_SIGSUM_VALID) != 0;
-          bool is_green = (sign.GetSummary() & GPGME_SIGSUM_GREEN) != 0;
-          bool is_red = (sign.GetSummary() & GPGME_SIGSUM_RED) != 0;
+          bool is_fully_valid = (sign.GetSummary() & kSIGSUM_VALID) != 0;
+          bool is_green = (sign.GetSummary() & kSIGSUM_GREEN) != 0;
+          bool is_red = (sign.GetSummary() & kSIGSUM_RED) != 0;
 
           if (is_fully_valid && is_green && !sign.HasTrustModel()) {
             // No trust model behind it: sound, but not vouched for.
@@ -109,19 +109,19 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
           // List specific warnings
           QStringList warnings;
-          if ((sign.GetSummary() & GPGME_SIGSUM_SIG_EXPIRED) != 0) {
+          if ((sign.GetSummary() & kSIGSUM_SIG_EXPIRED) != 0) {
             warnings.append(tr("Signature has expired"));
           }
-          if ((sign.GetSummary() & GPGME_SIGSUM_KEY_MISSING) != 0) {
+          if ((sign.GetSummary() & kSIGSUM_KEY_MISSING) != 0) {
             warnings.append(tr("Signing key is missing"));
           }
-          if ((sign.GetSummary() & GPGME_SIGSUM_KEY_REVOKED) != 0) {
+          if ((sign.GetSummary() & kSIGSUM_KEY_REVOKED) != 0) {
             warnings.append(tr("Signing key has been revoked"));
           }
-          if ((sign.GetSummary() & GPGME_SIGSUM_KEY_EXPIRED) != 0) {
+          if ((sign.GetSummary() & kSIGSUM_KEY_EXPIRED) != 0) {
             warnings.append(tr("Signing key has expired"));
           }
-          if ((sign.GetSummary() & GPGME_SIGSUM_CRL_MISSING) != 0) {
+          if ((sign.GetSummary() & kSIGSUM_CRL_MISSING) != 0) {
             warnings.append(tr("Certificate revocation list is missing"));
           }
 
@@ -138,7 +138,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
                     << Qt::endl;
           }
 
-          if ((sign.GetSummary() & GPGME_SIGSUM_KEY_MISSING) == 0U) {
+          if ((sign.GetSummary() & kSIGSUM_KEY_MISSING) == 0U) {
             if (!print_signer(stream_, GpgSignature(sign))) setStatus(0);
           } else {
             stream_ << "  - " << tr("Key ID") << ": 0x" << sign.GetFingerprint()
@@ -148,7 +148,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           setStatus(1);
           break;
         }
-        case GPG_ERR_NO_PUBKEY:
+        case GFErrorCode::kNO_PUBLIC_KEY:
           stream_ << tr("Cannot Verify due to Key Missing") << Qt::endl;
           stream_ << "  - "
                   << tr("The public key needed to verify this signature is not "
@@ -159,7 +159,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           unknown_signer_fpr_list_.push_back(
               GpgSignature(sign).GetFingerprint());
           break;
-        case GPG_ERR_CERT_REVOKED:
+        case GFErrorCode::kKEY_REVOKED:
           stream_ << tr("Key Revoked") << Qt::endl;
           stream_ << "  - "
                   << tr("The signature is mathematically valid but the signing "
@@ -170,7 +170,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           }
           setStatus(-1);
           break;
-        case GPG_ERR_SIG_EXPIRED:
+        case GFErrorCode::kSIGNATURE_EXPIRED:
           stream_ << tr("Signature Expired") << Qt::endl;
           stream_ << "  - " << tr("The signature is valid but has expired")
                   << Qt::endl;
@@ -179,7 +179,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           }
           setStatus(-1);
           break;
-        case GPG_ERR_KEY_EXPIRED:
+        case GFErrorCode::kKEY_EXPIRED:
           stream_ << tr("Signing Key Expired") << Qt::endl;
           if (sign.IsKeyExpiredAtSigning()) {
             // rPGP: the key had expired before it made this signature, so
@@ -199,7 +199,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           }
           if (sign.IsKeyExpiredAtSigning()) setStatus(-1);
           break;
-        case GPG_ERR_WRONG_KEY_USAGE:
+        case GFErrorCode::kWRONG_KEY_USAGE:
           stream_ << tr("Signing Key Not Authorized") << Qt::endl;
           stream_ << "  - "
                   << tr("The signature is mathematically valid but the "
@@ -210,7 +210,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           }
           setStatus(-1);
           break;
-        case GPG_ERR_GENERAL:
+        case GFErrorCode::kGENERAL:
           stream_ << tr("Verification Error") << Qt::endl;
           stream_ << "  - "
                   << tr("An error occurred during signature verification")
@@ -272,15 +272,15 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
       op_info_.details << sign.GetFingerprint();
     }
 
-    switch (gpg_err_code(sign.GetStatus())) {
-      case GPG_ERR_BAD_SIGNATURE:
+    switch (sign.GetStatus().code) {
+      case GFErrorCode::kBAD_SIGNATURE:
         sig_info.validity = GpgSigValidity::kINVALID;
         any_bad_signature = true;
         break;
-      case GPG_ERR_NO_ERROR: {
-        bool is_fully_valid = (sign.GetSummary() & GPGME_SIGSUM_VALID) != 0;
-        bool is_green = (sign.GetSummary() & GPGME_SIGSUM_GREEN) != 0;
-        bool is_red = (sign.GetSummary() & GPGME_SIGSUM_RED) != 0;
+      case GFErrorCode::kOK: {
+        bool is_fully_valid = (sign.GetSummary() & kSIGSUM_VALID) != 0;
+        bool is_green = (sign.GetSummary() & kSIGSUM_GREEN) != 0;
+        bool is_red = (sign.GetSummary() & kSIGSUM_RED) != 0;
         if (is_fully_valid && is_green) {
           sig_info.validity = GpgSigValidity::kFULLY_VALID;
         } else if (is_red) {
@@ -288,39 +288,39 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         } else {
           sig_info.validity = GpgSigValidity::kVALID_NOT_FULLY_TRUSTED;
         }
-        if ((sign.GetSummary() & GPGME_SIGSUM_SIG_EXPIRED) != 0)
+        if ((sign.GetSummary() & kSIGSUM_SIG_EXPIRED) != 0)
           sig_info.warnings << tr("Signature has expired");
-        if ((sign.GetSummary() & GPGME_SIGSUM_KEY_MISSING) != 0)
+        if ((sign.GetSummary() & kSIGSUM_KEY_MISSING) != 0)
           sig_info.warnings << tr("Signing key is missing");
-        if ((sign.GetSummary() & GPGME_SIGSUM_KEY_REVOKED) != 0)
+        if ((sign.GetSummary() & kSIGSUM_KEY_REVOKED) != 0)
           sig_info.warnings << tr("Signing key has been revoked");
-        if ((sign.GetSummary() & GPGME_SIGSUM_KEY_EXPIRED) != 0)
+        if ((sign.GetSummary() & kSIGSUM_KEY_EXPIRED) != 0)
           sig_info.warnings << tr("Signing key has expired");
-        if ((sign.GetSummary() & GPGME_SIGSUM_CRL_MISSING) != 0)
+        if ((sign.GetSummary() & kSIGSUM_CRL_MISSING) != 0)
           sig_info.warnings << tr("Certificate revocation list is missing");
         break;
       }
-      case GPG_ERR_NO_PUBKEY:
+      case GFErrorCode::kNO_PUBLIC_KEY:
         sig_info.validity = GpgSigValidity::kKEY_MISSING;
         break;
-      case GPG_ERR_CERT_REVOKED:
+      case GFErrorCode::kKEY_REVOKED:
         sig_info.validity = GpgSigValidity::kKEY_REVOKED;
         break;
-      case GPG_ERR_SIG_EXPIRED:
+      case GFErrorCode::kSIGNATURE_EXPIRED:
         sig_info.validity = GpgSigValidity::kSIG_EXPIRED;
         break;
-      case GPG_ERR_KEY_EXPIRED:
+      case GFErrorCode::kKEY_EXPIRED:
         sig_info.validity = GpgSigValidity::kKEY_EXPIRED;
         sig_info.rejected = sign.IsKeyExpiredAtSigning();
         break;
-      case GPG_ERR_WRONG_KEY_USAGE:
+      case GFErrorCode::kWRONG_KEY_USAGE:
         sig_info.validity = GpgSigValidity::kKEY_NOT_AUTHORIZED;
         sig_info.warnings << tr(
             "Signing key is not authorized by its "
             "certificate");
         any_not_authorized = true;
         break;
-      case GPG_ERR_GENERAL:
+      case GFErrorCode::kGENERAL:
         sig_info.validity = GpgSigValidity::kERROR;
         break;
       default:

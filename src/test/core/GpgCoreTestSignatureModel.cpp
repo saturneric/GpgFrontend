@@ -85,16 +85,16 @@ TEST(SignatureModelTest, DefaultSignatureAccessorsDoNotCrash) {
 TEST(SignatureModelTest, DefaultSignatureReportsUnknownValidity) {
   GpgSignature sig;
 
-  EXPECT_EQ(sig.GetValidity(), GPGME_VALIDITY_UNKNOWN);
+  EXPECT_EQ(sig.GetValidity(), GpgValidity::kUNKNOWN);
 }
 
 TEST(SignatureModelTest, DefaultSignatureReportsFailureStatus) {
   GpgSignature sig;
 
   // an unset signature must never read as a good signature.
-  EXPECT_NE(sig.GetStatus(), GPG_ERR_NO_ERROR);
-  EXPECT_EQ((sig.GetSummary() & GPGME_SIGSUM_VALID), 0U);
-  EXPECT_EQ((sig.GetSummary() & GPGME_SIGSUM_GREEN), 0U);
+  EXPECT_FALSE(sig.GetStatus().Ok());
+  EXPECT_EQ((sig.GetSummary() & kSIGSUM_VALID), 0U);
+  EXPECT_EQ((sig.GetSummary() & kSIGSUM_GREEN), 0U);
 }
 
 TEST(SignatureModelTest, DefaultSignatureReturnsEmptyStrings) {
@@ -111,7 +111,7 @@ TEST(SignatureModelTest, CopiedDefaultSignatureStaysSafe) {
   GpgSignature copy(
       sig);  // NOLINT(performance-unnecessary-copy-initialization)
 
-  EXPECT_EQ(copy.GetValidity(), GPGME_VALIDITY_UNKNOWN);
+  EXPECT_EQ(copy.GetValidity(), GpgValidity::kUNKNOWN);
   EXPECT_TRUE(copy.GetFingerprint().isEmpty());
 }
 

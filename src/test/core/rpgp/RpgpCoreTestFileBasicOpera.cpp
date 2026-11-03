@@ -165,8 +165,7 @@ TEST_F(RpgpCoreTest, CoreFileSignVerifyNormalTest) {
   ASSERT_EQ(verify_result.GetSignature().size(), 1);
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
             "575572EF0DF799AB884EC6C114C6B0B1596A2755");
-  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
-            GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(verify_result.GetSignature().at(0).GetStatus().Ok());
 }
 
 TEST_F(RpgpCoreTest, CoreFileEncryptSignDecryptVerifyTest) {
@@ -212,8 +211,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptSignDecryptVerifyTest) {
   ASSERT_EQ(verify_result.GetSignature().size(), 1);
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
             "575572EF0DF799AB884EC6C114C6B0B1596A2755");
-  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
-            GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(verify_result.GetSignature().at(0).GetStatus().Ok());
 
   const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypt_output_file);
   ASSERT_TRUE(read_success);
@@ -246,8 +244,7 @@ TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
     ASSERT_EQ(verify_result.GetSignature().size(), 1) << static_cast<int>(mode);
     EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
               "575572EF0DF799AB884EC6C114C6B0B1596A2755");
-    EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
-              GPG_ERR_NO_ERROR);
+    EXPECT_TRUE(verify_result.GetSignature().at(0).GetStatus().Ok());
     QFile::remove(signed_file);
   }
 }
@@ -517,8 +514,7 @@ TEST_F(RpgpCoreTest, LargeFileEncryptSignDecryptVerifyAboveFormerLimitTest) {
   ASSERT_EQ(verify_result.GetSignature().size(), 1);
   EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
             "575572EF0DF799AB884EC6C114C6B0B1596A2755");
-  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
-            GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(verify_result.GetSignature().at(0).GetStatus().Ok());
 
 #if defined(__linux__)
   const auto growth_mib = (status_kib("VmHWM:") - baseline_kib) / 1024;

@@ -43,21 +43,21 @@ class GF_CORE_EXPORT GpgSignature {
    *
    * @return gpgme_validity_t
    */
-  [[nodiscard]] auto GetValidity() const -> gpgme_validity_t;
+  [[nodiscard]] auto GetValidity() const -> GpgValidity;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] auto GetStatus() const -> GpgError;
+  [[nodiscard]] auto GetStatus() const -> GFError;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] auto GetSummary() const -> GpgError;
+  [[nodiscard]] auto GetSummary() const -> std::uint32_t;
 
   /**
    * @brief

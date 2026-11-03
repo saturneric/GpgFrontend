@@ -86,7 +86,7 @@ inline const char* const kAuxV6SignFpr =
 // general) for every rejected signature, so this single predicate captures the
 // weak-hash, expiration, and revocation gates uniformly.
 inline auto SignatureIsValid(const GpgSignature& s) -> bool {
-  return CheckGpgError(s.GetStatus()) == GPG_ERR_NO_ERROR;
+  return (s.GetStatus()).Ok();
 }
 
 inline auto CountValid(const QList<GpgSignature>& sigs) -> int {

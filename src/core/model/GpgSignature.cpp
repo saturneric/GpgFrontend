@@ -28,6 +28,8 @@
 
 #include "GpgSignature.h"
 
+#include "core/function/gpg/GpgErrorMap.h"
+
 namespace GpgFrontend {
 
 GpgSignature::GpgSignature() = default;
@@ -43,73 +45,92 @@ GpgSignature::GpgSignature(const GpgSignature &) = default;
 
 auto GpgSignature::operator=(const GpgSignature &) -> GpgSignature & = default;
 
-/**
- * @brief
- *
- * @return gpgme_validity_t
- */
-auto GpgSignature::GetValidity() const -> gpgme_validity_t {
-  if (gf_signature_ref_ != nullptr) {
-    return GPGME_VALIDITY_FULL;
+namespace {
+auto ValidityOf(gpgme_validity_t validity) -> GpgValidity {
+  switch (validity) {
+    case GPGME_VALIDITY_UNDEFINED:
+      return GpgValidity::kUNDEFINED;
+    case GPGME_VALIDITY_NEVER:
+      return GpgValidity::kNEVER;
+    case GPGME_VALIDITY_MARGINAL:
+      return GpgValidity::kMARGINAL;
+    case GPGME_VALIDITY_FULL:
+      return GpgValidity::kFULL;
+    case GPGME_VALIDITY_ULTIMATE:
+      return GpgValidity::kULTIMATE;
+    case GPGME_VALIDITY_UNKNOWN:
+    default:
+      return GpgValidity::kUNKNOWN;
   }
-  if (signature_ref_ == nullptr) return GPGME_VALIDITY_UNKNOWN;
-  return signature_ref_->validity;
 }
 
-/**
- * @brief
- *
- * @return gpgme_error_t
- */
-auto GpgSignature::GetStatus() const -> gpgme_error_t {
+auto SummaryOf(gpgme_sigsum_t summary) -> std::uint32_t {
+  std::uint32_t flags = kSIGSUM_NONE;
+  const auto map = [&](unsigned gpgme_bit, std::uint32_t ours) {
+    if ((summary & gpgme_bit) != 0) flags |= ours;
+  };
+  map(GPGME_SIGSUM_VALID, kSIGSUM_VALID);
+  map(GPGME_SIGSUM_GREEN, kSIGSUM_GREEN);
+  map(GPGME_SIGSUM_RED, kSIGSUM_RED);
+  map(GPGME_SIGSUM_KEY_REVOKED, kSIGSUM_KEY_REVOKED);
+  map(GPGME_SIGSUM_KEY_EXPIRED, kSIGSUM_KEY_EXPIRED);
+  map(GPGME_SIGSUM_SIG_EXPIRED, kSIGSUM_SIG_EXPIRED);
+  map(GPGME_SIGSUM_KEY_MISSING, kSIGSUM_KEY_MISSING);
+  map(GPGME_SIGSUM_CRL_MISSING, kSIGSUM_CRL_MISSING);
+  return flags;
+}
+
+auto RpgpSignatureError(GFErrorCode code) -> GFError {
+  return {code, GFErrorOrigin::kRPGP, 0};
+}
+}  // namespace
+
+auto GpgSignature::GetValidity() const -> GpgValidity {
+  if (gf_signature_ref_ != nullptr) return GpgValidity::kFULL;
+  if (signature_ref_ == nullptr) return GpgValidity::kUNKNOWN;
+  return ValidityOf(signature_ref_->validity);
+}
+
+auto GpgSignature::GetStatus() const -> GFError {
   if (gf_signature_ref_ != nullptr) {
     switch (gf_signature_ref_->status) {
       case GFSignatureStatus::kVALID:
-        return GPG_ERR_NO_ERROR;
+        return {};
       case GFSignatureStatus::kBAD_SIGNATURE:
-        return GPG_ERR_BAD_SIGNATURE;
+        return RpgpSignatureError(GFErrorCode::kBAD_SIGNATURE);
       case GFSignatureStatus::kNO_KEY:
-        return GPG_ERR_NO_PUBKEY;
+        return RpgpSignatureError(GFErrorCode::kNO_PUBLIC_KEY);
       case GFSignatureStatus::kKEY_REVOKED:
-        return GPG_ERR_CERT_REVOKED;
+        return RpgpSignatureError(GFErrorCode::kKEY_REVOKED);
       case GFSignatureStatus::kKEY_EXPIRED:
-        return GPG_ERR_KEY_EXPIRED;
+        return RpgpSignatureError(GFErrorCode::kKEY_EXPIRED);
       case GFSignatureStatus::kKEY_NOT_AUTHORIZED:
-        return GPG_ERR_WRONG_KEY_USAGE;
+        return RpgpSignatureError(GFErrorCode::kWRONG_KEY_USAGE);
       default:
-        return GPG_ERR_GENERAL;
+        return RpgpSignatureError(GFErrorCode::kGENERAL);
     }
   }
-  if (signature_ref_ == nullptr) return GPG_ERR_GENERAL;
-  return signature_ref_->status;
+  if (signature_ref_ == nullptr) {
+    return GFError::Application(GFErrorCode::kGENERAL);
+  }
+  return FromGpgError(signature_ref_->status);
 }
 
-/**
- * @brief
- *
- * @return gpgme_error_t
- */
-auto GpgSignature::GetSummary() const -> gpgme_error_t {
+auto GpgSignature::GetSummary() const -> std::uint32_t {
   if (gf_signature_ref_ != nullptr) {
-    gpgme_error_t summary = 0;
     switch (gf_signature_ref_->status) {
       case GFSignatureStatus::kVALID:
-        summary |= GPGME_SIGSUM_VALID | GPGME_SIGSUM_GREEN;
-        break;
+        return kSIGSUM_VALID | kSIGSUM_GREEN;
       case GFSignatureStatus::kKEY_REVOKED:
-        summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_REVOKED;
-        break;
+        return kSIGSUM_RED | kSIGSUM_KEY_REVOKED;
       case GFSignatureStatus::kKEY_EXPIRED:
-        summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_EXPIRED;
-        break;
+        return kSIGSUM_RED | kSIGSUM_KEY_EXPIRED;
       default:
-        summary |= GPGME_SIGSUM_RED;
-        break;
+        return kSIGSUM_RED;
     }
-    return summary;
   }
-  if (signature_ref_ == nullptr) return GPGME_SIGSUM_RED;
-  return signature_ref_->summary;
+  if (signature_ref_ == nullptr) return kSIGSUM_RED;
+  return SummaryOf(signature_ref_->summary);
 }
 
 /**

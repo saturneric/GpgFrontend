@@ -177,6 +177,29 @@ struct GFKey {
   GFKeyBlocks blocks;
 };
 
+/// How far a signature, or a key, is trusted.
+enum class GpgValidity : std::uint8_t {
+  kUNKNOWN,
+  kUNDEFINED,
+  kNEVER,
+  kMARGINAL,
+  kFULL,
+  kULTIMATE,
+};
+
+/// What the checks of a verified signature found, as flags.
+enum GpgSigSummary : std::uint32_t {
+  kSIGSUM_NONE = 0,
+  kSIGSUM_VALID = 1U << 0,        ///< fully valid
+  kSIGSUM_GREEN = 1U << 1,        ///< valid, with no problem found
+  kSIGSUM_RED = 1U << 2,          ///< bad, or a problem found
+  kSIGSUM_KEY_REVOKED = 1U << 3,  ///< the key was revoked
+  kSIGSUM_KEY_EXPIRED = 1U << 4,  ///< the key had expired
+  kSIGSUM_SIG_EXPIRED = 1U << 5,  ///< the signature had expired
+  kSIGSUM_KEY_MISSING = 1U << 6,  ///< the key is not in the keyring
+  kSIGSUM_CRL_MISSING = 1U << 7,  ///< no revocation list to check against
+};
+
 enum class GFSignatureStatus : uint8_t {
   kVALID = 0,
   kBAD_SIGNATURE = 1,

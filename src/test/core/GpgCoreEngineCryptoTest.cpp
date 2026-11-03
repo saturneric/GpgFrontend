@@ -415,8 +415,8 @@ void ExpectMissingSignerIsOnlyAWarning(int channel, const GFError& err,
                                        const GpgVerifyResult& verify_result) {
   ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(verify_result.GetSignature().empty());
-  EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),
-            GPG_ERR_NO_PUBKEY);
+  EXPECT_EQ(verify_result.GetSignature().at(0).GetStatus().code,
+            GFErrorCode::kNO_PUBLIC_KEY);
 
   auto info = AnalyseDecrypt(channel, err, decrypt_result);
   EXPECT_GT(info.status, 0);

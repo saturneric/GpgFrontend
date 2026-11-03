@@ -169,7 +169,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifySha1DetachedIsNotValid) {
   // weak-hash gate must prevent it from being reported as Valid.
   ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
-  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_BAD_SIGNATURE);
+  EXPECT_EQ(out.sigs.front().GetStatus().code, GFErrorCode::kBAD_SIGNATURE);
 }
 
 // --- Negative: expired key --------------------------------------------------
@@ -203,7 +203,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyRevokedKeyIsNotValid) {
   // The revocation carries no reason, so it is hard: reported as a revoked
   // key, not as a bad signature.
   ASSERT_FALSE(out.sigs.empty());
-  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_CERT_REVOKED);
+  EXPECT_EQ(out.sigs.front().GetStatus().code, GFErrorCode::kKEY_REVOKED);
 }
 
 // --- Status mapping: engine verdicts reach the GnuPG-shaped model -----------
@@ -213,18 +213,19 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyRevokedKeyIsNotValid) {
 // keep its meaning through the C++ model the GUI reads.
 
 TEST_F(RpgpCoreTest, Rfc9580VerifyKeyVerdictsMapToDistinctStatuses) {
-  const std::array<std::pair<GFSignatureStatus, gpg_err_code_t>, 4> cases = {{
-      {GFSignatureStatus::kBAD_SIGNATURE, GPG_ERR_BAD_SIGNATURE},
-      {GFSignatureStatus::kKEY_REVOKED, GPG_ERR_CERT_REVOKED},
-      {GFSignatureStatus::kKEY_EXPIRED, GPG_ERR_KEY_EXPIRED},
-      {GFSignatureStatus::kKEY_NOT_AUTHORIZED, GPG_ERR_WRONG_KEY_USAGE},
+  const std::array<std::pair<GFSignatureStatus, GFErrorCode>, 4> cases = {{
+      {GFSignatureStatus::kBAD_SIGNATURE, GFErrorCode::kBAD_SIGNATURE},
+      {GFSignatureStatus::kKEY_REVOKED, GFErrorCode::kKEY_REVOKED},
+      {GFSignatureStatus::kKEY_EXPIRED, GFErrorCode::kKEY_EXPIRED},
+      {GFSignatureStatus::kKEY_NOT_AUTHORIZED, GFErrorCode::kWRONG_KEY_USAGE},
   }};
   for (const auto& [status, code] : cases) {
     GFSignature gf_sig{};
     gf_sig.status = status;
     GpgSignature sig(gf_sig);
-    EXPECT_EQ(gpg_err_code(sig.GetStatus()), code);
-    EXPECT_EQ(sig.GetSummary() & GPGME_SIGSUM_VALID, 0U);
+    EXPECT_EQ(sig.GetStatus().code, code);
+    EXPECT_EQ(sig.GetStatus().origin, GFErrorOrigin::kRPGP);
+    EXPECT_EQ(sig.GetSummary() & kSIGSUM_VALID, 0U);
   }
 }
 
@@ -236,7 +237,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyMutatedSignatureIsNotValid) {
                        LoadRfc9580Vector("sig_bad_mutated.sig"));
   ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
-  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_BAD_SIGNATURE);
+  EXPECT_EQ(out.sigs.front().GetStatus().code, GFErrorCode::kBAD_SIGNATURE);
 }
 
 // --- Negative: detached signature over the wrong data -----------------------
@@ -247,7 +248,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyDetachedWrongDataIsNotValid) {
                        LoadRfc9580Vector("sig_good_detached.sig"));
   ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
-  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_BAD_SIGNATURE);
+  EXPECT_EQ(out.sigs.front().GetStatus().code, GFErrorCode::kBAD_SIGNATURE);
 }
 
 // --- Negative: signer key not in the keyring --------------------------------
@@ -258,7 +259,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerIsNotValid) {
                        LoadRfc9580Vector("sig_good_detached.sig"));
   ASSERT_EQ(out.sigs.size(), 1);
   EXPECT_FALSE(AnyValid(out.sigs));
-  EXPECT_EQ(gpg_err_code(out.sigs.front().GetStatus()), GPG_ERR_NO_PUBKEY);
+  EXPECT_EQ(out.sigs.front().GetStatus().code, GFErrorCode::kNO_PUBLIC_KEY);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerReportsNoKeyStatus) {
@@ -266,7 +267,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerReportsNoKeyStatus) {
                        LoadRfc9580Vector("sig_good_detached.sig"));
   // The signature is still parsed and attributed; only its key is missing.
   ASSERT_EQ(out.sigs.size(), 1);
-  EXPECT_EQ(CheckGpgError(out.sigs.front().GetStatus()), GPG_ERR_NO_PUBKEY);
+  EXPECT_EQ((out.sigs.front().GetStatus()).code, GFErrorCode::kNO_PUBLIC_KEY);
   EXPECT_EQ(out.sigs.front().GetFingerprint(), QString(kAuxGoodSignFpr));
 }
 
@@ -309,7 +310,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerNoneKnownNoneValid) {
   ASSERT_EQ(out.sigs.size(), 2);
   EXPECT_FALSE(AnyValid(out.sigs));
   for (const auto& s : out.sigs) {
-    EXPECT_EQ(gpg_err_code(s.GetStatus()), GPG_ERR_NO_PUBKEY);
+    EXPECT_EQ(s.GetStatus().code, GFErrorCode::kNO_PUBLIC_KEY);
   }
 }
 
@@ -320,7 +321,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyGoodSignatureSummaryIsGreen) {
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_good_detached.sig"));
   ASSERT_FALSE(out.sigs.empty());
-  EXPECT_TRUE((out.sigs.front().GetSummary() & GPGME_SIGSUM_VALID) != 0U);
+  EXPECT_TRUE((out.sigs.front().GetSummary() & kSIGSUM_VALID) != 0U);
 }
 
 TEST_F(RpgpCoreTest, Rfc9580VerifyWeakSignatureSummaryIsRed) {
@@ -330,7 +331,7 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyWeakSignatureSummaryIsRed) {
   ASSERT_EQ(out.sigs.size(), 1);
   ASSERT_EQ(CountValid(out.sigs), 0);
   for (const auto& s : out.sigs) {
-    EXPECT_TRUE((s.GetSummary() & GPGME_SIGSUM_RED) != 0U);
+    EXPECT_TRUE((s.GetSummary() & kSIGSUM_RED) != 0U);
   }
 }
 
