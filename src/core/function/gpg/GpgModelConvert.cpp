@@ -83,4 +83,94 @@ auto ConvertUserId(gpgme_user_id_t uid) -> GFUserId {
   return out;
 }
 
+namespace {
+auto ValidityOf(gpgme_validity_t validity) -> GpgValidity {
+  switch (validity) {
+    case GPGME_VALIDITY_UNDEFINED:
+      return GpgValidity::kUNDEFINED;
+    case GPGME_VALIDITY_NEVER:
+      return GpgValidity::kNEVER;
+    case GPGME_VALIDITY_MARGINAL:
+      return GpgValidity::kMARGINAL;
+    case GPGME_VALIDITY_FULL:
+      return GpgValidity::kFULL;
+    case GPGME_VALIDITY_ULTIMATE:
+      return GpgValidity::kULTIMATE;
+    case GPGME_VALIDITY_UNKNOWN:
+    default:
+      return GpgValidity::kUNKNOWN;
+  }
+}
+}  // namespace
+
+auto ConvertSubKey(gpgme_subkey_t s_key) -> GFSubKeyMetadata {
+  GFSubKeyMetadata out;
+  if (s_key == nullptr) return out;
+  out.fpr = QString::fromUtf8(s_key->fpr);
+  out.key_id = QString::fromUtf8(s_key->keyid);
+  out.key_length = s_key->length;
+  out.created_at = s_key->timestamp;
+  out.expires_at = s_key->expires;
+  out.has_secret = s_key->secret != 0;
+  out.is_revoked = s_key->revoked != 0;
+  out.can_sign = s_key->can_sign != 0;
+  out.can_encrypt = s_key->can_encrypt != 0;
+  out.can_auth = s_key->can_authenticate != 0;
+  out.can_certify = s_key->can_certify != 0;
+  out.keygrip = QString::fromUtf8(s_key->keygrip);
+  out.is_disabled = s_key->disabled != 0;
+  out.is_card_key = s_key->is_cardkey != 0;
+  out.card_serial = QString::fromLatin1(s_key->card_number);
+  out.can_renc = s_key->can_renc != 0;
+  out.is_expired = s_key->expired != 0;
+  out.algo_name = QString::fromUtf8(gpgme_pubkey_algo_name(s_key->pubkey_algo));
+  auto* algo = gpgme_pubkey_algo_string(s_key);
+  out.algo_string = QString::fromUtf8(algo);
+  gpgme_free(algo);
+  return out;
+}
+
+auto AdoptGpgmeKey(gpgme_key_t key) -> GFKeyMetadata {
+  GFKeyMetadata out;
+  if (key == nullptr) return out;
+  out.native = std::shared_ptr<void>(key, [](void* ptr) {
+    if (ptr != nullptr) gpgme_key_unref(static_cast<gpgme_key_t>(ptr));
+  });
+
+  out.fpr = QString::fromUtf8(key->fpr);
+  out.has_secret = key->secret != 0;
+  out.is_revoked = key->revoked != 0;
+  out.is_disabled = key->disabled != 0;
+  out.is_expired = key->expired != 0;
+  out.update_time = static_cast<qint64>(key->last_update);
+  out.owner_trust = ValidityOf(key->owner_trust);
+  out.protocol = QString::fromUtf8(gpgme_get_protocol_name(key->protocol));
+
+  for (auto* s_key = key->subkeys; s_key != nullptr; s_key = s_key->next) {
+    out.subkeys.append(ConvertSubKey(s_key));
+  }
+  if (!out.subkeys.isEmpty()) {
+    // GnuPG lists the primary key first; the key's own facts are its.
+    const auto& primary = out.subkeys.front();
+    out.key_id = primary.key_id;
+    out.key_length = primary.key_length;
+    out.created_at = primary.created_at;
+    out.expires_at = primary.expires_at;
+    out.can_sign = primary.can_sign;
+    out.can_encrypt = primary.can_encrypt;
+    out.can_auth = primary.can_auth;
+    out.can_certify = primary.can_certify;
+  }
+
+  for (auto* uid = key->uids; uid != nullptr; uid = uid->next) {
+    out.user_ids.append(ConvertUserId(uid));
+  }
+  if (!out.user_ids.isEmpty()) out.user_ids.front().is_primary = true;
+  return out;
+}
+
+auto GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t {
+  return static_cast<gpgme_key_t>(key.Native().get());
+}
+
 }  // namespace GpgFrontend

@@ -29,6 +29,7 @@
 #include "KeyStorage.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/gpg/KeyImportExport.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
@@ -49,7 +50,7 @@ auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     }
     return nullptr;
   }
-  return SecureCreateSharedObject<GpgKey>(p_key);
+  return SecureCreateSharedObject<GpgKey>(AdoptGpgmeKey(p_key));
 }
 
 auto GetKeyVersionGnuPGImpl(OpenPGPContext& ctx, const QString& fpr) -> int {
@@ -96,7 +97,7 @@ auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
   gpgme_key_t key;
   while ((err = gpgme_op_keylist_next(g_ctx.DefaultContext(), &key)) ==
          GPG_ERR_NO_ERROR) {
-    SecureCreateSharedObject<GpgKey>(key);
+    SecureCreateSharedObject<GpgKey>(AdoptGpgmeKey(key));
   }
 
   const auto list_err = err;
@@ -134,7 +135,7 @@ auto FlushKeyCacheGnuPGImpl(
   gpgme_key_t key;
   while ((err = gpgme_op_keylist_next(g_ctx.DefaultContext(), &key)) ==
          GPG_ERR_NO_ERROR) {
-    auto g_key = SecureCreateSharedObject<GpgKey>(key);
+    auto g_key = SecureCreateSharedObject<GpgKey>(AdoptGpgmeKey(key));
 
     // detect if the key is in a smartcard
     // if so, try to get full information using gpgme_get_key()

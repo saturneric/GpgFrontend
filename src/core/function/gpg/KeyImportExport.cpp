@@ -29,6 +29,7 @@
 #include "KeyImportExport.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/rpgp/KeyImportExport.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgImportInformation.h"
@@ -75,7 +76,7 @@ auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
-    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+    gpg_recipients.push_back(GpgmeKeyOf(key));
   }
   gpg_recipients.push_back(nullptr);
 

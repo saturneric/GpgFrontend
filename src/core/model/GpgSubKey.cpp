@@ -35,10 +35,6 @@ namespace GpgFrontend {
 
 GpgSubKey::GpgSubKey() = default;
 
-GpgSubKey::GpgSubKey(QSharedPointer<struct _gpgme_key> key_ref,
-                     gpgme_subkey_t s_key)
-    : key_ref_(std::move(key_ref)), s_key_ref_(s_key) {}
-
 GpgSubKey::GpgSubKey(QSharedPointer<GFKeyMetadata> km_ref,
                      const GFSubKeyMetadata& s_key_meta)
     : km_ref_(std::move(km_ref)),
@@ -50,49 +46,27 @@ GpgSubKey::~GpgSubKey() = default;
 
 auto GpgSubKey::operator=(const GpgSubKey&) -> GpgSubKey& = default;
 
-auto GpgSubKey::ID() const -> QString {
-  if (skm_ref_ != nullptr) return skm_ref_->key_id;
-  return s_key_ref_->keyid;
-}
+auto GpgSubKey::ID() const -> QString { return skm_ref_->key_id; }
 
-auto GpgSubKey::Fingerprint() const -> QString {
-  if (skm_ref_ != nullptr) return skm_ref_->fpr;
-  return s_key_ref_->fpr;
-}
+auto GpgSubKey::Fingerprint() const -> QString { return skm_ref_->fpr; }
 
-auto GpgSubKey::Keygrip() const -> QString {
-  if (skm_ref_ != nullptr) return {};
-  if (s_key_ref_->keygrip == nullptr) return {};
-  return s_key_ref_->keygrip;
-}
+auto GpgSubKey::Keygrip() const -> QString { return skm_ref_->keygrip; }
 
 auto GpgSubKey::PublicKeyAlgo() const -> QString {
-  if (skm_ref_ != nullptr) {
-    return GfrKeyAlgo2KeyAlgoName(
-        static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
-  }
-  return gpgme_pubkey_algo_name(s_key_ref_->pubkey_algo);
+  if (!skm_ref_->algo_name.isEmpty()) return skm_ref_->algo_name;
+  return GfrKeyAlgo2KeyAlgoName(static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
 }
 
 auto GpgSubKey::Algo() const -> QString {
-  if (skm_ref_ != nullptr) {
-    return GfrKeyAlgo2KeyAlgoName(
-        static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
-  }
-  auto* buffer = gpgme_pubkey_algo_string(s_key_ref_);
-  auto algo = QString(buffer);
-  gpgme_free(buffer);
-  return algo.toUpper();
+  if (!skm_ref_->algo_string.isEmpty()) return skm_ref_->algo_string.toUpper();
+  return GfrKeyAlgo2KeyAlgoName(static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
 }
 
 auto GpgSubKey::AlgoId() const -> QString {
-  if (skm_ref_ != nullptr) {
-    return GfrKeyAlgo2KeyAlgoId(static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
+  if (!skm_ref_->algo_string.isEmpty()) {
+    return AlgoIdFromGnuPGName(skm_ref_->algo_string);
   }
-  auto* buffer = gpgme_pubkey_algo_string(s_key_ref_);
-  auto name = QString(buffer);
-  gpgme_free(buffer);
-  return AlgoIdFromGnuPGName(name);
+  return GfrKeyAlgo2KeyAlgoId(static_cast<Rust::GfrKeyAlgo>(skm_ref_->algo));
 }
 
 auto GpgSubKey::AlgoIdFromGnuPGName(const QString& gnupg_name) -> QString {
@@ -106,129 +80,76 @@ auto GpgSubKey::AlgoIdFromGnuPGName(const QString& gnupg_name) -> QString {
 }
 
 auto GpgSubKey::KeyLength() const -> unsigned int {
-  if (skm_ref_ != nullptr) {
-    return skm_ref_->key_length;
-  }
-  return s_key_ref_->length;
+  return skm_ref_->key_length;
 }
 
-auto GpgSubKey::IsHasEncrCap() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->can_encrypt;
-  return s_key_ref_->can_encrypt;
-}
+auto GpgSubKey::IsHasEncrCap() const -> bool { return skm_ref_->can_encrypt; }
 
-auto GpgSubKey::IsHasSignCap() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->can_sign;
-  return s_key_ref_->can_sign;
-}
+auto GpgSubKey::IsHasSignCap() const -> bool { return skm_ref_->can_sign; }
 
-auto GpgSubKey::IsHasCertCap() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->can_certify;
-  return s_key_ref_->can_certify;
-}
+auto GpgSubKey::IsHasCertCap() const -> bool { return skm_ref_->can_certify; }
 
-auto GpgSubKey::IsHasAuthCap() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->can_auth;
-  return s_key_ref_->can_authenticate;
-}
+auto GpgSubKey::IsHasAuthCap() const -> bool { return skm_ref_->can_auth; }
 
-auto GpgSubKey::IsPrivateKey() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->has_secret;
-  return s_key_ref_->secret;
-}
+auto GpgSubKey::IsPrivateKey() const -> bool { return skm_ref_->has_secret; }
 
 auto GpgSubKey::IsExpired() const -> bool {
-  if (skm_ref_ != nullptr) {
-    return skm_ref_->expires_at != 0 &&
-           QDateTime::fromSecsSinceEpoch(skm_ref_->expires_at) <
-               CurrentDateTime();
-  }
-  return s_key_ref_->expired;
+  if (skm_ref_->is_expired.has_value()) return *skm_ref_->is_expired;
+  return skm_ref_->expires_at != 0 &&
+         QDateTime::fromSecsSinceEpoch(skm_ref_->expires_at) <
+             CurrentDateTime();
 }
 
-auto GpgSubKey::IsRevoked() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->is_revoked;
-  return s_key_ref_->revoked;
-}
+auto GpgSubKey::IsRevoked() const -> bool { return skm_ref_->is_revoked; }
 
-auto GpgSubKey::IsDisabled() const -> bool {
-  if (skm_ref_ != nullptr) return false;
-  return s_key_ref_->disabled;
-}
+auto GpgSubKey::IsDisabled() const -> bool { return skm_ref_->is_disabled; }
 
-auto GpgSubKey::IsSecretKey() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->has_secret;
-  return s_key_ref_->secret;
-}
+auto GpgSubKey::IsSecretKey() const -> bool { return skm_ref_->has_secret; }
 
-auto GpgSubKey::IsCardKey() const -> bool {
-  if (skm_ref_ != nullptr) return false;
-  return s_key_ref_->is_cardkey;
-}
+auto GpgSubKey::IsCardKey() const -> bool { return skm_ref_->is_card_key; }
 
 auto GpgSubKey::CreationTime() const -> QDateTime {
-  if (skm_ref_ != nullptr) {
-    return QDateTime::fromSecsSinceEpoch(skm_ref_->created_at);
-  }
-  return QDateTime::fromSecsSinceEpoch(s_key_ref_->timestamp);
+  return QDateTime::fromSecsSinceEpoch(skm_ref_->created_at);
 }
 
 auto GpgSubKey::ExpirationTime() const -> QDateTime {
-  if (skm_ref_ != nullptr) {
-    return QDateTime::fromSecsSinceEpoch(skm_ref_->expires_at);
-  }
-  return QDateTime::fromSecsSinceEpoch(s_key_ref_->expires);
+  return QDateTime::fromSecsSinceEpoch(skm_ref_->expires_at);
 }
 
-auto GpgSubKey::IsADSK() const -> bool {
-  if (skm_ref_ != nullptr) return false;
-  return s_key_ref_->can_renc;
-}
+auto GpgSubKey::IsADSK() const -> bool { return skm_ref_->can_renc; }
 
 [[nodiscard]] auto GpgSubKey::IsMarked() const -> bool {
-  if (skm_ref_ != nullptr) return skm_ref_->marked;
-  return false;
+  return skm_ref_->marked;
 }
 
 auto GpgSubKey::SmartCardSerialNumber() const -> QString {
-  if (skm_ref_ != nullptr) return {};
-  return QString::fromLatin1(s_key_ref_->card_number);
+  return skm_ref_->card_serial;
 }
 
 auto GpgSubKey::KeyType() const -> GpgAbstractKeyType {
   return GpgAbstractKeyType::kGPG_SUBKEY;
 }
 
-auto GpgSubKey::IsGood() const -> bool {
-  return s_key_ref_ != nullptr || skm_ref_ != nullptr;
-}
+auto GpgSubKey::IsGood() const -> bool { return skm_ref_ != nullptr; }
 
 auto GpgSubKey::Convert2GpgKey() const -> QSharedPointer<GpgKey> {
-  return SecureCreateSharedObject<GpgKey>(key_ref_);
+  if (km_ref_ == nullptr) return nullptr;
+  return SecureCreateSharedObject<GpgKey>(*km_ref_);
 }
 
 auto GpgSubKey::Name() const -> QString {
-  if (km_ref_ != nullptr) {
-    return km_ref_->user_ids.empty() ? QString{}
-                                     : km_ref_->user_ids.front().name;
-  }
-  return key_ref_->uids->name;
+  if (km_ref_ == nullptr || km_ref_->user_ids.empty()) return {};
+  return km_ref_->user_ids.front().name;
 }
 
 auto GpgSubKey::Email() const -> QString {
-  if (km_ref_ != nullptr) {
-    return km_ref_->user_ids.empty() ? QString{}
-                                     : km_ref_->user_ids.front().email;
-  }
-  return key_ref_->uids->email;
+  if (km_ref_ == nullptr || km_ref_->user_ids.empty()) return {};
+  return km_ref_->user_ids.front().email;
 }
 
 auto GpgSubKey::Comment() const -> QString {
-  if (km_ref_ != nullptr) {
-    return km_ref_->user_ids.empty() ? QString{}
-                                     : km_ref_->user_ids.front().comment;
-  }
-  return key_ref_->uids->comment;
+  if (km_ref_ == nullptr || km_ref_->user_ids.empty()) return {};
+  return km_ref_->user_ids.front().comment;
 }
 
 }  // namespace GpgFrontend

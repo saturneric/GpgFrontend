@@ -30,6 +30,7 @@
 
 #include <gpgme.h>
 
+#include "core/model/GpgKey.h"
 #include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
@@ -45,5 +46,16 @@ auto GF_CORE_EXPORT ConvertKeySignature(gpgme_key_sig_t sig) -> GFKeySignature;
 auto GF_CORE_EXPORT ConvertTofuInfo(gpgme_tofu_info_t info) -> GFTofuInfo;
 
 auto GF_CORE_EXPORT ConvertUserId(gpgme_user_id_t uid) -> GFUserId;
+
+auto GF_CORE_EXPORT ConvertSubKey(gpgme_subkey_t s_key) -> GFSubKeyMetadata;
+
+/**
+ * @brief A gpgme key as GpgFrontend's model data, taking over the caller's
+ * reference: the key is released when the last copy of the data is gone.
+ */
+auto GF_CORE_EXPORT AdoptGpgmeKey(gpgme_key_t key) -> GFKeyMetadata;
+
+/// The gpgme key a model key listed by GnuPG carries, for gpgme calls.
+auto GF_CORE_EXPORT GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t;
 
 }  // namespace GpgFrontend

@@ -34,6 +34,7 @@
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGroupRepository.h"
@@ -56,9 +57,9 @@ auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
       }
 
       auto k = qSharedPointerDynamicCast<GpgKey>(key);
-      auto err = CheckGpgError(gpgme_op_delete_ext(
-          g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*k),
-          GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
+      auto err = CheckGpgError(
+          gpgme_op_delete_ext(g_ctx.DefaultContext(), GpgmeKeyOf(*k),
+                              GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       if (err != GPG_ERR_NO_ERROR) {
         LOG_W() << "Failed to delete key: " << key->ID()
                 << ", error code: " << CheckGpgError(err);
@@ -81,14 +82,12 @@ auto SetExpireGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   GpgError err;
   if (key->Fingerprint() == skey_fpr || skey_fpr.isEmpty()) {
-    err = gpgme_op_setexpire(g_ctx.DefaultContext(),
-                             static_cast<gpgme_key_t>(*key), expires_time,
-                             nullptr, 0);
+    err = gpgme_op_setexpire(g_ctx.DefaultContext(), GpgmeKeyOf(*key),
+                             expires_time, nullptr, 0);
     assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    err = gpgme_op_setexpire(g_ctx.DefaultContext(),
-                             static_cast<gpgme_key_t>(*key), expires_time,
-                             skey_fpr.toUtf8(), 0);
+    err = gpgme_op_setexpire(g_ctx.DefaultContext(), GpgmeKeyOf(*key),
+                             expires_time, skey_fpr.toUtf8(), 0);
     assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
@@ -163,8 +162,7 @@ auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                   const DataObjectPtr& data_object)
     -> GpgError {
   auto& g_ctx = GpgCtx(ctx);
-  return gpgme_op_passwd(g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
-                         0);
+  return gpgme_op_passwd(g_ctx.DefaultContext(), GpgmeKeyOf(*key), 0);
 }
 
 auto ModifySubkeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
@@ -212,8 +210,7 @@ auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   LOG_D() << "add adsk args: " << key->ID() << algo;
 
-  auto err = gpgme_op_createsubkey(g_ctx.DefaultContext(),
-                                   static_cast<gpgme_key_t>(*key),
+  auto err = gpgme_op_createsubkey(g_ctx.DefaultContext(), GpgmeKeyOf(*key),
                                    algo.toLatin1(), 0, 0, flags);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgGenerateKeyResult{}});
@@ -532,8 +529,7 @@ auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     // every user ID instead.
     const auto uid = sign_id.second.toUtf8();
     auto err = CheckGpgError(gpgme_op_revsig(
-        g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
-        static_cast<gpgme_key_t>(signing_key),
+        g_ctx.DefaultContext(), GpgmeKeyOf(*key), GpgmeKeyOf(signing_key),
         sign_id.second.isEmpty() ? nullptr : uid.constData(), 0));
     if (err != GPG_ERR_NO_ERROR) return err;
   }
@@ -568,8 +564,7 @@ auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
         !signer->IsHasCertCap()) {
       continue;
     }
-    CheckGpgError(
-        gpgme_signers_add(gpg_ctx, static_cast<gpgme_key_t>(*signer)));
+    CheckGpgError(gpgme_signers_add(gpg_ctx, GpgmeKeyOf(*signer)));
   }
   if (gpgme_signers_count(gpg_ctx) == 0) return GPG_ERR_NO_SECKEY;
 
@@ -577,7 +572,7 @@ auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   // every user ID instead.
   const auto uid_bytes = uid.toUtf8();
   auto err = CheckGpgError(gpgme_op_keysign(
-      gpg_ctx, static_cast<gpgme_key_t>(*key),
+      gpg_ctx, GpgmeKeyOf(*key),
       uid.isEmpty() ? nullptr : uid_bytes.constData(), expires_time, flags));
 
   // The context is shared; don't leave these signers behind for the next op.

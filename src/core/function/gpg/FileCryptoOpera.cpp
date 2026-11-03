@@ -32,6 +32,7 @@
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgErrorMap.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
@@ -102,7 +103,7 @@ auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
   QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
-    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+    gpg_recipients.push_back(GpgmeKeyOf(key));
   }
   gpg_recipients.push_back(nullptr);
 
@@ -347,7 +348,7 @@ auto EncryptSignFileGpgDataGnuPGImpl(
   QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
-    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+    gpg_recipients.push_back(GpgmeKeyOf(key));
   }
   gpg_recipients.push_back(nullptr);
 

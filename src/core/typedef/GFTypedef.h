@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include <memory>
+#include <optional>
+
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GFError.h"
@@ -101,6 +104,29 @@ enum class CoreInitStep : std::uint8_t {
   kVERIFYING_MODULES,
   kLOADING_MODULE,
   kREADY,
+};
+
+/// How far a signature, or a key, is trusted.
+enum class GpgValidity : std::uint8_t {
+  kUNKNOWN,
+  kUNDEFINED,
+  kNEVER,
+  kMARGINAL,
+  kFULL,
+  kULTIMATE,
+};
+
+/// What the checks of a verified signature found, as flags.
+enum GpgSigSummary : std::uint32_t {
+  kSIGSUM_NONE = 0,
+  kSIGSUM_VALID = 1U << 0,        ///< fully valid
+  kSIGSUM_GREEN = 1U << 1,        ///< valid, with no problem found
+  kSIGSUM_RED = 1U << 2,          ///< bad, or a problem found
+  kSIGSUM_KEY_REVOKED = 1U << 3,  ///< the key was revoked
+  kSIGSUM_KEY_EXPIRED = 1U << 4,  ///< the key had expired
+  kSIGSUM_SIG_EXPIRED = 1U << 5,  ///< the signature had expired
+  kSIGSUM_KEY_MISSING = 1U << 6,  ///< the key is not in the keyring
+  kSIGSUM_CRL_MISSING = 1U << 7,  ///< no revocation list to check against
 };
 
 /// A certification of a user ID, as listed with its key.
@@ -179,6 +205,20 @@ struct GFSubKeyMetadata {
   bool can_certify = false;
 
   bool marked = false;
+
+  // As an engine that tracks them reports them; left at their defaults
+  // otherwise.
+  QString keygrip;
+  bool is_disabled = false;
+  bool is_card_key = false;
+  QString card_serial;
+  bool can_renc = false;           ///< an ADSK: may be used to re-encrypt
+  std::optional<bool> is_expired;  ///< the engine's verdict; else from the date
+
+  /// The engine's own names for the algorithm: its short name, and the full
+  /// algorithm string. Empty when only `algo` names it.
+  QString algo_name;
+  QString algo_string;
 };
 
 struct GFKeyMetadata {
@@ -203,6 +243,16 @@ struct GFKeyMetadata {
   bool can_certify = false;
 
   QList<GFSubKeyMetadata> subkeys;
+
+  /// How far its owner is trusted; an engine without a trust model trusts its
+  /// own keys ultimately.
+  GpgValidity owner_trust = GpgValidity::kULTIMATE;
+  QString protocol;  ///< the engine's protocol name, if it has one
+  std::optional<bool> is_expired;  ///< the engine's verdict; else from the date
+
+  /// The engine's own handle for the key, for that engine's backend alone to
+  /// hand back to it; null when it keeps none.
+  std::shared_ptr<void> native;
 };
 
 struct GFKeyBlocks {
@@ -213,29 +263,6 @@ struct GFKeyBlocks {
 struct GFKey {
   GFKeyMetadata metadata;
   GFKeyBlocks blocks;
-};
-
-/// How far a signature, or a key, is trusted.
-enum class GpgValidity : std::uint8_t {
-  kUNKNOWN,
-  kUNDEFINED,
-  kNEVER,
-  kMARGINAL,
-  kFULL,
-  kULTIMATE,
-};
-
-/// What the checks of a verified signature found, as flags.
-enum GpgSigSummary : std::uint32_t {
-  kSIGSUM_NONE = 0,
-  kSIGSUM_VALID = 1U << 0,        ///< fully valid
-  kSIGSUM_GREEN = 1U << 1,        ///< valid, with no problem found
-  kSIGSUM_RED = 1U << 2,          ///< bad, or a problem found
-  kSIGSUM_KEY_REVOKED = 1U << 3,  ///< the key was revoked
-  kSIGSUM_KEY_EXPIRED = 1U << 4,  ///< the key had expired
-  kSIGSUM_SIG_EXPIRED = 1U << 5,  ///< the signature had expired
-  kSIGSUM_KEY_MISSING = 1U << 6,  ///< the key is not in the keyring
-  kSIGSUM_CRL_MISSING = 1U << 7,  ///< no revocation list to check against
 };
 
 enum class GFSignatureStatus : uint8_t {

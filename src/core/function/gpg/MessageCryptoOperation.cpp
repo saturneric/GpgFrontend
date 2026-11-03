@@ -31,6 +31,7 @@
 #include <gpg-error.h>
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -51,7 +52,7 @@ void SetSignersGnuPGImpl(OpenPGPContext& ctx_,
   for (const auto& key : keys) {
     LOG_D() << "signer's key fpr: " << key->Fingerprint();
     if (key->IsHasSignCap()) {
-      auto error = gpgme_signers_add(ctx, static_cast<gpgme_key_t>(*key));
+      auto error = gpgme_signers_add(ctx, GpgmeKeyOf(*key));
       CheckGpgError(error);
     }
   }
@@ -72,7 +73,7 @@ auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
-    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+    gpg_recipients.push_back(GpgmeKeyOf(key));
   }
   gpg_recipients.push_back(nullptr);
 
@@ -192,7 +193,7 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
   QList<gpgme_key_t> gpg_recipients;
   for (const auto& key : recipients) {
     LOG_D() << "recipient key fpr: " << key.Fingerprint();
-    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+    gpg_recipients.push_back(GpgmeKeyOf(key));
   }
   gpg_recipients.push_back(nullptr);
 
@@ -241,7 +242,7 @@ auto GetSignersGnuPGImpl(OpenPGPContext& ctx_, bool ascii) -> KeyArgsList {
   auto count = gpgme_signers_count(ctx);
   auto signers = KeyArgsList{};
   for (auto i = 0U; i < count; i++) {
-    auto key = GpgKey(gpgme_signers_enum(ctx, i));
+    auto key = GpgKey(AdoptGpgmeKey(gpgme_signers_enum(ctx, i)));
     signers.push_back(GpgKey(key));
   }
   return signers;

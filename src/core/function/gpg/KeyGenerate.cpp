@@ -29,6 +29,7 @@
 #include "KeyGenerate.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -119,8 +120,7 @@ auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   LOG_D() << "subkey generation args: " << key->ID() << algo << expires
           << flags;
 
-  auto err = gpgme_op_createsubkey(g_ctx.DefaultContext(),
-                                   static_cast<gpgme_key_t>(*key),
+  auto err = gpgme_op_createsubkey(g_ctx.DefaultContext(), GpgmeKeyOf(*key),
                                    algo.toLatin1(), 0, expires, flags);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgGenerateKeyResult{}});

@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <gpgme.h>
-
 #include "core/model/GpgAbstractKey.h"
 #include "core/typedef/GFTypedef.h"
 
@@ -48,14 +46,6 @@ class GF_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
    *
    */
   GpgSubKey();
-
-  /**
-   * @brief Construct a new Gpg Sub Key object
-   *
-   * @param subkey
-   */
-  explicit GpgSubKey(QSharedPointer<struct _gpgme_key> key_ref,
-                     gpgme_subkey_t s_key);
 
   /**
    * @brief Construct a new Gpg Sub Key object
@@ -311,9 +301,6 @@ class GF_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
   [[nodiscard]] auto Convert2GpgKey() const -> QSharedPointer<GpgKey>;
 
  private:
-  QSharedPointer<struct _gpgme_key> key_ref_;
-  gpgme_subkey_t s_key_ref_ = nullptr;  ///<
-
   QSharedPointer<GFKeyMetadata> km_ref_;
   QSharedPointer<GFSubKeyMetadata> skm_ref_;
 };

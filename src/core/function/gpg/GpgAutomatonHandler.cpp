@@ -32,6 +32,7 @@
 #include <thread>
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
@@ -172,7 +173,7 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                     AutomatonActionHandler action_handler, int flags,
                     int timeout_ms) -> std::tuple<GpgError, bool> {
   auto& g_ctx = GpgCtx(ctx_);
-  gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
+  gpgme_key_t p_key = key == nullptr ? nullptr : GpgmeKeyOf(*key);
 
   // Card edits may legitimately block for a long time (hardware / the user
   // touching the card), so we keep the original synchronous, unbounded call on

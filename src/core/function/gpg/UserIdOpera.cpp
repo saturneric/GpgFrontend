@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgModelConvert.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -37,8 +38,8 @@ namespace GpgFrontend {
 auto AddUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                      const QString& uid) -> bool {
   auto& g_ctx = GpgCtx(ctx);
-  auto err = gpgme_op_adduid(g_ctx.DefaultContext(),
-                             static_cast<gpgme_key_t>(*key), uid.toUtf8(), 0);
+  auto err = gpgme_op_adduid(g_ctx.DefaultContext(), GpgmeKeyOf(*key),
+                             uid.toUtf8(), 0);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
@@ -264,9 +265,9 @@ auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 auto SetPrimaryUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QString& uid) -> bool {
   auto& g_ctx = GpgCtx(ctx);
-  auto err = CheckGpgError(gpgme_op_set_uid_flag(
-      g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),
-      "primary", nullptr));
+  auto err = CheckGpgError(gpgme_op_set_uid_flag(g_ctx.DefaultContext(),
+                                                 GpgmeKeyOf(*key), uid.toUtf8(),
+                                                 "primary", nullptr));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 

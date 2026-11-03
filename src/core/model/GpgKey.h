@@ -51,20 +51,6 @@ class GF_CORE_EXPORT GpgKey : public GpgAbstractKey {
   /**
    * @brief Construct a new Gpg Key object
    *
-   * @param key
-   */
-  explicit GpgKey(gpgme_key_t key);
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param key
-   */
-  explicit GpgKey(QSharedPointer<struct _gpgme_key> key_ref);
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
    * @param km_ref
    */
   explicit GpgKey(const GFKeyMetadata& km_ref);
@@ -91,12 +77,10 @@ class GF_CORE_EXPORT GpgKey : public GpgAbstractKey {
   auto operator=(const GpgKey&) -> GpgKey&;
 
   /**
-   * @brief
-   *
-   * @return gpgme_key_t
+   * @brief The engine's own handle for the key, for that engine's backend
+   * alone; null when it keeps none.
    */
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  operator gpgme_key_t() const;
+  [[nodiscard]] auto Native() const -> std::shared_ptr<void>;
 
   /**
    * @brief
@@ -354,8 +338,7 @@ class GF_CORE_EXPORT GpgKey : public GpgAbstractKey {
   [[nodiscard]] auto KeyVersion() const -> int;
 
  private:
-  QSharedPointer<struct _gpgme_key> key_ref_ = nullptr;  ///<
-  QSharedPointer<GFKeyMetadata> km_ref_ = nullptr;       ///<
+  QSharedPointer<GFKeyMetadata> km_ref_ = nullptr;
 };
 
 }  // namespace GpgFrontend
