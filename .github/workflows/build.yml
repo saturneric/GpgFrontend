@@ -1369,10 +1369,12 @@ jobs:
             ZIPALIGN="$bt/zipalign" \
             scripts/android/check-elf-alignment.sh gpgfrontend-android-arm64-test.apk
 
+      # Not named gpgfrontend-*: that namespace is the release's, and the
+      # provenance job would take a test build into it.
       - name: Upload The APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-android-arm64-test
+          name: test-apk-android-arm64
           path: gpgfrontend-android-arm64-test.apk
           if-no-files-found: error
 
