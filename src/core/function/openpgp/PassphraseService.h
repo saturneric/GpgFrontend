@@ -119,6 +119,24 @@ class GF_CORE_EXPORT PassphraseService
   auto RequestPassphrase(const PassphraseState& state,
                          PassphraseRequestStatus* out_status = nullptr)
       -> GFBuffer;
+
+  /**
+   * @brief Refuse every passphrase request from now on, on every channel.
+   *
+   * For an interface that is going away: every request being waited on is
+   * settled as cancelled at once, which frees the thread waiting for it; every
+   * prompt on screen is told to close, which clears what was typed; and a later
+   * request is refused before it asks. An answer arriving afterwards is
+   * ignored. Without it, an operation waiting for an answer holds its thread
+   * for the whole prompt timeout while the core is torn down around it.
+   */
+  static void ClosePrompts();
+
+  /**
+   * @brief Accept passphrase requests again, as the core does when it starts:
+   * an application restarted in the same process asks as before.
+   */
+  static void ReopenPrompts();
 };
 /**
  * @brief Answer the passphrase request an interface showed.

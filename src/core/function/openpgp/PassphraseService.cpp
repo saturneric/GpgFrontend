@@ -161,6 +161,42 @@ auto qHash(const InFlightKey& key, size_t seed = 0) noexcept -> size_t {
 QMutex g_in_flight_mutex;
 QHash<InFlightKey, PassphraseRequestPtr> g_in_flight;
 
+// Every request being waited on and every prompt on screen, so ClosePrompts()
+// can settle and dismiss them all; and whether it has. One mutex, so a request
+// or prompt either registers before the close (and is ended by it) or sees the
+// close (and never asks).
+QMutex g_live_mutex;
+QList<PassphraseRequestPtr> g_live_requests;
+QList<QSharedPointer<GpgPassphraseContext>> g_live_prompts;
+bool g_prompts_closed = false;
+
+/// Track @p request until it is settled; false when prompts are closed.
+auto RegisterLiveRequest(const PassphraseRequestPtr& request) -> bool {
+  QMutexLocker locker(&g_live_mutex);
+  if (g_prompts_closed) return false;
+  g_live_requests.append(request);
+  return true;
+}
+
+void UnregisterLiveRequest(const PassphraseRequestPtr& request) {
+  QMutexLocker locker(&g_live_mutex);
+  g_live_requests.removeOne(request);
+}
+
+/// Track the prompt for @p c until it is answered; false when prompts are
+/// closed, and then it is not shown.
+auto RegisterLivePrompt(const QSharedPointer<GpgPassphraseContext>& c) -> bool {
+  QMutexLocker locker(&g_live_mutex);
+  if (g_prompts_closed) return false;
+  g_live_prompts.append(c);
+  return true;
+}
+
+void UnregisterLivePrompt(const QSharedPointer<GpgPassphraseContext>& c) {
+  QMutexLocker locker(&g_live_mutex);
+  g_live_prompts.removeOne(c);
+}
+
 /**
  * @brief Wait for the request on the GUI thread, where blocking outright would
  * deadlock: the prompt is shown by this very thread, so it has to keep running
@@ -261,9 +297,17 @@ void DrivePrompt(const PassphraseRequestPtr& request,
       },
       Qt::DirectConnection);
 
+  // Closed meanwhile: the request is already settled as cancelled, and a
+  // prompt shown now would have nobody to answer it.
+  if (!RegisterLivePrompt(c)) {
+    QObject::disconnect(connection);
+    return;
+  }
+
   emit CoreSignalStation::GetInstance() -> SignalNeedUserInputPassphrase(c);
 
   WaitForRequest(request, wait_ms);
+  UnregisterLivePrompt(c);
 
   // Settle first, then dismiss -- never the other way round, and never behind
   // an IsSettled() check.
@@ -330,6 +374,15 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state,
   const InFlightKey in_flight_key{GetChannel(), t_state.fpr, t_state.info};
 
   const auto [request, owns_prompt] = AcquireRequest(in_flight_key, shareable);
+  if (!RegisterLiveRequest(request)) {
+    // Nothing will ever answer: the interface has closed its prompts.
+    request->Settle(GFBuffer(), PassphraseRequestStatus::kCancelled);
+    if (shareable && owns_prompt) ReleaseRequest(in_flight_key, request);
+    if (out_status != nullptr) {
+      *out_status = PassphraseRequestStatus::kCancelled;
+    }
+    return {};
+  }
 
   const auto timeout_seconds = ReadPromptTimeoutSeconds();
   const auto wait_ms = timeout_seconds > 0
@@ -352,8 +405,28 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state,
     WaitForRequest(request, wait_ms);
   }
 
+  UnregisterLiveRequest(request);
   if (out_status != nullptr) *out_status = request->Status();
   return request->Passphrase();
+}
+
+void PassphraseService::ClosePrompts() {
+  QMutexLocker locker(&g_live_mutex);
+  g_prompts_closed = true;
+  for (const auto& request : g_live_requests) {
+    request->Settle(GFBuffer(), PassphraseRequestStatus::kCancelled);
+  }
+  g_live_requests.clear();
+  // Queued to the interface thread: each prompt closes and clears its input.
+  for (const auto& c : g_live_prompts) {
+    emit CoreSignalStation::GetInstance() -> SignalCloseUserInputPassphrase(c);
+  }
+  g_live_prompts.clear();
+}
+
+void PassphraseService::ReopenPrompts() {
+  QMutexLocker locker(&g_live_mutex);
+  g_prompts_closed = false;
 }
 
 void AnswerPassphraseRequest(
