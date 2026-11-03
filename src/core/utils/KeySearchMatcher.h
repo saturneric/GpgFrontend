@@ -28,7 +28,7 @@
 
 #pragma once
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 /**
  * @brief Reduce a fingerprint or a fingerprint-shaped query to its bare hex.
@@ -41,7 +41,7 @@ namespace GpgFrontend::UI {
  * @param text fingerprint or query
  * @return lower-cased text with spaces, colons and dashes removed
  */
-auto GF_UI_EXPORT KeySearchNormalize(const QString& text) -> QString;
+auto GF_CORE_EXPORT KeySearchNormalize(const QString& text) -> QString;
 
 /**
  * @brief Decide whether one key matches the search box.
@@ -51,8 +51,8 @@ auto GF_UI_EXPORT KeySearchNormalize(const QString& text) -> QString;
  * @param keyword raw contents of the search box
  * @return true if the key should stay visible
  */
-auto GF_UI_EXPORT KeySearchMatches(const QStringList& fields,
-                                   const QString& fingerprint,
-                                   const QString& keyword) -> bool;
+auto GF_CORE_EXPORT KeySearchMatches(const QStringList& fields,
+                                     const QString& fingerprint,
+                                     const QString& keyword) -> bool;
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

@@ -26,9 +26,9 @@
  *
  */
 
-#include "ui/model/KeySearchMatcher.h"
+#include "core/utils/KeySearchMatcher.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 auto KeySearchNormalize(const QString& text) -> QString {
   QString out;
@@ -61,4 +61,4 @@ auto KeySearchMatches(const QStringList& fields, const QString& fingerprint,
   return KeySearchNormalize(fingerprint).contains(needle);
 }
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

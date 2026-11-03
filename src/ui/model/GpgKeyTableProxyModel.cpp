@@ -32,7 +32,7 @@
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTableModel.h"
-#include "ui/model/KeySearchMatcher.h"
+#include "core/utils/KeySearchMatcher.h"
 #include "ui/model/SortKeyCompare.h"
 
 namespace GpgFrontend::UI {
