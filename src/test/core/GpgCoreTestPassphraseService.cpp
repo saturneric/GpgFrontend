@@ -272,6 +272,30 @@ TEST_F(GFCoreTest, AFreshPassphraseContextCarriesNoEarlierState) {
   ctx->~GpgPassphraseContext();
 }
 
+// An interface answers a request one way: with what was typed, or as an
+// explicit refusal; either way the request is settled once.
+TEST_F(GFCoreTest, AnsweringAPassphraseRequestSettlesIt) {
+  QObject receiver;
+  int settled = 0;
+  QObject::connect(
+      CoreSignalStation::GetInstance(),
+      &CoreSignalStation::SignalUserInputPassphraseReady, &receiver,
+      [&](const QSharedPointer<GpgPassphraseContext>&) { ++settled; },
+      Qt::DirectConnection);
+
+  auto typed = QSharedPointer<GpgPassphraseContext>::create();
+  AnswerPassphraseRequest(typed, GFBuffer(QStringLiteral("secret")));
+  EXPECT_EQ(typed->GetPassphrase(), GFBuffer(QStringLiteral("secret")));
+  EXPECT_FALSE(typed->IsCancelled());
+
+  auto declined = QSharedPointer<GpgPassphraseContext>::create();
+  AnswerPassphraseRequest(declined, std::nullopt);
+  EXPECT_TRUE(declined->GetPassphrase().Empty());
+  EXPECT_TRUE(declined->IsCancelled());
+
+  EXPECT_EQ(settled, 2);
+}
+
 /**
  * Two operations queued on the same runner must not overlap. Waiting for a
  * passphrase used to spin an event loop on the runner thread, which pumped that

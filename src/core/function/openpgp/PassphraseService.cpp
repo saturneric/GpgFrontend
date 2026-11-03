@@ -356,4 +356,18 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state,
   return request->Passphrase();
 }
 
+void AnswerPassphraseRequest(
+    const QSharedPointer<GpgPassphraseContext>& context,
+    const std::optional<GFBuffer>& passphrase) {
+  if (context == nullptr) return;
+  if (passphrase.has_value()) {
+    context->SetPassphrase(*passphrase);
+  } else {
+    context->SetPassphrase(GFBuffer());
+    context->SetCancelled(true);
+  }
+  emit CoreSignalStation::GetInstance()
+      -> SignalUserInputPassphraseReady(context);
+}
+
 }  // namespace GpgFrontend
