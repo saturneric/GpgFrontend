@@ -140,24 +140,27 @@ endif()
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 
-# Which engines and which programs the flavor builds. The android flavor is
-# rPGP-only, so it needs neither GpgME, libassuan nor libgpg-error, and it
-# builds the core, the startup library and the core tests, not the desktop
-# application.
+# Which engines and which programs the flavor builds. The android and sandbox
+# flavors are rPGP-only, so they need neither GpgME, libassuan nor
+# libgpg-error. The android flavor builds the core, the startup library and the
+# core tests, not the desktop application.
+set(GF_ENGINE_GNUPG 1)
+set(GF_BUILD_DESKTOP 1)
 if(GPGFRONTEND_BUILD_FLAVOR STREQUAL "android")
   set(GF_ENGINE_GNUPG 0)
   set(GF_BUILD_DESKTOP 0)
-  foreach(_gf_option GPGFRONTEND_BUILD_MODULES GPGFRONTEND_LINK_GPGME_INTO_CORE
-                     GPGFRONTEND_BUILD_SCREENSHOT_MODE)
-    if(${_gf_option})
-      message(FATAL_ERROR "${_gf_option}=ON contradicts "
-        "GPGFRONTEND_BUILD_FLAVOR=android")
-    endif()
-  endforeach()
-else()
-  set(GF_ENGINE_GNUPG 1)
-  set(GF_BUILD_DESKTOP 1)
+  set(_gf_refused_options GPGFRONTEND_BUILD_MODULES
+    GPGFRONTEND_LINK_GPGME_INTO_CORE GPGFRONTEND_BUILD_SCREENSHOT_MODE)
+elseif(GPGFRONTEND_BUILD_FLAVOR STREQUAL "sandbox")
+  set(GF_ENGINE_GNUPG 0)
+  set(_gf_refused_options GPGFRONTEND_LINK_GPGME_INTO_CORE)
 endif()
+foreach(_gf_option IN LISTS _gf_refused_options)
+  if(${_gf_option})
+    message(FATAL_ERROR "${_gf_option}=ON contradicts "
+      "GPGFRONTEND_BUILD_FLAVOR=${GPGFRONTEND_BUILD_FLAVOR}")
+  endif()
+endforeach()
 
 # MinGW only: a runtime DLL that cannot be found fails the build, because the
 # result would not start on a machine without MSYS2. A development build may

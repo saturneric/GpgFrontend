@@ -35,7 +35,9 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgContext.h"
+#endif
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileMarker.h"
@@ -471,6 +473,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                       .degraded = true});
   }
 
+#if GF_ENGINE_GNUPG
   // Only ever set when the home directory could not host the agent sockets, so
   // the row says that outright and carries the measured length and the platform
   // limit underneath.
@@ -481,6 +484,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                       .detail = gnupg_home_detail,
                       .degraded = true});
   }
+#endif
 
   QList<MetaListRow> application;
   application.append(

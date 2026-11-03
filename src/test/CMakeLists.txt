@@ -59,8 +59,19 @@ aux_source_directory(./host TEST_SOURCE)
 aux_source_directory(./ui TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)
 # the core fixtures, which host and ui tests use as well
-list(APPEND TEST_SOURCE core/GFCoreTest.cpp core/GpgCoreEngineTest.cpp
-  core/gpg/GpgCoreTest.cpp)
+list(APPEND TEST_SOURCE core/GFCoreTest.cpp core/GpgCoreEngineTest.cpp)
+
+# Without the GnuPG engine: no GnuPG fixture, no tests on GnuPG keys, and the
+# result-report tests are written in GnuPG's error codes.
+if(GF_ENGINE_GNUPG)
+  list(APPEND TEST_SOURCE core/gpg/GpgCoreTest.cpp)
+else()
+  list(REMOVE_ITEM TEST_SOURCE
+    ./ui/GFUiEncryptBlockReasonTest.cpp
+    ./ui/GFUiInfoBoardRenderTest.cpp
+    ./ui/GFUiInfoBoardReportTest.cpp
+    ./ui/GFUiRecipientConfirmTest.cpp)
+endif()
 
 # define test library
 register_library(test LIBRARY_TARGET ${TEST_SOURCE})

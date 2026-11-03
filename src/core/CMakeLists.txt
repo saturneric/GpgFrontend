@@ -26,9 +26,17 @@
 # gather source files
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/basic CORE_SOURCE)
-# The GnuPG engine; an rPGP-only build leaves it out.
+# The GnuPG engine; an rPGP-only build leaves it out, and GpgME with it. Three
+# files beside it use no GpgME and stay: the process runner the module SDK also
+# uses, the photo-ID reader built on it, and the GnuPG home path rules the key
+# database settings show.
 if(GF_ENGINE_GNUPG)
   aux_source_directory(./function/gpg CORE_SOURCE)
+else()
+  list(APPEND CORE_SOURCE
+    ./function/gpg/GpgCommandExecutor.cpp
+    ./function/gpg/GpgAttributeHelper.cpp
+    ./function/gpg/GnuPGHome.cpp)
 endif()
 aux_source_directory(./function/openpgp CORE_SOURCE)
 aux_source_directory(./function/secure_memory CORE_SOURCE)

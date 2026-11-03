@@ -43,6 +43,18 @@ aux_source_directory(command UI_SOURCE)
 aux_source_directory(lua UI_SOURCE)
 aux_source_directory(html UI_SOURCE)
 
+# Smart cards and the GnuPG settings page talk to gpg-agent and GpgME, so a
+# build without the GnuPG engine leaves them out; their entry points are
+# guarded by GF_ENGINE_GNUPG.
+if(NOT GF_ENGINE_GNUPG)
+  list(REMOVE_ITEM UI_SOURCE
+    dialog/controller/SmartCardControllerDialog.cpp
+    dialog/key_generate/GenerateCardKeyDialog.cpp
+    dialog/MoveKeyToCardPicker.cpp
+    dialog/settings/SettingsGnuPG.cpp
+    function/MoveKeyToCard.cpp)
+endif()
+
 # register module
 register_library(ui LIBRARY_TARGET ${UI_SOURCE})
 

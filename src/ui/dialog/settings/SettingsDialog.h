@@ -66,7 +66,7 @@ class SettingsDialog : public GeneralDialog {
   NetworkTab* network_tab_;        ///<
   KeyDatabasesTab* key_dbs_tab_;   ///<
   KeyGenerationTab* key_gen_tab_;  ///<
-  GnuPGTab* gnupg_tab_;            ///<
+  GnuPGTab* gnupg_tab_{};          ///< null without the GnuPG engine
   RpgpTab* rpgp_tab_;              ///<
   AdvancedTab* advanced_tab_;      ///<
 

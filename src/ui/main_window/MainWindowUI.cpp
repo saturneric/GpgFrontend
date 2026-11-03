@@ -38,7 +38,9 @@
 #include "sdk/GFSDKHostCommands.hpp"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
+#if GF_ENGINE_GNUPG
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
+#endif
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateWizard.h"
 #include "ui/dialog/profile/ProfileManagerDialog.h"
@@ -350,11 +352,13 @@ void MainWindow::create_actions() {
   connect(module_controller_open_act_, &QAction::triggered, this,
           [this]() { (new ModuleControllerDialog(this))->exec(); });
 
+#if GF_ENGINE_GNUPG
   smart_card_controller_open_act_ = create_action(
       "smart_card_controller_open", tr("Open Smart Card Controller"),
       ":/icons/smart-card.png", tr("Open Smart Card Controller Dialog"));
   connect(smart_card_controller_open_act_, &QAction::triggered, this,
           [this]() { (new SmartCardControllerDialog(this))->exec(); });
+#endif
 
   /*
    * About Menu
@@ -604,9 +608,11 @@ void MainWindow::create_menus() {
   if (!IsRunningInSandBox()) {
     // Only show Smart Card Controller if GnuPG is supported, since it is not
     // useful for other engines.
+#if GF_ENGINE_GNUPG
     if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
       advance_menu_->addAction(smart_card_controller_open_act_);
     }
+#endif
     advance_menu_->addAction(module_controller_open_act_);
   }
 

@@ -36,7 +36,9 @@
 #include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
+#if GF_ENGINE_GNUPG
 #include "ui/dialog/settings/SettingsGnuPG.h"
+#endif
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsKeyGeneration.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
@@ -78,7 +80,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   network_tab_ = new NetworkTab();
   key_dbs_tab_ = new KeyDatabasesTab();
   key_gen_tab_ = new KeyGenerationTab();
+#if GF_ENGINE_GNUPG
   gnupg_tab_ = new GnuPGTab();
+#endif
   rpgp_tab_ = new RpgpTab();
   advanced_tab_ = new AdvancedTab();
 
@@ -141,6 +145,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
                       {tr("profile"), tr("algorithm"), tr("user id"),
                        tr("quick generate"), tr("pattern"), tr("new key")}});
 
+#if GF_ENGINE_GNUPG
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     descriptors.append(
         {gnupg_tab_,
@@ -150,6 +155,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           tr("password cache"), tr("reload"), tr("restart"), tr("gpg-agent"),
           tr("maintenance")}});
   }
+#endif
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
     descriptors.append(
@@ -269,10 +275,12 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           runtime_apply);
   connect(general_tab_, &GeneralTab::SignalRuntimeApplyNeeded, this,
           runtime_apply);
+#if GF_ENGINE_GNUPG
   connect(gnupg_tab_, &GnuPGTab::SignalRuntimeApplyNeeded, this, runtime_apply);
 
   connect(gnupg_tab_, &GnuPGTab::SignalDeepRestartNeeded, this,
           declare(kDeepRestartCode, gnupg_title));
+#endif
 
   // the advanced knobs are only read while the process starts, so applying
   // them means relaunching -- a deep restart, which does exactly that
@@ -472,7 +480,9 @@ void SettingsDialog::revert_all_tabs() {
   network_tab_->SetSettings();
   key_dbs_tab_->SetSettings();
   key_gen_tab_->SetSettings();
+#if GF_ENGINE_GNUPG
   gnupg_tab_->SetSettings();
+#endif
   rpgp_tab_->SetSettings();
   advanced_tab_->SetSettings();
 
@@ -556,9 +566,11 @@ void SettingsDialog::SlotAccept() {
   // was never wired up, so those changes were dropped on OK and the restart
   // applied nothing. Guarded like the tab itself, which is only shown when the
   // engine is supported.
+#if GF_ENGINE_GNUPG
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     gnupg_tab_->ApplySettings();
   }
+#endif
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
     rpgp_tab_->ApplySettings();

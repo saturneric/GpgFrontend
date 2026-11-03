@@ -195,26 +195,6 @@ jobs:
           shared-key: rust-mas-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
 
-      - name: Build GpgME
-        run: |
-          cd ${{github.workspace}}/third_party/gpgme
-          export CC="ccache gcc"
-          export CXX="ccache g++"
-          ./autogen.sh
-          mkdir -p build && cd build
-          ../configure --enable-static \
-          --disable-shared \
-          --enable-silent-rules \
-          --disable-dependency-tracking \
-          --enable-languages=cl \
-          --disable-gpgconf-test \
-          --disable-gpg-test \
-          --disable-gpgsm-test \
-          --disable-g13-test
-          make -j"$(sysctl -n hw.logicalcpu)"
-          sudo make install
-          ccache -s
-
       # Before anything is built: the committed Sandbox.entitlements and the
       # verbatim copy sign-mas carries must agree. The copy exists so a
       # compromised build job cannot choose its own entitlements and have them
@@ -249,7 +229,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
             -DGPGFRONTEND_BUILD_MODE=${{env.GPGFRONTEND_BUILD_MODE}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             -DGPGFRONTEND_BUILD_FLAVOR=sandbox
 
           # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as

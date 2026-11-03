@@ -28,7 +28,9 @@
 
 #include "KeyPairSubkeyTab.h"
 
+#if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgSmartCardManager.h"
+#endif
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
@@ -46,7 +48,9 @@
 #include "ui/function/DateTimeText.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/KeyDatabaseRefresh.h"
+#if GF_ENGINE_GNUPG
 #include "ui/function/MoveKeyToCard.h"
+#endif
 #include "ui/widgets/CopyableLabel.h"
 
 namespace {
@@ -92,9 +96,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
       IsOpSupported<ModifySubkeyPassphraseOpTag>(channel);
   // KEYTOCARD only moves keys held by gpg-agent, so this is a GnuPG-only op and
   // additionally needs a scdaemon new enough to talk to the card.
+#if GF_ENGINE_GNUPG
   move_to_card_supported_ =
       engine_ == OpenPGPEngine::kGNUPG &&
       GpgSmartCardManager::GetInstance(channel).IsSCDVersionSupported();
+#endif
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -778,11 +784,13 @@ void KeyPairSubkeyTab::slot_move_subkey_to_card() {
     index++;
   }
 
+#if GF_ENGINE_GNUPG
   // no card is pre-selected here, so the helper asks the user which card
   if (MoveKeyToCardInteractive(this, current_gpg_context_channel_, key_, index,
                                QString())) {
     emit SignalKeyDatabaseRefresh();
   }
+#endif
 }
 
 void KeyPairSubkeyTab::slot_revoke_subkey() {

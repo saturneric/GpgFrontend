@@ -57,12 +57,19 @@ if [[ -n "$included" ]]; then
   indent <<<"$included" >&2
 fi
 
-# 2. and 3. The binaries: the core, the startup library and the core tests.
-mapfile -t binaries < <(find "$build_dir/artifacts" -maxdepth 1 -type f \
-  \( -name 'libgf_core.so*' -o -name 'libgf_boot.a' \
-  -o -name 'gf_core_tests' \) | sort)
+# 2. and 3. The binaries: every program, library and module the build put in
+# artifacts/, which in the android flavor is the core, the startup library and
+# the core tests.
+mapfile -t binaries < <(find "$build_dir/artifacts" -type f \
+  \( -name '*.so' -o -name '*.so.*' -o -name '*.a' -o -perm -u+x \) |
+  while IFS= read -r file; do
+    # ELF files and archives only: scripts and data are not linked.
+    case "$(head -c 4 "$file" | od -An -c | tr -d ' ')" in
+      177ELF | '!<ar') echo "$file" ;;
+    esac
+  done | sort)
 if [[ ${#binaries[@]} -eq 0 ]]; then
-  fail "no gf_core, gf_boot or gf_core_tests in $build_dir/artifacts"
+  fail "no binaries in $build_dir/artifacts"
 fi
 
 for binary in "${binaries[@]}"; do
@@ -85,4 +92,4 @@ done
 if [[ $failed -ne 0 ]]; then
   exit 1
 fi
-echo "OK: no GpgME, libgpg-error or libassuan in ${binaries[*]}"
+echo "OK: no GpgME, libgpg-error or libassuan in ${#binaries[@]} binaries"
