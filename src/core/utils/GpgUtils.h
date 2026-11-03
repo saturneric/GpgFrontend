@@ -232,6 +232,17 @@ NormalizeKeyDatabaseChannels(QList<KeyDatabaseItemSO>& key_dbs);
  * The backend goes with the path, since which engine derived the keyring is
  * part of the same fact.
  *
+ * One stored DEFAULT is more than a record of a location: an rPGP keyring
+ * kept inside the profile (`@profile/...`), which is what an rPGP-only build
+ * -- the phone among them -- uses as its default. Its keys travel with the
+ * profile. When DEFAULT moves to this computer's own keyring -- GnuPG's home,
+ * whichever engine `basic/default_engine` opens it with -- that keyring is
+ * kept as an rPGP database of its own, appended after the others: an rPGP
+ * keyring only ever becomes an rPGP database, never another engine's. It is
+ * added once; an rPGP entry already at that place is the one kept before. The
+ * reverse direction needs nothing: another engine's default lives outside the
+ * profile, and the computer that has it re-points DEFAULT there.
+ *
  * Pure, so the local values are passed in rather than looked up. Entries that
  * are not the DEFAULT one are untouched, and a local default that is not there
  * -- an engine reporting none -- changes nothing.
@@ -239,11 +250,15 @@ NormalizeKeyDatabaseChannels(QList<KeyDatabaseItemSO>& key_dbs);
  * @param databases the stored list
  * @param local_path this computer's default keyring, empty if it has none
  * @param local_backend the engine that keyring belongs to
- * @return the list with the DEFAULT entry re-pointed, order preserved
+ * @param profile_root what `@profile` stands for: where the stored keyring
+ * is this computer's own one, spelled the other way, there is nothing to keep
+ * @return the list with the DEFAULT entry re-pointed, order preserved, and a
+ * kept rPGP keyring appended
  */
 auto GF_CORE_EXPORT AdoptLocalDefaultKeyDatabase(
     const QList<KeyDatabaseItemSO>& databases, const QString& local_path,
-    const QString& local_backend) -> QList<KeyDatabaseItemSO>;
+    const QString& local_backend, const QString& profile_root = {})
+    -> QList<KeyDatabaseItemSO>;
 
 /**
  * @brief Which of the three kinds a stored entry is.
@@ -389,6 +404,22 @@ auto GF_CORE_EXPORT SelectRecycledKeyDatabaseFolders(
  * @return "rpgp", "gnupg", or empty when neither left its files there
  */
 auto GF_CORE_EXPORT GuessKeyDatabaseBackend(const QString& path) -> QString;
+
+/**
+ * @brief Where a self-contained profile keeps this build's default keyring.
+ *
+ * `db` in the profile, except where a build without GnuPG finds GnuPG's
+ * keyring there: opened with rPGP it would look empty, and what this build
+ * added would be invisible to the build that made it. It then keeps its own
+ * in `rpgp_db`, where it does for a profile that is not self-contained, and
+ * a build with GnuPG opens that as an rPGP database of its own.
+ *
+ * @param app_data_path the profile's data directory
+ * @param gnupg_built whether this build has the GnuPG engine
+ * @return the absolute path of the default keyring
+ */
+auto GF_CORE_EXPORT SelfContainedDefaultKeyDatabasePath(
+    const QString& app_data_path, bool gnupg_built) -> QString;
 
 /**
  * @brief What CreateManagedKeyDatabaseFolderExclusively() did.

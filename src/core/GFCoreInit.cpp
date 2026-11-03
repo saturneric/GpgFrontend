@@ -94,8 +94,9 @@ auto GetDefaultKeyDatabasePath() -> QString {
   // through the same flag rather than through a mode of their own: the
   // location and the policy were always two separate things.
   if (GlobalSettingStation::GetInstance().IsSelfContainedProfile()) {
-    default_db_path =
-        GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
+    default_db_path = SelfContainedDefaultKeyDatabasePath(
+        GlobalSettingStation::GetInstance().GetAppDataPath(),
+        GF_ENGINE_GNUPG != 0);
     LOG_D() << "default key db for a self-contained profile:"
             << default_db_path;
     goto out;

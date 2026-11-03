@@ -648,8 +648,8 @@ auto ReconcileKeyDatabaseList(const QList<KeyDatabaseItemSO>& stored,
   // stored path for it only ever records where it was on whichever machine last
   // wrote the settings -- which, for a profile opened from a package, is
   // somewhere else entirely.
-  key_dbs = AdoptLocalDefaultKeyDatabase(key_dbs, local_default.path,
-                                         local_default.backend_type);
+  key_dbs = AdoptLocalDefaultKeyDatabase(
+      key_dbs, local_default.path, local_default.backend_type, profile_root);
 
   // What each database is, settled once here so nothing below has to guess it
   // from a path. An entry from a build before the field existed gets its kind
@@ -1308,23 +1308,93 @@ auto DropDuplicateDefaultKeyDatabases(const QList<KeyDatabaseItemSO>& databases)
   return out;
 }
 
+namespace {
+
+/// A keyring that travels with the profile rather than living on one machine.
+auto IsProfileCarriedPath(const QString& stored_path) -> bool {
+  return stored_path == QLatin1StringView(kProfilePathToken) ||
+         stored_path.startsWith(QLatin1StringView(kProfilePathToken) + '/');
+}
+
+/// @p base, or "base (2)", "base (3)"... whichever no entry is called yet.
+auto UnusedKeyDatabaseName(const QList<KeyDatabaseItemSO>& databases,
+                           const QString& base) -> QString {
+  const auto taken = [&databases](const QString& name) {
+    return std::any_of(databases.cbegin(), databases.cend(),
+                       [&name](const KeyDatabaseItemSO& item) {
+                         return item.name.compare(name, Qt::CaseInsensitive) ==
+                                0;
+                       });
+  };
+  auto name = base;
+  for (int n = 2; taken(name); ++n) name = u"%1 (%2)"_s.arg(base).arg(n);
+  return name;
+}
+
+}  // namespace
+
 auto AdoptLocalDefaultKeyDatabase(const QList<KeyDatabaseItemSO>& databases,
                                   const QString& local_path,
-                                  const QString& local_backend)
+                                  const QString& local_backend,
+                                  const QString& profile_root)
     -> QList<KeyDatabaseItemSO> {
   if (local_path.isEmpty()) return databases;
 
   QList<KeyDatabaseItemSO> out;
-  out.reserve(databases.size());
+  out.reserve(databases.size() + 1);
+  std::optional<KeyDatabaseItemSO> carried;
 
   for (auto item : databases) {
     if (IsReservedKeyDatabaseName(item.name) && item.path != local_path) {
+      // An rPGP keyring kept inside the profile -- what an rPGP-only build,
+      // the phone among them, records as its default -- holds keys, unlike a
+      // path to another machine's keyring. When DEFAULT moves to this
+      // computer's keyring, whichever engine opens that, the profile's keyring
+      // stays an rPGP database of its own rather than being dropped or handed
+      // to another engine. Once only: an rPGP entry already at that place is
+      // the one kept last time.
+      // The phone's own default, `@profile/rpgp_db`, comes back from the
+      // engine spelled out, and maybe spelled another way (/data/user/0 is
+      // /data/data on Android): the same keyring, nothing to keep.
+      const bool same_place =
+          !profile_root.isEmpty() &&
+          IsSameKeyDatabaseLocation(
+              FromProfileRelativeKeyDatabasePath(item.path, profile_root),
+              local_path);
+      if (item.backend_type == QStringLiteral("rpgp") &&
+          IsProfileCarriedPath(item.path) && !same_place) {
+        const auto clean = QDir::cleanPath(item.path);
+        const bool kept_already =
+            std::any_of(databases.cbegin(), databases.cend(),
+                        [&clean](const KeyDatabaseItemSO& other) {
+                          return !IsReservedKeyDatabaseName(other.name) &&
+                                 other.backend_type == QStringLiteral("rpgp") &&
+                                 QDir::cleanPath(other.path) == clean;
+                        });
+        if (!kept_already) {
+          KeyDatabaseItemSO keep;
+          keep.name = UnusedKeyDatabaseName(databases, QStringLiteral("rPGP"));
+          keep.backend_type = QStringLiteral("rpgp");
+          keep.path = item.path;
+          carried = keep;
+        }
+      }
+
       LOG_I() << "pointing the default key database at this computer's own:"
               << item.path << "->" << local_path;
       item.path = local_path;
       if (!local_backend.isEmpty()) item.backend_type = local_backend;
     }
     out.push_back(item);
+  }
+
+  if (carried) {
+    int channel = 0;
+    for (const auto& item : out) channel = std::max(channel, item.channel + 1);
+    carried->channel = channel;
+    LOG_I() << "keeping the profile's rPGP keyring as its own database:"
+            << carried->path << "as" << carried->name;
+    out.push_back(*carried);
   }
   return out;
 }
@@ -1574,6 +1644,15 @@ auto GuessKeyDatabaseBackend(const QString& path) -> QString {
   }
   if (QFileInfo::exists(dir.filePath("gf_keydb.sqlite"))) return "rpgp";
   return {};
+}
+
+auto SelfContainedDefaultKeyDatabasePath(const QString& app_data_path,
+                                         bool gnupg_built) -> QString {
+  const auto db = app_data_path + "/db";
+  if (!gnupg_built && GuessKeyDatabaseBackend(db) == QStringLiteral("gnupg")) {
+    return app_data_path + "/rpgp_db";
+  }
+  return db;
 }
 
 auto CreateManagedKeyDatabaseFolderExclusively(const QString& app_data_path,

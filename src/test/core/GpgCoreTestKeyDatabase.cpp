@@ -645,6 +645,100 @@ TEST_F(GFCoreTest, AdoptingTheLocalDefaultIsIdempotent) {
   EXPECT_EQ(twice.at(0).path, "/home/eric/.gnupg");
 }
 
+TEST_F(GFCoreTest, AProfilesRpgpKeyringStaysAnRpgpDatabase) {
+  // A profile the phone wrote: its DEFAULT is the rPGP keyring inside the
+  // profile, and the keys are there. On a desktop whose default is GnuPG,
+  // DEFAULT becomes GnuPG's -- and the phone's keyring stays an rPGP database
+  // of its own, never GnuPG's.
+  QList<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "@profile/rpgp_db", "rpgp", 0));
+
+  const auto adopted =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.gnupg", "gnupg");
+
+  ASSERT_EQ(adopted.size(), 2);
+  EXPECT_EQ(adopted.at(0).name, "DEFAULT");
+  EXPECT_EQ(adopted.at(0).path, "/home/eric/.gnupg");
+  EXPECT_EQ(adopted.at(0).backend_type, "gnupg");
+  EXPECT_EQ(adopted.at(1).path, "@profile/rpgp_db");
+  EXPECT_EQ(adopted.at(1).backend_type, "rpgp");
+  EXPECT_FALSE(IsReservedKeyDatabaseName(adopted.at(1).name));
+  EXPECT_GT(adopted.at(1).channel, adopted.at(0).channel);
+}
+
+TEST_F(GFCoreTest, TheKeptRpgpKeyringSurvivesTheRoundTrip) {
+  // Phone, desktop, phone, desktop: the keyring is kept once, and each side
+  // still opens its own default.
+  QList<KeyDatabaseItemSO> phone;
+  phone.push_back(MakeItem("DEFAULT", "@profile/rpgp_db", "rpgp", 0));
+
+  const auto desktop =
+      AdoptLocalDefaultKeyDatabase(phone, "/home/eric/.gnupg", "gnupg");
+  ASSERT_EQ(desktop.size(), 2);
+
+  // Back on the phone, DEFAULT is its keyring again; the kept entry is left
+  // for the desktop (opening drops it as a second name for the same place).
+  const auto phone_again =
+      AdoptLocalDefaultKeyDatabase(desktop, "@profile/rpgp_db", "rpgp");
+  ASSERT_EQ(phone_again.size(), 2);
+  EXPECT_EQ(phone_again.at(0).path, "@profile/rpgp_db");
+  EXPECT_EQ(phone_again.at(0).backend_type, "rpgp");
+
+  const auto desktop_again =
+      AdoptLocalDefaultKeyDatabase(phone_again, "/home/eric/.gnupg", "gnupg");
+  ASSERT_EQ(desktop_again.size(), 2) << "kept once, not once per visit";
+  EXPECT_EQ(desktop_again.at(1).name, desktop.at(1).name);
+}
+
+TEST_F(GFCoreTest, OnlyAKeyringInsideTheProfileIsKept) {
+  // An rPGP DEFAULT outside the profile is another machine's location, not
+  // keys that travelled: replaced, as any DEFAULT path is.
+  QList<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "/home/other/.rpgp_db", "rpgp", 0));
+
+  const auto adopted =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.gnupg", "gnupg");
+  ASSERT_EQ(adopted.size(), 1);
+  EXPECT_EQ(adopted.at(0).backend_type, "gnupg");
+}
+
+TEST_F(GFCoreTest, TheKeyringIsKeptWhicheverEngineOpensTheDefault) {
+  // A desktop whose default engine is rPGP still keeps its DEFAULT at its own
+  // keyring's place: the profile's keyring is kept beside it all the same.
+  QList<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "@profile/rpgp_db", "rpgp", 0));
+  const auto adopted =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.gnupg", "rpgp");
+  ASSERT_EQ(adopted.size(), 2);
+  EXPECT_EQ(adopted.at(1).path, "@profile/rpgp_db");
+  EXPECT_EQ(adopted.at(1).backend_type, "rpgp");
+
+  // On the build that wrote it, DEFAULT already is that keyring: nothing to
+  // keep, however the engine spells it -- the phone's engine reports the
+  // absolute path of what its profile records as @profile/rpgp_db.
+  EXPECT_EQ(AdoptLocalDefaultKeyDatabase(databases, "@profile/rpgp_db", "rpgp")
+                .size(),
+            1);
+  const auto phone =
+      AdoptLocalDefaultKeyDatabase(databases, "/data/user/0/app/files/rpgp_db",
+                                   "rpgp", "/data/user/0/app/files");
+  ASSERT_EQ(phone.size(), 1);
+  EXPECT_EQ(phone.front().path, "/data/user/0/app/files/rpgp_db");
+}
+
+TEST_F(GFCoreTest, TheKeptKeyringTakesANameNobodyHas) {
+  QList<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "@profile/rpgp_db", "rpgp", 0));
+  databases.push_back(MakeItem("rPGP", "@profile/dbs/rPGP", "rpgp", 1));
+
+  const auto adopted =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.gnupg", "gnupg");
+  ASSERT_EQ(adopted.size(), 3);
+  EXPECT_EQ(adopted.at(2).name, "rPGP (2)");
+  EXPECT_EQ(adopted.at(2).path, "@profile/rpgp_db");
+  EXPECT_EQ(adopted.at(2).channel, 2);
+}
+
 // ------------------------------------- the engine belongs to the database
 
 TEST_F(GFCoreTest, AKeyDatabaseIsOpenedWithItsOwnBackend) {
@@ -689,6 +783,31 @@ TEST_F(GFCoreTest, ADatabaseOfAnEngineThisBuildLacksIsLeftAlone) {
   EXPECT_EQ(MissingKeyDatabaseEngine("rpgp", true, false), "rPGP");
   EXPECT_TRUE(MissingKeyDatabaseEngine("gnupg", true, false).isEmpty());
   EXPECT_TRUE(MissingKeyDatabaseEngine("", false, true).isEmpty());
+}
+
+TEST_F(GFCoreTest, AnRpgpOnlyBuildKeepsOutOfAProfilesGnupgKeyring) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto root = dir.path();
+
+  // Nothing there yet: whichever build comes first makes `db` its own.
+  EXPECT_EQ(SelfContainedDefaultKeyDatabasePath(root, false), root + "/db");
+  EXPECT_EQ(SelfContainedDefaultKeyDatabasePath(root, true), root + "/db");
+
+  // An rPGP keyring there is this build's own.
+  ASSERT_TRUE(QDir(root).mkpath("db"));
+  QFile sqlite(root + "/db/gf_keydb.sqlite");
+  ASSERT_TRUE(sqlite.open(QIODevice::WriteOnly));
+  sqlite.close();
+  EXPECT_EQ(SelfContainedDefaultKeyDatabasePath(root, false), root + "/db");
+
+  // GnuPG's is not.
+  QFile keybox(root + "/db/pubring.kbx");
+  ASSERT_TRUE(keybox.open(QIODevice::WriteOnly));
+  keybox.close();
+  EXPECT_EQ(SelfContainedDefaultKeyDatabasePath(root, false),
+            root + "/rpgp_db");
+  EXPECT_EQ(SelfContainedDefaultKeyDatabasePath(root, true), root + "/db");
 }
 
 TEST_F(GFCoreTest, TheBuiltInDatabaseOpensWithWhateverEngineTheBuildHas) {
