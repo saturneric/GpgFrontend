@@ -40,8 +40,10 @@ elseif(APPLE)
   target_link_libraries(gf_boot PRIVATE
     ${SECURITY_FRAMEWORK}
     ${COREFOUNDATION_FRAMEWORK})
-elseif(NOT ANDROID)
+elseif(ANDROID)
+  # logcat, where the log handler writes.
+  target_link_libraries(gf_boot PRIVATE log)
+else()
   # libsecret is resolved at runtime through QLibrary, so nothing to link.
-  # Android's libc carries the threads itself.
   target_link_libraries(gf_boot PRIVATE pthread)
 endif()

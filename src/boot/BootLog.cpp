@@ -30,6 +30,10 @@
 
 #include "core/GFCoreLog.h"
 
+#ifdef Q_OS_ANDROID
+#include <android/log.h>
+#endif
+
 namespace {
 
 std::atomic<int> g_log_level{static_cast<int>(GpgFrontend::GFLogLevel::kINFO)};
@@ -59,6 +63,24 @@ auto ShouldLogMessage(QtMsgType type, GpgFrontend::GFLogLevel level) -> bool {
       return type != QtDebugMsg;
   }
 }
+
+#ifdef Q_OS_ANDROID
+auto AndroidLogPriority(QtMsgType type) -> int {
+  switch (type) {
+    case QtDebugMsg:
+      return ANDROID_LOG_DEBUG;
+    case QtInfoMsg:
+      return ANDROID_LOG_INFO;
+    case QtWarningMsg:
+      return ANDROID_LOG_WARN;
+    case QtCriticalMsg:
+      return ANDROID_LOG_ERROR;
+    case QtFatalMsg:
+      return ANDROID_LOG_FATAL;
+  }
+  return ANDROID_LOG_INFO;
+}
+#endif
 
 }  // namespace
 
@@ -93,7 +115,17 @@ void GFMessageHandler(QtMsgType type, const QMessageLogContext& context,
 
   GFLogManager::Instance().Push(entry);
 
-#ifdef Q_OS_WINDOWS
+#if defined(Q_OS_ANDROID)
+  // An application's stdout and stderr go nowhere on Android: logcat is where
+  // its messages are read, tagged with their category as Qt's own handler
+  // does.
+  const QByteArray tag =
+      (context.category != nullptr && context.category[0] != '\0')
+          ? QByteArray(context.category)
+          : QByteArrayLiteral("GpgFrontend");
+  __android_log_write(AndroidLogPriority(type), tag.constData(),
+                      formatted.toUtf8().constData());
+#elif defined(Q_OS_WINDOWS)
   QByteArray local = formatted.toLocal8Bit();
   fprintf(stdout, "%s\n", local.constData());
   fflush(stdout);
