@@ -162,4 +162,21 @@ TEST(GpgOpResultInfoTest, NoCallErrorCollapsesNothing) {
   EXPECT_EQ(info.stageErrors[0].scope, GpgOperation::kSIGN);
 }
 
+// One grading, whichever interface shows the signature.
+TEST(GpgOpResultInfoTest, EverySignatureValidityHasItsVerdict) {
+  EXPECT_EQ(GradeSignature(GpgSigValidity::kFULLY_VALID), GpgSigVerdict::kGOOD);
+  for (const auto validity :
+       {GpgSigValidity::kVALID_NOT_FULLY_TRUSTED,
+        GpgSigValidity::kVALID_WITH_ISSUES, GpgSigValidity::kSIG_EXPIRED,
+        GpgSigValidity::kKEY_EXPIRED}) {
+    EXPECT_EQ(GradeSignature(validity), GpgSigVerdict::kWARNING);
+  }
+  for (const auto validity :
+       {GpgSigValidity::kINVALID, GpgSigValidity::kKEY_MISSING,
+        GpgSigValidity::kKEY_REVOKED, GpgSigValidity::kERROR,
+        GpgSigValidity::kUNKNOWN, GpgSigValidity::kKEY_NOT_AUTHORIZED}) {
+    EXPECT_EQ(GradeSignature(validity), GpgSigVerdict::kBAD);
+  }
+}
+
 }  // namespace GpgFrontend::Test

@@ -32,6 +32,20 @@
 
 namespace GpgFrontend {
 
+auto GradeSignature(GpgSigValidity validity) -> GpgSigVerdict {
+  switch (validity) {
+    case GpgSigValidity::kFULLY_VALID:
+      return GpgSigVerdict::kGOOD;
+    case GpgSigValidity::kVALID_NOT_FULLY_TRUSTED:
+    case GpgSigValidity::kVALID_WITH_ISSUES:
+    case GpgSigValidity::kSIG_EXPIRED:
+    case GpgSigValidity::kKEY_EXPIRED:
+      return GpgSigVerdict::kWARNING;
+    default:
+      return GpgSigVerdict::kBAD;
+  }
+}
+
 auto CombineGpgOperations(GpgOperation a, GpgOperation b) -> GpgOperation {
   if (a == b || b == GpgOperation::kNONE) return a;
   if (a == GpgOperation::kNONE) return b;

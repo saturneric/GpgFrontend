@@ -58,6 +58,16 @@ enum class GpgSigValidity : std::uint8_t {
                              ///<   know keep their meaning)
 };
 
+/// How a signature reads at a glance; the one grading every interface shows.
+enum class GpgSigVerdict : std::uint8_t {
+  kGOOD,     ///< valid, by a key that is fully trusted
+  kWARNING,  ///< valid, but with something the reader should know
+  kBAD,      ///< not a signature to rely on
+};
+
+/// The verdict on a signature of @p validity.
+auto GF_CORE_EXPORT GradeSignature(GpgSigValidity validity) -> GpgSigVerdict;
+
 /**
  * @brief The operation two merged results describe together.
  *

@@ -139,17 +139,15 @@ auto card_from_json(const QJsonObject& obj) -> InfoBoardCard {
 }
 
 auto sig_validity_to_status(GpgSigValidity validity) -> InfoBoardStatus {
-  switch (validity) {
-    case GpgSigValidity::kFULLY_VALID:
+  switch (GradeSignature(validity)) {
+    case GpgSigVerdict::kGOOD:
       return kINFO_ERROR_OK;
-    case GpgSigValidity::kVALID_NOT_FULLY_TRUSTED:
-    case GpgSigValidity::kVALID_WITH_ISSUES:
-    case GpgSigValidity::kSIG_EXPIRED:
-    case GpgSigValidity::kKEY_EXPIRED:
+    case GpgSigVerdict::kWARNING:
       return kINFO_ERROR_WARN;
-    default:
-      return kINFO_ERROR_CRITICAL;
+    case GpgSigVerdict::kBAD:
+      break;
   }
+  return kINFO_ERROR_CRITICAL;
 }
 
 auto sig_validity_to_text(GpgSigValidity validity) -> QString {
