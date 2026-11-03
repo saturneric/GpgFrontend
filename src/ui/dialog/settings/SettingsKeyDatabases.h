@@ -33,6 +33,7 @@
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/CoreTypedef.h"
+#include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/settings/KeyDatabaseSettingsModel.h"
 
 class Ui_KeyDatabasesSettings;
@@ -158,6 +159,9 @@ class KeyDatabasesTab : public QWidget {
     QString path;
     QString backend_type;  ///< as judged by its files, empty when unknown
     qint64 size{-1};       ///< -1 until measured
+    /// The id of a database removed on this page, its removal not applied
+    /// yet; empty for a folder already in the Recycle Bin.
+    QString pending_id;
   };
 
   /// What the stored list referred to when last read: the page's own changes
@@ -172,6 +176,23 @@ class KeyDatabasesTab : public QWidget {
 
   /// A permanent deletion is running.
   bool deleting_ = false;
+
+  /// A folder removed on this page and deleted before OK: its removal is
+  /// applied first, and the folder deleted once nothing has it open.
+  struct DeferredDeletion {
+    QString name;
+    QString path;
+    QPointer<WaitingDialog> waiting;
+  };
+  std::optional<DeferredDeletion> deferred_deletion_;
+
+  /// Delete the deferred folder if nothing has it open any more. Called when
+  /// an apply finishes (@p applied) and when a channel is released.
+  void continue_deferred_deletion(bool applied);
+
+  /// Delete @p path for good off the GUI thread, closing @p waiting after.
+  void run_deletion(const QString& name, const QString& path,
+                    const QPointer<WaitingDialog>& waiting);
 
   /// Read the stored list's folders into saved_snapshot_.
   void take_saved_snapshot();

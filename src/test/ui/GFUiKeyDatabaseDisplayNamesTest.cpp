@@ -427,11 +427,65 @@ TEST(KeyDatabaseSettingsModelTest, MovingToTheRecycleBinCommitsOnlyOnApply) {
   EXPECT_TRUE(reloaded.Contains("id-work"));
 }
 
+// A managed database removed on the page is remembered until applied, so the
+// Recycle Bin can show it at once and put it back as it was.
+TEST(KeyDatabaseSettingsModelTest, ARemovalNotAppliedCanBeUndone) {
+  KeyDatabaseListSO stored;
+  ThreeDatabases().ApplyTo(stored);
+
+  auto model = ThreeDatabases();
+  model.RemoveAt(model.managed, 0);
+  ASSERT_EQ(model.removed_managed.size(), 1);
+  EXPECT_EQ(model.removed_managed.front().id, "id-work");
+
+  KeyDatabaseListSO applied;
+  model.ApplyTo(applied);
+  EXPECT_FALSE(IdsOf(applied.key_databases).contains("id-work"))
+      << "a removal waiting for the Recycle Bin was written back";
+
+  EXPECT_FALSE(model.UndoRemoval("id-usb"));
+  ASSERT_TRUE(model.UndoRemoval("id-work"));
+  EXPECT_TRUE(model.removed_managed.isEmpty());
+  EXPECT_FALSE(model.UndoRemoval("id-work"));
+
+  // Same identity: applying now changes nothing.
+  model.ApplyTo(applied);
+  EXPECT_EQ(IdsOf(applied.key_databases), IdsOf(stored.key_databases));
+
+  // Loading again forgets removals.
+  model.RemoveAt(model.managed, 0);
+  model.Load({BuiltIn()}, {}, u"gnupg"_s);
+  EXPECT_TRUE(model.removed_managed.isEmpty());
+}
+
+// Deleting a pending removal from the Recycle Bin stores that removal alone:
+// the rest of the page stays unsaved, and it can no longer be undone.
+TEST(KeyDatabaseSettingsModelTest, CommittingARemovalStoresOnlyIt) {
+  auto model = ThreeDatabases();
+  ASSERT_TRUE(model.UseAsDefault("id-work"));
+  KeyDatabaseListSO stored;
+  model.ApplyTo(stored);
+
+  model.RemoveAt(model.managed, 0);
+  model.RemoveAt(model.external, 0);
+
+  EXPECT_FALSE(model.CommitRemoval("id-usb", stored));
+  ASSERT_TRUE(model.CommitRemoval("id-work", stored));
+  EXPECT_EQ(IdsOf(stored.key_databases),
+            (QStringList{QString(kDefaultKeyDatabaseId), "id-usb"}))
+      << "only the committed removal may reach the stored list";
+  EXPECT_TRUE(stored.default_database_id.isEmpty());
+
+  EXPECT_TRUE(model.removed_managed.isEmpty());
+  EXPECT_FALSE(model.UndoRemoval("id-work"));
+}
+
 // Removing a reference to a folder on this computer drops only that entry; the
 // managed list, which the Recycle Bin is about, is untouched.
 TEST(KeyDatabaseSettingsModelTest, RemovingAReferenceLeavesManagedAlone) {
   auto model = ThreeDatabases();
   model.RemoveAt(model.external, 0);
+  EXPECT_TRUE(model.removed_managed.isEmpty());
 
   KeyDatabaseListSO applied;
   model.ApplyTo(applied);
