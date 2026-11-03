@@ -36,8 +36,8 @@ namespace GpgFrontend {
  * @brief Core initialization arguments.
  */
 struct CoreInitArgs {
-  bool gather_external_gnupg_info;
-  bool unit_test_mode;
+  bool gather_external_gnupg_info = false;
+  bool unit_test_mode = false;
 };
 
 /**
