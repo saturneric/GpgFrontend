@@ -1272,20 +1272,24 @@ jobs:
           if-no-files-found: error
         if: ${{ !inputs.screenshot }}
 
-  # Compiles and deploys the macOS bundle. Deliberately holds no secrets: the
-  # Developer ID key must never share a runner with brew, cargo build scripts,
-  # recursive submodules or third-party build actions. The bundle leaves here
-  # unsigned and is signed by sign-macos below.
-  # The Android application for arm64-v8a, cross-built with the toolchain it is
-  # released with: Qt 6.10.3 for Android (the oldest open-source Qt whose
-  # Android libraries are 16 KB-page aligned and target API 36), NDK r27c and
-  # JDK 17, as Qt 6.10 documents. The SDK and JDK are the runner image's own;
-  # the NDK is installed at the exact version and Qt with the pinned
-  # install-qt-action the desktop jobs use. It builds the APK, signs it with a
-  # key made for this run only, checks it, and uploads it to install on a
-  # device; it runs nothing on one.
-  android-arm64:
+  # The Android application, cross-built with the toolchain it is released
+  # with: Qt 6.10.3 for Android (the oldest open-source Qt whose Android
+  # libraries are 16 KB-page aligned and target API 36), NDK r27c and JDK 17,
+  # as Qt 6.10 documents. The SDK and JDK are the runner image's own; the NDK
+  # is installed at the exact version and Qt with the pinned install-qt-action
+  # the desktop jobs use.
+  #
+  # Like build-macos, it holds no secrets: the APK leaves here unsigned, after
+  # the checks that need the build tree, and is signed by sign-android below.
+  build-android:
     if: ${{ !inputs.screenshot }}
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            abi: arm64-v8a
+            qt_arch: android_arm64_v8a
+            rust_target: aarch64-linux-android
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -1318,7 +1322,7 @@ jobs:
           version: ${{ env.GF_ANDROID_QT }}
           host: all_os
           target: android
-          arch: android_arm64_v8a
+          arch: ${{ matrix.qt_arch }}
           dir: ${{ runner.temp }}
           cache: "true"
 
@@ -1326,59 +1330,164 @@ jobs:
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
         with:
           toolchain: stable
-          targets: aarch64-linux-android
+          targets: ${{ matrix.rust_target }}
 
       - name: Build The APK
+        env:
+          QT_ARCH: ${{ matrix.qt_arch }}
         run: |
           set -euo pipefail
           export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
           ndk="$ANDROID_HOME/ndk/$GF_ANDROID_NDK"
           qt="$RUNNER_TEMP/Qt/$GF_ANDROID_QT"
-          "$qt/android_arm64_v8a/bin/qt-cmake" -S . -B build-android -G Ninja \
+          "$qt/$QT_ARCH/bin/qt-cmake" -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DGPGFRONTEND_BUILD_FLAVOR=android \
             -DANDROID_SDK_ROOT="$ANDROID_HOME" -DANDROID_NDK_ROOT="$ndk" \
             -DQT_HOST_PATH="$qt/gcc_64"
-          cmake --build build-android --parallel
-          cmake --build build-android --target apk
+          cmake --build build --parallel
+          cmake --build build --target apk
 
       - name: Check The Libraries
         run: |
           set -euo pipefail
           bin="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
           NM="$bin/llvm-nm" READELF="$bin/llvm-readelf" \
-            scripts/check_no_gpgme.sh build-android
+            scripts/check_no_gpgme.sh build
 
-      # Signed with a key made here and thrown away: installable on a device
-      # for testing, never an update to a released build.
-      - name: Sign And Check The APK
+      # What signing cannot change, checked here where the build tree and the
+      # scripts are: the package, its API level, and every native library 16
+      # KB aligned (apksigner signs without moving entries).
+      - name: Check The APK
+        run: |
+          set -euo pipefail
+          bt="$ANDROID_HOME/build-tools/36.0.0"
+          apk="build/src/mob/android-build/build/outputs/apk/release/android-build-release-unsigned.apk"
+          "$bt/aapt2" dump badging "$apk" | grep -E "^package|targetSdkVersion"
+          READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            ZIPALIGN="$bt/zipalign" \
+            scripts/android/check-elf-alignment.sh "$apk"
+          mkdir -p build/unsigned
+          cp "$apk" build/unsigned/unsigned.apk
+
+      - name: Upload Unsigned Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          # NOT "gpgfrontend-*": that is the pattern the release job downloads,
+          # and an unsigned APK must never reach a release.
+          name: unsigned-android-apk-${{ matrix.arch }}
+          path: build/unsigned/unsigned.apk
+          if-no-files-found: error
+
+      # Separate, as build-macos does: it reaches provenance without passing
+      # through sign-android, which takes nothing but the APK from here.
+      - name: Upload Build Info
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: buildinfo-android-${{ matrix.arch }}
+          path: build/artifacts/build-info.json
+          if-no-files-found: error
+
+  # Signs the APK with the release key. Every APK is signed by the same key,
+  # so a newer build installs over an older one on a phone. Like sign-macos:
+  # no checkout, no build, and nothing read from the artifact but the APK.
+  sign-android:
+    needs: build-android
+    # Two independent gates on which refs may ever request the signing key: this
+    # condition, and the deployment branch rule on the environment below. Never
+    # a pull request, never a branch other than main, never a non-v tag.
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    strategy:
+      matrix:
+        arch: ["arm64"]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    # The keystore lives in this environment, not in repository secrets.
+    # Maintainer: configure its deployment branch rule to allow only `main`
+    # and tags matching `v*`, as defence in depth behind the `if:` above.
+    environment: android-signing
+    steps:
+      # Runs before anything else, and only tests for emptiness; no value is
+      # printed, and an unset secret arrives as the empty string.
+      - name: Preflight Check Signing Credentials
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=""
+          [ -n "${ANDROID_KEYSTORE:-}" ] || missing="$missing ANDROID_KEYSTORE"
+          [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] || missing="$missing ANDROID_KEYSTORE_PASSWORD"
+          [ -n "${ANDROID_KEY_ALIAS:-}" ] || missing="$missing ANDROID_KEY_ALIAS"
+          [ -n "${ANDROID_KEY_PASSWORD:-}" ] || missing="$missing ANDROID_KEY_PASSWORD"
+
+          if [ -n "$missing" ]; then
+            echo "The 'android-signing' environment is missing:" >&2
+            for name in $missing; do echo "  - $name" >&2; done
+            echo >&2
+            echo "Set them under Settings > Environments > android-signing." >&2
+            echo "ANDROID_KEYSTORE is the keystore file (PKCS#12 or JKS), base64" >&2
+            echo "encoded on one line (base64 -w0 release.p12). Keep that file:" >&2
+            echo "an installed app only takes updates signed by the same key." >&2
+            exit 1
+          fi
+          echo "all four signing credentials are present"
+
+      - name: Install Build Tools
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;36.0.0"
+
+      - name: Download Unsigned APK
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: unsigned-android-apk-${{ matrix.arch }}
+          path: ${{ runner.temp }}/unsigned
+
+      # The name comes from GitHub context and the matrix, never from the
+      # artifact, as in sign-macos.
+      - name: Sign And Verify The APK
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ARCH: ${{ matrix.arch }}
         run: |
           set -euo pipefail
           export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
           bt="$ANDROID_HOME/build-tools/36.0.0"
-          ks="$RUNNER_TEMP/test.keystore"
-          keytool -genkeypair -keystore "$ks" -storepass android -keypass android \
-            -alias test -dname "CN=GpgFrontend CI Test,O=GpgFrontend,C=DE" \
-            -keyalg RSA -keysize 2048 -validity 30
-          in="build-android/src/mob/android-build/build/outputs/apk/release/android-build-release-unsigned.apk"
-          "$bt/apksigner" sign --ks "$ks" --ks-pass pass:android \
-            --key-pass pass:android --out gpgfrontend-android-arm64-test.apk "$in"
-          "$bt/apksigner" verify gpgfrontend-android-arm64-test.apk
-          "$bt/aapt2" dump badging gpgfrontend-android-arm64-test.apk |
-            grep -E "^package|targetSdkVersion"
-          READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
-            ZIPALIGN="$bt/zipalign" \
-            scripts/android/check-elf-alignment.sh gpgfrontend-android-arm64-test.apk
+          ks="$RUNNER_TEMP/release.keystore"
+          trap 'rm -f "$ks"' EXIT
+          printf '%s' "$ANDROID_KEYSTORE" | base64 -d > "$ks"
+          out="$RUNNER_TEMP/upload-artifact"
+          mkdir -p "$out"
+          apk="$out/GpgFrontend-${GITHUB_SHA:0:7}-android-${ARCH}.apk"
+          "$bt/apksigner" sign --ks "$ks" --ks-key-alias "$ANDROID_KEY_ALIAS" \
+            --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+            --key-pass env:ANDROID_KEY_PASSWORD \
+            --out "$apk" "$RUNNER_TEMP/unsigned/unsigned.apk"
+          rm -f "$apk.idsig"
+          "$bt/apksigner" verify --verbose --print-certs "$apk" |
+            grep -E "^Verified using|^Signer #1 certificate (DN|SHA-256)"
 
-      # Not named gpgfrontend-*: that namespace is the release's, and the
-      # provenance job would take a test build into it.
-      - name: Upload The APK
+      - name: Upload Signed APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: test-apk-android-arm64
-          path: gpgfrontend-android-arm64-test.apk
+          name: gpgfrontend-android-${{ matrix.arch }}
+          path: ${{ runner.temp }}/upload-artifact/*
           if-no-files-found: error
 
+  # Compiles and deploys the macOS bundle. Deliberately holds no secrets: the
+  # Developer ID key must never share a runner with brew, cargo build scripts,
+  # recursive submodules or third-party build actions. The bundle leaves here
+  # unsigned and is signed by sign-macos below.
   build-macos:
     # Nothing of macOS in a screenshot build; sign-macos and macos-smoke
     # depend on this job and are skipped with it.
@@ -2685,7 +2794,7 @@ jobs:
   # hold both the ability to mint an identity token and the ability to rewrite
   # the repository.
   provenance:
-    needs: [build, sign-macos, macos-smoke]
+    needs: [build, sign-macos, macos-smoke, sign-android]
     runs-on: ubuntu-latest
     # No status function, so success() is implied: every job in `needs` must
     # have succeeded, not merely finished.
