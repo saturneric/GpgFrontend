@@ -56,7 +56,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptDecryptTest) {
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptFileSync({encrypt_key}, input_file, true, output_file);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult>()));
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
   ASSERT_TRUE(result.InvalidRecipients().empty());
@@ -67,7 +67,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptDecryptTest) {
           .DecryptFileSync(output_file, decrypt_output_file);
 
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_FALSE(decr_result.Recipients().empty());
 
   const auto [read_success, out_buffer] = ReadFileGFBuffer(decrypt_output_file);
@@ -89,7 +89,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptDecryptBinaryTest) {
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptFileSync({encrypt_key}, input_file, false, output_file);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult>()));
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
   ASSERT_TRUE(result.InvalidRecipients().empty());
@@ -99,7 +99,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptDecryptBinaryTest) {
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptFileSync(output_file, decrypt_output_file);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_FALSE(decr_result.Recipients().empty());
@@ -118,7 +118,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptSymmetricDecryptTest) {
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptFileSymmetricSync(input_file, true, output_file);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgEncryptResult>()));
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
   ASSERT_TRUE(result.InvalidRecipients().empty());
@@ -129,7 +129,7 @@ TEST_F(RpgpCoreTest, CoreFileEncryptSymmetricDecryptTest) {
           .DecryptFileSync(output_file, decrypt_output_file);
 
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   auto decrypt_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_TRUE(decrypt_result.Recipients().empty());
 
@@ -150,7 +150,7 @@ TEST_F(RpgpCoreTest, CoreFileSignVerifyNormalTest) {
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignFileSync({sign_key}, input_file, true, output_file);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult>()));
   auto result = ExtractParams<GpgSignResult>(data_object, 0);
   ASSERT_TRUE(result.InvalidSigners().empty());
@@ -159,7 +159,7 @@ TEST_F(RpgpCoreTest, CoreFileSignVerifyNormalTest) {
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .VerifyFileSync(input_file, output_file);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_EQ(verify_result.GetSignature().size(), 1);
@@ -196,14 +196,14 @@ TEST_F(RpgpCoreTest, CoreFileEncryptSignDecryptVerifyTest) {
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 1);
   ASSERT_TRUE(encr_result.InvalidRecipients().empty());
   ASSERT_TRUE(sign_result.InvalidSigners().empty());
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   auto decrypt_output_file = GetTempFilePath();
   auto [err_0, data_object_0] =
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptVerifyFileSync(output_file, decrypt_output_file);
 
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
   auto decrypt_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
@@ -241,7 +241,7 @@ TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .VerifyFileSync(signed_file, QString());
 
-    ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR) << mode;
+    ASSERT_TRUE(err_0.Ok()) << mode;
     auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
     ASSERT_EQ(verify_result.GetSignature().size(), 1) << mode;
     EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
@@ -314,12 +314,12 @@ TEST_F(RpgpCoreTest, CoreFileSignHonorsPinnedSigningSubkeyTest) {
     auto [err, data_object] =
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .SignFileSync({pinned}, input_file, true, output_file);
-    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err.Ok());
 
     auto [err_0, data_object_0] =
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .VerifyFileSync(input_file, output_file);
-    ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err_0.Ok());
     auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
     ASSERT_EQ(verify_result.GetSignature().size(), 1);
     EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(), pinned_fpr);
@@ -343,13 +343,13 @@ TEST_F(RpgpCoreTest, CoreEncryptSignHonorsPinnedSigningSubkeyTest) {
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .EncryptSignFileSync({encrypt_key}, {pinned}, input_file, true,
                                  output_file);
-    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err.Ok());
 
     auto decrypt_output_file = GetTempFilePath();
     auto [err_0, data_object_0] =
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .DecryptVerifyFileSync(output_file, decrypt_output_file);
-    ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(err_0.Ok());
     auto file_verify = ExtractParams<GpgVerifyResult>(data_object_0, 1);
     ASSERT_EQ(file_verify.GetSignature().size(), 1);
     EXPECT_EQ(file_verify.GetSignature().at(0).GetFingerprint(), pinned_fpr);
@@ -419,7 +419,7 @@ auto EncryptForTest(const GFBuffer& plain, bool sign) -> QString {
       sign
           ? op.EncryptSignFileSync({key}, {key}, input_file, false, output_file)
           : op.EncryptFileSync({key}, input_file, false, output_file);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(err.Ok());
   return output_file;
 }
 
@@ -438,14 +438,14 @@ TEST_F(RpgpCoreTest, CoreFileDecryptTamperedFileCommitsNothingTest) {
     auto fresh = GetTempFilePath();
     auto [err, data_object] = verify ? op.DecryptVerifyFileSync(cipher, fresh)
                                      : op.DecryptFileSync(cipher, fresh);
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_DATA) << "verify=" << verify;
+    EXPECT_EQ(err.code, GFErrorCode::kBAD_DATA) << "verify=" << verify;
     EXPECT_FALSE(QFileInfo::exists(fresh)) << "verify=" << verify;
 
     auto existing = CreateTempFileAndWriteData(GFBuffer(QString("previous")));
     auto [err_1, data_object_1] =
         verify ? op.DecryptVerifyFileSync(cipher, existing)
                : op.DecryptFileSync(cipher, existing);
-    EXPECT_EQ(CheckGpgError(err_1), GPG_ERR_BAD_DATA);
+    EXPECT_EQ(err_1.code, GFErrorCode::kBAD_DATA);
     const auto [ok, kept] = ReadFileGFBuffer(existing);
     ASSERT_TRUE(ok);
     EXPECT_EQ(kept, GFBuffer(QString("previous")));
@@ -486,7 +486,7 @@ TEST_F(RpgpCoreTest, LargeFileEncryptSignDecryptVerifyAboveFormerLimitTest) {
   auto cipher = GetTempFilePath();
   auto [err, data_object] =
       op.EncryptSignFileSync({key}, {key}, input_file, false, cipher);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   QFile::remove(input_file);
 
 #if defined(__linux__)
@@ -512,7 +512,7 @@ TEST_F(RpgpCoreTest, LargeFileEncryptSignDecryptVerifyAboveFormerLimitTest) {
 
   auto output = GetTempFilePath();
   auto [err_0, data_object_0] = op.DecryptVerifyFileSync(cipher, output);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
   ASSERT_EQ(verify_result.GetSignature().size(), 1);
   EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
@@ -537,7 +537,7 @@ TEST_F(RpgpCoreTest, LargeFileEncryptSignDecryptVerifyAboveFormerLimitTest) {
 
   FlipLastByte(cipher);
   auto [err_1, data_object_1] = op.DecryptVerifyFileSync(cipher, output);
-  EXPECT_EQ(CheckGpgError(err_1), GPG_ERR_BAD_DATA);
+  EXPECT_EQ(err_1.code, GFErrorCode::kBAD_DATA);
   EXPECT_FALSE(QFileInfo::exists(output));
   QFile::remove(cipher);
 }

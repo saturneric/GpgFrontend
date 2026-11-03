@@ -1235,14 +1235,14 @@ TEST_F(RpgpCoreTest, CoreKeyMissingFromDatabaseDeliversResultTest) {
     auto [err, data_object] =
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .EncryptFileSync({key}, in_file, true, GetTempFilePath());
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_PUBKEY);
+    EXPECT_EQ(err.code, GFErrorCode::kNO_PUBLIC_KEY);
     EXPECT_TRUE((data_object->Check<GpgEncryptResult>()));
   }
   {
     auto [err, data_object] =
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .SignFileSync({key}, in_file, true, GetTempFilePath());
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
+    EXPECT_EQ(err.code, GFErrorCode::kNO_SECRET_KEY);
     EXPECT_TRUE((data_object->Check<GpgSignResult>()));
   }
   {
@@ -1250,7 +1250,7 @@ TEST_F(RpgpCoreTest, CoreKeyMissingFromDatabaseDeliversResultTest) {
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .EncryptSignFileSync({key}, {key}, in_file, true,
                                  GetTempFilePath());
-    EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_PUBKEY);
+    EXPECT_EQ(err.code, GFErrorCode::kNO_PUBLIC_KEY);
     EXPECT_TRUE((data_object->Check<GpgEncryptResult, GpgSignResult>()));
   }
 }
@@ -1266,7 +1266,7 @@ TEST_F(RpgpCoreTest, CoreFileDecryptWithoutSecretKeyNamesRecipientsTest) {
   auto [err, data_object] =
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptFileSync({key}, in_file, true, enc_file);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
   GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
@@ -1274,7 +1274,7 @@ TEST_F(RpgpCoreTest, CoreFileDecryptWithoutSecretKeyNamesRecipientsTest) {
   auto [err_0, data_object_0] =
       FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .DecryptFileSync(enc_file, GetTempFilePath());
-  EXPECT_EQ(CheckGpgError(err_0), GPG_ERR_NO_SECKEY);
+  EXPECT_EQ(err_0.code, GFErrorCode::kNO_SECRET_KEY);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   EXPECT_FALSE(decr_result.Recipients().empty());

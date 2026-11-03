@@ -63,11 +63,11 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param in_path path to the plaintext file
    * @param ascii if true, produce ASCII-armored output
    * @param out_path destination path for the ciphertext file
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void EncryptFile(const GpgAbstractKeyPtrList& keys, const QString& in_path,
                    bool ascii, const QString& out_path,
-                   const GpgOperationCallback& cb);
+                   const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt a file with the given public keys (sync).
@@ -76,12 +76,12 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param in_path path to the plaintext file
    * @param ascii if true, produce ASCII-armored output
    * @param out_path destination path for the ciphertext file
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto EncryptFileSync(const GpgAbstractKeyPtrList& keys,
                        const QString& in_path, bool ascii,
                        const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Pack and encrypt a directory with the given public keys (async).
@@ -94,8 +94,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    */
   void EncryptDirectory(const GpgAbstractKeyPtrList& keys,
                         const QString& in_path, bool ascii,
-                        const QString& out_path,
-                        const GpgOperationCallback& cb);
+                        const QString& out_path, const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt a file symmetrically (password-based, async).
@@ -107,7 +106,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    */
   void EncryptFileSymmetric(const QString& in_path, bool ascii,
                             const QString& out_path,
-                            const GpgOperationCallback& cb);
+                            const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt a file symmetrically (sync).
@@ -115,11 +114,11 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param in_path path to the plaintext file
    * @param ascii if true, produce ASCII-armored output
    * @param out_path destination path for the ciphertext file
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto EncryptFileSymmetricSync(const QString& in_path, bool ascii,
                                 const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Pack and encrypt a directory symmetrically (async).
@@ -131,7 +130,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    */
   void EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                  const QString& out_path,
-                                 const GpgOperationCallback& cb);
+                                 const GFOperationCallback& cb);
 
   /**
    * @brief Decrypt a file (async).
@@ -141,17 +140,17 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param cb callback invoked on completion
    */
   void DecryptFile(const QString& in_path, const QString& out_path,
-                   const GpgOperationCallback& cb);
+                   const GFOperationCallback& cb);
 
   /**
    * @brief Decrypt a file (sync).
    *
    * @param in_path path to the ciphertext file
    * @param out_path destination path for the decrypted file
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto DecryptFileSync(const QString& in_path, const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Decrypt an encrypted archive and extract its contents (async).
@@ -161,7 +160,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param cb callback invoked on completion
    */
   void DecryptArchive(const QString& in_path, const QString& out_path,
-                      const GpgOperationCallback& cb);
+                      const GFOperationCallback& cb);
 
   /**
    * @brief Create a detached or inline signature for a file (async).
@@ -174,7 +173,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    */
   void SignFile(const GpgAbstractKeyPtrList& keys, const QString& in_path,
                 bool ascii, const QString& out_path,
-                const GpgOperationCallback& cb);
+                const GFOperationCallback& cb);
 
   /**
    * @brief Create a detached or inline signature for a file (sync).
@@ -183,11 +182,11 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param in_path path to the file to sign
    * @param ascii if true, produce ASCII-armored output
    * @param out_path destination path for the signature
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto SignFileSync(const GpgAbstractKeyPtrList& keys, const QString& in_path,
                     bool ascii, const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Verify a file signature (async).
@@ -198,7 +197,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param cb callback invoked on completion
    */
   void VerifyFile(const QString& data_path, const QString& sign_path,
-                  const GpgOperationCallback& cb);
+                  const GFOperationCallback& cb);
 
   /**
    * @brief Verify a file signature (sync).
@@ -206,10 +205,10 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param data_path path to the signed data file
    * @param sign_path path to the detached signature file; empty for inline
    * signatures
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto VerifyFileSync(const QString& data_path, const QString& sign_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Encrypt and sign a file simultaneously (async).
@@ -224,7 +223,7 @@ class GF_CORE_EXPORT FileCryptoOperation
   void EncryptSignFile(const GpgAbstractKeyPtrList& keys,
                        const GpgAbstractKeyPtrList& signer_keys,
                        const QString& in_path, bool ascii,
-                       const QString& out_path, const GpgOperationCallback& cb);
+                       const QString& out_path, const GFOperationCallback& cb);
 
   /**
    * @brief Encrypt and sign a file simultaneously (sync).
@@ -234,13 +233,13 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param in_path path to the plaintext file
    * @param ascii if true, produce ASCII-armored output
    * @param out_path destination path for the encrypted+signed file
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto EncryptSignFileSync(const GpgAbstractKeyPtrList& keys,
                            const GpgAbstractKeyPtrList& signer_keys,
                            const QString& in_path, bool ascii,
                            const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Pack, encrypt, and sign a directory simultaneously (async).
@@ -256,7 +255,7 @@ class GF_CORE_EXPORT FileCryptoOperation
                             const GpgAbstractKeyPtrList& signer_keys,
                             const QString& in_path, bool ascii,
                             const QString& out_path,
-                            const GpgOperationCallback& cb);
+                            const GFOperationCallback& cb);
 
   /**
    * @brief Decrypt and verify a file simultaneously (async).
@@ -266,17 +265,17 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param cb callback invoked on completion with decrypt and verify results
    */
   void DecryptVerifyFile(const QString& in_path, const QString& out_path,
-                         const GpgOperationCallback& cb);
+                         const GFOperationCallback& cb);
 
   /**
    * @brief Decrypt and verify a file simultaneously (sync).
    *
    * @param in_path path to the encrypted+signed ciphertext file
    * @param out_path destination path for the decrypted file
-   * @return tuple of (GpgError, DataObjectPtr)
+   * @return tuple of (GFError, DataObjectPtr)
    */
   auto DecryptVerifyFileSync(const QString& in_path, const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+      -> std::tuple<GFError, DataObjectPtr>;
 
   /**
    * @brief Decrypt and verify an encrypted archive simultaneously (async).
@@ -286,7 +285,7 @@ class GF_CORE_EXPORT FileCryptoOperation
    * @param cb callback invoked on completion
    */
   void DecryptVerifyArchive(const QString& in_path, const QString& out_path,
-                            const GpgOperationCallback& cb);
+                            const GFOperationCallback& cb);
 
  private:
   OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(

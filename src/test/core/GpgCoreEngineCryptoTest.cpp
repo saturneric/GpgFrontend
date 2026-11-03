@@ -517,7 +517,7 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingSignerKey) {
   auto [err, data_object] =
       FileCryptoOperation::GetInstance(Channel()).EncryptSignFileSync(
           {recipient}, {signer}, in_path, false, cipher_path);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   DeleteKey(signer);
   GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
@@ -527,7 +527,8 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingSignerKey) {
           cipher_path, out_path);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
   ExpectMissingSignerIsOnlyAWarning(
-      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0),
+      Channel(), ToGpgError(err_0),
+      ExtractParams<GpgDecryptResult>(data_object_0, 0),
       ExtractParams<GpgVerifyResult>(data_object_0, 1));
 
   QFile out(out_path);
@@ -636,7 +637,7 @@ TEST_P(GpgCoreEngineTest, DecryptFileWithMissingOtherRecipientKey) {
   auto [err, data_object] =
       FileCryptoOperation::GetInstance(Channel()).EncryptFileSync(
           {me, other}, in_path, false, cipher_path);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   const auto other_fpr = other->Fingerprint().toUpper();
   const auto other_id = EncryptionKeyId(other);
@@ -647,10 +648,11 @@ TEST_P(GpgCoreEngineTest, DecryptFileWithMissingOtherRecipientKey) {
   auto [err_0, data_object_0] =
       FileCryptoOperation::GetInstance(Channel()).DecryptFileSync(cipher_path,
                                                                   out_path);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
-  const auto info = AnalyseDecrypt(
-      Channel(), err_0, ExtractParams<GpgDecryptResult>(data_object_0, 0));
+  const auto info =
+      AnalyseDecrypt(Channel(), ToGpgError(err_0),
+                     ExtractParams<GpgDecryptResult>(data_object_0, 0));
   ExpectValidOutputWithWarning(info);
   ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
   EXPECT_EQ(ReadAll(out_path), plain);
@@ -675,7 +677,7 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingOtherRecipientKey) {
   auto [err, data_object] =
       FileCryptoOperation::GetInstance(Channel()).EncryptSignFileSync(
           {me, other}, {me}, in_path, false, cipher_path);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   const auto other_fpr = other->Fingerprint().toUpper();
   const auto other_id = EncryptionKeyId(other);
@@ -686,15 +688,16 @@ TEST_P(GpgCoreEngineTest, DecryptVerifyFileWithMissingOtherRecipientKey) {
   auto [err_0, data_object_0] =
       FileCryptoOperation::GetInstance(Channel()).DecryptVerifyFileSync(
           cipher_path, out_path);
-  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err_0.Ok());
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
-  auto info = AnalyseDecrypt(Channel(), err_0,
+  auto info = AnalyseDecrypt(Channel(), ToGpgError(err_0),
                              ExtractParams<GpgDecryptResult>(data_object_0, 0));
   ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
 
   // The signer is present, so the signature itself is not the warning.
-  const auto verify_info = AnalyseVerify(
-      Channel(), err_0, ExtractParams<GpgVerifyResult>(data_object_0, 1));
+  const auto verify_info =
+      AnalyseVerify(Channel(), ToGpgError(err_0),
+                    ExtractParams<GpgVerifyResult>(data_object_0, 1));
   EXPECT_GT(verify_info.status, 0);
 
   info.Merge(verify_info);
@@ -728,15 +731,15 @@ TEST_P(GpgCoreEngineTest, DecryptArchiveWithMissingOtherRecipientKey) {
 
   const QString archive_path = work_dir.path() + "/src.tar.gpg";
   bool encrypt_done = false;
-  GpgError encrypt_err = GPG_ERR_GENERAL;
+  GFError encrypt_err = GFError::Application(GFErrorCode::kGENERAL);
   FileCryptoOperation::GetInstance(Channel()).EncryptDirectory(
       {me, other}, src_dir, false, archive_path,
-      [&](GpgError err, const DataObjectPtr&) {
+      [&](GFError err, const DataObjectPtr&) {
         encrypt_err = err;
         encrypt_done = true;
       });
   WAIT_FOR_TRUE(encrypt_done, 10000);
-  ASSERT_EQ(CheckGpgError(encrypt_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(encrypt_err.Ok());
 
   const auto other_fpr = other->Fingerprint().toUpper();
   const auto other_id = EncryptionKeyId(other);
@@ -748,21 +751,21 @@ TEST_P(GpgCoreEngineTest, DecryptArchiveWithMissingOtherRecipientKey) {
   ASSERT_TRUE(QDir().mkpath(out_dir));
 
   bool decrypt_done = false;
-  GpgError decrypt_err = GPG_ERR_GENERAL;
+  GFError decrypt_err = GFError::Application(GFErrorCode::kGENERAL);
   DataObjectPtr decrypt_object;
   FileCryptoOperation::GetInstance(Channel()).DecryptArchive(
-      archive_path, out_dir, [&](GpgError err, const DataObjectPtr& obj) {
+      archive_path, out_dir, [&](GFError err, const DataObjectPtr& obj) {
         decrypt_err = err;
         decrypt_object = obj;
         decrypt_done = true;
       });
   WAIT_FOR_TRUE(decrypt_done, 10000);
-  ASSERT_EQ(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(decrypt_err.Ok());
   ASSERT_TRUE(decrypt_object != nullptr);
   ASSERT_TRUE((decrypt_object->Check<GpgDecryptResult>()));
 
   const auto info =
-      AnalyseDecrypt(Channel(), decrypt_err,
+      AnalyseDecrypt(Channel(), ToGpgError(decrypt_err),
                      ExtractParams<GpgDecryptResult>(decrypt_object, 0));
   ExpectValidOutputWithWarning(info);
   ExpectOnlyRecipientUnknown(info, other_id, EncryptionKeyId(me));
@@ -789,28 +792,30 @@ TEST_P(GpgCoreEngineTest, DecryptArchiveOfNonArchiveFails) {
   auto [err, data_object] =
       FileCryptoOperation::GetInstance(Channel()).EncryptFileSync(
           {key}, in_path, false, cipher_path);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
 
   const QString out_dir = work_dir.path() + "/out";
   ASSERT_TRUE(QDir().mkpath(out_dir));
 
   bool decrypt_done = false;
-  GpgError decrypt_err = GPG_ERR_NO_ERROR;
+  GFError decrypt_err;
   DataObjectPtr decrypt_object;
   FileCryptoOperation::GetInstance(Channel()).DecryptArchive(
-      cipher_path, out_dir, [&](GpgError err, const DataObjectPtr& obj) {
+      cipher_path, out_dir, [&](GFError err, const DataObjectPtr& obj) {
         decrypt_err = err;
         decrypt_object = obj;
         decrypt_done = true;
       });
   WAIT_FOR_TRUE(decrypt_done, 10000);
-  EXPECT_NE(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(decrypt_err.Ok());
 
   GpgDecryptResult decrypt_result;
   if (decrypt_object != nullptr && decrypt_object->Check<GpgDecryptResult>()) {
     decrypt_result = ExtractParams<GpgDecryptResult>(decrypt_object, 0);
   }
-  EXPECT_LT(AnalyseDecrypt(Channel(), decrypt_err, decrypt_result).status, 0);
+  EXPECT_LT(
+      AnalyseDecrypt(Channel(), ToGpgError(decrypt_err), decrypt_result).status,
+      0);
   EXPECT_TRUE(ReadTree(out_dir).isEmpty());
 
   DeleteKey(key);
@@ -899,29 +904,29 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
   const QString archive_path = work_dir.path() + "/test.tar.gpg";
 
   bool encrypt_done = false;
-  GpgError encrypt_err = GPG_ERR_GENERAL;
+  GFError encrypt_err = GFError::Application(GFErrorCode::kGENERAL);
   FileCryptoOperation::GetInstance(Channel()).EncryptDirectory(
       {key}, src_dir, false, archive_path,
-      [&](GpgError err, const DataObjectPtr&) {
+      [&](GFError err, const DataObjectPtr&) {
         encrypt_err = err;
         encrypt_done = true;
       });
   WAIT_FOR_TRUE(encrypt_done, 10000);
-  ASSERT_EQ(CheckGpgError(encrypt_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(encrypt_err.Ok());
   ASSERT_TRUE(QFileInfo::exists(archive_path));
 
   const QString out_dir = work_dir.path() + "/out";
   ASSERT_TRUE(QDir().mkpath(out_dir));
 
   bool decrypt_done = false;
-  GpgError decrypt_err = GPG_ERR_GENERAL;
+  GFError decrypt_err = GFError::Application(GFErrorCode::kGENERAL);
   FileCryptoOperation::GetInstance(Channel()).DecryptArchive(
-      archive_path, out_dir, [&](GpgError err, const DataObjectPtr&) {
+      archive_path, out_dir, [&](GFError err, const DataObjectPtr&) {
         decrypt_err = err;
         decrypt_done = true;
       });
   WAIT_FOR_TRUE(decrypt_done, 10000);
-  ASSERT_EQ(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(decrypt_err.Ok());
 
   // Every packed file must reappear with identical content. A lost trailing
   // file (the original bug) fails here.

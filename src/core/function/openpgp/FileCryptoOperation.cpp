@@ -38,134 +38,140 @@ FileCryptoOperation::FileCryptoOperation(int channel)
 void FileCryptoOperation::EncryptFile(const GpgAbstractKeyPtrList& keys,
                                       const QString& in_path, bool ascii,
                                       const QString& out_path,
-                                      const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileEncryptOpTag>(ctx_, cb, keys, in_path, ascii,
-                                       out_path);
+                                      const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileEncryptOpTag>(ctx_, cb, keys, in_path, ascii,
+                                         out_path);
 }
 
 auto FileCryptoOperation::EncryptFileSync(const GpgAbstractKeyPtrList& keys,
                                           const QString& in_path, bool ascii,
                                           const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileEncryptOpTag>(ctx_, keys, in_path, ascii,
-                                             out_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileEncryptOpTag>(ctx_, keys, in_path, ascii,
+                                               out_path);
 }
 
 void FileCryptoOperation::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
                                            const QString& in_path, bool ascii,
                                            const QString& out_path,
-                                           const GpgOperationCallback& cb) {
-  RunRegisteredForward<DirEncryptOpTag>(ctx_, keys, in_path, ascii, out_path,
-                                        cb);
+                                           const GFOperationCallback& cb) {
+  RunRegisteredForward<DirEncryptOpTag>(
+      ctx_, keys, in_path, ascii, out_path,
+      AsGpgOperationCallback(ctx_.GetChannel(), cb));
 }
 
 void FileCryptoOperation::DecryptFile(const QString& in_path,
                                       const QString& out_path,
-                                      const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileDecryptOpTag>(ctx_, cb, in_path, out_path);
+                                      const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileDecryptOpTag>(ctx_, cb, in_path, out_path);
 }
 
 auto FileCryptoOperation::DecryptFileSync(const QString& in_path,
                                           const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileDecryptOpTag>(ctx_, in_path, out_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileDecryptOpTag>(ctx_, in_path, out_path);
 }
 
 void FileCryptoOperation::DecryptArchive(const QString& in_path,
                                          const QString& out_path,
-                                         const GpgOperationCallback& cb) {
-  RunRegisteredForward<ArchiveDecryptOpTag>(ctx_, in_path, out_path, cb);
+                                         const GFOperationCallback& cb) {
+  RunRegisteredForward<ArchiveDecryptOpTag>(
+      ctx_, in_path, out_path, AsGpgOperationCallback(ctx_.GetChannel(), cb));
 }
 
 void FileCryptoOperation::SignFile(const GpgAbstractKeyPtrList& keys,
                                    const QString& in_path, bool ascii,
                                    const QString& out_path,
-                                   const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileSignOpTag>(ctx_, cb, keys, in_path, ascii, out_path);
+                                   const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileSignOpTag>(ctx_, cb, keys, in_path, ascii, out_path);
 }
 
 auto FileCryptoOperation::SignFileSync(const GpgAbstractKeyPtrList& keys,
                                        const QString& in_path, bool ascii,
                                        const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileSignOpTag>(ctx_, keys, in_path, ascii, out_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileSignOpTag>(ctx_, keys, in_path, ascii,
+                                            out_path);
 }
 
 void FileCryptoOperation::VerifyFile(const QString& data_path,
                                      const QString& sign_path,
-                                     const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileVerifyOpTag>(ctx_, cb, data_path, sign_path);
+                                     const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileVerifyOpTag>(ctx_, cb, data_path, sign_path);
 }
 
 auto FileCryptoOperation::VerifyFileSync(const QString& data_path,
                                          const QString& sign_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileVerifyOpTag>(ctx_, data_path, sign_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileVerifyOpTag>(ctx_, data_path, sign_path);
 }
 
 void FileCryptoOperation::EncryptSignFile(
     const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
     const QString& in_path, bool ascii, const QString& out_path,
-    const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileEncryptSignOpTag>(ctx_, cb, keys, signer_keys, in_path,
-                                           ascii, out_path);
+    const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileEncryptSignOpTag>(ctx_, cb, keys, signer_keys,
+                                             in_path, ascii, out_path);
 }
 
 auto FileCryptoOperation::EncryptSignFileSync(
     const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
     const QString& in_path, bool ascii, const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileEncryptSignOpTag>(ctx_, keys, signer_keys,
-                                                 in_path, ascii, out_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileEncryptSignOpTag>(ctx_, keys, signer_keys,
+                                                   in_path, ascii, out_path);
 }
 
 void FileCryptoOperation::EncryptSignDirectory(
     const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
     const QString& in_path, bool ascii, const QString& out_path,
-    const GpgOperationCallback& cb) {
-  RunRegisteredForward<DirEncryptSignOpTag>(ctx_, keys, signer_keys, in_path,
-                                            ascii, out_path, cb);
+    const GFOperationCallback& cb) {
+  RunRegisteredForward<DirEncryptSignOpTag>(
+      ctx_, keys, signer_keys, in_path, ascii, out_path,
+      AsGpgOperationCallback(ctx_.GetChannel(), cb));
 }
 
 void FileCryptoOperation::DecryptVerifyFile(const QString& in_path,
                                             const QString& out_path,
-                                            const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileDecryptVerifyOpTag>(ctx_, cb, in_path, out_path);
+                                            const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileDecryptVerifyOpTag>(ctx_, cb, in_path, out_path);
 }
 
 auto FileCryptoOperation::DecryptVerifyFileSync(const QString& in_path,
                                                 const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileDecryptVerifyOpTag>(ctx_, in_path, out_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileDecryptVerifyOpTag>(ctx_, in_path, out_path);
 }
 
 void FileCryptoOperation::DecryptVerifyArchive(const QString& in_path,
                                                const QString& out_path,
-                                               const GpgOperationCallback& cb) {
-  RunRegisteredForward<ArchiveDecryptVerifyOpTag>(ctx_, in_path, out_path, cb);
+                                               const GFOperationCallback& cb) {
+  RunRegisteredForward<ArchiveDecryptVerifyOpTag>(
+      ctx_, in_path, out_path, AsGpgOperationCallback(ctx_.GetChannel(), cb));
 }
 
 void FileCryptoOperation::EncryptFileSymmetric(const QString& in_path,
                                                bool ascii,
                                                const QString& out_path,
-                                               const GpgOperationCallback& cb) {
-  RunRegisteredAsync<FileEncryptSymmetricOpTag>(ctx_, cb, in_path, ascii,
-                                                out_path);
+                                               const GFOperationCallback& cb) {
+  RunRegisteredAsyncGF<FileEncryptSymmetricOpTag>(ctx_, cb, in_path, ascii,
+                                                  out_path);
 }
 
 auto FileCryptoOperation::EncryptFileSymmetricSync(const QString& in_path,
                                                    bool ascii,
                                                    const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<FileEncryptSymmetricOpTag>(ctx_, in_path, ascii,
-                                                      out_path);
+    -> std::tuple<GFError, DataObjectPtr> {
+  return RunRegisteredSyncGF<FileEncryptSymmetricOpTag>(ctx_, in_path, ascii,
+                                                        out_path);
 }
 
 void FileCryptoOperation::EncryptDirectorySymmetric(
     const QString& in_path, bool ascii, const QString& out_path,
-    const GpgOperationCallback& cb) {
-  RunRegisteredForward<DirEncryptSymmetricOpTag>(ctx_, in_path, ascii, out_path,
-                                                 cb);
+    const GFOperationCallback& cb) {
+  RunRegisteredForward<DirEncryptSymmetricOpTag>(
+      ctx_, in_path, ascii, out_path,
+      AsGpgOperationCallback(ctx_.GetChannel(), cb));
 }
 
 }  // namespace GpgFrontend
