@@ -93,6 +93,18 @@ TEST(FileOperaOutcomeTest, AnyFailureAmongSuccessesIsDiscarded) {
   EXPECT_FALSE(IsFileOperaSuccessful({Result(1), Result(-1), Result(1)}, 3));
 }
 
+// A decryption whose signature failed still decrypted: its output is kept and
+// the signature reported. One whose decryption failed is not.
+TEST(FileOperaOutcomeTest, ADecryptionWithABadSignatureIsCommitted) {
+  auto bad_signature = Result(-1);
+  bad_signature.op_info.outputStatus = 1;
+  EXPECT_TRUE(IsFileOperaSuccessful({bad_signature}, 1));
+
+  auto failed_decryption = Result(-1);
+  failed_decryption.op_info.outputStatus = -1;
+  EXPECT_FALSE(IsFileOperaSuccessful({failed_decryption}, 1));
+}
+
 TEST(FileOperaOutcomeTest, AMissingResultIsAFailure) {
   // An operation that has not reported yet may still be writing into its
   // staging directory. Committing or cleaning up around it is not safe, so a
