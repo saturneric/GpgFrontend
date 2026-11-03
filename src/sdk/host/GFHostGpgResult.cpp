@@ -318,10 +318,10 @@ auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
       },
       [&] {
         return GpgFrontend::MessageCryptoOperation::GetInstance(channel)
-            .SignSync(
-                signer_keys, GFBufferViewToCore(in),
-                sign_mode == 0 ? GPGME_SIG_MODE_NORMAL : GPGME_SIG_MODE_DETACH,
-                ascii != 0);
+            .SignSync(signer_keys, GFBufferViewToCore(in),
+                      sign_mode == 0 ? GpgFrontend::GpgSignMode::kNORMAL
+                                     : GpgFrontend::GpgSignMode::kDETACH,
+                      ascii != 0);
       },
       [](GFGpgResultImpl* impl, const GpgFrontend::DataObjectPtr& data_object,
          GpgFrontend::GpgError err) {

@@ -394,7 +394,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyNormalTest) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
+          .SignSync({sign_key}, sign_text, GpgSignMode::kNORMAL, true);
 
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
@@ -422,7 +422,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyDetachTest) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({sign_key}, sign_text, GpgSignMode::kDETACH, true);
 
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
@@ -451,7 +451,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyClearTest) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_CLEAR, true);
+          .SignSync({sign_key}, sign_text, GpgSignMode::kCLEAR, true);
 
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
@@ -584,14 +584,14 @@ TEST_F(RpgpCoreTest, CoreSignCancelTest) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
+          .SignSync({sign_key}, sign_text, GpgSignMode::kNORMAL, true);
   ASSERT_EQ(err.code, GFErrorCode::kCANCELED);
 
   ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
+          .SignSync({sign_key}, sign_text, GpgSignMode::kNORMAL, true);
   ASSERT_TRUE(err_0.Ok());
 }
 
@@ -712,7 +712,7 @@ TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
   // so exercise detached sign + verify here.
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({sign_key}, sign_text, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(err.Ok());
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
   auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -822,7 +822,7 @@ TEST_F(RpgpCoreTest, CoreSignWithRsaUnder2048BitsIsUnusableTest) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({key}, GFBuffer(QString("rsa 1024")), GPGME_SIG_MODE_DETACH,
+          .SignSync({key}, GFBuffer(QString("rsa 1024")), GpgSignMode::kDETACH,
                     true);
   EXPECT_EQ(err.code, GFErrorCode::kUNUSABLE_SECRET_KEY);
 }
@@ -1215,7 +1215,7 @@ TEST_F(RpgpCoreTest, CoreKeyMissingFromDatabaseDeliversResultTest) {
   {
     auto [err, data_object] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-            .SignSync({key}, buffer, GPGME_SIG_MODE_NORMAL, true);
+            .SignSync({key}, buffer, GpgSignMode::kNORMAL, true);
     EXPECT_EQ(err.code, GFErrorCode::kNO_SECRET_KEY);
     EXPECT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   }
@@ -1306,7 +1306,7 @@ TEST_F(RpgpCoreTest, CoreSignResultCarriesSignatureModeTest) {
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({sign_key}, GFBuffer(QString("Hello RPGP!")),
-                    GPGME_SIG_MODE_DETACH, true);
+                    GpgSignMode::kDETACH, true);
   ASSERT_TRUE(err.Ok());
 
   GpgSignResultAnalyse analyse{kRpgpChannelForUnitTest, err,

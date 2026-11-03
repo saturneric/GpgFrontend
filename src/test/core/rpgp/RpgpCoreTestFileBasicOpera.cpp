@@ -228,7 +228,7 @@ TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
                       .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
   ASSERT_TRUE(sign_key != nullptr);
 
-  for (const auto mode : {GPGME_SIG_MODE_CLEAR, GPGME_SIG_MODE_NORMAL}) {
+  for (const auto mode : {GpgSignMode::kCLEAR, GpgSignMode::kNORMAL}) {
     auto [err, data_object] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .SignSync({sign_key}, GFBuffer(QString("Hello RPGP Clear File!")),
@@ -241,9 +241,9 @@ TEST_F(RpgpCoreTest, CoreFileVerifyCleartextSignedFileTest) {
         FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
             .VerifyFileSync(signed_file, QString());
 
-    ASSERT_TRUE(err_0.Ok()) << mode;
+    ASSERT_TRUE(err_0.Ok()) << static_cast<int>(mode);
     auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
-    ASSERT_EQ(verify_result.GetSignature().size(), 1) << mode;
+    ASSERT_EQ(verify_result.GetSignature().size(), 1) << static_cast<int>(mode);
     EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
               "575572EF0DF799AB884EC6C114C6B0B1596A2755");
     EXPECT_EQ(CheckGpgError(verify_result.GetSignature().at(0).GetStatus()),

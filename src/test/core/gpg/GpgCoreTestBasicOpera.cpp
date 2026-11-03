@@ -168,7 +168,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = MessageCryptoOperation::GetInstance().SignSync(
-      {sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
+      {sign_key}, sign_text, GpgSignMode::kNORMAL, true);
 
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
@@ -195,7 +195,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = MessageCryptoOperation::GetInstance().SignSync(
-      {sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
+      {sign_key}, sign_text, GpgSignMode::kDETACH, true);
 
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
@@ -223,7 +223,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = MessageCryptoOperation::GetInstance().SignSync(
-      {sign_key}, sign_text, GPGME_SIG_MODE_CLEAR, true);
+      {sign_key}, sign_text, GpgSignMode::kCLEAR, true);
 
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));

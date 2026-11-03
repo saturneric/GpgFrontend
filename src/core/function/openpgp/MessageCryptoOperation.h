@@ -191,9 +191,9 @@ class GF_CORE_EXPORT MessageCryptoOperation
    * @brief Sign a message buffer with the given private keys (async).
    *
    * Signing modes:
-   * - GPGME_SIG_MODE_NORMAL: output includes both plaintext and signature.
-   * - GPGME_SIG_MODE_DETACH: produces a detached signature only.
-   * - GPGME_SIG_MODE_CLEAR: clear-text signature; ignores ASCII armor and text
+   * - GpgSignMode::kNORMAL: output includes both plaintext and signature.
+   * - GpgSignMode::kDETACH: produces a detached signature only.
+   * - GpgSignMode::kCLEAR: clear-text signature; ignores ASCII armor and text
    * mode settings.
    *
    * @param signers private keys to sign with

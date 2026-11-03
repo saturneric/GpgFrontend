@@ -113,6 +113,20 @@ auto DecryptGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   return err;
 }
 
+namespace {
+auto ToGpgmeSigMode(GpgSignMode mode) -> gpgme_sig_mode_t {
+  switch (mode) {
+    case GpgSignMode::kDETACH:
+      return GPGME_SIG_MODE_DETACH;
+    case GpgSignMode::kCLEAR:
+      return GPGME_SIG_MODE_CLEAR;
+    case GpgSignMode::kNORMAL:
+    default:
+      return GPGME_SIG_MODE_NORMAL;
+  }
+}
+}  // namespace
+
 auto SignGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& signers,
                    const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
                    const DataObjectPtr& data_object) -> GpgError {
@@ -128,7 +142,8 @@ auto SignGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& signers,
   GpgData data_out;
 
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
-  err = CheckGpgError(gpgme_op_sign(ctx, data_in, data_out, mode));
+  err = CheckGpgError(
+      gpgme_op_sign(ctx, data_in, data_out, ToGpgmeSigMode(mode)));
 
   data_object->Swap({
       GpgSignResult(gpgme_op_sign_result(ctx)),

@@ -55,7 +55,12 @@ using GpgAbstractKeyPtrList = QList<GpgAbstractKeyPtr>;       ///<
 using GpgKeyPtr = QSharedPointer<GpgKey>;                     ///<
 using GpgKeyPtrList = QList<GpgKeyPtr>;                       ///<
 
-using GpgSignMode = gpgme_sig_mode_t;
+/// How a signature is made, whichever engine makes it.
+enum class GpgSignMode : std::uint8_t {
+  kNORMAL,  ///< the signed data with the signature
+  kDETACH,  ///< a detached signature only
+  kCLEAR,   ///< a clear-text signature
+};
 
 using GpgOperaRunnable = std::function<GFError(DataObjectPtr)>;
 using GFOperationCallback = std::function<void(GFError, DataObjectPtr)>;

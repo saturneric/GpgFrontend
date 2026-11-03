@@ -169,9 +169,9 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
   QByteArray name_utf8;
   Rust::GfrSignMode rs_mode;
 
-  if (mode == GPGME_SIG_MODE_DETACH) {
+  if (mode == GpgSignMode::kDETACH) {
     rs_mode = Rust::GfrSignMode::Detached;
-  } else if (mode == GPGME_SIG_MODE_CLEAR) {
+  } else if (mode == GpgSignMode::kCLEAR) {
     rs_mode = Rust::GfrSignMode::ClearText;
   } else {
     rs_mode = Rust::GfrSignMode::Inline;

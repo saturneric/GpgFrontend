@@ -301,7 +301,7 @@ TEST_P(GpgCoreEngineTest, SignVerifyDetached) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).SignSync(
-          {key}, text, GPGME_SIG_MODE_DETACH, true);
+          {key}, text, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
@@ -329,7 +329,7 @@ TEST_P(GpgCoreEngineTest, SignVerifyInline) {
 
   auto [err, data_object] =
       MessageCryptoOperation::GetInstance(Channel()).SignSync(
-          {key}, text, GPGME_SIG_MODE_NORMAL, true);
+          {key}, text, GpgSignMode::kNORMAL, true);
   ASSERT_TRUE(err.Ok());
   ASSERT_TRUE((data_object->Check<GpgSignResult, GFBuffer>()));
   auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
@@ -965,7 +965,7 @@ TEST_P(GpgCoreEngineTest, Stress) {
 
     auto [sign_err, sign_obj] =
         MessageCryptoOperation::GetInstance(Channel()).SignSync(
-            {key}, plain, GPGME_SIG_MODE_DETACH, true);
+            {key}, plain, GpgSignMode::kDETACH, true);
     ASSERT_TRUE(sign_err.Ok()) << "sign failed at iteration " << i;
     auto signature = ExtractParams<GFBuffer>(sign_obj, 1);
 

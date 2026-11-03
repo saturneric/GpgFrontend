@@ -921,7 +921,7 @@ auto GpgOperaHelper::BuildOperasSign(QSharedPointer<GpgOperaContext>& context,
       context, channel, index,
       [channel, context](const GFBuffer& buffer, const auto& callback) {
         MessageCryptoOperation::GetInstance(channel).Sign(
-            context->base->keys, buffer, GPGME_SIG_MODE_CLEAR,
+            context->base->keys, buffer, GpgSignMode::kCLEAR,
             context->base->ascii, callback);
       });
 }

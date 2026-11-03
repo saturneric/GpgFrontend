@@ -172,7 +172,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyNormalRoundTrip) {
   auto data = GFBuffer(QString("sign normal"));
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_NORMAL, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kNORMAL, true);
   ASSERT_TRUE(s_err.Ok());
   auto signed_msg = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
@@ -189,7 +189,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyDetachedRoundTrip) {
   auto data = GFBuffer(QString("sign detached"));
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
@@ -205,7 +205,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyClearRoundTrip) {
   auto data = GFBuffer(QString("sign cleartext"));
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_CLEAR, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kCLEAR, true);
   ASSERT_TRUE(s_err.Ok());
   auto cleartext = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
@@ -221,7 +221,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignDetachedOutputIsAsciiArmored) {
   auto data = GFBuffer(QString("armored sig"));
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   EXPECT_TRUE(QString::fromUtf8(sig.Data(), static_cast<int>(sig.Size()))
@@ -232,7 +232,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyDetachedTamperedDataFails) {
   auto data = GFBuffer(QString("original data"));
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   // Verify the genuine detached signature against tampered data.
@@ -252,7 +252,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignRejectsEmptyPayload) {
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .SignSync({Key1Secret()}, GFBuffer(QByteArray()),
-                    GPGME_SIG_MODE_DETACH, true);
+                    GpgSignMode::kDETACH, true);
   EXPECT_FALSE(s_err.Ok());
 }
 
@@ -260,7 +260,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyBinaryPayload) {
   auto data = MakeBinaryPayload();
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
@@ -276,7 +276,7 @@ TEST_F(RpgpCoreTest, Rfc9580SignVerifyLargePayload) {
   auto data = MakeLargePayload();
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-          .SignSync({Key1Secret()}, data, GPGME_SIG_MODE_DETACH, true);
+          .SignSync({Key1Secret()}, data, GpgSignMode::kDETACH, true);
   ASSERT_TRUE(s_err.Ok());
   auto sig = ExtractParams<GFBuffer>(s_obj, 1);
   auto [v_err, v_obj] =
