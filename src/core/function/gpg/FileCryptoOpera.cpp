@@ -112,7 +112,7 @@ auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
   auto err = CheckGpgError(
       gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : gpg_recipients.data(),
                        GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
-  data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
+  data_object->Swap({EncryptResultOf(gpgme_op_encrypt_result(ctx))});
   return err;
 }
 
@@ -188,7 +188,7 @@ auto DecryptVerifyFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
       gpgme_op_decrypt_verify(g_ctx.DefaultContext(), data_in, data_out));
 
   data_object->Swap({
-      GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
+      DecryptResultOf(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
       VerifyResultOf(gpgme_op_verify_result(g_ctx.DefaultContext())),
   });
   return err;
@@ -258,7 +258,7 @@ auto DecryptFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
   auto err = CheckGpgError(
       gpgme_op_decrypt(g_ctx.DefaultContext(), data_in, data_out));
   data_object->Swap(
-      {GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext()))});
+      {DecryptResultOf(gpgme_op_decrypt_result(g_ctx.DefaultContext()))});
 
   return err;
 }
@@ -360,7 +360,7 @@ auto EncryptSignFileGpgDataGnuPGImpl(
                                             data_out));
 
   data_object->Swap({
-      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      EncryptResultOf(gpgme_op_encrypt_result(ctx)),
       SignResultOf(gpgme_op_sign_result(ctx)),
   });
 

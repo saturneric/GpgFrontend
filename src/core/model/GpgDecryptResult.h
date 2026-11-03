@@ -37,8 +37,6 @@ class GF_CORE_EXPORT GpgDecryptResult {
  public:
   auto IsGood() -> bool;
 
-  auto GetRaw() -> gpgme_decrypt_result_t;
-
   auto Recipients() -> QList<GpgRecipient>;
 
   auto UnsupportedAlgorithm() -> QString;
@@ -62,8 +60,6 @@ class GF_CORE_EXPORT GpgDecryptResult {
   /// GnuPG engine, where `gpgme_strerror` already provides the description.
   auto ErrorDetail() -> QString;
 
-  explicit GpgDecryptResult(gpgme_decrypt_result_t);
-
   explicit GpgDecryptResult(const GFDecryptResult&);
 
   GpgDecryptResult();
@@ -71,7 +67,6 @@ class GF_CORE_EXPORT GpgDecryptResult {
   virtual ~GpgDecryptResult();
 
  private:
-  QSharedPointer<struct _gpgme_op_decrypt_result> result_ref_ = nullptr;  ///<
   QSharedPointer<struct GFDecryptResult> gf_result_ref_ = nullptr;        ///<
 };
 

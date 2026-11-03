@@ -28,17 +28,7 @@
 
 #include "GpgEncryptResult.h"
 
-#include "core/function/gpg/GpgErrorMap.h"
-
 namespace GpgFrontend {
-GpgEncryptResult::GpgEncryptResult(gpgme_encrypt_result_t r)
-    : result_ref_(QSharedPointer<struct _gpgme_op_encrypt_result>(
-          (gpgme_result_ref(r), r), [](gpgme_encrypt_result_t p) {
-            if (p != nullptr) {
-              gpgme_result_unref(p);
-            }
-          })) {}
-
 GpgEncryptResult::GpgEncryptResult(const GFEncryptResult& r)
     : gf_result_ref_(QSharedPointer<GFEncryptResult>::create(r)) {}
 
@@ -46,41 +36,14 @@ GpgEncryptResult::GpgEncryptResult() = default;
 
 GpgEncryptResult::~GpgEncryptResult() = default;
 
-auto GpgEncryptResult::IsGood() -> bool {
-  return result_ref_ != nullptr || gf_result_ref_ != nullptr;
-}
-
-auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
-  return result_ref_.get();
-}
+auto GpgEncryptResult::IsGood() -> bool { return gf_result_ref_ != nullptr; }
 
 auto GpgEncryptResult::InvalidRecipients()
     -> QList<std::tuple<QString, GFError>> {
   QList<std::tuple<QString, GFError>> result;
-
-  if (gf_result_ref_ != nullptr) {
-    for (const auto& r : gf_result_ref_->invalid_recipients) {
-      result.push_back({r.fpr, r.reason});
-    }
-    return result;
-  }
-
-  if (result_ref_ == nullptr) {
-    return result;
-  }
-
-  for (auto* invalid_key = result_ref_->invalid_recipients;
-       invalid_key != nullptr; invalid_key = invalid_key->next) {
-    try {
-      result.push_back({
-          QString{invalid_key->fpr},
-          FromGpgError(invalid_key->reason),
-      });
-    } catch (...) {
-      FLOG_W(
-          "caught exception when processing invalid_recipients, "
-          "maybe nullptr of fpr");
-    }
+  if (gf_result_ref_ == nullptr) return result;
+  for (const auto& r : gf_result_ref_->invalid_recipients) {
+    result.push_back({r.fpr, r.reason});
   }
   return result;
 }

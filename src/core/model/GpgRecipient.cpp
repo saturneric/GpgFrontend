@@ -28,17 +28,9 @@
 
 #include "GpgRecipient.h"
 
-#include "core/function/gpg/GpgErrorMap.h"
-
 namespace GpgFrontend {
 
 GpgRecipient::GpgRecipient() = default;
-
-GpgRecipient::GpgRecipient(gpgme_recipient_t r) {
-  this->keyid = QString{r->keyid};
-  this->pubkey_algo = QString{gpgme_pubkey_algo_name(r->pubkey_algo)};
-  this->status = FromGpgError(r->status);
-}
 
 GpgRecipient::GpgRecipient(const GFRecipient& r)
     : keyid(r.key_id), pubkey_algo(r.pub_algo), status(r.status){};

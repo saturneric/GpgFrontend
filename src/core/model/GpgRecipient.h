@@ -44,8 +44,6 @@ struct GF_CORE_EXPORT GpgRecipient {
 
   GpgRecipient();
 
-  explicit GpgRecipient(gpgme_recipient_t r);
-
   explicit GpgRecipient(const GFRecipient& r);
 };
 

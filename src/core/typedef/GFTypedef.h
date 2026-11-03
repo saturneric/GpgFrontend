@@ -322,6 +322,11 @@ struct GFDecryptResult {
   QList<GFRecipient> recipients;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
+
+  /// As an engine reports them; the defaults are what rPGP always means.
+  QString unsupported_algorithm;
+  bool is_mime = false;
+  bool integrity_protected = true;
 };
 
 struct GFSignResult {

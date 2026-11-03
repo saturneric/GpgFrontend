@@ -241,6 +241,40 @@ auto VerifyResultOf(gpgme_verify_result_t result) -> GpgVerifyResult {
   return GpgVerifyResult(out);
 }
 
+auto ConvertRecipient(gpgme_recipient_t r) -> GFRecipient {
+  GFRecipient out;
+  if (r == nullptr) return out;
+  out.key_id = QString::fromUtf8(r->keyid);
+  out.pub_algo = QString::fromUtf8(gpgme_pubkey_algo_name(r->pubkey_algo));
+  out.status = FromGpgError(r->status);
+  return out;
+}
+
+auto EncryptResultOf(gpgme_encrypt_result_t result) -> GpgEncryptResult {
+  if (result == nullptr) return {};
+  GFEncryptResult out;
+  for (auto* invalid = result->invalid_recipients; invalid != nullptr;
+       invalid = invalid->next) {
+    out.invalid_recipients.append(
+        {QString::fromUtf8(invalid->fpr), FromGpgError(invalid->reason)});
+  }
+  return GpgEncryptResult(out);
+}
+
+auto DecryptResultOf(gpgme_decrypt_result_t result) -> GpgDecryptResult {
+  if (result == nullptr) return {};
+  GFDecryptResult out;
+  out.filename = QString::fromUtf8(result->file_name);
+  out.symkey_algo = QString::fromUtf8(result->symkey_algo);
+  out.unsupported_algorithm = QString::fromUtf8(result->unsupported_algorithm);
+  out.is_mime = result->is_mime != 0;
+  out.integrity_protected = result->legacy_cipher_nomdc == 0;
+  for (auto* r = result->recipients; r != nullptr; r = r->next) {
+    out.recipients.append(ConvertRecipient(r));
+  }
+  return GpgDecryptResult(out);
+}
+
 auto GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t {
   return static_cast<gpgme_key_t>(key.Native().get());
 }

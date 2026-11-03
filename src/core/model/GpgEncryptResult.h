@@ -37,8 +37,6 @@ class GF_CORE_EXPORT GpgEncryptResult {
  public:
   auto IsGood() -> bool;
 
-  auto GetRaw() -> gpgme_encrypt_result_t;
-
   auto InvalidRecipients() -> QList<std::tuple<QString, GFError>>;
 
   /// Subkeys the session key was actually encrypted to, as reported by the
@@ -50,8 +48,6 @@ class GF_CORE_EXPORT GpgEncryptResult {
   /// GnuPG engine, where `gpgme_strerror` already provides the description.
   auto ErrorDetail() -> QString;
 
-  explicit GpgEncryptResult(gpgme_encrypt_result_t);
-
   explicit GpgEncryptResult(const GFEncryptResult&);
 
   GpgEncryptResult();
@@ -59,7 +55,6 @@ class GF_CORE_EXPORT GpgEncryptResult {
   virtual ~GpgEncryptResult();
 
  private:
-  QSharedPointer<struct _gpgme_op_encrypt_result> result_ref_ = nullptr;  ///<
   QSharedPointer<struct GFEncryptResult> gf_result_ref_ = nullptr;        ///<
 };
 

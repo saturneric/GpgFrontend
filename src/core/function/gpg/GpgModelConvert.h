@@ -30,6 +30,8 @@
 
 #include <gpgme.h>
 
+#include "core/model/GpgDecryptResult.h"
+#include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
@@ -67,6 +69,18 @@ auto GF_CORE_EXPORT SignResultOf(gpgme_sign_result_t result) -> GpgSignResult;
 /// good when there was none.
 auto GF_CORE_EXPORT VerifyResultOf(gpgme_verify_result_t result)
     -> GpgVerifyResult;
+
+auto GF_CORE_EXPORT ConvertRecipient(gpgme_recipient_t r) -> GFRecipient;
+
+/// gpgme's result of the encrypt operation just run, or a result that is not
+/// good when there was none.
+auto GF_CORE_EXPORT EncryptResultOf(gpgme_encrypt_result_t result)
+    -> GpgEncryptResult;
+
+/// gpgme's result of the decrypt operation just run, or a result that is not
+/// good when there was none.
+auto GF_CORE_EXPORT DecryptResultOf(gpgme_decrypt_result_t result)
+    -> GpgDecryptResult;
 
 /// The gpgme key a model key listed by GnuPG carries, for gpgme calls.
 auto GF_CORE_EXPORT GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t;

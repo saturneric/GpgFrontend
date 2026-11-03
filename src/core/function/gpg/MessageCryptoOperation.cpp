@@ -85,7 +85,7 @@ auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
       gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : gpg_recipients.data(),
                        GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
   data_object->Swap({
-      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      EncryptResultOf(gpgme_op_encrypt_result(ctx)),
       data_out.Read2GFBuffer(),
   });
 
@@ -107,7 +107,7 @@ auto DecryptGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   auto err = CheckGpgError(
       gpgme_op_decrypt(g_ctx.DefaultContext(), data_in, data_out));
   data_object->Swap({
-      GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
+      DecryptResultOf(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
       data_out.Read2GFBuffer(),
   });
 
@@ -208,7 +208,7 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
                                             data_out));
 
   data_object->Swap({
-      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      EncryptResultOf(gpgme_op_encrypt_result(ctx)),
       SignResultOf(gpgme_op_sign_result(ctx)),
       data_out.Read2GFBuffer(),
   });
@@ -227,7 +227,7 @@ auto DecryptVerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
       gpgme_op_decrypt_verify(g_ctx.DefaultContext(), data_in, data_out));
 
   data_object->Swap({
-      GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
+      DecryptResultOf(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
       VerifyResultOf(gpgme_op_verify_result(g_ctx.DefaultContext())),
       data_out.Read2GFBuffer(),
   });

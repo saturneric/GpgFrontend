@@ -30,14 +30,6 @@
 
 namespace GpgFrontend {
 
-GpgDecryptResult::GpgDecryptResult(gpgme_decrypt_result_t r)
-    : result_ref_(QSharedPointer<struct _gpgme_op_decrypt_result>(
-          (gpgme_result_ref(r), r), [](gpgme_decrypt_result_t p) {
-            if (p != nullptr) {
-              gpgme_result_unref(p);
-            }
-          })) {}
-
 GpgDecryptResult::GpgDecryptResult(const GFDecryptResult& r)
     : gf_result_ref_(QSharedPointer<GFDecryptResult>::create(r)) {}
 
@@ -45,79 +37,33 @@ GpgDecryptResult::GpgDecryptResult() = default;
 
 GpgDecryptResult::~GpgDecryptResult() = default;
 
-auto GpgDecryptResult::IsGood() -> bool {
-  return result_ref_ != nullptr || gf_result_ref_ != nullptr;
-}
-
-auto GpgDecryptResult::GetRaw() -> gpgme_decrypt_result_t {
-  return result_ref_.get();
-}
+auto GpgDecryptResult::IsGood() -> bool { return gf_result_ref_ != nullptr; }
 
 auto GpgDecryptResult::Recipients() -> QList<GpgRecipient> {
   QList<GpgRecipient> result;
-
-  if (gf_result_ref_ != nullptr) {
-    for (const auto& rec : gf_result_ref_->recipients) {
-      result.push_back(GpgRecipient{rec});
-    }
-    return result;
-  }
-
-  if (result_ref_ == nullptr) {
-    return result;
-  }
-
-  for (auto* reci = result_ref_->recipients; reci != nullptr;
-       reci = reci->next) {
-    try {
-      result.push_back(GpgRecipient{reci});
-    } catch (...) {
-      FLOG_W(
-          "caught exception when processing invalid_recipients, "
-          "maybe nullptr of fpr");
-    }
+  if (gf_result_ref_ == nullptr) return result;
+  for (const auto& rec : gf_result_ref_->recipients) {
+    result.push_back(GpgRecipient{rec});
   }
   return result;
 }
 
 auto GpgDecryptResult::UnsupportedAlgorithm() -> QString {
-  if (gf_result_ref_ != nullptr) {
-    return {};
-  }
-  if (result_ref_ != nullptr && result_ref_->unsupported_algorithm != nullptr) {
-    return QString{result_ref_->unsupported_algorithm};
-  }
-  return {};
+  if (gf_result_ref_ == nullptr) return {};
+  return gf_result_ref_->unsupported_algorithm;
 }
 
 auto GpgDecryptResult::Filename() -> QString {
-  if (gf_result_ref_ != nullptr) {
-    return gf_result_ref_->filename;
-  }
-  if (result_ref_ != nullptr && result_ref_->file_name != nullptr) {
-    return result_ref_->file_name;
-  }
-  return {};
+  if (gf_result_ref_ == nullptr) return {};
+  return gf_result_ref_->filename;
 }
 
 auto GpgDecryptResult::MIME() -> bool {
-  if (gf_result_ref_ != nullptr) {
-    return false;  // RPGP does not support MIME, treat as non-MIME
-  }
-  if (result_ref_ != nullptr) {
-    return result_ref_->is_mime != 0;
-  }
-  return {};
+  return gf_result_ref_ != nullptr && gf_result_ref_->is_mime;
 }
 
 auto GpgDecryptResult::MessageIntegrityProtected() -> bool {
-  if (gf_result_ref_ != nullptr) {
-    return true;  // RPGP always has MDC
-  }
-  if (result_ref_ != nullptr) {
-    return result_ref_->legacy_cipher_nomdc == 0;
-  }
-  return {};
+  return gf_result_ref_ != nullptr && gf_result_ref_->integrity_protected;
 }
 
 auto GpgDecryptResult::CipherWarning() -> QString {
@@ -126,13 +72,8 @@ auto GpgDecryptResult::CipherWarning() -> QString {
 }
 
 auto GpgDecryptResult::SymmetricEncryptionAlgorithm() -> QString {
-  if (gf_result_ref_ != nullptr) {
-    return gf_result_ref_->symkey_algo;
-  }
-  if (result_ref_ != nullptr && result_ref_->symkey_algo != nullptr) {
-    return QString{result_ref_->symkey_algo};
-  }
-  return {};
+  if (gf_result_ref_ == nullptr) return {};
+  return gf_result_ref_->symkey_algo;
 }
 
 auto GpgDecryptResult::ErrorDetail() -> QString {

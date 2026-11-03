@@ -26,6 +26,8 @@
  *
  */
 
+#include "core/function/gpg/GpgModelConvert.h"
+#include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignature.h"
 #include "core/model/GpgVerifyResult.h"
@@ -49,6 +51,67 @@ TEST(SignatureModelTest, DefaultVerifyResultIsNotGood) {
 TEST(SignatureModelTest, EngineNeutralEncryptResultIsGood) {
   EXPECT_FALSE(GpgEncryptResult().IsGood());
   EXPECT_TRUE(GpgEncryptResult(GFEncryptResult{}).IsGood());
+}
+
+// No gpgme result means the operation produced none: never a good result.
+TEST(SignatureModelTest, MissingGpgmeResultsAreNotGood) {
+  EXPECT_FALSE(EncryptResultOf(nullptr).IsGood());
+  EXPECT_FALSE(DecryptResultOf(nullptr).IsGood());
+}
+
+// The engine-neutral defaults are what rPGP always means.
+TEST(SignatureModelTest, EngineNeutralDecryptResultDefaults) {
+  GpgDecryptResult result{GFDecryptResult{}};
+
+  EXPECT_TRUE(result.IsGood());
+  EXPECT_FALSE(result.MIME());
+  EXPECT_TRUE(result.MessageIntegrityProtected());
+  EXPECT_TRUE(result.UnsupportedAlgorithm().isEmpty());
+  EXPECT_FALSE(GpgDecryptResult().MessageIntegrityProtected());
+}
+
+TEST(SignatureModelTest, GpgmeDecryptResultIsCarriedOver) {
+  _gpgme_recipient recipient{};
+  std::array<char, 17> keyid{"0123456789ABCDEF"};
+  recipient.keyid = keyid.data();
+  recipient.pubkey_algo = GPGME_PK_RSA;
+  recipient.status = GPG_ERR_NO_SECKEY;
+
+  std::array<char, 9> file_name{"note.txt"};
+  _gpgme_op_decrypt_result raw{};
+  raw.file_name = file_name.data();
+  raw.is_mime = 1;
+  raw.legacy_cipher_nomdc = 1;
+  raw.recipients = &recipient;
+
+  auto result = DecryptResultOf(&raw);
+  ASSERT_TRUE(result.IsGood());
+  EXPECT_EQ(result.Filename(), "note.txt");
+  EXPECT_TRUE(result.MIME());
+  EXPECT_FALSE(result.MessageIntegrityProtected());
+
+  auto recipients = result.Recipients();
+  ASSERT_EQ(recipients.size(), 1);
+  EXPECT_EQ(recipients.front().keyid, "0123456789ABCDEF");
+  EXPECT_EQ(recipients.front().status.code, GFErrorCode::kNO_SECRET_KEY);
+}
+
+TEST(SignatureModelTest, GpgmeInvalidRecipientsAreCarriedOver) {
+  std::array<char, 5> fpr{"ABCD"};
+  _gpgme_invalid_key invalid{};
+  invalid.fpr = fpr.data();
+  invalid.reason = GPG_ERR_UNUSABLE_PUBKEY;
+
+  _gpgme_op_encrypt_result raw{};
+  raw.invalid_recipients = &invalid;
+
+  auto result = EncryptResultOf(&raw);
+  ASSERT_TRUE(result.IsGood());
+  auto invalids = result.InvalidRecipients();
+  ASSERT_EQ(invalids.size(), 1);
+  EXPECT_EQ(std::get<0>(invalids.front()), "ABCD");
+  EXPECT_EQ(std::get<1>(invalids.front()).code,
+            GFErrorCode::kUNUSABLE_PUBLIC_KEY);
 }
 
 TEST(SignatureModelTest, DefaultVerifyResultReturnsNoSignatures) {
