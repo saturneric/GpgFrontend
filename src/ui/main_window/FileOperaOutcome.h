@@ -39,10 +39,12 @@ namespace GpgFrontend::UI {
  * @brief Whether the staged output of a file or archive operation may be
  * committed to its final path.
  *
- * Status contract (see GpgResultAnalyse::GetStatus): > 0 is success, 0 is
- * valid output with non-fatal warnings (e.g. an unknown recipient or a missing
- * signer key) and is kept, < 0 is a failure and the output is discarded. A
- * successful staging and finalization step is still required on top of this.
+ * Decided by GpgOpResultInfo::OutputReleasable(): output whose production
+ * succeeded is kept, warnings included (e.g. an unknown recipient or a missing
+ * signer key), and so is a decryption whose signature failed, which is
+ * reported; output whose production failed, a decryption or its integrity
+ * check, is discarded. A successful staging and finalization step is still
+ * required on top of this.
  *
  * Exposed primarily for unit testing.
  *

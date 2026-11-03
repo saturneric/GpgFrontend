@@ -34,7 +34,9 @@
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/function/result_analyse/GpgOperaOutcome.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
+#include "core/model/GpgVerifyResult.h"
 
 namespace GpgFrontend::Test {
 
@@ -212,6 +214,67 @@ TEST(GpgOpResultInfoTest, AnOperationStoppedEarlyIsNotAnalysed) {
   EXPECT_FALSE((StoppedOperaInfo<GpgDecryptResult, GpgDecryptResultAnalyse>(
                     kUnusedChannel, GFError{}, result))
                    .has_value());
+}
+
+// A decryption is used whatever its signature says; a failed one is not.
+TEST(GpgOpResultInfoTest, OnlyTheStagesThatProduceOutputDecideItsRelease) {
+  auto decrypted = Info(GpgOperation::kDECRYPT, 1);
+  decrypted.outputStatus = 1;
+  auto bad_signature = Info(GpgOperation::kVERIFY, -1);
+
+  auto info = decrypted;
+  info.Merge(bad_signature);
+  EXPECT_EQ(info.status, -1) << "the signature failure is still reported";
+  EXPECT_TRUE(info.OutputReleasable());
+
+  auto failed = Info(GpgOperation::kDECRYPT, -1);
+  failed.outputStatus = -1;
+  failed.Merge(Info(GpgOperation::kVERIFY, 1));
+  EXPECT_FALSE(failed.OutputReleasable());
+
+  // Encrypt and sign both produce the output: either failing withholds it.
+  auto encrypted = Info(GpgOperation::kENCRYPT, 1);
+  encrypted.outputStatus = 1;
+  auto unsigned_ = Info(GpgOperation::kSIGN, -1);
+  unsigned_.outputStatus = -1;
+  encrypted.Merge(unsigned_);
+  EXPECT_FALSE(encrypted.OutputReleasable());
+
+  // Nothing said about the output: the status decides, as for a stopped one.
+  EXPECT_FALSE(Info(GpgOperation::kDECRYPT, -1).OutputReleasable());
+  EXPECT_TRUE(Info(GpgOperation::kDECRYPT, 0).OutputReleasable());
+}
+
+// The analysers say which stage produced the output: a message that decrypted
+// with its integrity checked is released whatever its signature said, one
+// without integrity protection is not.
+TEST(GpgOpResultInfoTest, AnalysedDecryptionsAreReleasedByTheirOwnOutcome) {
+  constexpr int kUnusedChannel = 4099;
+
+  GFSignature bad;
+  bad.issuer_fpr = u"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s;
+  bad.status = GFSignatureStatus::kBAD_SIGNATURE;
+  GFVerifyResult verify_result;
+  verify_result.signatures.append(bad);
+  GpgVerifyResultAnalyse verify(kUnusedChannel, GFError{},
+                                GpgVerifyResult(verify_result));
+  verify.Analyse();
+
+  GpgDecryptResultAnalyse decrypt(kUnusedChannel, GFError{},
+                                  GpgDecryptResult(GFDecryptResult{}));
+  decrypt.Analyse();
+
+  auto info = decrypt.GetOpInfo();
+  info.Merge(verify.GetOpInfo());
+  EXPECT_LT(info.status, 0) << "a bad signature is a failure to report";
+  EXPECT_TRUE(info.OutputReleasable());
+
+  GFDecryptResult unprotected_result;
+  unprotected_result.integrity_protected = false;
+  GpgDecryptResultAnalyse unprotected(kUnusedChannel, GFError{},
+                                      GpgDecryptResult(unprotected_result));
+  unprotected.Analyse();
+  EXPECT_FALSE(unprotected.GetOpInfo().OutputReleasable());
 }
 
 }  // namespace GpgFrontend::Test

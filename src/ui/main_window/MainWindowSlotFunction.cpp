@@ -659,7 +659,9 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
                          : OutputFate::kNOT_PRODUCED);
       continue;
     }
-    if (result.op_info.status < 0) {
+    // Only what was produced successfully: a decryption whose signature
+    // failed is used, with the failure reported; one that failed is not.
+    if (!result.op_info.OutputReleasable()) {
       record(result, OutputFate::kWITHHELD);
       continue;
     }

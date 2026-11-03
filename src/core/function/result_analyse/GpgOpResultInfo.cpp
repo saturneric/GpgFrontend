@@ -105,6 +105,13 @@ void GpgOpResultInfo::Merge(const GpgOpResultInfo& other) {
   // Status: take the minimum (worst) status
   status = std::min(status, other.status);
 
+  // The output's status: the worst of the stages that produced it.
+  if (other.outputStatus.has_value()) {
+    outputStatus = outputStatus.has_value()
+                       ? std::min(*outputStatus, *other.outputStatus)
+                       : other.outputStatus;
+  }
+
   // Report: concatenate
   report += other.report;
 

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "GFCoreExport.h"
 #include "core/typedef/GFError.h"
 #include "core/typedef/GpgTypedef.h"
@@ -199,8 +201,20 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
   // --- common ----------------------------------------------------------------
 
   /// Operation status: >0 success, 0 valid output with non-fatal warnings
-  /// (kept), <0 failure (output suppressed). See GpgResultAnalyse.
+  /// (kept), <0 failure. See GpgResultAnalyse.
   int status = 1;
+
+  /// The status of the stages that produced the output, where any did: not a
+  /// signature checked on the way. A decryption whose signature fails still
+  /// decrypted; one that failed, or whose integrity could not be checked, did
+  /// not. Nothing for an operation with no output of its own (Verify).
+  std::optional<int> outputStatus;
+
+  /// Whether the output may be used: written, shown or handed on. Only when
+  /// producing it succeeded, whatever a signature check said.
+  [[nodiscard]] auto OutputReleasable() const -> bool {
+    return outputStatus.value_or(status) >= 0;
+  }
   QString report;  ///< Formatted text report for display
 
   /// Stable identity of the operation; what logic compares.

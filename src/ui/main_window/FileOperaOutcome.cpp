@@ -37,7 +37,7 @@ auto IsFileOperaSuccessful(const QList<GpgOperaResult>& results,
 
   return std::all_of(results.cbegin(), results.cend(),
                      [](const GpgOperaResult& result) -> bool {
-                       return result.op_info.status >= 0;
+                       return result.op_info.OutputReleasable();
                      });
 }
 
@@ -103,7 +103,7 @@ void RecordDiscardedOutputs(InfoBoardBatchContext& context,
     if (!removed.at(i)) {
       context.fates.insert(i, OutputFate::kDISCARD_FAILED);
       context.output_errors[i].append(DiscardError(staged_paths.value(i)));
-    } else if (result.op_info.status < 0) {
+    } else if (!result.op_info.OutputReleasable()) {
       context.fates.insert(i, OutputFate::kNOT_PRODUCED);
     } else {
       context.fates.insert(i, OutputFate::kSTAGED_DISCARDED);

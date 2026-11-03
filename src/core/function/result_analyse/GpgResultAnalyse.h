@@ -62,9 +62,12 @@ auto GF_CORE_EXPORT EngineErrorOf(int channel, GFErrorCode code) -> GFError;
  * GetResultReport(). An integer status tracks the worst-case outcome seen so
  * far: 1 = success; 0 = the output is valid but comes with non-fatal warnings
  * (e.g. an unknown recipient, or a signature that cannot be verified because
- * the signer's key is missing), and is kept; -1 = failure, and the output must
- * be suppressed (text not shown, staged files discarded). Committing file
- * output additionally requires its staging and finalization to succeed.
+ * the signer's key is missing), and is kept; -1 = failure. A failure of the
+ * stage that produces the output (a decryption, its integrity check) means the
+ * output must be suppressed (text not shown, staged files discarded); a failed
+ * signature check on the way does not, and is reported instead. See
+ * GpgOpResultInfo::OutputReleasable(). Committing file output additionally
+ * requires its staging and finalization to succeed.
  * Analyse() is idempotent; doAnalyse() is called at most once.
  */
 class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
@@ -92,7 +95,7 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    * @brief Return the accumulated worst-case status code.
    *
    * Status values: 1 = success, 0 = valid output with non-fatal warnings
-   * (kept), -1 = failure (output suppressed). See the class comment. The value
+   * (kept), -1 = failure. See the class comment. The value
    * only decreases; it is never raised by setStatus().
    *
    * @return current status code

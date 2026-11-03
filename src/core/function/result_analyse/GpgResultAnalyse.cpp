@@ -73,6 +73,8 @@ void GpgFrontend::GpgResultAnalyse::Analyse() {
   if (!analysed_) {
     doAnalyse();
     op_info_.status = status_;
+    // Every operation but a verification produces the output it is about.
+    if (op_info_.op != GpgOperation::kVERIFY) op_info_.outputStatus = status_;
     op_info_.report = buffer_;
     analysed_ = true;
   }
