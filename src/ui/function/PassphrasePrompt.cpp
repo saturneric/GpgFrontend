@@ -29,6 +29,7 @@
 #include "ui/function/PassphrasePrompt.h"
 
 #include "core/function/CoreSignalStation.h"
+#include "core/function/openpgp/PassphraseService.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
 #include "ui/dialog/PassphraseDialog.h"
@@ -73,19 +74,14 @@ void InstallPassphrasePromptHandler() {
 
         PassphraseDialog dialog(c, parent_widget);
 
-        if (dialog.exec() == QDialog::Accepted) {
-          c->SetPassphrase(dialog.Passphrase());
-        } else {
-          // Set empty passphrase and flag the explicit cancellation so the
-          // engine can surface GPG_ERR_CANCELED instead of a generic failure.
-          c->SetPassphrase(GFBuffer());
-          c->SetCancelled(true);
-        }
+        // Declining answers with nothing: an explicit cancellation, so the
+        // engine reports that rather than a generic failure.
+        std::optional<GFBuffer> answer;
+        if (dialog.exec() == QDialog::Accepted) answer = dialog.Passphrase();
 
         dialog.Clear();  // Clear the passphrase from memory as soon as possible
 
-        emit CoreSignalStation::GetInstance()
-            -> SignalUserInputPassphraseReady(c);
+        AnswerPassphraseRequest(c, answer);
       });
 }
 

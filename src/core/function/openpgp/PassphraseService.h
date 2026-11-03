@@ -31,11 +31,15 @@
 // Deliberately not OpenPGPContext.h: asking the user for a passphrase says
 // nothing about which engine will use it, and holding a reference to the
 // channel's context here forced one into existence just to open a prompt.
+#include <optional>
+
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/typedef/GFTypedef.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
+
+class GpgPassphraseContext;
 
 /**
  * @brief Context passed to PassphraseService::RequestPassphrase describing the
@@ -116,4 +120,18 @@ class GF_CORE_EXPORT PassphraseService
                          PassphraseRequestStatus* out_status = nullptr)
       -> GFBuffer;
 };
+/**
+ * @brief Answer the passphrase request an interface showed.
+ *
+ * With @p passphrase, or, without one, as an explicit refusal, so the engine
+ * reports a cancellation rather than a generic failure. Then the request is
+ * settled (CoreSignalStation::SignalUserInputPassphraseReady).
+ *
+ * @param context the request
+ * @param passphrase what was typed; nothing when declined
+ */
+void GF_CORE_EXPORT
+AnswerPassphraseRequest(const QSharedPointer<GpgPassphraseContext>& context,
+                        const std::optional<GFBuffer>& passphrase);
+
 }  // namespace GpgFrontend
