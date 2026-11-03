@@ -32,6 +32,7 @@
 include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
 
 qt_add_library(gf_mob_lib STATIC
+  AppServices.cpp
   startup/InteractionBridge.cpp
   startup/MobileProfileLoaderDelegate.cpp
   startup/StartupController.cpp
@@ -41,6 +42,7 @@ qt_add_library(gf_mob_lib STATIC
   model/KeyListController.cpp
   model/KeyImportController.cpp
   model/KeyActionsController.cpp
+  model/SettingsModel.cpp
   crypto/KeySelection.cpp
   crypto/OutputActions.cpp
   crypto/PassphraseBroker.cpp
@@ -55,6 +57,12 @@ qt_add_qml_module(gf_mob_lib
   # Where QQmlEngine looks by default (the QTP0001 layout).
   RESOURCE_PREFIX /qt/qml)
 
+# Which style the controls take is the platform's (Material on Android); this
+# only gives it GpgFrontend's colours and lets it follow the system's dark mode.
+qt_add_resources(gf_mob_lib "gf_mob_style"
+  PREFIX "/"
+  FILES qtquickcontrols2.conf)
+
 target_include_directories(gf_mob_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # The generated type registrations include each header by its bare name.
 target_include_directories(gf_mob_lib PRIVATE
@@ -64,3 +72,6 @@ target_include_directories(gf_mob_lib PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/crypto)
 target_link_libraries(gf_mob_lib PUBLIC
   gf_boot gf_core gf_res Qt::Quick Qt::QuickControls2 Qt::Svg)
+
+qt_add_executable(gf_mob main.cpp)
+target_link_libraries(gf_mob PRIVATE gf_mob_lib gf_mob_libplugin)
