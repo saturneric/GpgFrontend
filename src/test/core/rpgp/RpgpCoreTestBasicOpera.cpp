@@ -31,7 +31,6 @@
 #include "RpgpCoreTest.h"
 #include "core//GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"

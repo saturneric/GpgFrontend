@@ -28,7 +28,6 @@
 
 #include "ResultHandler.h"
 
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/utils/RustUtils.h"
 

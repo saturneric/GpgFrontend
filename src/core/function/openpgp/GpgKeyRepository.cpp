@@ -28,8 +28,6 @@
 
 #include "GpgKeyRepository.h"
 
-#include <gpg-error.h>
-
 #include <mutex>
 
 #include "core/function/openpgp/OpenPGPContext.h"

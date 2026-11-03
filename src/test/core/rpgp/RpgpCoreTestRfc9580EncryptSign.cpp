@@ -36,7 +36,6 @@
 
 #include "RpgpCoreTestRfc9580.h"
 #include "core//function/openpgp/GpgKeyRepository.h"
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
