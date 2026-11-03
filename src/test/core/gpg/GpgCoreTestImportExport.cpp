@@ -37,7 +37,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestA) {
   auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "F89C95A05088CC93", true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
       QCryptographicHash::hash(
@@ -52,7 +52,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestB) {
   auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "F89C95A05088CC93!", true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
       QCryptographicHash::hash(
@@ -67,7 +67,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestC) {
   auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "CFF986E51BBC2F46064C2136F89C95A05088CC93", true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
       QCryptographicHash::hash(
@@ -82,7 +82,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestD) {
   auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "CFF986E51BBC2F46064C2136F89C95A05088CC93!", true);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
       QCryptographicHash::hash(

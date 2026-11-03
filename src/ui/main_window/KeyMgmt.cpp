@@ -919,17 +919,17 @@ void KeyMgmt::export_keys_to_clipboard(const GpgAbstractKeyPtrList& keys) {
             key_list_->GetCurrentGpgContextChannel())
             .ExportKeys(
                 keys, false, true, false, false,
-                [=](GpgError err, const DataObjectPtr& data_obj) {
+                [=](GFError err, const DataObjectPtr& data_obj) {
                   // stop waiting
                   op_hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  if (err.Aborted()) {
                     QMessageBox::critical(this, tr("Error"),
                                           tr("Unknown error occurred"));
                     return;
                   }
 
-                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  if (!err.Ok()) {
                     RaiseMessageBox(this, err);
                     return;
                   }
@@ -1138,17 +1138,17 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
             key_list_->GetCurrentGpgContextChannel())
             .ExportKeys(
                 keys, false, true, false, true,
-                [=](GpgError err, const DataObjectPtr& data_obj) {
+                [=](GFError err, const DataObjectPtr& data_obj) {
                   // stop waiting
                   op_hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  if (err.Aborted()) {
                     QMessageBox::critical(this, tr("Error"),
                                           tr("Unknown error occurred"));
                     return;
                   }
 
-                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  if (!err.Ok()) {
                     RaiseMessageBox(this, err);
                     return;
                   }
@@ -1160,7 +1160,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
                   }
 
                   auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  if (!err.Ok()) {
                     RaiseMessageBox(this, err);
                     return;
                   }

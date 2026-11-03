@@ -47,12 +47,12 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const OperationCallback& cb) {
   KeyImportExportOperation::GetInstance(GetChannel())
       .ExportAllKeys(
-          keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
+          keys, secret, true, [=](GFError err, const DataObjectPtr& data_obj) {
             LOG_D() << "ExportAllKeys callback called, err: "
-                    << DescribeGpgErrCode(err).second;
-            if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                    << DescribeGFError(err).second;
+            if (!err.Ok()) {
               cb(-1, TransferParams(QString{"Export Key Data Failed: "} +
-                                    DescribeGpgErrCode(err).second));
+                                    DescribeGFError(err).second));
               return;
             }
 

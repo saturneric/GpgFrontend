@@ -83,22 +83,22 @@ class GF_CORE_EXPORT KeyImportExportOperation
    * @param ascii if true, produce ASCII-armored output
    * @param shortest if true, export the minimal representation
    * @param ssh_mode if true, export in OpenSSH format (GnuPG only)
-   * @return tuple of (GpgError, GFBuffer containing the exported key data)
+   * @return tuple of (GFError, GFBuffer containing the exported key data)
    */
   [[nodiscard]] auto ExportKey(const GpgAbstractKeyPtr& key, bool secret,
                                bool ascii, bool shortest,
                                bool ssh_mode = false) const
-      -> std::tuple<GpgError, GFBuffer>;
+      -> std::tuple<GFError, GFBuffer>;
 
   /**
    * @brief Export a subkey by its fingerprint.
    *
    * @param fpr subkey fingerprint
    * @param ascii if true, produce ASCII-armored output
-   * @return tuple of (GpgError, GFBuffer containing the subkey data)
+   * @return tuple of (GFError, GFBuffer containing the subkey data)
    */
   [[nodiscard]] auto ExportSubkey(const QString& fpr, bool ascii) const
-      -> std::tuple<GpgError, GFBuffer>;
+      -> std::tuple<GFError, GFBuffer>;
 
   /**
    * @brief Export a list of keys to a buffer (async).
@@ -108,11 +108,11 @@ class GF_CORE_EXPORT KeyImportExportOperation
    * @param ascii if true, produce ASCII-armored output
    * @param shortest if true, export minimal representations
    * @param ssh_mode if true, export in OpenSSH format
-   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   * @param cb callback invoked on completion with (GFError, DataObjectPtr)
    */
   void ExportKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
                   bool shortest, bool ssh_mode,
-                  const GpgOperationCallback& cb) const;
+                  const GFOperationCallback& cb) const;
 
   /**
    * @brief Export all key material (public and optionally secret) for a list of
@@ -127,7 +127,7 @@ class GF_CORE_EXPORT KeyImportExportOperation
    * @param cb callback invoked on completion
    */
   void ExportAllKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
-                     const GpgOperationCallback& cb) const;
+                     const GFOperationCallback& cb) const;
 
  private:
   // OpenPGP context for this channel.

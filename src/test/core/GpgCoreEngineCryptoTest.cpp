@@ -1002,8 +1002,7 @@ TEST_P(GpgCoreEngineTest, ImportExportRoundtripStress) {
     auto [sec_err, secret_buf] =
         KeyImportExportOperation::GetInstance(Channel()).ExportKey(key, true,
                                                                    true, false);
-    ASSERT_EQ(CheckGpgError(sec_err), GPG_ERR_NO_ERROR)
-        << "export secret failed at iteration " << i;
+    ASSERT_TRUE(sec_err.Ok()) << "export secret failed at iteration " << i;
     ASSERT_FALSE(secret_buf.Empty())
         << "empty secret export at iteration " << i;
 
@@ -1015,8 +1014,7 @@ TEST_P(GpgCoreEngineTest, ImportExportRoundtripStress) {
     auto [pub_err, public_buf] =
         KeyImportExportOperation::GetInstance(Channel()).ExportKey(key, false,
                                                                    true, false);
-    ASSERT_EQ(CheckGpgError(pub_err), GPG_ERR_NO_ERROR)
-        << "export public failed at iteration " << i;
+    ASSERT_TRUE(pub_err.Ok()) << "export public failed at iteration " << i;
     ASSERT_FALSE(public_buf.Empty())
         << "empty public export at iteration " << i;
 

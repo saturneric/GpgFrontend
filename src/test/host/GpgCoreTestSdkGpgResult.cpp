@@ -225,7 +225,7 @@ TEST_P(GpgCoreEngineTest, SdkBinaryKeyExportIsByteForByte) {
   auto [err, expected] =
       KeyImportExportOperation::GetInstance(Channel()).ExportKey(key, false,
                                                                  false, false);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(expected.Empty());
 
   GFBuf out(Ctx());

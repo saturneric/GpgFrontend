@@ -132,7 +132,7 @@ void MainWindow::slot_append_selected_keys() {
   auto [err, gf_buffer] = KeyImportExportOperation::GetInstance(
                               m_key_list_->GetCurrentGpgContextChannel())
                               .ExportKey(keys.front(), false, true, false);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+  if (!err.Ok()) {
     RaiseMessageBox(this, err);
     return;
   }

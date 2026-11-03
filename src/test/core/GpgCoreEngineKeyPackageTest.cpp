@@ -46,7 +46,7 @@ namespace {
 auto Export(int channel, const GpgKeyPtr& key, bool secret) -> GFBuffer {
   auto [err, buffer] = KeyImportExportOperation::GetInstance(channel).ExportKey(
       key, secret, true, false);
-  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(err.Ok());
   return buffer;
 }
 

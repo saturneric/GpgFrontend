@@ -142,7 +142,7 @@ auto OfferSecretKeyBackup(QWidget* parent, int channel, const GpgKeyPtr& key)
 
   auto [err, buffer] = KeyImportExportOperation::GetInstance(channel).ExportKey(
       key, true, true, false);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+  if (!err.Ok()) {
     RaiseMessageBox(parent, err);
     return false;
   }

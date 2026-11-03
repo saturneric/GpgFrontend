@@ -673,7 +673,7 @@ void KeyPairSubkeyTab::slot_export_subkey() {
       KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
           .ExportSubkey(s_key.Fingerprint(), true);
 
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+  if (!err.Ok()) {
     RaiseMessageBox(this, err);
     return;
   }

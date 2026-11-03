@@ -44,7 +44,7 @@ TEST_F(RpgpCoreTest, CoreExportKeyTest) {
       KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
           .ExportKey(key, false, true, false);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
 }
 
@@ -57,7 +57,7 @@ TEST_F(RpgpCoreTest, CoreExportKeySecretTest) {
       KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
           .ExportKey(key, true, true, false);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
 }
 
@@ -70,7 +70,7 @@ TEST_F(RpgpCoreTest, CoreExportPublicKeyTest) {
       KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
           .ExportKey(key, false, true, false);
 
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(err.Ok());
   ASSERT_FALSE(gf_buffer.Empty());
 }
 
@@ -119,7 +119,7 @@ auto ExportFixtureKey(bool secret) -> QByteArray {
   auto [err, gf_buffer] =
       KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
           .ExportKey(key, secret, true, false);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return {};
+  if (!err.Ok()) return {};
   return gf_buffer.ConvertToQByteArray();
 }
 

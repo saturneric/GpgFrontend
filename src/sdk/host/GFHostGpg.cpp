@@ -106,7 +106,7 @@ auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef {
       GpgFrontend::KeyImportExportOperation::GetInstance(channel).ExportKey(
           key, false, ascii != 0, true);
 
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+  if (!err.Ok()) return nullptr;
 
   // Octets, not text: a binary export is not UTF-8, and a round trip through
   // QString would replace every invalid sequence.
@@ -164,7 +164,7 @@ auto GFGpgExportKey(int channel, const char* key_id, int ascii,
   auto [err, buffer] =
       GpgFrontend::KeyImportExportOperation::GetInstance(channel).ExportKey(
           key, false, ascii != 0, false);
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
+  if (!err.Ok()) return -1;
 
   // Octets, not text; see GFGpgPublicKey.
   *out = GFBufferNewFromBytes(buffer.Data(), buffer.Size());

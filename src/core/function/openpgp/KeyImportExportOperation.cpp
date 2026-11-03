@@ -52,27 +52,31 @@ auto KeyImportExportOperation::ImportRevCert(const GFBuffer& in_buffer)
 auto KeyImportExportOperation::ExportKey(const GpgAbstractKeyPtr& key,
                                          bool secret, bool ascii, bool shortest,
                                          bool ssh_mode) const
-    -> std::tuple<GpgError, GFBuffer> {
-  return RunRegisteredForward<ExportKeysOpTag>(
+    -> std::tuple<GFError, GFBuffer> {
+  auto [err, buffer] = RunRegisteredForward<ExportKeysOpTag>(
       ctx_, GpgAbstractKeyPtrList{key}, secret, ascii, shortest, ssh_mode);
+  return {EngineErrorOf(ctx_.GetChannel(), err), buffer};
 }
 
-void KeyImportExportOperation::ExportKeys(
-    const GpgAbstractKeyPtrList& keys, bool secret, bool ascii, bool shortest,
-    bool ssh_mode, const GpgOperationCallback& cb) const {
-  RunRegisteredAsync<ExportKeysAsyncOpTag>(ctx_, cb, keys, secret, ascii,
-                                           shortest, ssh_mode);
+void KeyImportExportOperation::ExportKeys(const GpgAbstractKeyPtrList& keys,
+                                          bool secret, bool ascii,
+                                          bool shortest, bool ssh_mode,
+                                          const GFOperationCallback& cb) const {
+  RunRegisteredAsyncGF<ExportKeysAsyncOpTag>(ctx_, cb, keys, secret, ascii,
+                                             shortest, ssh_mode);
 }
 
 void KeyImportExportOperation::ExportAllKeys(
     const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
-    const GpgOperationCallback& cb) const {
-  RunRegisteredAsync<ExportAllKeysOpTag>(ctx_, cb, keys, secret, ascii);
+    const GFOperationCallback& cb) const {
+  RunRegisteredAsyncGF<ExportAllKeysOpTag>(ctx_, cb, keys, secret, ascii);
 }
 
 auto KeyImportExportOperation::ExportSubkey(const QString& fpr,
                                             bool ascii) const
-    -> std::tuple<GpgError, GFBuffer> {
-  return RunRegisteredForward<ExportSubkeyOpTag>(ctx_, fpr, ascii);
+    -> std::tuple<GFError, GFBuffer> {
+  auto [err, buffer] =
+      RunRegisteredForward<ExportSubkeyOpTag>(ctx_, fpr, ascii);
+  return {EngineErrorOf(ctx_.GetChannel(), err), buffer};
 }
 }  // namespace GpgFrontend

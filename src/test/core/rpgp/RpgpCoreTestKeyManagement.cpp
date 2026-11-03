@@ -792,7 +792,7 @@ TEST_F(RpgpCoreTest, CoreGetEcdhKdfParamsTest) {
   auto [export_err, pub] =
       KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
           .ExportKey(key, false, true, false);
-  ASSERT_EQ(CheckGpgError(export_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(export_err.Ok());
   ASSERT_FALSE(pub.Empty());
 
   QString ecdh_fpr;
