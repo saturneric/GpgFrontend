@@ -12,15 +12,16 @@ Page {
         // A sheet takes Back itself, unless it is busy and must not close;
         // either way Back is not for the page under it, or the application.
         if (importSheet.opened || generateSheet.opened) return true
-        if (stack.depth > 1 && tabs.currentIndex === 1) {
+        if (stack.depth > 1 && tabs.currentIndex === 2) {
             if (stack.currentItem && stack.currentItem.busy) return true
             stack.pop()
             return true
         }
-        if (settingsStack.depth > 1 && tabs.currentIndex === 2) {
+        if (settingsStack.depth > 1 && tabs.currentIndex === 3) {
             settingsStack.pop()
             return true
         }
+        if (tabs.currentIndex === 1 && filesPage.back()) return true
         if (tabs.currentIndex !== 0) {
             tabs.currentIndex = 0
             return true
@@ -33,6 +34,10 @@ Page {
         currentIndex: tabs.currentIndex
 
         TextPage {}
+
+        FilesPage {
+            id: filesPage
+        }
 
         StackView {
             id: stack
@@ -64,6 +69,7 @@ Page {
         visible: Theme.keyboard === 0
         sections: [
             {"text": qsTr("Text"), "icon": "description"},
+            {"text": qsTr("Files"), "icon": "folder"},
             {"text": qsTr("Keys"), "icon": "key"},
             {"text": qsTr("Settings"), "icon": "settings"}
         ]

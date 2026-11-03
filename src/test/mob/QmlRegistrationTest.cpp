@@ -53,6 +53,7 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
         property var importer: KeyImportController {}
         property var actions: OutputActions {}
         property var keyActions: KeyActionsController {}
+        property var files: FileWorkspace {}
         property var settings: SettingsModel {}
         property var asked: PassphraseBroker.current
         property var startup: StartupController.state
@@ -73,7 +74,7 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
     EXPECT_NE(object->property("filter").value<QObject*>(), nullptr);
     EXPECT_NE(object->property("keys").value<QObject*>(), nullptr);
     for (const auto* name :
-         {"crypto", "importer", "actions", "keyActions", "settings"}) {
+         {"crypto", "importer", "actions", "keyActions", "files", "settings"}) {
       EXPECT_NE(object->property(name).value<QObject*>(), nullptr) << name;
     }
     EXPECT_EQ(object->property("suspended").toBool(), false);
@@ -102,7 +103,8 @@ TEST(QmlRegistrationTest, EveryPageLoads) {
          {"SplashPage", "ErrorPage", "MainPage", "KeysPage", "KeyDetailPage",
           "TextPage", "PinSheet", "ConfirmSheet", "PassphraseSheet",
           "RecipientSheet", "SignerSheet", "ResultSheet", "ImportSheet",
-          "SettingsPage", "GenerateSheet", "AboutPage"}) {
+          "FilesPage", "SettingsPage", "GenerateSheet", "AboutPage",
+          "FileDetailsSheet", "VerifySheet"}) {
       QQmlComponent component(&engine, "GpgFrontend.Mobile", name);
       std::unique_ptr<QObject> object(component.create());
       EXPECT_NE(object, nullptr)

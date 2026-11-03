@@ -86,6 +86,7 @@ qt_add_qml_module(gf_mob_lib
     qml/ErrorPage.qml
     qml/MainPage.qml
     qml/TextPage.qml
+    qml/FilesPage.qml
     qml/SettingsPage.qml
     qml/KeysPage.qml
     qml/KeyDetailPage.qml
@@ -117,7 +118,9 @@ qt_add_qml_module(gf_mob_lib
     qml/components/SectionHeader.qml
     qml/components/SearchField.qml
     qml/components/Fab.qml
-    qml/components/OverflowButton.qml)
+    qml/components/OverflowButton.qml
+    qml/components/FileDetailsSheet.qml
+    qml/components/VerifySheet.qml)
 
 # Which style the controls take is the platform's (Material on Android); this
 # only gives it GpgFrontend's colours and lets it follow the system's dark mode.
