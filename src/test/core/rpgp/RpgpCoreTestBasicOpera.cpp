@@ -1153,22 +1153,22 @@ TEST_F(RpgpCoreTest, CoreAmbiguousSubkeyNeedsTwoUsableSubkeysTest) {
 // the signer may not sign, and neither half may blame the recipients.
 TEST_F(RpgpCoreTest, CoreEncryptSignNamesTheSideThatMayNotBeUsedTest) {
   GFEncryptResult no_recipient_refused;
-  GpgError enc_err = GPG_ERR_UNUSABLE_PUBKEY;
-  GpgError sign_err = GPG_ERR_UNUSABLE_SECKEY;
+  GFError enc_err = GFError::Application(GFErrorCode::kUNUSABLE_PUBLIC_KEY);
+  GFError sign_err = GFError::Application(GFErrorCode::kUNUSABLE_SECRET_KEY);
   AttributeUnusableKey(true, no_recipient_refused, enc_err, sign_err);
-  EXPECT_EQ(enc_err, GPG_ERR_UNUSABLE_SECKEY);
-  EXPECT_EQ(sign_err, GPG_ERR_UNUSABLE_SECKEY);
+  EXPECT_EQ(enc_err.code, GFErrorCode::kUNUSABLE_SECRET_KEY);
+  EXPECT_EQ(sign_err.code, GFErrorCode::kUNUSABLE_SECRET_KEY);
 
   GFEncryptResult refused;
   refused.invalid_recipients.push_back({"ABCD", GPG_ERR_CERT_REVOKED});
   AttributeUnusableKey(true, refused, enc_err, sign_err);
-  EXPECT_EQ(enc_err, GPG_ERR_UNUSABLE_PUBKEY);
-  EXPECT_EQ(sign_err, GPG_ERR_UNUSABLE_PUBKEY);
+  EXPECT_EQ(enc_err.code, GFErrorCode::kUNUSABLE_PUBLIC_KEY);
+  EXPECT_EQ(sign_err.code, GFErrorCode::kUNUSABLE_PUBLIC_KEY);
 
-  // Any other status is left alone.
-  GpgError untouched = GPG_ERR_BAD_PASSPHRASE;
+  // Only an unusable-key status is re-attributed.
+  GFError untouched = GFError::Application(GFErrorCode::kBAD_PASSPHRASE);
   AttributeUnusableKey(false, refused, untouched, sign_err);
-  EXPECT_EQ(untouched, GPG_ERR_BAD_PASSPHRASE);
+  EXPECT_EQ(untouched.code, GFErrorCode::kBAD_PASSPHRASE);
 }
 
 // A signature by a key not authorized to sign is invalid for that reason, not

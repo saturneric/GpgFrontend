@@ -54,7 +54,7 @@ auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
  * @return GpgError
  */
 auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                                 const DataObjectPtr& data_object) -> GpgError;
+                                 const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief Re-protect a single subkey, leaving the primary and every other subkey
@@ -69,7 +69,7 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                     const SubkeyId& skey_fpr,
                                     const DataObjectPtr& data_object)
-    -> GpgError;
+    -> GFError;
 
 /**
  * @brief
@@ -126,7 +126,7 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& secret_key,
  */
 auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const SubkeyId& skey_fpr,
-                       const std::optional<QDateTime>& expires) -> GpgError;
+                       const std::optional<QDateTime>& expires) -> GFError;
 
 /**
  * @brief Extract the OpenPGP ECDH KDF parameters of the (sub)key @p subkey_fpr

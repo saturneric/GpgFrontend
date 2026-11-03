@@ -279,18 +279,17 @@ auto TakeEngineErrorDetail(Rust::GfrStatus err, const char* op) -> QString {
 }
 
 auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
-                       const char* what, const SecretKeyEdit& edit)
-    -> GpgError {
+                       const char* what, const SecretKeyEdit& edit) -> GFError {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   const auto key = key_db->GetKeyByIdentifier(fpr);
   if (!key || key->blocks.secret_key.Empty()) {
     LOG_E() << what << "needs a secret key the database does not hold:" << fpr;
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   const auto& secret = key->blocks.secret_key;
@@ -302,11 +301,11 @@ auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
     LOG_E() << what << "failed, engine status:" << static_cast<int>(status);
     if (out != nullptr) Rust::gfr_crypto_free_string(out);
     TakeEngineErrorDetail(status, what);
-    return CommonEngineError(status);
+    return FromRpgpStatus(status);
   }
   if (out == nullptr) {
     LOG_E() << what << "returned no key block for:" << fpr;
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   const GFBuffer edited(QString::fromUtf8(out));
@@ -314,9 +313,9 @@ auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
 
   if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), edited, key->blocks)) {
     LOG_E() << "failed to store the key after:" << what << fpr;
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
-  return GPG_ERR_NO_ERROR;
+  return GFError{};
 }
 
 auto NoUsableRecipientsResult(const QList<GpgKey>& recipients)
@@ -377,35 +376,35 @@ auto GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
 
 auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                          Rust::GfrEncryptResultC gfr_result)
-    -> std::tuple<GpgError, GFEncryptResult> {
+    -> std::tuple<GFError, GFEncryptResult> {
   LOG_D() << "Handling encrypt result. Rust status: " << static_cast<int>(err);
 
-  GpgError gf_err = GPG_ERR_NO_ERROR;
+  GFError gf_err;
   GFEncryptResult result;
   if (err != Rust::GfrStatus::Success) {
     RecordEngineDetail(err, result.error_detail, "Encryption");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Encryption cancelled by user.";
-      gf_err = GPG_ERR_CANCELED;
+      gf_err = RpgpError(GFErrorCode::kCANCELED, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorFetchPasswordFailed) {
       LOG_E() << "Encryption failed: passphrase could not be obtained.";
-      gf_err = GPG_ERR_NO_PASSPHRASE;
+      gf_err = RpgpError(GFErrorCode::kNO_PASSPHRASE, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Encryption failed: No data to encrypt.";
-      gf_err = GPG_ERR_INV_DATA;
+      gf_err = RpgpError(GFErrorCode::kINVALID_DATA, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorNoKey) {
       LOG_E() << "Encryption failed: No valid recipient keys provided.";
-      gf_err = GPG_ERR_NO_KEY;
+      gf_err = RpgpError(GFErrorCode::kNO_KEY, err);
       goto end;
     }
 
@@ -414,12 +413,12 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
       // The engine lists every refused recipient with its own reason.
       result.invalid_recipients =
           ParseEncryptResultMeta(gfr_result.meta).invalid_recipients;
-      gf_err = GPG_ERR_UNUSABLE_PUBKEY;
+      gf_err = RpgpError(GFErrorCode::kUNUSABLE_PUBLIC_KEY, err);
       goto end;
     }
 
     LOG_E() << "Encryption failed, engine status:" << static_cast<int>(err);
-    gf_err = CommonEngineError(err);
+    gf_err = FromRpgpStatus(err);
     goto end;
   }
 
@@ -433,42 +432,42 @@ end:
 auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
                          Rust::GfrStatus err,
                          Rust::GfrDecryptResultC gfr_result)
-    -> std::tuple<GpgError, GFDecryptResult> {
+    -> std::tuple<GFError, GFDecryptResult> {
   LOG_D() << "Handling decrypt result. Rust status: " << static_cast<int>(err);
 
-  GpgError gf_err = GPG_ERR_NO_ERROR;
+  GFError gf_err;
   GFDecryptResult result;
   if (err != Rust::GfrStatus::Success) {
     RecordEngineDetail(err, result.error_detail, "Decryption");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Decryption cancelled by user.";
-      gf_err = GPG_ERR_CANCELED;
+      gf_err = RpgpError(GFErrorCode::kCANCELED, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorFetchPasswordFailed) {
       LOG_E() << "Decryption failed: passphrase could not be obtained.";
-      gf_err = GPG_ERR_NO_PASSPHRASE;
+      gf_err = RpgpError(GFErrorCode::kNO_PASSPHRASE, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Decryption failed: No encrypted data found.";
-      gf_err = GPG_ERR_INV_DATA;
+      gf_err = RpgpError(GFErrorCode::kINVALID_DATA, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorBadPassphrase) {
       LOG_E() << "Decryption failed: Incorrect passphrase.";
-      gf_err = GPG_ERR_BAD_PASSPHRASE;
+      gf_err = RpgpError(GFErrorCode::kBAD_PASSPHRASE, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorDecryptionFailed) {
       LOG_E() << "Decryption failed: Decryption process failed. This could be "
                  "due to incorrect passphrase, bad key, or corrupted data.";
-      gf_err = GPG_ERR_DECRYPT_FAILED;
+      gf_err = RpgpError(GFErrorCode::kDECRYPT_FAILED, err);
       goto end;
     }
 
@@ -476,14 +475,14 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
     // problem, not as a generic failure. No output was kept by the engine.
     if (err == Rust::GfrStatus::ErrorDataCorrupted) {
       LOG_E() << "Decryption failed: the message failed its integrity check.";
-      gf_err = GPG_ERR_BAD_DATA;
+      gf_err = RpgpError(GFErrorCode::kBAD_DATA, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorIo) {
       LOG_E() << "Decryption failed: I/O error reading the input or writing "
                  "the output.";
-      gf_err = GPG_ERR_EIO;
+      gf_err = RpgpError(GFErrorCode::kIO, err);
       goto end;
     }
 
@@ -505,13 +504,14 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
       }
       // No secret key at all is GnuPG's NO_SECKEY, the same answer signing
       // without a secret key gives.
-      gf_err =
-          has_secret_recipient ? GPG_ERR_UNUSABLE_SECKEY : GPG_ERR_NO_SECKEY;
+      gf_err = has_secret_recipient
+                   ? RpgpError(GFErrorCode::kUNUSABLE_SECRET_KEY, err)
+                   : RpgpError(GFErrorCode::kNO_SECRET_KEY, err);
       goto end;
     }
 
     LOG_E() << "Decryption failed, engine status:" << static_cast<int>(err);
-    gf_err = CommonEngineError(err);
+    gf_err = FromRpgpStatus(err);
     goto end;
   }
 
@@ -524,46 +524,46 @@ end:
 
 auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                       Rust::GfrSignResultC gfr_result)
-    -> std::tuple<GpgError, GFSignResult> {
+    -> std::tuple<GFError, GFSignResult> {
   LOG_D() << "Handling sign result. Rust status: " << static_cast<int>(err);
 
-  GpgError gf_err = GPG_ERR_NO_ERROR;
+  GFError gf_err;
   GFSignResult result;
   if (err != Rust::GfrStatus::Success) {
     RecordEngineDetail(err, result.error_detail, "Signing");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Signing cancelled by user.";
-      gf_err = GPG_ERR_CANCELED;
+      gf_err = RpgpError(GFErrorCode::kCANCELED, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorFetchPasswordFailed) {
       LOG_E() << "Signing failed: passphrase could not be obtained.";
-      gf_err = GPG_ERR_NO_PASSPHRASE;
+      gf_err = RpgpError(GFErrorCode::kNO_PASSPHRASE, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Signing failed: No data to sign.";
-      gf_err = GPG_ERR_INV_DATA;
+      gf_err = RpgpError(GFErrorCode::kINVALID_DATA, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorBadPassphrase) {
       LOG_E() << "Signing failed: Incorrect passphrase.";
-      gf_err = GPG_ERR_BAD_PASSPHRASE;
+      gf_err = RpgpError(GFErrorCode::kBAD_PASSPHRASE, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorUnusableKey) {
       LOG_E() << "Signing failed: no key of the signer may sign.";
-      gf_err = GPG_ERR_UNUSABLE_SECKEY;
+      gf_err = RpgpError(GFErrorCode::kUNUSABLE_SECRET_KEY, err);
       goto end;
     }
 
     LOG_E() << "Signing failed, engine status:" << static_cast<int>(err);
-    gf_err = CommonEngineError(err);
+    gf_err = FromRpgpStatus(err);
     goto end;
   }
 
@@ -576,41 +576,41 @@ end:
 
 auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                         Rust::GfrVerifyResultC gfr_result)
-    -> std::tuple<GpgError, GFVerifyResult> {
+    -> std::tuple<GFError, GFVerifyResult> {
   LOG_D() << "Handling verify result. Rust status: " << static_cast<int>(err);
 
-  GpgError gf_err = GPG_ERR_NO_ERROR;
+  GFError gf_err;
   GFVerifyResult result;
   if (err != Rust::GfrStatus::Success) {
     RecordEngineDetail(err, result.error_detail, "Verification");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Verification cancelled by user.";
-      gf_err = GPG_ERR_CANCELED;
+      gf_err = RpgpError(GFErrorCode::kCANCELED, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorFetchPasswordFailed) {
       LOG_E() << "Verification failed: passphrase could not be obtained.";
-      gf_err = GPG_ERR_NO_PASSPHRASE;
+      gf_err = RpgpError(GFErrorCode::kNO_PASSPHRASE, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Verification failed: No signature data found.";
-      gf_err = GPG_ERR_INV_DATA;
+      gf_err = RpgpError(GFErrorCode::kINVALID_DATA, err);
       goto end;
     }
 
     if (err == Rust::GfrStatus::ErrorIo) {
       LOG_E() << "Verification failed: I/O error occurred while reading data.";
-      gf_err = GPG_ERR_EIO;
+      gf_err = RpgpError(GFErrorCode::kIO, err);
       goto end;
     }
 
     // A failed verification never converts the engine's metadata.
     LOG_E() << "Verification failed, engine status:" << static_cast<int>(err);
-    gf_err = CommonEngineError(err);
+    gf_err = FromRpgpStatus(err);
     goto end;
   }
 

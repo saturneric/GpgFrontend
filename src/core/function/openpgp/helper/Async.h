@@ -37,6 +37,18 @@
 namespace GpgFrontend {
 
 /**
+ * @brief An implementation's outcome as a GFError: one an engine already
+ * reports as such is kept, a GnuPG code is read as @p channel's engine's.
+ */
+inline auto AsChannelError(int /*channel*/, const GFError& err) -> GFError {
+  return err;
+}
+
+inline auto AsChannelError(int channel, GpgError err) -> GFError {
+  return EngineErrorOf(channel, err);
+}
+
+/**
  * @brief Schedule an OpTraits<OpTag> operation on the GPG task runner and
  * invoke @p cb on completion.
  *
@@ -62,14 +74,13 @@ void RunRegisteredAsync(OpenPGPContext& ctx, const GFOperationCallback& cb,
       ctx.GetChannel(),
       [ctx_ptr = &ctx, stored_args = std::move(stored_args)](
           const DataObjectPtr& data_object) -> GFError {
-        // The engines still answer in GnuPG's codes; read as the channel's.
-        return EngineErrorOf(ctx_ptr->GetChannel(),
-                             std::apply(
-                                 [&](auto&&... unpacked) -> GpgError {
-                                   return OpTraits<OpTag>::Call(
-                                       *ctx_ptr, unpacked..., data_object);
-                                 },
-                                 stored_args));
+        return AsChannelError(ctx_ptr->GetChannel(),
+                              std::apply(
+                                  [&](auto&&... unpacked) {
+                                    return OpTraits<OpTag>::Call(
+                                        *ctx_ptr, unpacked..., data_object);
+                                  },
+                                  stored_args));
       },
       cb, OpTraits<OpTag>::kOpName, OpTraits<OpTag>::Versions());
 }
@@ -97,14 +108,13 @@ auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
       ctx.GetChannel(),
       [ctx_ptr = &ctx, stored_args = std::move(stored_args)](
           const DataObjectPtr& data_object) -> GFError {
-        // The engines still answer in GnuPG's codes; read as the channel's.
-        return EngineErrorOf(ctx_ptr->GetChannel(),
-                             std::apply(
-                                 [&](auto&&... unpacked) -> GpgError {
-                                   return OpTraits<OpTag>::Call(
-                                       *ctx_ptr, unpacked..., data_object);
-                                 },
-                                 stored_args));
+        return AsChannelError(ctx_ptr->GetChannel(),
+                              std::apply(
+                                  [&](auto&&... unpacked) {
+                                    return OpTraits<OpTag>::Call(
+                                        *ctx_ptr, unpacked..., data_object);
+                                  },
+                                  stored_args));
       },
       OpTraits<OpTag>::kOpName, OpTraits<OpTag>::Versions());
 }

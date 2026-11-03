@@ -40,11 +40,11 @@ namespace {
 /// Report a failed key generation: the engine's status mapped as every other
 /// rPGP operation maps it, and its human-readable reason on the result.
 auto FailKeyGeneration(Rust::GfrStatus err, const char* op,
-                       const DataObjectPtr& data_object) -> GpgError {
+                       const DataObjectPtr& data_object) -> GFError {
   LOG_E() << op << "failed, engine status:" << static_cast<int>(err);
   data_object->Swap(
       {GpgGenerateKeyResult::Failed(TakeEngineErrorDetail(err, op))});
-  return CommonEngineError(err);
+  return FromRpgpStatus(err);
 }
 
 /// Store a freshly generated secret key block. Returns false when nothing was
@@ -60,7 +60,7 @@ auto StoreGeneratedKey(OpenPGPContext& ctx, const GFBuffer& secret_key)
 auto GenerateKeyWithSubkeyRpgpImpl(
     OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
-    const DataObjectPtr& data_object) -> GpgError {
+    const DataObjectPtr& data_object) -> GFError {
   Rust::GfrKeyConfig key_config;
   key_config.can_sign = p_params->IsAllowSign();
   key_config.can_encrypt = p_params->IsAllowEncr();
@@ -88,7 +88,7 @@ auto GenerateKeyWithSubkeyRpgpImpl(
 
   if (key_config.algo == Rust::GfrKeyAlgo::Unknown) {
     LOG_E() << "Unsupported key algorithm: " << p_params->GetAlgo().Id();
-    return GPG_ERR_UNSUPPORTED_ALGORITHM;
+    return RpgpError(GFErrorCode::kUNSUPPORTED_ALGORITHM);
   }
 
   Rust::GfrStatus err = Rust::GfrStatus::Success;
@@ -114,7 +114,7 @@ auto GenerateKeyWithSubkeyRpgpImpl(
 
     if (s_key_configs[0].algo == Rust::GfrKeyAlgo::Unknown) {
       LOG_E() << "Unsupported subkey algorithm: " << s_params->GetAlgo().Id();
-      return GPG_ERR_UNSUPPORTED_ALGORITHM;
+      return RpgpError(GFErrorCode::kUNSUPPORTED_ALGORITHM);
     }
 
     s_key_configs[0].can_sign = s_params->IsAllowSign();
@@ -153,7 +153,7 @@ auto GenerateKeyWithSubkeyRpgpImpl(
     LOG_E() << "failed to import generated key into database, fpr: "
             << fingerprint;
     data_object->Swap({GpgGenerateKeyResult{}});
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   // Match the engine-wide contract (and the GnuPG impl): a primary-only
@@ -164,39 +164,39 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   if (s_params != nullptr)
     result.AppendObject(GpgGenerateKeyResult{fingerprint});
   data_object->Swap(std::move(result));
-  return GPG_ERR_NO_ERROR;
+  return GFError{};
 }
 
 auto GenerateKeyRpgpImpl(OpenPGPContext& ctx,
                          const QSharedPointer<KeyGenerateInfo>& params,
-                         const DataObjectPtr& data_object) -> GpgError {
+                         const DataObjectPtr& data_object) -> GFError {
   return GenerateKeyWithSubkeyRpgpImpl(ctx, params, nullptr, data_object);
 }
 
 auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
-                            const DataObjectPtr& data_object) -> GpgError {
+                            const DataObjectPtr& data_object) -> GFError {
   if (key == nullptr) {
     LOG_E() << "primary key is null";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
   if (!gf_key) {
     LOG_E() << "failed to find key in database for fpr: " << key->Fingerprint();
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   if (!gf_key->metadata.has_secret) {
     LOG_E() << "cannot add subkey to a public key, primary key fpr: "
             << key->Fingerprint();
-    return GPG_ERR_UNSUPPORTED_OPERATION;
+    return RpgpError(GFErrorCode::kUNSUPPORTED_OPERATION);
   }
 
   auto algo = params->GetAlgo().Id();
@@ -224,14 +224,14 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   if (key_config.algo == Rust::GfrKeyAlgo::Unknown) {
     LOG_E() << "Unsupported subkey algorithm: " << params->GetAlgo().Id();
-    return GPG_ERR_UNSUPPORTED_ALGORITHM;
+    return RpgpError(GFErrorCode::kUNSUPPORTED_ALGORITHM);
   }
 
   auto key_block_data = gf_key->blocks.secret_key;
   if (key_block_data.Empty()) {
     LOG_E() << "primary key block data is empty, primary key fpr: "
             << key->Fingerprint();
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   Rust::GfrBuffer key_block_buffer = {
@@ -258,11 +258,11 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   if (!StoreGeneratedKey(ctx, armored_s_key)) {
     LOG_E() << "failed to import generated subkey into database";
     data_object->Swap({GpgGenerateKeyResult{}});
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   data_object->Swap({GpgGenerateKeyResult{fingerprint}});
-  return GPG_ERR_NO_ERROR;
+  return GFError{};
 }
 
 auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,

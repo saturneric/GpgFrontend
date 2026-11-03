@@ -51,6 +51,19 @@ class OpenPGPContext;
 auto FromRpgpStatus(Rust::GfrStatus err) -> GFError;
 
 /**
+ * @brief A failure of an rPGP operation, named by GpgFrontend.
+ *
+ * For what an operation decides from the engine's answer, or before asking
+ * it; @p status is the engine's own, kept as the native value, when there was
+ * one.
+ */
+inline auto RpgpError(GFErrorCode code,
+                      Rust::GfrStatus status = Rust::GfrStatus::Success)
+    -> GFError {
+  return {code, GFErrorOrigin::kRPGP, static_cast<std::int32_t>(status)};
+}
+
+/**
  * @brief The GnuPG error for an engine status any operation can report.
  *
  * Handlers map their operation-specific statuses first and fall back to this,
@@ -93,7 +106,7 @@ using SecretKeyEdit = std::function<Rust::GfrStatus(
  * GPG_ERR_GENERAL when there is no secret key to edit or storing failed
  */
 auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
-                       const char* what, const SecretKeyEdit& edit) -> GpgError;
+                       const char* what, const SecretKeyEdit& edit) -> GFError;
 
 /**
  * @brief The encrypt result for an encryption that never reached the engine
@@ -170,7 +183,7 @@ auto GF_CORE_EXPORT GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
  */
 auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                          Rust::GfrEncryptResultC gfr_result)
-    -> std::tuple<GpgError, GFEncryptResult>;
+    -> std::tuple<GFError, GFEncryptResult>;
 
 /**
  * @brief
@@ -183,7 +196,7 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
 auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
                          Rust::GfrStatus err,
                          Rust::GfrDecryptResultC gfr_result)
-    -> std::tuple<GpgError, GFDecryptResult>;
+    -> std::tuple<GFError, GFDecryptResult>;
 
 /**
  * @brief
@@ -195,7 +208,7 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
  */
 auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                       Rust::GfrSignResultC gfr_result)
-    -> std::tuple<GpgError, GFSignResult>;
+    -> std::tuple<GFError, GFSignResult>;
 
 /**
  * @brief
@@ -205,6 +218,6 @@ auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
  */
 auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                         Rust::GfrVerifyResultC gfr_result)
-    -> std::tuple<GpgError, GFVerifyResult>;
+    -> std::tuple<GFError, GFVerifyResult>;
 
 }  // namespace GpgFrontend

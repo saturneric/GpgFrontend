@@ -34,7 +34,6 @@
 
 #include "GpgCoreEngineTest.h"
 #include "core//function/openpgp/FileCryptoOperation.h"
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -461,6 +460,8 @@ TEST_P(GpgCoreEngineTest, AnalysedFailureRecordsTheEngineErrorAsData) {
   EXPECT_EQ(e.error.origin, GetParam().engine == OpenPGPEngine::kRPGP
                                 ? GFErrorOrigin::kRPGP
                                 : GFErrorOrigin::kGNUPG);
+  // And it keeps what that engine itself said.
+  EXPECT_NE(e.error.native, 0);
   EXPECT_EQ(e.codeText, DescribeGFError(err).second);
 }
 

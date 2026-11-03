@@ -37,6 +37,7 @@
  * implementations (GnuPG and where applicable rPGP).
  */
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 
@@ -54,19 +55,22 @@ GF_DEF_OP_IMPL_TRAITS(ImportRevCertOpTag, &ImportKeyGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &ImportRevCertRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(ExportKeysOpTag, &ExportKeysGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(ExportKeysOpTag, &ExportKeysRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&ExportKeysGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &ExportKeysRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(ExportKeyAsOpenSSHFormatOpTag, &ExportKeysGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl});
 
-GF_DEF_OP_IMPL_TRAITS(ExportKeysAsyncOpTag, &ExportKeysAsyncGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ExportKeysAsyncGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(ExportKeysAsyncOpTag, &ExportKeysAsyncRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&ExportKeysAsyncGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &ExportKeysAsyncRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(ExportAllKeysOpTag, &ExportAllKeysGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ExportAllKeysGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(ExportAllKeysOpTag, &ExportAllKeysRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&ExportAllKeysGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &ExportAllKeysRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(ExportSubkeyOpTag, &ExportSubkeyGnuPGImpl,

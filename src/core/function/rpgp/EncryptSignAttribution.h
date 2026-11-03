@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/typedef/GFError.h"
 #include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
@@ -47,11 +48,13 @@ namespace GpgFrontend {
  */
 inline void AttributeUnusableKey(bool unusable_key,
                                  const GFEncryptResult& encrypt_result,
-                                 GpgError& encrypt_err, GpgError& sign_err) {
+                                 GFError& encrypt_err, GFError& sign_err) {
   if (!unusable_key) return;
-  const GpgError cause = encrypt_result.invalid_recipients.empty()
-                             ? GPG_ERR_UNUSABLE_SECKEY
-                             : GPG_ERR_UNUSABLE_PUBKEY;
+  // Kept free of the engine's own types: tests include this header.
+  const GFError cause{encrypt_result.invalid_recipients.empty()
+                          ? GFErrorCode::kUNUSABLE_SECRET_KEY
+                          : GFErrorCode::kUNUSABLE_PUBLIC_KEY,
+                      GFErrorOrigin::kRPGP, 0};
   encrypt_err = cause;
   sign_err = cause;
 }

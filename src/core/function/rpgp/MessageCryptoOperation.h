@@ -46,7 +46,7 @@ namespace GpgFrontend {
  */
 auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                      const GFBuffer& in_buffer, bool ascii,
-                     const DataObjectPtr& data_object) -> GpgError;
+                     const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -57,7 +57,7 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
  * @return GpgError
  */
 auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
-                     const DataObjectPtr& data_object) -> GpgError;
+                     const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -72,7 +72,7 @@ auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
  */
 auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
                   const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
-                  const DataObjectPtr& data_object) -> GpgError;
+                  const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -85,7 +85,7 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
  */
 auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                     const GFBuffer& sig_buffer,
-                    const DataObjectPtr& data_object) -> GpgError;
+                    const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -101,7 +101,7 @@ auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
 auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          const GpgAbstractKeyPtrList& signers,
                          const GFBuffer& in_buffer, bool ascii,
-                         const DataObjectPtr& data_object) -> GpgError;
+                         const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -112,7 +112,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @return GpgError
  */
 auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
-                           const DataObjectPtr& data_object) -> GpgError;
+                           const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -125,5 +125,5 @@ auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
  */
 auto EncryptSymmetricRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                               bool ascii, const DataObjectPtr& data_object)
-    -> GpgError;
+    -> GFError;
 }  // namespace GpgFrontend

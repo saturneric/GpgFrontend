@@ -44,7 +44,8 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              return Rust::gfr_crypto_add_user_id(
                                  ctx.GetChannel(), block, uid_utf8.constData(),
                                  FetchPasswordCallback, out);
-                           }) == GPG_ERR_NO_ERROR;
+                           })
+      .Ok();
 }
 
 auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
@@ -64,7 +65,8 @@ auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              }
                              return Rust::gfr_crypto_delete_user_id(
                                  block, uid_utf8.constData(), out);
-                           }) == GPG_ERR_NO_ERROR;
+                           })
+      .Ok();
 }
 
 auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
@@ -77,7 +79,8 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              return Rust::gfr_crypto_set_primary_user_id(
                                  ctx.GetChannel(), block, uid_utf8.constData(),
                                  FetchPasswordCallback, out);
-                           }) == GPG_ERR_NO_ERROR;
+                           })
+      .Ok();
 }
 
 auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
@@ -98,7 +101,8 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                  mapped_reason_code,
                                  reason_text_utf8.constData(),
                                  FetchPasswordCallback, out);
-                           }) == GPG_ERR_NO_ERROR;
+                           })
+      .Ok();
 }
 
 }  // namespace GpgFrontend

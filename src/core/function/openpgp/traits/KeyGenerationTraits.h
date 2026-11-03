@@ -36,6 +36,7 @@
  * op tags to GnuPG and rPGP implementations.
  */
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 
@@ -45,16 +46,19 @@
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GenerateKeyTag, &GenerateKeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GenerateKeyGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(GenerateKeyTag, &GenerateKeyRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&GenerateKeyGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &GenerateKeyRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(GenerateSubKeyTag, &GenerateSubKeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GenerateSubKeyGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(GenerateSubKeyTag, &GenerateSubKeyRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&GenerateSubKeyGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &GenerateSubKeyRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(GenerateKeyWithSubKeyTag, &GenerateKeyWithSubkeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GenerateKeyWithSubkeyGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(GenerateKeyWithSubKeyTag, &GenerateKeyWithSubkeyRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&GenerateKeyWithSubkeyGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(FilterKeyAlgoByKeyTag, &FilterKeyAlgoByKeyGnuPGImpl,

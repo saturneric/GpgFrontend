@@ -77,7 +77,7 @@ namespace {
  * under one new passphrase; otherwise only the key at target_fpr is touched.
  */
 auto modify_key_passphrase(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                           const QString& target_fpr) -> GpgError {
+                           const QString& target_fpr) -> GFError {
   const auto target_fpr_utf8 = target_fpr.toUtf8();
   // Reports a rejected passphrase or a cancel as such; collapsing it into a
   // general error would show "General error" for a wrong password.
@@ -94,17 +94,17 @@ auto modify_key_passphrase(OpenPGPContext& ctx, const GpgKeyPtr& key,
 }  // namespace
 
 auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                                 const DataObjectPtr& data_object) -> GpgError {
+                                 const DataObjectPtr& data_object) -> GFError {
   return modify_key_passphrase(ctx, key, {});
 }
 
 auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                     const SubkeyId& skey_fpr,
                                     const DataObjectPtr& data_object)
-    -> GpgError {
+    -> GFError {
   if (skey_fpr.isEmpty()) {
     LOG_E() << "no subkey fingerprint given for key: " << key->Fingerprint();
-    return GPG_ERR_INV_ARG;
+    return RpgpError(GFErrorCode::kINVALID_ARGUMENT);
   }
 
   return modify_key_passphrase(ctx, key, skey_fpr);
@@ -124,7 +124,8 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                }
                return Rust::gfr_crypto_delete_subkey(
                    block, meta.subkeys[skey_idx].fpr.toUtf8().constData(), out);
-             }) == GPG_ERR_NO_ERROR;
+             })
+      .Ok();
 }
 
 auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
@@ -162,7 +163,8 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                    meta.subkeys[subkey_index].fpr.toUtf8().constData(),
                    mapped_reason_code, reason_text_utf8.constData(),
                    FetchPasswordCallback, out);
-             }) == GPG_ERR_NO_ERROR;
+             })
+      .Ok();
 }
 
 auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
@@ -249,7 +251,7 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
 
 auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const SubkeyId& skey_fpr,
-                       const std::optional<QDateTime>& expires) -> GpgError {
+                       const std::optional<QDateTime>& expires) -> GFError {
   // A null target selects the primary key. The GnuPG impl treats an empty
   // fingerprint or one matching the primary the same way, so mirror that here.
   const auto target_is_primary =

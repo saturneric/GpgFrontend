@@ -32,6 +32,7 @@
 
 #include "core/GFCoreRust.h"
 #include "core/function/rpgp/KeyStorage.h"
+#include "core/function/rpgp/ResultHandler.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
@@ -186,12 +187,12 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
 
 auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                         bool secret, bool ascii, bool shortest, bool ssh_mode)
-    -> std::tuple<GpgError, GFBuffer> {
+    -> std::tuple<GFError, GFBuffer> {
   auto key_db = ctx.KeyDatabase();
 
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
-    return {GPG_ERR_GENERAL, {}};
+    return {RpgpError(GFErrorCode::kGENERAL), {}};
   }
 
   QStringList key_ids;
@@ -203,7 +204,7 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   auto key_blocks = GetArmoredKeyBlocksForKeys(*key_db, key_ids, secret);
   if (key_blocks.empty()) {
     LOG_E() << "no valid key blocks found for export";
-    return {GPG_ERR_NO_DATA, {}};
+    return {RpgpError(GFErrorCode::kNO_DATA), {}};
   }
 
   char* out_armored_string = nullptr;
@@ -223,19 +224,19 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                                    secret, &out_armored_string);
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_export_merged_keys error, code: " << static_cast<int>(err);
-    return {GPG_ERR_GENERAL, {}};
+    return {RpgpError(GFErrorCode::kGENERAL), {}};
   }
 
   auto qs_armored = QString::fromUtf8(out_armored_string);
   Rust::gfr_crypto_free_string(out_armored_string);
 
-  return {GPG_ERR_NO_ERROR, GFBuffer(qs_armored)};
+  return {GFError{}, GFBuffer(qs_armored)};
 }
 
 auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& keys, bool secret,
                              bool ascii, bool shortest, bool ssh_mode,
-                             const DataObjectPtr& data_object) -> GpgError {
+                             const DataObjectPtr& data_object) -> GFError {
   auto [err, buffer] =
       ExportKeysRpgpImpl(ctx, keys, secret, ascii, shortest, ssh_mode);
   data_object->Swap({buffer});
@@ -245,17 +246,17 @@ auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
 auto ExportAllKeysRpgpImpl(OpenPGPContext& ctx,
                            const GpgAbstractKeyPtrList& keys, bool secret,
                            bool ascii, const DataObjectPtr& data_object)
-    -> GpgError {
-  if (keys.empty()) return GPG_ERR_CANCELED;
+    -> GFError {
+  if (keys.empty()) return RpgpError(GFErrorCode::kCANCELED);
 
   auto [err, buffer] =
       ExportKeysRpgpImpl(ctx, keys, false, ascii, false, false);
-  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
+  if (!err.Ok()) return err;
 
   if (secret) {
     auto [sec_err, sec_buffer] =
         ExportKeysRpgpImpl(ctx, keys, true, ascii, false, false);
-    if (gpgme_err_code(sec_err) != GPG_ERR_NO_ERROR) return sec_err;
+    if (!sec_err.Ok()) return sec_err;
 
     buffer.Append(sec_buffer);
   }

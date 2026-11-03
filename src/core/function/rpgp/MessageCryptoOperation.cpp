@@ -45,11 +45,11 @@ namespace GpgFrontend {
 
 auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                      const GFBuffer& in_buffer, bool ascii,
-                     const DataObjectPtr& data_object) -> GpgError {
+                     const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
@@ -63,7 +63,7 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
         GpgEncryptResult(NoUsableRecipientsResult(recipients)),
         GFBuffer{},
     });
-    return GPG_ERR_NO_PUBKEY;
+    return RpgpError(GFErrorCode::kNO_PUBLIC_KEY);
   }
 
   // 2. Vector to hold the GfrBuffer structs to pass to Rust FFI
@@ -95,11 +95,11 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
 }
 
 auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
-                     const DataObjectPtr& data_object) -> GpgError {
+                     const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   Rust::GfrDecryptResultC decrypt_result;
@@ -124,7 +124,7 @@ auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
 namespace {
 auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
                               const GpgAbstractKeyPtrList& keys)
-    -> std::tuple<GpgError, QList<GFBuffer>> {
+    -> std::tuple<GFError, QList<GFBuffer>> {
   QList<GFBuffer> skey_utf8_list;
   // Fetch key blocks and safely store memory
   for (const auto& signer : keys) {
@@ -132,28 +132,28 @@ auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
     if (!blocks || blocks->secret_key.Empty()) {
       LOG_E() << "Failed to find secret key block for FPR: "
               << signer->Fingerprint();
-      return {GPG_ERR_NO_SECKEY, {}};
+      return {RpgpError(GFErrorCode::kNO_SECRET_KEY), {}};
     }
 
     skey_utf8_list.push_back(PinMarkedSubkey(*signer, blocks->secret_key));
   }
 
-  return {GPG_ERR_NO_ERROR, skey_utf8_list};
+  return {GFError{}, skey_utf8_list};
 }
 }  // namespace
 
 auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
                   const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
-                  const DataObjectPtr& data_object) -> GpgError {
+                  const DataObjectPtr& data_object) -> GFError {
   if (signers.isEmpty()) {
-    return GPG_ERR_INV_ARG;
+    return RpgpError(GFErrorCode::kINVALID_ARGUMENT);
   }
 
   auto key_db = ctx.KeyDatabase();
-  if (!key_db) return GPG_ERR_GENERAL;
+  if (!key_db) return RpgpError(GFErrorCode::kGENERAL);
 
   auto [err, skey_utf8_list] = ExportKeyBlockForSigning(*key_db, signers);
-  if (err != GPG_ERR_NO_ERROR) {
+  if (!err.Ok()) {
     data_object->Swap({GpgSignResult(GFSignResult{}), GFBuffer{}});
     return err;
   }
@@ -199,11 +199,11 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
 
 auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                     const GFBuffer& sig_buffer,
-                    const DataObjectPtr& data_object) -> GpgError {
+                    const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   Rust::GfrVerifyResultC verify_result;
@@ -244,14 +244,15 @@ auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
 auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          const GpgAbstractKeyPtrList& signers,
                          const GFBuffer& in_buffer, bool ascii,
-                         const DataObjectPtr& data_object) -> GpgError {
+                         const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
-  if (signers.isEmpty() || keys.isEmpty()) return GPG_ERR_INV_ARG;
+  if (signers.isEmpty() || keys.isEmpty())
+    return RpgpError(GFErrorCode::kINVALID_ARGUMENT);
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), keys);
 
@@ -264,7 +265,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
         GpgSignResult(GFSignResult{}),
         GFBuffer{},
     });
-    return GPG_ERR_NO_PUBKEY;
+    return RpgpError(GFErrorCode::kNO_PUBLIC_KEY);
   }
 
   std::vector<Rust::GfrBuffer> recipient_buffers;
@@ -282,7 +283,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
         GpgSignResult(GFSignResult{}),
         GFBuffer{},
     });
-    return GPG_ERR_NO_SECKEY;
+    return RpgpError(GFErrorCode::kNO_SECRET_KEY);
   }
 
   // Extract GfrBuffer structs
@@ -333,15 +334,15 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
       encrypt_result.data,
   });
 
-  return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
+  return !gf_err.Ok() ? gf_err : gf_err_2;
 }
 
 auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
-                           const DataObjectPtr& data_object) -> GpgError {
+                           const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   Rust::GfrDecryptAndVerifyResultC decrypt_verify_result;
@@ -378,12 +379,12 @@ auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
       decrypt_result.data,
   });
 
-  return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
+  return !gf_err.Ok() ? gf_err : gf_err_2;
 }
 
 auto EncryptSymmetricRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                               bool ascii, const DataObjectPtr& data_object)
-    -> GpgError {
+    -> GFError {
   std::string name;
   Rust::GfrEncryptResultC encrypt_result;
   memset(&encrypt_result, 0, sizeof(encrypt_result));

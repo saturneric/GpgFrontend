@@ -30,6 +30,9 @@
 
 #include <gpgme.h>
 
+#include <tuple>
+#include <type_traits>
+
 #include "core/typedef/GFError.h"
 
 namespace GpgFrontend {
@@ -56,5 +59,29 @@ auto GF_CORE_EXPORT FromGpgError(gpgme_error_t err) -> GFError;
  * @return the GnuPG error
  */
 auto GF_CORE_EXPORT ToGpgError(const GFError& err) -> gpgme_error_t;
+
+/**
+ * @brief A GnuPG implementation registered in an engine dispatch table whose
+ * entries report GFError.
+ *
+ * The GnuPG backend answers in gpgme's codes; this is where they leave it.
+ * Call() takes exactly the implementation's parameters, so its address has
+ * the table's function type.
+ */
+template <auto Fn>
+struct FromGnuPGImpl;
+
+template <typename R, typename... Args, R (*Fn)(Args...)>
+struct FromGnuPGImpl<Fn> {
+  static auto Call(Args... args) {
+    if constexpr (std::is_same_v<R, gpgme_error_t>) {
+      return FromGpgError(Fn(std::forward<Args>(args)...));
+    } else {
+      auto [err, value] = Fn(std::forward<Args>(args)...);
+      return std::tuple<GFError, decltype(value)>{FromGpgError(err),
+                                                  std::move(value)};
+    }
+  }
+};
 
 }  // namespace GpgFrontend

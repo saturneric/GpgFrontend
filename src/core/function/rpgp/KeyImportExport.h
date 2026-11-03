@@ -54,7 +54,7 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
  */
 auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                         bool secret, bool ascii, bool shortest, bool ssh_mode)
-    -> std::tuple<GpgError, GFBuffer>;
+    -> std::tuple<GFError, GFBuffer>;
 
 /**
  * @brief
@@ -71,7 +71,7 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& keys, bool secret,
                              bool ascii, bool shortest, bool ssh_mode,
-                             const DataObjectPtr& data_object) -> GpgError;
+                             const DataObjectPtr& data_object) -> GFError;
 
 /**
  * @brief
@@ -88,7 +88,7 @@ auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
 auto ExportAllKeysRpgpImpl(OpenPGPContext& ctx,
                            const GpgAbstractKeyPtrList& keys, bool secret,
                            bool ascii, const DataObjectPtr& data_object)
-    -> GpgError;
+    -> GFError;
 
 /**
  * @brief

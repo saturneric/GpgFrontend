@@ -38,6 +38,7 @@
  * SetOwnerTrustLevel op tags to their engine implementations.
  */
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 
@@ -51,17 +52,20 @@ GF_DEF_OP_IMPL_TRAITS(DeleteKeysOpTag, &DeleteKeysGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &DeleteKeysGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &DeleteKeysRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(ModifyKeyPassphraseOpTag, &ModifyKeyPassphraseGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ModifyKeyPassphraseGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(ModifyKeyPassphraseOpTag, &ModifyKeyPassphraseRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&ModifyKeyPassphraseGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &ModifyKeyPassphraseRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(ModifySubkeyPassphraseOpTag,
-                      &ModifySubkeyPassphraseGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ModifySubkeyPassphraseGnuPGImpl},
+                      &ModifySubkeyPassphraseRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&ModifySubkeyPassphraseGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &ModifySubkeyPassphraseRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(SetExpireOpTag, &SetExpireGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &SetExpireGnuPGImpl},
+GF_DEF_OP_IMPL_TRAITS(SetExpireOpTag, &SetExpireRpgpImpl,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&SetExpireGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &SetExpireRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(GenerateRevCertOpTag, &GenerateRevCertGnuPGImpl,

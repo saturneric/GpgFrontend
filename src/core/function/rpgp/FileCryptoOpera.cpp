@@ -47,11 +47,11 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
                          const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
                          const QString& out_path,
-                         const DataObjectPtr& data_object) -> GpgError {
+                         const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
@@ -62,7 +62,7 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     data_object->Swap({GpgEncryptResult(NoUsableRecipientsResult(recipients))});
-    return GPG_ERR_NO_PUBKEY;
+    return RpgpError(GFErrorCode::kNO_PUBLIC_KEY);
   }
 
   // 2. Vector to hold the GfrBuffer structs to pass to Rust FFI
@@ -108,17 +108,15 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
 auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                         const QString& in_path, bool ascii,
                         const QString& out_path, const GFOperationCallback& cb)
-    -> GpgError {
+    -> GFError {
   RunGpgOperaAsync(ctx_.GetChannel(),
                    [ctx_ptr = &ctx_, keys, in_path, ascii,
                     out_path](const DataObjectPtr& data_object) -> GFError {
-                     return EngineErrorOf(
-                         ctx_ptr->GetChannel(),
-                         EncryptFileRpgpImpl(*ctx_ptr, keys, in_path, ascii,
-                                             out_path, data_object));
+                     return EncryptFileRpgpImpl(*ctx_ptr, keys, in_path, ascii,
+                                                out_path, data_object);
                    },
                    cb, "rpgp_op_encrypt", {{OpenPGPEngine::kRPGP, "0.1.0"}});
-  return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+  return GFError{};  // The actual result will be delivered via callback
 }
 
 namespace {
@@ -157,11 +155,11 @@ auto IsCleartextSignedFile(const QString& path) -> bool {
 
 auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
                                 const QString& in_path, const QString& out_path,
-                                const DataObjectPtr& data_object) -> GpgError {
+                                const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto in_file_path_utf8 = in_path.toUtf8();
@@ -194,47 +192,46 @@ auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
 
 auto DecryptFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                          const QString& out_path,
-                         const DataObjectPtr& data_object) -> GpgError {
+                         const DataObjectPtr& data_object) -> GFError {
   return DecryptFileGeneralRpgpImpl(ctx_, false, in_path, out_path,
                                     data_object);
 }
 
 auto DecryptArchiveRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                             const QString& out_path,
-                            const GFOperationCallback& cb) -> GpgError {
-  RunGpgOperaAsync(
-      ctx_.GetChannel(),
-      [ctx_ptr = &ctx_, in_path,
-       out_path](const DataObjectPtr& data_object) -> GFError {
-        return EngineErrorOf(ctx_ptr->GetChannel(),
-                             DecryptFileGeneralRpgpImpl(*ctx_ptr, true, in_path,
-                                                        out_path, data_object));
-      },
-      cb, "rpgp_op_decrypt_archive", {{OpenPGPEngine::kRPGP, "0.1.0"}});
-  return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+                            const GFOperationCallback& cb) -> GFError {
+  RunGpgOperaAsync(ctx_.GetChannel(),
+                   [ctx_ptr = &ctx_, in_path,
+                    out_path](const DataObjectPtr& data_object) -> GFError {
+                     return DecryptFileGeneralRpgpImpl(*ctx_ptr, true, in_path,
+                                                       out_path, data_object);
+                   },
+                   cb, "rpgp_op_decrypt_archive",
+                   {{OpenPGPEngine::kRPGP, "0.1.0"}});
+  return GFError{};  // The actual result will be delivered via callback
 }
 
 auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const QString& in_path, bool ascii,
                       const QString& out_path, const DataObjectPtr& data_object)
-    -> GpgError {
+    -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   // For signing, we typically use the first key in the list
   if (keys.empty()) {
     LOG_E() << "No signing key provided.";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto key_block_utf8 = GetSecretKeysByKeyIdForSigning(*key_db, keys);
   if (key_block_utf8.isEmpty()) {
     LOG_E() << "Failed to retrieve secret key for signing.";
     data_object->Swap({GpgSignResult(GFSignResult{})});
-    return GPG_ERR_NO_SECKEY;
+    return RpgpError(GFErrorCode::kNO_SECRET_KEY);
   }
 
   std::vector<Rust::GfrBuffer> key_block_buffers;
@@ -263,11 +260,11 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
 
 auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
                         const QString& sign_path,
-                        const DataObjectPtr& data_object) -> GpgError {
+                        const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto data_file_path_utf8 = data_path.toUtf8();
@@ -306,14 +303,15 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& sign_keys,
                              const QString& in_path, bool ascii,
                              const QString& out_path,
-                             const DataObjectPtr& data_object) -> GpgError {
+                             const DataObjectPtr& data_object) -> GFError {
   auto key_db = ctx.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
-  if (sign_keys.isEmpty() || enc_keys.isEmpty()) return GPG_ERR_INV_ARG;
+  if (sign_keys.isEmpty() || enc_keys.isEmpty())
+    return RpgpError(GFErrorCode::kINVALID_ARGUMENT);
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), enc_keys);
 
@@ -325,7 +323,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
         GpgEncryptResult(NoUsableRecipientsResult(recipients)),
         GpgSignResult(GFSignResult{}),
     });
-    return GPG_ERR_NO_PUBKEY;
+    return RpgpError(GFErrorCode::kNO_PUBLIC_KEY);
   }
 
   std::vector<Rust::GfrBuffer> recipient_buffers;
@@ -342,7 +340,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
         GpgEncryptResult(GFEncryptResult{}),
         GpgSignResult(GFSignResult{}),
     });
-    return GPG_ERR_NO_SECKEY;
+    return RpgpError(GFErrorCode::kNO_SECRET_KEY);
   }
 
   std::vector<Rust::GfrBuffer> c_skeys;
@@ -405,7 +403,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
       GpgSignResult(sign_result),
   });
 
-  return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
+  return !gf_err.Ok() ? gf_err : gf_err_2;
 }
 
 auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
@@ -413,18 +411,16 @@ auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
                             const GpgAbstractKeyPtrList& sign_keys,
                             const QString& in_path, bool ascii,
                             const QString& out_path,
-                            const GFOperationCallback& cb) -> GpgError {
+                            const GFOperationCallback& cb) -> GFError {
   RunGpgOperaAsync(
       ctx.GetChannel(),
       [ctx_ptr = &ctx, enc_keys, sign_keys, in_path, ascii,
        out_path](const DataObjectPtr& data_object) -> GFError {
-        return EngineErrorOf(
-            ctx_ptr->GetChannel(),
-            EncryptSignFileRpgpImpl(*ctx_ptr, enc_keys, sign_keys, in_path,
-                                    ascii, out_path, data_object));
+        return EncryptSignFileRpgpImpl(*ctx_ptr, enc_keys, sign_keys, in_path,
+                                       ascii, out_path, data_object);
       },
       cb, "rpgp_op_encrypt_sign_dir", {{OpenPGPEngine::kRPGP, "0.1.0"}});
-  return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+  return GFError{};  // The actual result will be delivered via callback
 }
 
 namespace {
@@ -432,11 +428,11 @@ auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
                                       const QString& in_path,
                                       const QString& out_path,
                                       const DataObjectPtr& data_object)
-    -> GpgError {
+    -> GFError {
   auto key_db = ctx.KeyDatabase();
   if (!key_db) {
     LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
+    return RpgpError(GFErrorCode::kGENERAL);
   }
 
   auto in_file_path_utf8 = in_path.toUtf8();
@@ -483,37 +479,34 @@ auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
   data_object->Swap(
       {GpgDecryptResult(decrypt_result), GpgVerifyResult(verify_result)});
 
-  return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
+  return !gf_err.Ok() ? gf_err : gf_err_2;
 }
 }  // namespace
 
 auto DecryptVerifyFileRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                const QString& out_path,
-                               const DataObjectPtr& data_object) -> GpgError {
+                               const DataObjectPtr& data_object) -> GFError {
   return DecryptVerifyFileGeneralRpgpImpl(ctx, false, in_path, out_path,
                                           data_object);
 }
 
 auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                   const QString& out_path,
-                                  const GFOperationCallback& cb) -> GpgError {
+                                  const GFOperationCallback& cb) -> GFError {
   RunGpgOperaAsync(ctx.GetChannel(),
                    [ctx_ptr = &ctx, in_path,
                     out_path](const DataObjectPtr& data_object) -> GFError {
-                     return EngineErrorOf(
-                         ctx_ptr->GetChannel(),
-                         DecryptVerifyFileGeneralRpgpImpl(
-                             *ctx_ptr, true, in_path, out_path, data_object));
+                     return DecryptVerifyFileGeneralRpgpImpl(
+                         *ctx_ptr, true, in_path, out_path, data_object);
                    },
                    cb, "rpgp_op_decrypt_archive",
                    {{OpenPGPEngine::kRPGP, "0.1.0"}});
-  return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+  return GFError{};  // The actual result will be delivered via callback
 }
 
 auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                   bool ascii, const QString& out_path,
-                                  const DataObjectPtr& data_object)
-    -> GpgError {
+                                  const DataObjectPtr& data_object) -> GFError {
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
 
@@ -548,19 +541,17 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
 
 auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                  bool ascii, const QString& out_path,
-                                 const GFOperationCallback& cb) -> GpgError {
+                                 const GFOperationCallback& cb) -> GFError {
   RunGpgOperaAsync(ctx.GetChannel(),
                    [ctx_ptr = &ctx, in_path, ascii,
                     out_path](const DataObjectPtr& data_object) -> GFError {
-                     return EngineErrorOf(
-                         ctx_ptr->GetChannel(),
-                         EncryptSymmetricFileRpgpImpl(*ctx_ptr, in_path, ascii,
-                                                      out_path, data_object));
+                     return EncryptSymmetricFileRpgpImpl(
+                         *ctx_ptr, in_path, ascii, out_path, data_object);
                    },
                    cb, "rpgp_op_encrypt_symmetric_dir",
                    {{OpenPGPEngine::kRPGP, "0.1.0"}});
 
-  return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
+  return GFError{};  // The actual result will be delivered via callback
 }
 
 }  // namespace GpgFrontend
