@@ -31,6 +31,7 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
@@ -128,19 +129,20 @@ auto EncryptFileGnuPGImpl(OpenPGPContext& ctx_,
 
 auto EncryptDirGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
-                         const QString& out_path,
-                         const GpgOperationCallback& cb) -> GpgError {
+                         const QString& out_path, const GFOperationCallback& cb)
+    -> GpgError {
   auto ex = CreateStandardGFDataExchanger();
 
-  RunGpgOperaAsync(ctx.GetChannel(),
-                   [ctx_ptr = &ctx, keys, ex, ascii,
-                    out_path](const DataObjectPtr& data_object) -> GpgError {
-                     GpgData data_in(ex);
-                     GpgData data_out(out_path, false);
-                     return EncryptFileGpgDataImpl(
-                         *ctx_ptr, keys, data_in, ascii, data_out, data_object);
-                   },
-                   cb, "gpgme_op_encrypt", {{OpenPGPEngine::kGNUPG, "2.2.0"}});
+  RunGpgOperaAsync(
+      ctx.GetChannel(),
+      [ctx_ptr = &ctx, keys, ex, ascii,
+       out_path](const DataObjectPtr& data_object) -> GFError {
+        GpgData data_in(ex);
+        GpgData data_out(out_path, false);
+        return FromGpgError(EncryptFileGpgDataImpl(
+            *ctx_ptr, keys, data_in, ascii, data_out, data_object));
+      },
+      cb, "gpgme_op_encrypt", {{OpenPGPEngine::kGNUPG, "2.2.0"}});
 
   CreateArchiveHelper(in_path, ex);
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
@@ -155,18 +157,18 @@ auto EncryptSymmetricFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
 
 auto EncryptSymmetricDirGnuPGImpl(OpenPGPContext& ctx, const QString& in_path,
                                   bool ascii, const QString& out_path,
-                                  const GpgOperationCallback& cb) -> GpgError {
+                                  const GFOperationCallback& cb) -> GpgError {
   auto ex = CreateStandardGFDataExchanger();
 
   RunGpgOperaAsync(
       ctx.GetChannel(),
       [ctx_ptr = &ctx, ex, ascii,
-       out_path](const DataObjectPtr& data_object) -> GpgError {
+       out_path](const DataObjectPtr& data_object) -> GFError {
         GpgData data_in(ex);
         GpgData data_out(out_path, false);
 
-        return EncryptFileGpgDataImpl(*ctx_ptr, {}, data_in, ascii, data_out,
-                                      data_object);
+        return FromGpgError(EncryptFileGpgDataImpl(*ctx_ptr, {}, data_in, ascii,
+                                                   data_out, data_object));
       },
       cb, "gpgme_op_encrypt_symmetric",
       {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
@@ -208,7 +210,7 @@ using GpgDataOpera = GpgError (*)(OpenPGPContext&, GpgData&, GpgData&,
 /// Decrypts into an archive extractor running on a separate IO task, which
 /// reads the plaintext from the exchanger and writes the files to disk.
 auto DecryptIntoArchive(OpenPGPContext& ctx_, const QString& in_path,
-                        const QString& out_path, const GpgOperationCallback& cb,
+                        const QString& out_path, const GFOperationCallback& cb,
                         GpgDataOpera opera, const QString& name) -> GpgError {
   // gpgme finishing only means all bytes have been pushed into the queue; the
   // extractor may still be draining it and writing the trailing files. Join on
@@ -225,14 +227,14 @@ auto DecryptIntoArchive(OpenPGPContext& ctx_, const QString& in_path,
   RunGpgOperaAsync(
       ctx_.GetChannel(),
       [ctx_ptr = &ctx_, in_path, ex, extract_future,
-       opera](const DataObjectPtr& data_object) -> GpgError {
+       opera](const DataObjectPtr& data_object) -> GFError {
         GpgError err;
         {
           GpgData data_in(in_path, true);
           GpgData data_out(ex);
           err = opera(*ctx_ptr, data_in, data_out, data_object);
         }  // data_out destroyed -> CloseWrite, lets extractor reach EOF
-        return JoinArchiveExtraction(err, extract_future);
+        return FromGpgError(JoinArchiveExtraction(err, extract_future));
       },
       cb, name, {{OpenPGPEngine::kGNUPG, "2.2.0"}});
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
@@ -241,7 +243,7 @@ auto DecryptIntoArchive(OpenPGPContext& ctx_, const QString& in_path,
 
 auto DecryptVerifyArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                    const QString& out_path,
-                                   const GpgOperationCallback& cb) -> GpgError {
+                                   const GFOperationCallback& cb) -> GpgError {
   return DecryptIntoArchive(ctx_, in_path, out_path, cb,
                             DecryptVerifyFileGpgDataImpl,
                             "gpgme_op_decrypt_verify");
@@ -272,7 +274,7 @@ auto DecryptFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
 
 auto DecryptArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                              const QString& out_path,
-                             const GpgOperationCallback& cb) -> GpgError {
+                             const GFOperationCallback& cb) -> GpgError {
   return DecryptIntoArchive(ctx_, in_path, out_path, cb, DecryptFileGpgDataImpl,
                             "gpgme_op_decrypt");
 }
@@ -383,19 +385,20 @@ auto EncryptSignDirGnuPGImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& signer_keys,
                              const QString& in_path, bool ascii,
                              const QString& out_path,
-                             const GpgOperationCallback& cb) -> GpgError {
+                             const GFOperationCallback& cb) -> GpgError {
   auto ex = CreateStandardGFDataExchanger();
 
-  RunGpgOperaAsync(
-      ctx.GetChannel(),
-      [ctx_ptr = &ctx, keys, signer_keys, ex, ascii,
-       out_path](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(ex);
-        GpgData data_out(out_path, false);
-        return EncryptSignFileGpgDataGnuPGImpl(
-            *ctx_ptr, keys, signer_keys, data_in, ascii, data_out, data_object);
-      },
-      cb, "gpgme_op_encrypt_sign_dir", {{OpenPGPEngine::kGNUPG, "2.2.0"}});
+  RunGpgOperaAsync(ctx.GetChannel(),
+                   [ctx_ptr = &ctx, keys, signer_keys, ex, ascii,
+                    out_path](const DataObjectPtr& data_object) -> GFError {
+                     GpgData data_in(ex);
+                     GpgData data_out(out_path, false);
+                     return FromGpgError(EncryptSignFileGpgDataGnuPGImpl(
+                         *ctx_ptr, keys, signer_keys, data_in, ascii, data_out,
+                         data_object));
+                   },
+                   cb, "gpgme_op_encrypt_sign_dir",
+                   {{OpenPGPEngine::kGNUPG, "2.2.0"}});
 
   CreateArchiveHelper(in_path, ex);
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback

@@ -48,12 +48,12 @@ namespace GpgFrontend {
  * Versions()
  * @tparam Args  argument types forwarded to OpTraits<OpTag>::Call()
  * @param ctx  OpenPGP context to execute the operation on
- * @param cb   callback invoked on the calling thread with (GpgError,
+ * @param cb   callback invoked on the calling thread with (GFError,
  * DataObjectPtr)
  * @param args arguments forwarded to the operation implementation
  */
 template <typename OpTag, typename... Args>
-void RunRegisteredAsync(OpenPGPContext& ctx, const GpgOperationCallback& cb,
+void RunRegisteredAsync(OpenPGPContext& ctx, const GFOperationCallback& cb,
                         Args&&... args) {
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
@@ -61,12 +61,15 @@ void RunRegisteredAsync(OpenPGPContext& ctx, const GpgOperationCallback& cb,
   RunGpgOperaAsync(
       ctx.GetChannel(),
       [ctx_ptr = &ctx, stored_args = std::move(stored_args)](
-          const DataObjectPtr& data_object) -> GpgError {
-        return std::apply(
-            [&](auto&&... unpacked) -> GpgError {
-              return OpTraits<OpTag>::Call(*ctx_ptr, unpacked..., data_object);
-            },
-            stored_args);
+          const DataObjectPtr& data_object) -> GFError {
+        // The engines still answer in GnuPG's codes; read as the channel's.
+        return EngineErrorOf(ctx_ptr->GetChannel(),
+                             std::apply(
+                                 [&](auto&&... unpacked) -> GpgError {
+                                   return OpTraits<OpTag>::Call(
+                                       *ctx_ptr, unpacked..., data_object);
+                                 },
+                                 stored_args));
       },
       cb, OpTraits<OpTag>::kOpName, OpTraits<OpTag>::Versions());
 }
@@ -82,61 +85,28 @@ void RunRegisteredAsync(OpenPGPContext& ctx, const GpgOperationCallback& cb,
  * @tparam Args  argument types forwarded to OpTraits<OpTag>::Call()
  * @param ctx  OpenPGP context to execute the operation on
  * @param args arguments forwarded to the operation implementation
- * @return tuple of (GpgError, DataObjectPtr) with the operation result
+ * @return tuple of (GFError, DataObjectPtr) with the operation result
  */
 template <typename OpTag, typename... Args>
 auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
-    -> std::tuple<GpgError, DataObjectPtr> {
+    -> std::tuple<GFError, DataObjectPtr> {
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
 
   return RunGpgOperaSync(
       ctx.GetChannel(),
       [ctx_ptr = &ctx, stored_args = std::move(stored_args)](
-          const DataObjectPtr& data_object) -> GpgError {
-        return std::apply(
-            [&](auto&&... unpacked) -> GpgError {
-              return OpTraits<OpTag>::Call(*ctx_ptr, unpacked..., data_object);
-            },
-            stored_args);
+          const DataObjectPtr& data_object) -> GFError {
+        // The engines still answer in GnuPG's codes; read as the channel's.
+        return EngineErrorOf(ctx_ptr->GetChannel(),
+                             std::apply(
+                                 [&](auto&&... unpacked) -> GpgError {
+                                   return OpTraits<OpTag>::Call(
+                                       *ctx_ptr, unpacked..., data_object);
+                                 },
+                                 stored_args));
       },
       OpTraits<OpTag>::kOpName, OpTraits<OpTag>::Versions());
-}
-
-/**
- * @brief A callback that takes the runner's GnuPG code and hands @p cb the
- * GFError it means on @p channel's engine.
- */
-inline auto AsGpgOperationCallback(int channel, const GFOperationCallback& cb)
-    -> GpgOperationCallback {
-  return [channel, cb](GpgError err, const DataObjectPtr& data_object) {
-    cb(EngineErrorOf(channel, err), data_object);
-  };
-}
-
-/**
- * @brief RunRegisteredAsync(), reporting the outcome as a GFError.
- *
- * For an operation family that has moved to GFError while its engines still
- * answer in GnuPG's codes: the code is turned into a GFError for the channel's
- * engine here, where it leaves the family.
- */
-template <typename OpTag, typename... Args>
-void RunRegisteredAsyncGF(OpenPGPContext& ctx, const GFOperationCallback& cb,
-                          Args&&... args) {
-  RunRegisteredAsync<OpTag>(ctx, AsGpgOperationCallback(ctx.GetChannel(), cb),
-                            std::forward<Args>(args)...);
-}
-
-/**
- * @brief RunRegisteredSync(), reporting the outcome as a GFError.
- */
-template <typename OpTag, typename... Args>
-auto RunRegisteredSyncGF(OpenPGPContext& ctx, Args&&... args)
-    -> std::tuple<GFError, DataObjectPtr> {
-  auto [err, data_object] =
-      RunRegisteredSync<OpTag>(ctx, std::forward<Args>(args)...);
-  return {EngineErrorOf(ctx.GetChannel(), err), data_object};
 }
 
 /**

@@ -323,15 +323,15 @@ TEST_F(GpgCoreTest, GnuPgQueuedOperationSkipTest) {
 
   std::atomic<bool> ran{false};
   std::atomic<bool> done{false};
-  GpgError reported = GPG_ERR_NO_ERROR;
+  GFError reported;
 
   RunGpgOperaAsync(
       kGpgChannelForUnitTest,
-      [&](const DataObjectPtr&) -> GpgError {
+      [&](const DataObjectPtr&) -> GFError {
         ran = true;
-        return static_cast<GpgError>(GPG_ERR_NO_ERROR);
+        return {};
       },
-      [&](GpgError err, const DataObjectPtr&) {
+      [&](GFError err, const DataObjectPtr&) {
         reported = err;
         done = true;
       },
@@ -339,21 +339,21 @@ TEST_F(GpgCoreTest, GnuPgQueuedOperationSkipTest) {
 
   ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
   ASSERT_FALSE(ran.load());
-  ASSERT_EQ(CheckGpgError(reported), GPG_ERR_CANCELED);
+  ASSERT_TRUE(reported.Canceled());
 
   // After resetting, the queued operation actually runs.
   ResetGpgOperationCancelState(kGpgChannelForUnitTest);
   ran = false;
   done = false;
-  reported = static_cast<GpgError>(GPG_ERR_CANCELED);
+  reported = GFError::Application(GFErrorCode::kCANCELED);
 
   RunGpgOperaAsync(
       kGpgChannelForUnitTest,
-      [&](const DataObjectPtr&) -> GpgError {
+      [&](const DataObjectPtr&) -> GFError {
         ran = true;
-        return static_cast<GpgError>(GPG_ERR_NO_ERROR);
+        return {};
       },
-      [&](GpgError err, const DataObjectPtr&) {
+      [&](GFError err, const DataObjectPtr&) {
         reported = err;
         done = true;
       },
@@ -361,7 +361,7 @@ TEST_F(GpgCoreTest, GnuPgQueuedOperationSkipTest) {
 
   ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
   ASSERT_TRUE(ran.load());
-  ASSERT_EQ(CheckGpgError(reported), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(reported.Ok());
 }
 
 // A runnable that throws reaches its callback as an error, with an empty data
@@ -371,14 +371,14 @@ TEST_F(GpgCoreTest, ThrowingOperationReportsAnError) {
   ResetGpgOperationCancelState(kGpgChannelForUnitTest);
 
   std::atomic<bool> done{false};
-  GpgError reported = GPG_ERR_NO_ERROR;
+  GFError reported;
   size_t size = 1;
   RunGpgOperaAsync(
       kGpgChannelForUnitTest,
-      [](const DataObjectPtr&) -> GpgError {
+      [](const DataObjectPtr&) -> GFError {
         throw std::runtime_error("runnable failed");
       },
-      [&](GpgError err, const DataObjectPtr& data_object) {
+      [&](GFError err, const DataObjectPtr& data_object) {
         reported = err;
         size = data_object->GetObjectSize();
         done = true;
@@ -386,7 +386,8 @@ TEST_F(GpgCoreTest, ThrowingOperationReportsAnError) {
       "test_throwing_gpg_opera", support_ifs);
 
   ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
-  EXPECT_NE(reported, GPG_ERR_NO_ERROR);
+  // GpgFrontend stopped it: there was no result to report.
+  EXPECT_TRUE(reported.Aborted());
   EXPECT_EQ(size, 0U);
 
   done = false;

@@ -62,14 +62,14 @@ void KeyImportExportOperation::ExportKeys(const GpgAbstractKeyPtrList& keys,
                                           bool secret, bool ascii,
                                           bool shortest, bool ssh_mode,
                                           const GFOperationCallback& cb) const {
-  RunRegisteredAsyncGF<ExportKeysAsyncOpTag>(ctx_, cb, keys, secret, ascii,
-                                             shortest, ssh_mode);
+  RunRegisteredAsync<ExportKeysAsyncOpTag>(ctx_, cb, keys, secret, ascii,
+                                           shortest, ssh_mode);
 }
 
 void KeyImportExportOperation::ExportAllKeys(
     const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
     const GFOperationCallback& cb) const {
-  RunRegisteredAsyncGF<ExportAllKeysOpTag>(ctx_, cb, keys, secret, ascii);
+  RunRegisteredAsync<ExportAllKeysOpTag>(ctx_, cb, keys, secret, ascii);
 }
 
 auto KeyImportExportOperation::ExportSubkey(const QString& fpr,

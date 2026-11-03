@@ -39,86 +39,86 @@ MessageCryptoOperation::MessageCryptoOperation(int channel)
 void MessageCryptoOperation::Encrypt(const GpgAbstractKeyPtrList& keys,
                                      const GFBuffer& in_buffer, bool ascii,
                                      const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<EncryptOpTag>(ctx_, cb, keys, in_buffer, ascii);
+  RunRegisteredAsync<EncryptOpTag>(ctx_, cb, keys, in_buffer, ascii);
 }
 
 auto MessageCryptoOperation::EncryptSync(const GpgAbstractKeyPtrList& keys,
                                          const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<EncryptOpTag>(ctx_, keys, in_buffer, ascii);
+  return RunRegisteredSync<EncryptOpTag>(ctx_, keys, in_buffer, ascii);
 }
 
 void MessageCryptoOperation::EncryptSymmetric(const GFBuffer& in_buffer,
                                               bool ascii,
                                               const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<EncryptSymmetricOpTag>(ctx_, cb, in_buffer, ascii);
+  RunRegisteredAsync<EncryptSymmetricOpTag>(ctx_, cb, in_buffer, ascii);
 }
 
 auto MessageCryptoOperation::EncryptSymmetricSync(const GFBuffer& in_buffer,
                                                   bool ascii)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<EncryptSymmetricOpTag>(ctx_, in_buffer, ascii);
+  return RunRegisteredSync<EncryptSymmetricOpTag>(ctx_, in_buffer, ascii);
 }
 
 void MessageCryptoOperation::Decrypt(const GFBuffer& in_buffer,
                                      const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<DecryptOpTag>(ctx_, cb, in_buffer);
+  RunRegisteredAsync<DecryptOpTag>(ctx_, cb, in_buffer);
 }
 
 auto MessageCryptoOperation::DecryptSync(const GFBuffer& in_buffer)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<DecryptOpTag>(ctx_, in_buffer);
+  return RunRegisteredSync<DecryptOpTag>(ctx_, in_buffer);
 }
 
 void MessageCryptoOperation::Verify(const GFBuffer& in_buffer,
                                     const GFBuffer& sig_buffer,
                                     const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<VerifyOpTag>(ctx_, cb, in_buffer, sig_buffer);
+  RunRegisteredAsync<VerifyOpTag>(ctx_, cb, in_buffer, sig_buffer);
 }
 
 auto MessageCryptoOperation::VerifySync(const GFBuffer& in_buffer,
                                         const GFBuffer& sig_buffer)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<VerifyOpTag>(ctx_, in_buffer, sig_buffer);
+  return RunRegisteredSync<VerifyOpTag>(ctx_, in_buffer, sig_buffer);
 }
 
 void MessageCryptoOperation::Sign(const GpgAbstractKeyPtrList& signers,
                                   const GFBuffer& in_buffer, GpgSignMode mode,
                                   bool ascii, const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<SignOpTag>(ctx_, cb, signers, in_buffer, mode, ascii);
+  RunRegisteredAsync<SignOpTag>(ctx_, cb, signers, in_buffer, mode, ascii);
 }
 
 auto MessageCryptoOperation::SignSync(const GpgAbstractKeyPtrList& signers,
                                       const GFBuffer& in_buffer,
                                       GpgSignMode mode, bool ascii)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<SignOpTag>(ctx_, signers, in_buffer, mode, ascii);
+  return RunRegisteredSync<SignOpTag>(ctx_, signers, in_buffer, mode, ascii);
 }
 
 void MessageCryptoOperation::DecryptVerify(const GFBuffer& in_buffer,
                                            const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<DecryptVerifyOpTag>(ctx_, cb, in_buffer);
+  RunRegisteredAsync<DecryptVerifyOpTag>(ctx_, cb, in_buffer);
 }
 
 auto MessageCryptoOperation::DecryptVerifySync(const GFBuffer& in_buffer)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<DecryptVerifyOpTag>(ctx_, in_buffer);
+  return RunRegisteredSync<DecryptVerifyOpTag>(ctx_, in_buffer);
 }
 
 void MessageCryptoOperation::EncryptSign(const GpgAbstractKeyPtrList& keys,
                                          const GpgAbstractKeyPtrList& signers,
                                          const GFBuffer& in_buffer, bool ascii,
                                          const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<EncryptSignOpTag>(ctx_, cb, keys, signers, in_buffer,
-                                         ascii);
+  RunRegisteredAsync<EncryptSignOpTag>(ctx_, cb, keys, signers, in_buffer,
+                                       ascii);
 }
 
 auto MessageCryptoOperation::EncryptSignSync(
     const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signers,
     const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<EncryptSignOpTag>(ctx_, keys, signers, in_buffer,
-                                               ascii);
+  return RunRegisteredSync<EncryptSignOpTag>(ctx_, keys, signers, in_buffer,
+                                             ascii);
 }
 
 }  // namespace GpgFrontend

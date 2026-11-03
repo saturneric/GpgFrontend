@@ -54,7 +54,7 @@ namespace GpgFrontend {
  */
 auto GF_CORE_EXPORT RunGpgOperaAsync(int channel,
                                      const GpgOperaRunnable& runnable,
-                                     const GpgOperationCallback& callback,
+                                     const GFOperationCallback& callback,
                                      const QString& operation,
                                      const QList<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler;
@@ -75,7 +75,7 @@ auto GF_CORE_EXPORT RunGpgOperaSync(int channel,
                                     const GpgOperaRunnable& runnable,
                                     const QString& operation,
                                     const QList<EngineSupportIf>& support_ifs)
-    -> std::tuple<GpgError, DataObjectPtr>;
+    -> std::tuple<GFError, DataObjectPtr>;
 
 /**
  * @brief Run a general operation asynchronously on the default task runner.

@@ -29,6 +29,7 @@
 #include "FileCryptoOpera.h"
 
 #include "core/GFCoreRust.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/function/rpgp/EncryptSignAttribution.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/function/rpgp/ResultHandler.h"
@@ -106,13 +107,15 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
 
 auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                         const QString& in_path, bool ascii,
-                        const QString& out_path, const GpgOperationCallback& cb)
+                        const QString& out_path, const GFOperationCallback& cb)
     -> GpgError {
   RunGpgOperaAsync(ctx_.GetChannel(),
                    [ctx_ptr = &ctx_, keys, in_path, ascii,
-                    out_path](const DataObjectPtr& data_object) -> GpgError {
-                     return EncryptFileRpgpImpl(*ctx_ptr, keys, in_path, ascii,
-                                                out_path, data_object);
+                    out_path](const DataObjectPtr& data_object) -> GFError {
+                     return EngineErrorOf(
+                         ctx_ptr->GetChannel(),
+                         EncryptFileRpgpImpl(*ctx_ptr, keys, in_path, ascii,
+                                             out_path, data_object));
                    },
                    cb, "rpgp_op_encrypt", {{OpenPGPEngine::kRPGP, "0.1.0"}});
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
@@ -198,15 +201,16 @@ auto DecryptFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
 
 auto DecryptArchiveRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                             const QString& out_path,
-                            const GpgOperationCallback& cb) -> GpgError {
-  RunGpgOperaAsync(ctx_.GetChannel(),
-                   [ctx_ptr = &ctx_, in_path,
-                    out_path](const DataObjectPtr& data_object) -> GpgError {
-                     return DecryptFileGeneralRpgpImpl(*ctx_ptr, true, in_path,
-                                                       out_path, data_object);
-                   },
-                   cb, "rpgp_op_decrypt_archive",
-                   {{OpenPGPEngine::kRPGP, "0.1.0"}});
+                            const GFOperationCallback& cb) -> GpgError {
+  RunGpgOperaAsync(
+      ctx_.GetChannel(),
+      [ctx_ptr = &ctx_, in_path,
+       out_path](const DataObjectPtr& data_object) -> GFError {
+        return EngineErrorOf(ctx_ptr->GetChannel(),
+                             DecryptFileGeneralRpgpImpl(*ctx_ptr, true, in_path,
+                                                        out_path, data_object));
+      },
+      cb, "rpgp_op_decrypt_archive", {{OpenPGPEngine::kRPGP, "0.1.0"}});
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
 }
 
@@ -409,13 +413,15 @@ auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
                             const GpgAbstractKeyPtrList& sign_keys,
                             const QString& in_path, bool ascii,
                             const QString& out_path,
-                            const GpgOperationCallback& cb) -> GpgError {
+                            const GFOperationCallback& cb) -> GpgError {
   RunGpgOperaAsync(
       ctx.GetChannel(),
       [ctx_ptr = &ctx, enc_keys, sign_keys, in_path, ascii,
-       out_path](const DataObjectPtr& data_object) -> GpgError {
-        return EncryptSignFileRpgpImpl(*ctx_ptr, enc_keys, sign_keys, in_path,
-                                       ascii, out_path, data_object);
+       out_path](const DataObjectPtr& data_object) -> GFError {
+        return EngineErrorOf(
+            ctx_ptr->GetChannel(),
+            EncryptSignFileRpgpImpl(*ctx_ptr, enc_keys, sign_keys, in_path,
+                                    ascii, out_path, data_object));
       },
       cb, "rpgp_op_encrypt_sign_dir", {{OpenPGPEngine::kRPGP, "0.1.0"}});
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
@@ -490,12 +496,14 @@ auto DecryptVerifyFileRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
 
 auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                   const QString& out_path,
-                                  const GpgOperationCallback& cb) -> GpgError {
+                                  const GFOperationCallback& cb) -> GpgError {
   RunGpgOperaAsync(ctx.GetChannel(),
                    [ctx_ptr = &ctx, in_path,
-                    out_path](const DataObjectPtr& data_object) -> GpgError {
-                     return DecryptVerifyFileGeneralRpgpImpl(
-                         *ctx_ptr, true, in_path, out_path, data_object);
+                    out_path](const DataObjectPtr& data_object) -> GFError {
+                     return EngineErrorOf(
+                         ctx_ptr->GetChannel(),
+                         DecryptVerifyFileGeneralRpgpImpl(
+                             *ctx_ptr, true, in_path, out_path, data_object));
                    },
                    cb, "rpgp_op_decrypt_archive",
                    {{OpenPGPEngine::kRPGP, "0.1.0"}});
@@ -540,12 +548,14 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
 
 auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                  bool ascii, const QString& out_path,
-                                 const GpgOperationCallback& cb) -> GpgError {
+                                 const GFOperationCallback& cb) -> GpgError {
   RunGpgOperaAsync(ctx.GetChannel(),
                    [ctx_ptr = &ctx, in_path, ascii,
-                    out_path](const DataObjectPtr& data_object) -> GpgError {
-                     return EncryptSymmetricFileRpgpImpl(
-                         *ctx_ptr, in_path, ascii, out_path, data_object);
+                    out_path](const DataObjectPtr& data_object) -> GFError {
+                     return EngineErrorOf(
+                         ctx_ptr->GetChannel(),
+                         EncryptSymmetricFileRpgpImpl(*ctx_ptr, in_path, ascii,
+                                                      out_path, data_object));
                    },
                    cb, "rpgp_op_encrypt_symmetric_dir",
                    {{OpenPGPEngine::kRPGP, "0.1.0"}});

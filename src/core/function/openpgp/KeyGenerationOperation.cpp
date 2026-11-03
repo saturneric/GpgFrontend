@@ -42,40 +42,39 @@ KeyGenerationOperation::KeyGenerationOperation(int channel)
 void KeyGenerationOperation::GenerateKey(
     const QSharedPointer<KeyGenerateInfo>& params,
     const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<GenerateKeyTag>(ctx_, cb, params);
+  RunRegisteredAsync<GenerateKeyTag>(ctx_, cb, params);
 }
 
 auto KeyGenerationOperation::GenerateKeySync(
     const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<GenerateKeyTag>(ctx_, params);
+  return RunRegisteredSync<GenerateKeyTag>(ctx_, params);
 }
 
 void KeyGenerationOperation::GenerateSubkey(
     const GpgKeyPtr& key, const QSharedPointer<KeyGenerateInfo>& params,
     const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<GenerateSubKeyTag>(ctx_, cb, key, params);
+  RunRegisteredAsync<GenerateSubKeyTag>(ctx_, cb, key, params);
 }
 
 auto KeyGenerationOperation::GenerateSubkeySync(
     const GpgKeyPtr& key, const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<GenerateSubKeyTag>(ctx_, key, params);
+  return RunRegisteredSync<GenerateSubKeyTag>(ctx_, key, params);
 }
 
 void KeyGenerationOperation::GenerateKeyWithSubkey(
     const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<GenerateKeyWithSubKeyTag>(ctx_, cb, p_params, s_params);
+  RunRegisteredAsync<GenerateKeyWithSubKeyTag>(ctx_, cb, p_params, s_params);
 }
 
 auto KeyGenerationOperation::GenerateKeyWithSubkeySync(
     const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<GenerateKeyWithSubKeyTag>(ctx_, p_params,
-                                                       s_params);
+  return RunRegisteredSync<GenerateKeyWithSubKeyTag>(ctx_, p_params, s_params);
 }
 
 }  // namespace GpgFrontend

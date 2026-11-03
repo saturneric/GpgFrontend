@@ -35,6 +35,7 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
@@ -83,11 +84,11 @@ auto AdmitChannel(int channel, std::optional<EngineLease>* lease) -> bool {
 }
 
 /// One more run of @p operation in the register table's usage figures.
-void CountOperation(const QString& operation, GpgError err) {
+void CountOperation(const QString& operation, const GFError& err) {
   if (operation.isEmpty()) return;
   Module::IncrementRTValue(Module::kGRTCoreNamespace,
                            Module::GRTOperationStatKey(operation, "run"));
-  if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+  if (!err.Ok()) {
     Module::IncrementRTValue(Module::kGRTCoreNamespace,
                              Module::GRTOperationStatKey(operation, "failed"));
   }
@@ -95,7 +96,7 @@ void CountOperation(const QString& operation, GpgError err) {
 }  // namespace
 
 auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
-                      const GpgOperationCallback& callback,
+                      const GFOperationCallback& callback,
                       const QString& operation,
                       const QList<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler {
@@ -104,13 +105,13 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
   // meanwhile. Released when the task is destroyed, after the callback.
   std::optional<EngineLease> lease;
   if (!AdmitChannel(channel, &lease)) {
-    callback(GPG_ERR_NOT_OPERATIONAL, TransferParams());
+    callback(EngineErrorOf(channel, GPG_ERR_NOT_OPERATIONAL), TransferParams());
     return Thread::Task::TaskHandler(nullptr);
   }
 
   if (!GpgContextSupportIf(channel, support_ifs)) {
     LOG_W() << "operation: " << operation << "is not supported.";
-    callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
+    callback(EngineErrorOf(channel, GPG_ERR_NOT_SUPPORTED), TransferParams());
     return Thread::Task::TaskHandler(nullptr);
   }
 
@@ -126,7 +127,7 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                 // requested (e.g. remaining files in a batch after the user
                 // cancels the one in progress).
                 if (IsChannelCancelled(channel)) {
-                  data_object->Swap({static_cast<GpgError>(GPG_ERR_CANCELED),
+                  data_object->Swap({EngineErrorOf(channel, GPG_ERR_CANCELED),
                                      custom_data_object});
                   return 0;
                 }
@@ -139,9 +140,10 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                 (void)lease;
                 // A runnable that threw never filled the object in.
                 if (rtn < 0) {
-                  callback(GPG_ERR_USER_1, TransferParams());
+                  callback(GFError::Application(GFErrorCode::kABORTED),
+                           TransferParams());
                 } else {
-                  callback(ExtractParams<GpgError>(data_object, 0),
+                  callback(ExtractParams<GFError>(data_object, 0),
                            ExtractParams<DataObjectPtr>(data_object, 1));
                 }
               },
@@ -153,15 +155,15 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
 auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
                      const QString& operation,
                      const QList<EngineSupportIf>& support_ifs)
-    -> std::tuple<GpgError, DataObjectPtr> {
+    -> std::tuple<GFError, DataObjectPtr> {
   std::optional<EngineLease> lease;
   if (!AdmitChannel(channel, &lease)) {
-    return {GPG_ERR_NOT_OPERATIONAL, TransferParams()};
+    return {EngineErrorOf(channel, GPG_ERR_NOT_OPERATIONAL), TransferParams()};
   }
 
   if (!GpgContextSupportIf(channel, support_ifs)) {
     LOG_W() << "operation: " << operation << "is not supported.";
-    return {GPG_ERR_NOT_SUPPORTED, TransferParams()};
+    return {EngineErrorOf(channel, GPG_ERR_NOT_SUPPORTED), TransferParams()};
   }
 
   auto data_object = TransferParams();

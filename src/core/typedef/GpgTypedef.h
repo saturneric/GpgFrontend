@@ -57,12 +57,7 @@ using GpgKeyPtrList = QList<GpgKeyPtr>;                       ///<
 
 using GpgSignMode = gpgme_sig_mode_t;
 
-using GpgOperaRunnable = std::function<GpgError(DataObjectPtr)>;
-using GpgOperationCallback = std::function<void(GpgError, DataObjectPtr)>;
-using GpgOperationFuture = std::future<std::tuple<GpgError, DataObjectPtr>>;
-
-/// What an operation family hands back once it reports GFError. Lives beside
-/// GpgOperationCallback only while the families move over one by one.
+using GpgOperaRunnable = std::function<GFError(DataObjectPtr)>;
 using GFOperationCallback = std::function<void(GFError, DataObjectPtr)>;
 
 enum GpgOperation : uint16_t {

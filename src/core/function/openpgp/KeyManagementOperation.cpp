@@ -62,24 +62,24 @@ void KeyManagementOperation::GenerateRevokeCert(const GpgKeyPtr& key,
 
 void KeyManagementOperation::ModifyPassword(const GpgKeyPtr& key,
                                             const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<ModifyKeyPassphraseOpTag>(ctx_, cb, key);
+  RunRegisteredAsync<ModifyKeyPassphraseOpTag>(ctx_, cb, key);
 }
 
 void KeyManagementOperation::ModifySubkeyPassword(
     const GpgKeyPtr& key, const SubkeyId& skey_fpr,
     const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<ModifySubkeyPassphraseOpTag>(ctx_, cb, key, skey_fpr);
+  RunRegisteredAsync<ModifySubkeyPassphraseOpTag>(ctx_, cb, key, skey_fpr);
 }
 
 auto KeyManagementOperation::ModifyPasswordSync(const GpgKeyPtr& key)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<ModifyKeyPassphraseOpTag>(ctx_, key);
+  return RunRegisteredSync<ModifyKeyPassphraseOpTag>(ctx_, key);
 }
 
 auto KeyManagementOperation::ModifySubkeyPasswordSync(const GpgKeyPtr& key,
                                                       const SubkeyId& skey_fpr)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<ModifySubkeyPassphraseOpTag>(ctx_, key, skey_fpr);
+  return RunRegisteredSync<ModifySubkeyPassphraseOpTag>(ctx_, key, skey_fpr);
 }
 
 void KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) {
@@ -89,7 +89,7 @@ void KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) {
 auto KeyManagementOperation::AddADSKSync(const GpgKeyPtr& key,
                                          const GpgSubKey& adsk)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<AddADSKOpTag>(ctx_, key, adsk);
+  return RunRegisteredSync<AddADSKOpTag>(ctx_, key, adsk);
 }
 
 void KeyManagementOperation::SignKey(const GpgKeyPtr& key,
@@ -97,26 +97,26 @@ void KeyManagementOperation::SignKey(const GpgKeyPtr& key,
                                      const QString& uid,
                                      const std::optional<QDateTime>& expires,
                                      const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<SignKeyOpTag>(ctx_, cb, key, keys, uid, expires);
+  RunRegisteredAsync<SignKeyOpTag>(ctx_, cb, key, keys, uid, expires);
 }
 
 auto KeyManagementOperation::SignKeySync(
     const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys, const QString& uid,
     const std::optional<QDateTime>& expires)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<SignKeyOpTag>(ctx_, key, keys, uid, expires);
+  return RunRegisteredSync<SignKeyOpTag>(ctx_, key, keys, uid, expires);
 }
 
 void KeyManagementOperation::RevKeySignature(const GpgKeyPtr& key,
                                              const SignIdArgsList& signature_id,
                                              const GFOperationCallback& cb) {
-  RunRegisteredAsyncGF<RevKeySignatureOpTag>(ctx_, cb, key, signature_id);
+  RunRegisteredAsync<RevKeySignatureOpTag>(ctx_, cb, key, signature_id);
 }
 
 auto KeyManagementOperation::RevKeySignatureSync(
     const GpgKeyPtr& key, const SignIdArgsList& signature_id)
     -> std::tuple<GFError, DataObjectPtr> {
-  return RunRegisteredSyncGF<RevKeySignatureOpTag>(ctx_, key, signature_id);
+  return RunRegisteredSync<RevKeySignatureOpTag>(ctx_, key, signature_id);
 }
 
 auto KeyManagementOperation::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,

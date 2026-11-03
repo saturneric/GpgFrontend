@@ -63,7 +63,7 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
  */
 auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                         const QString& in_path, bool ascii,
-                        const QString& out_path, const GpgOperationCallback& cb)
+                        const QString& out_path, const GFOperationCallback& cb)
     -> GpgError;
 
 /**
@@ -90,7 +90,7 @@ auto DecryptFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
  */
 auto DecryptArchiveRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                             const QString& out_path,
-                            const GpgOperationCallback& cb) -> GpgError;
+                            const GFOperationCallback& cb) -> GpgError;
 
 /**
  * @brief
@@ -157,7 +157,7 @@ auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
                             const GpgAbstractKeyPtrList& sign_keys,
                             const QString& in_path, bool ascii,
                             const QString& out_path,
-                            const GpgOperationCallback& cb) -> GpgError;
+                            const GFOperationCallback& cb) -> GpgError;
 
 /**
  * @brief
@@ -183,7 +183,7 @@ auto DecryptVerifyFileRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
  */
 auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                   const QString& out_path,
-                                  const GpgOperationCallback& cb) -> GpgError;
+                                  const GFOperationCallback& cb) -> GpgError;
 
 /**
  * @brief
@@ -211,6 +211,6 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
  */
 auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                  bool ascii, const QString& out_path,
-                                 const GpgOperationCallback& cb) -> GpgError;
+                                 const GFOperationCallback& cb) -> GpgError;
 
 }  // namespace GpgFrontend

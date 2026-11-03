@@ -63,8 +63,8 @@ auto EncryptFileGnuPGImpl(OpenPGPContext& ctx_,
  */
 auto EncryptDirGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
-                         const QString& out_path,
-                         const GpgOperationCallback& cb) -> GpgError;
+                         const QString& out_path, const GFOperationCallback& cb)
+    -> GpgError;
 
 /**
  * @brief
@@ -93,7 +93,7 @@ auto EncryptSymmetricFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
  */
 auto EncryptSymmetricDirGnuPGImpl(OpenPGPContext& ctx, const QString& in_path,
                                   bool ascii, const QString& out_path,
-                                  const GpgOperationCallback& cb) -> GpgError;
+                                  const GFOperationCallback& cb) -> GpgError;
 
 /**
  * @brief
@@ -119,7 +119,7 @@ auto DecryptVerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
  */
 auto DecryptVerifyArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                    const QString& out_path,
-                                   const GpgOperationCallback& cb) -> GpgError;
+                                   const GFOperationCallback& cb) -> GpgError;
 
 /**
  * @brief
@@ -145,7 +145,7 @@ auto DecryptFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
  */
 auto DecryptArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                              const QString& out_path,
-                             const GpgOperationCallback& cb) -> GpgError;
+                             const GFOperationCallback& cb) -> GpgError;
 
 /**
  * @brief
@@ -212,5 +212,5 @@ auto EncryptSignDirGnuPGImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& signer_keys,
                              const QString& in_path, bool ascii,
                              const QString& out_path,
-                             const GpgOperationCallback& cb) -> GpgError;
+                             const GFOperationCallback& cb) -> GpgError;
 }  // namespace GpgFrontend
