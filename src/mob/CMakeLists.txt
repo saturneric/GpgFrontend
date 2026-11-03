@@ -50,6 +50,7 @@ qt_add_library(gf_mob_lib STATIC
   crypto/TextCryptoController.cpp
   files/StagingArea.cpp
   files/ShareRetentionStore.cpp
+  files/FileOperations.cpp
   ${GF_PLATFORM_APP_SOURCES}
   ${GF_PLATFORM_MOBILE_SOURCES})
 

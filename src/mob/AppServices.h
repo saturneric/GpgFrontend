@@ -29,6 +29,8 @@
 #pragma once
 
 #include "crypto/PassphraseBroker.h"
+#include "files/ShareRetentionStore.h"
+#include "files/StagingArea.h"
 #include "lifecycle/AppLifecycle.h"
 #include "model/KeyListController.h"
 #include "startup/InteractionBridge.h"
@@ -43,6 +45,10 @@ namespace GpgFrontend::Mobile {
  * The application, its test runner and its QML tests all make their objects
  * here, so the types QML resolves are the same everywhere: a singleton added
  * to one and forgotten in another cannot happen.
+ *
+ * It also owns the files the application stages and shares: this run's
+ * staging area, and the store of shared files, which is cleaned when the
+ * application starts and whenever it returns to the foreground.
  */
 class AppServices {
  public:
@@ -64,6 +70,13 @@ class AppServices {
   PassphraseBroker passphrases;
   AppLifecycle lifecycle;
   KeyListController keys;
+  StagingArea staging;
+  ShareRetentionStore retention;
+
+  /// <cache>/staging, where every run's staging area lives.
+  static auto StagingRoot() -> QString;
+  /// Where the store keeps its record.
+  static auto RetentionIndexFile() -> QString;
 };
 
 }  // namespace GpgFrontend::Mobile

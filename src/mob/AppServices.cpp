@@ -28,27 +28,62 @@
 
 #include "AppServices.h"
 
+#include <QStandardPaths>
+
+#include "files/FileOperations.h"
 #include "plat/common/PlatformClipboard.h"
+#include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Mobile {
+
+namespace {
+
+/// Runs before the staging area is made, so this run's own is never taken.
+auto CleanStagingRoot() -> QString {
+  StagingArea::RemoveOrphans(AppServices::StagingRoot());
+  return AppServices::StagingRoot();
+}
+
+}  // namespace
+
+auto AppServices::StagingRoot() -> QString {
+  return QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+         QStringLiteral("/staging");
+}
+
+auto AppServices::RetentionIndexFile() -> QString {
+  return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
+         QStringLiteral("/share-retention.json");
+}
 
 AppServices::AppServices(QSharedPointer<BootContext> ctx)
     : bridge(nullptr),
       startup(std::move(ctx), &bridge),
       passphrases(nullptr),
       lifecycle(&bridge, &passphrases),
-      keys(nullptr) {
+      keys(nullptr),
+      staging(CleanStagingRoot()),
+      retention(SharedFilesRoot(), RetentionIndexFile(), {},
+                [](const QString& path) { RevokeSharedFile(path); }) {
   InteractionBridge::SetInstance(&bridge);
   StartupController::SetInstance(&startup);
   PassphraseBroker::SetInstance(&passphrases);
   AppLifecycle::SetInstance(&lifecycle);
   KeyListController::SetInstance(&keys);
+  SetFileStores(&staging, &retention);
 
   QObject::connect(&startup, &StartupController::SignalReady, &keys,
                    &KeyListController::refresh);
+
+  // Start and every return are the store's chances to clean up.
+  retention.Cleanup(QDateTime::currentDateTimeUtc());
+  QObject::connect(&lifecycle, &AppLifecycle::SignalResumed, [this]() {
+    retention.Cleanup(QDateTime::currentDateTimeUtc());
+  });
 }
 
 AppServices::~AppServices() {
+  SetFileStores(nullptr, nullptr);
   KeyListController::SetInstance(nullptr);
   AppLifecycle::SetInstance(nullptr);
   PassphraseBroker::SetInstance(nullptr);
