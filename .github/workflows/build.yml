@@ -1308,16 +1308,17 @@ jobs:
             "ndk;${GF_ANDROID_NDK}" "platforms;android-36" "build-tools;36.0.0"
 
       # The action the desktop jobs use (.github/actions/install-qt6), called
-      # directly because Android stays on its own Qt version. autodesktop adds
-      # the host Qt a cross build needs (QT_HOST_PATH).
+      # directly because Android stays on its own Qt version. Qt for Android is
+      # published under the all_os host since Qt 6.7; aqt then also installs
+      # the Linux desktop Qt a cross build needs (QT_HOST_PATH), which the
+      # action always asks for.
       - name: Install Qt6 For Android
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: ${{ env.GF_ANDROID_QT }}
-          host: linux
+          host: all_os
           target: android
           arch: android_arm64_v8a
-          autodesktop: "true"
           dir: ${{ runner.temp }}
           cache: "true"
 
