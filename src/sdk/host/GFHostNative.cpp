@@ -273,6 +273,17 @@ void AdaptDocument(NativeWidgetEntry& e, const GFDocumentWidgetOps ops,
       return allowed;
     };
   }
+  if (ops.close_decided != nullptr) {
+    d.close_decided = [=](quint64 i, bool save) -> std::optional<bool> {
+      // A module that cannot be entered any more cannot object.
+      std::optional<bool> may = true;
+      EnterModule(m, [&] {
+        const int r = ops.close_decided(user, i, save ? 1 : 0);
+        may = r < 0 ? std::nullopt : std::optional<bool>(r == 0);
+      });
+      return may;
+    };
+  }
   if (ops.source_policy != nullptr) {
     d.source_lock = [=](quint64 i) -> std::optional<QString> {
       std::optional<QString> reason;

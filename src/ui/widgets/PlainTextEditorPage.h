@@ -231,6 +231,12 @@ class GF_UI_EXPORT PlainTextEditorPage : public QWidget {
       -> std::optional<QString>;
   /// false while the view says Save and Save As mean nothing yet.
   [[nodiscard]] auto ModuleSaveAllowed() const -> bool;
+  /// The user chose save (@p save) or discard in the Host's own dialog; the
+  /// view carries it out without asking. true: it may close; false: keep it;
+  /// nullopt: the view does not take a decision, ModuleCloseRequested() asks.
+  auto ModuleCloseDecided(bool save) -> std::optional<bool>;
+  /// Whether ModuleCloseDecided() would be taken at all.
+  [[nodiscard]] auto ModuleTakesCloseDecision() const -> bool;
 
   /**
    * @brief A name the mounted view suggests for saving this tab, if any.

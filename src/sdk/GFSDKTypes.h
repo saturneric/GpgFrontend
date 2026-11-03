@@ -447,6 +447,13 @@ typedef struct GFDocumentWidgetOps {
   /** 0 while Save and Save As mean nothing for the document (it is not open
    *  yet, say); the Host greys them out. Absent: they are offered. */
   int (*save_allowed)(void* user, uint64_t instance);
+  /** The user already chose, in the Host's own dialog for one or several
+   *  tabs, to save (@p save 1) or discard (0) this document's changes. Do
+   *  that without asking, finish any write, and answer like close_requested:
+   *  0, the tab may close; positive, keep it (the save failed, or left
+   *  changes unsaved). Negative: not supported; the Host asks
+   *  close_requested instead. Absent: the same. */
+  int (*close_decided)(void* user, uint64_t instance, int save);
 } GFDocumentWidgetOps;
 
 /** A settings page: what the Host asks of it. Append-only. */

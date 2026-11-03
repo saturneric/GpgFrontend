@@ -831,6 +831,18 @@ auto PlainTextEditorPage::ModuleCryptoTip(uint32_t op) const
   return e->document.crypto_op_tip(native_instance_, op);
 }
 
+auto PlainTextEditorPage::ModuleCloseDecided(bool save) -> std::optional<bool> {
+  const auto e = module_document();
+  if (!e.has_value()) return true;
+  if (!e->document.close_decided) return std::nullopt;
+  return e->document.close_decided(native_instance_, save);
+}
+
+auto PlainTextEditorPage::ModuleTakesCloseDecision() const -> bool {
+  const auto e = module_document();
+  return e.has_value() && static_cast<bool>(e->document.close_decided);
+}
+
 auto PlainTextEditorPage::ModuleSaveAllowed() const -> bool {
   const auto e = module_document();
   return !e.has_value() || !e->document.save_allowed ||

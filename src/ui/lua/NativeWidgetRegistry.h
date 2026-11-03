@@ -73,6 +73,9 @@ struct GF_UI_EXPORT NativeDocumentOps {
   std::function<std::optional<QString>(quint64, uint32_t)> crypto_op_tip;
   /// false: Save and Save As are greyed out.
   std::function<bool(quint64)> save_allowed;
+  /// The user's save (true) or discard choice, carried out without asking.
+  /// true: it may close now; nullopt: not supported, ask close_requested.
+  std::function<std::optional<bool>(quint64, bool save)> close_decided;
 };
 
 struct GF_UI_EXPORT NativeSettingsOps {

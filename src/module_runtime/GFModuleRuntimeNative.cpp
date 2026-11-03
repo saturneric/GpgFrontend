@@ -230,6 +230,13 @@ auto DocSaveAllowed(void*, uint64_t i) -> int {
   auto* d = As<DocumentWidget>(i);
   return d == nullptr || d->SaveAllowed() ? 1 : 0;
 }
+auto DocCloseDecided(void*, uint64_t i, int save) -> int {
+  auto* d = As<DocumentWidget>(i);
+  if (d == nullptr) return 0;
+  const auto may = d->CloseDecided(save != 0);
+  if (!may.has_value()) return -1;
+  return *may ? 0 : 1;
+}
 
 const GFDocumentWidgetOps kDocumentOps = {
     sizeof(GFDocumentWidgetOps),
@@ -253,6 +260,7 @@ const GFDocumentWidgetOps kDocumentOps = {
     &DocDecryptRequested,
     &DocCryptoOpTip,
     &DocSaveAllowed,
+    &DocCloseDecided,
 };
 
 // --- settings

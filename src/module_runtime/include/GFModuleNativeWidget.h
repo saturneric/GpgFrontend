@@ -153,6 +153,12 @@ class DocumentWidget : public NativeWidgetBase {
   }
   /// false while Save and Save As mean nothing for the document.
   [[nodiscard]] virtual auto SaveAllowed() const -> bool { return true; }
+  /// The user already chose, in the Host's dialog, to save (@p save) or
+  /// discard; do it without asking. true: the tab may close; false: keep
+  /// it. nullopt (the default): not handled, CloseRequested() is asked.
+  virtual auto CloseDecided(bool /*save*/) -> std::optional<bool> {
+    return std::nullopt;
+  }
 
  protected:
   /// An edit happened; the tab now has unsaved changes.
