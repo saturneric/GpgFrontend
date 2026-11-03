@@ -50,6 +50,8 @@ AMBIENT = {
     "RUNNER_OS", "RUNNER_TEMP", "RUNNER_ARCH", "RUNNER_TOOL_CACHE",
     "HOME", "PATH", "PWD", "TMPDIR", "USER", "SHELL", "LANG", "MSYSTEM",
     "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME",
+    # Preinstalled by the GitHub Ubuntu image: its Android SDK.
+    "ANDROID_HOME",
     # `$?`, `$1`, `$@` and friends, plus the loop/case machinery below.
     "_",
 }
