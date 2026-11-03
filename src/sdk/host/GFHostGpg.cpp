@@ -302,7 +302,13 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
 
   // Modules hand back the GnuPG value they were given: read as the engine
   // on this channel reported it.
-  AnalyseT ra(channel, GpgFrontend::EngineErrorOf(channel, err), *result);
+  auto error = GpgFrontend::FromGpgError(err);
+  if (error.origin == GpgFrontend::GFErrorOrigin::kGNUPG &&
+      GpgFrontend::OpenPGPContext::GetInstance(channel).Engine() ==
+          GpgFrontend::OpenPGPEngine::kRPGP) {
+    error = GpgFrontend::EngineErrorOf(channel, error.code);
+  }
+  AnalyseT ra(channel, error, *result);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
   EmitResultCards(ra.GetOpInfo(), cards);

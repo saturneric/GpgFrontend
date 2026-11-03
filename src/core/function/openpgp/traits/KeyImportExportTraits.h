@@ -73,7 +73,9 @@ GF_DEF_OP_IMPL_TRAITS(ExportAllKeysOpTag, &ExportAllKeysRpgpImpl,
                        &FromGnuPGImpl<&ExportAllKeysGnuPGImpl>::Call},
                       {OpenPGPEngine::kRPGP, &ExportAllKeysRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(ExportSubkeyOpTag, &ExportSubkeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &ExportSubkeyGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(ExportSubkeyOpTag,
+                      &FromGnuPGImpl<&ExportSubkeyGnuPGImpl>::Call,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&ExportSubkeyGnuPGImpl>::Call});
 
 }  // namespace GpgFrontend

@@ -48,8 +48,7 @@ auto KeyManagementOperation::SetExpire(const GpgKeyPtr& key,
                                        const SubkeyId& skey_fpr,
                                        const std::optional<QDateTime>& expires)
     -> GFError {
-  return AsChannelError(ctx_.GetChannel(), RunRegisteredForward<SetExpireOpTag>(
-                                               ctx_, key, skey_fpr, expires));
+  return RunRegisteredForward<SetExpireOpTag>(ctx_, key, skey_fpr, expires);
 }
 
 void KeyManagementOperation::GenerateRevokeCert(const GpgKeyPtr& key,

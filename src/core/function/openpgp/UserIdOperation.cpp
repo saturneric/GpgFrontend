@@ -88,7 +88,7 @@ void UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
           const DataObjectPtr&) -> GFError {
         return AddUID(key, uid)
                    ? GFError{}
-                   : EngineErrorOf(ctx_.GetChannel(), GPG_ERR_GENERAL);
+                   : EngineErrorOf(ctx_.GetChannel(), GFErrorCode::kGENERAL);
       },
       cb, OpTraits<AddUserIdOpTag>::kOpName,
       OpTraits<AddUserIdOpTag>::Versions());
@@ -101,7 +101,7 @@ void UserIdOperation::DeleteUID(const GpgKeyPtr& key, const QString& uid,
       [this, key, uid](const DataObjectPtr&) -> GFError {
         return DeleteUID(key, uid)
                    ? GFError{}
-                   : EngineErrorOf(ctx_.GetChannel(), GPG_ERR_GENERAL);
+                   : EngineErrorOf(ctx_.GetChannel(), GFErrorCode::kGENERAL);
       },
       cb, OpTraits<DeleteUserIdOpTag>::kOpName,
       OpTraits<DeleteUserIdOpTag>::Versions());
@@ -116,7 +116,7 @@ void UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
        reason_text](const DataObjectPtr&) -> GFError {
         return RevokeUID(key, uid, reason_code, reason_text)
                    ? GFError{}
-                   : EngineErrorOf(ctx_.GetChannel(), GPG_ERR_GENERAL);
+                   : EngineErrorOf(ctx_.GetChannel(), GFErrorCode::kGENERAL);
       },
       cb, OpTraits<RevokeUserIdOpTag>::kOpName,
       OpTraits<RevokeUserIdOpTag>::Versions());
@@ -129,7 +129,7 @@ void UserIdOperation::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid,
       [this, key, uid](const DataObjectPtr&) -> GFError {
         return SetPrimaryUID(key, uid)
                    ? GFError{}
-                   : EngineErrorOf(ctx_.GetChannel(), GPG_ERR_GENERAL);
+                   : EngineErrorOf(ctx_.GetChannel(), GFErrorCode::kGENERAL);
       },
       cb, OpTraits<SetPrimaryUserIdOpTag>::kOpName,
       OpTraits<SetPrimaryUserIdOpTag>::Versions());

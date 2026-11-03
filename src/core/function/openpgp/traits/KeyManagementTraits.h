@@ -80,14 +80,18 @@ GF_DEF_OP_IMPL_TRAITS(DeleteSubKeyOpTag, &DeleteSubKeyGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &DeleteSubKeyGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &DeleteSubKeyRpgpImpl});
 
-GF_DEF_OP_IMPL_TRAITS(AddADSKOpTag, &AddADSKGnuPGIImpl,
-                      {OpenPGPEngine::kGNUPG, &AddADSKGnuPGIImpl});
+GF_DEF_OP_IMPL_TRAITS(AddADSKOpTag, &FromGnuPGImpl<&AddADSKGnuPGIImpl>::Call,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&AddADSKGnuPGIImpl>::Call});
 
-GF_DEF_OP_IMPL_TRAITS(SignKeyOpTag, &SignKeyGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &SignKeyGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(SignKeyOpTag, &FromGnuPGImpl<&SignKeyGnuPGImpl>::Call,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&SignKeyGnuPGImpl>::Call});
 
-GF_DEF_OP_IMPL_TRAITS(RevKeySignatureOpTag, &RevKeySignatureGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &RevKeySignatureGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(RevKeySignatureOpTag,
+                      &FromGnuPGImpl<&RevKeySignatureGnuPGImpl>::Call,
+                      {OpenPGPEngine::kGNUPG,
+                       &FromGnuPGImpl<&RevKeySignatureGnuPGImpl>::Call});
 
 GF_DEF_OP_IMPL_TRAITS(SetOwnerTrustLevelOpTag, &SetOwnerTrustLevelGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &SetOwnerTrustLevelGnuPGImpl});

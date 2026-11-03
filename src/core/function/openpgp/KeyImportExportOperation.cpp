@@ -53,9 +53,8 @@ auto KeyImportExportOperation::ExportKey(const GpgAbstractKeyPtr& key,
                                          bool secret, bool ascii, bool shortest,
                                          bool ssh_mode) const
     -> std::tuple<GFError, GFBuffer> {
-  auto [err, buffer] = RunRegisteredForward<ExportKeysOpTag>(
+  return RunRegisteredForward<ExportKeysOpTag>(
       ctx_, GpgAbstractKeyPtrList{key}, secret, ascii, shortest, ssh_mode);
-  return {AsChannelError(ctx_.GetChannel(), err), buffer};
 }
 
 void KeyImportExportOperation::ExportKeys(const GpgAbstractKeyPtrList& keys,
@@ -75,8 +74,6 @@ void KeyImportExportOperation::ExportAllKeys(
 auto KeyImportExportOperation::ExportSubkey(const QString& fpr,
                                             bool ascii) const
     -> std::tuple<GFError, GFBuffer> {
-  auto [err, buffer] =
-      RunRegisteredForward<ExportSubkeyOpTag>(ctx_, fpr, ascii);
-  return {AsChannelError(ctx_.GetChannel(), err), buffer};
+  return RunRegisteredForward<ExportSubkeyOpTag>(ctx_, fpr, ascii);
 }
 }  // namespace GpgFrontend

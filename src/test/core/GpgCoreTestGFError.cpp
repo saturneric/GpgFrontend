@@ -30,7 +30,9 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/gpg/GpgErrorMap.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GFError.h"
+#include "gpg/GpgCoreTest.h"
 
 namespace GpgFrontend::Test {
 
@@ -87,6 +89,24 @@ TEST(GFErrorTest, AGnuPGCodeWithNoCounterpartIsAGeneralFailure) {
   EXPECT_EQ(err.code, GFErrorCode::kGENERAL);
   EXPECT_TRUE(err.Failed());
   EXPECT_EQ(ToGpgError(err), GPG_ERR_ENOPKG);
+}
+
+// What the runner reports for a channel reads as that channel's engine's.
+TEST_F(GpgCoreTest, AnEngineErrorOnAGnuPGChannelIsGnuPGs) {
+  EXPECT_EQ(EngineErrorOf(kGpgChannelForUnitTest, GFErrorCode::kCANCELED),
+            FromGpgError(GPG_ERR_CANCELED));
+  EXPECT_EQ(
+      EngineErrorOf(kGpgChannelForUnitTest, GFErrorCode::kNOT_OPERATIONAL),
+      FromGpgError(GPG_ERR_NOT_OPERATIONAL));
+}
+
+TEST(GFErrorTest, AnEngineErrorOnAnRpgpChannelHasNoNativeValue) {
+  // A channel never configured with a real context: an rPGP placeholder.
+  constexpr int kUnusedChannel = 4098;
+
+  const auto err = EngineErrorOf(kUnusedChannel, GFErrorCode::kNOT_SUPPORTED);
+  EXPECT_EQ(err,
+            (GFError{GFErrorCode::kNOT_SUPPORTED, GFErrorOrigin::kRPGP, 0}));
 }
 
 }  // namespace GpgFrontend::Test

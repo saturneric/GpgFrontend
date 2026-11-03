@@ -90,14 +90,11 @@ auto GpgFrontend::DescribeOpenPGPEngine(int channel) -> QString {
       .arg(version);
 }
 
-auto GpgFrontend::EngineErrorOf(int channel, GpgError err) -> GFError {
-  auto error = FromGpgError(err);
-  if (error.origin == GFErrorOrigin::kGNUPG &&
-      OpenPGPContext::GetInstance(channel).Engine() == OpenPGPEngine::kRPGP) {
-    error.origin = GFErrorOrigin::kRPGP;
-    error.native = 0;
+auto GpgFrontend::EngineErrorOf(int channel, GFErrorCode code) -> GFError {
+  if (OpenPGPContext::GetInstance(channel).Engine() == OpenPGPEngine::kRPGP) {
+    return {code, GFErrorOrigin::kRPGP, 0};
   }
-  return error;
+  return FromGpgError(ToGpgError(GFError::Application(code)));
 }
 
 auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {
