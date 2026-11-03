@@ -33,6 +33,7 @@
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgOperaOutcome.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
@@ -218,58 +219,7 @@ template <>
 void HandleExtraLogicIfNeeded<GpgEncryptResultAnalyse>(
     const QSharedPointer<GpgOperaContext>& context,
     const GpgEncryptResultAnalyse& analyse, GpgOpResultInfo& info) {
-  if (context->base->keys.isEmpty()) return;
-
-  // Resolve an encryption (sub)key ID back to a recipient UID and the matching
-  // (sub)key fingerprint among the selected recipient keys.
-  auto resolve = [&](const QString& key_id, QString& uid, QString& fpr) {
-    for (const auto& key : context->base->keys) {
-      auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
-      if (gpg_key == nullptr) continue;
-      for (const auto& sub : gpg_key->SubKeys()) {
-        if (sub.ID().compare(key_id, Qt::CaseInsensitive) == 0) {
-          uid = gpg_key->UID();
-          fpr = sub.Fingerprint();
-          return;
-        }
-      }
-      if (gpg_key->ID().compare(key_id, Qt::CaseInsensitive) == 0) {
-        uid = gpg_key->UID();
-        fpr = gpg_key->Fingerprint();
-        return;
-      }
-    }
-  };
-
-  // The rPGP engine reports the subkeys it actually encrypted to; show them
-  // verbatim so the key ID and algorithm match the produced ciphertext.
-  const auto engine_recipients = analyse.GetResult().Recipients();
-  if (!engine_recipients.isEmpty()) {
-    for (const auto& er : engine_recipients) {
-      GpgRecipientInfo ri;
-      ri.keyId = er.keyid;
-      ri.pubkeyAlgo = er.pubkey_algo;
-      ri.keyFound = true;
-      resolve(er.keyid, ri.uid, ri.fingerprint);
-      info.recipients.append(ri);
-    }
-    return;
-  }
-
-  // The GnuPG engine does not report which subkey was used, so we cannot show
-  // the real encryption-subkey algorithm. Fall back to the primary key and mark
-  // the algorithm so the UI does not present it as the subkey actually used.
-  for (const auto& key : context->base->keys) {
-    if (key == nullptr) continue;
-    GpgRecipientInfo ri;
-    ri.uid = key->UID();
-    ri.fingerprint = key->Fingerprint();
-    ri.keyId = key->ID();
-    ri.pubkeyAlgo = key->PublicKeyAlgo();
-    ri.keyFound = true;
-    ri.algoIsPrimaryKey = qSharedPointerDynamicCast<GpgKey>(key) != nullptr;
-    info.recipients.append(ri);
-  }
+  AttachEncryptRecipients(info, analyse.GetResult(), context->base->keys);
 }
 
 template <typename ResultType, typename AnalyseType, typename OperaFunc>
@@ -299,20 +249,9 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
 
           // Stopped before it could be analysed: cancelled, not supported, or
           // no usable result. The error is kept as recorded either way.
-          if (err.code == GFErrorCode::kNOT_SUPPORTED || err.Canceled() ||
-              err.Aborted() || data_obj == nullptr ||
-              !data_obj->Check<ResultType>()) {
-            QList<QPair<GpgOperation, QString>> details;
-            if (data_obj != nullptr && data_obj->Check<ResultType>()) {
-              auto result = ExtractParams<ResultType>(data_obj, 0);
-              if (!result.ErrorDetail().isEmpty()) {
-                details.append({AnalyseType::kOperation, result.ErrorDetail()});
-              }
-            }
-            auto aborted = GpgOperaResult{
-                MakeAbortedOpInfo(AnalyseType::kOperation, err,
-                                  DescribeOpenPGPEngine(channel), details),
-                QFileInfo(path).fileName()};
+          if (auto stopped = StoppedOperaInfo<ResultType, AnalyseType, false>(
+                  channel, err, data_obj)) {
+            auto aborted = GpgOperaResult{*stopped, QFileInfo(path).fileName()};
             aborted.input_index = index;
             aborted.source_path = path;
             aborted.staged_output_path = o_path;
@@ -367,29 +306,10 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
 
           // Stopped before it could be analysed: cancelled, not supported, or
           // no usable result. The error is kept as recorded either way.
-          if (err.code == GFErrorCode::kNOT_SUPPORTED || err.Canceled() ||
-              err.Aborted() || data_obj == nullptr ||
-              !data_obj->Check<ResultTypeA, ResultTypeB>()) {
-            QList<QPair<GpgOperation, QString>> details;
-            if (data_obj != nullptr &&
-                data_obj->Check<ResultTypeA, ResultTypeB>()) {
-              auto stage_a = ExtractParams<ResultTypeA>(data_obj, 0);
-              auto stage_b = ExtractParams<ResultTypeB>(data_obj, 1);
-              if (!stage_a.ErrorDetail().isEmpty()) {
-                details.append(
-                    {AnalyseTypeA::kOperation, stage_a.ErrorDetail()});
-              }
-              if (!stage_b.ErrorDetail().isEmpty()) {
-                details.append(
-                    {AnalyseTypeB::kOperation, stage_b.ErrorDetail()});
-              }
-            }
-            auto aborted = GpgOperaResult{
-                MakeAbortedOpInfo(
-                    CombineGpgOperations(AnalyseTypeA::kOperation,
-                                         AnalyseTypeB::kOperation),
-                    err, DescribeOpenPGPEngine(channel), details),
-                QFileInfo(path).fileName()};
+          if (auto stopped = StoppedOperaInfo<ResultTypeA, AnalyseTypeA,
+                                              ResultTypeB, AnalyseTypeB, false>(
+                  channel, err, data_obj)) {
+            auto aborted = GpgOperaResult{*stopped, QFileInfo(path).fileName()};
             aborted.input_index = index;
             aborted.source_path = path;
             aborted.staged_output_path = o_path;
@@ -454,19 +374,9 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
 
       // Stopped before it could be analysed: cancelled, not supported, or no
       // usable result. The error is kept as recorded either way.
-      if (err.code == GFErrorCode::kNOT_SUPPORTED || err.Canceled() ||
-          err.Aborted() || data_obj == nullptr ||
-          !data_obj->Check<ResultType, GFBuffer>()) {
-        QList<QPair<GpgOperation, QString>> details;
-        if (data_obj != nullptr && data_obj->Check<ResultType, GFBuffer>()) {
-          auto result = ExtractParams<ResultType>(data_obj, 0);
-          if (!result.ErrorDetail().isEmpty()) {
-            details.append({AnalyseType::kOperation, result.ErrorDetail()});
-          }
-        }
-        auto aborted = GpgOperaResult{
-            MakeAbortedOpInfo(AnalyseType::kOperation, err,
-                              DescribeOpenPGPEngine(channel), details)};
+      if (auto stopped = StoppedOperaInfo<ResultType, AnalyseType>(channel, err,
+                                                                   data_obj)) {
+        auto aborted = GpgOperaResult{*stopped};
         aborted.input_index = index;
         opera_results.append(aborted);
         return;
@@ -516,25 +426,10 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
 
       // Stopped before it could be analysed: cancelled, not supported, or no
       // usable result. The error is kept as recorded either way.
-      if (err.code == GFErrorCode::kNOT_SUPPORTED || err.Canceled() ||
-          err.Aborted() || data_obj == nullptr ||
-          !data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
-        QList<QPair<GpgOperation, QString>> details;
-        if (data_obj != nullptr &&
-            data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
-          auto stage_a = ExtractParams<ResultTypeA>(data_obj, 0);
-          auto stage_b = ExtractParams<ResultTypeB>(data_obj, 1);
-          if (!stage_a.ErrorDetail().isEmpty()) {
-            details.append({AnalyseTypeA::kOperation, stage_a.ErrorDetail()});
-          }
-          if (!stage_b.ErrorDetail().isEmpty()) {
-            details.append({AnalyseTypeB::kOperation, stage_b.ErrorDetail()});
-          }
-        }
-        auto aborted = GpgOperaResult{
-            MakeAbortedOpInfo(CombineGpgOperations(AnalyseTypeA::kOperation,
-                                                   AnalyseTypeB::kOperation),
-                              err, DescribeOpenPGPEngine(channel), details)};
+      if (auto stopped =
+              StoppedOperaInfo<ResultTypeA, AnalyseTypeA, ResultTypeB,
+                               AnalyseTypeB>(channel, err, data_obj)) {
+        auto aborted = GpgOperaResult{*stopped};
         aborted.input_index = index;
         opera_results.append(aborted);
         return;

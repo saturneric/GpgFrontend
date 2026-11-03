@@ -29,6 +29,7 @@
 #include "GpgEncryptResultAnalyse.h"
 
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -98,6 +99,62 @@ void GpgEncryptResultAnalyse::doAnalyse() {
     op_info_.description =
         tr("Encryption failed: %1.")
             .arg(detail.isEmpty() ? DescribeGFError(error_).second : detail);
+  }
+}
+
+void AttachEncryptRecipients(GpgOpResultInfo& info, GpgEncryptResult result,
+                             const GpgAbstractKeyPtrList& keys) {
+  if (keys.isEmpty()) return;
+
+  // Resolve an encryption (sub)key ID back to a recipient UID and the matching
+  // (sub)key fingerprint among the selected recipient keys.
+  auto resolve = [&](const QString& key_id, QString& uid, QString& fpr) {
+    for (const auto& key : keys) {
+      auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+      if (gpg_key == nullptr) continue;
+      for (const auto& sub : gpg_key->SubKeys()) {
+        if (sub.ID().compare(key_id, Qt::CaseInsensitive) == 0) {
+          uid = gpg_key->UID();
+          fpr = sub.Fingerprint();
+          return;
+        }
+      }
+      if (gpg_key->ID().compare(key_id, Qt::CaseInsensitive) == 0) {
+        uid = gpg_key->UID();
+        fpr = gpg_key->Fingerprint();
+        return;
+      }
+    }
+  };
+
+  // The rPGP engine reports the subkeys it actually encrypted to; show them
+  // verbatim so the key ID and algorithm match the produced ciphertext.
+  const auto engine_recipients = result.Recipients();
+  if (!engine_recipients.isEmpty()) {
+    for (const auto& er : engine_recipients) {
+      GpgRecipientInfo ri;
+      ri.keyId = er.keyid;
+      ri.pubkeyAlgo = er.pubkey_algo;
+      ri.keyFound = true;
+      resolve(er.keyid, ri.uid, ri.fingerprint);
+      info.recipients.append(ri);
+    }
+    return;
+  }
+
+  // The GnuPG engine does not report which subkey was used, so we cannot show
+  // the real encryption-subkey algorithm. Fall back to the primary key and mark
+  // the algorithm so the UI does not present it as the subkey actually used.
+  for (const auto& key : keys) {
+    if (key == nullptr) continue;
+    GpgRecipientInfo ri;
+    ri.uid = key->UID();
+    ri.fingerprint = key->Fingerprint();
+    ri.keyId = key->ID();
+    ri.pubkeyAlgo = key->PublicKeyAlgo();
+    ri.keyFound = true;
+    ri.algoIsPrimaryKey = qSharedPointerDynamicCast<GpgKey>(key) != nullptr;
+    info.recipients.append(ri);
   }
 }
 

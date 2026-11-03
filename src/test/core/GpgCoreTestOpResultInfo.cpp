@@ -31,7 +31,10 @@
 
 #include <gtest/gtest.h>
 
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgOpResultInfo.h"
+#include "core/function/result_analyse/GpgOperaOutcome.h"
+#include "core/model/GpgDecryptResult.h"
 
 namespace GpgFrontend::Test {
 
@@ -177,6 +180,38 @@ TEST(GpgOpResultInfoTest, EverySignatureValidityHasItsVerdict) {
         GpgSigValidity::kUNKNOWN, GpgSigValidity::kKEY_NOT_AUTHORIZED}) {
     EXPECT_EQ(GradeSignature(validity), GpgSigVerdict::kBAD);
   }
+}
+
+// An operation stopped early keeps its error and is never analysed; one that
+// came back with a result is left to its analyser.
+TEST(GpgOpResultInfoTest, AnOperationStoppedEarlyIsNotAnalysed) {
+  // A channel never configured with a real context: an rPGP placeholder.
+  constexpr int kUnusedChannel = 4099;
+  const auto canceled = GFError::Application(GFErrorCode::kCANCELED);
+  const auto result =
+      TransferParams(GpgDecryptResult{GFDecryptResult{}}, GFBuffer{});
+
+  EXPECT_TRUE(IsStoppedBeforeAnalysis(canceled));
+  EXPECT_FALSE(IsStoppedBeforeAnalysis(GFError{}));
+
+  const auto stopped =
+      StoppedOperaInfo<GpgDecryptResult, GpgDecryptResultAnalyse>(
+          kUnusedChannel, canceled, result);
+  ASSERT_TRUE(stopped.has_value());
+  EXPECT_EQ(stopped->status, -1);
+  ASSERT_EQ(stopped->stageErrors.size(), 1);
+  EXPECT_EQ(stopped->stageErrors.first().error, canceled);
+
+  // No usable result is stopped too, with GpgFrontend's own error.
+  const auto empty =
+      StoppedOperaInfo<GpgDecryptResult, GpgDecryptResultAnalyse>(
+          kUnusedChannel, GFError{}, TransferParams());
+  ASSERT_TRUE(empty.has_value());
+  EXPECT_FALSE(empty->stageErrors.first().FromEngine());
+
+  EXPECT_FALSE((StoppedOperaInfo<GpgDecryptResult, GpgDecryptResultAnalyse>(
+                    kUnusedChannel, GFError{}, result))
+                   .has_value());
 }
 
 }  // namespace GpgFrontend::Test

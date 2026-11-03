@@ -77,4 +77,19 @@ class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
   // Encryption result containing invalid-recipient details
   GpgEncryptResult result_;
 };
+/**
+ * @brief Name the recipients of an encryption in its result info.
+ *
+ * The rPGP engine reports the subkeys it actually encrypted to, and those are
+ * shown as reported. GnuPG does not, so the selected recipient keys are shown
+ * instead, with the primary key's algorithm marked as such.
+ *
+ * @param info the encryption's result info, to receive the recipients
+ * @param result the encryption's result
+ * @param keys the recipient keys the user selected; none, none named
+ */
+void GF_CORE_EXPORT AttachEncryptRecipients(GpgOpResultInfo& info,
+                                            GpgEncryptResult result,
+                                            const GpgAbstractKeyPtrList& keys);
+
 }  // namespace GpgFrontend
