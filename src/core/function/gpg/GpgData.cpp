@@ -32,7 +32,7 @@
 
 #include "core/model/GFDataExchanger.h"
 #include "core/typedef/GpgErrorTypedef.h"
-#include "platform/common/PlatformFs.h"
+#include "plat/common/PlatformFs.h"
 
 namespace {
 auto GFReadExCb(void* handle, void* buffer, size_t size) -> ssize_t {

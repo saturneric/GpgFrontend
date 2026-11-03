@@ -26,7 +26,7 @@ add_library(gf_boot STATIC ${BOOT_SOURCE})
 
 # The system keychain backends, picked per platform. Here rather than in the
 # application, because opening a profile installs them.
-include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
+include(${CMAKE_SOURCE_DIR}/src/plat/PlatformSources.cmake)
 target_sources(gf_boot PRIVATE ${GF_PLATFORM_APP_SOURCES})
 
 target_link_libraries(gf_boot PUBLIC gf_core sodium)

@@ -38,8 +38,8 @@
 #include "core/GFCoreLog.h"
 #include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileAreaTraits.h"
-#include "platform/common/FscryptStorage.h"
-#include "platform/common/PlatformFs.h"
+#include "plat/common/FscryptStorage.h"
+#include "plat/common/PlatformFs.h"
 
 namespace GpgFrontend {
 

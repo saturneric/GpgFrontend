@@ -65,7 +65,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
-#include "platform/common/PlatformRelaunch.h"
+#include "plat/common/PlatformRelaunch.h"
 #include "shot/ScreenshotCapture.h"
 #include "shot/ScreenshotEnv.h"
 #include "shot/ScreenshotOptions.h"

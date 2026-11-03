@@ -54,7 +54,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "platform/common/PlatformFs.h"
+#include "plat/common/PlatformFs.h"
 
 namespace GpgFrontend {
 

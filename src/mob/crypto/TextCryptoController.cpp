@@ -45,7 +45,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "crypto/KeySelection.h"
 #include "crypto/ResultPresenter.h"
-#include "platform/common/PlatformPrivacy.h"
+#include "plat/common/PlatformPrivacy.h"
 
 namespace GpgFrontend::Mobile {
 

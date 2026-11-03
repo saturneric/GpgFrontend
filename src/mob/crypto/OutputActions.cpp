@@ -30,8 +30,8 @@
 
 #include <QPointer>
 
-#include "platform/common/PlatformClipboard.h"
-#include "platform/common/PlatformShare.h"
+#include "plat/common/PlatformClipboard.h"
+#include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Mobile {
 

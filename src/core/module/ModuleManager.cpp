@@ -53,7 +53,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
-#include "platform/common/PlatformModule.h"
+#include "plat/common/PlatformModule.h"
 
 namespace GpgFrontend::Module {
 

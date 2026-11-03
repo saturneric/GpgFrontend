@@ -40,7 +40,7 @@
 #include "GpgFrontendTest.h"
 #include "core/module/ModuleLibraryPin.h"
 #include "host/SdkTestContext.h"
-#include "platform/common/PlatformHtmlView.h"
+#include "plat/common/PlatformHtmlView.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKHtmlView.h"
 #include "sdk/GFSDKUI.h"

@@ -54,7 +54,7 @@ aux_source_directory(. CORE_SOURCE)
 register_library(core LIBRARY_TARGET ${CORE_SOURCE})
 
 # the operating-system half of core, picked per platform
-include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
+include(${CMAKE_SOURCE_DIR}/src/plat/PlatformSources.cmake)
 target_sources(${LIBRARY_TARGET} PRIVATE ${GF_PLATFORM_CORE_SOURCES})
 
 target_compile_definitions(${LIBRARY_TARGET} PUBLIC
@@ -150,7 +150,7 @@ if(MINGW)
   # bcypt uuid generation
   target_link_libraries(${LIBRARY_TARGET} PRIVATE "-lbcrypt")
   # ImageGetDigestStream, for the Authenticode digest in
-  # platform/windows/WinModule.cpp
+  # plat/windows/WinModule.cpp
   target_link_libraries(${LIBRARY_TARGET} PRIVATE imagehlp)
 endif()
 

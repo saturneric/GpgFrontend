@@ -43,7 +43,7 @@
 
 #include "GpgFrontendTest.h"
 #include "host/SdkTestContext.h"
-#include "platform/common/PlatformWebEditor.h"
+#include "plat/common/PlatformWebEditor.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKUI.h"
 #include "sdk/GFSDKWebEditor.h"

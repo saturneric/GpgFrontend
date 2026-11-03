@@ -54,7 +54,7 @@ constexpr auto kAppKeyWrapAccount = "app-key-wrap";
 /**
  * @brief A credential store provided by the operating system.
  *
- * Implementations live in src/platform and register themselves at startup.
+ * Implementations live in src/plat and register themselves at startup.
  * The interface takes and returns raw binary; encoding for string-oriented
  * platform APIs is the implementation's business.
  */

@@ -35,7 +35,7 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/PassphraseService.h"
 #include "core/model/GpgPassphraseContext.h"
-#include "platform/common/PlatformPrivacy.h"
+#include "plat/common/PlatformPrivacy.h"
 
 namespace GpgFrontend::Mobile {
 

@@ -28,7 +28,7 @@
 
 #include "AppServices.h"
 
-#include "platform/common/PlatformClipboard.h"
+#include "plat/common/PlatformClipboard.h"
 
 namespace GpgFrontend::Mobile {
 

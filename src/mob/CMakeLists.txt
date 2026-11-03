@@ -29,7 +29,7 @@
 # (GpgFrontend.Mobile): the application and its tests link the same library and
 # import the same plugin, so they register the same types.
 
-include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
+include(${CMAKE_SOURCE_DIR}/src/plat/PlatformSources.cmake)
 
 qt_add_library(gf_mob_lib STATIC
   AppServices.cpp
@@ -144,10 +144,10 @@ if(ANDROID)
   endif()
 
   # The package Android builds from: the manifest, its resources and the Java
-  # side of the platform layer (src/platform/android/package), with the
+  # side of the platform layer (src/plat/android/package), with the
   # launcher icon, which is kept with the other icons under resource/.
   set(_gf_android_package ${CMAKE_CURRENT_BINARY_DIR}/android-package)
-  set(_gf_android_package_src ${CMAKE_SOURCE_DIR}/src/platform/android/package)
+  set(_gf_android_package_src ${CMAKE_SOURCE_DIR}/src/plat/android/package)
   file(GLOB_RECURSE _gf_android_package_files CONFIGURE_DEPENDS
     RELATIVE ${_gf_android_package_src} ${_gf_android_package_src}/*)
   foreach(_gf_file IN LISTS _gf_android_package_files)

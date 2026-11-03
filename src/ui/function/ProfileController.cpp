@@ -47,7 +47,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "platform/common/PlatformRelaunch.h"
+#include "plat/common/PlatformRelaunch.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 #include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/SecretPrompt.h"

@@ -33,7 +33,7 @@
 
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "crypto/PassphraseBroker.h"
-#include "platform/common/PlatformClipboard.h"
+#include "plat/common/PlatformClipboard.h"
 #include "startup/InteractionBridge.h"
 
 namespace GpgFrontend::Mobile {

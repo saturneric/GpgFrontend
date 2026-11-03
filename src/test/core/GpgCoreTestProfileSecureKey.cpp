@@ -39,7 +39,7 @@
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProfileSession.h"
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
-#include "platform/common/LibSecretSearchPath.h"
+#include "plat/common/LibSecretSearchPath.h"
 #endif
 
 namespace GpgFrontend::Test {

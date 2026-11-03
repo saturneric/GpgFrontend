@@ -37,8 +37,8 @@
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/module/ModuleLoadStats.h"
-#include "platform/common/PlatformFs.h"
-#include "platform/common/PlatformModule.h"
+#include "plat/common/PlatformFs.h"
+#include "plat/common/PlatformModule.h"
 
 namespace GpgFrontend::Module {
 

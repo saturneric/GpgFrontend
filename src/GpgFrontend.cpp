@@ -43,7 +43,7 @@
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
-#include "platform/common/PlatformRelaunch.h"
+#include "plat/common/PlatformRelaunch.h"
 #include "res/GpgFrontendResource.h"
 #include "sdk/host/GFHostImpl.h"
 #include "ui/GpgFrontendUIInit.h"

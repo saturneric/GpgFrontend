@@ -61,7 +61,7 @@ register_library(ui LIBRARY_TARGET ${UI_SOURCE})
 # The relaunch belongs to this library rather than to the application target
 # because this library calls it, and nothing linked against an executable can
 # resolve a symbol the executable defines.
-include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
+include(${CMAKE_SOURCE_DIR}/src/plat/PlatformSources.cmake)
 target_sources(${LIBRARY_TARGET} PRIVATE ${GF_PLATFORM_UI_SOURCES})
 
 # NSWorkspace, for the macOS relaunch; WKWebView, for HTML views and web

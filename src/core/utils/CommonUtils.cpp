@@ -31,7 +31,7 @@
 #include <sodium.h>
 
 #include "core/module/ModuleManager.h"
-#include "platform/common/PlatformEnv.h"
+#include "plat/common/PlatformEnv.h"
 
 namespace GpgFrontend {
 

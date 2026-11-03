@@ -32,7 +32,7 @@
 #include <QFile>
 #include <QTemporaryDir>
 
-#include "platform/common/PlatformFs.h"
+#include "plat/common/PlatformFs.h"
 
 namespace GpgFrontend::Test {
 

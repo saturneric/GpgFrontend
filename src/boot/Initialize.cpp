@@ -51,7 +51,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
-#include "platform/common/PlatformSecretStore.h"
+#include "plat/common/PlatformSecretStore.h"
 
 // boot
 #include "boot/BootLog.h"

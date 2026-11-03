@@ -33,9 +33,9 @@
 
 #include "MobileTest.h"
 #include "crypto/OutputActions.h"
-#include "platform/common/PlatformClipboard.h"
-#include "platform/common/PlatformPrivacy.h"
-#include "platform/common/PlatformShare.h"
+#include "plat/common/PlatformClipboard.h"
+#include "plat/common/PlatformPrivacy.h"
+#include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Test::Mobile {
 
