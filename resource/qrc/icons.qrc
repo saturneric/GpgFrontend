@@ -52,6 +52,7 @@
         <file alias="kgpg_key2.png">../lfs/icons/kgpg_key2.png</file>
         <file alias="key_package.png">../lfs/icons/key_package.png</file>
         <file alias="misc_doc.png">../lfs/icons/misc_doc.png</file>
+        <file alias="note.png">../lfs/icons/note.png</file>
         <file alias="quote.png">../lfs/icons/quote.png</file>
         <file alias="receive_email.png">../lfs/icons/receive_email.png</file>
         <file alias="reply-all.png">../lfs/icons/reply-all.png</file>
