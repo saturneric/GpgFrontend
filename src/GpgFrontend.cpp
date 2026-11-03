@@ -50,7 +50,7 @@
 #include "ui/function/GuiProfileLoaderDelegate.h"
 
 #ifdef GF_SCREENSHOT_MODE
-#include "screenshot/app/ScreenshotMode.h"
+#include "shot/app/ScreenshotMode.h"
 #endif
 
 auto main(int argc, char* argv[]) -> int {

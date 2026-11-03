@@ -46,9 +46,9 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleSettingsPolicy.h"
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotScenario.h"
-#include "screenshot/scenarios/ScenarioHelpers.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotScenario.h"
+#include "shot/scenarios/ScenarioHelpers.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::Screenshot {

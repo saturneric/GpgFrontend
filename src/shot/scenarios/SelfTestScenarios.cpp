@@ -29,7 +29,7 @@
 #include <QLabel>
 #include <QMessageBox>
 
-#include "screenshot/ScreenshotScenario.h"
+#include "shot/ScreenshotScenario.h"
 
 /**
  * @file SelfTestScenarios.cpp

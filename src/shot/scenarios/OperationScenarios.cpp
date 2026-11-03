@@ -44,9 +44,9 @@
 
 #include "core/profile/ProfileSession.h"
 #include "core/typedef/GpgTypedef.h"
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotScenario.h"
-#include "screenshot/scenarios/ScenarioHelpers.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotScenario.h"
+#include "shot/scenarios/ScenarioHelpers.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/widgets/InfoBoardWidget.h"
 

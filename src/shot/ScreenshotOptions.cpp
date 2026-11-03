@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/ScreenshotOptions.h"
+#include "shot/ScreenshotOptions.h"
 
 #include <QFileInfo>
 #include <QRegularExpression>

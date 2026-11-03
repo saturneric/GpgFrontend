@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/ScreenshotCapture.h"
+#include "shot/ScreenshotCapture.h"
 
 #include <QApplication>
 #include <QDialog>

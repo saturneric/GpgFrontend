@@ -45,10 +45,10 @@
 #include <QTimer>
 #include <QToolButton>
 
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotScenario.h"
-#include "screenshot/ScreenshotSeed.h"
-#include "screenshot/scenarios/ScenarioHelpers.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotScenario.h"
+#include "shot/ScreenshotSeed.h"
+#include "shot/scenarios/ScenarioHelpers.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"

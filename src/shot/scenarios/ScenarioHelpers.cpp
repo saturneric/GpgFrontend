@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/scenarios/ScenarioHelpers.h"
+#include "shot/scenarios/ScenarioHelpers.h"
 
 #include <QAbstractButton>
 #include <QAction>
@@ -47,7 +47,7 @@
 #include <QWizard>
 
 #include "core/model/SettingsObject.h"
-#include "screenshot/ScreenshotEnv.h"
+#include "shot/ScreenshotEnv.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"

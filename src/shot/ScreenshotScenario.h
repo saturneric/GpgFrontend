@@ -40,8 +40,8 @@
 #include <functional>
 #include <optional>
 
-#include "screenshot/ScreenshotCapture.h"
-#include "screenshot/ScreenshotOptions.h"
+#include "shot/ScreenshotCapture.h"
+#include "shot/ScreenshotOptions.h"
 
 /**
  * @file ScreenshotScenario.h

@@ -38,7 +38,7 @@
 #include <optional>
 #include <utility>
 
-#include "screenshot/ScreenshotScenario.h"
+#include "shot/ScreenshotScenario.h"
 
 class QAbstractButton;
 class QMenu;

@@ -25,7 +25,7 @@
 # The generated files are *committed*; the screenshot pipeline never runs this
 # script. Key material is random, so re-running it changes every fingerprint
 # and invalidates every manual screenshot. Run it only to change the demo data
-# on purpose, then commit resource/screenshot/ as a whole.
+# on purpose, then commit resource/shot/ as a whole.
 #
 # Every timestamp is pinned (gpg --faked-system-time, sq --time), at 12:00 UTC
 # so a date-only display cannot shift a day in any timezone:
@@ -42,7 +42,7 @@
 #   2026-02-01  Erin's key expires: "expiring soon" at the default clock
 #               (2026-01-15), inside the 30-day window
 #
-# Built-in database (GnuPG, resource/screenshot/demo-gnupghome), as the main
+# Built-in database (GnuPG, resource/shot/demo-gnupghome), as the main
 # window lists it:
 #   Alice  own key pair, RSA 3072 certify-only primary + sign and encrypt
 #          subkeys, no expiry; a second user ID for her work address;
@@ -52,15 +52,15 @@
 #   Dave   public key, expired
 #   Erin   public key, certified by Alice, expiring soon
 #
-# Work database (GnuPG, resource/screenshot/demo-dbs/work):
+# Work database (GnuPG, resource/shot/demo-dbs/work):
 #   Grace  own key pair, ed25519 + cv25519, no expiry
 #   Heidi  public key, RSA 3072, certified by Grace
 #   Alice  her subkeys only, without the primary key ("sec#")
 #
-# Key server (resource/screenshot/keyserver): Grace's and Heidi's public keys
+# Key server (resource/shot/keyserver): Grace's and Heidi's public keys
 # and their listing, served by the local mock key server at render time.
 #
-# Lab database (rPGP, resource/screenshot/demo-dbs/lab): armored RFC 9580
+# Lab database (rPGP, resource/shot/demo-dbs/lab): armored RFC 9580
 # (OpenPGP v6) keys made with sq, imported by the screenshot mode at run time
 # so the committed data never depends on the engine's own storage format:
 #   ivan.key   Ivan, own key pair, no expiry
@@ -68,13 +68,13 @@
 #
 # No key carries a passphrase; this is demo data, not a secret.
 #
-# Usage:  bash scripts/screenshot/gen_demo_keyring.sh   (needs gpg and sq)
+# Usage:  bash scripts/shot/gen_demo_keyring.sh   (needs gpg and sq)
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-OUT_DIR="$REPO_ROOT/resource/screenshot"
+OUT_DIR="$REPO_ROOT/resource/shot"
 
 # Short on purpose: the gpg-agent socket lives in the homedir when
 # /run/user is unavailable, and a long path exceeds sun_path.

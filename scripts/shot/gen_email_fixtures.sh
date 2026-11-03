@@ -21,7 +21,7 @@
 #
 # ---------------------------------------------------------------------------
 # Regenerate the email fixtures used by the screenshot mode, from the demo
-# keyring already committed in resource/screenshot/demo-gnupghome.
+# keyring already committed in resource/shot/demo-gnupghome.
 #
 # Separate from gen_demo_keyring.sh on purpose: that script makes new keys,
 # which changes every fingerprint and invalidates every manual screenshot.
@@ -37,13 +37,13 @@
 #   draft-contract.eml    the same message, unsigned: a draft in the editor
 #   newsletter.eml        an HTML-only message, for the HTML preview notice
 #
-# Usage:  bash scripts/screenshot/gen_email_fixtures.sh   (needs gpg)
+# Usage:  bash scripts/shot/gen_email_fixtures.sh   (needs gpg)
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-OUT_DIR="$REPO_ROOT/resource/screenshot/fixtures"
+OUT_DIR="$REPO_ROOT/resource/shot/fixtures"
 
 # Short on purpose: see gen_demo_keyring.sh.
 WORK="$(mktemp -d /tmp/gf-mail.XXXXXX)"
@@ -53,7 +53,7 @@ cleanup() {
   rm -rf "$WORK"
 }
 trap cleanup EXIT
-cp -r "$REPO_ROOT/resource/screenshot/demo-gnupghome" "$H"
+cp -r "$REPO_ROOT/resource/shot/demo-gnupghome" "$H"
 chmod 700 "$H"
 
 T_FIXTURE=20250201T120000

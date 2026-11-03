@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/ScreenshotSeed.h"
+#include "shot/ScreenshotSeed.h"
 
 #include <QDir>
 #include <QFile>

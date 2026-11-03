@@ -45,11 +45,11 @@
 #include <QWidget>
 
 #include "GpgFrontendTest.h"
-#include "screenshot/ScreenshotCapture.h"
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotOptions.h"
-#include "screenshot/ScreenshotScenario.h"
-#include "screenshot/ScreenshotSeed.h"
+#include "shot/ScreenshotCapture.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotOptions.h"
+#include "shot/ScreenshotScenario.h"
+#include "shot/ScreenshotSeed.h"
 
 namespace GpgFrontend::Test {
 
@@ -58,7 +58,7 @@ namespace {
 using namespace GpgFrontend::Screenshot;  // NOLINT
 
 auto ResourcePath(const QString& name) -> QString {
-  return QString(GF_TEST_SOURCE_DIR) + "/resource/screenshot/" + name;
+  return QString(GF_TEST_SOURCE_DIR) + "/resource/shot/" + name;
 }
 
 auto ReadResource(const QString& name) -> QByteArray {

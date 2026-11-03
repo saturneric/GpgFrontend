@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/app/ScreenshotMode.h"
+#include "shot/app/ScreenshotMode.h"
 
 #include <QApplication>
 #include <QCursor>
@@ -66,11 +66,11 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "platform/common/PlatformRelaunch.h"
-#include "screenshot/ScreenshotCapture.h"
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotOptions.h"
-#include "screenshot/ScreenshotScenario.h"
-#include "screenshot/ScreenshotSeed.h"
+#include "shot/ScreenshotCapture.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotOptions.h"
+#include "shot/ScreenshotScenario.h"
+#include "shot/ScreenshotSeed.h"
 #include "ui/GpgFrontendUIInit.h"
 #include "ui/function/UIStyle.h"
 

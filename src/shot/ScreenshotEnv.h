@@ -37,7 +37,7 @@
 #include <QStringList>
 #include <optional>
 
-#include "screenshot/ScreenshotOptions.h"
+#include "shot/ScreenshotOptions.h"
 
 /**
  * @file ScreenshotEnv.h
@@ -84,7 +84,7 @@ auto ParseCheckOptions(const QString& output, const QString& component)
     -> std::optional<bool>;
 
 /**
- * @brief One demo key as resource/screenshot/demo-keys.json describes it.
+ * @brief One demo key as resource/shot/demo-keys.json describes it.
  */
 struct DemoKey {
   QString name;

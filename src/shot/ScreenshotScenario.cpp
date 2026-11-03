@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/ScreenshotScenario.h"
+#include "shot/ScreenshotScenario.h"
 
 #include <QAbstractAnimation>
 #include <QApplication>

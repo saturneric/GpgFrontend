@@ -36,9 +36,9 @@
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileRegistry.h"
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotScenario.h"
-#include "screenshot/scenarios/ScenarioHelpers.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotScenario.h"
+#include "shot/scenarios/ScenarioHelpers.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::Screenshot {

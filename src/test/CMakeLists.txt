@@ -85,9 +85,9 @@ register_library(test LIBRARY_TARGET ${TEST_SOURCE})
 # application compiles the same files; neither copy holds state the other
 # needs to see.
 if(GPGFRONTEND_BUILD_SCREENSHOT_MODE)
-  aux_source_directory(${CMAKE_SOURCE_DIR}/src/screenshot SCREENSHOT_TEST_SOURCE)
-  aux_source_directory(${CMAKE_SOURCE_DIR}/src/screenshot/scenarios SCREENSHOT_TEST_SOURCE)
-  aux_source_directory(${CMAKE_SOURCE_DIR}/src/screenshot/test SCREENSHOT_TEST_SOURCE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/src/shot SCREENSHOT_TEST_SOURCE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/src/shot/scenarios SCREENSHOT_TEST_SOURCE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/src/shot/test SCREENSHOT_TEST_SOURCE)
   target_sources(${LIBRARY_TARGET} PRIVATE ${SCREENSHOT_TEST_SOURCE})
 endif()
 

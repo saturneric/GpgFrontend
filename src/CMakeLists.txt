@@ -273,9 +273,9 @@ endif()
 # The screenshot mode lives in its own directory so that a build without the
 # option compiles none of it; aux_source_directory(.) above never sees it.
 if(GPGFRONTEND_BUILD_SCREENSHOT_MODE)
-  aux_source_directory(screenshot SCREENSHOT_SOURCE)
-  aux_source_directory(screenshot/scenarios SCREENSHOT_SOURCE)
-  aux_source_directory(screenshot/app SCREENSHOT_SOURCE)
+  aux_source_directory(shot SCREENSHOT_SOURCE)
+  aux_source_directory(shot/scenarios SCREENSHOT_SOURCE)
+  aux_source_directory(shot/app SCREENSHOT_SOURCE)
   target_sources(${APP_NAME} PRIVATE ${SCREENSHOT_SOURCE})
   target_compile_definitions(${APP_NAME} PRIVATE GF_SCREENSHOT_MODE=1)
 endif()

@@ -50,8 +50,8 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
-#include "screenshot/ScreenshotEnv.h"
-#include "screenshot/ScreenshotOptions.h"
+#include "shot/ScreenshotEnv.h"
+#include "shot/ScreenshotOptions.h"
 
 namespace GpgFrontend::Test {
 
@@ -60,7 +60,7 @@ namespace {
 using namespace GpgFrontend::Screenshot;  // NOLINT
 
 auto ResourcePath(const QString& name) -> QString {
-  return QString(GF_TEST_SOURCE_DIR) + "/resource/screenshot/" + name;
+  return QString(GF_TEST_SOURCE_DIR) + "/resource/shot/" + name;
 }
 
 auto ReadFile(const QString& path) -> QByteArray {

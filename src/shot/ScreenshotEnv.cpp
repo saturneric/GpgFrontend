@@ -26,7 +26,7 @@
  *
  */
 
-#include "screenshot/ScreenshotEnv.h"
+#include "shot/ScreenshotEnv.h"
 
 #include <QCryptographicHash>
 #include <QJsonArray>

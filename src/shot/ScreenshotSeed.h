@@ -32,7 +32,7 @@
 #include <QList>
 #include <QString>
 
-#include "screenshot/ScreenshotEnv.h"
+#include "shot/ScreenshotEnv.h"
 
 /**
  * @file ScreenshotSeed.h
