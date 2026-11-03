@@ -30,7 +30,7 @@
 
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/function/KeyGenProfile.h"
+#include "core/function/KeyGenProfile.h"
 
 namespace GpgFrontend::UI {
 

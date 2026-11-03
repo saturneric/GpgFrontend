@@ -26,11 +26,9 @@
  *
  */
 
-#include "ui/function/KeyGenProfile.h"
+#include "core/function/KeyGenProfile.h"
 
-#include "ui/function/KeyGenerateHelper.h"
-
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 namespace {
 
@@ -612,4 +610,28 @@ auto RequiredKeyVersion(const KeyGenerateInfo& key,
   return pqc ? 6 : 0;
 }
 
-}  // namespace GpgFrontend::UI
+auto GetAlgoByIdType(const QString& id, const QString& type,
+                     const QList<KeyAlgo>& algos) -> std::tuple<bool, KeyAlgo> {
+  QList<KeyAlgo> same_id;
+  for (const auto& algo : algos) {
+    if (algo.Id() != id) continue;
+    if (!type.isEmpty() && algo.Type() != type) {
+      same_id.append(algo);
+      continue;
+    }
+    return {true, algo};
+  }
+
+  if (same_id.size() == 1) return {true, same_id.front()};
+  return {};
+}
+
+auto OfferedKeyGenProfiles(int channel, const QList<KeyGenProfile>& profiles)
+    -> QList<ResolvedKeyGenProfile> {
+  return ResolveKeyGenProfiles(
+      profiles, KeyGenerateInfo::GetSupportedKeyAlgo(channel),
+      KeyGenerateInfo::GetSupportedSubkeyAlgo(channel),
+      [channel](const KeyAlgo& algo) { return algo.SubAlgos(channel); });
+}
+
+}  // namespace GpgFrontend

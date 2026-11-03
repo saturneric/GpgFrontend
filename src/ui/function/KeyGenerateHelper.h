@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/DataObject.h"
+#include "core/function/KeyGenProfile.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 
 namespace GpgFrontend::UI {
@@ -115,23 +116,6 @@ void AddComboSectionHeader(QComboBox* combo_box, const QString& text);
  * @return the first index whose item is selectable and enabled, or -1 if none
  */
 auto FirstSelectableComboIndex(const QComboBox* combo_box) -> int;
-
-/**
- * @brief Get the Algo By Id And Type object
- *
- * If type is empty, this function falls back to id-only matching for backward
- * compatibility. So does a type no algorithm with that id has, when the id
- * names exactly one algorithm: a saved profile keeps working after an
- * algorithm's type label is corrected (secp256k1 was "EdDSA", is "ECDSA").
- *
- * @param id
- * @param type
- * @param algos
- * @return std::tuple<bool, KeyAlgo>
- */
-auto GF_UI_EXPORT GetAlgoByIdType(const QString& id, const QString& type,
-                                  const QList<KeyAlgo>& algos)
-    -> std::tuple<bool, KeyAlgo>;
 
 /**
  * @brief Ask the user to confirm an unusually short user id name.

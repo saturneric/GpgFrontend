@@ -64,11 +64,4 @@ void GF_UI_EXPORT StoreKeyGenSettings(const KeyGenSO& settings);
  */
 void GF_UI_EXPORT StoreKeyGenExpertMode(bool on);
 
-/**
- * @brief The profiles a channel's engine can generate, in stored order.
- */
-auto GF_UI_EXPORT OfferedKeyGenProfiles(int channel,
-                                        const QList<KeyGenProfile>& profiles)
-    -> QList<ResolvedKeyGenProfile>;
-
 }  // namespace GpgFrontend::UI

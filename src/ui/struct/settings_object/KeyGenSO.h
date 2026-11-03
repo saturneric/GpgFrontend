@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "ui/function/KeyGenProfile.h"
+#include "core/function/KeyGenProfile.h"
 #include "ui/function/UidPattern.h"
 
 namespace GpgFrontend::UI {

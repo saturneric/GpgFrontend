@@ -335,17 +335,17 @@ TEST(MainWindowChromeStyleTest, NamesOnlyPaletteRolesSoDarkModeSurvives) {
 // type label is corrected (secp256k1: "EdDSA" -> "ECDSA") the profile must
 // still find the algorithm; an id shared by several types stays ambiguous.
 TEST(KeyGenerateProfileTest, ARelabelledAlgorithmStillMatchesItsId) {
-  auto [found, algo] = UI::GetAlgoByIdType("secp256k1", "EdDSA",
-                                           KeyGenerateInfo::kPrimaryKeyAlgos);
+  auto [found, algo] =
+      GetAlgoByIdType("secp256k1", "EdDSA", KeyGenerateInfo::kPrimaryKeyAlgos);
   ASSERT_TRUE(found);
   EXPECT_EQ(algo.Type(), "ECDSA");
 
   auto [exact, nist] =
-      UI::GetAlgoByIdType("nistp256", "ECDH", KeyGenerateInfo::kSubKeyAlgos);
+      GetAlgoByIdType("nistp256", "ECDH", KeyGenerateInfo::kSubKeyAlgos);
   ASSERT_TRUE(exact);
   EXPECT_EQ(nist.Type(), "ECDH");
-  auto [ambiguous, none] = UI::GetAlgoByIdType("nistp256", "Nonsense",
-                                               KeyGenerateInfo::kSubKeyAlgos);
+  auto [ambiguous, none] =
+      GetAlgoByIdType("nistp256", "Nonsense", KeyGenerateInfo::kSubKeyAlgos);
   EXPECT_FALSE(ambiguous);
 }
 

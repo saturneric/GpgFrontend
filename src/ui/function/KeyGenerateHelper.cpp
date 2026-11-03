@@ -246,22 +246,6 @@ void PopulateAlgoComboBox(QComboBox* combo_box, const QList<KeyAlgo>& algos) {
   }
 }
 
-auto GetAlgoByIdType(const QString& id, const QString& type,
-                     const QList<KeyAlgo>& algos) -> std::tuple<bool, KeyAlgo> {
-  QList<KeyAlgo> same_id;
-  for (const auto& algo : algos) {
-    if (algo.Id() != id) continue;
-    if (!type.isEmpty() && algo.Type() != type) {
-      same_id.append(algo);
-      continue;
-    }
-    return {true, algo};
-  }
-
-  if (same_id.size() == 1) return {true, same_id.front()};
-  return {};
-}
-
 auto ConfirmShortUserIdName(QWidget* parent, const QString& name) -> bool {
   if (name.size() >= 5) return true;
 

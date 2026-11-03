@@ -31,7 +31,7 @@
 #include <optional>
 
 #include "core/model/GpgKeyGenerateInfo.h"
-#include "ui/function/KeyGenProfile.h"
+#include "core/function/KeyGenProfile.h"
 #include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {

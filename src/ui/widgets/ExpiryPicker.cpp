@@ -29,7 +29,7 @@
 #include "ui/widgets/ExpiryPicker.h"
 
 #include "core/utils/CommonUtils.h"
-#include "ui/function/KeyGenProfile.h"
+#include "core/function/KeyGenProfile.h"
 
 namespace GpgFrontend::UI {
 

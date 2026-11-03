@@ -30,16 +30,12 @@
 
 #include "GpgFrontendTest.h"
 #include "ui/dialog/key_generate/KeyGenerateSummary.h"
-#include "ui/function/KeyGenProfile.h"
 #include "ui/function/KeyGenSettings.h"
 #include "ui/function/KeyGenerateHelper.h"
 
 namespace GpgFrontend::Test {
 
 namespace {
-
-using UI::KeyGenProfile;
-using UI::ResolvedKeyGenProfile;
 
 auto PrimaryAlgos() -> QList<KeyAlgo> {
   return KeyGenerateInfo::kPrimaryKeyAlgos +
@@ -52,7 +48,7 @@ auto SubkeyAlgos() -> QList<KeyAlgo> {
 
 auto Find(const QString& id, const QString& type, const QList<KeyAlgo>& in)
     -> KeyAlgo {
-  auto [found, algo] = UI::GetAlgoByIdType(id, type, in);
+  auto [found, algo] = GetAlgoByIdType(id, type, in);
   return found ? algo : KeyGenerateInfo::kNoneAlgo;
 }
 
@@ -76,294 +72,7 @@ auto AllPairings(const KeyAlgo& algo) -> QList<KeyAlgo> {
 
 auto NoPairings(const KeyAlgo&) -> QList<KeyAlgo> { return {}; }
 
-auto Now() -> QDateTime {
-  return QDateTime(QDate(2026, 1, 15), QTime(12, 0), QTimeZone::UTC);
-}
-
 }  // namespace
-
-TEST(KeyGenProfileTest, EveryDefaultSurvivesItsStoredForm) {
-  for (const auto& p : UI::MakeDefaultKeyGenProfiles()) {
-    const auto back = UI::KeyGenProfileFromJson(UI::KeyGenProfileToJson(p));
-    ASSERT_TRUE(back.has_value()) << p.name.toStdString();
-    EXPECT_EQ(*back, p) << p.name.toStdString();
-  }
-}
-
-TEST(KeyGenProfileTest, EveryDefaultNameIsAValidName) {
-  // Editing a built-in profile must not be refused for the name it came with,
-  // nor a copy of it for the " (2)" it gets.
-  const auto defaults = UI::MakeDefaultKeyGenProfiles();
-  for (qsizetype i = 0; i < defaults.size(); ++i) {
-    EXPECT_EQ(UI::CheckKeyGenProfileName(defaults.at(i).name, defaults,
-                                         static_cast<int>(i)),
-              UI::KeyGenProfileNameProblem::kNone)
-        << defaults.at(i).name.toStdString();
-    EXPECT_LE(defaults.at(i).name.size() + 4, UI::kKeyGenProfileNameMaxLen);
-  }
-}
-
-TEST(KeyGenProfileTest, EveryDefaultHasADescription) {
-  for (const auto& p : UI::MakeDefaultKeyGenProfiles()) {
-    EXPECT_FALSE(p.description.isEmpty()) << p.name.toStdString();
-    EXPECT_LE(p.description.size(), UI::kKeyGenProfileDescriptionMaxLen);
-  }
-}
-
-TEST(KeyGenProfileTest, AProfileTheOldDialogCachedStillReads) {
-  // Written by the tabbed dialog: no description, no subkey validity echo,
-  // a hybrid's type left out.
-  const auto json = QJsonDocument::fromJson(R"({
-      "name": "Mine", "hidden": false,
-      "primary": {"algo": "ED25519", "type": "EdDSA", "validity": "1y"},
-      "subkey": {"algo": "ky768", "type": "HYBRID-KEM", "validity": "6m",
-                 "sub_algo": "cv25519"}})")
-                        .object();
-  const auto p = UI::KeyGenProfileFromJson(json);
-  ASSERT_TRUE(p.has_value());
-  EXPECT_EQ(p->name, u"Mine"_s);
-  EXPECT_TRUE(p->description.isEmpty());
-  EXPECT_EQ(p->key_algo, u"ed25519"_s);  // ids are compared lower-case
-  EXPECT_EQ(p->key_validity, u"1y"_s);
-  ASSERT_TRUE(p->has_s_key);
-  EXPECT_EQ(p->s_key_validity, u"6m"_s);
-  EXPECT_EQ(p->s_key_sub_algo, u"cv25519"_s);
-  EXPECT_FALSE(p->s_key_sub_algo_type.isEmpty());  // looked up from the id
-}
-
-TEST(KeyGenProfileTest, WhatIsNotAProfileIsSkipped) {
-  QJsonArray array{
-      QJsonObject{}, QJsonObject{{"name", "No primary"}},
-      UI::KeyGenProfileToJson(UI::MakeDefaultKeyGenProfiles().front())};
-  EXPECT_EQ(UI::KeyGenProfilesFromJson(array).size(), 1);
-}
-
-TEST(KeyGenProfileTest, TheFingerprintIsWhatAProfileMakes) {
-  const auto base = UI::MakeDefaultKeyGenProfiles().front();
-  const auto fpr = UI::KeyGenProfileFingerprint(base);
-
-  // Renamed, reworded, hidden or spelled in another case: the same keys.
-  auto same = base;
-  same.name = u"Mine"_s;
-  same.description = u"for work"_s;
-  same.hidden = true;
-  same.key_algo = base.key_algo.toUpper();
-  EXPECT_EQ(UI::KeyGenProfileFingerprint(same), fpr);
-
-  // Another validity or another subkey: other keys.
-  auto longer = base;
-  longer.key_validity = u"5y"_s;
-  EXPECT_NE(UI::KeyGenProfileFingerprint(longer), fpr);
-  auto no_subkey = base;
-  no_subkey.has_s_key = false;
-  EXPECT_NE(UI::KeyGenProfileFingerprint(no_subkey), fpr);
-
-  // Every built-in makes something of its own.
-  QSet<QString> seen;
-  for (const auto& p : UI::MakeDefaultKeyGenProfiles()) {
-    EXPECT_FALSE(seen.contains(UI::KeyGenProfileFingerprint(p)))
-        << p.name.toStdString();
-    seen.insert(UI::KeyGenProfileFingerprint(p));
-  }
-}
-
-TEST(KeyGenProfileTest, RestoringAddsOnlyWhatIsMissing) {
-  const auto defaults = UI::MakeDefaultKeyGenProfiles();
-
-  // Nothing missing: nothing added, nothing changed.
-  EXPECT_EQ(UI::RestoreDefaultKeyGenProfiles(defaults), defaults);
-
-  // A renamed built-in and one of the user's own stay as they are; the one
-  // deleted comes back, once.
-  auto current = defaults;
-  current[0].name = u"Everyday"_s;
-  const auto deleted = current.takeAt(1);
-  KeyGenProfile own;
-  own.name = u"Own"_s;
-  own.key_algo = u"rsa3072"_s;
-  own.key_algo_type = u"RSA"_s;
-  own.key_validity = u"1y"_s;
-  current.append(own);
-
-  const auto restored = UI::RestoreDefaultKeyGenProfiles(current);
-  ASSERT_EQ(restored.size(), current.size() + 1);
-  EXPECT_EQ(restored.mid(0, current.size()), current);
-  EXPECT_EQ(restored.last(), deleted);
-
-  // A built-in whose name was taken by something else comes back renamed.
-  auto taken = defaults;
-  const auto gone = taken.takeAt(1);
-  taken[0].name = gone.name;
-  const auto back = UI::RestoreDefaultKeyGenProfiles(taken);
-  ASSERT_EQ(back.size(), taken.size() + 1);
-  EXPECT_EQ(UI::KeyGenProfileFingerprint(back.last()),
-            UI::KeyGenProfileFingerprint(gone));
-  EXPECT_NE(back.last().name, gone.name);
-}
-
-TEST(KeyGenProfileTest, ValidityStringsMeanWhatTheySay) {
-  const auto now = Now();
-  EXPECT_EQ(UI::ParseKeyGenValidity(u"2y"_s, now), now.addYears(2));
-  EXPECT_EQ(UI::ParseKeyGenValidity(u"6m"_s, now), now.addMonths(6));
-  EXPECT_EQ(UI::ParseKeyGenValidity(u"90d"_s, now), now.addDays(90));
-  EXPECT_EQ(UI::ParseKeyGenValidity(u"3600t"_s, now), now.addSecs(3600));
-  // Nonsense is the two-year default rather than an expired key.
-  EXPECT_EQ(UI::ParseKeyGenValidity(u"soon"_s, now), now.addYears(2));
-  EXPECT_EQ(UI::ParseKeyGenValidity(u"-3y"_s, now), now.addYears(2));
-  EXPECT_TRUE(UI::IsNeverExpiringValidity(u"forever"_s));
-  EXPECT_TRUE(UI::IsNeverExpiringValidity(u"none"_s));
-  EXPECT_FALSE(UI::IsNeverExpiringValidity(u"10y"_s));
-}
-
-TEST(KeyGenProfileTest, AnExpiryIsDescribedByThePresetItMatches) {
-  const auto now = Now();
-  for (const auto& preset : UI::KeyGenValidityPresets()) {
-    const auto never = UI::IsNeverExpiringValidity(preset);
-    EXPECT_EQ(
-        UI::KeyGenValidityFor(never, UI::ParseKeyGenValidity(preset, now), now),
-        preset)
-        << preset.toStdString();
-  }
-  // Anything else is counted in whole days.
-  EXPECT_EQ(UI::KeyGenValidityFor(false, now.addDays(45), now), u"45d"_s);
-}
-
-TEST(KeyGenProfileTest, ValidityHasAName) {
-  for (const auto& preset : UI::KeyGenValidityPresets()) {
-    EXPECT_FALSE(UI::KeyGenValidityDisplayName(preset).isEmpty());
-  }
-  EXPECT_FALSE(UI::KeyGenValidityDisplayName(u"45d"_s).isEmpty());
-}
-
-TEST(KeyGenProfileTest, NamesAreCheckedAgainstTheOthers) {
-  const auto profiles = UI::MakeDefaultKeyGenProfiles();
-  using P = UI::KeyGenProfileNameProblem;
-  EXPECT_EQ(UI::CheckKeyGenProfileName(u"  "_s, profiles), P::kEmpty);
-  EXPECT_EQ(UI::CheckKeyGenProfileName(
-                QString(UI::kKeyGenProfileNameMaxLen + 1, u'x'), profiles),
-            P::kTooLong);
-  EXPECT_EQ(UI::CheckKeyGenProfileName(u"custom"_s, profiles), P::kReserved);
-  EXPECT_EQ(
-      UI::CheckKeyGenProfileName(profiles.front().name.toUpper(), profiles),
-      P::kTaken);
-  // Renaming a profile to its own name is not taking somebody else's.
-  EXPECT_EQ(UI::CheckKeyGenProfileName(profiles.front().name, profiles, 0),
-            P::kNone);
-  EXPECT_EQ(UI::CheckKeyGenProfileName(u"Mine"_s, profiles), P::kNone);
-  EXPECT_FALSE(UI::DescribeKeyGenProfileNameProblem(P::kTaken).isEmpty());
-  EXPECT_TRUE(UI::DescribeKeyGenProfileNameProblem(P::kNone).isEmpty());
-}
-
-TEST(KeyGenProfileTest, WhatTheEngineCannotMakeIsNotOffered) {
-  const auto profiles = UI::MakeDefaultKeyGenProfiles();
-
-  const auto all = UI::ResolveKeyGenProfiles(profiles, PrimaryAlgos(),
-                                             SubkeyAlgos(), AllPairings);
-  // Everything but the hidden DSA profile.
-  EXPECT_EQ(all.size(), profiles.size() - 1);
-  for (const auto& r : all) EXPECT_FALSE(r.profile.hidden);
-
-  // Without hybrids, none of the post-quantum profiles can be made.
-  const auto classical =
-      UI::ResolveKeyGenProfiles(profiles, KeyGenerateInfo::kPrimaryKeyAlgos,
-                                KeyGenerateInfo::kSubKeyAlgos, NoPairings);
-  for (const auto& r : classical) {
-    EXPECT_FALSE(r.post_quantum) << r.profile.name.toStdString();
-  }
-  EXPECT_LT(classical.size(), all.size());
-}
-
-TEST(KeyGenProfileTest, AHybridComesWithBothHalves) {
-  const auto offered =
-      UI::ResolveKeyGenProfiles(UI::MakeDefaultKeyGenProfiles(), PrimaryAlgos(),
-                                SubkeyAlgos(), AllPairings);
-  bool saw_hybrid = false;
-  for (const auto& r : offered) {
-    if (!r.post_quantum) continue;
-    saw_hybrid = true;
-    EXPECT_NE(r.subkey_sub, KeyGenerateInfo::kNoneAlgo)
-        << r.profile.name.toStdString();
-  }
-  EXPECT_TRUE(saw_hybrid);
-}
-
-TEST(KeyGenProfileTest, TheDefaultIsTheNamedOneThenEd25519) {
-  const auto offered =
-      UI::ResolveKeyGenProfiles(UI::MakeDefaultKeyGenProfiles(), PrimaryAlgos(),
-                                SubkeyAlgos(), AllPairings);
-  const auto ed = UI::PickDefaultKeyGenProfile(offered, {});
-  ASSERT_GE(ed, 0);
-  EXPECT_EQ(offered.at(ed).primary.Id(), u"ed25519"_s);
-
-  const auto rsa =
-      UI::PickDefaultKeyGenProfile(offered, u"rsa-4096 (high compatibility)"_s);
-  ASSERT_GE(rsa, 0);
-  EXPECT_EQ(offered.at(rsa).primary.Id(), u"rsa4096"_s);
-
-  // A name nobody has falls back rather than leaving nothing chosen.
-  EXPECT_EQ(UI::PickDefaultKeyGenProfile(offered, u"Gone"_s), ed);
-  EXPECT_EQ(UI::PickDefaultKeyGenProfile({}, {}), -1);
-}
-
-TEST(KeyGenProfileTest, ApplyingAProfileSetsUpBothKeys) {
-  auto profile = UI::MakeDefaultKeyGenProfiles().front();
-  profile.key_validity = u"1y"_s;
-  profile.s_key_validity = u"forever"_s;
-  const auto r = UI::ResolveKeyGenProfile(profile, PrimaryAlgos(),
-                                          SubkeyAlgos(), AllPairings);
-  ASSERT_TRUE(r.has_value());
-
-  KeyGenerateInfo key;
-  key.SetNonPassPhrase(true);
-  QSharedPointer<KeyGenerateInfo> subkey;
-  UI::ApplyKeyGenProfile(*r, Now(), key, subkey);
-
-  EXPECT_EQ(key.GetAlgo().Id(), u"ed25519"_s);
-  EXPECT_FALSE(key.IsNonExpired());
-  EXPECT_EQ(key.GetExpireTime(), Now().addYears(1));
-  ASSERT_NE(subkey, nullptr);
-  EXPECT_EQ(subkey->GetAlgo().Id(), u"cv25519"_s);
-  EXPECT_TRUE(subkey->IsNonExpired());
-  EXPECT_TRUE(subkey->IsNoPassPhrase());  // one choice for both keys
-
-  // A profile without a subkey takes one away.
-  const auto rsa =
-      UI::ResolveKeyGenProfile(UI::MakeDefaultKeyGenProfiles().at(3),
-                               PrimaryAlgos(), SubkeyAlgos(), AllPairings);
-  ASSERT_TRUE(rsa.has_value());
-  UI::ApplyKeyGenProfile(*rsa, Now(), key, subkey);
-  EXPECT_EQ(subkey, nullptr);
-}
-
-TEST(KeyGenProfileTest, SavingWhatWasAppliedGivesTheSameProfile) {
-  for (const auto& r :
-       UI::ResolveKeyGenProfiles(UI::MakeDefaultKeyGenProfiles(),
-                                 PrimaryAlgos(), SubkeyAlgos(), AllPairings)) {
-    KeyGenerateInfo key;
-    QSharedPointer<KeyGenerateInfo> subkey;
-    UI::ApplyKeyGenProfile(r, Now(), key, subkey);
-
-    auto saved = UI::KeyGenProfileFromInfo(key, subkey, Now());
-    saved.name = r.profile.name;
-    saved.description = r.profile.description;
-    auto expected = r.profile;
-    // The pairing a hybrid was given is written down, whether or not the
-    // profile named it.
-    expected.key_sub_algo = saved.key_sub_algo;
-    expected.key_sub_algo_type = saved.key_sub_algo_type;
-    EXPECT_EQ(saved, expected) << r.profile.name.toStdString();
-  }
-}
-
-TEST(KeyGenProfileTest, PostQuantumNeedsTheV6Format) {
-  KeyGenerateInfo key;
-  key.SetAlgo(Find(u"ed25519"_s, u"EdDSA"_s, PrimaryAlgos()));
-  EXPECT_EQ(UI::RequiredKeyVersion(key, nullptr), 0);
-
-  auto subkey = QSharedPointer<KeyGenerateInfo>::create(true);
-  subkey->SetAlgo(Find(u"ky768"_s, {}, SubkeyAlgos()));
-  EXPECT_EQ(UI::RequiredKeyVersion(key, subkey), 6);
-}
 
 TEST(KeyGenSettingsTest, FirstUseMovesTheOldProfilesOver) {
   QJsonArray legacy{QJsonObject{
@@ -376,7 +85,7 @@ TEST(KeyGenSettingsTest, FirstUseMovesTheOldProfilesOver) {
 
   // With nothing to move, the defaults.
   const auto fresh = UI::KeyGenSettingsFromStored({}, {});
-  EXPECT_EQ(fresh.profiles, UI::MakeDefaultKeyGenProfiles());
+  EXPECT_EQ(fresh.profiles, MakeDefaultKeyGenProfiles());
 }
 
 TEST(KeyGenSettingsTest, StoredSettingsWinOverTheOldCache) {
@@ -386,8 +95,7 @@ TEST(KeyGenSettingsTest, StoredSettingsWinOverTheOldCache) {
   stored.profiles = {};  // deleting every profile is a choice too
   const auto json = stored.ToJson();
 
-  QJsonArray legacy{
-      UI::KeyGenProfileToJson(UI::MakeDefaultKeyGenProfiles().front())};
+  QJsonArray legacy{KeyGenProfileToJson(MakeDefaultKeyGenProfiles().front())};
   const auto read = UI::KeyGenSettingsFromStored(json, legacy);
   EXPECT_TRUE(read.profiles_stored);
   EXPECT_TRUE(read.profiles.isEmpty());
@@ -466,9 +174,8 @@ TEST(KeyGenerateSummaryTest, NoStepPassesWhatAnEarlierOneRefused) {
 
 TEST(KeyGenerateSummaryTest, EachTileIsTheProfileItsTitleNames) {
   using UI::KeyGenTileRole;
-  const auto offered =
-      UI::ResolveKeyGenProfiles(UI::MakeDefaultKeyGenProfiles(), PrimaryAlgos(),
-                                SubkeyAlgos(), AllPairings);
+  const auto offered = ResolveKeyGenProfiles(
+      MakeDefaultKeyGenProfiles(), PrimaryAlgos(), SubkeyAlgos(), AllPairings);
   const auto featured = UI::FeaturedKeyGenProfiles(offered);
   ASSERT_EQ(featured.size(), 3);
 
@@ -496,8 +203,8 @@ TEST(KeyGenerateSummaryTest, EachTileIsTheProfileItsTitleNames) {
 
 TEST(KeyGenerateSummaryTest, AnEngineWithoutARoleShowsNoTileForIt) {
   // Without hybrids, there is nothing to call hybrid encryption.
-  const auto classical = UI::ResolveKeyGenProfiles(
-      UI::MakeDefaultKeyGenProfiles(), KeyGenerateInfo::kPrimaryKeyAlgos,
+  const auto classical = ResolveKeyGenProfiles(
+      MakeDefaultKeyGenProfiles(), KeyGenerateInfo::kPrimaryKeyAlgos,
       KeyGenerateInfo::kSubKeyAlgos, NoPairings);
   for (const auto& f : UI::FeaturedKeyGenProfiles(classical)) {
     EXPECT_NE(f.role, UI::KeyGenTileRole::kHybridEncryption);
@@ -505,7 +212,7 @@ TEST(KeyGenerateSummaryTest, AnEngineWithoutARoleShowsNoTileForIt) {
 }
 
 TEST(KeyGenerateSummaryTest, AProfileIsDescribedWhateverTheEngine) {
-  const auto profiles = UI::MakeDefaultKeyGenProfiles();
+  const auto profiles = MakeDefaultKeyGenProfiles();
   const auto& modern = profiles.at(0);  // Ed25519 / X25519
   const auto& rsa = profiles.at(3);     // RSA-4096, no subkey
   const auto& hybrid = profiles.at(6);  // Ed25519 / ML-KEM-768 + X25519

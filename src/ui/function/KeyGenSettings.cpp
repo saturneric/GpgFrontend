@@ -82,12 +82,4 @@ void StoreKeyGenExpertMode(bool on) {
   StoreKeyGenSettings(settings);
 }
 
-auto OfferedKeyGenProfiles(int channel, const QList<KeyGenProfile>& profiles)
-    -> QList<ResolvedKeyGenProfile> {
-  return ResolveKeyGenProfiles(
-      profiles, KeyGenerateInfo::GetSupportedKeyAlgo(channel),
-      KeyGenerateInfo::GetSupportedSubkeyAlgo(channel),
-      [channel](const KeyAlgo& algo) { return algo.SubAlgos(channel); });
-}
-
 }  // namespace GpgFrontend::UI
