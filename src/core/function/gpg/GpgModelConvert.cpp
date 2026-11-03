@@ -101,6 +101,22 @@ auto ValidityOf(gpgme_validity_t validity) -> GpgValidity {
       return GpgValidity::kUNKNOWN;
   }
 }
+auto SummaryOf(gpgme_sigsum_t summary) -> std::uint32_t {
+  std::uint32_t flags = kSIGSUM_NONE;
+  const auto map = [&](unsigned gpgme_bit, std::uint32_t ours) {
+    if ((summary & gpgme_bit) != 0) flags |= ours;
+  };
+  map(GPGME_SIGSUM_VALID, kSIGSUM_VALID);
+  map(GPGME_SIGSUM_GREEN, kSIGSUM_GREEN);
+  map(GPGME_SIGSUM_RED, kSIGSUM_RED);
+  map(GPGME_SIGSUM_KEY_REVOKED, kSIGSUM_KEY_REVOKED);
+  map(GPGME_SIGSUM_KEY_EXPIRED, kSIGSUM_KEY_EXPIRED);
+  map(GPGME_SIGSUM_SIG_EXPIRED, kSIGSUM_SIG_EXPIRED);
+  map(GPGME_SIGSUM_KEY_MISSING, kSIGSUM_KEY_MISSING);
+  map(GPGME_SIGSUM_CRL_MISSING, kSIGSUM_CRL_MISSING);
+  return flags;
+}
+
 }  // namespace
 
 auto ConvertSubKey(gpgme_subkey_t s_key) -> GFSubKeyMetadata {
@@ -167,6 +183,62 @@ auto AdoptGpgmeKey(gpgme_key_t key) -> GFKeyMetadata {
   }
   if (!out.user_ids.isEmpty()) out.user_ids.front().is_primary = true;
   return out;
+}
+
+auto ConvertSignature(gpgme_signature_t sig) -> GFSignature {
+  GFSignature out;
+  if (sig == nullptr) return out;
+  out.issuer_fpr = QString::fromUtf8(sig->fpr);
+  out.created_at = static_cast<uint32_t>(sig->timestamp);
+  out.expires_at = static_cast<qint64>(sig->exp_timestamp);
+  out.pub_algo = QString::fromUtf8(gpgme_pubkey_algo_name(sig->pubkey_algo));
+  out.hash_algo = QString::fromUtf8(gpgme_hash_algo_name(sig->hash_algo));
+  out.engine_status = FromGpgError(sig->status);
+  out.validity = ValidityOf(sig->validity);
+  out.summary = SummaryOf(sig->summary);
+  out.has_trust_model = true;
+  return out;
+}
+
+auto SignResultOf(gpgme_sign_result_t result) -> GpgSignResult {
+  if (result == nullptr) return {};
+  GFSignResult out;
+  for (auto* invalid = result->invalid_signers; invalid != nullptr;
+       invalid = invalid->next) {
+    out.invalid_signers.append(
+        {QString::fromUtf8(invalid->fpr), FromGpgError(invalid->reason)});
+  }
+  for (auto* signature = result->signatures; signature != nullptr;
+       signature = signature->next) {
+    GFSignature sig;
+    sig.created_at = signature->timestamp;
+    sig.hash_algo =
+        QString::fromUtf8(gpgme_hash_algo_name(signature->hash_algo));
+    sig.pub_algo =
+        QString::fromUtf8(gpgme_pubkey_algo_name(signature->pubkey_algo));
+    sig.issuer_fpr = QString::fromUtf8(signature->fpr);
+    sig.status = GFSignatureStatus::kVALID;
+    if ((signature->type & GPGME_SIG_MODE_NORMAL) != 0) {
+      sig.sig_type = "Normal";
+    } else if ((signature->type & GPGME_SIG_MODE_CLEAR) != 0) {
+      sig.sig_type = "Clear";
+    } else if ((signature->type & GPGME_SIG_MODE_DETACH) != 0) {
+      sig.sig_type = "Detach";
+    } else {
+      sig.sig_type = "Unknown";
+    }
+    out.signatures.append(sig);
+  }
+  return GpgSignResult(out);
+}
+
+auto VerifyResultOf(gpgme_verify_result_t result) -> GpgVerifyResult {
+  if (result == nullptr) return {};
+  GFVerifyResult out;
+  for (auto* sig = result->signatures; sig != nullptr; sig = sig->next) {
+    out.signatures.append(ConvertSignature(sig));
+  }
+  return GpgVerifyResult(out);
 }
 
 auto GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t {

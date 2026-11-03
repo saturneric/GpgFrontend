@@ -41,7 +41,7 @@ TEST(SignatureModelTest, DefaultVerifyResultIsNotGood) {
   GpgVerifyResult result;
 
   EXPECT_FALSE(result.IsGood());
-  EXPECT_EQ(result.GetRaw(), nullptr);
+  EXPECT_TRUE(result.GetSignature().isEmpty());
 }
 
 // An rPGP result carries no gpgme handle; it is still a result, as it is for

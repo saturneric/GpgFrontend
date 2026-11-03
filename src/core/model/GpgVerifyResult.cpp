@@ -31,14 +31,6 @@
 #include "core/model/GpgSignature.h"
 
 namespace GpgFrontend {
-GpgVerifyResult::GpgVerifyResult(gpgme_verify_result_t r)
-    : result_ref_(QSharedPointer<struct _gpgme_op_verify_result>(
-          (gpgme_result_ref(r), r), [](gpgme_verify_result_t p) {
-            if (p != nullptr) {
-              gpgme_result_unref(p);
-            }
-          })) {}
-
 GpgVerifyResult::GpgVerifyResult(const GFVerifyResult& r)
     : gf_result_ref_(QSharedPointer<GFVerifyResult>::create(r)) {}
 
@@ -47,34 +39,15 @@ GpgVerifyResult::GpgVerifyResult() = default;
 GpgVerifyResult::~GpgVerifyResult() = default;
 
 auto GpgVerifyResult::IsGood() const -> bool {
-  return result_ref_ != nullptr || gf_result_ref_ != nullptr;
-}
-
-auto GpgVerifyResult::GetRaw() const -> gpgme_verify_result_t {
-  // Only the native (GnuPG) path owns a gpgme result; rPGP-backed results keep
-  // their data in gf_result_ref_ and have no raw handle, so this returns
-  // nullptr for them. Callers must tolerate a null return.
-  return result_ref_.get();
+  return gf_result_ref_ != nullptr;
 }
 
 auto GpgVerifyResult::GetSignature() const -> QList<GpgSignature> {
   QList<GpgSignature> signatures;
-
-  if (gf_result_ref_ != nullptr) {
-    for (const auto& sig : gf_result_ref_->signatures) {
-      signatures.push_back(GpgSignature{sig});
-    }
-    return signatures;
-  }
-
-  // a default-constructed result (every failed verify operation) holds neither
-  // ref; IsGood() reports that state, but callers reach here regardless.
-  if (result_ref_ == nullptr) return signatures;
-
-  auto* signature = result_ref_->signatures;
-  while (signature != nullptr) {
-    signatures.push_back(GpgSignature{signature});
-    signature = signature->next;
+  // a default-constructed result (every failed verify operation) holds none.
+  if (gf_result_ref_ == nullptr) return signatures;
+  for (const auto& sig : gf_result_ref_->signatures) {
+    signatures.push_back(GpgSignature{sig});
   }
   return signatures;
 }

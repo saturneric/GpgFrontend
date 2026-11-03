@@ -36,15 +36,11 @@ class GF_CORE_EXPORT GpgVerifyResult {
  public:
   [[nodiscard]] auto IsGood() const -> bool;
 
-  [[nodiscard]] auto GetRaw() const -> gpgme_verify_result_t;
-
   [[nodiscard]] auto GetSignature() const -> QList<GpgSignature>;
 
   /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
   /// GnuPG engine, where `gpgme_strerror` already provides the description.
   [[nodiscard]] auto ErrorDetail() const -> QString;
-
-  explicit GpgVerifyResult(gpgme_verify_result_t);
 
   explicit GpgVerifyResult(const GFVerifyResult&);
 
@@ -53,7 +49,6 @@ class GF_CORE_EXPORT GpgVerifyResult {
   virtual ~GpgVerifyResult();
 
  private:
-  QSharedPointer<struct _gpgme_op_verify_result> result_ref_ = nullptr;  ///<
   QSharedPointer<GFVerifyResult> gf_result_ref_ = nullptr;               ///<
 };
 }  // namespace GpgFrontend

@@ -189,7 +189,7 @@ auto DecryptVerifyFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
 
   data_object->Swap({
       GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
-      GpgVerifyResult(gpgme_op_verify_result(g_ctx.DefaultContext())),
+      VerifyResultOf(gpgme_op_verify_result(g_ctx.DefaultContext())),
   });
   return err;
 }
@@ -296,7 +296,7 @@ auto SignFileGpgDataGnuPGImpl(OpenPGPContext& ctx_,
       gpgme_op_sign(ctx, data_in, data_out, GPGME_SIG_MODE_DETACH));
 
   data_object->Swap({
-      GpgSignResult(gpgme_op_sign_result(ctx)),
+      SignResultOf(gpgme_op_sign_result(ctx)),
   });
   return err;
 }
@@ -330,7 +330,7 @@ auto VerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& data_path,
   }
 
   data_object->Swap({
-      GpgVerifyResult(gpgme_op_verify_result(g_ctx.DefaultContext())),
+      VerifyResultOf(gpgme_op_verify_result(g_ctx.DefaultContext())),
   });
 
   return err;
@@ -361,7 +361,7 @@ auto EncryptSignFileGpgDataGnuPGImpl(
 
   data_object->Swap({
       GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-      GpgSignResult(gpgme_op_sign_result(ctx)),
+      SignResultOf(gpgme_op_sign_result(ctx)),
   });
 
   return err;

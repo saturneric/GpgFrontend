@@ -28,14 +28,6 @@
 
 #include "GpgSignResult.h"
 namespace GpgFrontend {
-GpgSignResult::GpgSignResult(gpgme_sign_result_t r)
-    : result_ref_(QSharedPointer<struct _gpgme_op_sign_result>(
-          (gpgme_result_ref(r), r), [](gpgme_sign_result_t p) {
-            if (p != nullptr) {
-              gpgme_result_unref(p);
-            }
-          })) {}
-
 GpgSignResult::GpgSignResult(const GFSignResult& r)
     : gf_result_ref_(QSharedPointer<GFSignResult>::create(r)) {}
 
@@ -43,48 +35,22 @@ GpgSignResult::GpgSignResult() = default;
 
 GpgSignResult::~GpgSignResult() = default;
 
-auto GpgSignResult::IsGood() -> bool {
-  return result_ref_ != nullptr || gf_result_ref_ != nullptr;
-}
+auto GpgSignResult::IsGood() -> bool { return gf_result_ref_ != nullptr; }
 
-auto GpgSignResult::GetRaw() -> gpgme_sign_result_t {
-  // Only the native (GnuPG) path owns a gpgme result; rPGP-backed results keep
-  // their data in gf_result_ref_ and have no raw handle, so this returns
-  // nullptr for them. Callers must tolerate a null return.
-  return result_ref_.get();
-}
-
-auto GpgSignResult::InvalidSigners() -> QList<std::pair<QString, GpgError>> {
-  QList<std::pair<QString, GpgError>> result;
-
-  if (gf_result_ref_ != nullptr) {
-    return result;
-  }
-
-  for (auto* invalid_key = result_ref_->invalid_signers; invalid_key != nullptr;
-       invalid_key = invalid_key->next) {
-    try {
-      result.push_back({
-          QString{invalid_key->fpr},
-          invalid_key->reason,
-      });
-    } catch (...) {
-      FLOG_W(
-          "caught exception when processing invalid_signers, "
-          "maybe nullptr of fpr");
-    }
+auto GpgSignResult::InvalidSigners() -> QList<std::pair<QString, GFError>> {
+  QList<std::pair<QString, GFError>> result;
+  if (gf_result_ref_ == nullptr) return result;
+  for (const auto& invalid : gf_result_ref_->invalid_signers) {
+    result.push_back({invalid.fpr, invalid.reason});
   }
   return result;
 }
 
 auto GpgSignResult::HashAlgo() -> QString {
-  if (gf_result_ref_ != nullptr) {
-    return gf_result_ref_->signatures.empty()
-               ? ""
-               : gf_result_ref_->signatures.front().hash_algo;
+  if (gf_result_ref_ == nullptr || gf_result_ref_->signatures.empty()) {
+    return {};
   }
-  if (result_ref_->signatures == nullptr) return {};
-  return gpgme_hash_algo_name(result_ref_->signatures->hash_algo);
+  return gf_result_ref_->signatures.front().hash_algo;
 }
 
 auto GpgSignResult::ErrorDetail() -> QString {
@@ -96,35 +62,9 @@ auto GpgSignResult::ErrorDetail() -> QString {
 
 auto GpgSignResult::Signatures() -> QList<GpgSignature> {
   QList<GpgSignature> signatures;
-
-  if (gf_result_ref_ != nullptr) {
-    for (const auto& sig : gf_result_ref_->signatures) {
-      signatures.push_back(GpgSignature{sig});
-    }
-    return signatures;
-  }
-
-  auto* signature = result_ref_->signatures;
-  while (signature != nullptr) {
-    GFSignature sig;
-    sig.created_at = signature->timestamp;
-    sig.hash_algo = gpgme_hash_algo_name(signature->hash_algo);
-    sig.pub_algo = gpgme_pubkey_algo_name(signature->pubkey_algo);
-    sig.issuer_fpr = signature->fpr != nullptr ? signature->fpr : "";
-    sig.status = GFSignatureStatus::kVALID;
-
-    if ((signature->type & GPGME_SIG_MODE_NORMAL) != 0) {
-      sig.sig_type = "Normal";
-    } else if ((signature->type & GPGME_SIG_MODE_CLEAR) != 0) {
-      sig.sig_type = "Clear";
-    } else if ((signature->type & GPGME_SIG_MODE_DETACH) != 0) {
-      sig.sig_type = "Detach";
-    } else {
-      sig.sig_type = "Unknown";
-    }
-
+  if (gf_result_ref_ == nullptr) return signatures;
+  for (const auto& sig : gf_result_ref_->signatures) {
     signatures.push_back(GpgSignature{sig});
-    signature = signature->next;
   }
   return signatures;
 }

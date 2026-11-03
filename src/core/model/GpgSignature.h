@@ -41,21 +41,21 @@ class GF_CORE_EXPORT GpgSignature {
   /**
    * @brief
    *
-   * @return gpgme_validity_t
+   * @return GpgValidity
    */
   [[nodiscard]] auto GetValidity() const -> GpgValidity;
 
   /**
    * @brief
    *
-   * @return gpgme_error_t
+   * @return GFError
    */
   [[nodiscard]] auto GetStatus() const -> GFError;
 
   /**
    * @brief
    *
-   * @return gpgme_error_t
+   * @return GpgSigSummary flags
    */
   [[nodiscard]] auto GetSummary() const -> std::uint32_t;
 
@@ -140,13 +140,6 @@ class GF_CORE_EXPORT GpgSignature {
   /**
    * @brief Construct a new Gpg Signature object
    *
-   * @param sig
-   */
-  explicit GpgSignature(gpgme_signature_t sig);
-
-  /**
-   * @brief Construct a new Gpg Signature object
-   *
    * @param gf_sig
    */
   explicit GpgSignature(const GFSignature &gf_sig);
@@ -165,7 +158,6 @@ class GF_CORE_EXPORT GpgSignature {
   auto operator=(const GpgSignature &) -> GpgSignature &;
 
  private:
-  gpgme_signature_t signature_ref_ = nullptr;               ///<
   QSharedPointer<GFSignature> gf_signature_ref_ = nullptr;  ///<
 };
 }  // namespace GpgFrontend

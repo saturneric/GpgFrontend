@@ -147,7 +147,7 @@ auto SignGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& signers,
       gpgme_op_sign(ctx, data_in, data_out, ToGpgmeSigMode(mode)));
 
   data_object->Swap({
-      GpgSignResult(gpgme_op_sign_result(ctx)),
+      SignResultOf(gpgme_op_sign_result(ctx)),
       data_out.Read2GFBuffer(),
   });
   return err;
@@ -172,7 +172,7 @@ auto VerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   }
 
   data_object->Swap({
-      GpgVerifyResult(gpgme_op_verify_result(g_ctx.DefaultContext())),
+      VerifyResultOf(gpgme_op_verify_result(g_ctx.DefaultContext())),
       GFBuffer(),
   });
 
@@ -209,7 +209,7 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
 
   data_object->Swap({
       GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-      GpgSignResult(gpgme_op_sign_result(ctx)),
+      SignResultOf(gpgme_op_sign_result(ctx)),
       data_out.Read2GFBuffer(),
   });
   return err;
@@ -228,7 +228,7 @@ auto DecryptVerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
 
   data_object->Swap({
       GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
-      GpgVerifyResult(gpgme_op_verify_result(g_ctx.DefaultContext())),
+      VerifyResultOf(gpgme_op_verify_result(g_ctx.DefaultContext())),
       data_out.Read2GFBuffer(),
   });
 

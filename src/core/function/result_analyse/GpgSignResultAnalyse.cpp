@@ -139,7 +139,7 @@ void GpgSignResultAnalyse::doAnalyse() {
               << Qt::endl;
       stream_ << "- " << tr("Fingerprint") << ": " << invalid_signer.first
               << Qt::endl;
-      const QString reason = gpgme_strerror(invalid_signer.second);
+      const QString reason = DescribeGFError(invalid_signer.second).second;
       stream_ << "- " << tr("Reason") << ": " << reason << Qt::endl;
       stream_ << "---------------------------------------" << Qt::endl;
       op_info_.invalidSigners << qMakePair(invalid_signer.first, reason);

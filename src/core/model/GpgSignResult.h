@@ -37,19 +37,15 @@ class GF_CORE_EXPORT GpgSignResult {
  public:
   auto IsGood() -> bool;
 
-  auto GetRaw() -> gpgme_sign_result_t;
-
   auto HashAlgo() -> QString;
 
   auto Signatures() -> QList<GpgSignature>;
 
-  auto InvalidSigners() -> QList<std::pair<QString, GpgError>>;
+  auto InvalidSigners() -> QList<std::pair<QString, GFError>>;
 
   /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
   /// GnuPG engine, where `gpgme_strerror` already provides the description.
   auto ErrorDetail() -> QString;
-
-  explicit GpgSignResult(gpgme_sign_result_t);
 
   explicit GpgSignResult(const GFSignResult&);
 
@@ -58,7 +54,6 @@ class GF_CORE_EXPORT GpgSignResult {
   virtual ~GpgSignResult();
 
  private:
-  QSharedPointer<struct _gpgme_op_sign_result> result_ref_ = nullptr;  ///<
   QSharedPointer<struct GFSignResult> gf_result_ref_ = nullptr;        ///<
 };
 }  // namespace GpgFrontend

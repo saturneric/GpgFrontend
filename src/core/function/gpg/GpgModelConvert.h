@@ -31,6 +31,8 @@
 #include <gpgme.h>
 
 #include "core/model/GpgKey.h"
+#include "core/model/GpgSignResult.h"
+#include "core/model/GpgVerifyResult.h"
 #include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
@@ -54,6 +56,17 @@ auto GF_CORE_EXPORT ConvertSubKey(gpgme_subkey_t s_key) -> GFSubKeyMetadata;
  * reference: the key is released when the last copy of the data is gone.
  */
 auto GF_CORE_EXPORT AdoptGpgmeKey(gpgme_key_t key) -> GFKeyMetadata;
+
+auto GF_CORE_EXPORT ConvertSignature(gpgme_signature_t sig) -> GFSignature;
+
+/// gpgme's result of the sign operation just run, or a result that is not
+/// good when there was none.
+auto GF_CORE_EXPORT SignResultOf(gpgme_sign_result_t result) -> GpgSignResult;
+
+/// gpgme's result of the verify operation just run, or a result that is not
+/// good when there was none.
+auto GF_CORE_EXPORT VerifyResultOf(gpgme_verify_result_t result)
+    -> GpgVerifyResult;
 
 /// The gpgme key a model key listed by GnuPG carries, for gpgme calls.
 auto GF_CORE_EXPORT GpgmeKeyOf(const GpgKey& key) -> gpgme_key_t;

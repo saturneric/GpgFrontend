@@ -282,6 +282,14 @@ struct GFSignature {
   QString pub_algo;
   QString hash_algo;
   QString sig_type;
+
+  // As an engine with a trust model reports them; derived from `status`
+  // otherwise.
+  std::optional<GFError> engine_status;
+  std::optional<GpgValidity> validity;
+  std::optional<std::uint32_t> summary;  ///< GpgSigSummary flags
+  qint64 expires_at = 0;                 ///< 0 when it does not expire
+  bool has_trust_model = false;
 };
 
 struct GFRecipient {
@@ -319,6 +327,7 @@ struct GFDecryptResult {
 struct GFSignResult {
   GFBuffer data;
   QList<GFSignature> signatures;
+  QList<GFInvalidRecipient> invalid_signers;  ///< signers that were refused
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
