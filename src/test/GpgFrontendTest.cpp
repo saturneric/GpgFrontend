@@ -37,6 +37,8 @@
 #include <thread>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/RustUtils.h"
 Q_LOGGING_CATEGORY(test, "test")
 
@@ -73,6 +75,28 @@ auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
 
   testing::InitGoogleTest(&args.argc, args.argv);
   return RUN_ALL_TESTS();
+}
+
+auto ExecuteAllTestCaseOffMainThread(GpgFrontendContext args) -> int {
+  auto result = 1;
+  QEventLoop looper;
+
+  auto* task = new Thread::Task(
+      [&result, args](const DataObjectPtr&) -> int {
+        result = ExecuteAllTestCase(args);
+        return 0;
+      },
+      "unit-test", TransferParams());
+
+  QObject::connect(task, &Thread::Task::SignalTaskEnd, &looper,
+                   &QEventLoop::quit);
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+      ->PostTask(task);
+
+  looper.exec();
+  return result;
 }
 
 auto WaitFor(std::function<bool()> cond, int timeout_ms) -> bool {

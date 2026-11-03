@@ -32,8 +32,8 @@
 #include <thread>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/module/ModuleSdkBridge.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKBuffer.h"
 
 /**

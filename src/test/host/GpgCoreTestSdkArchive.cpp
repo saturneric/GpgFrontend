@@ -34,8 +34,8 @@
 #include <vector>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/function/ArchiveFileOperator.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKArchive.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"

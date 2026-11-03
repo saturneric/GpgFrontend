@@ -35,7 +35,6 @@
 #include <limits>
 
 #include "GpgFrontendTest.h"
-#include "core/ModuleTestPackages.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDescriptorBuilder.h"
@@ -44,6 +43,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/module/ModuleTrustRoot.h"
+#include "host/ModuleTestPackages.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**

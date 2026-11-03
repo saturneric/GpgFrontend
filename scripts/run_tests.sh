@@ -3,8 +3,12 @@
 #
 # Run the GpgFrontend unit tests and stress tests.
 #
-# The test suite is linked into the main binary and executed via
-# `gpgfrontend -t`. Three quirks this script works around:
+# The tests are in two programs, and every GoogleTest phase runs both: the
+# core's own tests in `gf_core_tests`, which starts the core on a plain
+# QCoreApplication, and the tests that need the interface or the module SDK in
+# the main binary, executed via `gpgfrontend -t`. A filter goes to both; a
+# phase passes only if both do, and its log and XML report hold both. Three
+# quirks this script works around:
 #   1. The app's own CLI parser rejects unknown options, so GoogleTest flags
 #      (filter, output, color, ...) must be passed through environment
 #      variables (GTEST_FILTER, GTEST_OUTPUT, ...) instead of --gtest_* flags.
@@ -23,7 +27,7 @@
 # invocation exercises both the C++/FFI suite and the Rust unit tests.
 #
 # Usage: scripts/run_tests.sh [options]
-#   -b, --build            Build the gpgfrontend target before running
+#   -b, --build            Build gpgfrontend and gf_core_tests before running
 #       --no-build         Never build (fail if the binary is missing)
 #       --unit-only        Run only unit tests (excludes *Stress* and the
 #                          algorithm-generation coverage sweep)
@@ -252,7 +256,7 @@ if [[ "$ASAN" != "no" ]]; then
   # A sanitized tree is rebuilt unless --no-build says otherwise: it is not the
   # tree you iterate in, so it is easy to leave stale.
   if [[ "$DO_BUILD" != "no" ]]; then
-    targets=(gpgfrontend)
+    targets=(gpgfrontend gf_core_tests)
     [[ "$ASAN" == "tests" ]] && targets+=(gf_module_tests)
     echo "==> Building ${targets[*]} ($BUILD_DIR, -j$JOBS); a full sanitized rebuild is slow"
     cmake --build "$BUILD_DIR" --target "${targets[@]}" -j"$JOBS" \
@@ -290,22 +294,27 @@ if [[ "$ASAN" != "no" ]]; then
 fi
 
 BIN="$BUILD_DIR/artifacts/gpgfrontend"
+CORE_BIN="$BUILD_DIR/artifacts/gf_core_tests"
 RUST_DIR="$REPO_ROOT/rust"
 
 # The Rust phases are driven by cargo and need neither the C++ binary nor a
 # CMake build, so skip all gpgfrontend build/lookup work in the rust-only modes.
 if [[ "$MODE" != "rust" && "$MODE" != "rust-slow" ]]; then
-  if [[ "$DO_BUILD" == "yes" || ( "$DO_BUILD" == "auto" && ! -x "$BIN" ) ]]; then
-    echo "==> Building gpgfrontend ($BUILD_DIR, -j$JOBS)"
-    cmake --build "$BUILD_DIR" --target gpgfrontend -j"$JOBS" || {
+  if [[ "$DO_BUILD" == "yes" ||
+        ( "$DO_BUILD" == "auto" && ( ! -x "$BIN" || ! -x "$CORE_BIN" ) ) ]]; then
+    echo "==> Building gpgfrontend and gf_core_tests ($BUILD_DIR, -j$JOBS)"
+    cmake --build "$BUILD_DIR" --target gpgfrontend gf_core_tests -j"$JOBS" || {
       echo "error: build failed" >&2; exit 1; }
   fi
 
-  if [[ ! -x "$BIN" ]]; then
-    echo "error: test binary not found: $BIN" >&2
-    echo "       run with --build, or build the 'gpgfrontend' target first." >&2
-    exit 1
-  fi
+  for bin in "$BIN" "$CORE_BIN"; do
+    if [[ ! -x "$bin" ]]; then
+      echo "error: test binary not found: $bin" >&2
+      echo "       run with --build, or build the 'gpgfrontend' and" \
+           "'gf_core_tests' targets first." >&2
+      exit 1
+    fi
+  done
 
   # The unit tests are opt-in at configure time. Without them the binary has
   # no -t mode, and every phase below would fail as an unknown option.
@@ -336,6 +345,15 @@ sanitizer_reported() {
     grep -qE 'ERROR: AddressSanitizer|runtime error:|SUMMARY: (Address|Undefined)Sanitizer' "$1"
 }
 
+# The program a GoogleTest phase is running in: select_test_binary core|app.
+TEST_CMD=()
+select_test_binary() {
+  case "$1" in
+    core) TEST_CMD=("$CORE_BIN") ;;
+    app) TEST_CMD=("$BIN" -t) ;;
+  esac
+}
+
 # --- phase runner ----------------------------------------------------------
 # run_phase <name> <gtest-filter> <stress-iterations> [algo-coverage]
 # The optional 4th argument is the value for GF_RUN_ALGO_COVERAGE: pass "1" to
@@ -360,7 +378,7 @@ run_phase() {
   GTEST_OUTPUT="xml:${RESULTS_DIR}/${name}.xml" \
   GF_STRESS_ITER="$iter" \
   GF_RUN_ALGO_COVERAGE="$algo_coverage" \
-    "$BIN" -t -l "$LOG_LEVEL" 2>&1 | tee "$log"
+    "${TEST_CMD[@]}" -l "$LOG_LEVEL" 2>&1 | tee "$log"
 
   # Exit code is unreliable; decide from the GoogleTest summary.
   if sanitizer_reported "$log"; then
@@ -417,7 +435,7 @@ prepare_shard_home() {
     *) echo "error: refusing to prepare '$home'" >&2; return 1 ;;
   esac
   stamp="$home/.gf-stamp"
-  want="$(stat -c %Y "$BIN" 2>/dev/null || echo 0)"
+  want="$(stat -c %Y "$BIN" "$CORE_BIN" 2>/dev/null | tr '\n' ' ')"
   if [[ "$FRESH_HOMES" == "yes" || "$(cat "$stamp" 2>/dev/null)" != "$want" ]]; then
     rm -rf -- "$home"
   fi
@@ -481,7 +499,7 @@ run_shard() {
     export GTEST_FILTER="$filter"
     export GTEST_OUTPUT="xml:${RESULTS_DIR}/${name}-shard${i}.xml"
     export GF_STRESS_ITER="$iter" GF_RUN_ALGO_COVERAGE="$algo"
-    timeout --kill-after=30 "$SHARD_TIMEOUT" "$BIN" -t -l "$LOG_LEVEL" &
+    timeout --kill-after=30 "$SHARD_TIMEOUT" "${TEST_CMD[@]}" -l "$LOG_LEVEL" &
     inner=$!
     printf '%s\n' "$inner" > "$pidfile"
     wait "$inner"
@@ -695,17 +713,17 @@ run_phase_sharded() {
 declare -A PHASE_SHARDS=()
 
 phase_shards() {
-  case "$1" in
-    unit|custom) echo "$PARALLEL" ;;
+  case "${1%-core}" in
+    unit|custom|unit-app|custom-app) echo "$PARALLEL" ;;
     *)
       if (( PARALLEL > 1 )); then
-        echo "note: --parallel is ignored for the '${1}' phase (a single long test dominates it)" >&2
+        echo "note: --parallel is ignored for the '${1%-*}' phase (a single long test dominates it)" >&2
       fi
       echo 1 ;;
   esac
 }
 
-run_gtest_phase() {
+run_program_phase() {
   local n; n="$(phase_shards "$1")"
   PHASE_SHARDS["$1"]="$n"
   if (( n > 1 )); then
@@ -717,6 +735,46 @@ run_gtest_phase() {
           "$RESULTS_DIR/${1}-shard"*.rc "$RESULTS_DIR/${1}-shard"*.pid
     run_phase "$@"
   fi
+}
+
+# run_gtest_phase <name> <gtest-filter> <stress-iterations> [algo-coverage]
+# Runs the phase in gf_core_tests and then in `gpgfrontend -t`, as the
+# sub-phases <name>-core and <name>-app, and leaves <name>.log and <name>.xml
+# holding both. A filter may well match tests in only one of them; one that
+# matches none in either is a mistake, not a pass.
+run_gtest_phase() {
+  local name="$1"; shift
+  local rc=0 kind ran=0
+  local -a logs=() xmls=()
+
+  for kind in core app; do
+    select_test_binary "$kind"
+    run_program_phase "${name}-${kind}" "$@" || rc=1
+    logs+=("$RESULTS_DIR/${name}-${kind}.log")
+    [[ -f "$RESULTS_DIR/${name}-${kind}.xml" ]] &&
+      xmls+=("$RESULTS_DIR/${name}-${kind}.xml")
+  done
+  PHASE_SHARDS["$name"]="${PHASE_SHARDS[${name}-core]}"
+
+  cat "${logs[@]}" > "$RESULTS_DIR/${name}.log"
+  rm -f "$RESULTS_DIR/${name}.xml"
+  if (( ${#xmls[@]} > 0 )) && command -v python3 >/dev/null 2>&1; then
+    python3 "$REPO_ROOT/scripts/merge_gtest_xml.py" \
+      -o "$RESULTS_DIR/${name}.xml" "${xmls[@]}" ||
+      echo "warning: could not merge the XML reports for '${name}'" >&2
+  fi
+
+  # "[==========] N tests from M test suites ran." once per program and shard;
+  # colour codes stripped first, as GoogleTest puts one after the bracket.
+  ran="$(sed 's/\x1b\[[0-9;]*m//g' "$RESULTS_DIR/${name}.log" |
+         grep -oE '^\[==========\] [0-9]+ tests? from' | grep -oE '[0-9]+' |
+         awk '{s += $1} END {print s + 0}')"
+  if (( ran == 0 )); then
+    echo "error: the filter of phase '${name}' matched no test in either" \
+         "program" >&2
+    rc=1
+  fi
+  return "$rc"
 }
 
 # --- rust phase runner -----------------------------------------------------

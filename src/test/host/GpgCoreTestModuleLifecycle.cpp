@@ -45,8 +45,8 @@
 #include "core/utils/MemoryUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKHostApi.h"
-#include "sdk/GFSDKModuleApi.h"
 #include "sdk/GFSDKHostCommands.hpp"
+#include "sdk/GFSDKModuleApi.h"
 #include "ui/command/CodecStage.h"
 #include "ui/command/CommandRegistry.h"
 
@@ -119,8 +119,8 @@ void Handler(void*, uint64_t, GFBufferView, GFBufferRef, GFBufferRef*, size_t) {
 
 /// The codec shape a decoder must declare.
 struct DecoderShape {
-  static constexpr gf::cmd::Meta kMeta{"", "", "", "", 0,
-                                       gf::cmd::kInputDecoder};
+  static constexpr gf::cmd::Meta kMeta{"", "", "",
+                                       "", 0,  gf::cmd::kInputDecoder};
   using Args = gf::cmd::host::CodecArgs;
   using Result = gf::cmd::host::CodecResult;
 };
@@ -188,8 +188,9 @@ struct ProbeModule {
     const auto result =
         QCborValue(gf::cmd::EncodeMap(gf::cmd::host::CodecResult{}, st))
             .toCbor();
-    auto* buf = p.host->buffer->new_from_bytes(
-        p.host->context, result.constData(), static_cast<size_t>(result.size()));
+    auto* buf =
+        p.host->buffer->new_from_bytes(p.host->context, result.constData(),
+                                       static_cast<size_t>(result.size()));
     p.host->command->complete(p.host->context, call_id, GF_CMD_OK, buf, nullptr,
                               0, nullptr);
   }

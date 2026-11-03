@@ -28,11 +28,11 @@
 
 #include <QTemporaryDir>
 
-#include "GFCoreTest.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/utils/IOUtils.h"
+#include "test/core/GFCoreTest.h"
 
 namespace GpgFrontend::Test {
 

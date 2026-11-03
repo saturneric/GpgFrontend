@@ -42,7 +42,7 @@
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
-#include "test/core/ModuleTestPackages.h"
+#include "test/host/ModuleTestPackages.h"
 
 /**
  * @file GpgCoreTestModuleBindingPolicy.cpp

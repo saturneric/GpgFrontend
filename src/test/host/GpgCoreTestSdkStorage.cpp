@@ -33,10 +33,10 @@
 #include <optional>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDK.hpp"
 #include "sdk/GFSDKBuffer.hpp"
 #include "sdk/GFSDKStorage.h"

@@ -32,7 +32,7 @@
 #include <cstring>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
 

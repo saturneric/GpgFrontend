@@ -214,23 +214,8 @@ auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   test_init_args.argc = ctx->argc;
   test_init_args.argv = ctx->argv;
 
-  QEventLoop looper;
-
-  auto* task = new GpgFrontend::Thread::Task(
-      [=](const DataObjectPtr&) -> int {
-        return GpgFrontend::Test::ExecuteAllTestCase(test_init_args);
-      },
-      "unit-test", TransferParams());
-
-  QObject::connect(task, &GpgFrontend::Thread::Task::SignalTaskEnd, &looper,
-                   &QEventLoop::quit);
-
-  GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
-      ->PostTask(task);
-
   ctx->rtn = kNonRestartCode;
-  looper.exec();
+  GpgFrontend::Test::ExecuteAllTestCaseOffMainThread(test_init_args);
   return 0;
 }
 #endif

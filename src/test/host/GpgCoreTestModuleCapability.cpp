@@ -31,9 +31,9 @@
 #include <QThread>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/module/ModuleCapability.h"
 #include "core/module/ModuleSdkBridge.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKGpgResult.h"
 #include "sdk/GFSDKHostApi.h"
 #include "sdk/GFSDKStorage.h"

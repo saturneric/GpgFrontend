@@ -66,13 +66,12 @@ TEST(ModuleSettingsPolicyTest, AKeyCannotLeaveTheModulesGroup) {
                           "a/./b", "sp ace", "back\\slash"}) {
     EXPECT_FALSE(Module::IsValidModuleSettingKey(bad)) << bad;
   }
-  EXPECT_TRUE(Module::ResolveModuleSettingKey(
-                  "com.example.m", ModuleSettingScope::kMODULE, "../email/x",
-                  false)
+  EXPECT_TRUE(Module::ResolveModuleSettingKey("com.example.m",
+                                              ModuleSettingScope::kMODULE,
+                                              "../email/x", false)
                   .isEmpty());
-  EXPECT_EQ(Module::ResolveModuleSettingKey("com.example.m",
-                                            ModuleSettingScope::kMODULE, "a/b",
-                                            true),
+  EXPECT_EQ(Module::ResolveModuleSettingKey(
+                "com.example.m", ModuleSettingScope::kMODULE, "a/b", true),
             "modules/com.example.m/a/b");
 }
 
@@ -81,10 +80,9 @@ TEST(ModuleSettingsPolicyTest, OnlyAllowlistedHostSettingsAreShared) {
             HostSettingAccess::kREAD_WRITE);
   EXPECT_EQ(Module::HostSettingAccessFor("network/proxy/password"),
             HostSettingAccess::kNONE);
-  EXPECT_EQ(Module::ResolveModuleSettingKey("com.example.m",
-                                            ModuleSettingScope::kHOST,
-                                            "network/prohibit_update_check",
-                                            true),
+  EXPECT_EQ(Module::ResolveModuleSettingKey(
+                "com.example.m", ModuleSettingScope::kHOST,
+                "network/prohibit_update_check", true),
             "network/prohibit_update_check");
   EXPECT_TRUE(Module::ResolveModuleSettingKey(
                   "com.example.m", ModuleSettingScope::kHOST,
@@ -109,9 +107,10 @@ TEST(ModuleSettingsPolicyTest, SettingsRoundTripAndStayPrivate) {
   EXPECT_EQ(gf::sdk::Setting(a(), GF_SETTING_MODULE, "list").toStringList(),
             (QStringList{"x", "y"}));
 
-  EXPECT_FALSE(gf::sdk::SetSetting(a(), GF_SETTING_HOST, "general/anything", 1));
-  EXPECT_FALSE(gf::sdk::Setting(a(), GF_SETTING_HOST, "general/anything")
-                   .isValid());
+  EXPECT_FALSE(
+      gf::sdk::SetSetting(a(), GF_SETTING_HOST, "general/anything", 1));
+  EXPECT_FALSE(
+      gf::sdk::Setting(a(), GF_SETTING_HOST, "general/anything").isValid());
 
   EXPECT_TRUE(gf::sdk::RemoveSetting(a(), GF_SETTING_MODULE, "colour"));
   EXPECT_TRUE(gf::sdk::RemoveSetting(a(), GF_SETTING_MODULE, "list"));

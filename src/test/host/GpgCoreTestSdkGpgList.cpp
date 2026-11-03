@@ -31,9 +31,9 @@
 #include <QByteArray>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
 #include "sdk/GFSDKGpgList.h"

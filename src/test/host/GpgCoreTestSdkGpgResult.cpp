@@ -33,11 +33,11 @@
 
 #include "GpgFrontendTest.h"
 #include "core/GpgCoreEngineTest.h"
-#include "core/SdkTestContext.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKBuffer.hpp"
 #include "sdk/GFSDKGpg.h"

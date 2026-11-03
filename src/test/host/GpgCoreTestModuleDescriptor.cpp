@@ -40,8 +40,6 @@
 #include <thread>
 
 #include "GpgFrontendTest.h"
-#include "core/ModuleDescriptorArchive.h"
-#include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDescriptorBuilder.h"
@@ -51,6 +49,8 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "host/ModuleDescriptorArchive.h"
+#include "host/ModuleTestPackages.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**

@@ -34,8 +34,8 @@
 #include <QWidget>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/model/SettingsObject.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKUI.h"
 #include "ui/command/ModuleUiTeardown.h"
 #include "ui/lua/LuaMounts.h"

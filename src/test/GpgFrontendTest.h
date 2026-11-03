@@ -74,6 +74,17 @@ struct GpgFrontendContext {
 
 auto GF_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
 
+/**
+ * @brief Run every test on a task runner, while this thread's loop keeps
+ * turning.
+ *
+ * Test bodies wait on work the main thread does, so they cannot run on it.
+ *
+ * @return what GoogleTest returned
+ */
+auto GF_TEST_EXPORT ExecuteAllTestCaseOffMainThread(GpgFrontendContext args)
+    -> int;
+
 auto WaitFor(std::function<bool()> cond, int timeout_ms = 5000) -> bool;
 
 #define ASSERT_WITHIN(cond, ms) \

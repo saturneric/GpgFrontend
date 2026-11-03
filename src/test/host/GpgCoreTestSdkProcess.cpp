@@ -32,8 +32,8 @@
 #include <QString>
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDK.hpp"
 
 /**

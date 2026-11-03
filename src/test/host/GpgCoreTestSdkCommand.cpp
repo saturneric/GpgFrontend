@@ -63,7 +63,8 @@ auto Bytes(GFSDKContext* ctx, GFBufferView b) -> QByteArray {
 }
 
 auto Buffer(GFSDKContext* ctx, const QByteArray& b) -> GFBufferRef {
-  return GFBufferNewFromBytes(ctx, b.constData(), static_cast<size_t>(b.size()));
+  return GFBufferNewFromBytes(ctx, b.constData(),
+                              static_cast<size_t>(b.size()));
 }
 
 struct ProviderState {
@@ -181,8 +182,8 @@ TEST(SdkCommandTest, APayloadChangesOwnerAcrossModules) {
   // The Host lends the provider its context for the length of the handler
   // and takes it back when the handler returns -- which is after the result
   // has already been delivered above, on the provider's thread.
-  for (int i = 0; i < 100 && GFBufferOutstandingCount(provider()) !=
-                                 provider_before;
+  for (int i = 0;
+       i < 100 && GFBufferOutstandingCount(provider()) != provider_before;
        ++i) {
     QThread::msleep(10);
   }

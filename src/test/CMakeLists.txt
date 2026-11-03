@@ -28,23 +28,23 @@ include(CTest)
 enable_testing()
 find_package(GTest REQUIRED)
 
-aux_source_directory(./core TEST_SOURCE)
-aux_source_directory(./core/gpg TEST_SOURCE)
-aux_source_directory(./core/rpgp TEST_SOURCE)
+# The core's tests, which gf_core_tests runs without an interface.
+aux_source_directory(./core CORE_TEST_SOURCE)
+aux_source_directory(./core/gpg CORE_TEST_SOURCE)
+aux_source_directory(./core/rpgp CORE_TEST_SOURCE)
+
+# The tests that need the interface or the module SDK, which `gpgfrontend -t`
+# runs. The harness is compiled into both programs; neither holds state the
+# other needs to see.
+aux_source_directory(./host TEST_SOURCE)
 aux_source_directory(./ui TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)
+# the core fixtures, which host and ui tests use as well
+list(APPEND TEST_SOURCE core/GFCoreTest.cpp core/GpgCoreEngineTest.cpp
+  core/gpg/GpgCoreTest.cpp)
 
 # define test library
 register_library(test LIBRARY_TARGET ${TEST_SOURCE})
-
-# the libsecret candidate ordering is what makes an AppImage able to reach the
-# system keychain, so it is covered by tests. Only this translation unit is
-# pulled in, never LinuxSecretStore.cpp: that one can register a live backend
-# and start writing to the developer's own keyring.
-if(UNIX AND NOT APPLE)
-  target_sources(${LIBRARY_TARGET} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/platform/linux/LibSecretSearchPath.cpp)
-endif()
 
 # The screenshot mode's own tests, with the parts of it they exercise. The
 # application compiles the same files; neither copy holds state the other
@@ -101,6 +101,17 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
+
+# The core's own test program: the application's startup on a plain
+# QCoreApplication, so what passes here does not depend on gf_ui. The
+# libsecret candidate ordering it tests comes in with gf_boot.
+add_executable(gf_core_tests runner/main.cpp GpgFrontendTest.cpp
+  ${CORE_TEST_SOURCE})
+target_compile_definitions(gf_core_tests PRIVATE GF_TEST_PRIVATE
+  GF_TEST_EXPORT=)
+target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
+target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
+  gf_res)
 
 # A shared library that writes a file when it is mapped.
 #

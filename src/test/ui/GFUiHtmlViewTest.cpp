@@ -38,8 +38,8 @@
 #endif
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
 #include "core/module/ModuleLibraryPin.h"
+#include "host/SdkTestContext.h"
 #include "platform/common/PlatformHtmlView.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKHtmlView.h"

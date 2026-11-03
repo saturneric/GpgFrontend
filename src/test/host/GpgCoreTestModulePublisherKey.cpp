@@ -34,9 +34,9 @@
 #include <QTemporaryDir>
 
 #include "GpgFrontendTest.h"
-#include "core/ModuleTestPackages.h"
 #include "core/module/ModulePublisherKey.h"
 #include "core/module/ModuleTrustRoot.h"
+#include "host/ModuleTestPackages.h"
 
 /**
  * @file GpgCoreTestModulePublisherKey.cpp

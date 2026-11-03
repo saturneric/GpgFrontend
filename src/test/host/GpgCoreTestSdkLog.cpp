@@ -30,9 +30,9 @@
 #include <QThread>
 
 #include "core/GFCoreLog.h"
-#include "core/SdkTestContext.h"
 #include "core/module/ModuleLogCategory.h"
 #include "core/module/ModuleSdkBridge.h"
+#include "host/SdkTestContext.h"
 #include "sdk/GFSDKLog.h"
 
 namespace GpgFrontend::Test {

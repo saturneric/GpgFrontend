@@ -42,7 +42,7 @@
 #endif
 
 #include "GpgFrontendTest.h"
-#include "core/SdkTestContext.h"
+#include "host/SdkTestContext.h"
 #include "platform/common/PlatformWebEditor.h"
 #include "sdk/GFSDKBuffer.h"
 #include "sdk/GFSDKUI.h"
