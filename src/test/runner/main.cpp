@@ -86,9 +86,7 @@ auto main(int argc, char* argv[]) -> int {
   QCoreApplication app(argc, argv);
   // The on-disk identity the application uses, so the profile is found where
   // the application would find it.
-  QCoreApplication::setApplicationVersion(GpgFrontend::GetProjectVersion());
-  QCoreApplication::setApplicationName(GpgFrontend::GetAppProfileName());
-  QCoreApplication::setOrganizationName(GpgFrontend::GetProjectOrganization());
+  GpgFrontend::SetApplicationIdentity();
 
   auto const ctx = QSharedPointer<GpgFrontend::BootContext>::create(argc, argv);
 

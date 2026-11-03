@@ -41,6 +41,20 @@ using RelaunchFunction =
     std::function<bool(const QString &program, const QStringList &arguments)>;
 
 /**
+ * @brief Name the application as every GpgFrontend program does: the profile
+ * layout, the settings and the log locations all follow from these.
+ */
+void SetApplicationIdentity();
+
+/**
+ * @brief Leave at once when teardown cannot finish: the profile is given back,
+ * a pending deep restart is still honoured, and no destructor runs.
+ *
+ * @param exit_code the process's exit code
+ */
+[[noreturn]] void AbandonProcess(int exit_code);
+
+/**
  * @brief The logging and libsodium a profile needs before it can be opened.
  *
  * @param p_ctx

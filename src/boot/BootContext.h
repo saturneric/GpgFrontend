@@ -53,6 +53,11 @@ struct BootContext {
 
   int rtn = GpgFrontend::kCrashCode;
 
+  /// The exit code when shutdown wedges and the watchdog ends the process: a
+  /// test program sets its result here, so a hang at exit does not turn a
+  /// failed run into a passing one.
+  int watchdog_exit_code = 0;
+
   /**
    * @brief Why the profile could not be selected, empty when it could.
    *

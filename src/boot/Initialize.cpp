@@ -355,22 +355,32 @@ void ReleaseProfileSession(GpgFrontend::ProfileUnmountMode mode) {
  * Uses no Qt/logging facilities from the timer thread since they may already be
  * torn down by the time it fires; plain stderr is safe.
  */
-void ArmShutdownWatchdog(int timeout_ms) {
-  std::thread([timeout_ms]() -> void {
+void ArmShutdownWatchdog(int timeout_ms, int exit_code) {
+  std::thread([timeout_ms, exit_code]() -> void {
     std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
     std::fputs(
         "shutdown watchdog fired: teardown wedged, forcing process exit\n",
         stderr);
     std::fflush(stderr);
-    // Honour a pending deep restart even though teardown wedged, otherwise the
-    // process would just disappear instead of coming back.
-    ReleaseProfileSession(GpgFrontend::ProfileUnmountMode::kFORCED);
-    PerformDeepRestartRelaunch();
-    std::_Exit(0);
+    AbandonProcess(exit_code);
   }).detach();
 }
 
 }  // namespace
+
+void SetApplicationIdentity() {
+  QCoreApplication::setApplicationName(GetAppProfileName());
+  QCoreApplication::setOrganizationName(GetProjectOrganization());
+  QCoreApplication::setApplicationVersion(GetProjectVersion());
+}
+
+void AbandonProcess(int exit_code) {
+  // Honour a pending deep restart even though teardown wedged, otherwise the
+  // process would just disappear instead of coming back.
+  ReleaseProfileSession(GpgFrontend::ProfileUnmountMode::kFORCED);
+  PerformDeepRestartRelaunch();
+  std::_Exit(exit_code);
+}
 
 void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
                             const RelaunchFunction &relaunch) {
@@ -400,7 +410,9 @@ void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
   // Backstop: never linger headless if teardown wedges. Not armed under the
   // unit-test runner, which has its own timeout and must fail loudly instead of
   // being force-exited with a success code.
-  if (!ctx->unit_test_mode) ArmShutdownWatchdog(kShutdownWatchdogTimeoutMs);
+  if (!ctx->unit_test_mode) {
+    ArmShutdownWatchdog(kShutdownWatchdogTimeoutMs, ctx->watchdog_exit_code);
+  }
 
   // Nobody will answer a passphrase prompt from here on: release every
   // operation waiting for one, close the prompts, refuse new requests.
