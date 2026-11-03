@@ -32,6 +32,8 @@
 #include "core/function/SettingCatalog.h"
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "core/utils/RustUtils.h"
+#include "files/FileOperations.h"
+#include "files/ShareRetentionStore.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -201,5 +203,23 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
 }
 
 void SettingsModel::forgetPassphrases() { ClearRpgpPasswordCache(); }
+
+void SettingsModel::clearSharedFiles() {
+  if (auto* store = SharedFileStore(); store != nullptr) store->Clear();
+  emit SignalSharedFilesChanged();
+}
+
+auto SettingsModel::SharedFileCount() const -> int {
+  const auto* store = SharedFileStore();
+  return store != nullptr ? static_cast<int>(store->Entries().size()) : 0;
+}
+
+auto SettingsModel::SharedFileSize() const -> qint64 {
+  const auto* store = SharedFileStore();
+  if (store == nullptr) return 0;
+  qint64 total = 0;
+  for (const auto& entry : store->Entries()) total += entry.size;
+  return total;
+}
 
 }  // namespace GpgFrontend::Mobile

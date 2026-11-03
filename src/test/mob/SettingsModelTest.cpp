@@ -33,11 +33,14 @@
 #include "MobileTest.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "files/FileOperations.h"
+#include "files/ShareRetentionStore.h"
 #include "model/SettingsModel.h"
 
 namespace GpgFrontend::Test::Mobile {
 
 using GpgFrontend::Mobile::SettingsModel;
+using GpgFrontend::Mobile::SharedFileStore;
 
 namespace {
 
@@ -129,6 +132,36 @@ TEST(SettingsModelTest, ATimeSaysItsUnitAndOffersItsDefault) {
                                 return c.toLongLong() == fallback;
                               }));
     }
+  });
+}
+
+TEST(SettingsModelTest, ClearingSharedFilesEmptiesTheStoreAndItsSize) {
+  RunOnMainThread([]() {
+    auto* store = SharedFileStore();
+    ASSERT_NE(store, nullptr);
+    const auto staged =
+        QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+        "/settings-test-staged.txt";
+    QFile file(staged);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    file.write("shared");
+    file.close();
+    ASSERT_TRUE(store
+                    ->Retain(staged, "shared.txt", true,
+                             QDateTime::currentDateTimeUtc())
+                    .has_value());
+
+    SettingsModel model;
+    EXPECT_GE(model.SharedFileCount(), 1);
+    // What the page says the files take is what the store holds.
+    qint64 held = 0;
+    for (const auto& entry : store->Entries()) held += entry.size;
+    EXPECT_GE(held, 6);
+    EXPECT_EQ(model.SharedFileSize(), held);
+    model.clearSharedFiles();
+    EXPECT_EQ(model.SharedFileCount(), 0);
+    EXPECT_EQ(model.SharedFileSize(), 0);
+    EXPECT_TRUE(store->Entries().isEmpty());
   });
 }
 

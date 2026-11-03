@@ -28,6 +28,16 @@ Page {
         id: settings
     }
 
+    // The count changes behind the model's back as files are shared.
+    onVisibleChanged: if (visible) settings.SignalSharedFilesChanged()
+
+    function sharedFilesText() {
+        const count = settings.sharedFileCount
+        if (count === 0) return qsTr("None")
+        const files = count === 1 ? qsTr("1 file") : qsTr("%1 files").arg(count)
+        return qsTr("%1, %2").arg(files).arg(Theme.fileSize(settings.sharedFileSize))
+    }
+
     // Stores @p value, and says so when it was not taken: the row then still
     // shows the value in effect, which the model says again.
     function store(row, value) {
@@ -131,6 +141,27 @@ Page {
 
             SectionHeader {
                 Layout.fillWidth: true
+                text: qsTr("Storage")
+            }
+
+            ListRow {
+                objectName: "clearSharedFiles"
+                Layout.fillWidth: true
+                text: qsTr("Temporary shared files")
+                detail: settings.sharedFileCount === 0
+                        ? qsTr("Kept for up to a day, so the app you share "
+                               + "with can open them.")
+                        : qsTr("Tap to remove them now. Apps you shared them "
+                               + "with can no longer open them.")
+                valueText: page.sharedFilesText()
+                onClicked: {
+                    if (settings.sharedFileCount > 0) confirmClear.open()
+                    else done.show(qsTr("No shared files are kept."))
+                }
+            }
+
+            SectionHeader {
+                Layout.fillWidth: true
                 text: qsTr("About")
             }
 
@@ -150,6 +181,21 @@ Page {
 
         onChosen: function(row, value) {
             page.store(row, value)
+        }
+    }
+
+    MessageAlert {
+        id: confirmClear
+        title: qsTr("Remove shared files?")
+
+        message: qsTr("Apps you shared files with can no longer open them.")
+
+        acceptText: qsTr("Remove")
+
+        onAccepted: {
+            settings.clearSharedFiles()
+            done.show(qsTr("Shared files are removed, and other apps "
+                             + "can no longer open them."))
         }
     }
 

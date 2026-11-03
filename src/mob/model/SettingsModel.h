@@ -56,6 +56,10 @@ class SettingsModel : public QAbstractListModel {
   Q_OBJECT
   QML_ELEMENT
 
+  Q_PROPERTY(
+      int sharedFileCount READ SharedFileCount NOTIFY SignalSharedFilesChanged)
+  Q_PROPERTY(
+      qint64 sharedFileSize READ SharedFileSize NOTIFY SignalSharedFilesChanged)
 
  public:
   using Item = std::variant<const BoolSetting*, const IntSetting*,
@@ -98,6 +102,17 @@ class SettingsModel : public QAbstractListModel {
 
   /// Forget every cached passphrase now.
   Q_INVOKABLE void forgetPassphrases();
+
+  /// Revoke and delete every file shared with another application.
+  Q_INVOKABLE void clearSharedFiles();
+
+  [[nodiscard]] auto SharedFileCount() const -> int;
+
+  /// How many bytes the files shared with other applications take.
+  [[nodiscard]] auto SharedFileSize() const -> qint64;
+
+ signals:
+  void SignalSharedFilesChanged();
 
  private:
   QList<Offer> items_;
