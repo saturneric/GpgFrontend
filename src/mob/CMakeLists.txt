@@ -77,15 +77,27 @@ qt_add_qml_module(gf_mob_lib
     ${_gf_mob_icons}
   QML_FILES
     qml/Theme.qml
+    qml/components/KeyRow.qml
     qml/components/PinSheet.qml
     qml/components/ConfirmSheet.qml
     qml/components/PassphraseSheet.qml
+    qml/components/KeyChoiceList.qml
     qml/components/Icon.qml
     qml/components/AppBar.qml
+    qml/components/NavBar.qml
+    qml/components/Chip.qml
+    qml/components/EmptyState.qml
+    qml/components/BottomSheet.qml
+    qml/components/Snackbar.qml
+    qml/components/KeyAvatar.qml
     qml/components/SecretField.qml
     qml/components/Alert.qml
     qml/components/MessageAlert.qml
     qml/components/BarButton.qml
+    qml/components/ListRow.qml
+    qml/components/SectionHeader.qml
+    qml/components/SearchField.qml
+    qml/components/Fab.qml
     qml/components/OverflowButton.qml)
 
 # Which style the controls take is the platform's (Material on Android); this
