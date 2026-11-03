@@ -31,6 +31,7 @@
 
 #include <gtest/gtest.h>
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/result_analyse/GpgOpResultInfo.h"
 
 namespace GpgFrontend::Test {
@@ -41,8 +42,7 @@ auto EngineError(GpgOperation scope, unsigned int code, const QString& text,
                  const QString& detail = {}) -> GpgOpStageError {
   GpgOpStageError e;
   e.scope = scope;
-  e.origin = GpgErrorOrigin::kENGINE;
-  e.code = code;
+  e.error = FromGpgError(code);
   e.codeText = text;
   if (!detail.isEmpty()) e.engineDetails.append({scope, detail});
   return e;
@@ -112,12 +112,12 @@ TEST(GpgOpResultInfoTest, ASharedCallErrorBecomesOneErrorOfTheCall) {
                   {EngineError(GpgOperation::kVERIFY, 11, u"Bad passphrase"_s,
                                u"verify detail"_s)}));
 
-  info.CollapseSharedCallError(11, GpgOperation::kDECRYPT_VERIFY);
+  info.CollapseSharedCallError(FromGpgError(11), GpgOperation::kDECRYPT_VERIFY);
 
   ASSERT_EQ(info.stageErrors.size(), 1);
   const auto& e = info.stageErrors.first();
   EXPECT_EQ(e.scope, GpgOperation::kDECRYPT_VERIFY);
-  EXPECT_EQ(e.code, 11U);
+  EXPECT_EQ(e.error, FromGpgError(11));
   EXPECT_EQ(e.codeText, u"Bad passphrase"_s);
   ASSERT_EQ(e.engineDetails.size(), 2);
   EXPECT_EQ(e.engineDetails[0],
@@ -132,24 +132,23 @@ TEST(GpgOpResultInfoTest, CollapsingLeavesOtherErrorsWithTheirStage) {
                     EngineError(GpgOperation::kSIGN, 11, u"call"_s),
                     EngineError(GpgOperation::kSIGN, 54, u"own"_s)});
   GpgOpStageError app;
-  app.origin = GpgErrorOrigin::kAPPLICATION;
-  app.code = 11;
+  app.error = GFError::Application(FromGpgError(11).code);
   info.stageErrors.append(app);
 
-  info.CollapseSharedCallError(11, GpgOperation::kENCRYPT_SIGN);
+  info.CollapseSharedCallError(FromGpgError(11), GpgOperation::kENCRYPT_SIGN);
 
   ASSERT_EQ(info.stageErrors.size(), 3);
   EXPECT_EQ(info.stageErrors[0].scope, GpgOperation::kENCRYPT_SIGN);
   EXPECT_EQ(info.stageErrors[1].scope, GpgOperation::kSIGN);
-  EXPECT_EQ(info.stageErrors[1].code, 54U);
+  EXPECT_EQ(info.stageErrors[1].error, FromGpgError(54));
   // GpgFrontend's own finding is not an engine error and is not merged in.
-  EXPECT_EQ(info.stageErrors[2].origin, GpgErrorOrigin::kAPPLICATION);
+  EXPECT_FALSE(info.stageErrors[2].FromEngine());
 }
 
 TEST(GpgOpResultInfoTest, NoCallErrorCollapsesNothing) {
   auto info = Info(GpgOperation::kSIGN, -1,
                    {EngineError(GpgOperation::kSIGN, 54, u"own"_s)});
-  info.CollapseSharedCallError(0, GpgOperation::kENCRYPT_SIGN);
+  info.CollapseSharedCallError(GFError{}, GpgOperation::kENCRYPT_SIGN);
   ASSERT_EQ(info.stageErrors.size(), 1);
   EXPECT_EQ(info.stageErrors[0].scope, GpgOperation::kSIGN);
 }

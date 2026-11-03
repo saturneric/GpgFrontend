@@ -32,6 +32,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "ui/function/InfoBoardCardConverter.h"
 
 // Translation contexts are spelled out as literals at every call: lupdate
@@ -371,19 +372,19 @@ auto ValiditySentence(GpgSigValidity validity) -> QString {
   }
 }
 
-auto HasEngineCode(const QList<GpgOpStageError>& errors, unsigned int code)
+auto HasEngineCode(const QList<GpgOpStageError>& errors, GFErrorCode code)
     -> bool {
-  return std::any_of(
-      errors.cbegin(), errors.cend(), [code](const GpgOpStageError& e) -> bool {
-        return e.origin == GpgErrorOrigin::kENGINE && e.code == code;
-      });
+  return std::any_of(errors.cbegin(), errors.cend(),
+                     [code](const GpgOpStageError& e) -> bool {
+                       return e.FromEngine() && e.error.code == code;
+                     });
 }
 
 auto HasEngineError(const QList<GpgOpStageError>& errors) -> bool {
-  return std::any_of(
-      errors.cbegin(), errors.cend(), [](const GpgOpStageError& e) -> bool {
-        return e.origin == GpgErrorOrigin::kENGINE && e.code != 0;
-      });
+  return std::any_of(errors.cbegin(), errors.cend(),
+                     [](const GpgOpStageError& e) -> bool {
+                       return e.FromEngine() && !e.error.Ok();
+                     });
 }
 
 /// The explanation of an object's outcome. Additive: it opens with what
@@ -865,14 +866,15 @@ auto NormalizeEngineOutcome(int status, const QList<GpgOpStageError>& errors)
   bool any_code = false;
   bool only_stop_codes = true;
   for (const auto& e : errors) {
-    if (e.origin != GpgErrorOrigin::kENGINE || e.code == 0) continue;
+    if (!e.FromEngine() || e.error.Ok()) continue;
     any_code = true;
-    if (e.code != GPG_ERR_CANCELED && e.code != GPG_ERR_NOT_SUPPORTED) {
+    if (e.error.code != GFErrorCode::kCANCELED &&
+        e.error.code != GFErrorCode::kNOT_SUPPORTED) {
       only_stop_codes = false;
     }
   }
   if (!any_code || !only_stop_codes) return {InfoBoardOutcome::kFAILED, false};
-  if (HasEngineCode(errors, GPG_ERR_NOT_SUPPORTED)) {
+  if (HasEngineCode(errors, GFErrorCode::kNOT_SUPPORTED)) {
     return {InfoBoardOutcome::kNOT_SUPPORTED, false};
   }
   return {InfoBoardOutcome::kCANCELLED, false};
@@ -1175,11 +1177,11 @@ void AppendObjectErrorFields(InfoBoardCard& card,
     // Scope, then the engine that said it (only as recorded), then the code.
     QStringList who;
     if (name_scope) who << ScopeText(e.scope);
-    if (e.origin == GpgErrorOrigin::kENGINE && !object.engine.isEmpty()) {
-      who << object.engine;
-    }
-    const auto note = ErrorNote(who.join(u" · "_s), e.code);
-    if (e.origin == GpgErrorOrigin::kENGINE) {
+    if (e.FromEngine() && !object.engine.isEmpty()) who << object.engine;
+    // The code is shown as GnuPG numbers it, as it always has been.
+    const auto note =
+        ErrorNote(who.join(u" · "_s), gpg_err_code(ToGpgError(e.error)));
+    if (e.FromEngine()) {
       card.AddField(QCoreApplication::translate(
                         "GpgFrontend::UI::InfoBoardReport", "Engine error"),
                     e.codeText, diagnostic(note));
@@ -1511,9 +1513,8 @@ auto CanonicalReportBytes(const InfoBoardReport& report) -> QByteArray {
       }
       stage_errors.append(QJsonObject{
           {u"scope"_s, OperationId(e.scope)},
-          {u"origin"_s, e.origin == GpgErrorOrigin::kENGINE ? u"engine"_s
-                                                            : u"application"_s},
-          {u"code"_s, static_cast<qint64>(e.code)},
+          {u"origin"_s, e.FromEngine() ? u"engine"_s : u"application"_s},
+          {u"code"_s, static_cast<qint64>(gpg_err_code(ToGpgError(e.error)))},
           {u"codeText"_s, e.codeText},
           {u"engineDetails"_s, details}});
     }

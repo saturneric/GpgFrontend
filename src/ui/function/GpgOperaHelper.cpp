@@ -29,6 +29,7 @@
 #include "GpgOperaHelper.h"
 
 #include "core/function/GFBufferFactory.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -176,7 +177,7 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
 namespace GpgFrontend::UI {
 
 auto MakeAbortedOpInfo(
-    GpgOperation scope, GpgError err, const QString& engine,
+    GpgOperation scope, const GFError& err, const QString& engine,
     const QList<QPair<GpgOperation, QString>>& engine_details)
     -> GpgOpResultInfo {
   GpgOpResultInfo info;
@@ -189,24 +190,20 @@ auto MakeAbortedOpInfo(
   e.scope = scope;
   e.engineDetails = engine_details;
 
-  const auto code = gpg_err_code(err);
-  if (code == GPG_ERR_USER_1) {
-    // GpgFrontend's own marker for a task that failed before the engine
-    // answered: the code is kept, but it is not the engine's message.
-    e.origin = GpgErrorOrigin::kAPPLICATION;
-    e.code = code;
+  if (err.Aborted()) {
+    // GpgFrontend's own stop of a task that failed before the engine
+    // answered: the error is kept, but it is not the engine's message.
+    e.error = err;
     e.codeText = QCoreApplication::translate(
         "GpgFrontend::UI::GpgOperaHelper",
         "The operation stopped before the engine returned a result.");
-  } else if (code != GPG_ERR_NO_ERROR) {
-    e.origin = GpgErrorOrigin::kENGINE;
-    e.code = code;
-    e.codeText = DescribeGpgErrCode(err).second;
+  } else if (!err.Ok()) {
+    e.error = err;
+    e.codeText = DescribeGpgErrCode(ToGpgError(err)).second;
   } else {
     // No code at all, and no usable result: nothing the engine said explains
     // it, so this is recorded as GpgFrontend's own finding.
-    e.origin = GpgErrorOrigin::kAPPLICATION;
-    e.code = GPG_ERR_GENERAL;
+    e.error = GFError::Application(GFErrorCode::kGENERAL);
     e.codeText =
         QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
                                     "The engine returned no usable result.");
@@ -215,11 +212,11 @@ auto MakeAbortedOpInfo(
 
   // The headings keep the context they were always translated in; each is
   // spelled out in full, which is all lupdate can read.
-  if (code == GPG_ERR_NOT_SUPPORTED) {
+  if (err.code == GFErrorCode::kNOT_SUPPORTED) {
     info.report =
         "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
                                            "Operation Not Supported");
-  } else if (code == GPG_ERR_CANCELED) {
+  } else if (err.Canceled()) {
     info.report =
         "# " + QCoreApplication::translate("GpgFrontend::UI::GpgOperaHelper",
                                            "Operation Cancelled");
@@ -367,7 +364,8 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
               }
             }
             auto aborted = GpgOperaResult{
-                MakeAbortedOpInfo(AnalyseType::kOperation, err,
+                MakeAbortedOpInfo(AnalyseType::kOperation,
+                                  EngineErrorOf(channel, err),
                                   DescribeOpenPGPEngine(channel), details),
                 QFileInfo(path).fileName()};
             aborted.input_index = index;
@@ -446,7 +444,8 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
                 MakeAbortedOpInfo(
                     CombineGpgOperations(AnalyseTypeA::kOperation,
                                          AnalyseTypeB::kOperation),
-                    err, DescribeOpenPGPEngine(channel), details),
+                    EngineErrorOf(channel, err), DescribeOpenPGPEngine(channel),
+                    details),
                 QFileInfo(path).fileName()};
             aborted.input_index = index;
             aborted.source_path = path;
@@ -474,7 +473,7 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
           // Both analysers saw the one engine call's error; it is one failure
           // of the combined call, not one per stage.
           info.CollapseSharedCallError(
-              gpg_err_code(err),
+              EngineErrorOf(channel, err),
               CombineGpgOperations(AnalyseTypeA::kOperation,
                                    AnalyseTypeB::kOperation));
 
@@ -524,9 +523,9 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
             details.append({AnalyseType::kOperation, result.ErrorDetail()});
           }
         }
-        auto aborted = GpgOperaResult{
-            MakeAbortedOpInfo(AnalyseType::kOperation, err,
-                              DescribeOpenPGPEngine(channel), details)};
+        auto aborted = GpgOperaResult{MakeAbortedOpInfo(
+            AnalyseType::kOperation, EngineErrorOf(channel, err),
+            DescribeOpenPGPEngine(channel), details)};
         aborted.input_index = index;
         opera_results.append(aborted);
         return;
@@ -595,7 +594,8 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
         auto aborted = GpgOperaResult{
             MakeAbortedOpInfo(CombineGpgOperations(AnalyseTypeA::kOperation,
                                                    AnalyseTypeB::kOperation),
-                              err, DescribeOpenPGPEngine(channel), details)};
+                              EngineErrorOf(channel, err),
+                              DescribeOpenPGPEngine(channel), details)};
         aborted.input_index = index;
         opera_results.append(aborted);
         return;
@@ -618,8 +618,9 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       // Both analysers saw the one engine call's error; it is one failure of
       // the combined call, not one per stage.
       info.CollapseSharedCallError(
-          gpg_err_code(err), CombineGpgOperations(AnalyseTypeA::kOperation,
-                                                  AnalyseTypeB::kOperation));
+          EngineErrorOf(channel, err),
+          CombineGpgOperations(AnalyseTypeA::kOperation,
+                               AnalyseTypeB::kOperation));
 
       auto opera_result = GpgOperaResult{std::move(info)};
       opera_result.input_index = index;

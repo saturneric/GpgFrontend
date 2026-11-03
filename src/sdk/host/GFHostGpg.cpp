@@ -39,6 +39,7 @@
 #include <QJsonObject>
 #include <any>
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -193,14 +194,14 @@ auto OpInfoToJson(const GpgFrontend::GpgOpResultInfo& info) -> QByteArray {
   for (const auto& e : info.stageErrors) {
     QJsonArray details;
     for (const auto& d : e.engineDetails) details.append(d.second);
-    stage_errors.append(
-        QJsonObject{{"scope", GpgFrontend::GpgOperationName(e.scope)},
-                    {"origin", e.origin == GpgFrontend::GpgErrorOrigin::kENGINE
-                                   ? "engine"
-                                   : "application"},
-                    {"code", static_cast<qint64>(e.code)},
-                    {"codeText", e.codeText},
-                    {"engineDetails", details}});
+    stage_errors.append(QJsonObject{
+        {"scope", GpgFrontend::GpgOperationName(e.scope)},
+        {"origin", e.FromEngine() ? "engine" : "application"},
+        // GnuPG's number, as modules have always been given.
+        {"code",
+         static_cast<qint64>(gpg_err_code(GpgFrontend::ToGpgError(e.error)))},
+        {"codeText", e.codeText},
+        {"engineDetails", details}});
   }
 
   QJsonObject root{

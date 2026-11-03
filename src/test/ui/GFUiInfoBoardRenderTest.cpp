@@ -45,6 +45,7 @@
 #include <QtEndian>
 
 #include "GpgFrontendTest.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardReport.h"
 #include "ui/function/UIStyle.h"
@@ -191,7 +192,7 @@ auto EngineError(const QString& text, const QString& detail)
     -> GpgOpStageError {
   GpgOpStageError e;
   e.scope = GpgOperation::kENCRYPT;
-  e.code = GPG_ERR_GENERAL;
+  e.error = FromGpgError(GPG_ERR_GENERAL);
   e.codeText = text;
   e.engineDetails.append({GpgOperation::kENCRYPT, detail});
   return e;
@@ -414,7 +415,7 @@ TEST(GFUiInfoBoardRenderTest, ACancelledPostingNeverRendersAnEmptyCard) {
     info.op = GpgOperation::kENCRYPT;
     GpgOpStageError e;
     e.scope = GpgOperation::kENCRYPT;
-    e.code = GPG_ERR_CANCELED;
+    e.error = FromGpgError(GPG_ERR_CANCELED);
     e.codeText = u"Operation cancelled"_s;
     info.stageErrors.append(e);
     f.board->SetInfoBoardWithOpInfo(u"# Operation Cancelled"_s,
@@ -448,7 +449,7 @@ void PostDemandingReport(InfoBoardWidget* board) {
   info.inputHash = QString(64, u'A');
   GpgOpStageError e;
   e.scope = GpgOperation::kENCRYPT_SIGN;
-  e.code = GPG_ERR_BAD_PASSPHRASE;
+  e.error = FromGpgError(GPG_ERR_BAD_PASSPHRASE);
   e.codeText = u"Bad passphrase"_s;
   e.engineDetails.append(
       {GpgOperation::kSIGN,
@@ -715,8 +716,8 @@ TEST(GFUiInfoBoardRenderTest, TheSealShowsTheOutcomeAndNeverApprovesAFailure) {
     RenderFixture::Settle();
     EXPECT_EQ(seal->Kind(), UI::ReportSealKind::kFAILURE);
 
-    GpgOpResultInfo cancelled =
-        UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT, GPG_ERR_CANCELED, {});
+    GpgOpResultInfo cancelled = UI::MakeAbortedOpInfo(
+        GpgOperation::kENCRYPT, FromGpgError(GPG_ERR_CANCELED), {});
     GpgOperaResult r(cancelled);
     r.input_index = 0;
     f.board->SetInfoBoardFromResults({}, UI::kINFO_ERROR_WARN, {r});

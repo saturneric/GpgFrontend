@@ -137,19 +137,18 @@ void GpgOpResultInfo::Merge(const GpgOpResultInfo& other) {
       messageIntegrityProtected || other.messageIntegrityProtected;
 }
 
-void GpgOpResultInfo::CollapseSharedCallError(unsigned int call_error_code,
+void GpgOpResultInfo::CollapseSharedCallError(const GFError& call_error,
                                               GpgOperation combined) {
-  if (call_error_code == 0) return;
+  if (call_error.Ok()) return;
 
   GpgOpStageError shared;
   shared.scope = combined;
-  shared.origin = GpgErrorOrigin::kENGINE;
-  shared.code = call_error_code;
+  shared.error = call_error;
 
   QList<GpgOpStageError> kept;
   qsizetype first_shared = -1;
   for (const auto& e : stageErrors) {
-    if (e.origin != GpgErrorOrigin::kENGINE || e.code != call_error_code) {
+    if (!e.FromEngine() || e.error != call_error) {
       kept.append(e);
       continue;
     }

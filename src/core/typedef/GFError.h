@@ -109,6 +109,15 @@ struct GFError {
     return !Ok() && !Canceled() && !Aborted();
   }
 
+  /// The same outcome, said by the same reporter in the same words.
+  friend auto operator==(const GFError& a, const GFError& b) -> bool {
+    return a.code == b.code && a.origin == b.origin && a.native == b.native;
+  }
+
+  friend auto operator!=(const GFError& a, const GFError& b) -> bool {
+    return !(a == b);
+  }
+
   /// An error GpgFrontend itself reports.
   static auto Application(GFErrorCode code) -> GFError {
     return {code,

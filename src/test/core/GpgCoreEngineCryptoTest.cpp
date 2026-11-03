@@ -456,8 +456,11 @@ TEST_P(GpgCoreEngineTest, AnalysedFailureRecordsTheEngineErrorAsData) {
   ASSERT_EQ(info.stageErrors.size(), 1);
   const auto& e = info.stageErrors.first();
   EXPECT_EQ(e.scope, GpgOperation::kDECRYPT);
-  EXPECT_EQ(e.origin, GpgErrorOrigin::kENGINE);
-  EXPECT_EQ(e.code, static_cast<unsigned int>(gpg_err_code(err)));
+  EXPECT_EQ(e.error, EngineErrorOf(Channel(), err));
+  // Told apart by the engine that ran it, not by GnuPG's code it came in.
+  EXPECT_EQ(e.error.origin, GetParam().engine == OpenPGPEngine::kRPGP
+                                ? GFErrorOrigin::kRPGP
+                                : GFErrorOrigin::kGNUPG);
   EXPECT_EQ(e.codeText, QString::fromUtf8(gpgme_strerror(err)));
 }
 

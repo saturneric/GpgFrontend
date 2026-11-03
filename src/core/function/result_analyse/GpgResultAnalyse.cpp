@@ -30,6 +30,7 @@
 
 #include <algorithm>
 
+#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
 
@@ -55,13 +56,12 @@ void GpgFrontend::GpgResultAnalyse::setOperation(GpgOperation op) {
 
 void GpgFrontend::GpgResultAnalyse::recordEngineError(
     GpgError err, const QString& engine_detail) {
-  const auto code = gpgme_err_code(err);
-  if (code == GPG_ERR_NO_ERROR) return;
+  const auto error = EngineErrorOf(current_gpg_context_channel_, err);
+  if (error.Ok()) return;
 
   GpgOpStageError e;
   e.scope = op_info_.op;
-  e.origin = GpgErrorOrigin::kENGINE;
-  e.code = code;
+  e.error = error;
   e.codeText = QString::fromUtf8(gpgme_strerror(err));
   if (!engine_detail.isEmpty())
     e.engineDetails.append({op_info_.op, engine_detail});
@@ -89,6 +89,16 @@ auto GpgFrontend::DescribeOpenPGPEngine(int channel) -> QString {
   return QString("%1 v%2")
       .arg(ConvertOpenPGPEngine2String(engine))
       .arg(version);
+}
+
+auto GpgFrontend::EngineErrorOf(int channel, GpgError err) -> GFError {
+  auto error = FromGpgError(err);
+  if (error.origin == GFErrorOrigin::kGNUPG &&
+      OpenPGPContext::GetInstance(channel).Engine() == OpenPGPEngine::kRPGP) {
+    error.origin = GFErrorOrigin::kRPGP;
+    error.native = 0;
+  }
+  return error;
 }
 
 auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GFCoreExport.h"
+#include "core/typedef/GFError.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -69,12 +70,6 @@ auto GF_CORE_EXPORT CombineGpgOperations(GpgOperation a, GpgOperation b)
 /// Display name of @p op, for presentation only.
 auto GF_CORE_EXPORT GpgOperationName(GpgOperation op) -> QString;
 
-/// Where a recorded error came from.
-enum class GpgErrorOrigin : std::uint8_t {
-  kENGINE,       ///< the code an engine call returned
-  kAPPLICATION,  ///< synthesized by GpgFrontend: no code and no usable result
-};
-
 /**
  * @brief One error recorded for an operation, kept verbatim.
  *
@@ -83,10 +78,18 @@ enum class GpgErrorOrigin : std::uint8_t {
  */
 struct GF_CORE_EXPORT GpgOpStageError {
   GpgOperation scope = GpgOperation::kNONE;
-  GpgErrorOrigin origin = GpgErrorOrigin::kENGINE;
-  unsigned int code = 0;  ///< gpg_err_code_t; non-zero for kENGINE
-  QString codeText;  ///< kENGINE: text derived from the code (gpgme_strerror);
-                     ///< kAPPLICATION: GpgFrontend's own message
+  /// What failed, and who said so: an engine, or GpgFrontend itself
+  /// (GFErrorOrigin::kAPPLICATION) when there was no code and no usable result.
+  GFError error;
+  QString codeText;  ///< from an engine: its description of the error;
+                     ///< otherwise GpgFrontend's own message
+
+  /// Whether an engine reported it, rather than GpgFrontend.
+  [[nodiscard]] auto FromEngine() const -> bool {
+    return error.origin == GFErrorOrigin::kGNUPG ||
+           error.origin == GFErrorOrigin::kRPGP;
+  }
+
   /// Detail text an engine result carried, verbatim, tagged with the stage
   /// whose result held it.
   QList<QPair<GpgOperation, QString>> engineDetails;
@@ -255,12 +258,12 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
    * @brief Re-attribute an error both stages received from one engine call.
    *
    * Each stage's analyser records the call's error as its own, which would
-   * claim two failures where the evidence shows one. Entries with
-   * @p call_error_code collapse into one entry scoped to @p combined; the
-   * detail text each stage's result held is kept, still tagged by stage.
-   * Entries with any other code are left as they are.
+   * claim two failures where the evidence shows one. Engine entries with
+   * @p call_error collapse into one entry scoped to @p combined; the detail
+   * text each stage's result held is kept, still tagged by stage. Entries
+   * with any other error are left as they are.
    */
-  void CollapseSharedCallError(unsigned int call_error_code,
+  void CollapseSharedCallError(const GFError& call_error,
                                GpgOperation combined);
 };
 

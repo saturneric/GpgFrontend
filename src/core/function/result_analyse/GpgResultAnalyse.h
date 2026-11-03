@@ -42,6 +42,20 @@ namespace GpgFrontend {
 auto GF_CORE_EXPORT DescribeOpenPGPEngine(int channel) -> QString;
 
 /**
+ * @brief The error an engine call on @p channel returned, in GpgFrontend's
+ * terms.
+ *
+ * Both engines still answer in GnuPG's codes. An error on an rPGP channel is
+ * told apart here as the rPGP engine's, with no native value: the engine's
+ * own status is not available this far from it.
+ *
+ * @param channel the channel the call ran on
+ * @param err what the call returned
+ * @return the error
+ */
+auto GF_CORE_EXPORT EngineErrorOf(int channel, GpgError err) -> GFError;
+
+/**
  * @brief Abstract base class for accumulating a formatted report of an OpenPGP
  * operation result.
  *

@@ -61,7 +61,7 @@ auto GF_UI_EXPORT OperaStartContext(QWidget* parent) -> QObject*;
  *        back, tagged by the stage whose result held it
  */
 auto GF_UI_EXPORT MakeAbortedOpInfo(
-    GpgOperation scope, GpgError err, const QString& engine,
+    GpgOperation scope, const GFError& err, const QString& engine,
     const QList<QPair<GpgOperation, QString>>& engine_details = {})
     -> GpgOpResultInfo;
 

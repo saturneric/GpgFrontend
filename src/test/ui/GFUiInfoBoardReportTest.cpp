@@ -33,6 +33,7 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/function/InfoBoardReport.h"
@@ -90,8 +91,7 @@ auto EngineError(GpgOperation scope, unsigned int code, const QString& text,
                  const QString& detail = {}) -> GpgOpStageError {
   GpgOpStageError e;
   e.scope = scope;
-  e.origin = GpgErrorOrigin::kENGINE;
-  e.code = code;
+  e.error = FromGpgError(code);
   e.codeText = text;
   if (!detail.isEmpty()) e.engineDetails.append({scope, detail});
   return e;
@@ -136,35 +136,32 @@ auto Key(const char* text) -> QString {
 // ---------------------------------------------------------------------------
 
 TEST(InfoBoardReportTest, ACancelWithoutAResultKeepsTheCancelCode) {
-  const auto info = UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT,
-                                          GPG_ERR_CANCELED, u"GPG v2"_s);
+  const auto info = UI::MakeAbortedOpInfo(
+      GpgOperation::kENCRYPT, FromGpgError(GPG_ERR_CANCELED), u"GPG v2"_s);
   EXPECT_EQ(info.status, -1);
   EXPECT_EQ(info.op, GpgOperation::kENCRYPT);
   EXPECT_EQ(info.engine, u"GPG v2"_s);
   ASSERT_EQ(info.stageErrors.size(), 1);
-  EXPECT_EQ(info.stageErrors[0].origin, GpgErrorOrigin::kENGINE);
-  EXPECT_EQ(info.stageErrors[0].code,
-            static_cast<unsigned int>(GPG_ERR_CANCELED));
+  EXPECT_TRUE(info.stageErrors[0].FromEngine());
+  EXPECT_TRUE(info.stageErrors[0].error.Canceled());
   EXPECT_TRUE(info.stageErrors[0].engineDetails.isEmpty());
   EXPECT_FALSE(info.stageErrors[0].codeText.isEmpty());
 }
 
 TEST(InfoBoardReportTest, NotSupportedWithoutAResultKeepsItsCode) {
-  const auto info =
-      UI::MakeAbortedOpInfo(GpgOperation::kSIGN, GPG_ERR_NOT_SUPPORTED, {});
+  const auto info = UI::MakeAbortedOpInfo(
+      GpgOperation::kSIGN, FromGpgError(GPG_ERR_NOT_SUPPORTED), {});
   ASSERT_EQ(info.stageErrors.size(), 1);
-  EXPECT_EQ(info.stageErrors[0].code,
-            static_cast<unsigned int>(GPG_ERR_NOT_SUPPORTED));
-  EXPECT_EQ(info.stageErrors[0].origin, GpgErrorOrigin::kENGINE);
+  EXPECT_EQ(info.stageErrors[0].error.code, GFErrorCode::kNOT_SUPPORTED);
+  EXPECT_TRUE(info.stageErrors[0].FromEngine());
 }
 
 TEST(InfoBoardReportTest, NoCodeAndNoResultIsTheApplicationsOwnFinding) {
-  const auto info =
-      UI::MakeAbortedOpInfo(GpgOperation::kDECRYPT, GPG_ERR_NO_ERROR, {});
+  const auto info = UI::MakeAbortedOpInfo(GpgOperation::kDECRYPT,
+                                          FromGpgError(GPG_ERR_NO_ERROR), {});
   ASSERT_EQ(info.stageErrors.size(), 1);
-  EXPECT_EQ(info.stageErrors[0].origin, GpgErrorOrigin::kAPPLICATION);
-  EXPECT_EQ(info.stageErrors[0].code,
-            static_cast<unsigned int>(GPG_ERR_GENERAL));
+  EXPECT_EQ(info.stageErrors[0].error,
+            GFError::Application(GFErrorCode::kGENERAL));
 
   // And it is never presented as the engine's.
   const auto report = BuildReportFromResults({DocResult(info)});
@@ -174,18 +171,17 @@ TEST(InfoBoardReportTest, NoCodeAndNoResultIsTheApplicationsOwnFinding) {
 }
 
 TEST(InfoBoardReportTest, AnInternalTaskFailureKeepsItsCodeAsTheApplications) {
-  const auto info =
-      UI::MakeAbortedOpInfo(GpgOperation::kDECRYPT, GPG_ERR_USER_1, {});
+  const auto info = UI::MakeAbortedOpInfo(GpgOperation::kDECRYPT,
+                                          FromGpgError(GPG_ERR_USER_1), {});
   ASSERT_EQ(info.stageErrors.size(), 1);
-  EXPECT_EQ(info.stageErrors[0].origin, GpgErrorOrigin::kAPPLICATION);
-  EXPECT_EQ(info.stageErrors[0].code,
-            static_cast<unsigned int>(GPG_ERR_USER_1));
+  EXPECT_FALSE(info.stageErrors[0].FromEngine());
+  EXPECT_TRUE(info.stageErrors[0].error.Aborted());
 }
 
 TEST(InfoBoardReportTest, ACombinedCallErrorIsNotSplitIntoStages) {
-  const auto info =
-      UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT_SIGN, GPG_ERR_CANCELED, {},
-                            {{GpgOperation::kSIGN, u"pinentry closed"_s}});
+  const auto info = UI::MakeAbortedOpInfo(
+      GpgOperation::kENCRYPT_SIGN, FromGpgError(GPG_ERR_CANCELED), {},
+      {{GpgOperation::kSIGN, u"pinentry closed"_s}});
   ASSERT_EQ(info.stageErrors.size(), 1);
   EXPECT_EQ(info.stageErrors[0].scope, GpgOperation::kENCRYPT_SIGN);
 
@@ -237,8 +233,7 @@ TEST(InfoBoardReportTest, EngineOutcomeFollowsStatusAndRecordedCodes) {
 
 TEST(InfoBoardReportTest, ApplicationErrorsDoNotMakeACancel) {
   GpgOpStageError app;
-  app.origin = GpgErrorOrigin::kAPPLICATION;
-  app.code = GPG_ERR_CANCELED;
+  app.error = GFError::Application(GFErrorCode::kCANCELED);
   EXPECT_EQ(UI::NormalizeEngineOutcome(-1, {app}).outcome,
             InfoBoardOutcome::kFAILED);
 }
@@ -344,9 +339,9 @@ TEST(InfoBoardReportTest, ACancelledBatchCountsWhatFinishedBeforeIt) {
   const auto report = BuildReportFromResults(
       {FileResult(Result(1), 0, u"/a/1.txt"_s),
        FileResult(Result(0), 1, u"/a/2.txt"_s),
-       FileResult(
-           UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT, GPG_ERR_CANCELED, {}),
-           2, u"/a/3.txt"_s)},
+       FileResult(UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT,
+                                        FromGpgError(GPG_ERR_CANCELED), {}),
+                  2, u"/a/3.txt"_s)},
       ctx);
 
   // The two that finished were not saved: the batch was cancelled.
@@ -383,7 +378,7 @@ TEST(InfoBoardReportTest, AFailureShowsAReasonAndTheEngineErrorVerbatim) {
 TEST(InfoBoardReportTest, CancelAndUnsupportedStillShowTheEngineDetail) {
   for (const auto code : {GPG_ERR_CANCELED, GPG_ERR_NOT_SUPPORTED}) {
     const auto report = BuildReportFromResults({DocResult(
-        UI::MakeAbortedOpInfo(GpgOperation::kSIGN, code, {},
+        UI::MakeAbortedOpInfo(GpgOperation::kSIGN, FromGpgError(code), {},
                               {{GpgOperation::kSIGN, u"engine says why"_s}}))});
     const auto& card = OutcomeCard(report.objects.first());
     EXPECT_FALSE(Field(card, Key("Reason")).isEmpty());
@@ -398,10 +393,11 @@ TEST(InfoBoardReportTest, TheScreenshotCaseExplainsItself) {
   InfoBoardBatchContext ctx;
   ctx.document_target = true;
   ctx.fates = {{0, OutputFate::kNOT_PRODUCED}};
-  const auto report = BuildReportFromResults(
-      {DocResult(UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT, GPG_ERR_CANCELED,
-                                       u"GPG v2"_s))},
-      ctx);
+  const auto report =
+      BuildReportFromResults({DocResult(UI::MakeAbortedOpInfo(
+                                 GpgOperation::kENCRYPT,
+                                 FromGpgError(GPG_ERR_CANCELED), u"GPG v2"_s))},
+                             ctx);
 
   EXPECT_EQ(report.headline, InfoBoardHeadline::kCANCELLED);
   EXPECT_EQ(report.severity, UI::kINFO_ERROR_WARN);
@@ -936,8 +932,9 @@ TEST(InfoBoardReportTest, OutcomeFieldsComeInTheirRuns) {
   InfoBoardBatchContext ctx;
   ctx.document_target = true;
   ctx.fates = {{0, OutputFate::kNOT_PRODUCED}};
-  auto info = UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT, GPG_ERR_CANCELED,
-                                    {}, {{GpgOperation::kENCRYPT, u"d"_s}});
+  auto info = UI::MakeAbortedOpInfo(GpgOperation::kENCRYPT,
+                                    FromGpgError(GPG_ERR_CANCELED), {},
+                                    {{GpgOperation::kENCRYPT, u"d"_s}});
   info.inputHash = u"abc"_s;
   const auto report = BuildReportFromResults({DocResult(info)}, ctx);
   const auto& card = OutcomeCard(report.objects.first());
