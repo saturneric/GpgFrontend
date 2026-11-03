@@ -29,8 +29,8 @@
 #include "ui/function/KeyDatabaseRefresh.h"
 
 #include "core/function/CoreSignalStation.h"
-#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/function/openpgp/KeyDatabaseRefresh.h"
 #include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
@@ -51,47 +51,21 @@ void InstallKeyDatabaseRefreshHandler() {
   if (g_handler_installed) return;
   g_handler_installed = true;
 
-  QObject::connect(
-      UISignalStation::GetInstance(),
-      &UISignalStation::SignalKeyDatabaseRefresh,
-      UISignalStation::GetInstance(), []() -> void {
-        auto* refresh_task = new Thread::Task(
-            [](DataObjectPtr) -> int {
-              // Flush the key cache of every database in the Runtime in use,
-              // each under a lease so a reload cannot reclaim it mid-flush. A
-              // retired Runtime's channels are not refreshed: nothing new is
-              // read from them any more.
-              for (const auto& info : GetGpgKeyDatabaseInfos()) {
-                auto lease = TryAcquireEngineLease(info.channel);
-                if (!lease) continue;
-                LOG_D() << "refreshing key database at channel: "
-                        << info.channel;
-                AbstractKeyRepository::GetInstance(info.channel).FlushCache();
-              }
-              LOG_D() << "refreshing key database at all channel done";
-              return 0;
-            },
-            "update_key_database_task");
+  QObject::connect(UISignalStation::GetInstance(),
+                   &UISignalStation::SignalKeyDatabaseRefresh,
+                   UISignalStation::GetInstance(), []() -> void {
+                     RefreshKeyDatabases(UISignalStation::GetInstance(), []() {
+                       emit UISignalStation::GetInstance()
+                           -> SignalKeyDatabaseRefreshDone();
 
-        QObject::connect(refresh_task, &Thread::Task::SignalTaskEnd,
-                         UISignalStation::GetInstance(),
-                         &UISignalStation::SignalKeyDatabaseRefreshDone);
-
-        // Modules cannot reach UISignalStation, and some of them cache answers
-        // that depend on what is in the keyring -- a verification that said
-        // "key missing" stops being true the moment the key is imported. Give
-        // them the same notification the UI gets.
-        QObject::connect(refresh_task, &Thread::Task::SignalTaskEnd,
-                         UISignalStation::GetInstance(), []() -> void {
-                           Module::TriggerEvent("KEY_DATABASE_REFRESH_DONE");
-                         });
-
-        // post the task to the default task runner
-        LOG_D() << "sending key database refresh task to gpg task runner...";
-        Thread::TaskRunnerGetter::GetInstance()
-            .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-            ->PostTask(refresh_task);
-      });
+                       // Modules cannot reach UISignalStation, and some of
+                       // them cache answers that depend on what is in the
+                       // keyring -- a verification that said "key missing"
+                       // stops being true the moment the key is imported.
+                       // Give them the same notification the UI gets.
+                       Module::TriggerEvent("KEY_DATABASE_REFRESH_DONE");
+                     });
+                   });
 
   // The core says a new Runtime is in use, from whichever thread published
   // it; widgets hear it on the GUI thread.
