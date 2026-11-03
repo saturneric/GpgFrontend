@@ -178,5 +178,5 @@ gf_pin_output_directory(gf_mod_test_sentinel
 # against stubs rather than against the host -- so it gets its own target
 # rather than linking into gf_test.
 if(TARGET gf_module_runtime)
-  add_subdirectory(module_runtime)
+  add_subdirectory(mod_rt)
 endif()

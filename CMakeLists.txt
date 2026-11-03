@@ -847,7 +847,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/Translations.cmake)
 
 if(BUILD_MODULES)
   # Before modules/, because every module links it.
-  add_subdirectory(src/module_runtime)
+  add_subdirectory(src/mod_rt)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)
   add_subdirectory(modules)
 endif()
