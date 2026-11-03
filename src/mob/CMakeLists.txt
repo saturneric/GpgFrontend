@@ -35,7 +35,11 @@ qt_add_library(gf_mob_lib STATIC
   startup/InteractionBridge.cpp
   startup/MobileProfileLoaderDelegate.cpp
   startup/StartupController.cpp
+  lifecycle/AppLifecycle.cpp
+  crypto/KeySelection.cpp
+  crypto/OutputActions.cpp
   crypto/PassphraseBroker.cpp
+  crypto/ResultPresenter.cpp
   ${GF_PLATFORM_APP_SOURCES}
   ${GF_PLATFORM_MOBILE_SOURCES})
 
