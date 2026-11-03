@@ -1,0 +1,532 @@
+/**
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+ *
+ * This file is part of GpgFrontend.
+ *
+ * GpgFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GpgFrontend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
+ *
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ */
+
+#include <QDir>
+#include <QDirIterator>
+#include <QSignalSpy>
+#include <QStandardPaths>
+#include <QTemporaryDir>
+
+#include "MobileCryptoTest.h"
+#include "core/function/rpgp/PasswordFetcher.h"
+#include "files/FileOperations.h"
+#include "files/FileWorkspace.h"
+#include "files/ShareRetentionStore.h"
+#include "lifecycle/AppLifecycle.h"
+
+namespace GpgFrontend::Test::Mobile {
+
+using GpgFrontend::Mobile::FileWorkspace;
+using GpgFrontend::Mobile::SharedFileStore;
+
+namespace {
+
+constexpr auto kFilePassphrase = "erin's file passphrase";
+
+void WriteFile(const QString& path, const QByteArray& content) {
+  QFile file(path);
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.write(content);
+}
+
+auto ReadFile(const QString& path) -> QByteArray {
+  QFile file(path);
+  return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+}
+
+/// Every file in the staging area, wherever it is.
+auto StagedFiles() -> QStringList {
+  QStringList files;
+  const auto root =
+      QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+      "/staging";
+  QDirIterator it(root, QDir::Files, QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    const auto path = it.next();
+    if (!path.endsWith("session.lock")) files << path;
+  }
+  return files;
+}
+
+}  // namespace
+
+class FileWorkspaceTest : public ::testing::Test {
+ protected:
+  static inline QString erin_;  ///< has a passphrase
+  static inline QString fred_;  ///< has none
+  QTemporaryDir dir_;
+  FileWorkspace* files_ = nullptr;
+
+  static void SetUpTestSuite() {
+    erin_ = GenerateKey("Erin", kFilePassphrase);
+    fred_ = GenerateKey("Fred", {});
+  }
+
+  void SetUp() override {
+    ASSERT_FALSE(erin_.isEmpty());
+    ASSERT_FALSE(fred_.isEmpty());
+    ClearRpgpPasswordCache();
+    RunOnMainThread([this]() { files_ = new FileWorkspace(); });
+  }
+
+  void TearDown() override {
+    RunOnMainThread([]() { Broker()->CancelAll(); });
+    RunOnMainThread([this]() { delete files_; });
+  }
+
+  void Do(const std::function<void(FileWorkspace*)>& op) {
+    RunOnMainThread([this, &op]() { op(files_); });
+  }
+
+  /// The roles of the file @p id, by name.
+  auto Entry(int id) -> QVariantMap {
+    QVariantMap entry;
+    RunOnMainThread([this, id, &entry]() { entry = files_->entry(id); });
+    return entry;
+  }
+
+  auto State(int id) -> QString { return Entry(id).value("phase").toString(); }
+
+  auto Count() -> int {
+    int count = 0;
+    RunOnMainThread([this, &count]() { count = files_->Count(); });
+    return count;
+  }
+
+  void Finish() {
+    EXPECT_TRUE(WaitFor(
+        [this]() {
+          bool busy = true;
+          RunOnMainThread([this, &busy]() { busy = files_->Busy(); });
+          return !busy;
+        },
+        30000));
+  }
+
+  /// Write @p content to @p name and add it, as the picker would; its id.
+  auto Add(const QByteArray& content, const QString& name = "notes.txt")
+      -> int {
+    const auto path = dir_.filePath(name);
+    WriteFile(path, content);
+    int id = -1;
+    RunOnMainThread([this, &path, &id]() {
+      files_->addFiles({QUrl::fromLocalFile(path)});
+      // The newest is first.
+      id = files_->data(files_->index(0), FileWorkspace::kIdRole).toInt();
+    });
+    return id;
+  }
+
+  /// The output made from @p source, or -1.
+  auto OutputOf(int source) -> int {
+    int id = -1;
+    RunOnMainThread([this, source, &id]() {
+      for (int row = 0; row < files_->rowCount(); ++row) {
+        const auto at = files_->index(row);
+        if (files_->data(at, FileWorkspace::kSourceIdRole).toInt() == source) {
+          id = files_->data(at, FileWorkspace::kIdRole).toInt();
+        }
+      }
+    });
+    return id;
+  }
+
+  /// Save the file @p id where a save picker would, and read it back.
+  auto SaveAndRead(int id, const QString& name) -> QByteArray {
+    const auto path = dir_.filePath(name);
+    bool saved = false;
+    bool done = false;
+    RunOnMainThread([this, id, &path, &saved, &done]() {
+      QObject::connect(
+          files_, &FileWorkspace::SignalSaved, files_,
+          [&saved, &done](int, bool ok) {
+            saved = ok;
+            done = true;
+          },
+          Qt::SingleShotConnection);
+      files_->saveAs(id, QUrl::fromLocalFile(path));
+    });
+    EXPECT_TRUE(WaitFor(
+        [this, &done]() {
+          bool d = false;
+          RunOnMainThread([&done, &d]() { d = done; });
+          return d;
+        },
+        30000));
+    EXPECT_TRUE(saved);
+    return ReadFile(path);
+  }
+
+  auto Errors(int id) -> std::string {
+    return Entry(id)
+        .value("result")
+        .toMap()
+        .value("errors")
+        .toStringList()
+        .join("; ")
+        .toStdString();
+  }
+};
+
+TEST_F(FileWorkspaceTest, EncryptAFileToAKeyAndDecryptIt) {
+  const QByteArray content = "line one\nline two\n";
+  const auto source = Add(content);
+  const auto staged_before = StagedFiles().size();
+
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  EXPECT_EQ(State(source), "done") << Errors(source);
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0) << Errors(source);
+  auto output = Entry(encrypted);
+  EXPECT_EQ(output.value("name").toString(), "notes.txt.gpg");
+  EXPECT_EQ(output.value("kind").toString(), "output");
+  EXPECT_EQ(output.value("operation").toString(), "encrypt");
+  EXPECT_EQ(output.value("madeBy").toString(), "encrypt");
+  EXPECT_EQ(output.value("sourceName").toString(), "notes.txt");
+  EXPECT_FALSE(output.value("plaintext").toBool());
+  // The copy of the input is gone; only the output is staged.
+  EXPECT_EQ(StagedFiles().size(), staged_before + 1);
+
+  // Saving copies it and keeps it.
+  const auto saved = SaveAndRead(encrypted, "notes.txt.gpg");
+  ASSERT_FALSE(saved.isEmpty());
+  EXPECT_NE(saved, content);
+  EXPECT_EQ(Entry(encrypted).value("kind").toString(), "output");
+  EXPECT_EQ(StagedFiles().size(), staged_before + 1);
+
+  // An output is worked on where it is, without another copy.
+  Do([&](auto* f) { f->decrypt({encrypted}); });
+  Finish();
+  const auto decrypted = OutputOf(encrypted);
+  ASSERT_GE(decrypted, 0) << Errors(encrypted);
+  output = Entry(decrypted);
+  EXPECT_EQ(output.value("name").toString(), "notes.txt");
+  EXPECT_TRUE(output.value("plaintext").toBool());
+  EXPECT_EQ(output.value("result").toMap().value("status"), 1);
+  EXPECT_EQ(SaveAndRead(decrypted, "decrypted.txt"), content);
+  EXPECT_EQ(output.value("madeBy").toString(), "decrypt");
+
+  // Decrypting the encrypted file is the last thing done to it, not what
+  // made it.
+  output = Entry(encrypted);
+  EXPECT_EQ(output.value("operation").toString(), "decrypt");
+  EXPECT_EQ(output.value("madeBy").toString(), "encrypt");
+}
+
+TEST_F(FileWorkspaceTest, AFileForAPassphraseRoundTrips) {
+  const QByteArray content = "for a passphrase";
+  const auto source = Add(content);
+  Do([&](auto* f) { f->encrypt({source}, {}); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer("file passphrase");
+  Finish();
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0);
+
+  Do([&](auto* f) { f->decrypt({encrypted}); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer("file passphrase");
+  Finish();
+  const auto decrypted = OutputOf(encrypted);
+  ASSERT_GE(decrypted, 0);
+  EXPECT_EQ(SaveAndRead(decrypted, "back.txt"), content);
+}
+
+TEST_F(FileWorkspaceTest, ACancelledPromptLeavesNothingStaged) {
+  const auto source = Add("secret");
+  Do([&](auto* f) { f->encrypt({source}, {erin_}); });
+  Finish();
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0);
+  const auto saved = SaveAndRead(encrypted, "secret.gpg");
+  ASSERT_FALSE(saved.isEmpty());
+
+  // From a document this time, so its copy is staged while it waits.
+  const auto added = Add(saved, "secret.gpg");
+  const auto staged_before = StagedFiles().size();
+  const auto count_before = Count();
+  Do([&](auto* f) { f->decrypt({added}); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  EXPECT_GT(StagedFiles().size(), staged_before);
+  EXPECT_EQ(State(added), "running");
+  Decline();
+  Finish();
+
+  // Neither the copy nor an output outlives the cancelled operation.
+  EXPECT_EQ(State(added), "cancelled");
+  EXPECT_TRUE(Entry(added).value("result").toMap().value("cancelled").toBool());
+  EXPECT_EQ(Count(), count_before);
+  EXPECT_EQ(StagedFiles().size(), staged_before);
+}
+
+TEST_F(FileWorkspaceTest, AFileThatCannotBeReadFailsCleanly) {
+  const auto staged_before = StagedFiles().size();
+  const auto gone = Add("soon gone", "gone.gpg");
+  ASSERT_TRUE(QFile::remove(dir_.filePath("gone.gpg")));
+  Do([&](auto* f) { f->decrypt({gone}); });
+  Finish();
+  EXPECT_EQ(State(gone), "failed");
+  EXPECT_LT(Entry(gone).value("result").toMap().value("status").toInt(), 0);
+  EXPECT_LT(OutputOf(gone), 0);
+  EXPECT_EQ(StagedFiles().size(), staged_before);
+
+  // Not an encrypted file at all.
+  const auto plain = Add("plain text", "plain.txt");
+  Do([&](auto* f) { f->decrypt({plain}); });
+  Finish();
+  EXPECT_EQ(State(plain), "failed");
+  EXPECT_LT(OutputOf(plain), 0);
+  EXPECT_EQ(StagedFiles().size(), staged_before);
+}
+
+// No share sheet on Linux: the output is kept, and nothing goes into the
+// store.
+TEST_F(FileWorkspaceTest, WithoutAShareSheetTheOutputStays) {
+  const auto source = Add("to share");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto output = OutputOf(source);
+  ASSERT_GE(output, 0);
+
+  ASSERT_NE(SharedFileStore(), nullptr);
+  qsizetype retained = 0;
+  RunOnMainThread(
+      [&retained]() { retained = SharedFileStore()->Entries().size(); });
+
+  QString outcome;
+  RunOnMainThread([this, output, &outcome]() {
+    QObject::connect(files_, &FileWorkspace::SignalShared,
+                     [&outcome](int, const QString& o) { outcome = o; });
+    files_->share(output);
+  });
+  EXPECT_EQ(outcome, "unsupported");
+  EXPECT_EQ(Entry(output).value("kind").toString(), "output");
+  RunOnMainThread([&retained]() {
+    EXPECT_EQ(SharedFileStore()->Entries().size(), retained);
+  });
+}
+
+TEST_F(FileWorkspaceTest, RemovingAnOutputDeletesItRemovingADocumentKeepsIt) {
+  const auto staged_before = StagedFiles().size();
+  const auto source = Add("drop me");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto output = OutputOf(source);
+  ASSERT_GE(output, 0);
+  EXPECT_EQ(StagedFiles().size(), staged_before + 1);
+
+  Do([&](auto* f) { f->remove({output, source}); });
+  EXPECT_EQ(Count(), 0);
+  // The application's copy is deleted; the person's document is not.
+  EXPECT_EQ(StagedFiles().size(), staged_before);
+  EXPECT_EQ(ReadFile(dir_.filePath("notes.txt")), "drop me");
+}
+
+TEST_F(FileWorkspaceTest, TheOutputsGoWithTheWorkspace) {
+  const auto staged_before = StagedFiles().size();
+  const auto source = Add("short lived");
+  Do([&](auto* f) { f->decrypt({}); });  // nothing to do is nothing done
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  ASSERT_GE(OutputOf(source), 0);
+  EXPECT_EQ(StagedFiles().size(), staged_before + 1);
+
+  RunOnMainThread([this]() {
+    delete files_;
+    files_ = new FileWorkspace();
+  });
+  EXPECT_EQ(StagedFiles().size(), staged_before);
+  EXPECT_EQ(ReadFile(dir_.filePath("notes.txt")), "short lived");
+}
+
+TEST_F(FileWorkspaceTest, ABatchGoesOnPastAFailure) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  const auto c = Add("third", "c.txt");
+  ASSERT_TRUE(QFile::remove(dir_.filePath("b.txt")));
+
+  QStringList order;
+  RunOnMainThread([this, &order]() {
+    QObject::connect(files_, &FileWorkspace::SignalFinished, files_,
+                     [this, &order](int id, bool) {
+                       order << files_->entry(id).value("name").toString();
+                     });
+  });
+  Do([&](auto* f) { f->encrypt({a, b, c}, {fred_}); });
+  Finish();
+
+  EXPECT_EQ(order, (QStringList{"a.txt", "b.txt", "c.txt"}));
+  EXPECT_EQ(State(a), "done");
+  EXPECT_EQ(State(b), "failed");
+  EXPECT_EQ(State(c), "done");
+  EXPECT_GE(OutputOf(a), 0);
+  EXPECT_LT(OutputOf(b), 0);
+  EXPECT_GE(OutputOf(c), 0);
+}
+
+TEST_F(FileWorkspaceTest, CancellingTheQueueLeavesTheRunningOne) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  const auto c = Add("third", "c.txt");
+
+  // To a passphrase: the first waits at its prompt while the others queue.
+  Do([&](auto* f) { f->encrypt({a, b, c}, {}); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  EXPECT_EQ(State(a), "running");
+  EXPECT_EQ(State(b), "queued");
+  Do([](auto* f) { f->cancelQueued(); });
+  EXPECT_EQ(State(b), "cancelled");
+  EXPECT_EQ(State(c), "cancelled");
+
+  Answer("batch passphrase");
+  Finish();
+  EXPECT_EQ(State(a), "done");
+  EXPECT_GE(OutputOf(a), 0);
+  EXPECT_LT(OutputOf(b), 0);
+  EXPECT_LT(OutputOf(c), 0);
+}
+
+TEST_F(FileWorkspaceTest, ADetachedSignatureVerifiesOnlyOverItsFile) {
+  const auto data = Add("signed content", "contract.txt");
+  Do([&](auto* f) { f->sign({data}, fred_); });
+  Finish();
+  const auto signature = OutputOf(data);
+  ASSERT_GE(signature, 0) << Errors(data);
+  EXPECT_EQ(Entry(signature).value("name").toString(), "contract.txt.sig");
+  EXPECT_FALSE(Entry(signature).value("plaintext").toBool());
+
+  const auto count = Count();
+  Do([&](auto* f) { f->verify(signature, data); });
+  Finish();
+  EXPECT_EQ(State(signature), "done") << Errors(signature);
+  auto signatures =
+      Entry(signature).value("result").toMap().value("signatures").toList();
+  ASSERT_FALSE(signatures.isEmpty());
+  EXPECT_TRUE(signatures.first().toMap().value("good").toBool());
+  // A check makes nothing.
+  EXPECT_EQ(Count(), count);
+
+  const auto other = Add("other content", "other.txt");
+  Do([&](auto* f) { f->verify(signature, other); });
+  Finish();
+  signatures =
+      Entry(signature).value("result").toMap().value("signatures").toList();
+  EXPECT_TRUE(State(signature) == "failed" || signatures.isEmpty() ||
+              !signatures.first().toMap().value("good").toBool());
+}
+
+TEST_F(FileWorkspaceTest, ADocumentThatGoesAwayIsUnavailable) {
+  const auto source = Add("here for now");
+  EXPECT_TRUE(Entry(source).value("available").toBool());
+  // The same document is not added twice.
+  Do([this](auto* f) {
+    f->addFiles({QUrl::fromLocalFile(dir_.filePath("notes.txt"))});
+  });
+  EXPECT_EQ(Count(), 1);
+
+  ASSERT_TRUE(QFile::remove(dir_.filePath("notes.txt")));
+  Do([](auto* f) { f->refreshAvailability(); });
+  EXPECT_FALSE(Entry(source).value("available").toBool());
+  // Nothing is started on it.
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  EXPECT_EQ(State(source), "idle");
+}
+
+TEST_F(FileWorkspaceTest, SortedByNameSizeOrWhenAdded) {
+  Add("bb", "b.txt");
+  Add("a", "a.txt");
+  Add("ccc", "c.txt");
+  const auto names = [this]() {
+    QStringList names;
+    RunOnMainThread([this, &names]() {
+      for (int row = 0; row < files_->rowCount(); ++row) {
+        names << files_->data(files_->index(row), FileWorkspace::kNameRole)
+                     .toString();
+      }
+    });
+    return names;
+  };
+  EXPECT_EQ(names(), (QStringList{"c.txt", "a.txt", "b.txt"}));
+  Do([](auto* f) { f->SetSortKey("name"); });
+  EXPECT_EQ(names(), (QStringList{"a.txt", "b.txt", "c.txt"}));
+  Do([](auto* f) { f->SetSortKey("size"); });
+  EXPECT_EQ(names(), (QStringList{"c.txt", "b.txt", "a.txt"}));
+}
+
+TEST_F(FileWorkspaceTest, SelectionIsKeptPerFile) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  QSignalSpy* spy = nullptr;
+  RunOnMainThread([this, &spy]() {
+    spy = new QSignalSpy(files_, &FileWorkspace::SignalSelectionChanged);
+  });
+  Do([&](auto* f) { f->setSelected(a, true); });
+  RunOnMainThread([this, a]() {
+    EXPECT_EQ(files_->SelectedCount(), 1);
+    EXPECT_EQ(files_->selectedIds(), QVariantList{a});
+  });
+  Do([](auto* f) { f->selectAll(); });
+  RunOnMainThread([this]() { EXPECT_EQ(files_->SelectedCount(), 2); });
+  // A file that is removed is no longer selected.
+  Do([&](auto* f) { f->remove({b}); });
+  RunOnMainThread([this]() { EXPECT_EQ(files_->SelectedCount(), 1); });
+  Do([](auto* f) { f->clearSelection(); });
+  RunOnMainThread([this, &spy]() {
+    EXPECT_EQ(files_->SelectedCount(), 0);
+    EXPECT_GE(spy->count(), 3);
+    delete spy;
+  });
+}
+
+// Returning to the foreground is one of the store's chances to clean up.
+TEST(SharedFilesTest, ReturningToTheForegroundCleansWhatIsDue) {
+  RunOnMainThread([]() {
+    auto* store = SharedFileStore();
+    auto* lifecycle =
+        GpgFrontend::Mobile::AppLifecycle::create(nullptr, nullptr);
+    ASSERT_NE(store, nullptr);
+    ASSERT_NE(lifecycle, nullptr);
+
+    const auto staged =
+        QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+        "/due-staged.txt";
+    WriteFile(staged, "shared two days ago");
+    const auto due = store->Retain(staged, "due.txt", true,
+                                   QDateTime::currentDateTimeUtc().addDays(-2));
+    ASSERT_TRUE(due.has_value());
+    ASSERT_TRUE(QFile::exists(due->path));
+
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationSuspended);
+    EXPECT_TRUE(QFile::exists(due->path));  // nothing runs while away
+    lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
+    EXPECT_FALSE(QFile::exists(due->path));
+  });
+}
+
+}  // namespace GpgFrontend::Test::Mobile

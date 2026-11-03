@@ -31,6 +31,7 @@ add_executable(gf_mob_tests
   main.cpp
   AppLifecycleTest.cpp
   FileStoreTest.cpp
+  FileWorkspaceTest.cpp
   InteropTest.cpp
   InteractionBridgeTest.cpp
   KeyActionsTest.cpp
