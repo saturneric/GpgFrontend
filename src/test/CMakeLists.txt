@@ -47,6 +47,11 @@ target_precompile_headers(gf_core_tests PRIVATE GpgFrontendTest.h)
 target_link_libraries(gf_core_tests PRIVATE GTest::gtest gf_core gf_boot
   gf_res)
 
+# The phone application's own tests.
+if(GF_BUILD_MOBILE)
+  add_subdirectory(mob)
+endif()
+
 # The rest needs the desktop application.
 if(NOT GF_BUILD_DESKTOP)
   return()
