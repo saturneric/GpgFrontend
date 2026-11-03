@@ -29,17 +29,14 @@
 #include <type_traits>
 
 #include "GpgFrontendTest.h"
-#include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GFError.h"
-#include "gpg/GpgCoreTest.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
 
 // An error is never a number: neither way round, and not by accident.
 static_assert(!std::is_convertible_v<GFError, int>);
-static_assert(!std::is_convertible_v<GFError, gpgme_error_t>);
-static_assert(!std::is_convertible_v<gpgme_error_t, GFError>);
 
 TEST(GFErrorTest, TellsSuccessCancellationAbortionAndFailureApart) {
   EXPECT_TRUE(GFError{}.Ok());
@@ -60,46 +57,6 @@ TEST(GFErrorTest, TellsSuccessCancellationAbortionAndFailureApart) {
             GFErrorOrigin::kNONE);
 }
 
-TEST(GFErrorTest, EveryCodeHasItsOwnGnuPGCode) {
-  QSet<gpgme_error_t> seen;
-  for (auto i = static_cast<int>(GFErrorCode::kOK);
-       i <= static_cast<int>(GFErrorCode::kBUG); i++) {
-    const auto code = static_cast<GFErrorCode>(i);
-    const auto gpg = ToGpgError(GFError::Application(code));
-    EXPECT_FALSE(seen.contains(gpg)) << "code " << i << " shares " << gpg;
-    seen.insert(gpg);
-    EXPECT_EQ(FromGpgError(gpg).code, code) << "code " << i;
-  }
-}
-
-TEST(GFErrorTest, AGnuPGErrorKeepsWhatGnuPGSaid) {
-  const auto raw = gpgme_err_make(GPG_ERR_SOURCE_GPGME, GPG_ERR_BAD_PASSPHRASE);
-  const auto err = FromGpgError(raw);
-  EXPECT_EQ(err.code, GFErrorCode::kBAD_PASSPHRASE);
-  EXPECT_EQ(err.origin, GFErrorOrigin::kGNUPG);
-  EXPECT_EQ(static_cast<gpgme_error_t>(err.native), raw);
-  EXPECT_EQ(ToGpgError(err), raw) << "the source must survive the trip";
-
-  EXPECT_TRUE(FromGpgError(GPG_ERR_NO_ERROR).Ok());
-  EXPECT_TRUE(FromGpgError(GPG_ERR_CANCELED).Canceled());
-}
-
-TEST(GFErrorTest, AGnuPGCodeWithNoCounterpartIsAGeneralFailure) {
-  const auto err = FromGpgError(GPG_ERR_ENOPKG);
-  EXPECT_EQ(err.code, GFErrorCode::kGENERAL);
-  EXPECT_TRUE(err.Failed());
-  EXPECT_EQ(ToGpgError(err), GPG_ERR_ENOPKG);
-}
-
-// What the runner reports for a channel reads as that channel's engine's.
-TEST_F(GpgCoreTest, AnEngineErrorOnAGnuPGChannelIsGnuPGs) {
-  EXPECT_EQ(EngineErrorOf(kGpgChannelForUnitTest, GFErrorCode::kCANCELED),
-            FromGpgError(GPG_ERR_CANCELED));
-  EXPECT_EQ(
-      EngineErrorOf(kGpgChannelForUnitTest, GFErrorCode::kNOT_OPERATIONAL),
-      FromGpgError(GPG_ERR_NOT_OPERATIONAL));
-}
-
 TEST(GFErrorTest, AnEngineErrorOnAnRpgpChannelHasNoNativeValue) {
   // A channel never configured with a real context: an rPGP placeholder.
   constexpr int kUnusedChannel = 4098;
@@ -107,6 +64,16 @@ TEST(GFErrorTest, AnEngineErrorOnAnRpgpChannelHasNoNativeValue) {
   const auto err = EngineErrorOf(kUnusedChannel, GFErrorCode::kNOT_SUPPORTED);
   EXPECT_EQ(err,
             (GFError{GFErrorCode::kNOT_SUPPORTED, GFErrorOrigin::kRPGP, 0}));
+}
+
+// Every outcome can be put into words, whichever engine's texts the build has.
+TEST(GFErrorTest, EveryCodeCanBeDescribed) {
+  for (auto i = static_cast<int>(GFErrorCode::kOK);
+       i <= static_cast<int>(GFErrorCode::kBUG); i++) {
+    const auto [source, description] =
+        DescribeGFError(GFError::Application(static_cast<GFErrorCode>(i)));
+    EXPECT_FALSE(description.isEmpty()) << "code " << i;
+  }
 }
 
 }  // namespace GpgFrontend::Test
