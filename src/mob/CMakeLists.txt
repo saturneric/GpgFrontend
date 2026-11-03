@@ -77,6 +77,11 @@ qt_add_qml_module(gf_mob_lib
     ${_gf_mob_icons}
   QML_FILES
     qml/Theme.qml
+    qml/SplashPage.qml
+    qml/ErrorPage.qml
+    qml/TextPage.qml
+    qml/SettingsPage.qml
+    qml/AboutPage.qml
     qml/components/KeyRow.qml
     qml/components/PinSheet.qml
     qml/components/ConfirmSheet.qml
