@@ -48,6 +48,8 @@ qt_add_library(gf_mob_lib STATIC
   crypto/PassphraseBroker.cpp
   crypto/ResultPresenter.cpp
   crypto/TextCryptoController.cpp
+  files/StagingArea.cpp
+  files/ShareRetentionStore.cpp
   ${GF_PLATFORM_APP_SOURCES}
   ${GF_PLATFORM_MOBILE_SOURCES})
 

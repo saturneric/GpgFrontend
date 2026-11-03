@@ -30,6 +30,7 @@ find_package(Qt6 COMPONENTS Test QuickTest REQUIRED)
 add_executable(gf_mob_tests
   main.cpp
   AppLifecycleTest.cpp
+  FileStoreTest.cpp
   InteropTest.cpp
   InteractionBridgeTest.cpp
   KeyActionsTest.cpp
