@@ -73,31 +73,11 @@ auto GF_UI_EXPORT NextKeyGenerateStep(KeyGenerateStep step, bool expert)
  */
 auto GF_UI_EXPORT KeyGenerateStepTitle(KeyGenerateStep step) -> QString;
 
-/**
- * @brief What is wrong with each part of a user id, as sentences to show.
- *
- * Empty strings where nothing is.
- */
-struct GF_UI_EXPORT KeyGenIdentityCheck {
-  QString name;
-  QString email;
-  QString comment;
-
-  [[nodiscard]] auto Ok() const -> bool {
-    return name.isEmpty() && email.isEmpty() && comment.isEmpty();
-  }
-};
-
-/**
- * @brief Whether a user id can be given to a new key.
- *
- * A name is required; an email is optional but must be an address when
- * given. The name and comment become part of a mail address, so its delimiters
- * are not allowed in them.
- */
-auto GF_UI_EXPORT CheckKeyGenIdentity(const QString& name, const QString& email,
-                                      const QString& comment)
-    -> KeyGenIdentityCheck;
+// CheckKeyGenIdentity() and KeyGenIdentityCheck are core's
+// (core/function/KeyGenProfile.h): the mobile application checks a new user
+// id the same way.
+using GpgFrontend::CheckKeyGenIdentity;
+using GpgFrontend::KeyGenIdentityCheck;
 
 /**
  * @brief What the wizard knows that decides whether a step may be left.

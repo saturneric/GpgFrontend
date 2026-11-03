@@ -28,6 +28,9 @@
 
 #include "core/function/KeyGenProfile.h"
 
+#include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
+
 namespace GpgFrontend {
 
 namespace {
@@ -632,6 +635,28 @@ auto OfferedKeyGenProfiles(int channel, const QList<KeyGenProfile>& profiles)
       profiles, KeyGenerateInfo::GetSupportedKeyAlgo(channel),
       KeyGenerateInfo::GetSupportedSubkeyAlgo(channel),
       [channel](const KeyAlgo& algo) { return algo.SubAlgos(channel); });
+}
+
+auto CheckKeyGenIdentity(const QString& name, const QString& email,
+                         const QString& comment) -> KeyGenIdentityCheck {
+  const auto delimiters =
+      QObject::tr("Must not contain '(', ')', '<', '>' or control characters.");
+
+  KeyGenIdentityCheck check;
+  const auto n = name.trimmed();
+  if (n.isEmpty()) {
+    check.name = QObject::tr("A name is required.");
+  } else if (!IsValidUserIdComponent(n)) {
+    check.name = delimiters;
+  }
+
+  const auto e = email.trimmed();
+  if (!e.isEmpty() && !IsEmailAddress(e)) {
+    check.email = QObject::tr("This is not a valid email address.");
+  }
+
+  if (!IsValidUserIdComponent(comment.trimmed())) check.comment = delimiters;
+  return check;
 }
 
 }  // namespace GpgFrontend

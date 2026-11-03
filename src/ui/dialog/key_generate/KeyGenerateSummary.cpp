@@ -72,28 +72,6 @@ auto NextKeyGenerateStep(KeyGenerateStep step, bool expert)
   return std::nullopt;
 }
 
-auto CheckKeyGenIdentity(const QString& name, const QString& email,
-                         const QString& comment) -> KeyGenIdentityCheck {
-  const auto delimiters =
-      QObject::tr("Must not contain '(', ')', '<', '>' or control characters.");
-
-  KeyGenIdentityCheck check;
-  const auto n = name.trimmed();
-  if (n.isEmpty()) {
-    check.name = QObject::tr("A name is required.");
-  } else if (!IsValidUserIdComponent(n)) {
-    check.name = delimiters;
-  }
-
-  const auto e = email.trimmed();
-  if (!e.isEmpty() && !IsEmailAddress(e)) {
-    check.email = QObject::tr("This is not a valid email address.");
-  }
-
-  if (!IsValidUserIdComponent(comment.trimmed())) check.comment = delimiters;
-  return check;
-}
-
 auto CanAdvanceKeyGenerate(KeyGenerateStep step, const KeyGenerateState& state)
     -> bool {
   const auto identity_ok =
