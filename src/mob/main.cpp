@@ -49,7 +49,33 @@
 #include "core/GFCoreLog.h"
 #include "core/utils/BuildInfoUtils.h"
 
+#ifdef Q_OS_ANDROID
+#include <sys/system_properties.h>
+#endif
+
 Q_IMPORT_QML_PLUGIN(GpgFrontend_MobilePlugin)
+
+namespace {
+
+/// The log level asked for from outside: GF_LOG_LEVEL, or on Android, where
+/// an application started by the system has neither a command line nor an
+/// environment, the debug.gpgfrontend.log_level property, which adb can set
+/// on any device (`adb shell setprop debug.gpgfrontend.log_level debug`).
+auto RequestedLogLevel() -> QString {
+  auto level = qEnvironmentVariable("GF_LOG_LEVEL");
+#ifdef Q_OS_ANDROID
+  if (level.isEmpty()) {
+    std::array<char, PROP_VALUE_MAX> value{};
+    if (__system_property_get("debug.gpgfrontend.log_level", value.data()) >
+        0) {
+      level = QString::fromLatin1(value.data());
+    }
+  }
+#endif
+  return level;
+}
+
+}  // namespace
 
 auto main(int argc, char* argv[]) -> int {
   using namespace GpgFrontend;
@@ -62,13 +88,10 @@ auto main(int argc, char* argv[]) -> int {
   auto ctx = QSharedPointer<BootContext>::create(argc, argv);
   ctx->gather_external_gnupg_info = false;
 
-  // What `--log-level` is on the desktop: the top layer of the log level. An
-  // application started by the system has no command line, so it is read from
-  // the environment (adb shell setprop / a debugger's launch settings).
+  // What `--log-level` is on the desktop: the top layer of the log level.
   // The desktop's names (trace, debug, info, warn, error); a number, the
   // level's value, as before.
-  if (const auto level = qEnvironmentVariable("GF_LOG_LEVEL");
-      !level.isEmpty()) {
+  if (const auto level = RequestedLogLevel(); !level.isEmpty()) {
     bool numeric = false;
     const auto value = level.toInt(&numeric);
     const auto parsed =
@@ -77,7 +100,7 @@ auto main(int argc, char* argv[]) -> int {
       ctx->cli_log_level = *parsed;
       ApplyLogLevel(*parsed);
     } else {
-      qWarning() << "ignoring unrecognized GF_LOG_LEVEL:" << level;
+      qWarning() << "ignoring unrecognized log level:" << level;
     }
   }
 
