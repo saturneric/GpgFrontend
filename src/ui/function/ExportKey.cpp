@@ -118,12 +118,12 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key, bool secret,
           return;
         }
 
-        if (!data_object->Check<GpgError, GFBuffer>()) return;
+        if (!data_object->Check<GFError, GFBuffer>()) return;
 
-        auto err = ExtractParams<GpgError>(data_object, 0);
+        auto err = ExtractParams<GFError>(data_object, 0);
         auto gf_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+        if (!err.Ok()) {
           RaiseMessageBox(dialog_parent, err);
           return;
         }
