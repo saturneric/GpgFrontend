@@ -103,6 +103,21 @@ struct GF_CORE_EXPORT ProfileLoadError {
   QString actor;
 };
 
+/// What to tell someone about a profile that would not open.
+struct GF_CORE_EXPORT ProfileLoadErrorText {
+  QString title;
+  QString text;
+};
+
+/**
+ * @brief The words for @p error, the same in every interface.
+ *
+ * @return nothing for a failure that needs none: the person backed out, or
+ * declined a reset that was already explained
+ */
+auto GF_CORE_EXPORT DescribeProfileLoadError(const ProfileLoadError &error)
+    -> std::optional<ProfileLoadErrorText>;
+
 /**
  * @brief Why the loader is offering to discard the key.
  */
