@@ -1276,12 +1276,14 @@ jobs:
   # Developer ID key must never share a runner with brew, cargo build scripts,
   # recursive submodules or third-party build actions. The bundle leaves here
   # unsigned and is signed by sign-macos below.
-  # The android flavor's core for arm64-v8a, cross-built with the toolchain the
-  # app will use: Qt 6.10.3 for Android (the oldest open-source Qt whose
-  # Android libraries are 16 KB-page aligned) and NDK r27c. The SDK is the
-  # runner image's own; the NDK is installed at the exact version and Qt with
-  # the pinned install-qt-action the desktop jobs use. It builds and checks the
-  # libraries and runs nothing on a device.
+  # The Android application for arm64-v8a, cross-built with the toolchain it is
+  # released with: Qt 6.10.3 for Android (the oldest open-source Qt whose
+  # Android libraries are 16 KB-page aligned and target API 36), NDK r27c and
+  # JDK 17, as Qt 6.10 documents. The SDK and JDK are the runner image's own;
+  # the NDK is installed at the exact version and Qt with the pinned
+  # install-qt-action the desktop jobs use. It builds the APK, signs it with a
+  # key made for this run only, checks it, and uploads it to install on a
+  # device; it runs nothing on one.
   android-arm64:
     if: ${{ !inputs.screenshot }}
     runs-on: ubuntu-24.04
@@ -1302,7 +1304,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ninja-build autoconf automake libtool
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;${GF_ANDROID_NDK}"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "ndk;${GF_ANDROID_NDK}" "platforms;android-36" "build-tools;36.0.0"
 
       # The action the desktop jobs use (.github/actions/install-qt6), called
       # directly because Android stays on its own Qt version. autodesktop adds
@@ -1324,9 +1327,10 @@ jobs:
           toolchain: stable
           targets: aarch64-linux-android
 
-      - name: Build The Core For arm64-v8a
+      - name: Build The APK
         run: |
           set -euo pipefail
+          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
           ndk="$ANDROID_HOME/ndk/$GF_ANDROID_NDK"
           qt="$RUNNER_TEMP/Qt/$GF_ANDROID_QT"
           "$qt/android_arm64_v8a/bin/qt-cmake" -S . -B build-android -G Ninja \
@@ -1335,6 +1339,7 @@ jobs:
             -DANDROID_SDK_ROOT="$ANDROID_HOME" -DANDROID_NDK_ROOT="$ndk" \
             -DQT_HOST_PATH="$qt/gcc_64"
           cmake --build build-android --parallel
+          cmake --build build-android --target apk
 
       - name: Check The Libraries
         run: |
@@ -1342,17 +1347,34 @@ jobs:
           bin="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
           NM="$bin/llvm-nm" READELF="$bin/llvm-readelf" \
             scripts/check_no_gpgme.sh build-android
-          # A 4 KB-aligned library does not load on a 16 KB-page device.
-          failed=0
-          for so in build-android/artifacts/*.so; do
-            while read -r align; do
-              if (( align < 0x4000 )); then
-                echo "FAIL $so: LOAD segment aligned to $align"
-                failed=1
-              fi
-            done < <("$bin/llvm-readelf" -lW "$so" | awk '$1 == "LOAD" { print $NF }')
-          done
-          exit "$failed"
+
+      # Signed with a key made here and thrown away: installable on a device
+      # for testing, never an update to a released build.
+      - name: Sign And Check The APK
+        run: |
+          set -euo pipefail
+          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
+          bt="$ANDROID_HOME/build-tools/36.0.0"
+          ks="$RUNNER_TEMP/test.keystore"
+          keytool -genkeypair -keystore "$ks" -storepass android -keypass android \
+            -alias test -dname "CN=GpgFrontend CI Test,O=GpgFrontend,C=DE" \
+            -keyalg RSA -keysize 2048 -validity 30
+          in="build-android/src/mob/android-build/build/outputs/apk/release/android-build-release-unsigned.apk"
+          "$bt/apksigner" sign --ks "$ks" --ks-pass pass:android \
+            --key-pass pass:android --out gpgfrontend-android-arm64-test.apk "$in"
+          "$bt/apksigner" verify gpgfrontend-android-arm64-test.apk
+          "$bt/aapt2" dump badging gpgfrontend-android-arm64-test.apk |
+            grep -E "^package|targetSdkVersion"
+          READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            ZIPALIGN="$bt/zipalign" \
+            scripts/android/check-elf-alignment.sh gpgfrontend-android-arm64-test.apk
+
+      - name: Upload The APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gpgfrontend-android-arm64-test
+          path: gpgfrontend-android-arm64-test.apk
+          if-no-files-found: error
 
   build-macos:
     # Nothing of macOS in a screenshot build; sign-macos and macos-smoke
