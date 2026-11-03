@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
-<!-- The desktop's shield on white, inside the adaptive icon's safe zone
-     (66 of 108 dp). Android 12+ also shows it on the launch splash. -->
+<!-- The desktop icon (com.bktus.gpgfrontend.png) as an adaptive icon: its
+     white shield inside the safe zone (66 of 108 dp) on its blue, which the
+     launcher shapes. The shield alone is the themed (monochrome) icon.
+     Android 12+ also shows it on the launch splash. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/gf_launcher_background" />
+    <background android:drawable="@drawable/gf_launcher_background" />
     <foreground android:drawable="@drawable/gf_launcher_foreground" />
+    <monochrome android:drawable="@drawable/gf_launcher_foreground" />
 </adaptive-icon>
