@@ -32,43 +32,38 @@ namespace GpgFrontend {
 
 GpgTOFUInfo::GpgTOFUInfo() = default;
 
-GpgTOFUInfo::GpgTOFUInfo(gpgme_tofu_info_t tofu_info)
-    : tofu_info_ref_(tofu_info) {}
+GpgTOFUInfo::GpgTOFUInfo(GFTofuInfo tofu_info) : info_(std::move(tofu_info)) {}
 
 GpgTOFUInfo::GpgTOFUInfo(const GpgTOFUInfo&) = default;
 
 auto GpgTOFUInfo::operator=(const GpgTOFUInfo&) -> GpgTOFUInfo& = default;
 
-auto GpgTOFUInfo::GetValidity() const -> unsigned {
-  return tofu_info_ref_->validity;
-}
+auto GpgTOFUInfo::GetValidity() const -> unsigned { return info_.validity; }
 
-auto GpgTOFUInfo::GetPolicy() const -> unsigned {
-  return tofu_info_ref_->policy;
-}
+auto GpgTOFUInfo::GetPolicy() const -> unsigned { return info_.policy; }
 
 auto GpgTOFUInfo::GetSignCount() const -> unsigned long {
-  return tofu_info_ref_->signcount;
+  return info_.sign_count;
 }
 
 auto GpgTOFUInfo::GetEncrCount() const -> unsigned long {
-  return tofu_info_ref_->encrcount;
+  return info_.encr_count;
 }
 
 auto GpgTOFUInfo::GetSignFirst() const -> unsigned long {
-  return tofu_info_ref_->signfirst;
+  return info_.sign_first;
 }
 
 auto GpgTOFUInfo::GetSignLast() const -> unsigned long {
-  return tofu_info_ref_->signlast;
+  return info_.sign_last;
 }
 
 auto GpgTOFUInfo::GetEncrLast() const -> unsigned long {
-  return tofu_info_ref_->encrlast;
+  return info_.encr_last;
 }
 
 auto GpgTOFUInfo::GetDescription() const -> QString {
-  return tofu_info_ref_->description;
+  return info_.description;
 }
 
 }  // namespace GpgFrontend

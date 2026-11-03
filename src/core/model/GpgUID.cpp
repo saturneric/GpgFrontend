@@ -28,6 +28,8 @@
 
 #include "core/model/GpgUID.h"
 
+#include "core/function/gpg/GpgModelConvert.h"
+
 namespace GpgFrontend {
 
 GpgUID::GpgUID() = default;
@@ -79,7 +81,7 @@ auto GpgUID::GetTofuInfos() const -> std::unique_ptr<QList<GpgTOFUInfo>> {
 
   auto *info_next = uid_ref_->tofu;
   while (info_next != nullptr) {
-    infos->push_back(GpgTOFUInfo(info_next));
+    infos->push_back(GpgTOFUInfo(ConvertTofuInfo(info_next)));
     info_next = info_next->next;
   }
   return infos;
@@ -91,7 +93,7 @@ auto GpgUID::GetSignatures() const -> std::unique_ptr<QList<GpgKeySignature>> {
 
   auto *sig_next = uid_ref_->signatures;
   while (sig_next != nullptr) {
-    sigs->push_back(GpgKeySignature(sig_next));
+    sigs->push_back(GpgKeySignature(ConvertKeySignature(sig_next)));
     sig_next = sig_next->next;
   }
   return sigs;

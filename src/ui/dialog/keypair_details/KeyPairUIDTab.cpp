@@ -274,7 +274,7 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
       auto* tmp0 = new QTableWidgetItem(sig.GetKeyID());
       sig_list_->setItem(sig_row, 0, tmp0);
 
-      if (gpgme_err_code(sig.GetStatus()) == GPG_ERR_NO_PUBKEY) {
+      if (sig.GetStatus().code == GFErrorCode::kNO_PUBLIC_KEY) {
         auto* tmp2 = new QTableWidgetItem("<Unknown>");
         sig_list_->setItem(sig_row, 1, tmp2);
 

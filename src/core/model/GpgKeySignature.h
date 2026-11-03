@@ -32,7 +32,7 @@
  * @brief
  *
  */
-#include "core/typedef/GpgErrorTypedef.h"
+#include "core/typedef/GFTypedef.h"
 namespace GpgFrontend {
 
 /**
@@ -78,7 +78,7 @@ class GF_CORE_EXPORT GpgKeySignature {
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] auto GetStatus() const -> GpgError;
+  [[nodiscard]] auto GetStatus() const -> GFError;
 
   /**
    * @brief
@@ -153,7 +153,7 @@ class GF_CORE_EXPORT GpgKeySignature {
    *
    * @param sig
    */
-  explicit GpgKeySignature(gpgme_key_sig_t sig);
+  explicit GpgKeySignature(GFKeySignature sig);
 
   /**
    * @brief Construct a new Gpg Key Signature object
@@ -169,7 +169,7 @@ class GF_CORE_EXPORT GpgKeySignature {
   auto operator=(const GpgKeySignature &) -> GpgKeySignature &;
 
  private:
-  gpgme_key_sig_t signature_ref_ = nullptr;  ///<
+  GFKeySignature sig_;
 };
 
 }  // namespace GpgFrontend

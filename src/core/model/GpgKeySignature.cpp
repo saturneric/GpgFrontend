@@ -34,60 +34,42 @@ GpgKeySignature::GpgKeySignature() = default;
 
 GpgKeySignature::~GpgKeySignature() = default;
 
-GpgKeySignature::GpgKeySignature(gpgme_key_sig_t sig) : signature_ref_(sig) {}
+GpgKeySignature::GpgKeySignature(GFKeySignature sig) : sig_(std::move(sig)) {}
 
 GpgKeySignature::GpgKeySignature(const GpgKeySignature &) = default;
 auto GpgKeySignature::operator=(const GpgKeySignature &) -> GpgKeySignature & =
                                                                 default;
 
-auto GpgKeySignature::IsRevoked() const -> bool {
-  return signature_ref_->revoked;
-}
+auto GpgKeySignature::IsRevoked() const -> bool { return sig_.revoked; }
 
-auto GpgKeySignature::IsExpired() const -> bool {
-  return signature_ref_->expired;
-}
+auto GpgKeySignature::IsExpired() const -> bool { return sig_.expired; }
 
-auto GpgKeySignature::IsInvalid() const -> bool {
-  return signature_ref_->invalid;
-}
+auto GpgKeySignature::IsInvalid() const -> bool { return sig_.invalid; }
 
-auto GpgKeySignature::IsExportable() const -> bool {
-  return signature_ref_->exportable;
-}
+auto GpgKeySignature::IsExportable() const -> bool { return sig_.exportable; }
 
-auto GpgKeySignature::GetStatus() const -> gpgme_error_t {
-  return signature_ref_->status;
-}
+auto GpgKeySignature::GetStatus() const -> GFError { return sig_.status; }
 
-auto GpgKeySignature::GetKeyID() const -> QString {
-  return signature_ref_->keyid;
-}
+auto GpgKeySignature::GetKeyID() const -> QString { return sig_.key_id; }
 
 auto GpgKeySignature::GetPubkeyAlgo() const -> QString {
-  return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
+  return sig_.pubkey_algo;
 }
 
 auto GpgKeySignature::GetCreateTime() const -> QDateTime {
-  return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
+  return QDateTime::fromSecsSinceEpoch(sig_.created);
 }
 
 auto GpgKeySignature::GetExpireTime() const -> QDateTime {
-  return QDateTime::fromSecsSinceEpoch(signature_ref_->expires);
+  return QDateTime::fromSecsSinceEpoch(sig_.expires);
 }
 
-auto GpgKeySignature::GetUID() const -> QString { return signature_ref_->uid; }
+auto GpgKeySignature::GetUID() const -> QString { return sig_.uid; }
 
-auto GpgKeySignature::GetName() const -> QString {
-  return signature_ref_->name;
-}
+auto GpgKeySignature::GetName() const -> QString { return sig_.name; }
 
-auto GpgKeySignature::GetEmail() const -> QString {
-  return signature_ref_->email;
-}
+auto GpgKeySignature::GetEmail() const -> QString { return sig_.email; }
 
-auto GpgKeySignature::GetComment() const -> QString {
-  return signature_ref_->comment;
-}
+auto GpgKeySignature::GetComment() const -> QString { return sig_.comment; }
 
 }  // namespace GpgFrontend

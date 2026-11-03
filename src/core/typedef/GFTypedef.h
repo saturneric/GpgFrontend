@@ -177,6 +177,36 @@ struct GFKey {
   GFKeyBlocks blocks;
 };
 
+/// A certification of a user ID, as listed with its key.
+struct GFKeySignature {
+  bool revoked = false;
+  bool expired = false;
+  bool invalid = false;
+  bool exportable = false;
+  GFError status;
+  QString key_id;
+  QString pubkey_algo;
+  qint64 created = 0;  ///< seconds since the epoch
+  qint64 expires = 0;  ///< seconds since the epoch, 0 for never
+  QString uid;
+  QString name;
+  QString email;
+  QString comment;
+};
+
+/// What GnuPG's trust-on-first-use database records for a user ID. Validity
+/// and policy are GnuPG's own numbers.
+struct GFTofuInfo {
+  unsigned validity = 0;
+  unsigned policy = 0;
+  unsigned long sign_count = 0;
+  unsigned long encr_count = 0;
+  unsigned long sign_first = 0;
+  unsigned long sign_last = 0;
+  unsigned long encr_last = 0;
+  QString description;
+};
+
 /// How far a signature, or a key, is trusted.
 enum class GpgValidity : std::uint8_t {
   kUNKNOWN,

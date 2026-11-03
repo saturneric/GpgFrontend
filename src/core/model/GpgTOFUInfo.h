@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <gpgme.h>
+#include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
 /**
@@ -103,7 +103,7 @@ class GF_CORE_EXPORT GpgTOFUInfo {
    *
    * @param tofu_info
    */
-  explicit GpgTOFUInfo(gpgme_tofu_info_t tofu_info);
+  explicit GpgTOFUInfo(GFTofuInfo tofu_info);
 
   /**
    * @brief Construct a new Gpg T O F U Info object
@@ -119,7 +119,7 @@ class GF_CORE_EXPORT GpgTOFUInfo {
   auto operator=(const GpgTOFUInfo&) -> GpgTOFUInfo&;
 
  private:
-  gpgme_tofu_info_t tofu_info_ref_ = nullptr;  ///<
+  GFTofuInfo info_;
 };
 
 }  // namespace GpgFrontend

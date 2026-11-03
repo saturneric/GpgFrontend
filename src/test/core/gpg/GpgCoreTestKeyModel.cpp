@@ -197,7 +197,7 @@ TEST_F(GpgCoreTest, GpgKeySignatureTest) {
 
   ASSERT_FALSE(signature.IsRevoked());
   ASSERT_FALSE(signature.IsInvalid());
-  ASSERT_EQ(CheckGpgError(signature.GetStatus()), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(signature.GetStatus().Ok());
   ASSERT_EQ(signature.GetUID(),
             "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
 }

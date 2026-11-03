@@ -152,7 +152,7 @@ TEST_F(RpgpCoreTest, GpgKeySignatureTest) {
 
     ASSERT_FALSE(signature.IsRevoked());
     ASSERT_FALSE(signature.IsInvalid());
-    ASSERT_EQ(CheckGpgError(signature.GetStatus()), GPG_ERR_NO_ERROR);
+    ASSERT_TRUE(signature.GetStatus().Ok());
   }
 }
 
