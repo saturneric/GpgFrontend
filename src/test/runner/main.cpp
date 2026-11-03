@@ -114,7 +114,13 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   ctx->gather_external_gnupg_info = false;
-  ctx->unit_test_mode = true;
+  // The core's unit-test mode, as the tests expect, unless
+  // GF_TEST_AS_APPLICATION=1: then the core starts exactly as the application
+  // does, key databases from the profile's settings included. The profile
+  // interop stages (scripts/run_interop.sh) run that way, against a profile
+  // another build wrote.
+  ctx->unit_test_mode =
+      qEnvironmentVariableIntValue("GF_TEST_AS_APPLICATION") != 1;
   GpgFrontend::InitGlobalBasicEnvSync(ctx);
 
   ctx->rtn = GpgFrontend::kNonRestartCode;

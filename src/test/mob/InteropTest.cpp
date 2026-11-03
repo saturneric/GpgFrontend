@@ -128,4 +128,10 @@ TEST(ProfileInteropTest, DISABLED_MobileReadsTheReply) {
   EXPECT_TRUE(GoodSignature(result));
 }
 
+TEST(ProfileInteropTest, DISABLED_MobileOpensADesktopProfile) {
+  // The desktop made this profile and never stored an engine: its default
+  // keyring keeps the desktop's choice. The phone records nothing in it.
+  EXPECT_FALSE(GetSettings().contains(SettingItems::kDefaultEngine.Key()));
+}
+
 }  // namespace GpgFrontend::Test::Mobile
