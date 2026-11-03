@@ -202,37 +202,6 @@ auto PrintEnvInfo() -> int {
   return 0;
 }
 
-void ApplyLogLevel(int level) {
-  SetGFLogLevel(level);
-  QLoggingCategory::setFilterRules(BuildQtLoggingFilterRules(level));
-
-  // env_logger level name for the Rust (rPGP) crate, propagated via RUST_LOG
-  // and read by gfr_init_logger() at core init. A RUST_LOG already set by the
-  // user wins.
-  const char* rust_level;
-  switch (static_cast<GFLogLevel>(level)) {
-    case GFLogLevel::kTRACE:
-      rust_level = "trace";
-      break;
-    case GFLogLevel::kDEBUG:
-      rust_level = "debug";
-      break;
-    case GFLogLevel::kINFO:
-      rust_level = "info";
-      break;
-    case GFLogLevel::kWARNING:
-      rust_level = "warn";
-      break;
-    default:
-      rust_level = "error";
-      break;
-  }
-
-  if (!qEnvironmentVariableIsSet("RUST_LOG")) {
-    qputenv("RUST_LOG", rust_level);
-  }
-}
-
 #ifdef GF_BUILD_TESTS
 auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   GpgFrontend::GFCxtSPtr const ctx = p_ctx.lock();

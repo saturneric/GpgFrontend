@@ -54,7 +54,7 @@
 #include <cstring>
 #include <tuple>
 
-#include "Initialize.h"
+#include "boot/Initialize.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
@@ -65,6 +65,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "platform/common/PlatformRelaunch.h"
 #include "screenshot/ScreenshotCapture.h"
 #include "screenshot/ScreenshotEnv.h"
 #include "screenshot/ScreenshotOptions.h"
@@ -860,7 +861,7 @@ auto RunScreenshotMode(const GFCxtSPtr& ctx, const QCommandLineParser& parser)
 
   ctx->gather_external_gnupg_info = false;
   ctx->unit_test_mode = false;
-  InitGlobalBasicEnv(ctx, true);
+  InitGlobalBasicEnv(ctx, &UI::PreInitGpgFrontendUI);
   Module::UpsertRTValue(
       "core", kFixedClockRTKey,
       static_cast<qint64>(run.options.clock.toSecsSinceEpoch()));
@@ -919,7 +920,7 @@ auto RunScreenshotMode(const GFCxtSPtr& ctx, const QCommandLineParser& parser)
   // Anything but a deep restart or the crash default, which would make
   // shutdown relaunch this very command line.
   ctx->rtn = rtn;
-  ShutdownGlobalBasicEnv(ctx);
+  ShutdownGlobalBasicEnv(ctx, &UI::RelaunchApplication);
   KillAgents(run);
   return rtn;
 }

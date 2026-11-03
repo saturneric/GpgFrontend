@@ -35,16 +35,18 @@
 #include "Application.h"
 #include "Command.h"
 #include "GpgFrontendContext.h"
-#include "Initialize.h"
+#include "boot/BootLog.h"
+#include "boot/Initialize.h"
 #include "core/GFCoreLog.h"
 #include "core/module/ModuleStatusReport.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
-#include "platform/common/PlatformSecretStore.h"
+#include "platform/common/PlatformRelaunch.h"
 #include "res/GpgFrontendResource.h"
 #include "sdk/host/GFHostImpl.h"
+#include "ui/GpgFrontendUIInit.h"
 #include "ui/function/GuiProfileLoaderDelegate.h"
 
 #ifdef GF_SCREENSHOT_MODE
@@ -77,8 +79,7 @@ auto main(int argc, char* argv[]) -> int {
   // create qt core application, and work out which profile was asked for
   ctx->InitApplication();
 
-  const auto* app = ctx->GetApp();
-  Q_ASSERT(app != nullptr);
+  Q_ASSERT(ctx->GetApp() != nullptr);
 
   QCommandLineParser parser;
   parser.addHelpOption();
@@ -156,39 +157,19 @@ auto main(int argc, char* argv[]) -> int {
     return 1;
   }
 
-  // Everything below this line is keyed by the profile: its settings, its log
-  // directory, its key material. So the profile is mounted first (the lock
-  // taken, a package extracted), and only then is anything read.
   GpgFrontend::UI::GuiProfileLoaderDelegate delegate;
 #ifdef GF_SCREENSHOT_MODE
-  GpgFrontend::ProfileLoader loader(
-      GpgFrontend::Screenshot::MakeScreenshotProfile(ctx->profile_selection,
-                                                     parser),
-      &delegate);
+  const auto profile = GpgFrontend::Screenshot::MakeScreenshotProfile(
+      ctx->profile_selection, parser);
 #else
-  GpgFrontend::ProfileLoader loader(
-      GpgFrontend::MakeProfile(ctx->profile_selection), &delegate);
+  const auto profile = GpgFrontend::MakeProfile(ctx->profile_selection);
 #endif
 
-  if (!loader.Mount(GpgFrontend::GetAppProfileSchemaVersion())) return 1;
-
-  ctx->LoadEnvProperties();
-
-  // do some early init, now that the log has somewhere to write and the
-  // properties it reads have been resolved against the right profile
-  GpgFrontend::PreInit(ctx);
-
-  // Installed before the -e early return so that environment information can
-  // report the credential store. Safe this early: on every platform this only
-  // loads a library and registers, never probing the store, so it cannot raise
-  // a keyring unlock prompt from a command that just prints to stdout.
-  GpgFrontend::InstallPlatformSecretStore();
-
-  // The compatibility gate, the migrations and the key set. Everything that
-  // needs a human goes through the delegate.
-  const auto secure_level = app->property("GFSecureLevel").toInt();
-  if (!loader.Open(GpgFrontend::GetAppProfileSchemaVersion(),
-                   secure_level >= 3)) {
+  if (!GpgFrontend::OpenProfile(ctx, profile, delegate)) {
+    if (!ctx->fatal_error.isEmpty()) {
+      QMessageBox::critical(nullptr, "Initialization Failed", ctx->fatal_error);
+      std::_Exit(1);
+    }
     return 1;
   }
 
@@ -217,7 +198,7 @@ auto main(int argc, char* argv[]) -> int {
     ctx->gather_external_gnupg_info = false;
     ctx->unit_test_mode = true;
 
-    InitGlobalBasicEnvSync(ctx);
+    InitGlobalBasicEnvSync(ctx, &GpgFrontend::UI::PreInitGpgFrontendUI);
 
     // Startup returns before the module task runner has finished; asking now
     // reports zeros, which reads exactly like a build whose modules are all
@@ -248,7 +229,7 @@ auto main(int argc, char* argv[]) -> int {
       }
     }
 
-    ShutdownGlobalBasicEnv(ctx);
+    ShutdownGlobalBasicEnv(ctx, &GpgFrontend::UI::RelaunchApplication);
     return rtn;
   }
 
@@ -257,9 +238,9 @@ auto main(int argc, char* argv[]) -> int {
     ctx->gather_external_gnupg_info = false;
     ctx->unit_test_mode = true;
 
-    InitGlobalBasicEnvSync(ctx);
+    InitGlobalBasicEnvSync(ctx, &GpgFrontend::UI::PreInitGpgFrontendUI);
     rtn = RunTest(ctx);
-    ShutdownGlobalBasicEnv(ctx);
+    ShutdownGlobalBasicEnv(ctx, &GpgFrontend::UI::RelaunchApplication);
     return rtn;
   }
 #endif
@@ -267,9 +248,9 @@ auto main(int argc, char* argv[]) -> int {
   ctx->gather_external_gnupg_info = true;
   ctx->unit_test_mode = false;
 
-  InitGlobalBasicEnv(ctx, true);
+  InitGlobalBasicEnv(ctx, &GpgFrontend::UI::PreInitGpgFrontendUI);
 
   rtn = StartApplication(ctx);
-  ShutdownGlobalBasicEnv(ctx);
+  ShutdownGlobalBasicEnv(ctx, &GpgFrontend::UI::RelaunchApplication);
   return rtn;
 }

@@ -64,6 +64,7 @@ add_custom_target(gf_module_trust_root
   DEPENDS "${GF_MODULE_TRUST_ROOT_SOURCE}")
 
 add_subdirectory(core)
+add_subdirectory(boot)
 add_subdirectory(ui)
 add_subdirectory(sdk)
 add_subdirectory(tools)
@@ -221,7 +222,7 @@ if(MINGW)
 endif()
 
 # link options for GpgFrontend
-target_link_libraries(${APP_NAME} gf_core gf_ui gf_res)
+target_link_libraries(${APP_NAME} gf_core gf_boot gf_ui gf_res)
 
 if(GPGFRONTEND_BUILD_TESTS)
   target_link_libraries(${APP_NAME} gf_test)
@@ -246,25 +247,7 @@ target_link_libraries(${APP_NAME} gf_host_api)
 # link OpenSSL for secure mechanism
 target_link_libraries(${APP_NAME} sodium)
 
-# the system keychain backends, picked per platform
-include(${CMAKE_SOURCE_DIR}/src/platform/PlatformSources.cmake)
-target_sources(${APP_NAME} PRIVATE ${GF_PLATFORM_APP_SOURCES})
-
-if(MINGW OR WIN32)
-  message(STATUS "Link Application Library For Windows")
-  # Advapi32 provides the Credential Manager API (CredReadW and friends).
-  target_link_libraries(${APP_NAME} Advapi32)
-elseif(APPLE)
-  message(STATUS "Link Application Library For macOS")
-  find_library(SECURITY_FRAMEWORK Security REQUIRED)
-  find_library(COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
-  target_link_libraries(${APP_NAME}
-    ${SECURITY_FRAMEWORK}
-    ${COREFOUNDATION_FRAMEWORK}
-  )
-else()
-  message(STATUS "Link Application Library For Linux")
-  # libsecret is resolved at runtime through QLibrary, so nothing to link.
+if(NOT (MINGW OR WIN32 OR APPLE))
   target_link_libraries(${APP_NAME} pthread)
 endif()
 

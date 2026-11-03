@@ -36,23 +36,6 @@ namespace GpgFrontend {
  * @brief
  *
  * @param level
- */
-void SetGFLogLevel(int level);
-
-/**
- * @brief
- *
- * @param type
- * @param context
- * @param msg
- */
-void GFMessageHandler(QtMsgType type, const QMessageLogContext& context,
-                      const QString& msg);
-
-/**
- * @brief
- *
- * @param level
  * @return QString
  */
 auto BuildQtLoggingFilterRules(int level) -> QString;

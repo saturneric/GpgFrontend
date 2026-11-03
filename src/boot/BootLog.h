@@ -28,47 +28,35 @@
 
 #pragma once
 
-#include "GpgFrontendContext.h"
-
 namespace GpgFrontend {
 
 /**
  * @brief
  *
- * @param p_ctx
+ * @param level
  */
-void PreInit(const GFCxtWPtr &p_ctx);
-
-/**
- * @brief init global PATH env
- *
- */
-void InitGlobalPathEnv();
+void SetGFLogLevel(int level);
 
 /**
  * @brief
  *
+ * @param type
+ * @param context
+ * @param msg
  */
-void InitLocale();
+void GFMessageHandler(QtMsgType type, const QMessageLogContext& context,
+                      const QString& msg);
 
 /**
- * @brief
+ * @brief Put a log level into effect, for both loggers.
  *
- * @param args
+ * The Qt filter rules, the C++ level and the Rust crate's RUST_LOG all follow
+ * from one number, so they are set in one place: they were previously set at
+ * two call sites that had drifted, which is why a level coming from the
+ * settings never reached the Rust logger at all.
+ *
+ * @param level the GFLogLevel to apply
  */
-void InitGlobalBasicEnv(const GFCxtWPtr &, bool);
+void ApplyLogLevel(int level);
 
-/**
- * @brief
- *
- * @param p_ctx
- */
-void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx);
-
-/**
- * @brief
- *
- * @param p_ctx
- */
-void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
 }  // namespace GpgFrontend

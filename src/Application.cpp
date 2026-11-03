@@ -34,85 +34,9 @@
 
 // main
 #include "GpgFrontendContext.h"
-#include "Initialize.h"
-
-namespace {
-
-std::atomic<int> g_log_level{static_cast<int>(GpgFrontend::GFLogLevel::kINFO)};
-
-auto ShouldLogMessage(QtMsgType type, GpgFrontend::GFLogLevel level) -> bool {
-  switch (level) {
-    // Trace rides on QtDebugMsg and is separated from debug by its own Qt
-    // category, not by this gate -- so the gate must let it through here, or
-    // the most verbose level would be the one that silences it.
-    case GpgFrontend::GFLogLevel::kTRACE:
-    case GpgFrontend::GFLogLevel::kDEBUG:
-      return true;
-
-    case GpgFrontend::GFLogLevel::kINFO:
-      return type != QtDebugMsg;
-
-    case GpgFrontend::GFLogLevel::kWARNING:
-      return type != QtDebugMsg && type != QtInfoMsg;
-
-    case GpgFrontend::GFLogLevel::kCRITICAL:
-      return type == QtCriticalMsg || type == QtFatalMsg;
-
-    case GpgFrontend::GFLogLevel::kFATAL:
-      return type == QtFatalMsg;
-
-    default:
-      return type != QtDebugMsg;
-  }
-}
-
-}  // namespace
+#include "boot/Initialize.h"
 
 namespace GpgFrontend {
-
-void SetGFLogLevel(int level) {
-  g_log_level.store(level, std::memory_order_relaxed);
-}
-
-void GFMessageHandler(QtMsgType type, const QMessageLogContext& context,
-                      const QString& msg) {
-  const auto level =
-      static_cast<GFLogLevel>(g_log_level.load(std::memory_order_relaxed));
-
-  if (!ShouldLogMessage(type, level)) {
-    return;
-  }
-
-  const QString formatted = qFormatLogMessage(type, context, msg);
-
-  GFLogEntry entry;
-  entry.timestamp = QDateTime::currentDateTime();
-  entry.type = type;
-  entry.category =
-      QString::fromUtf8((context.category != nullptr) ? context.category : "");
-  entry.file = QString::fromUtf8((context.file != nullptr) ? context.file : "");
-  entry.line = context.line;
-  entry.function =
-      QString::fromUtf8((context.function != nullptr) ? context.function : "");
-  entry.formatted_message = formatted;
-  entry.raw_message = msg;
-
-  GFLogManager::Instance().Push(entry);
-
-#ifdef Q_OS_WINDOWS
-  QByteArray local = formatted.toLocal8Bit();
-  fprintf(stdout, "%s\n", local.constData());
-  fflush(stdout);
-#else
-  QByteArray local = formatted.toLocal8Bit();
-  fprintf(stderr, "%s\n", local.constData());
-  fflush(stderr);
-#endif
-
-  if (type == QtFatalMsg) {
-    abort();
-  }
-}
 
 auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   GFCxtSPtr ctx = p_ctx.lock();

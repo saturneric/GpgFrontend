@@ -372,7 +372,7 @@ endfunction()
 # the capability table and stateless; gf_module_runtime owns the per-module
 # runtime state. Neither can reach the host except through GFHostApi, and the
 # same check below is applied to them so that stays true.
-set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_host_api gf_test)
+set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_boot gf_ui gf_host_api gf_test)
 
 # The capability vocabulary, in the two kinds it really has. Must agree with
 # src/core/module/ModuleCapability.cpp, which is the Host's copy; a test

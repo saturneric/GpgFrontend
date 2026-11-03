@@ -36,18 +36,6 @@ namespace GpgFrontend {
 
 auto PrintVersion() -> int;
 
-/**
- * @brief Put a log level into effect, for both loggers.
- *
- * The Qt filter rules, the C++ level and the Rust crate's RUST_LOG all follow
- * from one number, so they are set in one place: they were previously set at
- * two call sites that had drifted, which is why a level coming from the
- * settings never reached the Rust logger at all.
- *
- * @param level the GFLogLevel to apply
- */
-void ApplyLogLevel(int level);
-
 #ifdef GF_BUILD_TESTS
 auto RunTest(const GFCxtWPtr&) -> int;
 #endif

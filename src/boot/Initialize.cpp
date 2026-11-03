@@ -26,7 +26,7 @@
  *
  */
 
-#include "Initialize.h"
+#include "boot/Initialize.h"
 
 #include <sodium.h>
 
@@ -44,25 +44,24 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "platform/common/PlatformRelaunch.h"
-#include "ui/GpgFrontendUIInit.h"
+#include "core/utils/BuildInfoUtils.h"
+#include "platform/common/PlatformSecretStore.h"
 
-// main
-#include "Application.h"
-#include "Command.h"
-#include "GpgFrontendContext.h"
+// boot
+#include "boot/BootLog.h"
 
 namespace GpgFrontend {
 
 namespace {}  // namespace
 
-void PreInit(const GFCxtWPtr &p_ctx) {
-  GFCxtSPtr ctx = p_ctx.lock();
-  if (ctx == nullptr) return;
+auto PreInit(const BootCxtWPtr &p_ctx) -> bool {
+  BootCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) return false;
 
-  auto *app = ctx->GetApp();
+  auto *app = qApp;
 
   const int ring_capacity =
       app->property("GFLogRingBufferCapacity").toInt() > 0
@@ -75,13 +74,11 @@ void PreInit(const GFCxtWPtr &p_ctx) {
   if (sodium_init() < 0) {
     qCritical() << "Failed to initialize libsodium.";
 
-    QMessageBox::critical(
-        nullptr, "Initialization Failed",
-        QString("Failed to initialize libsodium.\n"
-                "Secure random generation and local encryption are not "
-                "available."));
-
-    std::_Exit(1);
+    ctx->fatal_error = QString(
+        "Failed to initialize libsodium.\n"
+        "Secure random generation and local encryption are not "
+        "available.");
+    return false;
   }
 
   // The resolved level, `--log-level` included. Through the same applier the
@@ -102,6 +99,38 @@ void PreInit(const GFCxtWPtr &p_ctx) {
       "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
       "%{message}");
 #endif
+
+  return true;
+}
+
+auto OpenProfile(const BootCxtWPtr &p_ctx,
+                 const QSharedPointer<Profile> &profile,
+                 ProfileLoaderDelegate &delegate) -> bool {
+  BootCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) return false;
+
+  // Everything below this line is keyed by the profile: its settings, its log
+  // directory, its key material. So the profile is mounted first (the lock
+  // taken, a package extracted), and only then is anything read.
+  ProfileLoader loader(profile, &delegate);
+  if (!loader.Mount(GetAppProfileSchemaVersion())) return false;
+
+  ctx->LoadEnvProperties();
+
+  // do some early init, now that the log has somewhere to write and the
+  // properties it reads have been resolved against the right profile
+  if (!PreInit(ctx)) return false;
+
+  // Installed before anything reports environment information, so that it can
+  // name the credential store. Safe this early: on every platform this only
+  // loads a library and registers, never probing the store, so it cannot raise
+  // a keyring unlock prompt from a command that just prints to stdout.
+  InstallPlatformSecretStore();
+
+  // The compatibility gate, the migrations and the key set. Everything that
+  // needs a human goes through the delegate.
+  const auto secure_level = qApp->property("GFSecureLevel").toInt();
+  return loader.Open(GetAppProfileSchemaVersion(), secure_level >= 3);
 }
 
 void InitGlobalPathEnv() {
@@ -150,8 +179,9 @@ void InitGpgFrontendCoreAsync(CoreInitArgs core_init_args) {
           "core_init_task"));
 }
 
-void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
-  GFCxtSPtr ctx = p_ctx.lock();
+void InitGlobalBasicEnv(const BootCxtWPtr &p_ctx,
+                        const std::function<void()> &before_core) {
+  BootCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) return;
 
   // Start rotating file logging as early as possible. The settings station
@@ -179,8 +209,9 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   Module::UpsertRTValue("core", "env.state.unit_test_mode",
                         ctx->unit_test_mode ? 1 : 0);
 
-  // then preload ui
-  UI::PreInitGpgFrontendUI();
+  // then whatever the program needs in place before the core starts, such as
+  // the desktop's preloaded interface
+  if (before_core) before_core();
 
   CoreInitArgs core_init_args;
   core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;
@@ -224,12 +255,13 @@ void InitLocale() {
   QLocale::setDefault(target_locale);
 }
 
-void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx) {
+void InitGlobalBasicEnvSync(const BootCxtWPtr &p_ctx,
+                            const std::function<void()> &before_core) {
   QEventLoop loop;
   QCoreApplication::connect(CoreSignalStation::GetInstance(),
                             &CoreSignalStation::SignalGoodGnupgEnv, &loop,
                             &QEventLoop::quit);
-  InitGlobalBasicEnv(p_ctx, false);
+  InitGlobalBasicEnv(p_ctx, before_core);
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
@@ -258,6 +290,7 @@ std::atomic<bool> g_relaunch_pending = false;
 std::atomic<bool> g_relaunch_done = false;
 QString g_relaunch_program;   // NOLINT(*-avoid-non-const-global-variables)
 QStringList g_relaunch_args;  // NOLINT(*-avoid-non-const-global-variables)
+RelaunchFunction g_relaunch;  // NOLINT(*-avoid-non-const-global-variables)
 
 /// Same reason as the relaunch guard above: the session tree is deleted from
 /// whichever of the two shutdown paths gets there first, and only once.
@@ -275,9 +308,9 @@ void PerformDeepRestartRelaunch() {
   bool expected = false;
   if (!g_relaunch_done.compare_exchange_strong(expected, true)) return;
 
-  if (g_relaunch_program.isEmpty()) return;
+  if (g_relaunch_program.isEmpty() || !g_relaunch) return;
 
-  GpgFrontend::UI::RelaunchApplication(g_relaunch_program, g_relaunch_args);
+  g_relaunch(g_relaunch_program, g_relaunch_args);
 }
 
 /**
@@ -336,11 +369,15 @@ void ArmShutdownWatchdog(int timeout_ms) {
 
 }  // namespace
 
-void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
-  GFCxtSPtr ctx = p_ctx.lock();
+void ShutdownGlobalBasicEnv(const BootCxtWPtr &p_ctx,
+                            const RelaunchFunction &relaunch) {
+  BootCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
   }
+
+  // Before the watchdog can start: it relaunches through this too.
+  g_relaunch = relaunch;
 
   // Capture relaunch parameters now, on the main thread and while qApp is still
   // valid, so a pending deep restart can be honoured even if teardown wedges
