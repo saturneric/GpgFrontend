@@ -35,6 +35,7 @@
 #include "GpgFrontendTest.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SettingCatalog.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/KeyDatabaseRuntime.h"
@@ -3023,5 +3024,30 @@ TEST(RecycledKeyDatabaseTest, AJunctionInDbsIsNeitherListedNorDeleted) {
   EXPECT_EQ(ReadSentinel(root.path() + "/outside"), "not ours");
 }
 #endif
+
+}  // namespace GpgFrontend::Test
+
+namespace GpgFrontend::Test {
+
+TEST(DefaultEngineRecordTest, OnlyARpgpOnlyBuildsNewProfileRecordsIt) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+  const auto key = SettingItems::kDefaultEngine.Key();
+
+  // A build with GnuPG, or a profile made elsewhere: nothing is written.
+  EXPECT_FALSE(RecordDefaultEngineOfNewProfile(settings, true, true));
+  EXPECT_FALSE(RecordDefaultEngineOfNewProfile(settings, false, false));
+  EXPECT_FALSE(settings.contains(key));
+
+  // An rPGP-only build that created it: its keyring is rPGP's.
+  EXPECT_TRUE(RecordDefaultEngineOfNewProfile(settings, true, false));
+  EXPECT_EQ(SettingItems::kDefaultEngine.Read(settings), QString("RPGP"));
+
+  // A stored choice is never replaced.
+  SettingItems::kDefaultEngine.Write(settings, QStringLiteral("GNUPG"));
+  EXPECT_FALSE(RecordDefaultEngineOfNewProfile(settings, true, false));
+  EXPECT_EQ(SettingItems::kDefaultEngine.Read(settings), QString("GNUPG"));
+}
 
 }  // namespace GpgFrontend::Test

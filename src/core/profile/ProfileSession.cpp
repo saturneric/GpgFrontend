@@ -113,6 +113,10 @@ void ProfileSession::attach_keys(QSharedPointer<ProfileSecureKeyManager> keys) {
 
 auto ProfileSession::Marker() const -> const ProfileMarker& { return marker_; }
 
+auto ProfileSession::CreatedThisRun() const -> bool {
+  return created_this_run_;
+}
+
 void ProfileSession::reload_marker() {
   marker_ = ReadProfileMarker(profile_->MarkerPath()).value_or(ProfileMarker{});
 }

@@ -408,8 +408,10 @@ void ProfileLoader::ensure_identity() {
   // than one that collides with the credential entry the old one left behind.
   // It has to exist before the key file is opened, because the credential
   // account is derived from it.
-  session_->UpdateMarker([](ProfileMarker& marker) {
+  bool minted = false;
+  session_->UpdateMarker([&minted](ProfileMarker& marker) {
     if (!marker.profile_uuid.isEmpty()) return;
+    minted = true;
 
     marker.profile_uuid =
         QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
@@ -422,6 +424,7 @@ void ProfileLoader::ensure_identity() {
       marker.profile = GetAppProfileName();
     }
   });
+  session_->created_this_run_ = minted;
 }
 
 void ProfileLoader::stamp_marker() {

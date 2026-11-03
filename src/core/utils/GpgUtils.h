@@ -1074,6 +1074,22 @@ auto GF_CORE_EXPORT ChooseKeyDatabaseEngine(const QString& backend_type,
     -> EngineChoice;
 
 /**
+ * @brief Record, in a profile this run created, that its default keyring is
+ * rPGP's when this build has no GnuPG engine.
+ *
+ * Such a build -- the phone among them -- keeps its default keyring with
+ * rPGP. Unrecorded, a desktop opening the profile would read the setting's
+ * default (GnuPG) and open that keyring with the wrong engine. Recorded once,
+ * where nothing else chose yet: a profile made elsewhere keeps its engine,
+ * stored or not, and a stored value is never replaced.
+ *
+ * @return whether the setting was written
+ */
+auto GF_CORE_EXPORT RecordDefaultEngineOfNewProfile(QSettings& settings,
+                                                    bool created_this_run,
+                                                    bool gnupg_built) -> bool;
+
+/**
  * @brief Pick the engine for whichever database ends up in channel 0.
  *
  * Channel 0 is a position, not an identity: the databases that do not resolve

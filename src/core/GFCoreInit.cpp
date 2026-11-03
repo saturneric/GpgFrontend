@@ -54,6 +54,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -518,6 +519,17 @@ auto BuildOpenPGPContext(int channel, OpenPGPContextInitArgs args) -> bool {
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   InstallKeyDatabaseRuntimeReclaimer();
+
+  // A profile an rPGP-only build has just created says so, for whichever
+  // build opens it next.
+  if (ProfileSession::Loaded()) {
+    auto settings = GetSettings();
+    if (RecordDefaultEngineOfNewProfile(
+            settings, ProfileSession::Instance().CreatedThisRun(),
+            GF_ENGINE_GNUPG != 0)) {
+      LOG_I() << "recorded the default engine in the new profile: RPGP";
+    }
+  }
 
   // A restart in the same process follows a shutdown that closed them.
   PassphraseService::ReopenPrompts();

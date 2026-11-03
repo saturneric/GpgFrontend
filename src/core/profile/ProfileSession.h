@@ -112,6 +112,14 @@ class GF_CORE_EXPORT ProfileSession {
   [[nodiscard]] auto Marker() const -> const ProfileMarker &;
 
   /**
+   * @brief Whether this process created the profile.
+   *
+   * True when the loader minted the profile's identity in this run: nothing
+   * opened it before, so nothing in it is another build's choice yet.
+   */
+  [[nodiscard]] auto CreatedThisRun() const -> bool;
+
+  /**
    * @brief Change the marker and write it back.
    *
    * Read-modify-write against what is on disk rather than against the cached
@@ -182,6 +190,7 @@ class GF_CORE_EXPORT ProfileSession {
   QSharedPointer<ProfileAccessor> accessor_;
   QSharedPointer<ProfileSecureKeyManager> keys_;
   ProfileMarker marker_;
+  bool created_this_run_ = false;
   std::atomic<bool> unloaded_ = false;
 };
 

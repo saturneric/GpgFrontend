@@ -1418,6 +1418,14 @@ auto KeyDatabaseDisplayName(const QString& database_id,
   return stored_name;
 }
 
+auto RecordDefaultEngineOfNewProfile(QSettings& settings, bool created_this_run,
+                                     bool gnupg_built) -> bool {
+  if (!created_this_run || gnupg_built) return false;
+  if (settings.contains(SettingItems::kDefaultEngine.Key())) return false;
+  SettingItems::kDefaultEngine.Write(settings, QStringLiteral("RPGP"));
+  return true;
+}
+
 auto ChooseChannelZeroEngine(const QString& db_name,
                              const QString& backend_type,
                              const QString& default_engine,
