@@ -297,13 +297,24 @@ BIN="$BUILD_DIR/artifacts/gpgfrontend"
 CORE_BIN="$BUILD_DIR/artifacts/gf_core_tests"
 RUST_DIR="$REPO_ROOT/rust"
 
+# The programs that hold the tests. A tree that builds the core alone (the
+# android flavor) has no gpgfrontend, so its tests are gf_core_tests' only.
+TEST_PROGRAMS=(core app)
+BUILD_TARGETS=(gpgfrontend gf_core_tests)
+if grep -qE '^GPGFRONTEND_BUILD_FLAVOR:STRING=android$' \
+     "$BUILD_DIR/CMakeCache.txt" 2>/dev/null; then
+  TEST_PROGRAMS=(core)
+  BUILD_TARGETS=(gf_core_tests)
+  BIN="$CORE_BIN"
+fi
+
 # The Rust phases are driven by cargo and need neither the C++ binary nor a
 # CMake build, so skip all gpgfrontend build/lookup work in the rust-only modes.
 if [[ "$MODE" != "rust" && "$MODE" != "rust-slow" ]]; then
   if [[ "$DO_BUILD" == "yes" ||
         ( "$DO_BUILD" == "auto" && ( ! -x "$BIN" || ! -x "$CORE_BIN" ) ) ]]; then
-    echo "==> Building gpgfrontend and gf_core_tests ($BUILD_DIR, -j$JOBS)"
-    cmake --build "$BUILD_DIR" --target gpgfrontend gf_core_tests -j"$JOBS" || {
+    echo "==> Building ${BUILD_TARGETS[*]} ($BUILD_DIR, -j$JOBS)"
+    cmake --build "$BUILD_DIR" --target "${BUILD_TARGETS[@]}" -j"$JOBS" || {
       echo "error: build failed" >&2; exit 1; }
   fi
 
@@ -747,7 +758,7 @@ run_gtest_phase() {
   local rc=0 kind ran=0
   local -a logs=() xmls=()
 
-  for kind in core app; do
+  for kind in "${TEST_PROGRAMS[@]}"; do
     select_test_binary "$kind"
     run_program_phase "${name}-${kind}" "$@" || rc=1
     logs+=("$RESULTS_DIR/${name}-${kind}.log")

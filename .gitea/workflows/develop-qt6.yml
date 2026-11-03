@@ -247,3 +247,57 @@ jobs:
           timeout 900 scripts/run_fuzz_smoke.sh \
             --seconds 60 \
             --build-dir ${{github.workspace}}/build-fuzz
+
+  # The rPGP-only core the Android app is built on, built for the host: the
+  # core, the startup library and the core tests, with no GnuPG engine. No
+  # GpgME, libgpg-error or libassuan is installed, so an include of one fails
+  # the build here, and check_no_gpgme.sh proves none was linked either.
+  android-host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: "false"
+          submodules: recursive
+
+      - name: Install Dependence
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo apt-get -y install build-essential binutils git cmake ccache
+          sudo apt-get -y install gcc g++ ninja-build
+          sudo apt-get -y install libarchive-dev libssl-dev libsodium-dev libgtest-dev
+          # System libraries the aqt-installed Qt links against.
+          sudo apt-get -y install libgl1-mesa-dev libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
+
+      - name: Install Qt6
+        uses: ./.github/actions/install-qt6
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build The Core Without GnuPG
+        run: |
+          cmake -B ${{github.workspace}}/build-android -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_BUILD_MODE=nightly \
+            -DGPGFRONTEND_BUILD_FLAVOR=android \
+            -DGPGFRONTEND_BUILD_TESTS=ON
+          cmake --build ${{github.workspace}}/build-android --config ${{env.BUILD_TYPE}}
+
+      - name: Check For GnuPG Libraries
+        run: scripts/check_no_gpgme.sh ${{github.workspace}}/build-android
+
+      - name: Run Core Unit Tests
+        timeout-minutes: 20
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          # The Rust suite is the build job's; this tree adds nothing to it.
+          timeout 900 scripts/run_tests.sh --no-build --unit-only --no-rust \
+            -p auto --build-dir ${{github.workspace}}/build-android
