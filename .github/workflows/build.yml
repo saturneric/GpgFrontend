@@ -1362,7 +1362,7 @@ jobs:
         run: |
           set -euo pipefail
           bt="$ANDROID_HOME/build-tools/36.0.0"
-          apk="build/src/mob/android-build/build/outputs/apk/release/android-build-release-unsigned.apk"
+          apk="build/artifacts/GpgFrontend-${{ matrix.abi }}-unsigned.apk"
           "$bt/aapt2" dump badging "$apk" | grep -E "^package|targetSdkVersion"
           READELF="$ANDROID_HOME/ndk/$GF_ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
             ZIPALIGN="$bt/zipalign" \

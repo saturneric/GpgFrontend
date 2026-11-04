@@ -258,4 +258,19 @@ if(ANDROID)
     QT_ANDROID_APP_ICON "@mipmap/ic_launcher"
     QT_ANDROID_PACKAGE_SOURCE_DIR "${_gf_android_package}")
 
+  # The APK beside everything else the build makes. Gradle writes it deep
+  # inside Qt's android-build project, whatever CMake's output directories
+  # say; Qt keeps a copy there as gf_mob.apk, whatever the configuration.
+  # Named unsigned, so it is never taken for a release. Deferred: Qt makes
+  # gf_mob_make_apk when it finalizes gf_mob, at the end of this directory.
+  function(_gf_mob_copy_apk_to_artifacts)
+    add_custom_command(TARGET gf_mob_make_apk POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_BINARY_DIR}/android-build/gf_mob.apk"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GpgFrontend-${ANDROID_ABI}-unsigned.apk"
+      VERBATIM)
+  endfunction()
+  cmake_language(DEFER CALL _gf_mob_copy_apk_to_artifacts)
 endif()
