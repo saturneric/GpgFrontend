@@ -112,10 +112,6 @@ qt_add_qml_module(gf_mob_lib
     qml/components/PinSheet.qml
     qml/components/ConfirmSheet.qml
     qml/components/PassphraseSheet.qml
-    qml/components/KeyChoiceList.qml
-    qml/components/RecipientSheet.qml
-    qml/components/SignerSheet.qml
-    qml/components/ResultSheet.qml
     qml/components/ImportSheet.qml
     qml/components/GenerateSheet.qml
     qml/components/Icon.qml
@@ -137,7 +133,6 @@ qt_add_qml_module(gf_mob_lib
     qml/components/Fab.qml
     qml/components/OverflowButton.qml
     qml/components/FileDetailsSheet.qml
-    qml/components/VerifySheet.qml
     qml/components/StatusLine.qml
     qml/components/KeyFacts.qml
     qml/components/KeyToolbox.qml
