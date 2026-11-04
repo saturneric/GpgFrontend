@@ -29,6 +29,7 @@
 #include "model/KeyActionsController.h"
 
 #include <QPointer>
+#include <algorithm>
 
 #include "core/function/KeyGenProfile.h"
 #include "core/function/openpgp/ChannelHandle.h"
@@ -36,6 +37,11 @@
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/UserIdOperation.h"
+#include "core/function/openpgp/helper/OpSupport.h"
+#include "core/function/openpgp/support/KeyGenerationOpSupport.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
+#include "core/function/openpgp/support/UserIdOperaOpSupport.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -43,6 +49,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "model/KeyGenProfilesController.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -61,12 +68,55 @@ auto Offered() -> QList<ResolvedKeyGenProfile> {
 }
 
 auto Failure(const GFError& err) -> QVariantMap {
-  return {{QStringLiteral("error"), DescribeGFError(err).second}};
+  // An engine that reports success but hands back nothing has still failed:
+  // describing its success code would read as "Success".
+  const auto failed =
+      err.Ok() ? GFError::Application(GFErrorCode::kGENERAL) : err;
+  return {{QStringLiteral("error"), DescribeGFError(failed).second}};
 }
 
 auto FindKey(int channel, const QString& fingerprint) -> GpgAbstractKeyPtr {
   return GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       fingerprint.toUpper());
+}
+
+auto FindGpgKey(int channel, const QString& fingerprint) -> GpgKeyPtr {
+  return qSharedPointerDynamicCast<GpgKey>(FindKey(channel, fingerprint));
+}
+
+/// Where @p subkey (a fingerprint) is among @p key's subkeys, the primary
+/// being 0, as the engines number them; -1 when it is not there.
+auto SubkeyIndex(const GpgKey& key, const QString& subkey) -> int {
+  const auto subkeys = key.SubKeys();
+  for (int i = 0; i < subkeys.size(); ++i) {
+    if (subkeys.at(i).Fingerprint().compare(subkey, Qt::CaseInsensitive) == 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/// A date the engines give as 0 for "none".
+auto DateOrNone(const QDateTime& time) -> QDateTime {
+  return time.isValid() && time.toSecsSinceEpoch() > 0 ? time : QDateTime();
+}
+
+auto Usage(bool certify, bool encrypt, bool sign, bool authenticate)
+    -> QVariantMap {
+  return {{QStringLiteral("certify"), certify},
+          {QStringLiteral("encrypt"), encrypt},
+          {QStringLiteral("sign"), sign},
+          {QStringLiteral("authenticate"), authenticate}};
+}
+
+/// After a change to a key: read again, so what is shown is what is there.
+void Reread(int channel) {
+  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
+}
+
+auto Done(bool ok) -> QVariantMap {
+  return ok ? QVariantMap{}
+            : Failure(GFError::Application(GFErrorCode::kGENERAL));
 }
 
 }  // namespace
@@ -116,10 +166,7 @@ void KeyActionsController::generate(const QString& name, const QString& email,
     ApplyKeyGenProfile(resolved, QDateTime::currentDateTime(), *key, subkey);
     key->SetName(name.trimmed());
     key->SetEmail(email.trimmed());
-    // Post-quantum algorithms only exist in the v6 format; anything else
-    // keeps the interoperable v4 one, as the desktop does.
-    const auto version = RequiredKeyVersion(*key, subkey);
-    key->SetKeyVersion(version != 0 ? version : 4);
+    ApplyDefaultKeyVersion(*key, subkey);
 
     const auto channel = UsableDefaultChannelHandle();
     auto& opera = KeyGenerationOperation::GetInstance(channel);
@@ -133,6 +180,82 @@ void KeyActionsController::generate(const QString& name, const QString& email,
     GpgKeyRepository::GetInstance(channel).FlushKeyCache();
     return {{QStringLiteral("fingerprint"),
              ExtractParams<GpgGenerateKeyResult>(data, 0).GetFingerprint()}};
+  });
+}
+
+void KeyActionsController::generateCustom(const QString& name,
+                                          const QString& email,
+                                          const QVariantMap& primary,
+                                          const QVariantMap& subkey,
+                                          bool with_passphrase) {
+  const auto identity = CheckKeyGenIdentity(name, email, {});
+  if (!identity.Ok()) {
+    emit SignalFinished(
+        QStringLiteral("generate"), false,
+        {{QStringLiteral("error"),
+          !identity.name.isEmpty() ? identity.name : identity.email}});
+    return;
+  }
+  const auto channel = UsableDefaultChannelHandle();
+  auto key = KeyGenProfilesController::InfoFromChoices(
+      primary, false, KeyGenerateInfo::GetSupportedKeyAlgo(channel), channel);
+  QSharedPointer<KeyGenerateInfo> sub;
+  if (!subkey.isEmpty()) {
+    sub = KeyGenProfilesController::InfoFromChoices(
+        subkey, true, KeyGenerateInfo::GetSupportedSubkeyAlgo(channel),
+        channel);
+  }
+  if (key == nullptr || (!subkey.isEmpty() && sub == nullptr)) {
+    emit SignalFinished(
+        QStringLiteral("generate"), false,
+        Failure(GFError::Application(GFErrorCode::kINVALID_VALUE)));
+    return;
+  }
+
+  run(QStringLiteral("generate"), [=]() -> QVariantMap {
+    key->SetName(name.trimmed());
+    key->SetEmail(email.trimmed());
+    key->SetNonPassPhrase(!with_passphrase);
+    if (sub != nullptr) sub->SetNonPassPhrase(!with_passphrase);
+    ApplyDefaultKeyVersion(*key, sub);
+
+    auto& opera = KeyGenerationOperation::GetInstance(channel);
+    auto [err, data] = sub != nullptr
+                           ? opera.GenerateKeyWithSubkeySync(key, sub)
+                           : opera.GenerateKeySync(key);
+    if (!err.Ok() || data == nullptr || data->GetObjectSize() == 0) {
+      return Failure(err);
+    }
+    GpgKeyRepository::GetInstance(channel).FlushKeyCache();
+    return {{QStringLiteral("fingerprint"),
+             ExtractParams<GpgGenerateKeyResult>(data, 0).GetFingerprint()}};
+  });
+}
+
+void KeyActionsController::reloadProfiles() { emit SignalProfilesChanged(); }
+
+void KeyActionsController::addCustomSubkey(const QString& fingerprint,
+                                           const QVariantMap& choices,
+                                           bool with_passphrase) {
+  run(QStringLiteral("add_subkey"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    auto info = KeyGenProfilesController::InfoFromChoices(
+        choices, true, KeyGenerateInfo::GetSupportedSubkeyAlgo(channel, *key),
+        channel);
+    if (info == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
+    }
+    info->SetNonPassPhrase(!with_passphrase);
+    auto [err, data] =
+        KeyGenerationOperation::GetInstance(channel).GenerateSubkeySync(key,
+                                                                        info);
+    if (!err.Ok()) return Failure(err);
+    Reread(channel);
+    return {};
   });
 }
 
@@ -160,6 +283,311 @@ void KeyActionsController::remove(const QString& fingerprint) {
     if (FindKey(channel, fingerprint) != nullptr) {
       return Failure(GFError::Application(GFErrorCode::kGENERAL));
     }
+    return {};
+  });
+}
+
+auto KeyActionsController::Validities() const -> QVariantList {
+  QVariantList list;
+  for (const auto& id : KeyGenValidityPresets()) {
+    list.append(
+        QVariantMap{{QStringLiteral("id"), id},
+                    {QStringLiteral("name"), KeyGenValidityDisplayName(id)}});
+  }
+  return list;
+}
+
+auto KeyActionsController::describe(const QString& fingerprint) const
+    -> QVariantMap {
+  const auto channel = UsableDefaultChannelHandle();
+  const auto key = FindGpgKey(channel, fingerprint);
+  if (key == nullptr || !key->IsGood()) return {};
+
+  QVariantList uids;
+  const auto key_uids = key->UIDs();
+  for (int i = 0; i < key_uids.size(); ++i) {
+    const auto& uid = key_uids.at(i);
+    uids.append(QVariantMap{
+        {QStringLiteral("uid"), uid.GetUID()},
+        {QStringLiteral("name"), uid.GetName()},
+        {QStringLiteral("email"), uid.GetEmail()},
+        {QStringLiteral("comment"), uid.GetComment()},
+        {QStringLiteral("primary"), i == 0},
+        {QStringLiteral("revoked"), uid.GetRevoked()},
+        {QStringLiteral("invalid"), uid.GetInvalid()},
+    });
+  }
+
+  QVariantList subkeys;
+  const auto key_subkeys = key->SubKeys();
+  for (int i = 0; i < key_subkeys.size(); ++i) {
+    const auto& sub = key_subkeys.at(i);
+    subkeys.append(QVariantMap{
+        {QStringLiteral("index"), i},
+        {QStringLiteral("primary"), i == 0},
+        {QStringLiteral("keyId"), sub.ID()},
+        {QStringLiteral("fingerprint"), sub.Fingerprint()},
+        {QStringLiteral("algorithm"), sub.PublicKeyAlgo()},
+        {QStringLiteral("algorithmDetail"), sub.Algo()},
+        {QStringLiteral("keySize"), sub.KeyLength()},
+        {QStringLiteral("usage"),
+         Usage(sub.IsHasCertCap(), sub.IsHasEncrCap(), sub.IsHasSignCap(),
+               sub.IsHasAuthCap())},
+        {QStringLiteral("created"), sub.CreationTime()},
+        {QStringLiteral("expires"), DateOrNone(sub.ExpirationTime())},
+        {QStringLiteral("secret"), sub.IsSecretKey()},
+        {QStringLiteral("card"), sub.IsCardKey()},
+        {QStringLiteral("expired"), sub.IsExpired()},
+        {QStringLiteral("revoked"), sub.IsRevoked()},
+        {QStringLiteral("disabled"), sub.IsDisabled()},
+        {QStringLiteral("adsk"), sub.IsADSK()},
+    });
+  }
+
+  // What changes the key needs its secret primary key, as on the desktop.
+  const auto own = key->IsPrivateKey() && key->IsHasMasterKey();
+  const auto can = QVariantMap{
+      {QStringLiteral("addSubkey"),
+       own && IsOpSupported<GenerateSubKeyTag>(channel)},
+      {QStringLiteral("setExpiration"),
+       own && IsOpSupported<SetExpireOpTag>(channel)},
+      {QStringLiteral("revokeSubkey"),
+       own && IsOpSupported<RevokeSubKeyOpTag>(channel)},
+      {QStringLiteral("deleteSubkey"),
+       own && IsOpSupported<DeleteSubKeyOpTag>(channel)},
+      {QStringLiteral("changePassphrase"),
+       key->IsPrivateKey() && IsOpSupported<ModifyKeyPassphraseOpTag>(channel)},
+      {QStringLiteral("addUid"), own && IsOpSupported<AddUserIdOpTag>(channel)},
+      {QStringLiteral("setPrimaryUid"),
+       own && IsOpSupported<SetPrimaryUserIdOpTag>(channel)},
+      {QStringLiteral("revokeUid"),
+       own && IsOpSupported<RevokeUserIdOpTag>(channel)},
+      {QStringLiteral("deleteUid"),
+       own && IsOpSupported<DeleteUserIdOpTag>(channel)},
+  };
+
+  return {
+      {QStringLiteral("name"), key->Name()},
+      {QStringLiteral("email"), key->Email()},
+      {QStringLiteral("comment"), key->Comment()},
+      {QStringLiteral("keyId"), key->ID()},
+      {QStringLiteral("fingerprint"), key->Fingerprint()},
+      {QStringLiteral("version"), key->KeyVersion()},
+      {QStringLiteral("algorithm"), key->PublicKeyAlgo()},
+      {QStringLiteral("algorithmDetail"), key->Algo()},
+      {QStringLiteral("keySize"), key->PrimaryKeyLength()},
+      {QStringLiteral("usage"),
+       Usage(key->IsHasActualCertCap(), key->IsHasActualEncrCap(),
+             key->IsHasActualSignCap(), key->IsHasActualAuthCap())},
+      {QStringLiteral("created"), key->CreationTime()},
+      {QStringLiteral("expires"), DateOrNone(key->ExpirationTime())},
+      {QStringLiteral("lastUpdate"), DateOrNone(key->LastUpdateTime())},
+      {QStringLiteral("hasSecret"), key->IsPrivateKey()},
+      {QStringLiteral("primarySecret"), key->IsHasMasterKey()},
+      {QStringLiteral("cardKey"), key->IsHasCardKey()},
+      {QStringLiteral("expired"), key->IsExpired()},
+      {QStringLiteral("revoked"), key->IsRevoked()},
+      {QStringLiteral("disabled"), key->IsDisabled()},
+      {QStringLiteral("uids"), uids},
+      {QStringLiteral("subkeys"), subkeys},
+      {QStringLiteral("can"), can},
+  };
+}
+
+void KeyActionsController::addSubkey(const QString& fingerprint,
+                                     const QString& purpose,
+                                     const QString& validity,
+                                     bool with_passphrase) {
+  const auto parsed = ParseSubkeyPurpose(purpose);
+  if (!parsed) {
+    emit SignalFinished(
+        QStringLiteral("add_subkey"), false,
+        Failure(GFError::Application(GFErrorCode::kINVALID_VALUE)));
+    return;
+  }
+  run(QStringLiteral("add_subkey"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    const auto subkey_purpose = *parsed;
+    const auto algo = SuggestSubkeyAlgo(
+        subkey_purpose, NormalizeKeyAlgoId(key->Algo()),
+        KeyGenerateInfo::GetSupportedSubkeyAlgo(channel, *key));
+    if (algo == KeyGenerateInfo::kNoneAlgo) {
+      return Failure(GFError::Application(GFErrorCode::kNOT_SUPPORTED));
+    }
+
+    auto info = SecureCreateSharedObject<KeyGenerateInfo>(true);
+    ApplySubkeyPurpose(*info, subkey_purpose, algo);
+    const auto never = IsNeverExpiringValidity(validity);
+    info->SetNonExpired(never);
+    if (!never) {
+      info->SetExpireTime(
+          ParseKeyGenValidity(validity, QDateTime::currentDateTime()));
+    }
+    info->SetNonPassPhrase(!with_passphrase);
+
+    auto [err, data] =
+        KeyGenerationOperation::GetInstance(channel).GenerateSubkeySync(key,
+                                                                        info);
+    if (!err.Ok()) return Failure(err);
+    Reread(channel);
+    return {};
+  });
+}
+
+void KeyActionsController::setExpiration(const QString& fingerprint,
+                                         const QString& subkey,
+                                         const QString& validity) {
+  run(QStringLiteral("expiration"), [=]() -> QVariantMap {
+    const auto never = IsNeverExpiringValidity(validity);
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    const auto err = KeyManagementOperation::GetInstance(channel).SetExpire(
+        key, subkey,
+        never ? std::optional<QDateTime>()
+              : std::optional<QDateTime>(ParseKeyGenValidity(
+                    validity, QDateTime::currentDateTime())));
+    if (!err.Ok()) return Failure(err);
+    Reread(channel);
+    return {};
+  });
+}
+
+void KeyActionsController::revokeSubkey(const QString& fingerprint,
+                                        const QString& subkey, int reason,
+                                        const QString& text) {
+  run(QStringLiteral("revoke_subkey"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    // The primary key is not a subkey to revoke.
+    const auto index = SubkeyIndex(*key, subkey);
+    if (index <= 0) {
+      return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
+    }
+    const auto ok = KeyManagementOperation::GetInstance(channel).RevokeSubkey(
+        key, index, std::clamp(reason, 0, 3), text);
+    if (ok) Reread(channel);
+    return Done(ok);
+  });
+}
+
+void KeyActionsController::deleteSubkey(const QString& fingerprint,
+                                        const QString& subkey) {
+  run(QStringLiteral("delete_subkey"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    const auto index = SubkeyIndex(*key, subkey);
+    if (index <= 0) {
+      return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
+    }
+    const auto ok =
+        KeyManagementOperation::GetInstance(channel).DeleteSubkey(key, index);
+    if (ok) Reread(channel);
+    return Done(ok);
+  });
+}
+
+void KeyActionsController::addUid(const QString& fingerprint,
+                                  const QString& name, const QString& email,
+                                  const QString& comment) {
+  // As a new key's user ID is checked: its parts become a mail address.
+  const auto identity = CheckKeyGenIdentity(name, email, comment);
+  if (!identity.Ok()) {
+    emit SignalFinished(QStringLiteral("add_uid"), false,
+                        {{QStringLiteral("error"),
+                          !identity.name.isEmpty()    ? identity.name
+                          : !identity.email.isEmpty() ? identity.email
+                                                      : identity.comment}});
+    return;
+  }
+  run(QStringLiteral("add_uid"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    const auto ok = UserIdOperation::GetInstance(channel).AddUID(
+        key, name.trimmed(), comment.trimmed(), email.trimmed());
+    if (ok) Reread(channel);
+    return Done(ok);
+  });
+}
+
+void KeyActionsController::setPrimaryUid(const QString& fingerprint,
+                                         const QString& uid) {
+  run(QStringLiteral("primary_uid"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    const auto ok =
+        UserIdOperation::GetInstance(channel).SetPrimaryUID(key, uid);
+    if (ok) Reread(channel);
+    return Done(ok);
+  });
+}
+
+void KeyActionsController::revokeUid(const QString& fingerprint,
+                                     const QString& uid, int reason,
+                                     const QString& text) {
+  run(QStringLiteral("revoke_uid"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    // The primary user ID is the key's name: it is not revoked on its own.
+    if (!key->UIDs().isEmpty() && key->UIDs().front().GetUID() == uid) {
+      return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
+    }
+    const auto ok = UserIdOperation::GetInstance(channel).RevokeUID(
+        key, uid, std::clamp(reason, 0, 3), text);
+    if (ok) Reread(channel);
+    return Done(ok);
+  });
+}
+
+void KeyActionsController::deleteUid(const QString& fingerprint,
+                                     const QString& uid) {
+  run(QStringLiteral("delete_uid"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    if (!key->UIDs().isEmpty() && key->UIDs().front().GetUID() == uid) {
+      return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
+    }
+    const auto ok = UserIdOperation::GetInstance(channel).DeleteUID(key, uid);
+    if (ok) Reread(channel);
+    return Done(ok);
+  });
+}
+
+void KeyActionsController::changePassphrase(const QString& fingerprint) {
+  run(QStringLiteral("passphrase"), [=]() -> QVariantMap {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto key = FindGpgKey(channel, fingerprint);
+    if (key == nullptr) {
+      return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
+    }
+    auto [err, data] =
+        KeyManagementOperation::GetInstance(channel).ModifyPasswordSync(key);
+    if (!err.Ok()) return Failure(err);
+    Reread(channel);
     return {};
   });
 }
