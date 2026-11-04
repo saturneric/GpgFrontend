@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/GFConstants.h"
 #include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {
@@ -59,11 +60,10 @@ enum class SecretPromptSubject {
   kKeyPackage,      ///< the PIN that seals a key package's key file
 };
 
-/// Shortest secret accepted when choosing one. The strength meter stays advice,
-/// but a floor keeps a two-character secret from being offered as real
-/// protection. A caller re-sealing a file somebody else already sealed lowers
-/// it deliberately; see DefaultSecretPromptTexts().
-inline constexpr int kMinSecretLength = 8;
+/// Shortest secret accepted when choosing one (the core's, which the phone
+/// shares). A caller re-sealing a file somebody else already sealed lowers it
+/// deliberately; see DefaultSecretPromptTexts().
+using GpgFrontend::kMinSecretLength;
 
 /// Comfortable touch-sized height for the entry fields; the platform default is
 /// cramped for something the eye has to land on precisely.

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/GFConstants.h"
+
 namespace GpgFrontend::UI {
 
 /**
@@ -42,7 +44,8 @@ struct SecretEntryInput {
   bool ask_current = false;  ///< an existing secret is being asked for
   bool ask_new = true;       ///< a new secret and its confirmation
 
-  int min_length = 8;  ///< the floor; only ever applies to a new secret
+  /// the floor; only ever applies to a new secret
+  int min_length = kMinSecretLength;
 
   int current_length = 0;
   int secret_length = 0;

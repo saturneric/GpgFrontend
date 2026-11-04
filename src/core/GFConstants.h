@@ -56,4 +56,9 @@ constexpr const char* kPgpPrivateKeyBegin =
 constexpr const char* kGpgMinimalSupportVersion =
     "2.2.0";  ///< minimum required version of GPG
 
+/// Shortest secret accepted when choosing one, on the desktop and the phone.
+/// The strength meter stays advice, but a floor keeps a two-character secret
+/// from being offered as real protection.
+inline constexpr int kMinSecretLength = 8;
+
 }  // namespace GpgFrontend
