@@ -16,7 +16,7 @@ Label {
     topPadding: 1
     bottomPadding: 1
     color: tone
-    font.pixelSize: 12
+    font.pixelSize: Theme.labelSize
 
     background: Rectangle {
         radius: 4

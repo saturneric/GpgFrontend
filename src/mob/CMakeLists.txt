@@ -73,7 +73,8 @@ qt_add_library(gf_mob_lib STATIC
 # What the style does not give: GpgFrontend's own touches (the desktop's
 # status colours, see src/ui/function/UIStyle.cpp), spacing and the keyboard's
 # reach, one instance for the whole application.
-set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Theme.qml qml/Wording.qml
+  PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # Material Symbols (Apache-2.0, the license is next to them), drawn in the
 # colour of whatever shows them. Kept with the other icons under resource/,
@@ -96,6 +97,7 @@ qt_add_qml_module(gf_mob_lib
     ${_gf_mob_icons}
   QML_FILES
     qml/Theme.qml
+    qml/Wording.qml
     qml/Shell.qml
     qml/SplashPage.qml
     qml/ErrorPage.qml
@@ -135,7 +137,10 @@ qt_add_qml_module(gf_mob_lib
     qml/components/Fab.qml
     qml/components/OverflowButton.qml
     qml/components/FileDetailsSheet.qml
-    qml/components/VerifySheet.qml)
+    qml/components/VerifySheet.qml
+    qml/components/Fact.qml
+    qml/components/FingerprintView.qml
+    qml/components/ProblemLabel.qml)
 
 # Which style the controls take is the platform's (Material on Android); this
 # only gives it GpgFrontend's colours and lets it follow the system's dark mode.

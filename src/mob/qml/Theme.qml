@@ -3,6 +3,7 @@
 pragma Singleton
 
 import QtQuick
+import GpgFrontend.Mobile
 
 // What the platform's style does not give: GpgFrontend's own touches, kept
 // few (the desktop's status colours in src/ui/function/UIStyle.cpp, its
@@ -18,13 +19,20 @@ QtObject {
     readonly property int rowHeight: 56
     readonly property int rowHeightTwoLine: 72
 
-    // The type scale: body, secondary lines, small labels, titles. Fixed,
-    // as the style's own controls are: Qt on Android gives every application
-    // the same default font whatever the system's font size.
-    readonly property int bodySize: 16
-    readonly property int secondarySize: 14
-    readonly property int labelSize: 12
-    readonly property int titleSize: 22
+    // The type scale: body, secondary lines, small labels, titles, times
+    // the system's font scale. Qt on Android gives every application the same
+    // default font whatever the system's font size, so the scale is read from
+    // the system (AppLifecycle.fontScale) and capped where a phone's width
+    // runs out.
+    readonly property real fontScale: Math.max(1, Math.min(2,
+        AppLifecycle.fontScale > 0 ? AppLifecycle.fontScale : 1))
+    readonly property int bodySize: Math.round(16 * fontScale)
+    readonly property int secondarySize: Math.round(14 * fontScale)
+    readonly property int labelSize: Math.round(12 * fontScale)
+    readonly property int titleSize: Math.round(22 * fontScale)
+    readonly property int headlineSize: Math.round(18 * fontScale)
+    // Corners: small for chips and fields.
+    readonly property int radiusSmall: 8
 
     readonly property bool dark: Application.styleHints.colorScheme === Qt.ColorScheme.Dark
 
@@ -89,6 +97,31 @@ QtObject {
         return report.status === 0 ? "warning" : "error"
     }
 
+    // The report seal's kind (ReportSeal) for a report.
+    function sealKind(report) {
+        if (report.cancelled === true) return "cancelled"
+        if (report.status > 0) return "success"
+        return report.status === 0 ? "warning" : "failure"
+    }
+
+    // @p a over @p b, @p weight of a.
+    function mix(a, b, weight) {
+        return Qt.rgba(a.r * weight + b.r * (1 - weight),
+                       a.g * weight + b.g * (1 - weight),
+                       a.b * weight + b.b * (1 - weight), 1)
+    }
+
+    // The stamp of one card, by its status ("ok", "warn", "critical",
+    // "neutral"), as the desktop puts it beside the card's title.
+    function cardStamp(status) {
+        switch (status) {
+        case "ok": return "qrc:/icons/stamp_success.png"
+        case "warn": return "qrc:/icons/stamp_warning.png"
+        case "critical": return "qrc:/icons/stamp_failed.png"
+        default: return "qrc:/icons/stamp_info.png"
+        }
+    }
+
     function reportColor(report, neutral) {
         if (report.cancelled === true) return neutral
         if (report.status > 0) return positive
@@ -104,8 +137,34 @@ QtObject {
         return qsTr("%1 GB").arg((bytes / 1000 / 1000 / 1000).toFixed(1))
     }
 
+    // A date nobody can read two ways: 2026-11-03.
+    function date(value) {
+        return value && !isNaN(value) ? Qt.formatDate(value, "yyyy-MM-dd") : ""
+    }
+
+    // A fingerprint in groups of four, however long it is (40 hex digits for
+    // a v4 key, 64 for a v6 one), for a Flow to wrap.
+    function fingerprintGroups(fpr) {
+        return (fpr || "").replace(/\s+/g, "").match(/.{1,4}/g) || []
+    }
+
     function icon(name) {
         return Qt.resolvedUrl("icons/" + name + ".svg")
+    }
+
+    // An operation's icon as the desktop's toolbar has it, in its own
+    // colours: the same lock, unlock, signature and seal everywhere.
+    function operationIcon(op) {
+        switch (op) {
+        case "encrypt": return "qrc:/icons/lock.png"
+        case "decrypt": return "qrc:/icons/unlock.png"
+        case "sign": return "qrc:/icons/signature.png"
+        case "verify": return "qrc:/icons/verify.png"
+        case "symmetric": return "qrc:/icons/symmetric_encryption.png"
+        case "encrypt_sign": return "qrc:/icons/encr-sign.png"
+        case "decrypt_verify": return "qrc:/icons/decr-verify.png"
+        default: return ""
+        }
     }
 
     function alpha(color, a) {

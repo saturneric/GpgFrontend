@@ -34,7 +34,7 @@ ColumnLayout {
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.Wrap
-        font.pixelSize: 18
+        font.pixelSize: Theme.headlineSize
     }
 
     Label {

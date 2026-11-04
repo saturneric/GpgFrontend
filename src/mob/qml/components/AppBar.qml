@@ -23,9 +23,12 @@ ToolBar {
 
     signal back()
 
-    // The page shows through, as on the platform's own top bars; a shadow
-    // lifts it once the page has scrolled under it.
-    Material.background: "transparent"
+    // The page shows through, as on the platform's own top bars; once the
+    // page has scrolled under it, it takes a tint of the page's colour and a
+    // shadow. (A transparent bar's shadow fills it grey.)
+    Material.background: raised && parent
+                         ? Theme.surface(parent.Material.backgroundColor, 2)
+                         : "transparent"
     Material.elevation: raised ? 2 : 0
 
     RowLayout {

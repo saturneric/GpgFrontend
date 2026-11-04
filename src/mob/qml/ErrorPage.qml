@@ -21,7 +21,7 @@ Page {
         Label {
             Layout.fillWidth: true
             text: qsTr("GpgFrontend cannot start")
-            font.pixelSize: 22
+            font.pixelSize: Theme.titleSize
             wrapMode: Text.Wrap
         }
 
