@@ -126,4 +126,43 @@ auto GetSodiumVersion() -> QString {
 
   return QString::fromLatin1(sodium_version_string());
 }
+// The captions keep the desktop's translate() context, spelled out at every
+// one: lupdate only sees a literal.
+auto BuildInfoFact::Caption() const -> QString {
+  return QCoreApplication::translate("GpgFrontend::UI::BuildInfoTab", caption);
+}
+
+auto BuildInfoFacts() -> QList<BuildInfoFact> {
+  return {
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "GpgFrontend:"),
+       GetProjectVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Qt:"),
+       GetProjectQtVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "GPGME:"),
+       GetProjectGpgMEVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Assuan:"),
+       GetProjectAssuanVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Libarchive:"),
+       GetProjectLibarchiveVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "OpenSSL:"),
+       GetProjectOpenSSLVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Sodium:"),
+       GetSodiumVersion()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Git Branch:"),
+       GetProjectBuildGitBranchName()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Git Commit:"),
+       GetProjectBuildGitCommitHash()},
+      {QT_TRANSLATE_NOOP("GpgFrontend::UI::BuildInfoTab", "Built at:"),
+       QLocale().toString(GetProjectBuildTimestamp())},
+  };
+}
+
+auto BuildInfoText() -> QString {
+  QStringList lines;
+  for (const auto& fact : BuildInfoFacts()) {
+    lines << QString::fromLatin1(fact.caption) + QLatin1Char(' ') + fact.value;
+  }
+  return lines.join(QLatin1Char('\n'));
+}
+
 };  // namespace GpgFrontend

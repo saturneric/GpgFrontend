@@ -188,4 +188,28 @@ auto GF_CORE_EXPORT GetAppProfileMinReaderSchema() -> int;
  */
 auto GF_CORE_EXPORT GetSodiumVersion() -> QString;
 
+/**
+ * @brief One line of what this build is made of.
+ */
+struct GF_CORE_EXPORT BuildInfoFact {
+  /// Untranslated, as copied ("Git Branch:"); Caption() is what is shown.
+  const char* caption;
+  QString value;
+
+  /// The caption translated, as the desktop's About dialog shows it.
+  [[nodiscard]] auto Caption() const -> QString;
+};
+
+/**
+ * @brief What this build is made of, in the order the desktop's About dialog
+ * and the phone's About page both list it.
+ */
+auto GF_CORE_EXPORT BuildInfoFacts() -> QList<BuildInfoFact>;
+
+/**
+ * @brief BuildInfoFacts() as plain text, one per line and untranslated: what
+ * is copied for a bug report.
+ */
+auto GF_CORE_EXPORT BuildInfoText() -> QString;
+
 }  // namespace GpgFrontend

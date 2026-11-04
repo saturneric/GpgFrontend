@@ -148,25 +148,6 @@ auto CreateStarCard(QWidget* parent = nullptr) -> QFrame* {
   return frame;
 }
 
-auto CreateBuildInfoText() -> QString {
-  return u"GpgFrontend: %1\n"
-         "Qt: %2\n"
-         "GPGME: %3\n"
-         "Assuan: %4\n"
-         "Libarchive: %5\n"
-         "OpenSSL: %6\n"
-         "Sodium: %7\n"
-         "Git Branch: %8\n"
-         "Git Commit: %9\n"
-         "Built at: %10"_s.arg(
-             GetProjectVersion(), GetProjectQtVersion(),
-             GetProjectGpgMEVersion(), GetProjectAssuanVersion(),
-             GetProjectLibarchiveVersion(), GetProjectOpenSSLVersion(),
-             GetSodiumVersion(), GetProjectBuildGitBranchName(),
-             GetProjectBuildGitCommitHash(),
-             QLocale().toString(GetProjectBuildTimestamp()));
-}
-
 auto CreateCopyButton(const QString& text, const QString& content,
                       QWidget* parent = nullptr) -> QPushButton* {
   auto* button = new QPushButton(text, parent);
@@ -347,22 +328,15 @@ BuildInfoTab::BuildInfoTab(QWidget* parent) : QWidget(parent) {
   build_layout->setSpacing(10);
 
   auto* build_rows = new MetaListPanel(build_widget);
-  build_rows->SetRows({
-      {.caption = tr("GpgFrontend:"), .value = GetProjectVersion()},
-      {.caption = tr("Qt:"), .value = GetProjectQtVersion()},
-      {.caption = tr("GPGME:"), .value = GetProjectGpgMEVersion()},
-      {.caption = tr("Assuan:"), .value = GetProjectAssuanVersion()},
-      {.caption = tr("Libarchive:"), .value = GetProjectLibarchiveVersion()},
-      {.caption = tr("OpenSSL:"), .value = GetProjectOpenSSLVersion()},
-      {.caption = tr("Sodium:"), .value = GetSodiumVersion()},
-      {.caption = tr("Git Branch:"), .value = GetProjectBuildGitBranchName()},
-      {.caption = tr("Git Commit:"), .value = GetProjectBuildGitCommitHash()},
-      {.caption = tr("Built at:"),
-       .value = QLocale().toString(GetProjectBuildTimestamp())},
-  });
+  // The core's list, which the phone's About page shows too.
+  QList<MetaListRow> rows;
+  for (const auto& fact : BuildInfoFacts()) {
+    rows.append({.caption = fact.Caption(), .value = fact.value});
+  }
+  build_rows->SetRows(rows);
 
   auto* copy_button = CreateCopyButton(tr("Copy Build Information"),
-                                       CreateBuildInfoText(), build_widget);
+                                       BuildInfoText(), build_widget);
 
   build_layout->addWidget(build_rows);
   build_layout->addWidget(copy_button, 0, Qt::AlignRight);
