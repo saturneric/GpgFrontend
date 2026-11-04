@@ -31,6 +31,7 @@
 #include <QCoreApplication>
 #include <QJSEngine>
 #include <QQuickWindow>
+#include <QStandardPaths>
 #include <QThread>
 #include <QTimer>
 #include <thread>
@@ -40,8 +41,11 @@
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "model/ProfilesController.h"
+#include "plat/common/PlatformDisplay.h"
 #include "startup/InteractionBridge.h"
 #include "startup/MobileProfileLoaderDelegate.h"
+#include "startup/Translations.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -71,6 +75,9 @@ struct StartupJob {
       std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     }
 
+    // The profile opened last time another was chosen (ProfilesController).
+    ProfilesController::ApplyChosenProfile(
+        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
     ctx->SelectProfile();
     if (!ctx->profile_error.isEmpty()) {
       error = ctx->profile_error;
@@ -129,6 +136,11 @@ void StartupController::Start(QQuickWindow* window) {
   if (window != nullptr) {
     connect(window, &QQuickWindow::frameSwapped, this,
             &StartupController::BeginOpening, Qt::SingleShotConnection);
+    // The loading page is on screen: the launch screen over it can go.
+    connect(window, &QQuickWindow::frameSwapped, this, &HideLaunchScreen,
+            Qt::SingleShotConnection);
+  } else {
+    HideLaunchScreen();
   }
   QTimer::singleShot(kFirstFrameFallbackMs, this,
                      &StartupController::BeginOpening);
@@ -191,6 +203,7 @@ void StartupController::start_core() {
   core_started_ = true;
   InitGlobalBasicEnv(ctx_);
   InitLocale();
+  InstallTranslations(QLocale());
 }
 
 auto StartupController::Shutdown(int timeout_ms) -> bool {

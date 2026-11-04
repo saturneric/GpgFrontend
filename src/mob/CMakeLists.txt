@@ -36,6 +36,7 @@ qt_add_library(gf_mob_lib STATIC
   startup/InteractionBridge.cpp
   startup/MobileProfileLoaderDelegate.cpp
   startup/StartupController.cpp
+  startup/Translations.cpp
   lifecycle/AppLifecycle.cpp
   model/KeyRoleModel.cpp
   model/KeyFilterModel.cpp
@@ -48,6 +49,7 @@ qt_add_library(gf_mob_lib STATIC
   model/AboutInfo.cpp
   model/KeyDatabasesController.cpp
   model/ProfilesController.cpp
+  model/ReportSeal.cpp
   model/SettingsModel.cpp
   model/ChangeRelay.h
   crypto/ContentKind.cpp

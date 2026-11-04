@@ -28,7 +28,10 @@
 
 #pragma once
 
+#include "crypto/OperationQueue.h"
 #include "crypto/PassphraseBroker.h"
+#include "crypto/WorkSelection.h"
+#include "files/FileWorkspace.h"
 #include "files/ShareRetentionStore.h"
 #include "files/StagingArea.h"
 #include "lifecycle/AppLifecycle.h"
@@ -59,9 +62,10 @@ class AppServices {
   auto operator=(const AppServices&) -> AppServices& = delete;
 
   /**
-   * @brief Refuse every passphrase still asked or asked from now on, then
-   * StartupController::Shutdown(): an operation waiting at a prompt ends,
-   * and the core can stop.
+   * @brief Drop the operations still waiting, refuse every passphrase still
+   * asked or asked from now on, then StartupController::Shutdown(): an
+   * operation waiting at a prompt ends, none starts after it, and the core
+   * can stop.
    */
   auto Shutdown(int timeout_ms = 5000) -> bool;
 
@@ -69,9 +73,13 @@ class AppServices {
   StartupController startup;
   PassphraseBroker passphrases;
   AppLifecycle lifecycle;
+  OperationQueue operations;
   KeyListController keys;
+  WorkSelection selection;
   StagingArea staging;
   ShareRetentionStore retention;
+  /// After the stores and the queue it uses, so it goes before them.
+  FileWorkspace files;
 
   /// <cache>/staging, where every run's staging area lives.
   static auto StagingRoot() -> QString;

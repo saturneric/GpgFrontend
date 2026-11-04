@@ -30,8 +30,12 @@
 
 #include <QStandardPaths>
 
+#include "core/function/CoreSignalStation.h"
 #include "files/FileOperations.h"
+#include "model/KeyCategoriesController.h"
+#include "model/ProfilesController.h"
 #include "plat/common/PlatformClipboard.h"
+#include "plat/common/PlatformRestart.h"
 #include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Mobile {
@@ -61,19 +65,57 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
       startup(std::move(ctx), &bridge),
       passphrases(nullptr),
       lifecycle(&bridge, &passphrases),
+      operations(&passphrases, &lifecycle),
       keys(nullptr),
+      selection(keys.Keys()),
       staging(CleanStagingRoot()),
       retention(SharedFilesRoot(), RetentionIndexFile(), {},
-                [](const QString& path) { RevokeSharedFile(path); }) {
+                [](const QString& path) { RevokeSharedFile(path); }),
+      files(&operations, &lifecycle) {
   InteractionBridge::SetInstance(&bridge);
   StartupController::SetInstance(&startup);
   PassphraseBroker::SetInstance(&passphrases);
   AppLifecycle::SetInstance(&lifecycle);
+  OperationQueue::SetInstance(&operations);
   KeyListController::SetInstance(&keys);
+  WorkSelection::SetInstance(&selection);
   SetFileStores(&staging, &retention);
+  FileWorkspace::SetInstance(&files);
 
   QObject::connect(&startup, &StartupController::SignalReady, &keys,
                    &KeyListController::refresh);
+  // The first listing of a profile's keys; later ones the selection hears
+  // from the list itself.
+  QObject::connect(
+      &keys, &KeyListController::SignalRefreshed, &selection,
+      [this]() { selection.SetKeysReady(); }, Qt::SingleShotConnection);
+  // Every time the list is read again, the quick path is checked against it.
+  QObject::connect(&keys, &KeyListController::SignalRefreshed, &selection,
+                   [this]() { selection.KeysRefreshed(); });
+
+  // Another key database in use (a switch, here or by the core): its keys
+  // and its categories, at once. The old channel's table goes as the new one
+  // comes in; it is reclaimed soon after.
+  QObject::connect(
+      CoreSignalStation::GetInstance(),
+      &CoreSignalStation::SignalKeyDatabaseRuntimePublished, &keys,
+      [this](int, int) {
+        keys.refresh();
+        KeyCategoriesController::NotifyChanged();
+      },
+      Qt::QueuedConnection);
+
+  // Opening another profile: the core is shut down, then the application
+  // starts again and opens it. Quit either way: the core is gone, and the
+  // next start opens the profile chosen.
+  ProfilesController::SetRestarter([this]() {
+    Shutdown();
+    const auto restarted = RestartApplication();
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(), []() { QCoreApplication::quit(); },
+        Qt::QueuedConnection);
+    return restarted;
+  });
 
   // Start and every return are the store's chances to clean up.
   retention.Cleanup(QDateTime::currentDateTimeUtc());
@@ -83,8 +125,12 @@ AppServices::AppServices(QSharedPointer<BootContext> ctx)
 }
 
 AppServices::~AppServices() {
+  ProfilesController::SetRestarter({});
+  FileWorkspace::SetInstance(nullptr);
   SetFileStores(nullptr, nullptr);
+  WorkSelection::SetInstance(nullptr);
   KeyListController::SetInstance(nullptr);
+  OperationQueue::SetInstance(nullptr);
   AppLifecycle::SetInstance(nullptr);
   PassphraseBroker::SetInstance(nullptr);
   StartupController::SetInstance(nullptr);
@@ -92,6 +138,7 @@ AppServices::~AppServices() {
 }
 
 auto AppServices::Shutdown(int timeout_ms) -> bool {
+  operations.Close();
   passphrases.Close();
   // Decrypted text copied a moment ago does not outlive the application.
   ExpireSensitiveCopy(true);
