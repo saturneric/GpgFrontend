@@ -153,6 +153,8 @@ qt_add_qml_module(gf_mob_lib
     qml/components/UidSheet.qml
     qml/components/AddUidSheet.qml
     qml/components/CategorySheet.qml
+    qml/components/KeyGroupSheet.qml
+    qml/components/KeyDatabaseSheet.qml
     qml/components/OperationBar.qml
     qml/components/OperationFlow.qml
     qml/components/ProblemLabel.qml
@@ -162,6 +164,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/KeyCategoriesSheet.qml
     qml/components/KeyPickerSheet.qml
     qml/CategoryKeysPage.qml
+    qml/KeyGroupPage.qml
     qml/KeyCategoriesPage.qml
     qml/KeyGenProfilesPage.qml
     qml/KeyGenProfileEditPage.qml)
