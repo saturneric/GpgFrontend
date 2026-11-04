@@ -51,6 +51,13 @@ void ShareFile(const QString&, const QString&, const QString&,
   });
 }
 
+void OpenFile(const QString&, const QString&, const QString&,
+              ShareCallback done) {
+  QTimer::singleShot(0, [done = std::move(done)]() {
+    if (done) done(ShareResult{ShareOutcome::kUnsupported, false, {}});
+  });
+}
+
 void RevokeSharedFile(const QString&) {}
 
 }  // namespace GpgFrontend

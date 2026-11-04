@@ -90,6 +90,14 @@ auto SharedFilesRoot() -> QString;
 void ShareFile(const QString& path, const QString& mime_type,
                const QString& title, ShareCallback done);
 
+/**
+ * @brief Open the file at @p path, which is under SharedFilesRoot(), in an
+ * application the person picks, as ShareFile() hands it over: the same
+ * grant, the same report (a target chosen, or not).
+ */
+void OpenFile(const QString& path, const QString& mime_type,
+              const QString& title, ShareCallback done);
+
 /// Withdraw every grant to read @p path. Harmless when there was none.
 void RevokeSharedFile(const QString& path);
 

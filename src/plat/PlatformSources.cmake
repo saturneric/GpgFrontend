@@ -53,15 +53,20 @@ set(GF_PLATFORM_APP_SOURCES
   ${GF_PLATFORM_DIR}/common/StubSecretStore.cpp)
 
 # The mobile application's platform interfaces: sharing, sensitive clipboard
-# copies, keeping a window out of screenshots. The stubs compile to nothing
-# where a backend below exists.
+# copies, keeping a window out of screenshots, the system font scale, what
+# other applications share with it. The
+# stubs compile to nothing where a backend below exists.
 set(GF_PLATFORM_MOBILE_SOURCES
   ${GF_PLATFORM_DIR}/common/PlatformShare.cpp
   ${GF_PLATFORM_DIR}/common/PlatformClipboard.cpp
   ${GF_PLATFORM_DIR}/common/PlatformPrivacy.cpp
   ${GF_PLATFORM_DIR}/common/StubShare.cpp
   ${GF_PLATFORM_DIR}/common/StubClipboard.cpp
-  ${GF_PLATFORM_DIR}/common/StubPrivacy.cpp)
+  ${GF_PLATFORM_DIR}/common/StubPrivacy.cpp
+  ${GF_PLATFORM_DIR}/common/StubDisplay.cpp
+  ${GF_PLATFORM_DIR}/common/StubInbox.cpp
+  ${GF_PLATFORM_DIR}/common/StubFolder.cpp
+  ${GF_PLATFORM_DIR}/common/StubRestart.cpp)
 
 if(MINGW OR WIN32)
   list(APPEND GF_PLATFORM_CORE_SOURCES
