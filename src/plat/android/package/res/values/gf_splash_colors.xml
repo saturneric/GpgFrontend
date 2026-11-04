@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The background of the first screen, the same as the loading page's
+     (Qt Material's light background), so nothing flashes white before it. -->
+<resources>
+    <color name="gf_splash_background">#FFFBFE</color>
+</resources>

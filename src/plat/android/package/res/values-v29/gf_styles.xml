@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The activity's theme while it starts: its window is the loading page
+     (gf_splash) from the very first frame. Android 10 and later follow the
+     system's dark mode (DayNight, which earlier ones do not have). -->
+<resources>
+    <style name="GfLaunch" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowBackground">@drawable/gf_splash</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

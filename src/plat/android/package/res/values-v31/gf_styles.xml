@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Android 12 and later show a launch splash of their own first: the same
+     background, and no icon (gf_splash_none), so it reads as the loading
+     page appearing. -->
+<resources>
+    <style name="GfLaunch" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowBackground">@drawable/gf_splash</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowSplashScreenBackground">@color/gf_splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/gf_splash_none</item>
+    </style>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The window before the application draws: the loading page's background
+     and its logo, where the page puts it (96 dp, its centre 27 dp above the
+     screen's, the title and progress under it), so the page takes over
+     without a jump and without a white screen first. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/gf_splash_background" />
+    <item
+        android:width="96dp"
+        android:height="96dp"
+        android:gravity="center"
+        android:bottom="54dp"
+        android:drawable="@drawable/gf_splash_logo" />
+</layer-list>

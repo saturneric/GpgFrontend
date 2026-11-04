@@ -5,7 +5,8 @@
   profile holding secret keys requires it: nothing of the application's data
   goes into a backup or a device-to-device transfer (allowBackup, and the
   extraction rules Android 12 and later read instead), and no legacy access
-  to shared storage is asked for.
+  to shared storage is asked for. The activity is GpgFrontend's own subclass
+  of Qt's, in a task of its own, to take what other applications share.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.qtproject.example"
@@ -29,16 +30,49 @@
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
-            android:name="org.qtproject.qt.android.bindings.QtActivity"
+            android:name="com.bktus.gpgfrontend.GpgFrontendActivity"
             android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
             android:label="-- %%INSERT_APP_NAME%% --"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
+            android:theme="@style/GfLaunch"
             android:screenOrientation="unspecified"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- What other applications share with GpgFrontend: files of
+                 any type, and text (GpgFrontendActivity). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <!-- Opening an OpenPGP file with GpgFrontend. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/pgp-encrypted" />
+                <data android:mimeType="application/pgp-signature" />
+                <data android:mimeType="application/pgp-keys" />
+                <data android:mimeType="application/pgp" />
+            </intent-filter>
+
+          <!-- The loading page, kept over Qt's surface until it has drawn
+               (HideLaunchScreen()): no black frame before the first one. -->
+          <meta-data
+                android:name="android.app.splash_screen_drawable"
+                android:resource="@drawable/gf_splash" />
+          <meta-data
+                android:name="android.app.splash_screen_sticky"
+                android:value="true" />
 
           <meta-data
                 android:name="android.app.lib_name"
@@ -48,6 +82,15 @@
                 android:name="android.app.arguments"
                 android:value="-- %%INSERT_APP_ARGUMENTS%% --" />
         </activity>
+
+        <!-- Restarting the application into another profile: in a process
+             of its own, it ends the application's and starts it again. -->
+        <activity
+            android:name="com.bktus.gpgfrontend.RestartActivity"
+            android:process=":restart"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="false" />
 
         <!-- Files shared from GpgFrontend: <cache>/share only, read access
              granted per file and revoked when it is cleaned up. -->
