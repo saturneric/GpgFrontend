@@ -16,28 +16,28 @@ BottomSheet {
     property var choices: []
     // Whether a value other than the choices may be set.
     property bool custom: true
-    property int value: 0
+    // A number, or one of named values (an operation).
+    property var value: 0
 
     // The value is stored; the caller writes it.
-    signal chosen(int row, int value)
+    signal chosen(int row, var value)
 
-    // "10 minutes", "2 hours", "30 days". Spelled out per number instead of
-    // qsTr("%n day(s)"): without a translator loaded Qt keeps the literal
-    // "(s)", as the desktop found (KeySetExpireDateDialog).
+    // "10 minutes", "2 hours", "30 days". Plurals as each language has them;
+    // the English catalog is always there underneath (Translations.h), so
+    // no "(s)" is ever shown.
     function describe(amount, unit) {
-        if (unit === "days")
-            return amount === 1 ? qsTr("1 day") : qsTr("%1 days").arg(amount)
+        if (unit === "operation") return Wording.operationLabel(amount)
+        if (unit === "days") return qsTr("%n day(s)", "", amount)
         if (unit !== "seconds") return String(amount)
         if (amount > 0 && amount % 3600 === 0) {
             const hours = amount / 3600
-            return hours === 1 ? qsTr("1 hour") : qsTr("%1 hours").arg(hours)
+            return qsTr("%n hour(s)", "", hours)
         }
         if (amount > 0 && amount % 60 === 0) {
             const minutes = amount / 60
-            return minutes === 1 ? qsTr("1 minute")
-                                 : qsTr("%1 minutes").arg(minutes)
+            return qsTr("%n minute(s)", "", minutes)
         }
-        return amount === 1 ? qsTr("1 second") : qsTr("%1 seconds").arg(amount)
+        return qsTr("%n second(s)", "", amount)
     }
 
     function begin(row, title, unit, choices, custom, value) {
@@ -48,7 +48,7 @@ BottomSheet {
         sheet.custom = custom
         sheet.value = value
         other.checked = sheet.custom && sheet.choices.indexOf(value) < 0
-        amount.value = value
+        if (typeof value === "number") amount.value = value
         open()
     }
 
@@ -66,7 +66,9 @@ BottomSheet {
             Layout.leftMargin: -24
             Layout.rightMargin: -24
             leftPadding: 24
-            text: sheet.describe(modelData, sheet.unit)
+            // A button's text: an ampersand is doubled ("Encrypt & Sign").
+            text: Wording.actionText(sheet.describe(modelData, sheet.unit))
+            Accessible.name: sheet.describe(modelData, sheet.unit)
             checked: !other.checked && modelData === sheet.value
             ButtonGroup.group: group
             onClicked: {

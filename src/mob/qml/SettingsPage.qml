@@ -18,6 +18,16 @@ Page {
 
     // The About page was asked for.
     signal aboutRequested()
+    // What the desktop's About dialog tells besides: the build, the rPGP
+    // engine, the translators.
+    signal buildInfoRequested()
+    signal engineInfoRequested()
+    signal translatorsRequested()
+    signal profilesRequested()
+    // The key categories, to manage.
+    signal categoriesRequested()
+    // The profiles on this phone (not the key generation ones above).
+    signal profileManagerRequested()
 
     header: AppBar {
         title: qsTr("Settings")
@@ -28,13 +38,21 @@ Page {
         id: settings
     }
 
+    KeyDatabasesController {
+        id: keyDatabases
+    }
+
+    ProfilesController {
+        id: phoneProfiles
+    }
+
     // The count changes behind the model's back as files are shared.
     onVisibleChanged: if (visible) settings.SignalSharedFilesChanged()
 
     function sharedFilesText() {
         const count = settings.sharedFileCount
         if (count === 0) return qsTr("None")
-        const files = count === 1 ? qsTr("1 file") : qsTr("%1 files").arg(count)
+        const files = qsTr("%n file(s)", "", count)
         return qsTr("%1, %2").arg(files).arg(Theme.fileSize(settings.sharedFileSize))
     }
 
@@ -66,15 +84,20 @@ Page {
             required property bool custom
             required property string section
 
+            // One of named values: there only while there is a choice.
+            readonly property bool named: type === "string" && (choices || []).length > 0
+
             objectName: "setting_" + index
             Layout.fillWidth: true
-            visible: section === rows.section
+            visible: section === rows.section && (!named || choices.length > 1)
             text: title
-            valueText: type === "int" ? editor.describe(row.value, unit) : ""
+            // A switch says what it does; a value speaks for itself.
+            detail: type === "bool" ? description : ""
+            valueText: type === "int" || named ? editor.describe(row.value, unit) : ""
             onClicked: {
                 if (type === "bool") {
                     page.store(index, !row.value)
-                } else if (type === "int") {
+                } else if (type === "int" || named) {
                     editor.begin(index, title, unit, choices, custom, row.value)
                 }
             }
@@ -132,11 +155,55 @@ Page {
 
             SectionHeader {
                 Layout.fillWidth: true
+                text: qsTr("Operations")
+            }
+
+            SettingRows {
+                section: "operations"
+            }
+
+            SectionHeader {
+                Layout.fillWidth: true
                 text: qsTr("Keys")
             }
 
             SettingRows {
                 section: "keys"
+            }
+
+            ListRow {
+                objectName: "keyDatabase"
+                Layout.fillWidth: true
+                text: qsTr("Key database")
+                detail: qsTr("Choose where your keys are kept, or start a new one.")
+                valueText: keyDatabases.currentName
+                onClicked: databaseSheet.begin()
+            }
+
+            ListRow {
+                objectName: "keyCategories"
+                Layout.fillWidth: true
+                text: qsTr("Key categories")
+                detail: qsTr("Your own groups of keys, shared with the desktop.")
+                onClicked: page.categoriesRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
+            }
+
+            ListRow {
+                objectName: "keyGenProfiles"
+                Layout.fillWidth: true
+                text: qsTr("Key generation profiles")
+                detail: qsTr("What Create a key offers, shared with the desktop.")
+                onClicked: page.profilesRequested()
+
+                Icon {
+                    symbol: "chevron_right"
+                    color: Material.secondaryTextColor
+                }
             }
 
             SectionHeader {
@@ -162,16 +229,54 @@ Page {
 
             SectionHeader {
                 Layout.fillWidth: true
+                text: qsTr("Profile")
+            }
+
+            ListRow {
+                objectName: "profileManager"
+                Layout.fillWidth: true
+                text: qsTr("Profiles")
+                detail: qsTr("Open another, start a new one, or keep a backup.")
+                valueText: phoneProfiles.currentName
+                onClicked: page.profileManagerRequested()
+            }
+
+            SectionHeader {
+                Layout.fillWidth: true
                 text: qsTr("About")
             }
 
             ListRow {
                 objectName: "about"
                 Layout.fillWidth: true
-                Layout.bottomMargin: Theme.gap
                 text: qsTr("GpgFrontend")
                 valueText: Qt.application.version
                 onClicked: page.aboutRequested()
+            }
+
+            ListRow {
+                objectName: "buildInfo"
+                Layout.fillWidth: true
+                text: qsTr("Build information")
+                detail: qsTr("What this build is made of, and when.")
+                onClicked: page.buildInfoRequested()
+            }
+
+            ListRow {
+                objectName: "engineInfo"
+                Layout.fillWidth: true
+                text: qsTr("rPGP engine")
+                detail: qsTr("The OpenPGP engine that does the work here.")
+                onClicked: page.engineInfoRequested()
+            }
+
+            ListRow {
+                objectName: "translators"
+                Layout.fillWidth: true
+                Layout.bottomMargin: Theme.gap
+                text: qsTr("Translators")
+                detail: qsTr("Who brought GpgFrontend to your language.")
+                onClicked: page.translatorsRequested()
             }
         }
     }
@@ -182,6 +287,12 @@ Page {
         onChosen: function(row, value) {
             page.store(row, value)
         }
+    }
+
+    KeyDatabaseSheet {
+        id: databaseSheet
+        databases: keyDatabases
+        onFinished: function(message) { done.show(message) }
     }
 
     MessageAlert {
