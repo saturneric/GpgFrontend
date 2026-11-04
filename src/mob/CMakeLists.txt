@@ -148,7 +148,8 @@ qt_add_qml_module(gf_mob_lib
     qml/components/OperationFlow.qml
     qml/components/ProblemLabel.qml
     qml/components/KeyChoiceFace.qml
-    qml/components/ResultCard.qml)
+    qml/components/ResultCard.qml
+    qml/components/KeyPickerSheet.qml)
 
 # Which style the controls take is the platform's (Material on Android); this
 # only gives it GpgFrontend's colours and lets it follow the system's dark mode.

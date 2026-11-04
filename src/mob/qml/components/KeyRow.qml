@@ -21,13 +21,27 @@ ItemDelegate {
     required property bool revoked
     required property string status
     required property string statusText
+    required property string fingerprint
+    // False for a key group, which has members instead of an address.
+    required property bool isKey
+    required property var members
 
-    // The name, else the address, else the key ID; and under it the address,
-    // or the key ID when the address is already on top or missing.
-    readonly property string primaryText: name.length > 0 ? name
-                                        : email.length > 0 ? email : keyId
-    readonly property string secondaryText: name.length > 0 && email.length > 0
-                                            ? email : keyId
+    // Whether the key is one the work is encrypted to (WorkSelection).
+    readonly property bool recipient: WorkSelection.revision >= 0
+                                      && WorkSelection.isRecipient(fingerprint)
+
+    // A tap on the face: one more recipient, or one fewer.
+    signal recipientToggled()
+    // A long press: which categories the key is in.
+    signal categoriesRequested()
+
+    // A control at the end (a button), if any, after the own-key mark.
+    default property alias trailing: trailingRow.data
+
+    // What every key list says of a key (Wording.keyTitle, keySubtitle).
+    readonly property string primaryText: Wording.keyTitle(name, email, keyId)
+    readonly property string secondaryText: !isKey ? Wording.memberCount((members || []).length)
+                                            : Wording.keySubtitle(name, email, keyId)
 
     leftPadding: Theme.gap
     rightPadding: Theme.gap
@@ -36,16 +50,67 @@ ItemDelegate {
     implicitHeight: Math.max(Theme.rowHeightTwoLine,
                              implicitContentHeight + topPadding + bottomPadding)
     Accessible.name: primaryText
-    Accessible.description: [secondaryText, hasSecret ? qsTr("Your key") : "",
-                             status !== "ok" ? statusText : ""]
+    Accessible.description: [!isKey ? qsTr("Key group") : "", secondaryText,
+                             hasSecret ? qsTr("Your key") : "",
+                             status !== "ok" ? statusText : "",
+                             recipient ? qsTr("Chosen to encrypt to") : ""]
                             .filter(t => t.length > 0).join(", ")
+    onPressAndHold: categoriesRequested()
 
     contentItem: RowLayout {
         spacing: Theme.gap
 
-        KeyAvatar {
-            name: row.primaryText
-            usable: row.usable
+        // The face, or a check while it is chosen to encrypt to.
+        Item {
+            implicitWidth: 40
+            implicitHeight: 40
+
+            KeyAvatar {
+                anchors.centerIn: parent
+                visible: !row.recipient && row.isKey
+                name: row.primaryText
+                usable: row.usable
+            }
+
+            // A key group: the desktop's mark for one.
+            Rectangle {
+                anchors.fill: parent
+                visible: !row.recipient && !row.isKey
+                radius: width / 2
+                color: Theme.alpha(Material.accentColor, 0.12)
+
+                Image {
+                    objectName: "groupMark"
+                    anchors.centerIn: parent
+                    source: "qrc:/icons/key-group.png"
+                    sourceSize: Qt.size(24, 24)
+                    opacity: row.usable ? 1 : 0.5
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                visible: row.recipient
+                radius: width / 2
+                color: Material.accentColor
+
+                Icon {
+                    anchors.centerIn: parent
+                    symbol: "check_box"
+                    color: "white"
+                }
+            }
+
+            // Takes the press, so the row under it does not open as well.
+            MouseArea {
+                anchors.fill: parent
+                onClicked: row.recipientToggled()
+            }
+
+            Accessible.role: Accessible.CheckBox
+            Accessible.checked: row.recipient
+            Accessible.name: row.recipient ? qsTr("Do not encrypt to %1").arg(row.primaryText)
+                                           : qsTr("Encrypt to %1").arg(row.primaryText)
         }
 
         ColumnLayout {
@@ -89,6 +154,12 @@ ItemDelegate {
             color: Material.secondaryTextColor
             Accessible.role: Accessible.Graphic
             Accessible.name: qsTr("Your key")
+        }
+
+        RowLayout {
+            id: trailingRow
+            spacing: 0
+            visible: children.length > 0
         }
     }
 }
