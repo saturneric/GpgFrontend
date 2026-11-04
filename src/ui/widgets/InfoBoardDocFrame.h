@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/utils/ReportSealPainter.h"
 #include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {
@@ -49,10 +50,7 @@ struct ReportColors {
 
   static auto Blend(const QColor& a, const QColor& b, int wa, int wb)
       -> QColor {
-    const int w = wa + wb;
-    return {(a.red() * wa + b.red() * wb) / w,
-            (a.green() * wa + b.green() * wb) / w,
-            (a.blue() * wa + b.blue() * wb) / w};
+    return BlendReportColor(a, b, wa, wb);
   }
 
   static auto From(const QPalette& palette) -> ReportColors {
@@ -388,13 +386,9 @@ class CardHeaderRow final : public StackingRow {
 };
 
 /// How a report's seal looks: what it says about the outcome, never more.
-enum class ReportSealKind : std::uint8_t {
-  kSUCCESS,
-  kWARNING,
-  kCANCELLED,
-  kFAILURE,
-  kINFORMATION,
-};
+// What a seal says happened, and how it is painted: the core's, which the
+// phone's report shares.
+using GpgFrontend::ReportSealKind;
 
 /// A document heading's double rule: two hairlines, close together.
 class DoubleRule final : public QWidget {
@@ -475,247 +469,21 @@ class ReportSeal final : public QWidget {
   }
 
   void paintEvent(QPaintEvent* /*event*/) override {
-    constexpr double kPi = 3.14159265358979323846;
     // Lettering and ornament need real pixels; below this the seal keeps
     // only its contours and symbol.
     constexpr double kDetailFromPx = 70.0;
-    // Stamped, not placed: a small fixed counterclockwise tilt, the same in
-    // every render. The whole seal turns as one; a circle keeps its bounds,
-    // so nothing clips.
-    constexpr double kTiltDegrees = -8.0;
 
     QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
-    // The seal is the right-hand square; the waves fill what is left of it.
-    const double side = height();
-    const QRectF seal_rect(width() - side, 0.0, side, side);
-    p.translate(seal_rect.center());
-    p.rotate(kTiltDegrees);
-    p.translate(-seal_rect.center());
-
-    const auto colors = ReportColors::From(palette());
-    const QRectF box = seal_rect.adjusted(2.0, 2.0, -2.0, -2.0);
-    const QPointF c = box.center();
-    const double r = box.width() / 2.0;
-    // The device scale, unaffected by the tilt (m11 alone would be cos-scaled).
+    // The device scale (the seal's tilt does not change it).
     const auto& t = p.deviceTransform();
     const double scale = std::hypot(t.m11(), t.m12());
-    const bool detail = side * scale >= kDetailFromPx;
-
-    // The ink: the outcome's colour, a little muted; the symbol stronger.
-    const QColor ink = kind_ == ReportSealKind::kINFORMATION
-                           ? colors.muted
-                           : ReportColors::Blend(accent_, colors.muted, 4, 1);
-    const QColor symbol_ink = symbol_color(colors);
-
-    // Shallow relief: a pale edge up-left, a faint shade down-right, the
-    // stroke itself graded slightly within its own colour.
-    const QColor lift =
-        colors.dark ? QColor(255, 255, 255, 30) : QColor(255, 255, 255, 200);
-    const QColor shade =
-        colors.dark ? QColor(0, 0, 0, 90)
-                    : QColor(ink.darker(170).red(), ink.darker(170).green(),
-                             ink.darker(170).blue(), 55);
-    const auto graded = [&](const QColor& base) -> QBrush {
-      QLinearGradient g(box.topLeft(), box.bottomRight());
-      g.setColorAt(0.0, base.lighter(colors.dark ? 118 : 112));
-      g.setColorAt(1.0, base.darker(colors.dark ? 104 : 112));
-      return {g};
-    };
-    const auto relief = [&](const auto& draw, double width, const QColor& base,
-                            Qt::PenCapStyle cap) {
-      const double d = std::max(0.4, width * 0.28);
-      QPen pen(shade, width, Qt::SolidLine, cap, Qt::RoundJoin);
-      p.setPen(pen);
-      draw(QPointF(d, d));
-      pen.setColor(lift);
-      p.setPen(pen);
-      draw(QPointF(-d * 0.8, -d * 0.8));
-      pen.setBrush(graded(base));
-      p.setPen(pen);
-      draw(QPointF(0, 0));
-    };
-    const auto ring = [&](double radius, double width) {
-      p.setBrush(Qt::NoBrush);
-      relief([&](const QPointF& o) { p.drawEllipse(c + o, radius, radius); },
-             width, ink, Qt::FlatCap);
-    };
-
-    // Cancellation waves: five short parallel lines running left from the
-    // seal and slipping a little under its edge, as a postmark's would.
-    // Drawn first, so the seal's rings lie over them; thin and muted, so
-    // the seal stays the subject.
-    {
-      const double start = 3.0;  // the widget's own left, inside its bounds
-      const double end = c.x() - r * 0.72;  // a slight overlap
-      const double amplitude = std::max(0.8, r * 0.055);
-      const double wavelength = std::max(8.0, r * 0.52);
-      QColor wave_ink = ink;
-      // Translucent, so always lighter than the seal's solid outer contour.
-      wave_ink.setAlpha(colors.dark ? 185 : 170);
-      QPen wave_pen(wave_ink, std::max(1.2, r * 0.042), Qt::SolidLine,
-                    Qt::RoundCap, Qt::RoundJoin);
-      p.setPen(wave_pen);
-      p.setBrush(Qt::NoBrush);
-      // Evenly spaced and centred on the seal's horizontal axis.
-      constexpr int kWaves = 5;
-      const double spacing = r * 0.20;
-      for (int line = 0; line < kWaves; ++line) {
-        const double dy = (line - (kWaves - 1) / 2.0) * spacing;
-        QPainterPath wave;
-        constexpr int kSteps = 48;
-        for (int i = 0; i <= kSteps; ++i) {
-          const double x = start + (end - start) * i / kSteps;
-          const double y =
-              c.y() + dy +
-              amplitude * std::sin(2.0 * kPi * (x - start) / wavelength);
-          if (i == 0) {
-            wave.moveTo(x, y);
-          } else {
-            wave.lineTo(x, y);
-          }
-        }
-        p.drawPath(wave);
-      }
-    }
-
-    // Nearly transparent: the seal belongs to the paper.
-    QColor wash = ink;
-    wash.setAlpha(colors.dark ? 16 : 10);
-    p.setPen(Qt::NoPen);
-    p.setBrush(wash);
-    p.drawEllipse(c, r, r);
-
-    // Contours: a strong outer line with a fine one just inside it, and the
-    // band's fine inner edge.
-    const double outer_w = std::max(1.6, r * 0.065);
-    const double fine_w = std::max(0.7, r * 0.018);
-    const double outer_r = r - outer_w / 2.0;
-    const double fine_r = outer_r - outer_w / 2.0 - std::max(1.6, r * 0.05);
-    const double band_inner = detail ? r * 0.64 : r * 0.80;
-    ring(outer_r, outer_w);
-    ring(fine_r, fine_w);
-    ring(band_inner, fine_w);
-
-    if (detail) {
-      // The band: the brand along the top, the exact outcome along the
-      // bottom, a small diamond where they meet on either side.
-      QFont font = this->font();
-      font.setPixelSize(std::max(6, static_cast<int>(std::lround(r * 0.16))));
-      font.setBold(true);
-      font.setLetterSpacing(QFont::AbsoluteSpacing, 0.5);
-      p.setFont(font);
-      const QFontMetricsF fm(font);
-      const double text_r = (fine_r - fine_w + band_inner + fine_w) / 2.0;
-      p.setPen(ink);
-      const auto arc = [&](const QString& text, bool bottom) {
-        const double total = fm.horizontalAdvance(text);
-        const double span = total / text_r * 180.0 / kPi;
-        double angle = bottom ? 90.0 + span / 2.0 : -90.0 - span / 2.0;
-        for (const QChar ch : text) {
-          const double adv = fm.horizontalAdvance(ch);
-          const double step = adv / text_r * 180.0 / kPi;
-          const double mid = bottom ? angle - step / 2.0 : angle + step / 2.0;
-          p.save();
-          p.translate(c);
-          if (bottom) {
-            p.rotate(mid - 90.0);
-            p.drawText(QPointF(-adv / 2.0, text_r + fm.capHeight() / 2.0), ch);
-          } else {
-            p.rotate(mid + 90.0);
-            p.drawText(QPointF(-adv / 2.0, -text_r + fm.capHeight() / 2.0), ch);
-          }
-          p.restore();
-          angle += bottom ? -step : step;
-        }
-      };
-      arc(u"GPGFRONTEND"_s, false);
-      arc(inscription_, true);
-
-      p.setPen(Qt::NoPen);
-      p.setBrush(ink);
-      const double dia = std::max(1.2, r * 0.045);
-      for (const double side : {-1.0, 1.0}) {
-        const QPointF at = c + QPointF(side * text_r, 0.0);
-        QPolygonF diamond{at + QPointF(0, -dia), at + QPointF(dia, 0),
-                          at + QPointF(0, dia), at + QPointF(-dia, 0)};
-        p.drawPolygon(diamond);
-      }
-
-      // Fine radial ticks just inside the band, clear of the symbol.
-      QColor tick = ink;
-      tick.setAlpha(150);
-      p.setPen(
-          QPen(tick, std::max(0.6, r * 0.012), Qt::SolidLine, Qt::FlatCap));
-      constexpr int kTicks = 48;
-      const double t0 = band_inner - fine_w;
-      const double t1 = t0 - std::max(1.5, r * 0.045);
-      for (int i = 0; i < kTicks; ++i) {
-        const double a = 2.0 * kPi * i / kTicks;
-        const QPointF dir(std::cos(a), std::sin(a));
-        p.drawLine(c + dir * t0, c + dir * t1);
-      }
-    }
-
-    // The symbol: bold, optically centred, well clear of the rings.
-    const double k = band_inner * (detail ? 0.46 : 0.50);
-    const double sw = std::max(2.2, band_inner * 0.17);
-    QPainterPath symbol;
-    QPointF dot;
-    bool has_dot = false;
-    switch (kind_) {
-      case ReportSealKind::kSUCCESS:
-        // A check sits low-left; nudged right and up to look centred.
-        symbol.moveTo(c + QPointF(-0.74 * k, 0.04 * k));
-        symbol.lineTo(c + QPointF(-0.20 * k, 0.56 * k));
-        symbol.lineTo(c + QPointF(0.80 * k, -0.50 * k));
-        break;
-      case ReportSealKind::kFAILURE:
-        symbol.moveTo(c + QPointF(-0.58 * k, -0.58 * k));
-        symbol.lineTo(c + QPointF(0.58 * k, 0.58 * k));
-        symbol.moveTo(c + QPointF(0.58 * k, -0.58 * k));
-        symbol.lineTo(c + QPointF(-0.58 * k, 0.58 * k));
-        break;
-      case ReportSealKind::kINFORMATION:
-        // Neutral: an "i", a dot over a stem.
-        symbol.moveTo(c + QPointF(0, -0.15 * k));
-        symbol.lineTo(c + QPointF(0, 0.75 * k));
-        dot = c + QPointF(0, -0.68 * k);
-        has_dot = true;
-        break;
-      default:
-        // Warning, cancellation, an unsupported operation: "!".
-        symbol.moveTo(c + QPointF(0, -0.78 * k));
-        symbol.lineTo(c + QPointF(0, 0.30 * k));
-        dot = c + QPointF(0, 0.80 * k);
-        has_dot = true;
-        break;
-    }
-    p.setBrush(Qt::NoBrush);
-    relief([&](const QPointF& o) { p.drawPath(symbol.translated(o)); }, sw,
-           symbol_ink, Qt::RoundCap);
-    if (has_dot) {
-      const double dr = sw * 0.62;
-      const auto draw_dot = [&](const QColor& color, const QPointF& o) {
-        p.setPen(Qt::NoPen);
-        p.setBrush(color);
-        p.drawEllipse(dot + o, dr, dr);
-      };
-      const double d = std::max(0.4, sw * 0.28);
-      draw_dot(shade, QPointF(d, d));
-      draw_dot(lift, QPointF(-d * 0.8, -d * 0.8));
-      draw_dot(symbol_ink, QPointF(0, 0));
-    }
+    const auto colors = ReportColors::From(palette());
+    PaintReportSeal(p, rect(), kind_, inscription_,
+                    {accent_, colors.text, colors.muted, colors.dark, font()},
+                    height() * scale >= kDetailFromPx);
   }
 
  private:
-  /// The symbol in the outcome's own colour, stronger than the rings.
-  [[nodiscard]] auto symbol_color(const ReportColors& colors) const -> QColor {
-    return kind_ == ReportSealKind::kINFORMATION
-               ? colors.muted
-               : ReportColors::Blend(accent_, colors.text, 6, 1);
-  }
-
   QWidget* document_;
   ReportSealKind kind_ = ReportSealKind::kINFORMATION;
   QColor accent_;
