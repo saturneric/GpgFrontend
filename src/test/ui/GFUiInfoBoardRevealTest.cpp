@@ -260,7 +260,7 @@ TEST(GFUiInfoBoardRevealTest, RejectedExpiredKeySignatureIsCritical) {
   expired_before.rejected = true;
   info.signatures << expired_later << expired_before;
 
-  const auto cards = UI::convert_op_info_to_cards(info);
+  const auto cards = UI::ConvertOpInfoToCards(info);
   ASSERT_EQ(cards.size(), 2);
   EXPECT_EQ(cards[0].status, kINFO_ERROR_WARN);
   EXPECT_EQ(cards[1].status, kINFO_ERROR_CRITICAL);

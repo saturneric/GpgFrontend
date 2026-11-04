@@ -1260,7 +1260,7 @@ auto ObjectFromResult(const GpgOperaResult& result,
 
   object.cards.append(MakeOutcomeCard(object));
   object.cards.append(context.extra_cards.value(result.input_index));
-  object.cards.append(convert_op_info_to_cards(info));
+  object.cards.append(ConvertOpInfoToCards(info));
   for (auto& card : object.cards) card.source = object.source;
   SortCards(object.cards);
   return object;

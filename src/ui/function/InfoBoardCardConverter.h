@@ -33,11 +33,9 @@
 
 namespace GpgFrontend::UI {
 
-// The domain cards of an analysed result: signatures, signers, recipients and
-// message metadata, each with its kind set. The result's own outcome, errors
-// and input hash are its Outcome card's (see BuildOpInfoCards).
-auto GF_UI_EXPORT convert_op_info_to_cards(
-    const GpgFrontend::GpgOpResultInfo& info) -> QList<InfoBoardCard>;
+// The domain cards of an analysed result: the core's, which the phone uses
+// too (core/function/result_analyse/InfoBoardCard.h).
+using GpgFrontend::ConvertOpInfoToCards;
 
 // Serialize cards to a JSON array string. Used by the SDK to hand structured
 // results to modules, which can only pass plain string key/value params; the

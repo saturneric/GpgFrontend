@@ -28,127 +28,24 @@
 
 #pragma once
 
-// The Status Panel's value types. They live apart from InfoBoardWidget on
-// purpose: lupdate mis-tracks the namespace across a typed enum followed by a
-// Q_OBJECT class in one file, which used to force an awkward ordering there.
+// The Status Panel's value types, now the core's (InfoBoardCard.h), which the
+// phone shares; the names stay where the desktop has always found them.
+
+#include "core/function/result_analyse/InfoBoardCard.h"
 
 namespace GpgFrontend::UI {
 
-/// The indicator's colour, stamp and status word.
-enum InfoBoardStatus : uint8_t {
-  kINFO_ERROR_OK = 0,
-  kINFO_ERROR_WARN = 1,
-  kINFO_ERROR_CRITICAL = 2,
-  kINFO_ERROR_NEUTRAL = 3,
-};
-
-/**
- * @brief What happened to one object of a report.
- *
- * The first five describe an engine run as well as a task; the last two only
- * a task: no result arrived, or the engine finished but its output was
- * discarded because another item in the batch did not succeed.
- */
-enum class InfoBoardOutcome : std::uint8_t {
-  kSUCCEEDED,
-  kWARNING,
-  kFAILED,
-  kCANCELLED,
-  kNOT_SUPPORTED,
-  kNOT_REPORTED,
-  kNOT_SAVED,
-};
-
-/// A card's role; it decides the card's place within its object's group.
-enum class InfoBoardCardKind : std::uint8_t {
-  kOUTCOME,
-  kCODEC,
-  kSIGNATURE,
-  kNEW_SIGNATURE,
-  kINVALID_SIGNER,
-  kMESSAGE_METADATA,
-  kRECIPIENT,
-  kFILE_HASH,
-  kGENERIC,
-};
-
-/**
- * @brief What a card or object is about.
- *
- * @ref id is the identity (grouping and matching only), @ref label the short
- * text in the card header, @ref full the complete path or description for the
- * tooltip and every export. Two files with the same name differ by id.
- */
-struct InfoBoardSource {
-  enum Kind : std::uint8_t { kFILE, kDOCUMENT, kOPERATION, kGENERIC };
-
-  Kind kind = kGENERIC;
-  QString id;
-  QString label;
-  QString full;
-
-  [[nodiscard]] auto IsEmpty() const -> bool { return id.isEmpty(); }
-};
-
-/// Which run of a card's fields a field belongs to; runs are spaced apart.
-enum class InfoBoardFieldGroup : std::uint8_t {
-  kPRIMARY,     ///< what happened: result, reason, message
-  kDIAGNOSTIC,  ///< why, in the engine's or the system's own words
-  kFOLLOW_UP,   ///< what became of the output, what to do next
-  kDETAIL,      ///< everything else: hashes, keys, metadata
-};
-
-/// What a field is, where the presentation needs to know.
-enum class InfoBoardFieldRole : std::uint8_t {
-  kNONE,
-  kREASON,  ///< the Outcome card's explanation
-};
-
-/// How one field is presented. Never what it says.
-struct InfoBoardFieldMeta {
-  /// Secondary text under the value, e.g. the stage and code of an error.
-  QString note;
-  /// A hash, code or identifier: shown in the monospaced face.
-  bool technical = false;
-  InfoBoardFieldGroup group = InfoBoardFieldGroup::kDETAIL;
-  InfoBoardFieldRole role = InfoBoardFieldRole::kNONE;
-  /// The report's summary or headline already says this; the screen may
-  /// leave it out. Text exports always keep it.
-  bool summarized = false;
-};
-
-struct InfoBoardCard {
-  QString title;
-  /// Styling only: never changes what the report says happened.
-  InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
-  QList<QPair<QString, QString>> fields;
-  /// Presentation of fields[i]; may be shorter than fields, the rest
-  /// default.
-  QList<InfoBoardFieldMeta> field_meta;
-  InfoBoardCardKind kind = InfoBoardCardKind::kGENERIC;
-  /// Empty: the posting's own source.
-  InfoBoardSource source;
-  /// A structured outcome; meaningful only on a kOUTCOME card, where it is
-  /// what makes the card a valid Outcome card.
-  std::optional<InfoBoardOutcome> outcome;
-
-  void AddField(const QString& key, const QString& value,
-                const InfoBoardFieldMeta& meta = {}) {
-    field_meta.resize(fields.size());
-    fields.append({key, value});
-    field_meta.append(meta);
-  }
-
-  void PrependField(const QString& key, const QString& value,
-                    const InfoBoardFieldMeta& meta = {}) {
-    field_meta.resize(fields.size());
-    fields.prepend({key, value});
-    field_meta.prepend(meta);
-  }
-
-  [[nodiscard]] auto MetaAt(qsizetype i) const -> InfoBoardFieldMeta {
-    return i < field_meta.size() ? field_meta.at(i) : InfoBoardFieldMeta{};
-  }
-};
+using GpgFrontend::InfoBoardCard;
+using GpgFrontend::InfoBoardCardKind;
+using GpgFrontend::InfoBoardFieldGroup;
+using GpgFrontend::InfoBoardFieldMeta;
+using GpgFrontend::InfoBoardFieldRole;
+using GpgFrontend::InfoBoardOutcome;
+using GpgFrontend::InfoBoardSource;
+using GpgFrontend::InfoBoardStatus;
+using GpgFrontend::kINFO_ERROR_CRITICAL;
+using GpgFrontend::kINFO_ERROR_NEUTRAL;
+using GpgFrontend::kINFO_ERROR_OK;
+using GpgFrontend::kINFO_ERROR_WARN;
 
 }  // namespace GpgFrontend::UI
