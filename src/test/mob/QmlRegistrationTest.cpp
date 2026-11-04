@@ -28,15 +28,40 @@
 
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <QQuickItem>
+#include <QSignalSpy>
 
 #include "MobileTest.h"
+#include "core/function/KeyGenProfile.h"
+#include "core/function/openpgp/ChannelHandle.h"
+#include "core/profile/ProfileSession.h"
+#include "core/utils/GpgUtils.h"
+#include "crypto/OperationQueue.h"
 #include "crypto/PassphraseBroker.h"
+#include "files/FileWorkspace.h"
 #include "lifecycle/AppLifecycle.h"
 #include "model/KeyListController.h"
 #include "startup/InteractionBridge.h"
 #include "startup/StartupController.h"
 
 namespace GpgFrontend::Test::Mobile {
+
+namespace {
+
+/// @p name under @p root, by the item tree too: a Repeater's items are not
+/// its QObject children.
+auto FindItem(QObject* root, const QString& name) -> QObject* {
+  if (auto* found = root->findChild<QObject*>(name)) return found;
+  auto* item = qobject_cast<QQuickItem*>(root);
+  if (item == nullptr) return nullptr;
+  for (auto* child : item->childItems()) {
+    if (child->objectName() == name) return child;
+    if (auto* found = FindItem(child, name)) return found;
+  }
+  return nullptr;
+}
+
+}  // namespace
 
 // The runner imports the same plugin the application does
 // (Q_IMPORT_QML_PLUGIN); each type it registers has to be usable from QML.
@@ -53,7 +78,14 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
         property var importer: KeyImportController {}
         property var actions: OutputActions {}
         property var keyActions: KeyActionsController {}
-        property var files: FileWorkspace {}
+        property var profiles: KeyGenProfilesController {}
+        property var categories: KeyCategoriesController {}
+        property var keyDatabases: KeyDatabasesController {}
+        property var phoneProfiles: ProfilesController {}
+        property var files: FileWorkspace
+        property var selection: WorkSelection
+        property string kind: ContentKind.textKind("x")
+        property string word: Wording.textKind("plain")
         property var settings: SettingsModel {}
         property var asked: PassphraseBroker.current
         property var startup: StartupController.state
@@ -66,6 +98,8 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
         property var lifecycleObject: AppLifecycle
         property var keysObject: KeyListController
         property var passphrasesObject: PassphraseBroker
+        property var operationsObject: OperationQueue
+        property var log: OperationQueue.log
       }
     )",
                       QUrl());
@@ -73,8 +107,9 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
     ASSERT_NE(object, nullptr) << component.errorString().toStdString();
     EXPECT_NE(object->property("filter").value<QObject*>(), nullptr);
     EXPECT_NE(object->property("keys").value<QObject*>(), nullptr);
-    for (const auto* name :
-         {"crypto", "importer", "actions", "keyActions", "files", "settings"}) {
+    for (const auto* name : {"crypto", "importer", "actions", "keyActions",
+                             "profiles", "categories", "keyDatabases",
+                             "phoneProfiles", "files", "settings", "log"}) {
       EXPECT_NE(object->property(name).value<QObject*>(), nullptr) << name;
     }
     EXPECT_EQ(object->property("suspended").toBool(), false);
@@ -92,6 +127,10 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
               KeyListController::create(nullptr, nullptr));
     EXPECT_EQ(object->property("passphrasesObject").value<QObject*>(),
               PassphraseBroker::create(nullptr, nullptr));
+    EXPECT_EQ(object->property("files").value<QObject*>(),
+              FileWorkspace::create(nullptr, nullptr));
+    EXPECT_EQ(object->property("operationsObject").value<QObject*>(),
+              OperationQueue::create(nullptr, nullptr));
   });
 }
 
@@ -99,17 +138,239 @@ TEST(QmlRegistrationTest, EveryTypeOfTheModuleResolves) {
 TEST(QmlRegistrationTest, EveryPageLoads) {
   RunOnMainThread([]() {
     QQmlEngine engine;
-    for (const auto* name :
-         {"SplashPage", "ErrorPage", "MainPage", "KeysPage", "KeyDetailPage",
-          "TextPage", "PinSheet", "ConfirmSheet", "PassphraseSheet",
-          "RecipientSheet", "SignerSheet", "ResultSheet", "ImportSheet",
-          "FilesPage", "SettingsPage", "GenerateSheet", "AboutPage",
-          "FileDetailsSheet", "VerifySheet"}) {
+    const QStringList pages = {"SplashPage",
+                               "ErrorPage",
+                               "MainPage",
+                               "KeysPage",
+                               "KeyDetailPage",
+                               "TextPage",
+                               "PinSheet",
+                               "ConfirmSheet",
+                               "PassphraseSheet",
+                               "KeyToolbox",
+                               "StatusSheet",
+                               "SheetHost",
+                               "ImportSheet",
+                               "FilesPage",
+                               "SettingsPage",
+                               "GenerateSheet",
+                               "AboutPage",
+                               "FileDetailsSheet",
+                               "DetachedVerifySheet",
+                               "StatusLine",
+                               "KeyFacts",
+                               "SubkeySheet",
+                               "AddSubkeySheet",
+                               "RevokeSubkeySheet",
+                               "ValiditySheet",
+                               "KeyAlgoChooser",
+                               "UidSheet",
+                               "AddUidSheet",
+                               "CategorySheet",
+                               "KeyDatabaseSheet",
+                               "ProfileSheet",
+                               "OperationBar",
+                               "ResultCard",
+                               "KeyCategoriesSheet",
+                               "KeyPickerSheet",
+                               "CategoryKeysPage",
+                               "KeyGroupPage",
+                               "KeyGroupSheet",
+                               "FactsPage",
+                               "TranslatorsPage",
+                               "ProfilesPage",
+                               "KeyCategoriesPage",
+                               "KeyGenProfilesPage",
+                               "KeyGenProfileEditPage"};
+    for (const auto& name : pages) {
       QQmlComponent component(&engine, "GpgFrontend.Mobile", name);
       std::unique_ptr<QObject> object(component.create());
-      EXPECT_NE(object, nullptr)
-          << name << ": " << component.errorString().toStdString();
+      EXPECT_NE(object, nullptr) << name.toStdString() << ": "
+                                 << component.errorString().toStdString();
     }
+  });
+}
+
+// Expert Mode and the profile editor, on the engine's real algorithms.
+TEST(QmlRegistrationTest, ExpertChoicesComeFromTheEngine) {
+  const auto before = LoadKeyGenSettings();
+  RunOnMainThread([]() {
+    QQmlEngine engine;
+    const auto find = [](QObject* root, const char* name) {
+      return root->findChild<QObject*>(QString::fromLatin1(name));
+    };
+
+    // Expert Mode starts from the chosen profile, its subkey included.
+    QQmlComponent sheet_type(&engine, "GpgFrontend.Mobile", "GenerateSheet");
+    std::unique_ptr<QObject> sheet(sheet_type.create());
+    ASSERT_NE(sheet, nullptr) << sheet_type.errorString().toStdString();
+    auto* expert = find(sheet.get(), "generateExpert");
+    ASSERT_NE(expert, nullptr);
+    QMetaObject::invokeMethod(expert, "toggle");
+    QMetaObject::invokeMethod(expert, "toggled");
+    auto* primary = find(sheet.get(), "primaryChooser");
+    ASSERT_NE(primary, nullptr);
+    EXPECT_FALSE(primary->property("algos").toList().isEmpty());
+    EXPECT_TRUE(primary->property("complete").toBool());
+    EXPECT_EQ(primary->property("algo").toMap().value("id").toString(),
+              "ed25519");
+    auto* subkey = find(sheet.get(), "subkeyChooser");
+    EXPECT_EQ(subkey->property("algo").toMap().value("id").toString(),
+              "cv25519");
+
+    // Another profile, chosen in Expert Mode, fills the choices in again.
+    auto* profile = find(sheet.get(), "generateProfile");
+    ASSERT_NE(profile, nullptr);
+    const auto offered = profile->property("model").toList();
+    int rsa = -1;
+    for (int i = 0; i < offered.size(); ++i) {
+      if (offered.at(i).toMap().value("name").toString().startsWith(
+              "RSA-3072")) {
+        rsa = i;
+      }
+    }
+    ASSERT_GE(rsa, 0);
+    profile->setProperty("currentIndex", rsa);
+    QMetaObject::invokeMethod(profile, "activated", Q_ARG(int, rsa));
+    EXPECT_EQ(primary->property("algo").toMap().value("id").toString(),
+              "rsa3072");
+
+    // A new profile, saved from the editor as the desktop's would be.
+    QQmlComponent editor_type(&engine, "GpgFrontend.Mobile",
+                              "KeyGenProfileEditPage");
+    std::unique_ptr<QObject> editor(
+        editor_type.createWithInitialProperties({{"index", -1}}));
+    ASSERT_NE(editor, nullptr) << editor_type.errorString().toStdString();
+    find(editor.get(), "profileName")->setProperty("text", "QML Test Profile");
+    QSignalSpy saved(editor.get(), SIGNAL(saved()));
+    QMetaObject::invokeMethod(editor.get(), "save");
+    EXPECT_EQ(saved.count(), 1);
+    bool listed = false;
+    for (const auto& p : LoadStoredKeyGenProfiles().profiles) {
+      listed |= p.name == "QML Test Profile" && p.has_s_key;
+    }
+    EXPECT_TRUE(listed);
+  });
+  StoreKeyGenSettings(before);
+}
+
+// Settings names the key database in use, and its sheet offers the others
+// and a new one by name.
+TEST(QmlRegistrationTest, KeyDatabaseSheetOffersTheDatabases) {
+  const auto current =
+      LookupChannelHandle(UsableDefaultChannelHandle()).database_id;
+  RunOnMainThread([&current]() {
+    QQmlEngine engine;
+    const auto find = FindItem;
+
+    QQmlComponent page_type(&engine, "GpgFrontend.Mobile", "SettingsPage");
+    std::unique_ptr<QObject> page(page_type.create());
+    ASSERT_NE(page, nullptr) << page_type.errorString().toStdString();
+    auto* row = find(page.get(), "keyDatabase");
+    ASSERT_NE(row, nullptr);
+    QString name;
+    for (const auto& info : GetGpgKeyDatabaseInfos()) {
+      if (info.id == current) name = KeyDatabaseDisplayName(info.id, info.name);
+    }
+    ASSERT_FALSE(name.isEmpty());
+    EXPECT_EQ(row->property("valueText").toString(), name);
+
+    // And on the Keys tab, where it is switched most.
+    QQmlComponent keys_type(&engine, "GpgFrontend.Mobile", "KeysPage");
+    std::unique_ptr<QObject> keys(keys_type.create());
+    ASSERT_NE(keys, nullptr) << keys_type.errorString().toStdString();
+    auto* header = keys->property("header").value<QObject*>();
+    ASSERT_NE(header, nullptr);
+    auto* button = find(header, "keyDatabaseButton");
+    ASSERT_NE(button, nullptr);
+    EXPECT_EQ(button->property("text").toString(), name);
+
+    // A pop-up, so not among the page's children: made on its own here.
+    QQmlComponent sheet_type(&engine);
+    sheet_type.setData(R"(
+      import QtQuick
+      import GpgFrontend.Mobile
+      KeyDatabaseSheet { databases: KeyDatabasesController {} }
+    )",
+                       QUrl());
+    std::unique_ptr<QObject> sheet(sheet_type.create());
+    ASSERT_NE(sheet, nullptr) << sheet_type.errorString().toStdString();
+    QMetaObject::invokeMethod(sheet.get(), "begin");
+    // Its items are in its body, not among its own children.
+    auto* body = sheet->property("body").value<QObject*>();
+    ASSERT_NE(body, nullptr);
+    auto* choice = find(body, "keyDatabase_" + name);
+    ASSERT_NE(choice, nullptr);
+    EXPECT_TRUE(choice->property("checked").toBool());
+
+    // Naming one starts from a free name, and a bad one is refused there.
+    QMetaObject::invokeMethod(sheet.get(), "beginNew");
+    EXPECT_TRUE(sheet->property("naming").toBool());
+    auto* field = find(body, "keyDatabaseName");
+    ASSERT_NE(field, nullptr);
+    EXPECT_TRUE(field->property("text").toString().startsWith("Key DB "));
+    field->setProperty("text", name);
+    QMetaObject::invokeMethod(sheet.get(), "create");
+    EXPECT_FALSE(find(body, "keyDatabaseProblem")
+                     ->property("text")
+                     .toString()
+                     .isEmpty());
+    EXPECT_FALSE(sheet->property("busy").toBool());
+  });
+  EXPECT_EQ(LookupChannelHandle(UsableDefaultChannelHandle()).database_id,
+            current);
+}
+
+// The profiles page marks the open profile, and its sheet checks what is
+// typed before anything is asked of the core.
+TEST(QmlRegistrationTest, ProfilesPageChecksWhatIsTyped) {
+  const auto open_id = ProfileSession::Instance().Profile().Id();
+  RunOnMainThread([&open_id]() {
+    QQmlEngine engine;
+    QQmlComponent page_type(&engine, "GpgFrontend.Mobile", "ProfilesPage");
+    std::unique_ptr<QObject> page(page_type.create());
+    ASSERT_NE(page, nullptr) << page_type.errorString().toStdString();
+    auto* row = FindItem(page.get(), "profile_" + open_id);
+    ASSERT_NE(row, nullptr);
+    EXPECT_TRUE(row->property("selected").toBool());
+
+    auto* sheet = page->property("sheet").value<QObject*>();
+    ASSERT_NE(sheet, nullptr);
+    auto* body = sheet->property("body").value<QObject*>();
+    ASSERT_NE(body, nullptr);
+    QSignalSpy accepted(sheet, SIGNAL(accepted(QString)));
+    const auto problem = [&]() {
+      return FindItem(body, "profileProblem")->property("text").toString();
+    };
+
+    // An export's passphrase: long enough, and the same twice.
+    QMetaObject::invokeMethod(sheet, "begin", Q_ARG(QVariant, "export"),
+                              Q_ARG(QVariant, QVariant()));
+    FindItem(body, "profileSecret")->setProperty("text", "short");
+    FindItem(body, "profileConfirm")->setProperty("text", "short");
+    QMetaObject::invokeMethod(sheet, "submit");
+    EXPECT_FALSE(problem().isEmpty());
+    FindItem(body, "profileSecret")->setProperty("text", "long enough one");
+    FindItem(body, "profileConfirm")->setProperty("text", "long enough two");
+    QMetaObject::invokeMethod(sheet, "submit");
+    EXPECT_FALSE(problem().isEmpty());
+    EXPECT_EQ(accepted.count(), 0);
+    FindItem(body, "profileConfirm")->setProperty("text", "long enough one");
+    QMetaObject::invokeMethod(sheet, "submit");
+    ASSERT_EQ(accepted.count(), 1);
+    EXPECT_EQ(accepted.front().front().toString(), "long enough one");
+    // Not kept in the sheet once taken.
+    EXPECT_TRUE(
+        FindItem(body, "profileSecret")->property("text").toString().isEmpty());
+
+    // A new profile's name may not be one there is.
+    QMetaObject::invokeMethod(sheet, "begin", Q_ARG(QVariant, "create"),
+                              Q_ARG(QVariant, QVariant()));
+    FindItem(body, "profileName")
+        ->setProperty("text", row->property("text").toString());
+    QMetaObject::invokeMethod(sheet, "submit");
+    EXPECT_FALSE(problem().isEmpty());
+    EXPECT_EQ(accepted.count(), 1);
   });
 }
 

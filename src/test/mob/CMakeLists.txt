@@ -37,10 +37,12 @@ add_executable(gf_mob_tests
   InteropTest.cpp
   InteractionBridgeTest.cpp
   KeyActionsTest.cpp
+  KeyDatabasesTest.cpp
   KeyModelsTest.cpp
   MobileProfileLoaderDelegateTest.cpp
   OperationQueueTest.cpp
   PlatformTest.cpp
+  ProfilesTest.cpp
   QmlRegistrationTest.cpp
   SettingsModelTest.cpp
   StartupTest.cpp
