@@ -31,18 +31,55 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/function/rpgp/PasswordFetcher.h"
+#include "core/profile/ProfileSession.h"
 #include "core/utils/RustUtils.h"
 #include "files/FileOperations.h"
 #include "files/ShareRetentionStore.h"
+#include "model/ChangeRelay.h"
 
 namespace GpgFrontend::Mobile {
 
 namespace {
 
+/// Tells every model that the operations offered changed.
+auto OperationsRelay() -> ChangeRelay& {
+  static ChangeRelay relay;
+  return relay;
+}
+
+/// What a button may do: its plain operation, and the others of its kind
+/// that are turned on.
+auto EncryptChoices() -> QStringList {
+  QStringList choices{QStringLiteral("encrypt")};
+  for (const auto& op : SettingsModel::ExtraOperations()) {
+    if (op == QLatin1String("encrypt_sign") ||
+        op == QLatin1String("symmetric")) {
+      choices << op;
+    }
+  }
+  return choices;
+}
+
+auto DecryptChoices() -> QStringList {
+  QStringList choices{QStringLiteral("decrypt")};
+  if (SettingsModel::ExtraOperations().contains(
+          QLatin1String("decrypt_verify"))) {
+    choices << QStringLiteral("decrypt_verify");
+  }
+  return choices;
+}
+
+auto IsOperationSetting(const SettingMeta* meta) -> bool {
+  return meta == &SettingItems::kShowEncryptSign ||
+         meta == &SettingItems::kShowDecryptVerify ||
+         meta == &SettingItems::kShowSymmetricEncrypt ||
+         meta == &SettingItems::kDefaultEncryptOperation ||
+         meta == &SettingItems::kDefaultDecryptOperation;
+}
+
 auto Meta(const SettingsModel::Item& item) -> const SettingMeta* {
-  return std::visit([](const auto* setting) -> const SettingMeta* {
-    return setting;
-  }, item);
+  return std::visit(
+      [](const auto* setting) -> const SettingMeta* { return setting; }, item);
 }
 
 /// How a page edits @p item's value: by the type the setting holds.
@@ -102,11 +139,67 @@ auto SettingsModel::Offered() -> QList<Offer> {
        QStringLiteral("days"),
        QStringLiteral("keys"),
        {7, 14, 30, 60, 90}},
+      // What the operation menus offer besides the four, as the desktop's
+      // toolbar settings.
+      {&SettingItems::kShowEncryptSign, {}, QStringLiteral("operations"), {}},
+      {&SettingItems::kShowDecryptVerify, {}, QStringLiteral("operations"), {}},
+      {&SettingItems::kShowSymmetricEncrypt,
+       {},
+       QStringLiteral("operations"),
+       {}},
+      // What the buttons do, among what is turned on (data() says which).
+      {&SettingItems::kDefaultEncryptOperation,
+       QStringLiteral("operation"),
+       QStringLiteral("operations"),
+       {},
+       false},
+      {&SettingItems::kDefaultDecryptOperation,
+       QStringLiteral("operation"),
+       QStringLiteral("operations"),
+       {},
+       false},
   };
 }
 
 SettingsModel::SettingsModel(QObject* parent) : QAbstractListModel(parent) {
   items_ = Offered();
+  // What is offered changed: so may the choices and values of the rows.
+  connect(&OperationsRelay(), &ChangeRelay::SignalChanged, this, [this]() {
+    emit dataChanged(index(0), index(rowCount() - 1),
+                     {kValueRole, kChoicesRole});
+    emit SignalOperationsChanged();
+  });
+}
+
+auto SettingsModel::DefaultEncrypt() -> QString {
+  if (!ProfileSession::Loaded()) return QStringLiteral("encrypt");
+  const auto chosen =
+      SettingItems::kDefaultEncryptOperation.Read(GetSettings());
+  return EncryptChoices().contains(chosen) ? chosen : QStringLiteral("encrypt");
+}
+
+auto SettingsModel::DefaultDecrypt() -> QString {
+  if (!ProfileSession::Loaded()) return QStringLiteral("decrypt");
+  const auto chosen =
+      SettingItems::kDefaultDecryptOperation.Read(GetSettings());
+  return DecryptChoices().contains(chosen) ? chosen : QStringLiteral("decrypt");
+}
+
+auto SettingsModel::ExtraOperations() -> QStringList {
+  // Settings live in the open profile: none before, so none offered.
+  if (!ProfileSession::Loaded()) return {};
+  auto settings = GetSettings();
+  QStringList ops;
+  if (SettingItems::kShowEncryptSign.Read(settings)) {
+    ops << QStringLiteral("encrypt_sign");
+  }
+  if (SettingItems::kShowDecryptVerify.Read(settings)) {
+    ops << QStringLiteral("decrypt_verify");
+  }
+  if (SettingItems::kShowSymmetricEncrypt.Read(settings)) {
+    ops << QStringLiteral("symmetric");
+  }
+  return ops;
 }
 
 auto SettingsModel::rowCount(const QModelIndex& parent) const -> int {
@@ -127,8 +220,7 @@ auto SettingsModel::roleNames() const -> QHash<int, QByteArray> {
   };
 }
 
-auto SettingsModel::data(const QModelIndex& index, int role) const
-    -> QVariant {
+auto SettingsModel::data(const QModelIndex& index, int role) const -> QVariant {
   if (!index.isValid() || index.row() >= items_.size()) return {};
   const auto& offer = items_.at(index.row());
   const auto& item = offer.item;
@@ -145,6 +237,13 @@ auto SettingsModel::data(const QModelIndex& index, int role) const
     case kTypeRole:
       return TypeName(item);
     case kValueRole: {
+      // A button's operation: the one in effect.
+      if (meta == &SettingItems::kDefaultEncryptOperation) {
+        return DefaultEncrypt();
+      }
+      if (meta == &SettingItems::kDefaultDecryptOperation) {
+        return DefaultDecrypt();
+      }
       const auto settings = GetSettings();
       return std::visit(
           [&settings](const auto* setting) {
@@ -157,6 +256,12 @@ auto SettingsModel::data(const QModelIndex& index, int role) const
     case kSectionRole:
       return offer.section;
     case kChoicesRole:
+      if (meta == &SettingItems::kDefaultEncryptOperation) {
+        return QVariant(EncryptChoices());
+      }
+      if (meta == &SettingItems::kDefaultDecryptOperation) {
+        return QVariant(DecryptChoices());
+      }
       return offer.choices;
     case kCustomRole:
       return offer.custom;
@@ -172,6 +277,15 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
 
   // Whatever is refused, the row says again what is in effect.
   const auto changed = index(row);
+
+  // A button does only what is offered.
+  if ((meta == &SettingItems::kDefaultEncryptOperation &&
+       !EncryptChoices().contains(value.toString())) ||
+      (meta == &SettingItems::kDefaultDecryptOperation &&
+       !DecryptChoices().contains(value.toString()))) {
+    emit dataChanged(changed, changed, {kValueRole});
+    return false;
+  }
 
   bool stored = false;
   {
@@ -199,6 +313,7 @@ bool SettingsModel::setValue(int row, const QVariant& value) {
   }
 
   emit dataChanged(changed, changed, {kValueRole});
+  if (IsOperationSetting(meta)) emit OperationsRelay().SignalChanged();
   return true;
 }
 

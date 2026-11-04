@@ -60,6 +60,19 @@ class SettingsModel : public QAbstractListModel {
       int sharedFileCount READ SharedFileCount NOTIFY SignalSharedFilesChanged)
   Q_PROPERTY(
       qint64 sharedFileSize READ SharedFileSize NOTIFY SignalSharedFilesChanged)
+  /// The operations the menus offer besides Encrypt, Decrypt, Sign and
+  /// Verify, as turned on here: "encrypt_sign", "decrypt_verify",
+  /// "symmetric". None until asked for, as on the desktop's toolbar. The
+  /// same for every page, whichever model changed it.
+  Q_PROPERTY(QStringList extraOperations READ ExtraOperations NOTIFY
+                 SignalOperationsChanged)
+  /// What the Encrypt and Decrypt buttons do, as the desktop's toolbar
+  /// defaults: "encrypt", "encrypt_sign" or "symmetric"; "decrypt" or
+  /// "decrypt_verify". Only ever one that is offered.
+  Q_PROPERTY(
+      QString defaultEncrypt READ DefaultEncrypt NOTIFY SignalOperationsChanged)
+  Q_PROPERTY(
+      QString defaultDecrypt READ DefaultDecrypt NOTIFY SignalOperationsChanged)
 
  public:
   using Item = std::variant<const BoolSetting*, const IntSetting*,
@@ -111,8 +124,13 @@ class SettingsModel : public QAbstractListModel {
   /// How many bytes the files shared with other applications take.
   [[nodiscard]] auto SharedFileSize() const -> qint64;
 
+  [[nodiscard]] static auto ExtraOperations() -> QStringList;
+  [[nodiscard]] static auto DefaultEncrypt() -> QString;
+  [[nodiscard]] static auto DefaultDecrypt() -> QString;
+
  signals:
   void SignalSharedFilesChanged();
+  void SignalOperationsChanged();
 
  private:
   QList<Offer> items_;
