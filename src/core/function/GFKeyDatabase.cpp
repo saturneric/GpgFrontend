@@ -709,6 +709,46 @@ auto GFKeyDatabase::DisableKey(const QString& fpr) -> bool {
   return query.exec();
 }
 
+auto GFKeyDatabase::GetMeta(const QString& name) -> QString {
+  if (!on_owner_thread()) {
+    QString value;
+    run_on_owner([&]() {
+      value = GetMeta(name);
+      return true;
+    });
+    return value;
+  }
+  QSqlQuery query(db_);
+  // Absent until first written: then there is nothing kept.
+  if (!query.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND "
+                  "name = 'gf_meta'") ||
+      !query.next()) {
+    return {};
+  }
+  query.prepare("SELECT value FROM gf_meta WHERE name = :name");
+  query.bindValue(":name", name);
+  if (!query.exec() || !query.next()) return {};
+  return query.value(0).toString();
+}
+
+auto GFKeyDatabase::SetMeta(const QString& name, const QString& value) -> bool {
+  if (!on_owner_thread()) {
+    return run_on_owner([&]() { return SetMeta(name, value); });
+  }
+  QSqlQuery query(db_);
+  if (!query.exec("CREATE TABLE IF NOT EXISTS gf_meta (name TEXT PRIMARY "
+                  "KEY, value TEXT NOT NULL)")) {
+    LOG_W() << "cannot make the key database's own table:"
+            << query.lastError().text();
+    return false;
+  }
+  query.prepare(
+      "INSERT OR REPLACE INTO gf_meta (name, value) VALUES (:name, :value)");
+  query.bindValue(":name", name);
+  query.bindValue(":value", value);
+  return query.exec();
+}
+
 auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
     -> QList<GFUserId> {
   auto real_primary_fpr = ResolvePrimaryFpr(fpr);

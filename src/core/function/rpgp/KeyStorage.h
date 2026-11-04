@@ -206,4 +206,23 @@ auto FlushKeyCacheRpgpImpl(
  * @return false
  */
 auto FlushKeyDatabaseRpgpImpl(OpenPGPContext& ctx) -> bool;
+
+/// Where a key database keeps which build last derived its key metadata.
+inline constexpr auto kKeyMetadataStampName = "key_metadata_refreshed_by";
+
+/**
+ * @brief This build, as FlushKeyDatabaseRpgpImpl() records it: the metadata
+ * is derived again for every key only when the stamp kept differs.
+ */
+auto GF_CORE_EXPORT KeyMetadataStamp() -> QString;
+
+/**
+ * @brief Derive every key's metadata in @p key_db again, unless this build
+ * already did (KeyMetadataStamp()).
+ *
+ * A key whose blocks cannot be read is disabled, as on any refresh.
+ *
+ * @return how many keys were gone over; 0 when the stamp matched
+ */
+auto GF_CORE_EXPORT RefreshKeyMetadataIfStale(GFKeyDatabase& key_db) -> int;
 }  // namespace GpgFrontend

@@ -33,6 +33,7 @@
 #include "core/GFCoreRust.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend {
 
@@ -490,17 +491,40 @@ auto FlushKeyDatabaseRpgpImpl(OpenPGPContext& ctx) -> bool {
     return false;
   }
 
-  auto key_meta_list = key_db->GetMetadataList();
-  for (const auto& meta : key_meta_list) {
+  RefreshKeyMetadataIfStale(*key_db);
+  return true;
+}
+
+auto RefreshKeyMetadataIfStale(GFKeyDatabase& key_db) -> int {
+  // What a key's metadata holds is derived from its key blocks by this
+  // build's parser. Derived again for every key only when another build (an
+  // older one, or the other application on a synced profile) may have
+  // derived it: on every start, a thousand keys took the phone a quarter of
+  // a minute, every time it opened.
+  const auto stamp = KeyMetadataStamp();
+  if (key_db.GetMeta(kKeyMetadataStampName) == stamp) return 0;
+
+  int refreshed = 0;
+  for (const auto& meta : key_db.GetMetadataList()) {
     // Read, re-parse and save as one unit, so a concurrent edit of the same
     // key is not overwritten with what was read before it.
-    if (!key_db->RunExclusive(
-            [&]() { return RefreshKeyMetaInDatabase(*key_db, meta.fpr); })) {
+    ++refreshed;
+    if (!key_db.RunExclusive(
+            [&]() { return RefreshKeyMetaInDatabase(key_db, meta.fpr); })) {
       LOG_W() << "refresh key meta in database failed, fpr: " << meta.fpr;
     }
   }
 
-  return true;
+  if (!key_db.SetMeta(kKeyMetadataStampName, stamp)) {
+    LOG_W() << "cannot record which build refreshed the key metadata";
+  }
+  return refreshed;
+}
+
+auto KeyMetadataStamp() -> QString {
+  return QStringList{GetProjectBuildVersion(), GetProjectBuildGitCommitHash(),
+                     GetProjectBuildTimestamp().toString(Qt::ISODate)}
+      .join(QLatin1Char('|'));
 }
 
 }  // namespace GpgFrontend

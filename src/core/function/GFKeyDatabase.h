@@ -168,6 +168,24 @@ class GF_CORE_EXPORT GFKeyDatabase {
   auto DisableKey(const QString& fpr) -> bool;
 
   /**
+   * @brief A value the database keeps about itself, not about a key.
+   *
+   * In a table of its own (gf_meta), made when first written: adding it
+   * needs no schema step, and a build that does not know it ignores it.
+   *
+   * @param name what it is
+   * @return the value, empty when none was kept
+   */
+  auto GetMeta(const QString& name) -> QString;
+
+  /**
+   * @brief Keep @p value under @p name (see GetMeta()).
+   *
+   * @return whether it was written
+   */
+  auto SetMeta(const QString& name, const QString& value) -> bool;
+
+  /**
    * @brief Run @p unit on the owner thread, with no other access in between.
    *
    * Calls the unit makes on this database run directly. The unit must not

@@ -38,6 +38,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/rpgp/KeyStorage.h"
 
 namespace GpgFrontend::Test {
 
@@ -181,6 +182,47 @@ TEST(RpgpKeyDatabaseTest, ExclusiveUnitsDoNotLoseUpdates) {
   ASSERT_TRUE(final_key.has_value());
   EXPECT_EQ(final_key->blocks.public_key.ConvertToQString().toInt(),
             kThreads * kIncrements);
+}
+
+// What the database keeps about itself survives closing it.
+TEST(RpgpKeyDatabaseTest, ItKeepsValuesAboutItself) {
+  QDir home{QDir::tempPath() + "/" + GenerateRandomString(12)};
+  home.mkpath(".");
+  {
+    GFKeyDatabase db;
+    ASSERT_TRUE(db.Init(home.canonicalPath()));
+    EXPECT_TRUE(db.GetMeta("anything").isEmpty());
+    EXPECT_TRUE(db.SetMeta("anything", "one"));
+    EXPECT_TRUE(db.SetMeta("anything", "two"));
+    EXPECT_EQ(db.GetMeta("anything"), "two");
+  }
+  {
+    GFKeyDatabase db;
+    ASSERT_TRUE(db.Init(home.canonicalPath()));
+    EXPECT_EQ(db.GetMeta("anything"), "two");
+  }
+  home.removeRecursively();
+}
+
+// Every key's metadata is derived again once per build, not on every start:
+// a thousand keys made the phone wait a quarter of a minute each time.
+TEST(RpgpKeyDatabaseTest, KeyMetadataIsRefreshedOncePerBuild) {
+  ScratchKeyDatabase scratch;
+  ASSERT_TRUE(scratch.initialized);
+  const QString fpr(40, QChar('B'));
+  const auto key = FakeKey(fpr, "not a key");
+  ASSERT_TRUE(scratch.db->SaveKey(key.metadata, key.blocks));
+
+  EXPECT_EQ(RefreshKeyMetadataIfStale(*scratch.db), 1);
+  EXPECT_EQ(scratch.db->GetMeta(kKeyMetadataStampName), KeyMetadataStamp());
+
+  // The same build again: nothing to do.
+  EXPECT_EQ(RefreshKeyMetadataIfStale(*scratch.db), 0);
+
+  // Another build was here since: done again.
+  ASSERT_TRUE(scratch.db->SetMeta(kKeyMetadataStampName, "another build"));
+  EXPECT_EQ(RefreshKeyMetadataIfStale(*scratch.db), 1);
+  EXPECT_EQ(RefreshKeyMetadataIfStale(*scratch.db), 0);
 }
 
 }  // namespace GpgFrontend::Test
