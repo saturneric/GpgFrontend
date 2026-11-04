@@ -274,7 +274,18 @@ template <>
 void HandleExtraLogicIfNeeded<GpgEncryptResultAnalyse>(
     const QSharedPointer<GpgOperaContext>& context,
     const GpgEncryptResultAnalyse& analyse, GpgOpResultInfo& info) {
-  if (context->base->keys.isEmpty()) return;
+  // No keys: encrypted to a passphrase, not to recipients. The analyser
+  // cannot tell (a GnuPG result names no recipients either), so the summary
+  // it wrote is put right here.
+  if (context->base->keys.isEmpty()) {
+    if (info.status > 0) {
+      info.description = QCoreApplication::translate(
+          "GpgFrontend::GpgEncryptResultAnalyse",
+          "Your data has been encrypted with a passphrase. Anyone who has "
+          "the passphrase can decrypt and read it.");
+    }
+    return;
+  }
 
   // Resolve an encryption (sub)key ID back to a recipient UID and the matching
   // (sub)key fingerprint among the selected recipient keys.
