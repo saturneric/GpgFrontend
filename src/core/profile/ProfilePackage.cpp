@@ -147,8 +147,17 @@ auto ReadWholeFile(const QString &path, qint64 max_bytes, QByteArray &out)
 
 auto RenderSettingsIni(const QMap<QString, QVariant> &settings)
     -> std::optional<GFBuffer> {
+  // Nothing to stage: QSettings writes no file at all for an empty store, so
+  // reading one back would fail. A profile that changed no setting that
+  // travels (a new one on a phone) is still exported, with an empty file.
+  if (settings.isEmpty()) return GFBuffer();
+
   QTemporaryDir scratch;
-  if (!scratch.isValid()) return {};
+  if (!scratch.isValid()) {
+    LOG_W() << "no scratch folder for the settings of a package:"
+            << scratch.errorString();
+    return {};
+  }
 
   const auto path = scratch.path() + "/config.ini";
   {
@@ -158,11 +167,19 @@ auto RenderSettingsIni(const QMap<QString, QVariant> &settings)
       staged.setValue(it.key(), it.value());
     }
     staged.sync();
-    if (staged.status() != QSettings::NoError) return {};
+    if (staged.status() != QSettings::NoError) {
+      LOG_W() << "the settings of a package could not be staged:"
+              << staged.status();
+      return {};
+    }
   }
 
   QByteArray bytes;
-  if (!ReadWholeFile(path, 0, bytes)) return {};
+  if (!ReadWholeFile(path, 0, bytes)) {
+    LOG_W() << "the staged settings of a package could not be read back,"
+            << settings.size() << "values";
+    return {};
+  }
   return GFBuffer(bytes);
 }
 
