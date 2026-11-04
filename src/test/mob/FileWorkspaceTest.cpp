@@ -28,21 +28,31 @@
 
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTemporaryDir>
+#include <array>
 
 #include "MobileCryptoTest.h"
 #include "core/function/rpgp/PasswordFetcher.h"
+#include "crypto/TextCryptoController.h"
+#include "files/FileFilterModel.h"
 #include "files/FileOperations.h"
 #include "files/FileWorkspace.h"
+#include "files/ShareInbox.h"
 #include "files/ShareRetentionStore.h"
 #include "lifecycle/AppLifecycle.h"
 
 namespace GpgFrontend::Test::Mobile {
 
+using GpgFrontend::SharedItems;
+using GpgFrontend::Mobile::FileFilterModel;
 using GpgFrontend::Mobile::FileWorkspace;
+using GpgFrontend::Mobile::OperationQueue;
 using GpgFrontend::Mobile::SharedFileStore;
+using GpgFrontend::Mobile::ShareInbox;
+using GpgFrontend::Mobile::TextCryptoController;
 
 namespace {
 
@@ -75,6 +85,14 @@ auto StagedFiles() -> QStringList {
 
 }  // namespace
 
+/// A workspace of the test's own, on the application's queue, as the
+/// application's is.
+auto NewWorkspace() -> FileWorkspace* {
+  return new FileWorkspace(
+      OperationQueue::Instance(),
+      GpgFrontend::Mobile::AppLifecycle::create(nullptr, nullptr));
+}
+
 class FileWorkspaceTest : public ::testing::Test {
  protected:
   static inline QString erin_;  ///< has a passphrase
@@ -91,7 +109,7 @@ class FileWorkspaceTest : public ::testing::Test {
     ASSERT_FALSE(erin_.isEmpty());
     ASSERT_FALSE(fred_.isEmpty());
     ClearRpgpPasswordCache();
-    RunOnMainThread([this]() { files_ = new FileWorkspace(); });
+    RunOnMainThread([this]() { files_ = NewWorkspace(); });
   }
 
   void TearDown() override {
@@ -226,7 +244,8 @@ TEST_F(FileWorkspaceTest, EncryptAFileToAKeyAndDecryptIt) {
   const auto decrypted = OutputOf(encrypted);
   ASSERT_GE(decrypted, 0) << Errors(encrypted);
   output = Entry(decrypted);
-  EXPECT_EQ(output.value("name").toString(), "notes.txt");
+  // notes.txt is in the list already, the file it all started from.
+  EXPECT_EQ(output.value("name").toString(), "notes (2).txt");
   EXPECT_TRUE(output.value("plaintext").toBool());
   EXPECT_EQ(output.value("result").toMap().value("status"), 1);
   EXPECT_EQ(SaveAndRead(decrypted, "decrypted.txt"), content);
@@ -242,7 +261,7 @@ TEST_F(FileWorkspaceTest, EncryptAFileToAKeyAndDecryptIt) {
 TEST_F(FileWorkspaceTest, AFileForAPassphraseRoundTrips) {
   const QByteArray content = "for a passphrase";
   const auto source = Add(content);
-  Do([&](auto* f) { f->encrypt({source}, {}); });
+  Do([&](auto* f) { f->encrypt({source}, {}, {}, true); });
   ASSERT_FALSE(WaitForRequest().isEmpty());
   Answer("file passphrase");
   Finish();
@@ -359,7 +378,7 @@ TEST_F(FileWorkspaceTest, TheOutputsGoWithTheWorkspace) {
 
   RunOnMainThread([this]() {
     delete files_;
-    files_ = new FileWorkspace();
+    files_ = NewWorkspace();
   });
   EXPECT_EQ(StagedFiles().size(), staged_before);
   EXPECT_EQ(ReadFile(dir_.filePath("notes.txt")), "short lived");
@@ -396,7 +415,7 @@ TEST_F(FileWorkspaceTest, CancellingTheQueueLeavesTheRunningOne) {
   const auto c = Add("third", "c.txt");
 
   // To a passphrase: the first waits at its prompt while the others queue.
-  Do([&](auto* f) { f->encrypt({a, b, c}, {}); });
+  Do([&](auto* f) { f->encrypt({a, b, c}, {}, {}, true); });
   ASSERT_FALSE(WaitForRequest().isEmpty());
   EXPECT_EQ(State(a), "running");
   EXPECT_EQ(State(b), "queued");
@@ -429,6 +448,22 @@ TEST_F(FileWorkspaceTest, ADetachedSignatureVerifiesOnlyOverItsFile) {
       Entry(signature).value("result").toMap().value("signatures").toList();
   ASSERT_FALSE(signatures.isEmpty());
   EXPECT_TRUE(signatures.first().toMap().value("good").toBool());
+  // And the desktop Status Panel's cards for it: the signature, its verdict
+  // in the title, ok, with who signed and the key ID among its facts.
+  const auto cards =
+      Entry(signature).value("result").toMap().value("cards").toList();
+  ASSERT_FALSE(cards.isEmpty());
+  const auto card = cards.first().toMap();
+  EXPECT_TRUE(card.value("title").toString().startsWith("Signature"))
+      << card.value("title").toString().toStdString();
+  EXPECT_EQ(card.value("status").toString(), "ok");
+  QStringList labels;
+  for (const auto& field : card.value("fields").toList()) {
+    labels << field.toMap().value("label").toString();
+    // Each fact says which run it belongs to, as the desktop sets them apart.
+    EXPECT_TRUE(field.toMap().contains("group"));
+  }
+  EXPECT_TRUE(labels.contains("Key ID")) << labels.join(", ").toStdString();
   // A check makes nothing.
   EXPECT_EQ(Count(), count);
 
@@ -527,6 +562,476 @@ TEST(SharedFilesTest, ReturningToTheForegroundCleansWhatIsDue) {
     lifecycle->OnApplicationStateChanged(Qt::ApplicationActive);
     EXPECT_FALSE(QFile::exists(due->path));
   });
+}
+
+TEST_F(FileWorkspaceTest, EachFileIsARecordOfOneBatch) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  Do([&](auto* f) { f->encrypt({a, b}, {fred_}); });
+  Finish();
+
+  const auto first = RecordOfFile(a);
+  const auto second = RecordOfFile(b);
+  ASSERT_FALSE(first.isEmpty());
+  ASSERT_FALSE(second.isEmpty());
+  EXPECT_NE(first.value("operationId"), second.value("operationId"));
+  EXPECT_EQ(first.value("batchId"), first.value("operationId"));
+  EXPECT_EQ(second.value("batchId"), first.value("operationId"));
+  EXPECT_EQ(first.value("surface").toString(), "files");
+  EXPECT_EQ(first.value("phase").toString(), "done");
+  EXPECT_EQ(first.value("recipients").toStringList(), QStringList{fred_});
+  EXPECT_FALSE(first.value("symmetric").toBool());
+  EXPECT_EQ(first.value("targets").toList().first().toMap().value("name"),
+            "a.txt");
+  // Its output, by the id the page shows it under.
+  EXPECT_EQ(first.value("outputs").toList(), (QVariantList{OutputOf(a)}));
+}
+
+TEST_F(FileWorkspaceTest, APromptIsForTheOperationThatRuns) {
+  const auto a = Add("first", "a.txt");
+  Do([&](auto* f) { f->encrypt({a}, {}, {}, true); });
+  const auto request = WaitForRequest();
+  ASSERT_FALSE(request.isEmpty());
+  const auto record = RecordOfFile(a);
+  EXPECT_EQ(request.value("operationId"), record.value("operationId"));
+  EXPECT_EQ(request.value("operation").toString(), "encrypt");
+  EXPECT_EQ(record.value("phase").toString(), "waiting_passphrase");
+  EXPECT_TRUE(record.value("symmetric").toBool());
+  Decline();
+  Finish();
+  EXPECT_EQ(RecordOfFile(a).value("phase").toString(), "cancelled");
+}
+
+TEST_F(FileWorkspaceTest, TextWaitsForTheRunningFileThenGoesFirst) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  QList<int> started;
+  TextCryptoController* text = nullptr;
+  RunOnMainThread([&]() {
+    text = new TextCryptoController();
+    QObject::connect(OperationQueue::Instance(), &OperationQueue::SignalStarted,
+                     text, [&started](int id) { started << id; });
+  });
+
+  // To a passphrase: the first file waits at its prompt, the second behind it.
+  Do([&](auto* f) { f->encrypt({a, b}, {}, {}, true); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  RunOnMainThread([&]() { text->encrypt("for fred", {fred_}); });
+  const auto message = FindRecord([](const QVariantMap& record) {
+    return record.value("surface").toString() == "text";
+  });
+  EXPECT_EQ(message.value("phase").toString(), "queued");
+  EXPECT_EQ(message.value("targets").toList().first().toMap().value("fileId"),
+            -1);
+
+  // Every prompt answered as it comes, until all is done.
+  EXPECT_TRUE(WaitFor(
+      [&]() {
+        if (!CurrentRequest().isEmpty()) Answer("batch passphrase");
+        bool busy = true;
+        RunOnMainThread([&]() { busy = files_->Busy() || text->Busy(); });
+        return !busy;
+      },
+      30000));
+
+  int text_id = message.value("operationId").toInt();
+  QList<int> expected = {RecordOfFile(a).value("operationId").toInt(), text_id,
+                         RecordOfFile(b).value("operationId").toInt()};
+  RunOnMainThread([&]() {
+    EXPECT_EQ(started, expected);
+    EXPECT_EQ(text->Result().value("status").toInt(), 1);
+    delete text;
+  });
+}
+
+TEST_F(FileWorkspaceTest, NoRecipientsIsNeverAPassphrase) {
+  const auto a = Add("first", "a.txt");
+  bool started = true;
+  Do([&](auto* f) { started = f->encrypt({a}, {}); });
+  EXPECT_FALSE(started);
+  EXPECT_EQ(State(a), "idle");
+  Do([&](auto* f) { EXPECT_FALSE(f->Busy()); });
+}
+
+TEST_F(FileWorkspaceTest, RetryingTheFailedOfABatchRunsOnlyThose) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  ASSERT_TRUE(QFile::remove(dir_.filePath("b.txt")));
+  Do([&](auto* f) { f->encrypt({a, b}, {fred_}); });
+  Finish();
+  ASSERT_EQ(State(a), "done");
+  ASSERT_EQ(State(b), "failed");
+  const auto batch = RecordOfFile(a).value("batchId").toInt();
+  const auto failed = RecordOfFile(b).value("operationId").toInt();
+
+  // Gone from the device: picked again, it is the same entry.
+  QString why;
+  Do([&](auto* f) {
+    f->refreshAvailability();
+    why = f->retry(failed);
+  });
+  EXPECT_EQ(why, "unavailable");
+  WriteFile(dir_.filePath("b2.txt"), "second, again");
+  bool relinked = false;
+  Do([&](auto* f) {
+    relinked = f->relink(b, QUrl::fromLocalFile(dir_.filePath("b2.txt")));
+  });
+  ASSERT_TRUE(relinked);
+  EXPECT_EQ(Entry(b).value("name").toString(), "b2.txt");
+
+  int queued = 0;
+  Do([&](auto* f) { queued = f->retryFailed(batch); });
+  EXPECT_EQ(queued, 1);
+  Finish();
+  EXPECT_EQ(State(b), "done") << Errors(b);
+  const auto again = RecordOfFile(b);
+  EXPECT_NE(again.value("operationId").toInt(), failed);
+  EXPECT_EQ(again.value("recipients").toStringList(), QStringList{fred_});
+  // a was not run again.
+  EXPECT_EQ(RecordOfFile(a).value("batchId").toInt(), batch);
+}
+
+TEST_F(FileWorkspaceTest, ARetryWhoseFileIsGoneSaysSo) {
+  const auto a = Add("first", "a.txt");
+  Do([&](auto* f) { f->sign({a}, fred_); });
+  Finish();
+  const auto signed_op = RecordOfFile(a).value("operationId").toInt();
+  QString why;
+  Do([&](auto* f) {
+    f->remove({a});
+    why = f->retry(signed_op);
+  });
+  EXPECT_EQ(why, "missing");
+  Do([&](auto* f) { why = f->retry(424242); });
+  EXPECT_EQ(why, "unknown");
+}
+
+TEST_F(FileWorkspaceTest, NamesInTheListAreUniqueAndSavesAreNamed) {
+  const auto source = Add("twice");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  QStringList names;
+  RunOnMainThread([&]() {
+    for (int row = 0; row < files_->rowCount(); ++row) {
+      names << files_->data(files_->index(row), FileWorkspace::kNameRole)
+                   .toString();
+    }
+  });
+  EXPECT_TRUE(names.contains("notes.txt.gpg"))
+      << names.join(", ").toStdString();
+  EXPECT_TRUE(names.contains("notes.txt (2).gpg"))
+      << names.join(", ").toStdString();
+  EXPECT_EQ(Entry(source).value("origin").toString(), "added");
+
+  const auto output = OutputOf(source);
+  EXPECT_EQ(Entry(output).value("origin").toString(), "made");
+  EXPECT_TRUE(Entry(output).value("savedName").toString().isEmpty());
+  ASSERT_FALSE(SaveAndRead(output, "kept.gpg").isEmpty());
+  EXPECT_EQ(Entry(output).value("savedName").toString(), "kept.gpg");
+}
+
+TEST_F(FileWorkspaceTest, FilesAreFoundByRowNameAndWhatTheyMade) {
+  const auto data = Add("signed content", "contract.txt");
+  Do([&](auto* f) {
+    EXPECT_EQ(f->idAt(0), data);
+    EXPECT_EQ(f->idAt(5), -1);
+    EXPECT_EQ(f->rowOf(data), 0);
+    EXPECT_EQ(f->idNamed("contract.txt"), data);
+    EXPECT_EQ(f->idNamed("nothing"), -1);
+    EXPECT_EQ(f->signatureOf(data), -1);
+    EXPECT_EQ(f->UnsavedCount(), 0);
+  });
+  Do([&](auto* f) { f->sign({data}, fred_); });
+  Finish();
+  const auto signature = OutputOf(data);
+  ASSERT_GE(signature, 0) << Errors(data);
+  Do([&](auto* f) {
+    EXPECT_EQ(f->signatureOf(data), signature);
+    EXPECT_EQ(f->idNamed("contract.txt.sig"), signature);
+    // Made here and not saved: goes with the session.
+    EXPECT_EQ(f->UnsavedCount(), 1);
+  });
+  ASSERT_FALSE(SaveAndRead(signature, "kept.sig").isEmpty());
+  Do([&](auto* f) { EXPECT_EQ(f->UnsavedCount(), 0); });
+}
+
+// As the desktop tells files apart: by the name, nothing read.
+TEST_F(FileWorkspaceTest, WhatAFileIsComesFromItsName) {
+  const auto letter =
+      Add("-----BEGIN PGP MESSAGE-----\n\nhQ==\n", "letter.txt");
+  EXPECT_EQ(Entry(letter).value("content").toString(), "");
+  const auto named = Add("only text", "named.gpg");
+  EXPECT_EQ(Entry(named).value("content").toString(), "message");
+
+  const auto source = Add("binary out", "data.txt");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto encrypted = OutputOf(source);
+  ASSERT_GE(encrypted, 0) << Errors(source);
+  EXPECT_EQ(Entry(encrypted).value("content").toString(), "message");
+
+  Do([&](auto* f) { f->sign({source}, fred_); });
+  Finish();
+  int signature = -1;
+  Do([&](auto* f) { signature = f->signatureOf(source); });
+  ASSERT_GE(signature, 0) << Errors(source);
+  EXPECT_EQ(Entry(signature).value("content").toString(), "signature");
+}
+
+TEST_F(FileWorkspaceTest, ASharedFileIsCopiedInAndIsTheApplicationsOwn) {
+  // More than one piece of the copy, so it reports how far it is.
+  const QByteArray content(3 * 1024 * 1024 + 17, 'x');
+  const auto path = dir_.filePath("shared.bin");
+  WriteFile(path, content);
+  const auto staged_before = StagedFiles().size();
+
+  QList<double> steps;
+  int id = -1;
+  RunOnMainThread([&]() {
+    QObject::connect(
+        files_, &QAbstractItemModel::dataChanged, files_,
+        [&](const QModelIndex& at, const QModelIndex&,
+            const QList<int>& roles) {
+          if (roles.contains(FileWorkspace::kProgressRole)) {
+            steps << at.data(FileWorkspace::kProgressRole).toDouble();
+          }
+        });
+    const auto ids = files_->receiveFiles({QUrl::fromLocalFile(path)});
+    ASSERT_EQ(ids.size(), 1);
+    id = ids.first().toInt();
+    const auto entry = files_->entry(id);
+    EXPECT_EQ(entry.value("origin").toString(), "shared");
+    EXPECT_EQ(entry.value("kind").toString(), "external");
+    EXPECT_FALSE(entry.value("available").toBool());
+    EXPECT_EQ(entry.value("progress").toDouble(), 0.0);
+  });
+  EXPECT_TRUE(
+      WaitFor([&]() { return Entry(id).value("available").toBool(); }, 30000));
+  const auto entry = Entry(id);
+  EXPECT_EQ(entry.value("progress").toDouble(), -1.0);
+  EXPECT_EQ(entry.value("size").toLongLong(), content.size());
+  EXPECT_EQ(entry.value("content").toString(), "");
+  EXPECT_TRUE(std::any_of(steps.begin(), steps.end(),
+                          [](double step) { return step > 0 && step < 1; }));
+  // Not a file made here: nothing to warn about when the session ends.
+  Do([](auto* f) { EXPECT_EQ(f->UnsavedCount(), 0); });
+  EXPECT_EQ(StagedFiles().size(), staged_before + 1);
+
+  // It is worked on like any other.
+  Do([&](auto* f) { f->encrypt({id}, {fred_}); });
+  Finish();
+  EXPECT_EQ(State(id), "done") << Errors(id);
+
+  // Removed, the copy is deleted; the sender's document is not touched.
+  Do([&](auto* f) { f->remove({id, OutputOf(id)}); });
+  EXPECT_EQ(StagedFiles().size(), staged_before);
+  EXPECT_TRUE(QFile::exists(path));
+}
+
+TEST_F(FileWorkspaceTest, ASharedFileThatCannotBeCopiedIsTakenOffAgain) {
+  QString failed;
+  RunOnMainThread([&]() {
+    QObject::connect(files_, &FileWorkspace::SignalReceiveFailed, files_,
+                     [&failed](const QString& name) { failed = name; });
+    files_->receiveFiles({QUrl::fromLocalFile(dir_.filePath("gone.txt"))});
+    EXPECT_EQ(files_->Count(), 1);
+  });
+  EXPECT_TRUE(WaitFor([&]() { return Count() == 0; }, 30000));
+  EXPECT_EQ(failed, "gone.txt");
+}
+
+TEST_F(FileWorkspaceTest, TheListIsSearchedAndNarrowedByWhatFilesAre) {
+  const auto plain = Add("plain words", "Report.txt");
+  const auto armored =
+      Add("-----BEGIN PGP MESSAGE-----\n\nhQ==\n", "mail.txt.asc");
+  const auto signature =
+      Add("-----BEGIN PGP SIGNATURE-----\n\niQ==\n", "report.txt.sig");
+  Do([&](auto* f) { f->encrypt({plain}, {fred_}); });
+  Finish();
+  const auto made = OutputOf(plain);
+  ASSERT_GE(made, 0);
+
+  RunOnMainThread([&]() {
+    FileFilterModel model;
+    model.setSourceModel(files_);
+    EXPECT_FALSE(model.Filtering());
+    EXPECT_EQ(model.rowCount(), 4);
+
+    model.SetSearchText("  report ");
+    EXPECT_TRUE(model.Filtering());
+    EXPECT_EQ(model.ids(), (QVariantList{made, signature, plain}));
+    EXPECT_EQ(model.rowOf(armored), -1);
+
+    model.SetSearchText({});
+    model.SetCategory("encrypted");
+    // The armored message and the output, by their names.
+    EXPECT_EQ(model.ids(), (QVariantList{made, armored}));
+    model.SetCategory("signatures");
+    EXPECT_EQ(model.ids(), (QVariantList{signature}));
+    model.SetCategory("made");
+    EXPECT_EQ(model.ids(), (QVariantList{made}));
+    model.SetCategory("unsaved");
+    EXPECT_EQ(model.ids(), (QVariantList{made}));
+    model.SetCategory("nonsense");
+    EXPECT_EQ(model.Category(), "unsaved");
+
+    model.reset();
+    EXPECT_EQ(model.rowCount(), 4);
+    EXPECT_EQ(model.rowOf(made), 0);
+  });
+
+  // Saved, it is no longer among the unsaved: in a list made afterwards, and
+  // in the one on screen while it was saved.
+  std::unique_ptr<FileFilterModel> live;
+  RunOnMainThread([&]() {
+    live = std::make_unique<FileFilterModel>();
+    live->setSourceModel(files_);
+    live->SetCategory("unsaved");
+    EXPECT_EQ(live->rowCount(), 1);
+  });
+  ASSERT_FALSE(SaveAndRead(made, "kept.gpg").isEmpty());
+  RunOnMainThread([&]() {
+    EXPECT_EQ(live->rowCount(), 0);
+    FileFilterModel model;
+    model.setSourceModel(files_);
+    model.SetCategory("unsaved");
+    EXPECT_EQ(model.rowCount(), 0);
+    live.reset();
+  });
+}
+
+TEST_F(FileWorkspaceTest, WhatIsSharedIsTakenOnceIntoTheApplicationsList) {
+  const auto path = dir_.filePath("from-mail.asc");
+  WriteFile(path, "-----BEGIN PGP MESSAGE-----\n\nhQ==\n");
+  int calls = 0;
+  ShareInbox::SetSourceForTesting([&]() {
+    SharedItems items;
+    if (calls++ == 0) {
+      items.files = {QUrl::fromLocalFile(path)};
+      items.text = "shared words";
+      items.refused = 1;
+    }
+    return items;
+  });
+
+  QVariantMap got;
+  RunOnMainThread([&]() {
+    ShareInbox inbox;
+    got = inbox.take();
+    // Handed out once.
+    EXPECT_TRUE(inbox.take().isEmpty());
+  });
+  ShareInbox::SetSourceForTesting({});
+  EXPECT_EQ(got.value("text").toString(), "shared words");
+  EXPECT_EQ(got.value("refused").toInt(), 1);
+  const auto ids = got.value("files").toList();
+  ASSERT_EQ(ids.size(), 1);
+
+  // Into the application's workspace, as a copy.
+  const auto id = ids.first().toInt();
+  auto* files = FileWorkspace::Instance();
+  ASSERT_NE(files, nullptr);
+  EXPECT_TRUE(WaitFor(
+      [&]() {
+        bool available = false;
+        RunOnMainThread([&]() {
+          available = files->entry(id).value("available").toBool();
+        });
+        return available;
+      },
+      30000));
+  RunOnMainThread([&]() {
+    const auto entry = files->entry(id);
+    EXPECT_EQ(entry.value("origin").toString(), "shared");
+    EXPECT_EQ(entry.value("name").toString(), "from-mail.asc");
+    EXPECT_EQ(entry.value("content").toString(), "message");
+    files->remove({id});
+  });
+}
+
+TEST_F(FileWorkspaceTest, SavingIntoAFolderAsksNothingButWhatIsTaken) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  Do([&](auto* f) { f->encrypt({a, b}, {fred_}); });
+  Finish();
+  const auto out_a = OutputOf(a);
+  const auto out_b = OutputOf(b);
+  ASSERT_GE(out_a, 0);
+  ASSERT_GE(out_b, 0);
+  QTemporaryDir folder;
+  const auto url = QUrl::fromLocalFile(folder.path());
+
+  // Saves every one, in turn, and reports once.
+  const auto save = [&](const QString& taken) {
+    std::array<int, 3> counts{-1, -1, -1};
+    RunOnMainThread([&]() {
+      QObject::connect(
+          files_, &FileWorkspace::SignalSavedAll, files_,
+          [&counts](int saved, int skipped, int failed) {
+            counts = {saved, skipped, failed};
+          },
+          Qt::SingleShotConnection);
+      files_->saveAll({out_a, out_b}, url, taken);
+    });
+    EXPECT_TRUE(WaitFor(
+        [&]() {
+          int saved = -1;
+          RunOnMainThread([&]() { saved = counts[0]; });
+          return saved >= 0;
+        },
+        30000));
+    return counts;
+  };
+
+  QStringList taken;
+  Do([&](auto* f) { taken = f->takenIn({out_a, out_b}, url); });
+  EXPECT_TRUE(taken.isEmpty());
+  EXPECT_EQ(save("skip"), (std::array<int, 3>{2, 0, 0}));
+  EXPECT_TRUE(QFile::exists(folder.filePath("a.txt.gpg")));
+  EXPECT_TRUE(QFile::exists(folder.filePath("b.txt.gpg")));
+  EXPECT_EQ(Entry(out_a).value("savedName").toString(), "a.txt.gpg");
+  Do([](auto* f) { EXPECT_EQ(f->UnsavedCount(), 0); });
+
+  // The names are there now: what to do with them is the caller's to say.
+  Do([&](auto* f) { taken = f->takenIn({out_a, out_b, a}, url); });
+  EXPECT_EQ(taken, (QStringList{"a.txt.gpg", "b.txt.gpg"}));
+  EXPECT_EQ(save("skip"), (std::array<int, 3>{0, 2, 0}));
+  EXPECT_EQ(save("keep_both"), (std::array<int, 3>{2, 0, 0}));
+  EXPECT_TRUE(QFile::exists(folder.filePath("a.txt (1).gpg")));
+  EXPECT_EQ(Entry(out_a).value("savedName").toString(), "a.txt (1).gpg");
+
+  WriteFile(folder.filePath("b.txt.gpg"), "something else, and longer");
+  EXPECT_EQ(save("replace"), (std::array<int, 3>{2, 0, 0}));
+  EXPECT_EQ(ReadFile(folder.filePath("b.txt.gpg")),
+            ReadFile(QFileInfo(folder.filePath("b.txt (1).gpg")).filePath()));
+  EXPECT_EQ(Entry(out_b).value("savedName").toString(), "b.txt.gpg");
+  EXPECT_EQ(QDir(folder.path()).entryList(QDir::Files).size(), 4);
+}
+
+TEST_F(FileWorkspaceTest, OpeningWithoutAnotherAppSaysSo) {
+  const auto source = Add("open me");
+  Do([&](auto* f) { f->encrypt({source}, {fred_}); });
+  Finish();
+  const auto output = OutputOf(source);
+  ASSERT_GE(output, 0);
+  QString outcome;
+  RunOnMainThread([&]() {
+    QObject::connect(files_, &FileWorkspace::SignalOpened, files_,
+                     [&outcome](int, const QString& o) { outcome = o; });
+    QObject::connect(files_, &FileWorkspace::SignalShared, files_,
+                     [](int, const QString&) { ADD_FAILURE(); });
+    files_->openWith(output);
+  });
+  EXPECT_TRUE(WaitFor(
+      [&]() {
+        QString o;
+        RunOnMainThread([&]() { o = outcome; });
+        return !o.isEmpty();
+      },
+      30000));
+  EXPECT_EQ(outcome, "unsupported");
 }
 
 }  // namespace GpgFrontend::Test::Mobile

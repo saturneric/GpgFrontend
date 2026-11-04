@@ -33,8 +33,10 @@
 #include "MobileTest.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "files/FileOperations.h"
 #include "files/ShareRetentionStore.h"
+#include "model/AboutInfo.h"
 #include "model/SettingsModel.h"
 
 namespace GpgFrontend::Test::Mobile {
@@ -74,6 +76,143 @@ TEST(SettingsModelTest, AValueIsReadAndWrittenThroughTheCatalog) {
     EXPECT_EQ(SettingItems::kExpiringSoonDays.Read(GetSettings()), 45);
 
     ASSERT_TRUE(model.setValue(row, SettingItems::kExpiringSoonDays.Default()));
+  });
+}
+
+// The operations besides the four are offered once turned on, as on the
+// desktop's toolbar; every page's model hears of it.
+TEST(SettingsModelTest, ExtraOperationsAreOffOnlyUntilTurnedOn) {
+  RunOnMainThread([]() {
+    SettingsModel settings_page;
+    SettingsModel text_page;
+    int heard = 0;
+    QObject::connect(&text_page, &SettingsModel::SignalOperationsChanged,
+                     [&heard]() { ++heard; });
+    EXPECT_TRUE(SettingsModel::ExtraOperations().isEmpty());
+
+    const auto keys = Keys(settings_page);
+    const auto row = [&keys](const SettingMeta& meta) {
+      return static_cast<int>(keys.indexOf(QString::fromLatin1(meta.key)));
+    };
+    for (const auto* meta :
+         {static_cast<const SettingMeta*>(&SettingItems::kShowEncryptSign),
+          static_cast<const SettingMeta*>(&SettingItems::kShowDecryptVerify),
+          static_cast<const SettingMeta*>(
+              &SettingItems::kShowSymmetricEncrypt)}) {
+      const auto at = row(*meta);
+      ASSERT_GE(at, 0) << meta->key;
+      const auto index = settings_page.index(at);
+      EXPECT_EQ(settings_page.data(index, SettingsModel::kTypeRole), "bool");
+      EXPECT_EQ(settings_page.data(index, SettingsModel::kSectionRole),
+                "operations");
+      EXPECT_EQ(settings_page.data(index, SettingsModel::kValueRole), false);
+    }
+
+    ASSERT_TRUE(
+        settings_page.setValue(row(SettingItems::kShowEncryptSign), true));
+    ASSERT_TRUE(
+        settings_page.setValue(row(SettingItems::kShowSymmetricEncrypt), true));
+    EXPECT_EQ(heard, 2);
+    EXPECT_EQ(text_page.ExtraOperations(),
+              (QStringList{"encrypt_sign", "symmetric"}));
+
+    settings_page.setValue(row(SettingItems::kShowEncryptSign), false);
+    settings_page.setValue(row(SettingItems::kShowSymmetricEncrypt), false);
+    EXPECT_TRUE(SettingsModel::ExtraOperations().isEmpty());
+  });
+}
+
+// What the Encrypt and Decrypt buttons do, as the desktop's toolbar
+// defaults: chosen among what is turned on, and never one turned off.
+TEST(SettingsModelTest, AButtonDoesWhatIsChosenAmongWhatIsOffered) {
+  RunOnMainThread([]() {
+    SettingsModel model;
+    const auto keys = Keys(model);
+    const auto row = [&keys](const SettingMeta& meta) {
+      return static_cast<int>(keys.indexOf(QString::fromLatin1(meta.key)));
+    };
+    const auto encrypt_row = row(SettingItems::kDefaultEncryptOperation);
+    const auto decrypt_row = row(SettingItems::kDefaultDecryptOperation);
+    ASSERT_GE(encrypt_row, 0);
+    ASSERT_GE(decrypt_row, 0);
+    const auto choices = [&model](int at) {
+      return model.data(model.index(at), SettingsModel::kChoicesRole)
+          .toStringList();
+    };
+
+    // Nothing else turned on: nothing to choose, the plain ones.
+    EXPECT_EQ(choices(encrypt_row), QStringList{"encrypt"});
+    EXPECT_EQ(SettingsModel::DefaultEncrypt(), "encrypt");
+    EXPECT_EQ(SettingsModel::DefaultDecrypt(), "decrypt");
+    EXPECT_FALSE(model.setValue(encrypt_row, "encrypt_sign"));
+
+    // Turned on, offered and chosen.
+    ASSERT_TRUE(model.setValue(row(SettingItems::kShowEncryptSign), true));
+    ASSERT_TRUE(model.setValue(row(SettingItems::kShowDecryptVerify), true));
+    EXPECT_EQ(choices(encrypt_row), (QStringList{"encrypt", "encrypt_sign"}));
+    EXPECT_EQ(choices(decrypt_row), (QStringList{"decrypt", "decrypt_verify"}));
+    ASSERT_TRUE(model.setValue(encrypt_row, "encrypt_sign"));
+    ASSERT_TRUE(model.setValue(decrypt_row, "decrypt_verify"));
+    EXPECT_EQ(SettingsModel::DefaultEncrypt(), "encrypt_sign");
+    EXPECT_EQ(SettingsModel::DefaultDecrypt(), "decrypt_verify");
+    EXPECT_EQ(model.data(model.index(encrypt_row), SettingsModel::kValueRole),
+              "encrypt_sign");
+    // Not one of them: refused.
+    EXPECT_FALSE(model.setValue(encrypt_row, "sign"));
+
+    // Turned off again: the button does the plain one.
+    model.setValue(row(SettingItems::kShowEncryptSign), false);
+    model.setValue(row(SettingItems::kShowDecryptVerify), false);
+    EXPECT_EQ(SettingsModel::DefaultEncrypt(), "encrypt");
+    EXPECT_EQ(SettingsModel::DefaultDecrypt(), "decrypt");
+    EXPECT_EQ(model.data(model.index(encrypt_row), SettingsModel::kValueRole),
+              "encrypt");
+    model.setValue(encrypt_row, "encrypt");
+    model.setValue(decrypt_row, "decrypt");
+  });
+}
+
+// The About pages: what the desktop's About dialog tells of the build, the
+// engine and the translators.
+TEST(SettingsModelTest, AboutTellsTheBuildTheEngineAndTheTranslators) {
+  RunOnMainThread([]() {
+    GpgFrontend::Mobile::AboutInfo about;
+    QMap<QString, QString> build;
+    for (const auto& row : about.build()) {
+      build.insert(row.toMap().value("label").toString(),
+                   row.toMap().value("value").toString());
+    }
+    EXPECT_EQ(build.value("GpgFrontend"), GetProjectVersion());
+    EXPECT_FALSE(build.value("Qt").isEmpty());
+    // The desktop's captions, without their colon.
+    EXPECT_TRUE(build.contains("Git Commit"));
+    // The commit shown short, as git abbreviates it, and kept whole.
+    for (const auto& row : about.build()) {
+      if (row.toMap().value("label") != "Git Commit") continue;
+      EXPECT_EQ(row.toMap().value("full"), GetProjectBuildGitCommitHash());
+      EXPECT_EQ(row.toMap().value("value").toString().size(),
+                std::min<qsizetype>(12, GetProjectBuildGitCommitHash().size()));
+    }
+    // Nothing without a value: a phone links no GnuPG library.
+    for (const auto& value : build) EXPECT_FALSE(value.isEmpty());
+#if !GF_ENGINE_GNUPG
+    EXPECT_FALSE(build.contains("GPGME"));
+#endif
+
+    const auto engine = about.engine();
+    ASSERT_FALSE(engine.isEmpty());
+    EXPECT_EQ(engine.first().toMap().value("label"), "Engine version");
+    EXPECT_FALSE(engine.first().toMap().value("value").toString().isEmpty());
+    EXPECT_FALSE(about.engineDependencies().isEmpty());
+
+    EXPECT_FALSE(about.translators().isEmpty());
+
+    // How the Android package was built, only there.
+#ifdef Q_OS_ANDROID
+    EXPECT_FALSE(about.androidBuild().isEmpty());
+#else
+    EXPECT_TRUE(about.androidBuild().isEmpty());
+#endif
   });
 }
 
