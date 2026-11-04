@@ -40,6 +40,7 @@ add_executable(gf_mob_tests
   KeyDatabasesTest.cpp
   KeyModelsTest.cpp
   MobileProfileLoaderDelegateTest.cpp
+  MobileScaleTest.cpp
   OperationQueueTest.cpp
   PlatformTest.cpp
   ProfilesTest.cpp
