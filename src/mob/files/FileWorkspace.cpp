@@ -30,27 +30,38 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QJSEngine>
 #include <QMimeDatabase>
 #include <QPointer>
 #include <algorithm>
 
+#include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/function/result_analyse/GpgOperaOutcome.h"
+#include "crypto/ContentKind.h"
+#include "crypto/OperationQueue.h"
 #include "crypto/ResultPresenter.h"
 #include "files/FileOperations.h"
 #include "files/ShareRetentionStore.h"
 #include "lifecycle/AppLifecycle.h"
+#include "plat/common/PlatformFolder.h"
 #include "plat/common/PlatformShare.h"
 
 namespace GpgFrontend::Mobile {
 
 namespace {
 
-auto OpName(int op) -> QString {
+QPointer<FileWorkspace> g_instance;
+
+/// The operations by name, in FileWorkspace::Op's order: what a record
+/// stores and what a retry reads back.
+auto OpNames() -> const QStringList& {
   static const QStringList kNames = {
       QStringLiteral("encrypt"), QStringLiteral("decrypt"),
       QStringLiteral("sign"), QStringLiteral("verify")};
-  return kNames.value(op);
+  return kNames;
 }
+
+auto OpName(int op) -> QString { return OpNames().value(op); }
 
 /// How large the document at @p url is, and whether it can be read at all.
 auto Probe(const QUrl& url) -> std::pair<bool, qint64> {
@@ -59,27 +70,41 @@ auto Probe(const QUrl& url) -> std::pair<bool, qint64> {
   return {true, file.size()};
 }
 
-auto Failure(const QString& reason) -> QVariantMap {
-  return {
-      {QStringLiteral("status"), -1},
-      {QStringLiteral("cancelled"), false},
-      {QStringLiteral("errors"), QStringList{reason}},
-  };
-}
-
 }  // namespace
 
-FileWorkspace::FileWorkspace(QObject* parent) : QAbstractListModel(parent) {
+FileWorkspace::FileWorkspace(OperationQueue* queue, AppLifecycle* lifecycle,
+                             QObject* parent)
+    : QAbstractListModel(parent), queue_(queue) {
   // A document can go away while the application is in the background.
-  if (auto* lifecycle = AppLifecycle::create(nullptr, nullptr);
-      lifecycle != nullptr) {
+  if (lifecycle != nullptr) {
     connect(lifecycle, &AppLifecycle::SignalResumed, this,
             &FileWorkspace::refreshAvailability);
   }
+  if (queue != nullptr) {
+    connect(queue, &OperationQueue::SignalFinished, this,
+            &FileWorkspace::dropped);
+  }
 }
 
-// The outputs go with their entries (StagedFile).
-FileWorkspace::~FileWorkspace() = default;
+// The outputs go with their entries (StagedFile); what still waits or runs
+// goes with the workspace, which hears nothing more of it.
+FileWorkspace::~FileWorkspace() {
+  if (queue_ != nullptr) {
+    disconnect(queue_, nullptr, this, nullptr);
+    queue_->ForgetOwner(this);
+  }
+}
+
+void FileWorkspace::SetInstance(FileWorkspace* instance) {
+  g_instance = instance;
+}
+
+auto FileWorkspace::create(QQmlEngine*, QJSEngine*) -> FileWorkspace* {
+  QJSEngine::setObjectOwnership(g_instance, QJSEngine::CppOwnership);
+  return g_instance;
+}
+
+auto FileWorkspace::Instance() -> FileWorkspace* { return g_instance; }
 
 auto FileWorkspace::rowCount(const QModelIndex& parent) const -> int {
   return parent.isValid() ? 0 : static_cast<int>(entries_.size());
@@ -100,6 +125,10 @@ auto FileWorkspace::roleNames() const -> QHash<int, QByteArray> {
       {kResultRole, "result"},
       {kSelectedRole, "chosen"},
       {kAvailableRole, "available"},
+      {kSavedNameRole, "savedName"},
+      {kOriginRole, "origin"},
+      {kContentRole, "content"},
+      {kProgressRole, "progress"},
   };
 }
 
@@ -115,8 +144,9 @@ auto FileWorkspace::data(const QModelIndex& index, int role) const -> QVariant {
     case kSizeRole:
       return entry.size;
     case kKindRole:
-      return entry.url.isEmpty() ? QStringLiteral("output")
-                                 : QStringLiteral("external");
+      return entry.origin == QStringLiteral("made")
+                 ? QStringLiteral("output")
+                 : QStringLiteral("external");
     case kPlaintextRole:
       return entry.plaintext;
     case kSourceIdRole:
@@ -135,13 +165,21 @@ auto FileWorkspace::data(const QModelIndex& index, int role) const -> QVariant {
       return entry.selected;
     case kAvailableRole:
       return entry.available;
+    case kSavedNameRole:
+      return entry.saved_name;
+    case kOriginRole:
+      return entry.origin;
+    case kContentRole:
+      return entry.content;
+    case kProgressRole:
+      return entry.progress;
     default:
       return {};
   }
 }
 
 auto FileWorkspace::Busy() const -> bool {
-  return running_.has_value() || !queue_.empty();
+  return running_.has_value() || !waiting_.empty();
 }
 
 auto FileWorkspace::Count() const -> int { return rowCount(); }
@@ -169,22 +207,74 @@ void FileWorkspace::SetSortKey(const QString& key) {
 
 auto FileWorkspace::CanShare() const -> bool { return GpgFrontend::CanShare(); }
 
-void FileWorkspace::addFiles(const QList<QUrl>& urls) {
+auto FileWorkspace::addFiles(const QList<QUrl>& urls) -> QVariantList {
+  QVariantList ids;
   for (const auto& url : urls) {
     if (url.isEmpty()) continue;
     const auto known =
-        std::any_of(entries_.begin(), entries_.end(),
-                    [&url](const auto& entry) { return entry->url == url; });
-    if (known) continue;
+        std::find_if(entries_.begin(), entries_.end(),
+                     [&url](const auto& entry) { return entry->url == url; });
+    if (known != entries_.end()) {
+      ids << (*known)->id;
+      continue;
+    }
 
     auto entry = std::make_unique<Entry>();
     entry->id = next_id_++;
+    ids << entry->id;
     entry->url = url;
     entry->name = DisplayName(url);
     std::tie(entry->available, entry->size) = Probe(url);
+    entry->content = ClassifyFileName(entry->name);
     entry->added = QDateTime::currentDateTimeUtc();
     insert(std::move(entry));
   }
+  return ids;
+}
+
+auto FileWorkspace::receiveFiles(const QList<QUrl>& urls) -> QVariantList {
+  QVariantList ids;
+  auto* staging = FileStagingArea();
+  if (staging == nullptr) return ids;
+  QPointer<FileWorkspace> self(this);
+  for (const auto& url : urls) {
+    if (url.isEmpty()) continue;
+    auto entry = std::make_unique<Entry>();
+    entry->id = next_id_++;
+    entry->origin = QStringLiteral("shared");
+    entry->name = unique_name(DisplayName(url));
+    entry->content = ClassifyFileName(entry->name);
+    entry->available = false;
+    entry->progress = 0;
+    entry->file = StagedFile(staging->NewPath(entry->name));
+    entry->added = QDateTime::currentDateTimeUtc();
+    const auto id = entry->id;
+    const auto name = entry->name;
+    const auto path = entry->file.Path();
+    ids << id;
+    insert(std::move(entry));
+
+    CopyOffThread(
+        LocalOrContent(url), path, kMaxStagedInputSize, this,
+        [self, id, name, path](bool copied) {
+          auto* entry = self->find(id);
+          if (entry == nullptr) return;
+          // The copy is over either way.
+          entry->progress = -1;
+          if (!copied) {
+            self->remove({id});
+            emit self->SignalReceiveFailed(name);
+            return;
+          }
+          entry->available = true;
+          entry->size = QFileInfo(path).size();
+          self->changed(id, {kAvailableRole, kProgressRole, kSizeRole});
+        },
+        [self, id](qint64 copied, qint64 total) {
+          self->copying(id, copied, total);
+        });
+  }
+  return ids;
 }
 
 void FileWorkspace::remove(const QVariantList& ids) {
@@ -193,17 +283,25 @@ void FileWorkspace::remove(const QVariantList& ids) {
   for (const auto& value : ids) {
     const auto id = value.toInt();
     if (is_running(id)) continue;
+    // Still being copied in: the copy would recreate its file after it was
+    // removed, and nobody would remove that one.
+    if (const auto* arriving = find(id);
+        arriving != nullptr && arriving->progress >= 0) {
+      continue;
+    }
 
     // What waits for it waits no longer.
-    for (auto it = queue_.begin(); it != queue_.end();) {
-      if (it->id == id || it->other == id) {
-        if (it->id != id) {
-          if (auto* source = find(it->id); source != nullptr) {
+    for (auto it = waiting_.begin(); it != waiting_.end();) {
+      if (it->second.id == id || it->second.other == id) {
+        if (it->second.id != id) {
+          if (auto* source = find(it->second.id); source != nullptr) {
             source->state = QStringLiteral("idle");
             changed(source->id, {kStateRole});
           }
         }
-        it = queue_.erase(it);
+        const auto op_id = it->first;
+        it = waiting_.erase(it);
+        if (queue_ != nullptr) queue_->Cancel(op_id, QStringLiteral("removed"));
       } else {
         ++it;
       }
@@ -219,6 +317,7 @@ void FileWorkspace::remove(const QVariantList& ids) {
     endRemoveRows();
   }
   emit SignalCountChanged();
+  emit SignalUnsavedChanged();
   if (selection) emit SignalSelectionChanged();
   busy_changed(was);
 }
@@ -229,19 +328,25 @@ void FileWorkspace::clear() {
   remove(ids);
 }
 
-void FileWorkspace::encrypt(const QVariantList& ids,
+auto FileWorkspace::encrypt(const QVariantList& ids,
                             const QStringList& recipients,
-                            const QString& signer) {
+                            const QString& signer, bool symmetric) -> bool {
+  if (!symmetric && recipients.isEmpty()) return false;
   Job job;
   job.op = Op::kEncrypt;
-  job.recipients = recipients;
-  job.signer = signer;
+  job.symmetric = symmetric;
+  if (!symmetric) {
+    job.recipients = recipients;
+    job.signer = signer;
+  }
   enqueue(ids, job);
+  return true;
 }
 
-void FileWorkspace::decrypt(const QVariantList& ids) {
+void FileWorkspace::decrypt(const QVariantList& ids, bool verify) {
   Job job;
   job.op = Op::kDecrypt;
+  job.verify = verify;
   enqueue(ids, job);
 }
 
@@ -262,41 +367,222 @@ void FileWorkspace::verify(int signature_id, int data_id) {
 
 void FileWorkspace::cancelQueued() {
   const auto was = Busy();
-  for (const auto& job : queue_) {
+  const auto waiting = std::exchange(waiting_, {});
+  for (const auto& [op_id, job] : waiting) {
     if (auto* entry = find(job.id); entry != nullptr) {
       entry->state = QStringLiteral("cancelled");
       entry->result = {{QStringLiteral("cancelled"), true}};
       changed(job.id, {kStateRole, kResultRole});
     }
+    if (queue_ != nullptr) queue_->Cancel(op_id, QStringLiteral("stopped"));
   }
-  queue_.clear();
+  busy_changed(was);
+}
+
+auto FileWorkspace::retry(int op_id) -> QString {
+  const auto* record = queue_ != nullptr ? queue_->Log()->Find(op_id) : nullptr;
+  if (record == nullptr || record->surface != OperationSurface::kFILES ||
+      record->targets.isEmpty()) {
+    return QStringLiteral("unknown");
+  }
+  const auto op = OpNames().indexOf(record->params.op);
+  if (op < 0) return QStringLiteral("unknown");
+
+  const auto id = record->targets.first().file_id;
+  auto* entry = find(id);
+  if (entry == nullptr) return QStringLiteral("missing");
+  Job job;
+  job.op = static_cast<Op>(op);
+  job.recipients = record->params.recipients;
+  job.signer = record->params.signer;
+  job.symmetric = record->params.symmetric;
+  job.verify = record->params.verify;
+  if (job.op == Op::kVerify) {
+    if (record->targets.size() < 2) return QStringLiteral("unknown");
+    job.other = record->targets.at(1).file_id;
+    const auto* data = find(job.other);
+    if (data == nullptr) return QStringLiteral("missing");
+    if (!data->available) return QStringLiteral("unavailable");
+  }
+  if (!entry->available) return QStringLiteral("unavailable");
+  if (entry->state == QStringLiteral("queued") || is_running(id)) {
+    return QStringLiteral("busy");
+  }
+  enqueue({id}, job);
+  return {};
+}
+
+auto FileWorkspace::retryFailed(int batch_id) -> int {
+  if (queue_ == nullptr) return 0;
+  int queued = 0;
+  for (const auto op_id : queue_->Log()->IdsOfBatch(batch_id)) {
+    const auto* record = queue_->Log()->Find(op_id);
+    if (record == nullptr || (record->phase != OperationPhase::kFAILED &&
+                              record->phase != OperationPhase::kCANCELLED)) {
+      continue;
+    }
+    if (retry(op_id).isEmpty()) ++queued;
+  }
+  return queued;
+}
+
+auto FileWorkspace::relink(int id, const QUrl& url) -> bool {
+  auto* entry = find(id);
+  if (entry == nullptr || entry->url.isEmpty() || url.isEmpty() ||
+      is_running(id)) {
+    return false;
+  }
+  entry->url = url;
+  entry->name = DisplayName(url);
+  std::tie(entry->available, entry->size) = Probe(url);
+  entry->content = ClassifyFileName(entry->name);
+  changed(id, {kNameRole, kAvailableRole, kSizeRole, kContentRole});
+  return true;
+}
+
+void FileWorkspace::dropped(int op_id) {
+  const auto it = waiting_.find(op_id);
+  if (it == waiting_.end()) return;
+  const auto was = Busy();
+  const auto job = it->second;
+  waiting_.erase(it);
+  if (auto* entry = find(job.id); entry != nullptr) {
+    entry->state = QStringLiteral("cancelled");
+    entry->result = {{QStringLiteral("cancelled"), true}};
+    changed(job.id, {kStateRole, kResultRole});
+  }
   busy_changed(was);
 }
 
 void FileWorkspace::saveAs(int id, const QUrl& url) {
   const auto* entry = find(id);
-  if (entry == nullptr || is_running(id)) {
+  // Not while it is still arriving from a share: half of it would be saved.
+  if (entry == nullptr || is_running(id) || !entry->available ||
+      entry->progress >= 0) {
     emit SignalSaved(id, false);
     return;
   }
   const auto from =
       entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
   QPointer<FileWorkspace> self(this);
+  const auto saved_name = DisplayName(url);
   CopyOffThread(from, LocalOrContent(url), std::numeric_limits<qint64>::max(),
-                this,
-                [self, id](bool saved) { emit self->SignalSaved(id, saved); });
+                this, [self, id, saved_name](bool saved) {
+                  // The name the picker gave it, which may not be the one
+                  // offered: a folder that has one already numbers it.
+                  if (auto* entry = saved ? self->find(id) : nullptr;
+                      entry != nullptr) {
+                    entry->saved_name = saved_name;
+                    self->changed(id, {kSavedNameRole});
+                    emit self->SignalUnsavedChanged();
+                  }
+                  emit self->SignalSaved(id, saved);
+                });
 }
 
-void FileWorkspace::share(int id) {
+void FileWorkspace::share(int id) { hand_off(id, false); }
+
+void FileWorkspace::openWith(int id) { hand_off(id, true); }
+
+auto FileWorkspace::takenIn(const QVariantList& ids, const QUrl& folder) const
+    -> QStringList {
+  const auto names = FolderDocumentNames(folder);
+  QStringList taken;
+  if (!names) return taken;
+  for (const auto& value : ids) {
+    const auto* entry = find(value.toInt());
+    if (entry != nullptr && names->contains(entry->name)) taken << entry->name;
+  }
+  return taken;
+}
+
+void FileWorkspace::saveAll(const QVariantList& ids, const QUrl& folder,
+                            const QString& taken) {
+  const auto names = FolderDocumentNames(folder).value_or(QStringList());
+  std::vector<Save> saves;
+  int skipped = 0;
+  int failed = 0;
+  for (const auto& value : ids) {
+    const auto* entry = find(value.toInt());
+    if (entry == nullptr || !entry->available || is_running(entry->id) ||
+        entry->progress >= 0) {
+      ++failed;
+      continue;
+    }
+    QUrl to;
+    if (names.contains(entry->name) && taken == QStringLiteral("skip")) {
+      ++skipped;
+      continue;
+    }
+    if (names.contains(entry->name) && taken == QStringLiteral("replace")) {
+      to = FindFolderDocument(folder, entry->name);
+    }
+    // As bytes: given a type, a provider may add the extension it prefers
+    // for it ("notes.txt.gpg.pgp").
+    if (to.isEmpty()) {
+      to = CreateFolderDocument(folder, entry->name,
+                                QStringLiteral("application/octet-stream"));
+    }
+    if (to.isEmpty()) {
+      ++failed;
+      continue;
+    }
+    saves.push_back({entry->id, to});
+  }
+  save_next(std::move(saves), 0, 0, skipped, failed);
+}
+
+void FileWorkspace::save_next(std::vector<Save> saves, size_t next, int saved,
+                              int skipped, int failed) {
+  if (next >= saves.size()) {
+    emit SignalSavedAll(saved, skipped, failed);
+    return;
+  }
+  const auto save = saves.at(next);
+  const auto* entry = find(save.id);
+  if (entry == nullptr) {
+    save_next(std::move(saves), next + 1, saved, skipped, failed + 1);
+    return;
+  }
+  const auto from =
+      entry->url.isEmpty() ? entry->file.Path() : LocalOrContent(entry->url);
+  QPointer<FileWorkspace> self(this);
+  CopyOffThread(
+      from, LocalOrContent(save.to), std::numeric_limits<qint64>::max(), this,
+      [self, saves = std::move(saves), next, saved, skipped,
+       failed](bool copied) mutable {
+        const auto& save = saves.at(next);
+        if (auto* entry = copied ? self->find(save.id) : nullptr;
+            entry != nullptr) {
+          entry->saved_name = DisplayName(save.to);
+          self->changed(save.id, {kSavedNameRole});
+          emit self->SignalUnsavedChanged();
+        }
+        self->save_next(std::move(saves), next + 1, saved + (copied ? 1 : 0),
+                        skipped, failed + (copied ? 0 : 1));
+      });
+}
+
+void FileWorkspace::hand_off(int id, bool open) {
+  QPointer<FileWorkspace> self(this);
+  const auto report = [self, open](int id, const QString& outcome) {
+    if (self == nullptr) return;
+    if (open) {
+      emit self->SignalOpened(id, outcome);
+    } else {
+      emit self->SignalShared(id, outcome);
+    }
+  };
   if (!GpgFrontend::CanShare()) {
-    emit SignalShared(id, QStringLiteral("unsupported"));
+    report(id, QStringLiteral("unsupported"));
     return;
   }
   const auto* entry = find(id);
   auto* staging = FileStagingArea();
   if (entry == nullptr || !entry->url.isEmpty() || entry->file.Empty() ||
-      staging == nullptr || SharedFileStore() == nullptr) {
-    emit SignalShared(id, QStringLiteral("failed"));
+      !entry->available || entry->progress >= 0 || staging == nullptr ||
+      SharedFileStore() == nullptr) {
+    report(id, QStringLiteral("failed"));
     return;
   }
 
@@ -305,14 +591,13 @@ void FileWorkspace::share(int id) {
   const auto name = entry->name;
   const auto plaintext = entry->plaintext;
   const auto copy = staging->NewPath(name);
-  QPointer<FileWorkspace> self(this);
   CopyOffThread(
       entry->file.Path(), copy, std::numeric_limits<qint64>::max(), this,
-      [self, id, name, plaintext, copy](bool copied) {
+      [report, id, name, plaintext, copy, open](bool copied) {
         auto* store = SharedFileStore();
         if (!copied || store == nullptr) {
           QFile::remove(copy);
-          emit self->SignalShared(id, QStringLiteral("failed"));
+          report(id, QStringLiteral("failed"));
           return;
         }
 
@@ -322,15 +607,17 @@ void FileWorkspace::share(int id) {
         const auto retained = store->Retain(copy, name, plaintext, now);
         if (!retained) {
           QFile::remove(copy);
-          emit self->SignalShared(id, QStringLiteral("failed"));
+          report(id, QStringLiteral("failed"));
           return;
         }
 
         const auto mime =
             QMimeDatabase().mimeTypeForFile(retained->path).name();
-        ShareFile(
+        const auto hand = open ? OpenFile : ShareFile;
+        hand(
             retained->path, mime, {},
-            [self, id, retained_id = retained->id](const ShareResult& result) {
+            [report, id,
+             retained_id = retained->id](const ShareResult& result) {
               // Shown to no one: nothing needs keeping for a receiver.
               if (result.outcome == ShareOutcome::kFailed ||
                   result.outcome == ShareOutcome::kUnsupported) {
@@ -342,15 +629,17 @@ void FileWorkspace::share(int id) {
                   store->Withdraw(retained_id, back.Path());
                 }
               }
-              if (self != nullptr) {
-                emit self->SignalShared(id, ShareOutcomeName(result.outcome));
-              }
+              report(id, ShareOutcomeName(result.outcome));
             });
       });
 }
 
 void FileWorkspace::refreshAvailability() {
   for (const auto& entry : entries_) {
+    // Still being copied in: not there yet, and not gone either.
+    if (entry->progress >= 0 && entry->origin == QStringLiteral("shared")) {
+      continue;
+    }
     bool available = false;
     qint64 size = entry->size;
     if (entry->url.isEmpty()) {
@@ -375,12 +664,32 @@ void FileWorkspace::setSelected(int id, bool selected) {
   emit SignalSelectionChanged();
 }
 
-void FileWorkspace::selectAll() {
-  for (const auto& entry : entries_) setSelected(entry->id, true);
+void FileWorkspace::selectAll() { select_every(true); }
+
+void FileWorkspace::clearSelection() { select_every(false); }
+
+void FileWorkspace::select(const QVariantList& ids) {
+  QSet<int> chosen;
+  for (const auto& id : ids) chosen.insert(id.toInt());
+  select_every(true, &chosen);
 }
 
-void FileWorkspace::clearSelection() {
-  for (const auto& entry : entries_) setSelected(entry->id, false);
+void FileWorkspace::select_every(bool selected, const QSet<int>* only) {
+  // One change for the lot: a page that reads the selection again on every
+  // change would otherwise read it once per file, a thousand times over.
+  int first = -1;
+  int last = -1;
+  for (int row = 0; row < rowCount(); ++row) {
+    auto& entry = *entries_.at(row);
+    if (entry.selected == selected) continue;
+    if (only != nullptr && !only->contains(entry.id)) continue;
+    entry.selected = selected;
+    if (first < 0) first = row;
+    last = row;
+  }
+  if (first < 0) return;
+  emit dataChanged(index(first), index(last), {kSelectedRole});
+  emit SignalSelectionChanged();
 }
 
 auto FileWorkspace::selectedIds() const -> QVariantList {
@@ -401,6 +710,36 @@ auto FileWorkspace::entry(int id) const -> QVariantMap {
     map.insert(QString::fromLatin1(it.value()), data(at, it.key()));
   }
   return map;
+}
+
+auto FileWorkspace::idAt(int row) const -> int {
+  return row >= 0 && row < rowCount() ? entries_.at(row)->id : -1;
+}
+
+auto FileWorkspace::rowOf(int id) const -> int { return row_of(id); }
+
+auto FileWorkspace::idNamed(const QString& name) const -> int {
+  for (const auto& entry : entries_) {
+    if (entry->name == name) return entry->id;
+  }
+  return -1;
+}
+
+auto FileWorkspace::signatureOf(int id) const -> int {
+  for (const auto& entry : entries_) {
+    if (entry->made_by == QStringLiteral("sign") && entry->source_id == id) {
+      return entry->id;
+    }
+  }
+  return -1;
+}
+
+auto FileWorkspace::UnsavedCount() const -> int {
+  return static_cast<int>(
+      std::count_if(entries_.begin(), entries_.end(), [](const auto& entry) {
+        return entry->origin == QStringLiteral("made") &&
+               entry->saved_name.isEmpty();
+      }));
 }
 
 auto FileWorkspace::find(int id) const -> Entry* {
@@ -440,10 +779,29 @@ void FileWorkspace::insert(std::unique_ptr<Entry> entry) {
   entries_.insert(entries_.begin() + row, std::move(entry));
   endInsertRows();
   emit SignalCountChanged();
+  emit SignalUnsavedChanged();
 }
 
 auto FileWorkspace::is_running(int id) const -> bool {
   return running_.has_value() && (running_->id == id || running_->other == id);
+}
+
+auto FileWorkspace::unique_name(const QString& name) const -> QString {
+  const auto taken = [this](const QString& candidate) {
+    return std::any_of(
+        entries_.begin(), entries_.end(),
+        [&candidate](const auto& entry) { return entry->name == candidate; });
+  };
+  if (!taken(name)) return name;
+  // Before the last extension, so the name still says what kind it is.
+  const auto dot = name.lastIndexOf(QLatin1Char('.'));
+  const auto base = dot > 0 ? name.left(dot) : name;
+  const auto extension = dot > 0 ? name.mid(dot) : QString();
+  for (int n = 2;; ++n) {
+    const auto candidate =
+        QStringLiteral("%1 (%2)%3").arg(base).arg(n).arg(extension);
+    if (!taken(candidate)) return candidate;
+  }
 }
 
 void FileWorkspace::busy_changed(bool was) {
@@ -451,7 +809,10 @@ void FileWorkspace::busy_changed(bool was) {
 }
 
 void FileWorkspace::enqueue(const QVariantList& ids, Job job) {
+  auto* queue = queue_.data();
+  if (queue == nullptr) return;
   const auto was = Busy();
+  int batch = 0;
   for (const auto& value : ids) {
     auto* entry = find(value.toInt());
     if (entry == nullptr || !entry->available ||
@@ -459,20 +820,52 @@ void FileWorkspace::enqueue(const QVariantList& ids, Job job) {
       continue;
     }
     job.id = entry->id;
-    queue_.push_back(job);
     entry->state = QStringLiteral("queued");
     entry->operation = OpName(static_cast<int>(job.op));
     entry->result.clear();
     changed(entry->id, {kStateRole, kOperationRole, kResultRole});
+
+    OperationQueue::Request request;
+    request.owner = this;
+    request.surface = OperationSurface::kFILES;
+    request.params.op = entry->operation;
+    request.params.recipients = job.recipients;
+    request.params.signer = job.signer;
+    request.params.symmetric = job.symmetric;
+    request.params.verify = job.verify;
+    request.targets = {
+        OperationTarget{entry->id, entry->name, QString::number(entry->size)}};
+    if (const auto* data = find(job.other); data != nullptr) {
+      request.targets << OperationTarget{data->id, data->name,
+                                         QString::number(data->size)};
+    }
+    request.batch_id = batch;
+    request.run = [this, job](int op_id) mutable {
+      job.op_id = op_id;
+      start(job);
+    };
+    // It may start, and even end, before Submit() returns: only a job still
+    // waiting is kept here.
+    const auto op_id = queue->Submit(std::move(request));
+    if (op_id == 0) {
+      entry->state = QStringLiteral("cancelled");
+      entry->result = {{QStringLiteral("cancelled"), true}};
+      changed(entry->id, {kStateRole, kResultRole});
+      continue;
+    }
+    if (batch == 0) batch = op_id;
+    if (const auto* record = queue->Log()->Find(op_id);
+        record != nullptr && record->phase == OperationPhase::kQUEUED) {
+      job.op_id = op_id;
+      waiting_[op_id] = job;
+    }
   }
   busy_changed(was);
-  start_next();
 }
 
-void FileWorkspace::start_next() {
-  if (running_.has_value() || queue_.empty()) return;
-  running_ = queue_.front();
-  queue_.pop_front();
+void FileWorkspace::start(Job next) {
+  waiting_.erase(next.op_id);
+  running_ = next;
 
   auto* entry = find(running_->id);
   if (entry == nullptr || FileStagingArea() == nullptr) {
@@ -521,9 +914,30 @@ void FileWorkspace::stage(const Entry& entry, StagedFile& into,
   }
   into = StagedFile(FileStagingArea()->NewPath(entry.name));
   const auto path = into.Path();
+  QPointer<FileWorkspace> self(this);
   CopyOffThread(
       LocalOrContent(entry.url), path, kMaxStagedInputSize, this,
-      [path, done = std::move(done)](bool copied) { done(copied, path); });
+      [self, id = entry.id, path, done = std::move(done)](bool copied) {
+        self->copying(id, -1, 0);
+        done(copied, path);
+      },
+      [self, id = entry.id](qint64 copied, qint64 total) {
+        self->copying(id, copied, total);
+      });
+}
+
+void FileWorkspace::copying(int id, qint64 copied, qint64 total) {
+  auto* entry = find(id);
+  if (entry == nullptr) return;
+  const auto progress =
+      copied < 0 ? -1.0
+      : total > 0
+          ? std::clamp(static_cast<double>(copied) / static_cast<double>(total),
+                       0.0, 1.0)
+          : 0.0;
+  if (progress == entry->progress) return;
+  entry->progress = progress;
+  changed(id, {kProgressRole});
 }
 
 void FileWorkspace::run(const Job& job, const QString& in,
@@ -557,7 +971,7 @@ void FileWorkspace::run(const Job& job, const QString& in,
       EncryptStagedFile(in, out, job.recipients, job.signer, this, finished);
       break;
     case Op::kDecrypt:
-      DecryptStagedFile(in, out, this, finished);
+      DecryptStagedFile(in, out, job.verify, this, finished);
       break;
     case Op::kSign:
       SignStagedFile(in, out, job.signer, this, finished);
@@ -572,7 +986,33 @@ void FileWorkspace::finish(const GpgOperaOutcome& outcome) {
       running_.has_value() && running_->op != Op::kVerify);
 }
 
-void FileWorkspace::fail(const QString& reason) { end(Failure(reason), false); }
+void FileWorkspace::fail(const QString& reason) {
+  // Shaped as every other result, as the core makes one for an operation that
+  // never reached the engine; what went wrong is its summary.
+  auto scope = GpgOperation::kNONE;
+  if (running_.has_value()) {
+    switch (running_->op) {
+      case Op::kEncrypt:
+        scope = running_->signer.isEmpty() ? GpgOperation::kENCRYPT
+                                           : GpgOperation::kENCRYPT_SIGN;
+        break;
+      case Op::kDecrypt:
+        scope = running_->verify ? GpgOperation::kDECRYPT_VERIFY
+                                 : GpgOperation::kDECRYPT;
+        break;
+      case Op::kSign:
+        scope = GpgOperation::kSIGN;
+        break;
+      case Op::kVerify:
+        scope = GpgOperation::kVERIFY;
+        break;
+    }
+  }
+  auto info = MakeAbortedOpInfo(
+      scope, GFError::Application(GFErrorCode::kGENERAL), QString());
+  info.description = reason;
+  end(PresentResult(info), false);
+}
 
 void FileWorkspace::end(const QVariantMap& result, bool produces) {
   // The copies of the inputs are not needed once the operation has ended.
@@ -585,8 +1025,11 @@ void FileWorkspace::end(const QVariantMap& result, bool produces) {
   const auto cancelled = result.value(QStringLiteral("cancelled")).toBool();
   const auto status = result.value(QStringLiteral("status"), -1).toInt();
   auto succeeded = !cancelled && status >= 0;
-  const auto produced = succeeded && produces && !job_output_.Empty() &&
-                        QFileInfo(job_output_.Path()).size() > 0;
+  // Encrypting or signing always writes something; decrypting an empty file
+  // rightly writes nothing, and is not a failure for it.
+  const QFileInfo output(job_output_.Empty() ? QString() : job_output_.Path());
+  const auto produced = succeeded && produces && output.exists() &&
+                        (output.size() > 0 || job.op == Op::kDecrypt);
   if (produces && !produced) succeeded = false;
 
   auto* source = find(job.id);
@@ -598,11 +1041,15 @@ void FileWorkspace::end(const QVariantMap& result, bool produces) {
     changed(job.id, {kStateRole, kResultRole});
   }
 
+  QList<int> output_ids;
   if (produced) {
     auto output = std::make_unique<Entry>();
     output->id = next_id_++;
-    output->name = job_output_name_;
+    output_ids << output->id;
+    output->name = unique_name(job_output_name_);
+    output->origin = QStringLiteral("made");
     output->size = QFileInfo(job_output_.Path()).size();
+    output->content = ClassifyFileName(output->name);
     output->file = std::move(job_output_);
     output->plaintext = job.op == Op::kDecrypt;
     output->source_id = job.id;
@@ -618,12 +1065,19 @@ void FileWorkspace::end(const QVariantMap& result, bool produces) {
   }
   job_output_name_.clear();
 
-  emit SignalFinished(job.id, succeeded);
-  if (!Busy()) {
-    emit SignalBusyChanged();
-  } else {
-    start_next();
+  const auto phase = EndedPhase(cancelled, succeeded);
+  // Recorded before it is announced, so a page that reads the record on the
+  // signal finds it ended.
+  if (queue_ != nullptr) {
+    queue_->Log()->SetFinished(job.op_id, phase, {}, result, output_ids);
   }
+  emit SignalFinished(job.id, succeeded);
+
+  // Last: the next operation in the queue starts here.
+  if (queue_ != nullptr) {
+    queue_->Complete(job.op_id, phase, result, output_ids);
+  }
+  if (!Busy()) emit SignalBusyChanged();
 }
 
 }  // namespace GpgFrontend::Mobile

@@ -28,6 +28,7 @@
 
 #include "files/FileOperations.h"
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
 #include <QPointer>
@@ -59,7 +60,8 @@ StagingArea* g_staging = nullptr;
 ShareRetentionStore* g_retention = nullptr;
 
 /// Copy @p from to @p to in pieces, refusing more than @p limit bytes.
-auto CopyLimited(const QString& from, const QString& to, qint64 limit) -> bool {
+auto CopyLimited(const QString& from, const QString& to, qint64 limit,
+                 const CopyProgress& progress = {}) -> bool {
   QFile in(from);
   QFile out(to);
   // Truncated: overwriting a longer document must not keep its tail, which a
@@ -79,6 +81,7 @@ auto CopyLimited(const QString& from, const QString& to, qint64 limit) -> bool {
   };
 
   constexpr qint64 kChunk = 1024 * 1024;
+  const auto total = in.size();
   qint64 copied = 0;
   while (!in.atEnd()) {
     const auto chunk = in.read(kChunk);
@@ -86,6 +89,9 @@ auto CopyLimited(const QString& from, const QString& to, qint64 limit) -> bool {
     copied += chunk.size();
     if (copied > limit) return fail();
     if (out.write(chunk) != chunk.size()) return fail();
+    if (progress && total > kChunk) {
+      progress(copied, total);
+    }
   }
   return out.flush() || fail();
 }
@@ -110,12 +116,26 @@ auto FileStagingArea() -> StagingArea* { return g_staging; }
 auto SharedFileStore() -> ShareRetentionStore* { return g_retention; }
 
 void CopyOffThread(const QString& from, const QString& to, qint64 limit,
-                   QObject* context, std::function<void(bool)> done) {
+                   QObject* context, std::function<void(bool)> done,
+                   CopyProgress progress) {
   auto copied = QSharedPointer<bool>::create(false);
   QPointer<QObject> guard(context);
+  // Reported through the application object, which outlives the copy:
+  // @p context may be gone by the time a report arrives.
+  CopyProgress report;
+  if (progress) {
+    report = [guard, progress = std::move(progress)](qint64 n, qint64 total) {
+      QMetaObject::invokeMethod(
+          QCoreApplication::instance(),
+          [guard, progress, n, total]() {
+            if (guard != nullptr) progress(n, total);
+          },
+          Qt::QueuedConnection);
+    };
+  }
   auto* task = new Thread::Task(
-      [from, to, limit, copied](const DataObjectPtr&) -> int {
-        *copied = CopyLimited(from, to, limit);
+      [from, to, limit, copied, report](const DataObjectPtr&) -> int {
+        *copied = CopyLimited(from, to, limit, report);
         return 0;
       },
       "mobile_file_copy", TransferParams(),
@@ -178,54 +198,41 @@ void EncryptStagedFile(const QString& in, const QString& out,
   if (recipients.isEmpty()) {
     opera.EncryptFileSymmetric(
         in, false, out, [finish, channel](GFError err, DataObjectPtr data) {
-          finish(AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse,
-                                     false>(channel, err, data));
+          finish(AnalyseEncrypt<false>(channel, err, data, {}, false));
         });
     return;
   }
 
-  const auto chosen = SelectKeys(channel, recipients);
-  const auto signers =
-      signer.isEmpty() ? KeySelection{} : SelectKeys(channel, {signer});
-  if (!chosen.missing.isEmpty() || !signers.missing.isEmpty()) {
-    finish(chosen.missing.isEmpty()
-               ? MissingKeysOutcome(GpgOperation::kSIGN, channel,
-                                    signers.missing, true)
-               : MissingKeysOutcome(GpgOperation::kENCRYPT, channel,
-                                    chosen.missing));
+  const auto selected = SelectEncryptKeys(channel, recipients, signer);
+  if (const auto* missing = std::get_if<GpgOperaOutcome>(&selected)) {
+    finish(*missing);
     return;
   }
-
-  const auto keys = chosen.keys;
-  if (signer.isEmpty()) {
-    opera.EncryptFile(keys, in, false, out,
-                      [finish, channel, keys](GFError err, DataObjectPtr data) {
-                        auto outcome =
-                            AnalyseOperaOutcome<GpgEncryptResult,
-                                                GpgEncryptResultAnalyse, false>(
-                                channel, err, data);
-                        AttachRecipients(outcome, data, keys);
-                        finish(outcome);
-                      });
-    return;
+  const auto keys = std::get<EncryptKeys>(selected);
+  const auto signs = !keys.signers.isEmpty();
+  auto analysed = [finish, channel, keys, signs](GFError err,
+                                                 DataObjectPtr data) {
+    finish(AnalyseEncrypt<false>(channel, err, data, keys.recipients, signs));
+  };
+  if (signs) {
+    opera.EncryptSignFile(keys.recipients, keys.signers, in, false, out,
+                          std::move(analysed));
+  } else {
+    opera.EncryptFile(keys.recipients, in, false, out, std::move(analysed));
   }
-
-  opera.EncryptSignFile(
-      keys, signers.keys, in, false, out,
-      [finish, channel, keys](GFError err, DataObjectPtr data) {
-        auto outcome =
-            AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse,
-                                GpgSignResult, GpgSignResultAnalyse, false>(
-                channel, err, data);
-        AttachRecipients(outcome, data, keys);
-        finish(outcome);
-      });
 }
 
-void DecryptStagedFile(const QString& in, const QString& out, QObject* context,
-                       OutcomeCallback done) {
+void DecryptStagedFile(const QString& in, const QString& out, bool verify,
+                       QObject* context, OutcomeCallback done) {
   auto finish = Guarded(context, std::move(done));
   const auto channel = UsableDefaultChannelHandle();
+  if (!verify) {
+    FileCryptoOperation::GetInstance(channel).DecryptFile(
+        in, out, [finish, channel](GFError err, DataObjectPtr data) {
+          finish(AnalyseDecrypt<false>(channel, err, data));
+        });
+    return;
+  }
   FileCryptoOperation::GetInstance(channel).DecryptVerifyFile(
       in, out, [finish, channel](GFError err, DataObjectPtr data) {
         finish(AnalyseDecryptVerify<false>(channel, err, data));

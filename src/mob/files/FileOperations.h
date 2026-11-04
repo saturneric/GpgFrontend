@@ -67,10 +67,16 @@ auto FileStagingArea() -> StagingArea*;
 /// The store SetFileStores() gave; null before and after AppServices.
 auto SharedFileStore() -> ShareRetentionStore*;
 
+/// How far a copy is: bytes copied, of how many (0 when not known).
+using CopyProgress = std::function<void(qint64 copied, qint64 total)>;
+
 /// Copy @p from to @p to on the I/O runner, refusing more than @p limit
-/// bytes; @p done gets whether it worked, on @p context's thread.
+/// bytes; @p done gets whether it worked, on @p context's thread. A copy of
+/// more than one piece reports each piece to @p progress first, on the
+/// interface thread, unless @p context has gone.
 void CopyOffThread(const QString& from, const QString& to, qint64 limit,
-                   QObject* context, std::function<void(bool)> done);
+                   QObject* context, std::function<void(bool)> done,
+                   CopyProgress progress = {});
 
 /// The name of the file a picker returned, as the picker shows it.
 auto DisplayName(const QUrl& url) -> QString;
@@ -93,9 +99,9 @@ void EncryptStagedFile(const QString& in, const QString& out,
                        const QStringList& recipients, const QString& signer,
                        QObject* context, OutcomeCallback done);
 
-/// Decrypt @p in, verifying any signature inside.
-void DecryptStagedFile(const QString& in, const QString& out, QObject* context,
-                       OutcomeCallback done);
+/// Decrypt @p in; with @p verify, checking any signature inside too.
+void DecryptStagedFile(const QString& in, const QString& out, bool verify,
+                       QObject* context, OutcomeCallback done);
 
 /// Sign @p in with @p signer, writing a detached signature to @p out.
 void SignStagedFile(const QString& in, const QString& out,
