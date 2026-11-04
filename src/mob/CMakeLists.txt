@@ -139,11 +139,13 @@ qt_add_qml_module(gf_mob_lib
     qml/components/FileDetailsSheet.qml
     qml/components/VerifySheet.qml
     qml/components/StatusLine.qml
+    qml/components/KeyFacts.qml
     qml/components/KeyToolbox.qml
     qml/components/StatusSheet.qml
     qml/components/SheetHost.qml
     qml/components/Fact.qml
     qml/components/FingerprintView.qml
+    qml/components/SubkeySheet.qml
     qml/components/ValiditySheet.qml
     qml/components/AddSubkeySheet.qml
     qml/components/RevokeSubkeySheet.qml
@@ -153,6 +155,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/OperationBar.qml
     qml/components/OperationFlow.qml
     qml/components/ProblemLabel.qml
+    qml/components/KeyPartFacts.qml
     qml/components/KeyChoiceFace.qml
     qml/components/ResultCard.qml
     qml/components/KeyPickerSheet.qml)

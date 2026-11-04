@@ -12,27 +12,65 @@ Page {
     // The key's roles, as KeysPage passes them.
     property var key: ({})
 
-    // While a key is being deleted or exported, the page stays: leaving it
-    // would drop the answer, and with it the refresh of the key list.
+    // Everything about the key, as the desktop's details show it
+    // (KeyActionsController.describe()); empty while the key cannot be read,
+    // and then the list's roles above stand in.
+    property var details: ({})
+    readonly property bool described: details.fingerprint !== undefined
+    readonly property var can: details.can || ({})
+    readonly property var subkeys: details.subkeys || []
+    readonly property var uids: details.uids || []
+
+    // While a key is being changed, deleted or exported, the page stays:
+    // leaving it would drop the answer, and with it the refresh of the list.
     readonly property bool busy: actions.busy
 
     signal back()
     // The key is gone; the list wants a refresh.
     signal deleted()
 
+    // Read the key again, as it is now.
+    function reload() {
+        details = actions.describe(key.fingerprint || "")
+    }
+
+    onKeyChanged: reload()
+
     function finished(action, succeeded, detail) {
         if (!succeeded) {
             notice.show(qsTr("That did not work: %1").arg(detail.error))
             return
         }
-        if (action === "export") {
+        switch (action) {
+        case "export":
             exported = detail.armored
             notice.show("")
             exportActions.open()
-        } else if (action === "delete") {
+            return
+        case "delete":
             page.deleted()
+            return
         }
+        // A change to the key: shown at once, and in the list.
+        reload()
+        KeyListController.refresh()
+        const said = {
+            "add_subkey": qsTr("Subkey added."),
+            "expiration": qsTr("Expiration changed."),
+            "revoke_subkey": qsTr("Subkey revoked."),
+            "delete_subkey": qsTr("Subkey deleted."),
+            "add_uid": qsTr("User ID added."),
+            "primary_uid": qsTr("Primary user ID changed."),
+            "revoke_uid": qsTr("User ID revoked."),
+            "delete_uid": qsTr("User ID deleted."),
+            "passphrase": qsTr("Passphrase changed.")
+        }
+        notice.show(said[action] || "")
     }
+
+    // The list's state line, or the key's own once it is read.
+    readonly property string stateText: described ? Wording.keyState(details)
+                                                  : keyFacts.state
 
     function shared(outcome) {
         notice.showShared(outcome,
@@ -41,15 +79,6 @@ Page {
 
     // The public key, armored, once exported.
     property string exported: ""
-
-    function formatFingerprint(fpr) {
-        return (fpr || "").replace(/(.{4})(?!$)/g, "$1 ")
-    }
-
-    function formatDate(date) {
-        return date && !isNaN(date) ? date.toLocaleDateString(Qt.locale(), Locale.ShortFormat)
-                                    : qsTr("Never")
-    }
 
     header: AppBar {
         title: qsTr("Key")
@@ -69,146 +98,395 @@ Page {
             width: parent.width
             spacing: 0
 
-            // Whose key it is, and what it can do.
-            ColumnLayout {
+            // Whose key it is, and its state, in one line each.
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.margins: Theme.gap
-                spacing: 8
+                spacing: Theme.gap
 
                 KeyAvatar {
-                    Layout.alignment: Qt.AlignHCenter
-                    size: 72
+                    Layout.alignment: Qt.AlignTop
+                    size: 56
                     name: page.key.name || page.key.email || ""
                     usable: page.key.usable === true
                 }
 
-                Label {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                    font.pixelSize: 22
-                    text: page.key.name || page.key.email || page.key.keyId || ""
-                }
+                    spacing: 2
 
-                Label {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WrapAnywhere
-                    visible: (page.key.name || "").length > 0
-                             && (page.key.email || "").length > 0
-                    color: Material.secondaryTextColor
-                    text: page.key.email || ""
-                }
-
-                Flow {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.topMargin: 4
-                    spacing: 6
-
-                    Chip {
-                        visible: (page.key.status || "ok") !== "ok"
-                        text: page.key.statusText || ""
-                        tone: page.key.status === "expiring_soon"
-                              ? Theme.warning : Theme.danger
+                    Label {
+                        objectName: "keyName"
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        font.pixelSize: Theme.titleSize
+                        text: page.key.name || page.key.email || page.key.keyId || ""
                     }
 
-                    Chip {
-                        visible: page.key.hasSecret === true
-                        text: qsTr("Your key")
-                        tone: Material.accentColor
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.WrapAnywhere
+                        visible: (page.key.name || "").length > 0
+                                 && (page.key.email || "").length > 0
+                        color: Material.secondaryTextColor
+                        text: page.key.email || ""
                     }
 
-                    Chip {
-                        visible: page.key.canEncrypt === true
-                        text: qsTr("Encrypt")
-                        tone: Theme.positive
-                    }
+                    Flow {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        spacing: 6
 
-                    Chip {
-                        visible: page.key.canSign === true
-                        text: qsTr("Sign")
-                        tone: Theme.positive
+                        Chip {
+                            visible: (page.key.status || "ok") !== "ok"
+                            text: page.key.statusText || ""
+                            tone: page.key.status === "expiring_soon"
+                                  ? Theme.warning : Theme.danger
+                        }
+
+                        Chip {
+                            visible: page.key.hasSecret === true
+                            text: qsTr("Your key")
+                            tone: Material.accentColor
+                        }
                     }
                 }
             }
 
-            component Field: ColumnLayout {
-                property alias title: titleLabel.text
-                property alias value: valueText.text
-                property alias mono: valueText.font.family
-
-                Layout.fillWidth: true
-                spacing: 2
-
-                Label {
-                    id: titleLabel
-                    color: Material.secondaryTextColor
-                    font.pixelSize: 12
-                }
-
-                TextEdit {
-                    id: valueText
-                    Layout.fillWidth: true
-                    readOnly: true
-                    selectByMouse: true
-                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                    color: Material.foreground
-                    font.pixelSize: 16
-                }
-            }
-
-            Frame {
+            Label {
+                objectName: "keyState"
                 Layout.fillWidth: true
                 Layout.leftMargin: Theme.gap
                 Layout.rightMargin: Theme.gap
+                wrapMode: Text.Wrap
+                text: page.stateText
+                color: (page.key.status || "ok") === "ok" ? Material.foreground
+                       : page.key.status === "expiring_soon" ? Theme.warning
+                                                             : Theme.danger
+            }
 
-                ColumnLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    spacing: 12
+            // Before the key is read (or where it cannot be): what the list
+            // knows of it.
+            KeyFacts {
+                id: keyFacts
+                Layout.fillWidth: true
+                Layout.margins: Theme.gap
+                visible: !page.described
+                key: page.key
+            }
 
-                    Field {
-                        objectName: "fingerprint"
-                        title: qsTr("Fingerprint")
-                        value: page.formatFingerprint(page.key.fingerprint)
-                        mono: Theme.mono
+            // ---- Owner, as on the desktop's first tab
+            SectionHeader {
+                Layout.fillWidth: true
+                visible: page.described
+                text: qsTr("Owner")
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: Theme.gap
+                Layout.rightMargin: Theme.gap
+                visible: page.described
+                columns: 1
+                rowSpacing: 8
+
+                Fact {
+                    title: qsTr("Name")
+                    value: page.details.name || ""
+                }
+                Fact {
+                    title: qsTr("Email")
+                    value: page.details.email || ""
+                }
+                Fact {
+                    title: qsTr("Comment")
+                    value: page.details.comment || ""
+                }
+            }
+
+            // ---- The primary key
+            SectionHeader {
+                Layout.fillWidth: true
+                visible: page.described
+                text: qsTr("Primary key")
+            }
+
+            FingerprintView {
+                Layout.fillWidth: true
+                Layout.leftMargin: Theme.gap
+                Layout.rightMargin: Theme.gap
+                visible: page.described
+                fingerprint: page.details.fingerprint || ""
+            }
+
+            KeyPartFacts {
+                objectName: "primaryKeyFacts"
+                Layout.fillWidth: true
+                Layout.leftMargin: Theme.gap
+                Layout.rightMargin: Theme.gap
+                Layout.topMargin: 8
+                visible: page.described
+                part: page.details
+                kindTitle: qsTr("Key format")
+                kindValue: page.details.version > 0 ? qsTr("Version %1").arg(page.details.version) : ""
+                expiresText: page.described ? (Theme.date(page.details.expires) || qsTr("Never")) : ""
+                expiresColor: page.details.expired === true ? Theme.danger : Material.foreground
+                lastUpdate: Theme.date(page.details.lastUpdate)
+                secretText: page.details.hasSecret !== true ? qsTr("Not here")
+                          : page.details.primarySecret === true ? qsTr("On this device")
+                          : qsTr("Subkeys only: the primary key's is not here")
+                cardText: page.details.cardKey === true ? qsTr("Some parts are on a smart card") : ""
+            }
+
+            // ---- User IDs
+            SectionHeader {
+                Layout.fillWidth: true
+                visible: page.described
+                text: qsTr("User IDs (%1)").arg(page.uids.length)
+            }
+
+            Repeater {
+                model: page.uids
+
+                ListRow {
+                    required property var modelData
+
+                    objectName: "uid_" + index
+                    required property int index
+                    Layout.fillWidth: true
+                    symbol: "info"
+                    onClicked: uidSheet.begin(modelData, page.can)
+                    text: modelData.name || modelData.uid
+                    detail: [modelData.email || "", modelData.comment || ""]
+                            .filter(t => t.length > 0).join(" · ")
+
+                    Chip {
+                        visible: modelData.primary === true
+                        text: qsTr("Primary")
+                        tone: Material.accentColor
                     }
-                    Field {
-                        title: qsTr("Key ID")
-                        value: page.key.keyId || ""
-                        mono: Theme.mono
-                    }
-                    Field { title: qsTr("Algorithm"); value: page.key.algorithm || "" }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Theme.gap
-
-                        Field { title: qsTr("Created"); value: page.formatDate(page.key.created) }
-                        Field { title: qsTr("Expires"); value: page.formatDate(page.key.expires) }
+                    Chip {
+                        visible: modelData.revoked === true || modelData.invalid === true
+                        text: modelData.revoked === true ? qsTr("Revoked") : qsTr("Invalid")
+                        tone: Theme.danger
                     }
                 }
             }
 
-            ItemDelegate {
-                objectName: "exportKey"
-                Layout.fillWidth: true
-                Layout.topMargin: Theme.gapSmall
-                leftPadding: Theme.gap + 4
-                text: qsTr("Share public key")
+            Button {
+                objectName: "addUid"
+                Layout.leftMargin: Theme.gap
+                visible: page.can.addUid === true
                 enabled: !actions.busy
-                icon.source: Theme.icon("share")
-                onClicked: actions.exportPublic(page.key.fingerprint)
+                flat: true
+                text: qsTr("Add user ID")
+                icon.source: Theme.icon("add")
+                onClicked: addUidSheet.begin()
+            }
+
+            // ---- The primary key and its subkeys, each a tap from its details
+            SectionHeader {
+                Layout.fillWidth: true
+                visible: page.described
+                text: qsTr("Keys (%1)").arg(page.subkeys.length)
+            }
+
+            Repeater {
+                objectName: "subkeyList"
+                model: page.subkeys
+
+                ListRow {
+                    required property var modelData
+
+                    objectName: "subkey_" + modelData.index
+                    Layout.fillWidth: true
+                    symbol: modelData.primary === true ? "key"
+                          : modelData.usage.encrypt === true ? "lock"
+                          : modelData.usage.sign === true ? "signature" : "verified"
+                    symbolColor: modelData.revoked === true || modelData.expired === true
+                                 ? Theme.danger : Material.secondaryTextColor
+                    text: (modelData.primary === true ? qsTr("Primary key") : qsTr("Subkey"))
+                          + " · " + (modelData.keyId || "").slice(-8)
+                    detail: [modelData.algorithm, Wording.usage(modelData.usage),
+                             Wording.keyState(modelData)]
+                            .filter(t => t && t.length > 0).join(" · ")
+                    detailColor: modelData.revoked === true || modelData.expired === true
+                                 ? Theme.danger : Material.secondaryTextColor
+                    detailLines: 2
+                    onClicked: subkeySheet.begin(modelData, page.can)
+
+                    Icon {
+                        symbol: "chevron_right"
+                        color: Material.secondaryTextColor
+                    }
+                }
+            }
+
+            Button {
+                objectName: "addSubkey"
+                Layout.leftMargin: Theme.gap
+                visible: page.can.addSubkey === true
+                enabled: !actions.busy
+                flat: true
+                text: qsTr("Add subkey")
+                icon.source: Theme.icon("add")
+                onClicked: addSubkeySheet.begin()
+            }
+
+            // ---- The categories the key is in, each a tap to change
+            SectionHeader {
+                Layout.fillWidth: true
+                visible: (page.key.keyId || "").length > 0
+                text: qsTr("Categories")
+            }
+
+            Flow {
+                objectName: "keyCategories"
+                Layout.fillWidth: true
+                Layout.leftMargin: Theme.gap
+                Layout.rightMargin: Theme.gap
+                visible: (page.key.keyId || "").length > 0
+                spacing: 8
+
+                Repeater {
+                    model: categories.categories
+
+                    Button {
+                        id: categoryChip
+
+                        required property var modelData
+                        // Read again whenever a membership changes.
+                        readonly property bool member: categories.revision >= 0
+                            && categories.categoriesOf(page.key.keyId || "")
+                                         .indexOf(modelData.id) >= 0
+
+                        objectName: "keyCategory_" + modelData.id
+                        text: modelData.name
+                        checkable: true
+                        checked: member
+                        flat: !member
+                        highlighted: member
+                        font.pixelSize: Theme.secondarySize
+                        topInset: 0
+                        bottomInset: 0
+                        implicitHeight: Math.max(36, Theme.secondarySize * 2.4)
+                        leftPadding: 28
+                        onClicked: categories.setMember(modelData.id, page.key.keyId,
+                                                        !member)
+                        Accessible.name: member ? qsTr("Take out of %1").arg(modelData.name)
+                                                : qsTr("Put in %1").arg(modelData.name)
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 12
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 10
+                            height: 10
+                            radius: 5
+                            color: categoryChip.modelData.color
+                        }
+                    }
+                }
+
+                Button {
+                    objectName: "newKeyCategory"
+                    flat: true
+                    text: qsTr("New category")
+                    icon.source: Theme.icon("add")
+                    font.pixelSize: Theme.secondarySize
+                    onClicked: {
+                        page.addToNew = true
+                        categorySheet.begin(null)
+                    }
+                }
+            }
+
+            // ---- What can be done with the key, apart from what it is
+            SectionHeader {
+                Layout.fillWidth: true
+                text: qsTr("Operations")
+            }
+
+            ColumnLayout {
+                objectName: "keyOperations"
+                Layout.fillWidth: true
+                spacing: 0
+
+                ListRow {
+                    objectName: "toggleRecipient"
+                    readonly property bool chosen: WorkSelection.revision >= 0
+                        && WorkSelection.isRecipient(page.key.fingerprint || "")
+                    Layout.fillWidth: true
+                    visible: page.key.canEncrypt === true && page.key.usable === true
+                    symbol: "lock"
+                    text: chosen ? qsTr("Do not encrypt to this key") : qsTr("Encrypt to this key")
+                    detail: chosen ? qsTr("It is among the recipients of your work.")
+                                   : qsTr("Adds it to the recipients of your work.")
+                    onClicked: WorkSelection.toggleRecipient(page.key.fingerprint)
+                }
+
+                ListRow {
+                    objectName: "useForSigning"
+                    readonly property bool chosen: WorkSelection.preferredSigner
+                        .toUpperCase() === (page.key.fingerprint || "").toUpperCase()
+                    Layout.fillWidth: true
+                    visible: page.key.hasSecret === true && page.key.canSign === true
+                             && page.key.usable === true
+                    enabled: !chosen
+                    symbol: "signature"
+                    text: chosen ? qsTr("Signs your work") : qsTr("Sign with this key")
+                    onClicked: WorkSelection.setPreferredSigner(page.key.fingerprint)
+                }
+
+                ListRow {
+                    objectName: "exportKey"
+                    Layout.fillWidth: true
+                    enabled: !actions.busy
+                    symbol: "share"
+                    text: qsTr("Share public key")
+                    onClicked: actions.exportPublic(page.key.fingerprint)
+                }
+
+                ListRow {
+                    objectName: "changeExpiration"
+                    Layout.fillWidth: true
+                    visible: page.can.setExpiration === true
+                    enabled: !actions.busy
+                    symbol: "settings"
+                    text: qsTr("Change expiration")
+                    detail: qsTr("Of the primary key, and so of the whole key.")
+                    onClicked: page.askExpiration({"primary": true,
+                                                   "fingerprint": page.details.fingerprint})
+                }
+
+                ListRow {
+                    objectName: "changePassphrase"
+                    Layout.fillWidth: true
+                    visible: page.can.changePassphrase === true
+                    enabled: !actions.busy
+                    symbol: "visibility_off"
+                    text: qsTr("Change passphrase")
+                    detail: qsTr("You are asked for the current one, then the new one.")
+                    onClicked: actions.changePassphrase(page.key.fingerprint)
+                }
+            }
+
+            // Apart from everything else, and last: what cannot be undone.
+            MenuSeparator {
+                Layout.fillWidth: true
+                Layout.topMargin: 8
             }
 
             ItemDelegate {
                 objectName: "deleteKey"
                 Layout.fillWidth: true
+                Layout.bottomMargin: Theme.gap
                 leftPadding: Theme.gap + 4
                 text: qsTr("Delete key")
                 enabled: !actions.busy
                 icon.source: Theme.icon("delete")
                 icon.color: Theme.danger
+                Material.foreground: Theme.danger
                 onClicked: confirmDelete.open()
             }
         }
@@ -228,6 +506,8 @@ Page {
     }
 
     Component.onCompleted: {
+        reload()
+        categories.SignalAdded.connect(page.categoryAdded)
         actions.SignalFinished.connect(page.finished)
         output.SignalShared.connect(page.shared)
     }
@@ -274,6 +554,121 @@ Page {
                 exportActions.close()
             }
         }
+    }
+
+    // A category made from this page takes this key in at once.
+    property bool addToNew: false
+
+    KeyCategoriesController {
+        id: categories
+    }
+
+    function categoryAdded(id) {
+        if (page.addToNew) categories.setMember(id, page.key.keyId, true)
+        page.addToNew = false
+    }
+
+    CategorySheet {
+        id: categorySheet
+        categories: categories
+        onClosed: Qt.callLater(() => page.addToNew = false)
+    }
+
+    // The subkey (or primary key) whose expiry is being chosen.
+    property var expiring: ({})
+
+    function askExpiration(subkey) {
+        expiring = subkey
+        validitySheet.begin(qsTr("Change expiration"),
+                            subkey.primary === true
+                            ? qsTr("How long the key lasts, from today.")
+                            : qsTr("How long subkey %1 lasts, from today.")
+                              .arg((subkey.keyId || "").slice(-8)))
+    }
+
+    SubkeySheet {
+        id: subkeySheet
+        busy: actions.busy
+        onExpirationRequested: subkey => page.askExpiration(subkey)
+        onRevokeRequested: subkey => revokeSheet.begin(subkey)
+        onDeleteRequested: function(subkey) {
+            confirmDeleteSubkey.subkey = subkey
+            confirmDeleteSubkey.open()
+        }
+    }
+
+    ValiditySheet {
+        id: validitySheet
+        choices: actions.validities
+        onAccepted: validity => actions.setExpiration(
+                        page.details.fingerprint,
+                        page.expiring.primary === true ? "" : page.expiring.fingerprint,
+                        validity)
+    }
+
+    AddSubkeySheet {
+        id: addSubkeySheet
+        validities: actions.validities
+        fingerprint: page.details.fingerprint || ""
+        onCustomAccepted: (choices, withPassphrase) => actions.addCustomSubkey(
+                              page.details.fingerprint, choices, withPassphrase)
+        onAccepted: (purpose, validity, withPassphrase) => actions.addSubkey(
+                        page.details.fingerprint, purpose, validity, withPassphrase)
+    }
+
+    RevokeSubkeySheet {
+        id: revokeSheet
+        onAccepted: function(item, reason, text) {
+            if (revokeSheet.forUid)
+                actions.revokeUid(page.details.fingerprint, item.uid, reason, text)
+            else
+                actions.revokeSubkey(page.details.fingerprint, item.fingerprint, reason, text)
+        }
+    }
+
+    UidSheet {
+        id: uidSheet
+        busy: actions.busy
+        onPrimaryRequested: uid => actions.setPrimaryUid(page.details.fingerprint, uid.uid)
+        onRevokeRequested: uid => revokeSheet.beginForUid(uid)
+        onDeleteRequested: function(uid) {
+            confirmDeleteUid.uid = uid
+            confirmDeleteUid.open()
+        }
+    }
+
+    AddUidSheet {
+        id: addUidSheet
+        onAccepted: (name, email, comment) => actions.addUid(
+                        page.details.fingerprint, name, email, comment)
+    }
+
+    MessageAlert {
+        id: confirmDeleteUid
+
+        property var uid: ({})
+
+        objectName: "confirmDeleteUid"
+        title: qsTr("Delete this user ID?")
+        message: qsTr("“%1” is deleted from this device only. Copies of the key "
+                   + "others have keep it: to withdraw it, revoke it instead.")
+                 .arg(uid.uid || "")
+        acceptText: qsTr("Delete")
+        onAccepted: actions.deleteUid(page.details.fingerprint, uid.uid)
+    }
+
+    MessageAlert {
+        id: confirmDeleteSubkey
+
+        property var subkey: ({})
+
+        objectName: "confirmDeleteSubkey"
+        title: qsTr("Delete subkey %1?").arg((subkey.keyId || "").slice(-8))
+        message: qsTr("It is deleted from this device only. Copies of the key "
+                   + "others have keep it: to end its use, revoke it instead. "
+                   + "This cannot be undone.")
+        acceptText: qsTr("Delete")
+        onAccepted: actions.deleteSubkey(page.details.fingerprint, subkey.fingerprint)
     }
 
     MessageAlert {
