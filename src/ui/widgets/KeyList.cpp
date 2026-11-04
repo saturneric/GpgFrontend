@@ -546,37 +546,7 @@ auto KeyList::resolve_category_color(const QString& id,
     if (QColor c(hint); c.isValid()) return c;
   }
 
-  // Semantic default colours for the well-known built-in tabs.
-  static const QHash<QString, QString> kBuiltinColors = {
-      {"default", "#3B82F6"},          // blue
-      {"mine", "#10B981"},             // emerald
-      {"key_group", "#8B5CF6"},        // violet
-      {"only_public_key", "#06B6D4"},  // cyan
-      {"has_private_key", "#F43F5E"},  // rose
-      {"all", "#64748B"},              // slate
-      {"no_primary_key", "#9CA3AF"},   // gray
-      {"revoked", "#EF4444"},          // red
-      {"expired", "#F97316"},          // orange
-      {"disabled", "#71717A"},         // zinc
-  };
-
-  if (const auto it = kBuiltinColors.constFind(id);
-      it != kBuiltinColors.constEnd()) {
-    return QColor(*it);
-  }
-
-  return CategoryFallbackColor(id);
-}
-
-auto CategoryFallbackColor(const QString& id) -> QColor {
-  // Well spread over the hues. Not qHash(): its seed is random per process,
-  // so the colour would change on every launch.
-  const auto digest =
-      QCryptographicHash::hash(id.toUtf8(), QCryptographicHash::Sha256);
-  const auto bits = (static_cast<quint8>(digest.at(0)) << 8) |
-                    static_cast<quint8>(digest.at(1));
-  const auto hue = static_cast<int>(static_cast<unsigned>(bits) % 360U);
-  return QColor::fromHsv(hue, 160, 205);
+  return KeyCategoryDefaultColor(id);
 }
 
 auto KeyList::make_category_icon(const QColor& color, bool custom,

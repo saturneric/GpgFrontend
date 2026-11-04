@@ -32,6 +32,7 @@
 
 #include "core/function/SettingCatalog.h"
 #include "core/function/openpgp/ChannelHandle.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "ui/widgets/KeyTable.h"
 
 class Ui_KeyList;
@@ -78,11 +79,10 @@ inline auto operator~(KeyMenuAbility hs) -> KeyMenuAbility {
   return static_cast<KeyMenuAbility>(~static_cast<T>(hs));
 }
 
-/**
- * @brief The colour of a custom category that has none of its own, derived
- *        from its id: the same on every launch and every machine.
- */
-auto GF_UI_EXPORT CategoryFallbackColor(const QString& id) -> QColor;
+// The colour of a category with none of its own: the core's, which the phone
+// application shares.
+using GpgFrontend::KeyCategoryDefaultColor;
+using GpgFrontend::KeyCategoryFallbackColor;
 
 /**
  * @brief

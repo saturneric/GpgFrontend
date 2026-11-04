@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include <QColor>
+#include <array>
+
 #include "core/function/CacheManager.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/openpgp/OpenPGPContext.h"
@@ -202,5 +205,80 @@ class GF_CORE_EXPORT KeyCategoryRepository
   // Return a pointer to the category with the given id, or nullptr.
   auto find_category(const QString& id) -> KeyCategoryCO*;
 };
+
+/**
+ * @brief What is wrong with the name a user typed for a key category.
+ */
+enum class KeyCategoryNameProblem {
+  kNone,      ///< the name is usable
+  kEmpty,     ///< the name is blank
+  kTooLong,   ///< the name is longer than kMaxKeyCategoryNameLength
+  kDuplicate  ///< another category already has this name
+};
+
+constexpr int kMaxKeyCategoryNameLength = 64;
+constexpr int kKeyCategoryPresetColorCount = 20;
+
+/**
+ * @brief A colour offered as a swatch when creating or editing a category.
+ */
+struct KeyCategoryPresetColor {
+  QColor color;
+  QString name;  ///< translated, for tooltips and screen readers
+};
+
+/**
+ * @brief Check the name a user typed for a key category.
+ *
+ * Leading and trailing spaces are ignored, and names are compared without
+ * regard to case.
+ *
+ * @param name the typed name
+ * @param taken the names of the other categories (not the one being edited)
+ * @return the first problem found, or kNone
+ */
+auto GF_CORE_EXPORT ValidateKeyCategoryName(const QString& name,
+                                            const QStringList& taken)
+    -> KeyCategoryNameProblem;
+
+/**
+ * @brief The message to show for a name problem.
+ *
+ * @param problem as returned by ValidateKeyCategoryName()
+ * @return a translated message, or an empty string for kNone
+ */
+auto GF_CORE_EXPORT
+DescribeKeyCategoryNameProblem(KeyCategoryNameProblem problem) -> QString;
+
+/**
+ * @brief The swatches offered for a category, in display order.
+ */
+auto GF_CORE_EXPORT KeyCategoryPresetColors()
+    -> std::array<KeyCategoryPresetColor, kKeyCategoryPresetColorCount>;
+
+/**
+ * @brief The colour to preselect for a new category.
+ *
+ * The first preset that no existing category (built-in tabs included) uses or
+ * comes close to, so a new category stands apart in the rail; once all are
+ * taken, the presets are cycled.
+ *
+ * @param used the colours of the existing categories
+ */
+auto GF_CORE_EXPORT SuggestKeyCategoryColor(const QList<QColor>& used)
+    -> QColor;
+
+/**
+ * @brief The colour of a category that has none of its own, derived from its
+ * id: the same on every launch and every machine.
+ */
+auto GF_CORE_EXPORT KeyCategoryFallbackColor(const QString& id) -> QColor;
+
+/**
+ * @brief The colour a category is shown in when none was chosen for it: the
+ * built-in tabs' own ("revoked" is red, "has_private_key" rose), else
+ * KeyCategoryFallbackColor(). The desktop's tabs and the phone's list share it.
+ */
+auto GF_CORE_EXPORT KeyCategoryDefaultColor(const QString& id) -> QColor;
 
 }  // namespace GpgFrontend

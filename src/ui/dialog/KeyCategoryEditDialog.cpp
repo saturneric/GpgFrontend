@@ -177,7 +177,7 @@ KeyCategoryEditDialog::KeyCategoryEditDialog(int channel, QString category_id,
   if (is_editing()) {
     initial_color_ = QColor(repo.GetTabColor(category_id_));
     if (!initial_color_.isValid()) {
-      initial_color_ = CategoryFallbackColor(category_id_);
+      initial_color_ = KeyCategoryFallbackColor(category_id_);
     }
   } else {
     initial_color_ = SuggestKeyCategoryColor(used_colors);
