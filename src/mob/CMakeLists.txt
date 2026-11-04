@@ -152,13 +152,17 @@ qt_add_qml_module(gf_mob_lib
     qml/components/KeyAlgoChooser.qml
     qml/components/UidSheet.qml
     qml/components/AddUidSheet.qml
+    qml/components/CategorySheet.qml
     qml/components/OperationBar.qml
     qml/components/OperationFlow.qml
     qml/components/ProblemLabel.qml
     qml/components/KeyPartFacts.qml
     qml/components/KeyChoiceFace.qml
     qml/components/ResultCard.qml
+    qml/components/KeyCategoriesSheet.qml
     qml/components/KeyPickerSheet.qml
+    qml/CategoryKeysPage.qml
+    qml/KeyCategoriesPage.qml
     qml/KeyGenProfilesPage.qml
     qml/KeyGenProfileEditPage.qml)
 
