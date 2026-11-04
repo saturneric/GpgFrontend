@@ -1282,14 +1282,24 @@ jobs:
   # Like build-macos, it holds no secrets: the APK leaves here unsigned, after
   # the checks that need the build tree, and is signed by sign-android below.
   build-android:
+    # Named by the ABI alone: by default every matrix value is listed.
+    name: build-android (${{ matrix.arch }})
     if: ${{ !inputs.screenshot }}
     strategy:
+      # One ABI failing does not cancel the other, as in build-macos.
+      fail-fast: false
       matrix:
         include:
+          # One APK per ABI: ARM for phones, x86_64 for emulators and
+          # Chromebooks.
           - arch: arm64
             abi: arm64-v8a
             qt_arch: android_arm64_v8a
             rust_target: aarch64-linux-android
+          - arch: x86_64
+            abi: x86_64
+            qt_arch: android_x86_64
+            rust_target: x86_64-linux-android
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -1401,7 +1411,7 @@ jobs:
       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     strategy:
       matrix:
-        arch: ["arm64"]
+        arch: ["arm64", "x86_64"]
     runs-on: ubuntu-24.04
     permissions:
       contents: read

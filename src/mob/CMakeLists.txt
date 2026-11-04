@@ -268,7 +268,7 @@ if(ANDROID)
       COMMAND ${CMAKE_COMMAND} -E make_directory
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_BINARY_DIR}/android-build/gf_mob.apk"
+        "$<TARGET_PROPERTY:gf_mob,BINARY_DIR>/android-build/gf_mob.apk"
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GpgFrontend-${ANDROID_ABI}-unsigned.apk"
       VERBATIM)
   endfunction()
