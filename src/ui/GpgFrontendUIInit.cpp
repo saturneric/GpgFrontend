@@ -39,6 +39,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/TranslationUtils.h"
 #include "plat/common/PlatformHtmlView.h"
 #include "plat/common/PlatformWebEditor.h"
 #include "ui/UIModuleManager.h"
@@ -53,8 +54,6 @@
 namespace GpgFrontend::UI {
 
 namespace {
-
-QList<QTranslator*> registered_translators;
 
 [[noreturn]] void TerminateSelfImmediately() {
   qWarning() << "Application startup was canceled. Terminating process.";
@@ -508,34 +507,8 @@ void GF_UI_EXPORT DestroyGpgFrontendUI() {}
  *
  */
 void InitUITranslations() {
-  // Uninstall *and* destroy: this runs again on every language switch and on
-  // every restart loop pass, so merely forgetting the pointers would pile up
-  // translators that qApp still consults.
-  for (auto* translator : registered_translators) {
-    QCoreApplication::removeTranslator(translator);
-    delete translator;
-  }
-  registered_translators.clear();
-
-  auto* translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(QLocale(), "qt"_L1, "_"_L1, ":/i18n_qt"_L1, ".qm"_L1)) {
-    QCoreApplication::installTranslator(translator);
-    registered_translators.append(translator);
-  }
-
-  translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(QLocale(), "qtbase"_L1, "_"_L1, ":/i18n_qt"_L1,
-                       ".qm"_L1)) {
-    QCoreApplication::installTranslator(translator);
-    registered_translators.append(translator);
-  }
-
-  translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(QLocale(), QLatin1StringView(PROJECT_NAME), "."_L1,
-                       ":/i18n"_L1, ".qm"_L1)) {
-    QCoreApplication::installTranslator(translator);
-    registered_translators.append(translator);
-  }
+  // The same catalogs the phone application installs (gf_boot).
+  InstallTranslations(QLocale());
 }
 
 void InitModulesTranslations() {
