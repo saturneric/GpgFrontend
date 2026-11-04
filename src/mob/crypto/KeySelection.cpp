@@ -31,22 +31,48 @@
 #include <QCoreApplication>
 #include <typeindex>
 
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Mobile {
 
 auto SelectKeys(int channel, const QStringList& fingerprints) -> KeySelection {
   KeySelection selection;
+  QSet<QString> taken;  ///< fingerprints in, so a key goes in once
+  const auto take = [&selection, &taken](const GpgAbstractKeyPtr& key) {
+    if (taken.contains(key->Fingerprint().toUpper())) return;
+    taken.insert(key->Fingerprint().toUpper());
+    selection.keys.append(key);
+  };
   for (const auto& fpr : fingerprints) {
+    if (IsKeyGroupID(fpr)) {
+      // A key group stands for its keys, nested groups' too, as the engine
+      // would expand it (Convert2GpgKeyList): so the result names them, and
+      // a key chosen twice goes in once. A group with none is as gone.
+      const auto group =
+          AbstractKeyRepository::GetInstance(channel).GetKey(fpr);
+      const auto members = group == nullptr
+                               ? GpgKeyPtrList{}
+                               : ConvertKey2GpgKeyList(channel, {group});
+      if (members.isEmpty()) {
+        selection.missing.append(fpr);
+        continue;
+      }
+      for (const auto& member : members) take(member);
+      continue;
+    }
     auto key = GpgKeyRepository::GetInstance(channel).GetKeyPtr(fpr.toUpper());
     if (key != nullptr) {
-      selection.keys.append(key);
+      take(key);
     } else {
       selection.missing.append(fpr);
     }
@@ -82,6 +108,44 @@ void AttachRecipients(GpgOperaOutcome& outcome, const DataObjectPtr& data,
                           ExtractParams<GpgEncryptResult>(data, 0), keys);
 }
 
+auto SelectEncryptKeys(int channel, const QStringList& recipients,
+                       const QString& signer)
+    -> std::variant<EncryptKeys, GpgOperaOutcome> {
+  const auto chosen = SelectKeys(channel, recipients);
+  if (!chosen.missing.isEmpty()) {
+    return MissingKeysOutcome(GpgOperation::kENCRYPT, channel, chosen.missing);
+  }
+  if (signer.isEmpty()) return EncryptKeys{chosen.keys, {}};
+  const auto signers = SelectKeys(channel, {signer});
+  if (!signers.missing.isEmpty()) {
+    return MissingKeysOutcome(GpgOperation::kSIGN, channel, signers.missing,
+                              true);
+  }
+  return EncryptKeys{chosen.keys, signers.keys};
+}
+
+template <bool kWithOutput>
+auto AnalyseEncrypt(int channel, const GFError& err, const DataObjectPtr& data,
+                    const GpgAbstractKeyPtrList& recipients, bool signs)
+    -> GpgOperaOutcome {
+  auto outcome =
+      signs ? AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse,
+                                  GpgSignResult, GpgSignResultAnalyse,
+                                  kWithOutput>(channel, err, data)
+            : AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse,
+                                  kWithOutput>(channel, err, data);
+  // No keys: said to be for a passphrase.
+  AttachRecipients(outcome, data, recipients);
+  return outcome;
+}
+
+template auto AnalyseEncrypt<true>(int, const GFError&, const DataObjectPtr&,
+                                   const GpgAbstractKeyPtrList&, bool)
+    -> GpgOperaOutcome;
+template auto AnalyseEncrypt<false>(int, const GFError&, const DataObjectPtr&,
+                                    const GpgAbstractKeyPtrList&, bool)
+    -> GpgOperaOutcome;
+
 template <bool kWithOutput>
 auto AnalyseDecryptVerify(int channel, const GFError& err, const DataObjectPtr& data)
     -> GpgOperaOutcome {
@@ -103,6 +167,18 @@ auto AnalyseDecryptVerify(int channel, const GFError& err, const DataObjectPtr& 
   return AnalyseOperaOutcome<GpgDecryptResult, GpgDecryptResultAnalyse,
                              kWithOutput>(channel, err, decrypt_only);
 }
+
+template <bool kWithOutput>
+auto AnalyseDecrypt(int channel, const GFError& err, const DataObjectPtr& data)
+    -> GpgOperaOutcome {
+  return AnalyseOperaOutcome<GpgDecryptResult, GpgDecryptResultAnalyse,
+                             kWithOutput>(channel, err, data);
+}
+
+template auto AnalyseDecrypt<true>(int, const GFError&, const DataObjectPtr&)
+    -> GpgOperaOutcome;
+template auto AnalyseDecrypt<false>(int, const GFError&, const DataObjectPtr&)
+    -> GpgOperaOutcome;
 
 template auto AnalyseDecryptVerify<true>(int, const GFError&, const DataObjectPtr&)
     -> GpgOperaOutcome;

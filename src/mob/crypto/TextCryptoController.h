@@ -28,10 +28,11 @@
 
 #pragma once
 
-#include <QObject>
-#include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
+#include <QObject>
+#include <QVariantMap>
+#include <functional>
 #include <memory>
 
 namespace GpgFrontend {
@@ -44,12 +45,16 @@ struct GpgOperaOutcome;
 
 namespace GpgFrontend::Mobile {
 
+struct OperationParams;
+
 /**
  * @brief Encrypt, decrypt, sign and verify text, for one page.
  *
  * Every operation runs on the default key database's channel through the
- * core's MessageCryptoOperation, asynchronously: the interface keeps running,
- * and a passphrase the operation needs is asked through the PassphraseBroker.
+ * core's MessageCryptoOperation, asynchronously, in its turn in the
+ * application's OperationQueue: the interface keeps running, and a
+ * passphrase the operation needs is asked through the PassphraseBroker.
+ * busy holds from the call on, while it waits its turn too.
  * When it is done, output holds the text it produced (empty for a
  * verification) and result what PresentResult() makes of it.
  *
@@ -64,6 +69,9 @@ class TextCryptoController : public QObject {
   Q_PROPERTY(QString output READ Output NOTIFY SignalOutputChanged)
   Q_PROPERTY(QVariantMap result READ Result NOTIFY SignalOutputChanged)
   Q_PROPERTY(bool sensitive READ Sensitive NOTIFY SignalOutputChanged)
+  /// The OperationQueue record of the last operation submitted; 0 before
+  /// the first.
+  Q_PROPERTY(int operationId READ OperationId NOTIFY SignalBusyChanged)
 
  public:
   explicit TextCryptoController(QObject* parent = nullptr);
@@ -73,25 +81,45 @@ class TextCryptoController : public QObject {
   [[nodiscard]] auto Output() const -> QString;
   [[nodiscard]] auto Result() const -> QVariantMap;
   [[nodiscard]] auto Sensitive() const -> bool;
+  [[nodiscard]] auto OperationId() const -> int;
 
   /**
    * @brief Encrypt @p text to @p recipients (fingerprints), signed by
-   * @p signer when it is not empty; with no recipients, to a passphrase.
+   * @p signer when it is not empty; or, when @p symmetric, to a passphrase
+   * (and neither recipients nor signer are used).
+   *
+   * Never to a passphrase for want of recipients: with none and not
+   * @p symmetric it is refused, and false returned, as when one of this
+   * controller's operations is still going.
    */
-  Q_INVOKABLE void encrypt(const QString& text, const QStringList& recipients,
-                           const QString& signer = {});
+  Q_INVOKABLE bool encrypt(const QString& text, const QStringList& recipients,
+                           const QString& signer = {}, bool symmetric = false);
 
-  /// Decrypt @p text, verifying any signature inside.
-  Q_INVOKABLE void decrypt(const QString& text);
+  /// Decrypt @p text; with @p verify, check any signature inside too
+  /// (Decrypt & Verify), else decrypt it alone, as the desktop's Decrypt.
+  Q_INVOKABLE bool decrypt(const QString& text, bool verify = true);
 
   /// Sign @p text in the clear with @p signer (a fingerprint).
-  Q_INVOKABLE void sign(const QString& text, const QString& signer);
+  Q_INVOKABLE bool sign(const QString& text, const QString& signer);
 
   /// Verify a clear-signed @p text.
-  Q_INVOKABLE void verify(const QString& text);
+  Q_INVOKABLE bool verify(const QString& text);
 
-  /// Forget the last output and result.
+  /// Forget the last output and result, and the text it was made from.
   Q_INVOKABLE void clear();
+
+  /// Whether the text of operation @p id is still held here: its output
+  /// (output) and the text it read. Only the last operation's is, until
+  /// clear() or the next.
+  [[nodiscard]] Q_INVOKABLE bool holds(int id) const;
+
+  /**
+   * @brief Run operation @p id again on the text it read, as it was asked
+   * then (OperationParams): never with what is chosen now. The keys are
+   * looked up again as it runs. False when the text is no longer held
+   * (holds()) or one is still going.
+   */
+  Q_INVOKABLE bool retry(int id);
 
  signals:
   void SignalBusyChanged();
@@ -102,10 +130,21 @@ class TextCryptoController : public QObject {
  private:
   bool busy_ = false;
   QString output_;
+  QString input_;  ///< what the last operation read
   QVariantMap result_;
   std::unique_ptr<SecureWindowScope> secure_;
+  /// The operation submitted last, and the one that runs (0: none).
+  int submitted_id_ = 0;
+  int running_id_ = 0;
 
-  auto begin() -> bool;
+  /// Submit @p work, the operation on @p text, to the queue; false when one
+  /// of this controller's is still going or the queue refuses it.
+  void run_encrypt(const QString& text, const QStringList& recipients,
+                   const QString& signer);
+  auto submit(OperationParams params, const QString& text,
+              std::function<void()> work) -> bool;
+  /// The queue ended @p id without running it (it was closed).
+  void dropped(int id);
   void finish(const GpgOperaOutcome& outcome, bool sensitive = false);
 };
 

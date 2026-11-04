@@ -44,20 +44,26 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/MemoryUtils.h"
 #include "crypto/KeySelection.h"
+#include "crypto/OperationQueue.h"
 #include "crypto/ResultPresenter.h"
 #include "plat/common/PlatformPrivacy.h"
 
 namespace GpgFrontend::Mobile {
 
-namespace {
+TextCryptoController::TextCryptoController(QObject* parent) : QObject(parent) {
+  if (auto* queue = OperationQueue::Instance(); queue != nullptr) {
+    connect(queue, &OperationQueue::SignalFinished, this,
+            &TextCryptoController::dropped);
+  }
+}
 
-
-}  // namespace
-
-TextCryptoController::TextCryptoController(QObject* parent)
-    : QObject(parent) {}
-
-TextCryptoController::~TextCryptoController() = default;
+TextCryptoController::~TextCryptoController() {
+  // Before it is gone: what the queue then says must not reach it.
+  if (auto* queue = OperationQueue::Instance(); queue != nullptr) {
+    disconnect(queue, nullptr, this, nullptr);
+    queue->ForgetOwner(this);
+  }
+}
 
 auto TextCryptoController::Busy() const -> bool { return busy_; }
 
@@ -65,124 +71,203 @@ auto TextCryptoController::Output() const -> QString { return output_; }
 
 auto TextCryptoController::Result() const -> QVariantMap { return result_; }
 
+auto TextCryptoController::OperationId() const -> int { return submitted_id_; }
+
 auto TextCryptoController::Sensitive() const -> bool {
   return secure_ != nullptr;
 }
 
-void TextCryptoController::encrypt(const QString& text,
+auto TextCryptoController::encrypt(const QString& text,
                                    const QStringList& recipients,
-                                   const QString& signer) {
-  if (!begin()) return;
+                                   const QString& signer, bool symmetric)
+    -> bool {
+  if (!symmetric && recipients.isEmpty()) return false;
+  OperationParams params;
+  params.op = QStringLiteral("encrypt");
+  params.symmetric = symmetric;
+  if (!symmetric) {
+    params.recipients = recipients;
+    params.signer = signer;
+  }
+  const auto to = params.recipients;
+  const auto by = params.signer;
+  return submit(std::move(params), text,
+                [this, text, to, by]() { run_encrypt(text, to, by); });
+}
+
+void TextCryptoController::run_encrypt(const QString& text,
+                                       const QStringList& recipients,
+                                       const QString& signer) {
   const auto channel = UsableDefaultChannelHandle();
   auto& opera = MessageCryptoOperation::GetInstance(channel);
   QPointer<TextCryptoController> self(this);
 
   if (recipients.isEmpty()) {
     opera.EncryptSymmetric(
-        GFBuffer(text), true,
+        GFBuffer(text), true, [self, channel](GFError err, DataObjectPtr data) {
+          if (self == nullptr) return;
+          self->finish(AnalyseEncrypt<true>(channel, err, data, {}, false));
+        });
+    return;
+  }
+
+  const auto selected = SelectEncryptKeys(channel, recipients, signer);
+  if (const auto* missing = std::get_if<GpgOperaOutcome>(&selected)) {
+    finish(*missing);
+    return;
+  }
+  const auto keys = std::get<EncryptKeys>(selected);
+  const auto signs = !keys.signers.isEmpty();
+  auto done = [self, channel, keys, signs](GFError err, DataObjectPtr data) {
+    if (self == nullptr) return;
+    self->finish(
+        AnalyseEncrypt<true>(channel, err, data, keys.recipients, signs));
+  };
+  if (signs) {
+    opera.EncryptSign(keys.recipients, keys.signers, GFBuffer(text), true,
+                      std::move(done));
+  } else {
+    opera.Encrypt(keys.recipients, GFBuffer(text), true, std::move(done));
+  }
+}
+
+auto TextCryptoController::decrypt(const QString& text, bool verify) -> bool {
+  OperationParams params;
+  params.op = QStringLiteral("decrypt");
+  params.verify = verify;
+  return submit(std::move(params), text, [this, text, verify]() {
+    const auto channel = UsableDefaultChannelHandle();
+    QPointer<TextCryptoController> self(this);
+    if (!verify) {
+      MessageCryptoOperation::GetInstance(channel).Decrypt(
+          GFBuffer(text), [self, channel](GFError err, DataObjectPtr data) {
+            if (self == nullptr) return;
+            self->finish(AnalyseDecrypt<true>(channel, err, data), true);
+          });
+      return;
+    }
+    MessageCryptoOperation::GetInstance(channel).DecryptVerify(
+        GFBuffer(text), [self, channel](GFError err, DataObjectPtr data) {
+          if (self == nullptr) return;
+          self->finish(AnalyseDecryptVerify<true>(channel, err, data), true);
+        });
+  });
+}
+
+auto TextCryptoController::sign(const QString& text, const QString& signer)
+    -> bool {
+  OperationParams params;
+  params.op = QStringLiteral("sign");
+  params.signer = signer;
+  return submit(std::move(params), text, [this, text, signer]() {
+    const auto channel = UsableDefaultChannelHandle();
+    const auto signers = SelectKeys(channel, {signer});
+    if (!signers.missing.isEmpty()) {
+      finish(MissingKeysOutcome(GpgOperation::kSIGN, channel, signers.missing,
+                                true));
+      return;
+    }
+    QPointer<TextCryptoController> self(this);
+    MessageCryptoOperation::GetInstance(channel).Sign(
+        signers.keys, GFBuffer(text), GpgSignMode::kCLEAR, true,
+        [self, channel](GFError err, DataObjectPtr data) {
+          if (self == nullptr) return;
+          self->finish(AnalyseOperaOutcome<GpgSignResult, GpgSignResultAnalyse>(
+              channel, err, data));
+        });
+  });
+}
+
+auto TextCryptoController::verify(const QString& text) -> bool {
+  OperationParams params;
+  params.op = QStringLiteral("verify");
+  return submit(std::move(params), text, [this, text]() {
+    const auto channel = UsableDefaultChannelHandle();
+    QPointer<TextCryptoController> self(this);
+    MessageCryptoOperation::GetInstance(channel).Verify(
+        GFBuffer(text), GFBuffer(),
         [self, channel](GFError err, DataObjectPtr data) {
           if (self == nullptr) return;
           self->finish(
-              AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse>(
+              AnalyseOperaOutcome<GpgVerifyResult, GpgVerifyResultAnalyse>(
                   channel, err, data));
         });
-    return;
-  }
-
-  const auto chosen = SelectKeys(channel, recipients);
-  if (!chosen.missing.isEmpty()) {
-    finish(MissingKeysOutcome(GpgOperation::kENCRYPT, channel, chosen.missing));
-    return;
-  }
-  const auto keys = chosen.keys;
-  if (signer.isEmpty()) {
-    opera.Encrypt(
-        keys, GFBuffer(text), true,
-        [self, channel, keys](GFError err, DataObjectPtr data) {
-          if (self == nullptr) return;
-          auto outcome =
-              AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse>(
-                  channel, err, data);
-          AttachRecipients(outcome, data, keys);
-          self->finish(outcome);
-        });
-    return;
-  }
-
-  const auto signers = SelectKeys(channel, {signer});
-  if (!signers.missing.isEmpty()) {
-    finish(MissingKeysOutcome(GpgOperation::kSIGN, channel, signers.missing,
-                              true));
-    return;
-  }
-  opera.EncryptSign(
-      keys, signers.keys, GFBuffer(text), true,
-      [self, channel, keys](GFError err, DataObjectPtr data) {
-        if (self == nullptr) return;
-        auto outcome =
-            AnalyseOperaOutcome<GpgEncryptResult, GpgEncryptResultAnalyse,
-                                GpgSignResult, GpgSignResultAnalyse>(channel,
-                                                                     err, data);
-        AttachRecipients(outcome, data, keys);
-        self->finish(outcome);
-      });
+  });
 }
 
-void TextCryptoController::decrypt(const QString& text) {
-  if (!begin()) return;
-  const auto channel = UsableDefaultChannelHandle();
-  QPointer<TextCryptoController> self(this);
-  MessageCryptoOperation::GetInstance(channel).DecryptVerify(
-      GFBuffer(text), [self, channel](GFError err, DataObjectPtr data) {
-        if (self == nullptr) return;
-        self->finish(AnalyseDecryptVerify<true>(channel, err, data), true);
-      });
-}
-
-void TextCryptoController::sign(const QString& text, const QString& signer) {
-  if (!begin()) return;
-  const auto channel = UsableDefaultChannelHandle();
-  const auto signers = SelectKeys(channel, {signer});
-  if (!signers.missing.isEmpty()) {
-    finish(MissingKeysOutcome(GpgOperation::kSIGN, channel, signers.missing,
-                              true));
-    return;
-  }
-  QPointer<TextCryptoController> self(this);
-  MessageCryptoOperation::GetInstance(channel).Sign(
-      signers.keys, GFBuffer(text), GpgSignMode::kCLEAR, true,
-      [self, channel](GFError err, DataObjectPtr data) {
-        if (self == nullptr) return;
-        self->finish(AnalyseOperaOutcome<GpgSignResult, GpgSignResultAnalyse>(
-            channel, err, data));
-      });
-}
-
-void TextCryptoController::verify(const QString& text) {
-  if (!begin()) return;
-  const auto channel = UsableDefaultChannelHandle();
-  QPointer<TextCryptoController> self(this);
-  MessageCryptoOperation::GetInstance(channel).Verify(
-      GFBuffer(text), GFBuffer(),
-      [self, channel](GFError err, DataObjectPtr data) {
-        if (self == nullptr) return;
-        self->finish(
-            AnalyseOperaOutcome<GpgVerifyResult, GpgVerifyResultAnalyse>(
-                channel, err, data));
-      });
-}
-
-auto TextCryptoController::begin() -> bool {
-  if (busy_) return false;
+auto TextCryptoController::submit(OperationParams params, const QString& text,
+                                  std::function<void()> work) -> bool {
+  auto* queue = OperationQueue::Instance();
+  if (busy_ || queue == nullptr) return false;
   busy_ = true;
   emit SignalBusyChanged();
+  if (&text != &input_) {
+    WipeString(input_);
+    input_ = text;
+  }
+
+  OperationQueue::Request request;
+  request.owner = this;
+  request.surface = OperationSurface::kTEXT;
+  request.params = std::move(params);
+  request.targets = {OperationTarget{-1, {}, TextVersion(text)}};
+  request.run = [this, work = std::move(work)](int id) {
+    running_id_ = id;
+    work();
+  };
+  // It may run, and even end, before Submit() returns.
+  submitted_id_ = queue->Submit(std::move(request));
+  if (submitted_id_ == 0 && busy_) {
+    busy_ = false;
+    emit SignalBusyChanged();
+    return false;
+  }
+  // operationId is known only now: what was said while it ran named the
+  // one before.
+  emit SignalBusyChanged();
   return true;
+}
+
+void TextCryptoController::dropped(int id) {
+  if (id != submitted_id_ || id == running_id_ || !busy_) return;
+  WipeString(output_);
+  output_.clear();
+  result_ = {{QStringLiteral("cancelled"), true}};
+  busy_ = false;
+  emit SignalOutputChanged();
+  emit SignalBusyChanged();
+  emit SignalFinished(false);
+}
+
+auto TextCryptoController::holds(int id) const -> bool {
+  return id != 0 && id == submitted_id_ && !busy_ && !input_.isEmpty();
+}
+
+auto TextCryptoController::retry(int id) -> bool {
+  auto* queue = OperationQueue::Instance();
+  if (!holds(id) || queue == nullptr) return false;
+  const auto* record = queue->Log()->Find(id);
+  if (record == nullptr) return false;
+  const auto params = record->params;
+  // A copy: the operation replaces what is held as it starts.
+  const auto text = input_;
+  if (params.op == QStringLiteral("encrypt")) {
+    return encrypt(text, params.recipients, params.signer, params.symmetric);
+  }
+  if (params.op == QStringLiteral("decrypt")) {
+    return decrypt(text, params.verify);
+  }
+  if (params.op == QStringLiteral("sign")) return sign(text, params.signer);
+  if (params.op == QStringLiteral("verify")) return verify(text);
+  return false;
 }
 
 void TextCryptoController::clear() {
   if (busy_) return;
   WipeString(output_);
   output_.clear();
+  WipeString(input_);
+  input_.clear();
   result_.clear();
   secure_.reset();
   emit SignalOutputChanged();
@@ -202,9 +287,27 @@ void TextCryptoController::finish(const GpgOperaOutcome& outcome,
     secure_ = std::make_unique<SecureWindowScope>(PrimaryWindow());
   }
   busy_ = false;
+  const auto id = running_id_;
+  running_id_ = 0;
+  auto* queue = id != 0 ? OperationQueue::Instance() : nullptr;
+  const auto phase =
+      EndedPhase(result_.value(QStringLiteral("cancelled")).toBool(),
+                 outcome.info.status >= 0);
+  // Recorded before it is announced, so a page that reads the record on
+  // the signals below finds it ended.
+  if (queue != nullptr) {
+    if (!output_.isEmpty()) {
+      queue->Log()->SetOutputVersion(id, TextVersion(output_));
+    }
+    queue->Log()->SetFinished(id, phase, {}, result_, {});
+  }
   emit SignalOutputChanged();
   emit SignalBusyChanged();
   emit SignalFinished(outcome.info.status >= 0);
+
+  // Last: the next operation in the queue starts here, and one submitted
+  // from the signals above goes after this one.
+  if (queue != nullptr) queue->Complete(id, phase, result_);
 }
 
 }  // namespace GpgFrontend::Mobile

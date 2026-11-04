@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "core/function/result_analyse/GpgOperaOutcome.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -70,6 +72,33 @@ auto MissingKeysOutcome(GpgOperation op, int channel,
 void AttachRecipients(GpgOperaOutcome& outcome, const DataObjectPtr& data,
                       const GpgAbstractKeyPtrList& keys);
 
+/// The keys an encryption takes: its recipients, and its signer if it signs.
+struct EncryptKeys {
+  GpgAbstractKeyPtrList recipients;
+  GpgAbstractKeyPtrList signers;  ///< empty: it does not sign
+};
+
+/**
+ * @brief The keys for encrypting to @p recipients, signed by @p signer when
+ * one is named; or, when any of them is gone, the outcome that says so
+ * (recipients first). Text and files decide it the same way.
+ */
+auto SelectEncryptKeys(int channel, const QStringList& recipients,
+                       const QString& signer)
+    -> std::variant<EncryptKeys, GpgOperaOutcome>;
+
+/**
+ * @brief An encryption's outcome, its signature too when @p signs, naming
+ * the recipients it was for (@p recipients; none for a passphrase).
+ *
+ * Data object [encrypt result, (sign result,) output], or the results alone
+ * when @p kWithOutput is false.
+ */
+template <bool kWithOutput>
+auto AnalyseEncrypt(int channel, const GFError& err, const DataObjectPtr& data,
+                    const GpgAbstractKeyPtrList& recipients, bool signs)
+    -> GpgOperaOutcome;
+
 /**
  * @brief A decryption with its verification, where a message that was never
  * signed reports its decryption only: it is not a verification that found
@@ -80,6 +109,17 @@ void AttachRecipients(GpgOperaOutcome& outcome, const DataObjectPtr& data,
  */
 template <bool kWithOutput>
 auto AnalyseDecryptVerify(int channel, const GFError& err, const DataObjectPtr& data)
+    -> GpgOperaOutcome;
+
+/**
+ * @brief A decryption alone, as the desktop's Decrypt: what signatures are
+ * inside is not looked at.
+ *
+ * Data object [decrypt result, output], or the result alone when
+ * @p kWithOutput is false.
+ */
+template <bool kWithOutput>
+auto AnalyseDecrypt(int channel, const GFError& err, const DataObjectPtr& data)
     -> GpgOperaOutcome;
 
 }  // namespace GpgFrontend::Mobile

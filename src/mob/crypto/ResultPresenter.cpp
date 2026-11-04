@@ -28,6 +28,8 @@
 
 #include "crypto/ResultPresenter.h"
 
+#include "core/function/result_analyse/InfoBoardCard.h"
+
 namespace GpgFrontend::Mobile {
 
 auto ValidityName(GpgSigValidity validity) -> QString {
@@ -59,6 +61,20 @@ auto ValidityName(GpgSigValidity validity) -> QString {
 
 namespace {
 
+/// A card's colour, as QML names it.
+auto CardStatusName(InfoBoardStatus status) -> QString {
+  switch (status) {
+    case kINFO_ERROR_OK:
+      return QStringLiteral("ok");
+    case kINFO_ERROR_WARN:
+      return QStringLiteral("warn");
+    case kINFO_ERROR_CRITICAL:
+      return QStringLiteral("critical");
+    default:
+      return QStringLiteral("neutral");
+  }
+}
+
 auto VerdictName(GpgSigVerdict verdict) -> QString {
   switch (verdict) {
     case GpgSigVerdict::kGOOD:
@@ -69,6 +85,50 @@ auto VerdictName(GpgSigVerdict verdict) -> QString {
       break;
   }
   return QStringLiteral("bad");
+}
+
+/// Whether the signature itself holds: made by that key over this data.
+auto SignatureFact(const GpgVerifySigInfo& sig) -> QString {
+  if (sig.rejected) return QStringLiteral("rejected");
+  switch (sig.validity) {
+    case GpgSigValidity::kINVALID:
+      return QStringLiteral("invalid");
+    case GpgSigValidity::kKEY_MISSING:
+    case GpgSigValidity::kERROR:
+    case GpgSigValidity::kUNKNOWN:
+      return QStringLiteral("unchecked");
+    case GpgSigValidity::kSIG_EXPIRED:
+      return QStringLiteral("expired");
+    default:
+      return QStringLiteral("valid");
+  }
+}
+
+/// What state the signing key is in, apart from the signature.
+auto KeyStatusFact(const GpgVerifySigInfo& sig) -> QString {
+  switch (sig.validity) {
+    case GpgSigValidity::kKEY_MISSING:
+      return QStringLiteral("missing");
+    case GpgSigValidity::kKEY_EXPIRED:
+      return QStringLiteral("expired");
+    case GpgSigValidity::kKEY_REVOKED:
+      return QStringLiteral("revoked");
+    case GpgSigValidity::kKEY_NOT_AUTHORIZED:
+      return QStringLiteral("not_authorized");
+    case GpgSigValidity::kVALID_WITH_ISSUES:
+      return QStringLiteral("issues");
+    default:
+      return sig.rejected ? QStringLiteral("expired") : QStringLiteral("ok");
+  }
+}
+
+/// Whether anything vouched for who signed: only an engine with a trust
+/// model (GnuPG) says; rPGP never does.
+auto IdentityTrustFact(const GpgVerifySigInfo& sig) -> QString {
+  if (!sig.trustModel) return QStringLiteral("not_assessed");
+  return sig.validity == GpgSigValidity::kFULLY_VALID
+             ? QStringLiteral("trusted")
+             : QStringLiteral("not_trusted");
 }
 
 }  // namespace
@@ -87,6 +147,9 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
         {QStringLiteral("validity"), ValidityName(sig.validity)},
         {QStringLiteral("good"), verdict == GpgSigVerdict::kGOOD},
         {QStringLiteral("verdict"), VerdictName(verdict)},
+        {QStringLiteral("signature"), SignatureFact(sig)},
+        {QStringLiteral("keyStatus"), KeyStatusFact(sig)},
+        {QStringLiteral("identityTrust"), IdentityTrustFact(sig)},
         {QStringLiteral("signTime"), sig.signer.signTime},
         {QStringLiteral("warnings"), sig.warnings},
     });
@@ -112,6 +175,33 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
   }
   errors.removeDuplicates();
 
+  // The cards the desktop's Status Panel shows for the same result, made the
+  // same way (ConvertOpInfoToCards), so both say the same things.
+  QVariantList cards;
+  for (const auto& card : ConvertOpInfoToCards(info)) {
+    QVariantList fields;
+    for (qsizetype i = 0; i < card.fields.size(); ++i) {
+      const auto& [label, value] = card.fields.at(i);
+      const auto meta = card.MetaAt(i);
+      // As the desktop's screen: no empty value, and nothing the headline
+      // already says (the engine's report keeps all of it).
+      if (value.isEmpty() || meta.summarized) continue;
+      fields.append(QVariantMap{
+          {QStringLiteral("label"), label},
+          {QStringLiteral("value"), value},
+          {QStringLiteral("technical"), meta.technical},
+          {QStringLiteral("note"), meta.note},
+          // Runs of fields (what happened, why, what next) are set apart.
+          {QStringLiteral("group"), static_cast<int>(meta.group)},
+      });
+    }
+    cards.append(QVariantMap{
+        {QStringLiteral("title"), card.title},
+        {QStringLiteral("status"), CardStatusName(card.status)},
+        {QStringLiteral("fields"), fields},
+    });
+  }
+
   return {
       {QStringLiteral("status"), info.status},
       {QStringLiteral("cancelled"), cancelled},
@@ -122,6 +212,7 @@ auto PresentResult(const GpgOpResultInfo& info) -> QVariantMap {
       {QStringLiteral("signatures"), signatures},
       {QStringLiteral("recipients"), recipients},
       {QStringLiteral("errors"), errors},
+      {QStringLiteral("cards"), cards},
   };
 }
 
