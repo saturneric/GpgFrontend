@@ -28,6 +28,7 @@
 
 #include "core/function/KeyGenProfile.h"
 
+#include "core/model/CacheObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -660,18 +661,21 @@ auto CheckKeyGenIdentity(const QString& name, const QString& email,
   return check;
 }
 
+namespace {
+
+/// The old cache's profiles, read only while the settings have none.
+auto LegacyKeyGenProfiles(const QJsonObject& stored) -> QJsonArray {
+  if (stored.contains("profiles")) return {};
+  const CacheObject cache(QString::fromLatin1(kLegacyKeyGenProfileCache));
+  return cache.isArray() ? cache.array() : QJsonArray{};
+}
+
+}  // namespace
+
 auto LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles {
   const SettingsObject so(QString::fromLatin1(kKeyGenSettingsObject));
-  StoredKeyGenProfiles stored;
-  if (const auto v = so["profiles"]; v.isArray()) {
-    stored.profiles = KeyGenProfilesFromJson(v.toArray());
-  } else {
-    stored.profiles = MakeDefaultKeyGenProfiles();
-  }
-  if (const auto v = so["default_profile"]; v.isString()) {
-    stored.default_profile = v.toString();
-  }
-  return stored;
+  const auto settings = KeyGenSettingsFromStored(so, LegacyKeyGenProfiles(so));
+  return {settings.profiles, settings.default_profile};
 }
 
 // ---- User id patterns (moved from ui/function/UidPattern.cpp, which the
@@ -882,6 +886,49 @@ auto UidPatternToJson(const UidPattern& pattern) -> QJsonObject {
       {"email", pattern.email},
       {"comment", pattern.comment},
   };
+}
+
+auto KeyGenSettingsFromStored(const QJsonObject& stored,
+                              const QJsonArray& legacy) -> KeyGenSO {
+  KeyGenSO settings(stored);
+  if (settings.profiles_stored) return settings;
+
+  settings.profiles = KeyGenProfilesFromJson(legacy);
+  if (settings.profiles.isEmpty()) {
+    settings.profiles = MakeDefaultKeyGenProfiles();
+  }
+  return settings;
+}
+
+auto LoadKeyGenSettings() -> KeyGenSO {
+  SettingsObject so(QString::fromLatin1(kKeyGenSettingsObject));
+
+  auto settings = KeyGenSettingsFromStored(so, LegacyKeyGenProfiles(so));
+  if (!settings.profiles_stored && !so.LoadFailed()) {
+    // Written once, so the old cache is read only the first time. The cache is
+    // left alone: a downgraded build still finds its profiles there.
+    settings.profiles_stored = true;
+    so.Store(settings.ToJson());
+  }
+  return settings;
+}
+
+void StoreKeyGenSettings(const KeyGenSO& settings) {
+  SettingsObject so(QString::fromLatin1(kKeyGenSettingsObject));
+  auto json = settings.ToJson();
+
+  // Keys a newer build added are kept rather than dropped by an older one.
+  for (auto it = so.constBegin(); it != so.constEnd(); ++it) {
+    if (!json.contains(it.key())) json[it.key()] = it.value();
+  }
+  so.Store(json);
+}
+
+void StoreKeyGenExpertMode(bool on) {
+  auto settings = LoadKeyGenSettings();
+  if (settings.expert_mode == on) return;
+  settings.expert_mode = on;
+  StoreKeyGenSettings(settings);
 }
 
 }  // namespace GpgFrontend

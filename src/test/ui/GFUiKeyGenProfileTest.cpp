@@ -74,35 +74,6 @@ auto NoPairings(const KeyAlgo&) -> QList<KeyAlgo> { return {}; }
 
 }  // namespace
 
-TEST(KeyGenSettingsTest, FirstUseMovesTheOldProfilesOver) {
-  QJsonArray legacy{QJsonObject{
-      {"name", "Mine"},
-      {"primary", QJsonObject{{"algo", "rsa3072"}, {"validity", "2y"}}}}};
-  const auto moved = UI::KeyGenSettingsFromStored({}, legacy);
-  EXPECT_FALSE(moved.profiles_stored);  // still to be written
-  ASSERT_EQ(moved.profiles.size(), 1);
-  EXPECT_EQ(moved.profiles.front().name, u"Mine"_s);
-
-  // With nothing to move, the defaults.
-  const auto fresh = UI::KeyGenSettingsFromStored({}, {});
-  EXPECT_EQ(fresh.profiles, MakeDefaultKeyGenProfiles());
-}
-
-TEST(KeyGenSettingsTest, StoredSettingsWinOverTheOldCache) {
-  UI::KeyGenSO stored(QJsonObject{});
-  stored.default_profile = u"Mine"_s;
-  stored.uid_pattern.name = u"test-{token:12}"_s;
-  stored.profiles = {};  // deleting every profile is a choice too
-  const auto json = stored.ToJson();
-
-  QJsonArray legacy{KeyGenProfileToJson(MakeDefaultKeyGenProfiles().front())};
-  const auto read = UI::KeyGenSettingsFromStored(json, legacy);
-  EXPECT_TRUE(read.profiles_stored);
-  EXPECT_TRUE(read.profiles.isEmpty());
-  EXPECT_EQ(read.default_profile, u"Mine"_s);
-  EXPECT_EQ(read.uid_pattern.name, u"test-{token:12}"_s);
-}
-
 TEST(KeyGenerateSummaryTest, EveryStepHasATitle) {
   for (int i = 0; i < UI::kKeyGeneratePageCount; ++i) {
     EXPECT_FALSE(UI::KeyGenerateStepTitle(static_cast<UI::KeyGenerateStep>(i))

@@ -32,36 +32,10 @@
 
 namespace GpgFrontend::UI {
 
-/**
- * @brief The settings as they should be, from what is stored.
- *
- * Profiles never written to the settings come from the cache the old dialog
- * kept them in, and failing that from the defaults.
- *
- * @param stored the settings object's content
- * @param legacy the old cache's profile array; empty when there is none
- * @return the settings, with `profiles_stored` saying whether they changed
- */
-auto GF_UI_EXPORT KeyGenSettingsFromStored(const QJsonObject& stored,
-                                           const QJsonArray& legacy)
-    -> KeyGenSO;
-
-/**
- * @brief The key generation settings, migrating them on first use.
- */
-auto GF_UI_EXPORT LoadKeyGenSettings() -> KeyGenSO;
-
-/**
- * @brief Store the key generation settings.
- */
-void GF_UI_EXPORT StoreKeyGenSettings(const KeyGenSO& settings);
-
-/**
- * @brief Remember whether the key dialogs open in Expert Mode.
- *
- * Only that one value: a dialog holding an older copy of the settings must not
- * write the rest of it back.
- */
-void GF_UI_EXPORT StoreKeyGenExpertMode(bool on);
+// Loading and storing them, migration included: the core's as well.
+using GpgFrontend::KeyGenSettingsFromStored;
+using GpgFrontend::LoadKeyGenSettings;
+using GpgFrontend::StoreKeyGenExpertMode;
+using GpgFrontend::StoreKeyGenSettings;
 
 }  // namespace GpgFrontend::UI

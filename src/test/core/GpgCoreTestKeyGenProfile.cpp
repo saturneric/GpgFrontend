@@ -358,4 +358,33 @@ TEST(KeyGenProfileTest, PostQuantumNeedsTheV6Format) {
   EXPECT_EQ(RequiredKeyVersion(key, subkey), 6);
 }
 
+TEST(KeyGenSettingsTest, FirstUseMovesTheOldProfilesOver) {
+  QJsonArray legacy{QJsonObject{
+      {"name", "Mine"},
+      {"primary", QJsonObject{{"algo", "rsa3072"}, {"validity", "2y"}}}}};
+  const auto moved = KeyGenSettingsFromStored({}, legacy);
+  EXPECT_FALSE(moved.profiles_stored);  // still to be written
+  ASSERT_EQ(moved.profiles.size(), 1);
+  EXPECT_EQ(moved.profiles.front().name, u"Mine"_s);
+
+  // With nothing to move, the defaults.
+  const auto fresh = KeyGenSettingsFromStored({}, {});
+  EXPECT_EQ(fresh.profiles, MakeDefaultKeyGenProfiles());
+}
+
+TEST(KeyGenSettingsTest, StoredSettingsWinOverTheOldCache) {
+  KeyGenSO stored(QJsonObject{});
+  stored.default_profile = u"Mine"_s;
+  stored.uid_pattern.name = u"test-{token:12}"_s;
+  stored.profiles = {};  // deleting every profile is a choice too
+  const auto json = stored.ToJson();
+
+  QJsonArray legacy{KeyGenProfileToJson(MakeDefaultKeyGenProfiles().front())};
+  const auto read = KeyGenSettingsFromStored(json, legacy);
+  EXPECT_TRUE(read.profiles_stored);
+  EXPECT_TRUE(read.profiles.isEmpty());
+  EXPECT_EQ(read.default_profile, u"Mine"_s);
+  EXPECT_EQ(read.uid_pattern.name, u"test-{token:12}"_s);
+}
+
 }  // namespace GpgFrontend::Test

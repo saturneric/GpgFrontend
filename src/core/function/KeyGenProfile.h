@@ -371,9 +371,9 @@ struct StoredKeyGenProfiles {
  * @brief The key generation profiles stored in kKeyGenSettingsObject, or the
  * defaults when it holds none.
  *
- * Read only: the desktop's settings own the migration from older stores and
- * write back (ui/function/KeyGenSettings.h); an interface that just generates
- * keys uses what is there.
+ * Read only, profiles never written coming from the old cache as
+ * LoadKeyGenSettings() finds them: an interface that just generates keys uses
+ * what is there, and leaves the migration to the settings that write back.
  */
 auto GF_CORE_EXPORT LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles;
 
@@ -494,5 +494,83 @@ auto GF_CORE_EXPORT UidPatternFromJson(const QJsonObject& obj) -> UidPattern;
  * @brief The stored form of a pattern.
  */
 auto GF_CORE_EXPORT UidPatternToJson(const UidPattern& pattern) -> QJsonObject;
+
+/// The durable cache the profiles lived in before they moved to Settings.
+inline constexpr const char* kLegacyKeyGenProfileCache =
+    "key_gen_easy_mode_config";
+
+/**
+ * @brief The key generation settings (kKeyGenSettingsObject): the profiles,
+ * which one Quick Generate uses, and how it makes up a user id.
+ */
+struct KeyGenSO {
+  QList<KeyGenProfile> profiles;
+  QString default_profile;  ///< a profile's stored name; empty for the built-in
+  UidPattern uid_pattern;
+  /// Whether the key and subkey dialogs open with every choice shown. One
+  /// switch for all of them: whoever wants it in one wants it in the others.
+  bool expert_mode = false;
+  /// Whether `profiles` was ever written. An installation that has deleted
+  /// every profile is not one that never had any.
+  bool profiles_stored = false;
+
+  explicit KeyGenSO(const QJsonObject& j) {
+    if (const auto v = j["profiles"]; v.isArray()) {
+      profiles = KeyGenProfilesFromJson(v.toArray());
+      profiles_stored = true;
+    }
+    if (const auto v = j["default_profile"]; v.isString()) {
+      default_profile = v.toString();
+    }
+    if (const auto v = j["uid_pattern"]; v.isObject()) {
+      uid_pattern = UidPatternFromJson(v.toObject());
+    }
+    if (const auto v = j["expert_mode"]; v.isBool()) {
+      expert_mode = v.toBool();
+    }
+  }
+
+  [[nodiscard]] auto ToJson() const -> QJsonObject {
+    QJsonObject j;
+    j["profiles"] = KeyGenProfilesToJson(profiles);
+    j["default_profile"] = default_profile;
+    j["uid_pattern"] = UidPatternToJson(uid_pattern);
+    j["expert_mode"] = expert_mode;
+    return j;
+  }
+};
+
+/**
+ * @brief The settings as they should be, from what is stored.
+ *
+ * Profiles never written to the settings come from the cache the old dialog
+ * kept them in, and failing that from the defaults.
+ *
+ * @param stored the settings object's content
+ * @param legacy the old cache's profile array; empty when there is none
+ * @return the settings, with `profiles_stored` saying whether they changed
+ */
+auto GF_CORE_EXPORT KeyGenSettingsFromStored(const QJsonObject& stored,
+                                             const QJsonArray& legacy)
+    -> KeyGenSO;
+
+/**
+ * @brief The key generation settings, migrating them on first use.
+ */
+auto GF_CORE_EXPORT LoadKeyGenSettings() -> KeyGenSO;
+
+/**
+ * @brief Store the key generation settings. Keys a newer build added are
+ * kept.
+ */
+void GF_CORE_EXPORT StoreKeyGenSettings(const KeyGenSO& settings);
+
+/**
+ * @brief Remember whether the key dialogs open in Expert Mode.
+ *
+ * Only that one value: a dialog holding an older copy of the settings must not
+ * write the rest of it back.
+ */
+void GF_CORE_EXPORT StoreKeyGenExpertMode(bool on);
 
 }  // namespace GpgFrontend

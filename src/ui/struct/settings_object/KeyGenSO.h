@@ -29,56 +29,12 @@
 #pragma once
 
 #include "core/function/KeyGenProfile.h"
-#include "ui/function/UidPattern.h"
 
 namespace GpgFrontend::UI {
 
-// kKeyGenSettingsObject, the settings object they are stored under, is core's
-// (core/function/KeyGenProfile.h): LoadStoredKeyGenProfiles() reads it too.
-
-/// The durable cache the profiles lived in before they moved to Settings.
-inline constexpr const char* kLegacyKeyGenProfileCache =
-    "key_gen_easy_mode_config";
-
-/**
- * @brief The key generation settings: the profiles, which one Quick Generate
- * uses, and how it makes up a user id.
- */
-struct KeyGenSO {
-  QList<KeyGenProfile> profiles;
-  QString default_profile;  ///< a profile's stored name; empty for the built-in
-  UidPattern uid_pattern;
-  /// Whether the key and subkey dialogs open with every choice shown. One
-  /// switch for all of them: whoever wants it in one wants it in the others.
-  bool expert_mode = false;
-  /// Whether `profiles` was ever written. An installation that has deleted
-  /// every profile is not one that never had any.
-  bool profiles_stored = false;
-
-  explicit KeyGenSO(const QJsonObject& j) {
-    if (const auto v = j["profiles"]; v.isArray()) {
-      profiles = KeyGenProfilesFromJson(v.toArray());
-      profiles_stored = true;
-    }
-    if (const auto v = j["default_profile"]; v.isString()) {
-      default_profile = v.toString();
-    }
-    if (const auto v = j["uid_pattern"]; v.isObject()) {
-      uid_pattern = UidPatternFromJson(v.toObject());
-    }
-    if (const auto v = j["expert_mode"]; v.isBool()) {
-      expert_mode = v.toBool();
-    }
-  }
-
-  [[nodiscard]] auto ToJson() const -> QJsonObject {
-    QJsonObject j;
-    j["profiles"] = KeyGenProfilesToJson(profiles);
-    j["default_profile"] = default_profile;
-    j["uid_pattern"] = UidPatternToJson(uid_pattern);
-    j["expert_mode"] = expert_mode;
-    return j;
-  }
-};
+// The key generation settings are the core's (core/function/KeyGenProfile.h),
+// which the phone application shares.
+using GpgFrontend::KeyGenSO;
+using GpgFrontend::kLegacyKeyGenProfileCache;
 
 }  // namespace GpgFrontend::UI
