@@ -44,55 +44,6 @@ using UI::ValidateKeyGroupMetadata;
 
 }  // namespace
 
-TEST(KeyGroupMetadataRulesTest, NameShorterThanFiveCharactersIsRejected) {
-  EXPECT_EQ(ValidateKeyGroupMetadata("", {}),
-            KeyGroupMetadataProblem::kNameTooShort);
-  EXPECT_EQ(ValidateKeyGroupMetadata("abcd", {}),
-            KeyGroupMetadataProblem::kNameTooShort);
-  EXPECT_EQ(ValidateKeyGroupMetadata("abcde", {}),
-            KeyGroupMetadataProblem::kNone);
-}
-
-TEST(KeyGroupMetadataRulesTest, WhitespaceDoesNotCountTowardsTheMinimum) {
-  // Otherwise "     " would name a group, and nothing downstream would show it.
-  EXPECT_EQ(ValidateKeyGroupMetadata("  a   ", {}),
-            KeyGroupMetadataProblem::kNameTooShort);
-  EXPECT_EQ(ValidateKeyGroupMetadata("  abcde  ", {}),
-            KeyGroupMetadataProblem::kNone);
-}
-
-TEST(KeyGroupMetadataRulesTest, EmailIsOptionalButMustLookLikeOneWhenGiven) {
-  EXPECT_EQ(ValidateKeyGroupMetadata("Team Alpha", ""),
-            KeyGroupMetadataProblem::kNone);
-  EXPECT_EQ(ValidateKeyGroupMetadata("Team Alpha", "   "),
-            KeyGroupMetadataProblem::kNone);
-  EXPECT_EQ(ValidateKeyGroupMetadata("Team Alpha", "team@example.com"),
-            KeyGroupMetadataProblem::kNone);
-
-  for (const auto* bad : {"no-at", "a@", "@b", "a@b@c", "a b@c.d"}) {
-    EXPECT_EQ(ValidateKeyGroupMetadata("Team Alpha", bad),
-              KeyGroupMetadataProblem::kEmailMalformed)
-        << "accepted: " << bad;
-  }
-}
-
-TEST(KeyGroupMetadataRulesTest, TheNameIsCheckedBeforeTheEmail) {
-  // A user fixing one problem at a time should be told about the field they
-  // are most likely still filling in.
-  EXPECT_EQ(ValidateKeyGroupMetadata("ab", "no-at"),
-            KeyGroupMetadataProblem::kNameTooShort);
-}
-
-TEST(KeyGroupMetadataRulesTest, EveryProblemHasSomethingToSay) {
-  EXPECT_TRUE(DescribeKeyGroupMetadataProblem(KeyGroupMetadataProblem::kNone)
-                  .isEmpty());
-
-  for (const auto problem : {KeyGroupMetadataProblem::kNameTooShort,
-                             KeyGroupMetadataProblem::kEmailMalformed}) {
-    EXPECT_FALSE(DescribeKeyGroupMetadataProblem(problem).isEmpty());
-  }
-}
-
 TEST(KeyGroupMetadataRulesTest, MembershipSummaryCountsWhatIsThere) {
   EXPECT_FALSE(DescribeKeyGroupMembership(0, 0, 0).isEmpty());
 

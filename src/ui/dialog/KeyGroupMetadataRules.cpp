@@ -30,54 +30,9 @@
 
 namespace GpgFrontend::UI {
 
-namespace {
-
-constexpr int kMinKeyGroupNameLength = 5;
-
 // The translate() context below is spelled out at every call site on purpose.
 // lupdate is a static parser: hoisting it into a constant silently drops every
 // string here from the .ts files, with no warning and no compile error.
-
-}  // namespace
-
-auto ValidateKeyGroupMetadata(const QString& name, const QString& email)
-    -> KeyGroupMetadataProblem {
-  if (name.trimmed().size() < kMinKeyGroupNameLength) {
-    return KeyGroupMetadataProblem::kNameTooShort;
-  }
-
-  const auto trimmed_email = email.trimmed();
-  if (trimmed_email.isEmpty()) return KeyGroupMetadataProblem::kNone;
-
-  const auto at = trimmed_email.indexOf('@');
-  if (at <= 0 || at == trimmed_email.size() - 1 ||
-      trimmed_email.count('@') != 1 || trimmed_email.contains(' ')) {
-    return KeyGroupMetadataProblem::kEmailMalformed;
-  }
-
-  return KeyGroupMetadataProblem::kNone;
-}
-
-auto DescribeKeyGroupMetadataProblem(KeyGroupMetadataProblem problem)
-    -> QString {
-  switch (problem) {
-    case KeyGroupMetadataProblem::kNone:
-      return {};
-
-    case KeyGroupMetadataProblem::kNameTooShort:
-      return QCoreApplication::translate(
-          "GpgFrontend::UI::KeyGroupMetadataRules",
-          "Name must contain at least five characters.");
-
-    case KeyGroupMetadataProblem::kEmailMalformed:
-      return QCoreApplication::translate(
-          "GpgFrontend::UI::KeyGroupMetadataRules",
-          "Email does not look like an address. Leave it empty if the group "
-          "has none.");
-  }
-
-  return {};
-}
 
 auto DescribeKeyGroupMembership(int direct, int nested, int missing)
     -> QString {

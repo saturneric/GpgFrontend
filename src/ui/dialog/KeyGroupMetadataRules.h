@@ -28,42 +28,16 @@
 
 #pragma once
 
+#include "core/function/openpgp/KeyGroupRepository.h"
+
 namespace GpgFrontend::UI {
 
-/**
- * @brief What is wrong with the metadata a user typed for a key group.
- *
- * Kept out of the dialogs so the creation form and the edit form cannot drift
- * apart on what counts as a valid group.
- */
-enum class KeyGroupMetadataProblem {
-  kNone,           ///< the metadata is usable
-  kNameTooShort,   ///< the name is blank or shorter than the minimum
-  kEmailMalformed  ///< an email was given but does not look like one
-};
-
-/**
- * @brief Check the metadata a user typed for a key group.
- *
- * Leading and trailing spaces do not count towards the name length, and an
- * empty email is allowed.
- *
- * @param name display name
- * @param email email address, may be empty
- * @return the first problem found, or kNone
- */
-auto GF_UI_EXPORT ValidateKeyGroupMetadata(const QString& name,
-                                           const QString& email)
-    -> KeyGroupMetadataProblem;
-
-/**
- * @brief The message to show for a metadata problem.
- *
- * @param problem as returned by ValidateKeyGroupMetadata()
- * @return a translated message, or an empty string for kNone
- */
-auto GF_UI_EXPORT
-DescribeKeyGroupMetadataProblem(KeyGroupMetadataProblem problem) -> QString;
+// What is wrong with the metadata a user typed for a key group, and the
+// check itself: the core's, so the creation and edit forms here and the
+// mobile app's cannot drift apart on what counts as a valid group.
+using GpgFrontend::DescribeKeyGroupMetadataProblem;
+using GpgFrontend::KeyGroupMetadataProblem;
+using GpgFrontend::ValidateKeyGroupMetadata;
 
 /**
  * @brief Summarise what a key group holds.

@@ -37,6 +37,53 @@
 
 namespace GpgFrontend {
 
+namespace {
+
+constexpr int kMinKeyGroupNameLength = 5;
+
+}  // namespace
+
+auto ValidateKeyGroupMetadata(const QString& name, const QString& email)
+    -> KeyGroupMetadataProblem {
+  if (name.trimmed().size() < kMinKeyGroupNameLength) {
+    return KeyGroupMetadataProblem::kNameTooShort;
+  }
+
+  const auto trimmed_email = email.trimmed();
+  if (trimmed_email.isEmpty()) return KeyGroupMetadataProblem::kNone;
+
+  const auto at = trimmed_email.indexOf('@');
+  if (at <= 0 || at == trimmed_email.size() - 1 ||
+      trimmed_email.count('@') != 1 || trimmed_email.contains(' ')) {
+    return KeyGroupMetadataProblem::kEmailMalformed;
+  }
+
+  return KeyGroupMetadataProblem::kNone;
+}
+
+// The translate() context keeps the desktop's: lupdate needs it spelled out
+// at every call site.
+auto DescribeKeyGroupMetadataProblem(KeyGroupMetadataProblem problem)
+    -> QString {
+  switch (problem) {
+    case KeyGroupMetadataProblem::kNone:
+      return {};
+
+    case KeyGroupMetadataProblem::kNameTooShort:
+      return QCoreApplication::translate(
+          "GpgFrontend::UI::KeyGroupMetadataRules",
+          "Name must contain at least five characters.");
+
+    case KeyGroupMetadataProblem::kEmailMalformed:
+      return QCoreApplication::translate(
+          "GpgFrontend::UI::KeyGroupMetadataRules",
+          "Email does not look like an address. Leave it empty if the group "
+          "has none.");
+  }
+
+  return {};
+}
+
 KeyGroupRepository::KeyGroupRepository(int channel)
     : SingletonFunctionObject<KeyGroupRepository>(channel) {
   fetch_key_groups();

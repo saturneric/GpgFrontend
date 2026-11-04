@@ -36,6 +36,37 @@
 
 namespace GpgFrontend {
 
+/// What is wrong with a key group's name and email, if anything.
+enum class KeyGroupMetadataProblem {
+  kNone,           ///< the metadata is usable
+  kNameTooShort,   ///< the name is blank or shorter than the minimum
+  kEmailMalformed  ///< an email was given but does not look like one
+};
+
+/**
+ * @brief Check the metadata a user typed for a key group, as every surface
+ * that makes or edits one does.
+ *
+ * Leading and trailing spaces do not count towards the name length (at least
+ * five characters), and an empty email is allowed.
+ *
+ * @param name display name
+ * @param email email address, may be empty
+ * @return the first problem found, or kNone
+ */
+auto GF_CORE_EXPORT ValidateKeyGroupMetadata(const QString& name,
+                                             const QString& email)
+    -> KeyGroupMetadataProblem;
+
+/**
+ * @brief The message to show for a metadata problem.
+ *
+ * @param problem as returned by ValidateKeyGroupMetadata()
+ * @return a translated message, or an empty string for kNone
+ */
+auto GF_CORE_EXPORT
+DescribeKeyGroupMetadataProblem(KeyGroupMetadataProblem problem) -> QString;
+
 /**
  * @brief A node in the key group dependency tree.
  *
