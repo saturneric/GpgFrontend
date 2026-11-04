@@ -34,8 +34,7 @@
 
 namespace GpgFrontend {
 
-void InstallTranslations(const QLocale &locale,
-                         const QList<TranslationCatalog> &extra) {
+void InstallTranslations(const QLocale &locale) {
   // Uninstall *and* destroy: merely forgetting the pointers would pile up
   // translators that the application still consults.
   static QList<QTranslator *> installed;
@@ -45,13 +44,15 @@ void InstallTranslations(const QLocale &locale,
   }
   installed.clear();
 
-  // Consulted last installed first.
-  QList<TranslationCatalog> catalogs{
+  // Consulted last installed first. The application's English catalog sits
+  // beneath the one asked for: it spells out each plural ("%n key(s)") for a
+  // language with no catalog of its own.
+  const QList<TranslationCatalog> catalogs{
       {u"qt"_s, u"_"_s, u":/i18n_qt"_s},
       {u"qtbase"_s, u"_"_s, u":/i18n_qt"_s},
+      {GetProjectName(), u"."_s, u":/i18n"_s, u"en_US"_s},
       {GetProjectName(), u"."_s, u":/i18n"_s},
   };
-  catalogs += extra;
 
   for (const auto &catalog : catalogs) {
     auto *translator = new QTranslator(QCoreApplication::instance());

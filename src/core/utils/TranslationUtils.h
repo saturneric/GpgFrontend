@@ -43,8 +43,9 @@ struct GF_CORE_EXPORT TranslationCatalog {
 };
 
 /**
- * @brief Translate the application into @p locale: Qt's own strings, the
- * application's catalog (the core's and the desktop's), then @p extra.
+ * @brief Translate the application into @p locale: Qt's own strings and the
+ * application's catalog (the core's, the desktop's and the phone's), over its
+ * English one, which spells out plurals for a language that has no catalog.
  *
  * What an earlier call installed is taken out first, so this runs again on a
  * language switch. Installing posts QEvent::LanguageChange. A catalog a
@@ -52,9 +53,7 @@ struct GF_CORE_EXPORT TranslationCatalog {
  * catalogs are not among these: they are their own.
  *
  * @param locale the language
- * @param extra catalogs of the running application's own, consulted first
  */
-void GF_CORE_EXPORT InstallTranslations(
-    const QLocale &locale, const QList<TranslationCatalog> &extra = {});
+void GF_CORE_EXPORT InstallTranslations(const QLocale &locale);
 
 }  // namespace GpgFrontend

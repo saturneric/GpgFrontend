@@ -15,14 +15,11 @@
 #
 #   * The GpgFrontend application itself, whose .ts live in
 #     resource/lfs/locale/ts/GpgFrontend.<locale>.ts and whose translatable
-#     strings come from src/core and src/ui (plus the top-level src/*.cpp).
-#     The test/ and sdk/ trees are skipped: their tr() strings are not part of
-#     the shipped UI and are intentionally absent from the committed .ts.
-#
-#   * The phone application (src/mob), named "GpgFrontendMobile", whose .ts
-#     live in src/mob/ts/GpgFrontendMobile.<locale>.ts and whose strings come
-#     from its C++ and QML sources. The core's strings it shows are the
-#     application's, above.
+#     strings come from src/core, src/ui and the phone application's src/mob
+#     (C++ and QML), plus the top-level src/*.cpp. The desktop and the phone
+#     share this one catalog. The test/ and sdk/ trees are skipped: their tr()
+#     strings are not part of the shipped UI and are intentionally absent from
+#     the committed .ts.
 #
 #   * Each module under modules/src/<name>/, which keeps its translations in a
 #     ts/ subdirectory (e.g. modules/src/m_email/ts/ModuleEMail.de_DE.ts). Only
@@ -35,11 +32,9 @@
 #
 # Usage: scripts/update_translations.sh [options] [target ...]
 #   target             One or more target names to limit to. The application is
-#                      named "GpgFrontend", the phone application
-#                      "GpgFrontendMobile"; modules use their dir name (e.g.
-#                      m_email). Default: the application, the phone
-#                      application and every module under modules/src that
-#                      has a ts/ dir.
+#                      named "GpgFrontend"; modules use their dir name (e.g.
+#                      m_email). Default: the application and every module
+#                      under modules/src that has a ts/ dir.
 #       --no-app       Skip the GpgFrontend application target.
 #       --app-only     Process only the GpgFrontend application target.
 #       --no-obsolete  Drop entries that no longer exist in the sources
@@ -71,10 +66,7 @@ APP_NAME="GpgFrontend"
 APP_TS_DIR="${REPO_ROOT}/resource/lfs/locale/ts"
 # Source roots scanned for the application target. test/ and sdk/ are left out
 # on purpose (see header).
-APP_SRC_ROOTS=("${REPO_ROOT}/src/core" "${REPO_ROOT}/src/ui")
-MOBILE_NAME="GpgFrontendMobile"
-MOBILE_SRC_DIR="${REPO_ROOT}/src/mob"
-MOBILE_TS_DIR="${MOBILE_SRC_DIR}/ts"
+APP_SRC_ROOTS=("${REPO_ROOT}/src/core" "${REPO_ROOT}/src/ui" "${REPO_ROOT}/src/mob")
 LOCALES_CMAKE="${REPO_ROOT}/cmake/Translations.cmake"
 NO_OBSOLETE=""
 LIST_ONLY="no"
@@ -164,9 +156,8 @@ module_base_name() {
 
 # Collect the targets to process into parallel arrays. Each target carries a
 # name, the .ts base name, the dir holding its .ts files, and a "kind" that
-# decides how its sources are gathered ("app" = recursive over APP_SRC_ROOTS;
-# "mobile" = recursive over src/mob, QML included; "module" = top-level
-# sources of a single module dir).
+# decides how its sources are gathered ("app" = recursive over APP_SRC_ROOTS,
+# QML included; "module" = top-level sources of a single module dir).
 declare -a T_NAMES=() T_BASES=() T_TS_DIRS=() T_KINDS=() T_SRC_DIRS=()
 
 # Application target.
@@ -178,16 +169,6 @@ if [[ "${INCLUDE_APP}" == "yes" ]] && should_process "${APP_NAME}"; then
     T_KINDS+=("app")
     T_SRC_DIRS+=("")  # app uses APP_SRC_ROOTS
   fi
-fi
-
-# The phone application (skipped in --app-only mode, like the modules).
-if [[ "${APP_ONLY}" != "yes" ]] && should_process "${MOBILE_NAME}" \
-    && [[ -d "${MOBILE_TS_DIR}" ]]; then
-  T_NAMES+=("${MOBILE_NAME}")
-  T_BASES+=("${MOBILE_NAME}")
-  T_TS_DIRS+=("${MOBILE_TS_DIR}")
-  T_KINDS+=("mobile")
-  T_SRC_DIRS+=("${MOBILE_SRC_DIR}")
 fi
 
 # Module targets (skipped entirely in --app-only mode).
@@ -236,22 +217,17 @@ gather_sources() {
   sources=()
   case "$kind" in
     app)
-      # Recursive over the application source roots, plus the top-level
-      # src/*.cpp (Command.cpp, Security.cpp, GpgFrontend.cpp, ...).
+      # Recursive over the application source roots (the phone's QML among
+      # them), plus the top-level src/*.cpp (Command.cpp, Security.cpp,
+      # GpgFrontend.cpp, ...).
       mapfile -t sources < <({
         find "${APP_SRC_ROOTS[@]}" -type f \
           \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \
-             -o -name '*.ui' \)
+             -o -name '*.ui' -o -name '*.qml' \)
         find "${REPO_ROOT}/src" -maxdepth 1 -type f \
           \( -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \
              -o -name '*.ui' \)
       } | sort)
-      ;;
-    mobile)
-      # C++ and QML, everywhere under src/mob but its ts/ dir.
-      mapfile -t sources < <(find "$src_dir" -path "$src_dir/ts" -prune -o \
-        -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.qml' \) -print \
-        | sort)
       ;;
     module)
       # Top-level sources only (maxdepth 1) so vendored subtrees (e.g. vmime)
@@ -338,8 +314,6 @@ for i in "${!T_NAMES[@]}"; do
   declare -a include_args=() extra_args=()
   if [[ "$kind" == "app" ]]; then
     for root in "${APP_SRC_ROOTS[@]}" "${REPO_ROOT}/src"; do include_args+=(-I "$root"); done
-  elif [[ "$kind" == "mobile" ]]; then
-    include_args+=(-I "$src_dir" -I "${REPO_ROOT}/src")
   else
     tr_dir="${TR_TMP}/${name}"
     mkdir -p "$tr_dir"

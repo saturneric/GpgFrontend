@@ -41,11 +41,11 @@
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/TranslationUtils.h"
 #include "model/ProfilesController.h"
 #include "plat/common/PlatformDisplay.h"
 #include "startup/InteractionBridge.h"
 #include "startup/MobileProfileLoaderDelegate.h"
-#include "startup/Translations.h"
 
 namespace GpgFrontend::Mobile {
 

@@ -23,7 +23,7 @@ BottomSheet {
     signal chosen(int row, var value)
 
     // "10 minutes", "2 hours", "30 days". Plurals as each language has them;
-    // the English catalog is always there underneath (Translations.h), so
+    // the English catalog is always there underneath (InstallTranslations), so
     // no "(s)" is ever shown.
     function describe(amount, unit) {
         if (unit === "operation") return Wording.operationLabel(amount)

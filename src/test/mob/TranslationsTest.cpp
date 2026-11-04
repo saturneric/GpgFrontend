@@ -32,11 +32,9 @@
 #include <QFile>
 
 #include "MobileTest.h"
-#include "startup/Translations.h"
+#include "core/utils/TranslationUtils.h"
 
 namespace GpgFrontend::Test::Mobile {
-
-using GpgFrontend::Mobile::InstallTranslations;
 
 namespace {
 
@@ -50,9 +48,9 @@ auto Core(const char* text) -> QString {
 TEST(TranslationsTest, TheCoresStringsAreTranslatedOnThePhone) {
   RunOnMainThread([]() {
     InstallTranslations(QLocale(QStringLiteral("de_DE")));
-    // From the application's catalog, which the desktop shares.
+    // One catalog, which the desktop shares: the core's strings and the
+    // phone's, where a QML file is the context.
     EXPECT_EQ(Core("Encrypt"), QStringLiteral("Verschlüsseln"));
-    // From the phone's own, where a QML file is the context.
     EXPECT_NE(QCoreApplication::translate("FilesPage", "Add files"),
               QStringLiteral("Add files"));
 
@@ -62,17 +60,23 @@ TEST(TranslationsTest, TheCoresStringsAreTranslatedOnThePhone) {
     EXPECT_EQ(QCoreApplication::translate("FilesPage", "Add files"),
               QStringLiteral("Add files"));
 
-    // A language with no catalog leaves every string as written.
+    // A language with no catalog leaves every string as written, but for
+    // plurals, which the English catalog beneath spells out.
     InstallTranslations(QLocale(QStringLiteral("xx_XX")));
     EXPECT_EQ(Core("Encrypt"), QStringLiteral("Encrypt"));
+    EXPECT_EQ(QCoreApplication::translate("Wording", "%n key(s)", nullptr, 1),
+              QStringLiteral("1 key"));
+    EXPECT_EQ(QCoreApplication::translate("Wording", "%n key(s)", nullptr, 2),
+              QStringLiteral("2 keys"));
     InstallTranslations(QLocale::c());
   });
 }
 
-TEST(TranslationsTest, ThePhonesOwnCatalogIsBuiltIn) {
-  // One per supported language, untranslated strings and all.
-  EXPECT_TRUE(QFile::exists(":/i18n_mob/GpgFrontendMobile.de_DE.qm"));
-  EXPECT_TRUE(QFile::exists(":/i18n_mob/GpgFrontendMobile.zh_CN.qm"));
+TEST(TranslationsTest, ThePhoneSharesTheApplicationsCatalog) {
+  // One per supported language, the phone's strings in it.
+  EXPECT_TRUE(QFile::exists(":/i18n/GpgFrontend.de_DE.qm"));
+  EXPECT_TRUE(QFile::exists(":/i18n/GpgFrontend.zh_CN.qm"));
+  EXPECT_FALSE(QFile::exists(":/i18n_mob"));
 }
 
 }  // namespace GpgFrontend::Test::Mobile
