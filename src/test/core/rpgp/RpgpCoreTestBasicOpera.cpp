@@ -951,6 +951,31 @@ TEST_F(RpgpCoreTest, CoreEncryptResultAnalyseShowsRpgpInvalidRecipientsTest) {
       << analyse.GetOpInfo().description.toStdString();
 }
 
+// Encrypted to a passphrase there are no recipients, and the summary must not
+// claim there were.
+TEST_F(RpgpCoreTest, CoreEncryptToAPassphraseIsNotSummedUpAsRecipientsTest) {
+  GpgEncryptResultAnalyse analyse{kRpgpChannelForUnitTest, GFError{},
+                                  GpgEncryptResult(GFEncryptResult{})};
+  analyse.Analyse();
+  auto info = analyse.GetOpInfo();
+  ASSERT_GT(info.status, 0);
+  AttachEncryptRecipients(info, analyse.GetResult(), {});
+  EXPECT_TRUE(info.description.contains("with a passphrase"))
+      << info.description.toStdString();
+  EXPECT_FALSE(info.description.contains("recipients"))
+      << info.description.toStdString();
+
+  // A failure keeps its own summary.
+  GpgEncryptResultAnalyse failed{kRpgpChannelForUnitTest,
+                                 GFError::Application(GFErrorCode::kGENERAL),
+                                 GpgEncryptResult(GFEncryptResult{})};
+  failed.Analyse();
+  auto failure = failed.GetOpInfo();
+  const auto said = failure.description;
+  AttachEncryptRecipients(failure, failed.GetResult(), {});
+  EXPECT_EQ(failure.description, said);
+}
+
 // RFC 9580 §9.3 / §12.2: a message decrypted with a deprecated cipher, or one
 // the decrypting key does not prefer, must not read as a clean success.
 TEST_F(RpgpCoreTest, CoreDecryptResultAnalyseShowsCipherWarningTest) {

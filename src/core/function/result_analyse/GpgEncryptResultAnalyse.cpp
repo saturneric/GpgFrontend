@@ -28,6 +28,8 @@
 
 #include "GpgEncryptResultAnalyse.h"
 
+#include <QCoreApplication>
+
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
@@ -104,7 +106,18 @@ void GpgEncryptResultAnalyse::doAnalyse() {
 
 void AttachEncryptRecipients(GpgOpResultInfo& info, GpgEncryptResult result,
                              const GpgAbstractKeyPtrList& keys) {
-  if (keys.isEmpty()) return;
+  // No keys: encrypted to a passphrase, not to recipients. The analyser
+  // cannot tell (a GnuPG result names no recipients either), so the summary
+  // it wrote is put right here.
+  if (keys.isEmpty()) {
+    if (info.status > 0) {
+      info.description = QCoreApplication::translate(
+          "GpgFrontend::GpgEncryptResultAnalyse",
+          "Your data has been encrypted with a passphrase. Anyone who has "
+          "the passphrase can decrypt and read it.");
+    }
+    return;
+  }
 
   // Resolve an encryption (sub)key ID back to a recipient UID and the matching
   // (sub)key fingerprint among the selected recipient keys.
