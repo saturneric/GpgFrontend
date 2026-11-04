@@ -207,6 +207,20 @@ auto RemoveKnownArchiveEncryptedSuffix(const QString& input_path) -> QString {
 
 }  // namespace
 
+auto IsOpenPGPMessageFile(const QFileInfo& info) -> bool {
+  // Case insensitive: a file named KEY.ASC is the same thing as key.asc.
+  const auto suffix = info.suffix().toLower();
+  return suffix == u"gpg"_s || suffix == u"pgp"_s || suffix == u"asc"_s;
+}
+
+auto IsOpenPGPRelatedFile(const QFileInfo& info) -> bool {
+  return IsOpenPGPMessageFile(info) || IsOpenPGPSignatureFile(info);
+}
+
+auto IsOpenPGPSignatureFile(const QFileInfo& info) -> bool {
+  return info.suffix().toLower() == u"sig"_s;
+}
+
 auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
                               bool ascii) -> QString {
   const QFileInfo file_info(path);

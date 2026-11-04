@@ -32,36 +32,13 @@
 
 namespace GpgFrontend::UI {
 
-namespace {
-
-/// Lower-cased suffix of a file system entry, without the dot. Matching is
-/// case insensitive because a file named KEY.ASC is the same thing as key.asc.
-auto LowerSuffix(const QFileInfo& info) -> QString {
-  return info.suffix().toLower();
-}
-
-}  // namespace
-
-auto IsOpenPGPMessageFile(const QFileInfo& info) -> bool {
-  const auto suffix = LowerSuffix(info);
-  return suffix == "gpg" || suffix == "pgp" || suffix == "asc";
-}
-
-auto IsOpenPGPRelatedFile(const QFileInfo& info) -> bool {
-  return IsOpenPGPMessageFile(info) || IsOpenPGPSignatureFile(info);
-}
-
-auto IsOpenPGPSignatureFile(const QFileInfo& info) -> bool {
-  return LowerSuffix(info) == "sig";
-}
-
 auto IsProfilePackageFile(const QFileInfo& info) -> bool {
   // Taken from the format's own constant rather than spelled out again here:
   // what the file panel calls a profile file and what the packing code writes
   // must be the same thing, and two literals are how that stops being true.
   static const auto kSuffix =
       QString::fromLatin1(kProfilePackageExtension).mid(1).toLower();
-  return LowerSuffix(info) == kSuffix;
+  return info.suffix().toLower() == kSuffix;
 }
 
 auto SanitizedDocumentTitle(const QString& title) -> QString {

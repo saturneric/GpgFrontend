@@ -57,6 +57,37 @@ auto GF_CORE_EXPORT DescribeGFError(const GFError& err) -> GpgErrorDesc;
 auto GF_CORE_EXPORT GnuPGErrorValueOf(const GFError& err) -> std::uint32_t;
 
 /**
+ * @brief Whether the entry looks like an OpenPGP message container.
+ *
+ * By its name alone, as every file list decides it: these are the files that
+ * can be decrypted or verified inline. Shared by the desktop's file panel and
+ * the phone's Files page, so both call the same file the same thing.
+ *
+ * @param info entry to inspect
+ * @return true for .gpg, .pgp and .asc files
+ */
+auto GF_CORE_EXPORT IsOpenPGPMessageFile(const QFileInfo& info) -> bool;
+
+/**
+ * @brief Whether the entry is any kind of OpenPGP output.
+ *
+ * Adds detached signatures to the message containers. Used to keep already
+ * processed files out of the encrypt/sign side of the operation menu.
+ *
+ * @param info entry to inspect
+ * @return true for .gpg, .pgp, .asc and .sig files
+ */
+auto GF_CORE_EXPORT IsOpenPGPRelatedFile(const QFileInfo& info) -> bool;
+
+/**
+ * @brief Whether the entry is a detached OpenPGP signature.
+ *
+ * @param info entry to inspect
+ * @return true for .sig files
+ */
+auto GF_CORE_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
+
+/**
  * @brief Return the output file path with an extension appropriate for the
  * given operation.
  *

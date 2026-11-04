@@ -28,36 +28,14 @@
 
 #pragma once
 
+#include "core/utils/GpgUtils.h"
+
 namespace GpgFrontend::UI {
 
-/**
- * @brief Whether the entry looks like an OpenPGP message container.
- *
- * These are the files that can be decrypted or verified inline.
- *
- * @param info entry to inspect
- * @return true for .gpg, .pgp and .asc files
- */
-auto GF_UI_EXPORT IsOpenPGPMessageFile(const QFileInfo& info) -> bool;
-
-/**
- * @brief Whether the entry is any kind of OpenPGP output.
- *
- * Adds detached signatures to the message containers. Used to keep already
- * processed files out of the encrypt/sign side of the operation menu.
- *
- * @param info entry to inspect
- * @return true for .gpg, .pgp, .asc and .sig files
- */
-auto GF_UI_EXPORT IsOpenPGPRelatedFile(const QFileInfo& info) -> bool;
-
-/**
- * @brief Whether the entry is a detached OpenPGP signature.
- *
- * @param info entry to inspect
- * @return true for .sig files
- */
-auto GF_UI_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
+// Decided by the core (GpgUtils.h), which the phone's Files page shares.
+using GpgFrontend::IsOpenPGPMessageFile;
+using GpgFrontend::IsOpenPGPRelatedFile;
+using GpgFrontend::IsOpenPGPSignatureFile;
 
 /**
  * @brief Whether the entry is a profile file.

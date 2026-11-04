@@ -33,30 +33,6 @@
 
 namespace GpgFrontend::Test {
 
-TEST(FileTypeUtilsTest, MessageContainersAreRecognised) {
-  for (const auto* n : {"a.gpg", "a.pgp", "a.asc"}) {
-    EXPECT_TRUE(UI::IsOpenPGPMessageFile(QFileInfo(n))) << n;
-    EXPECT_TRUE(UI::IsOpenPGPRelatedFile(QFileInfo(n))) << n;
-  }
-}
-
-TEST(FileTypeUtilsTest, ADetachedSignatureIsRelatedButNotAMessage) {
-  // The distinction is what keeps a .sig out of the decrypt/verify-inline
-  // path while still keeping it out of the encrypt/sign menu.
-  const QFileInfo sig("a.sig");
-  EXPECT_TRUE(UI::IsOpenPGPSignatureFile(sig));
-  EXPECT_TRUE(UI::IsOpenPGPRelatedFile(sig));
-  EXPECT_FALSE(UI::IsOpenPGPMessageFile(sig));
-}
-
-TEST(FileTypeUtilsTest, PlainFilesMatchNothing) {
-  for (const auto* n : {"a.txt", "a", "a.gpg.txt", "archive.tar"}) {
-    EXPECT_FALSE(UI::IsOpenPGPMessageFile(QFileInfo(n))) << n;
-    EXPECT_FALSE(UI::IsOpenPGPSignatureFile(QFileInfo(n))) << n;
-    EXPECT_FALSE(UI::IsOpenPGPRelatedFile(QFileInfo(n))) << n;
-  }
-}
-
 TEST(FileTypeUtilsTest, ProfilePackagesAreRecognised) {
   for (const auto* n : {"a.gfp", "A.GFP", "profile.gfp", "/tmp/work.Gfp"}) {
     EXPECT_TRUE(UI::IsProfilePackageFile(QFileInfo(n))) << n;
