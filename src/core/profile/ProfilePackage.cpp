@@ -44,13 +44,17 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
 #include "core/model/GFDataExchanger.h"
+#include "core/model/SettingsObject.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileAreaTraits.h"
 #include "core/profile/ProfileLock.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileMember.h"
 #include "core/profile/ProfilePackageStream.h"
+#include "core/profile/ProfileRegistry.h"
+#include "core/profile/ProfileSession.h"
 #include "core/profile/ProtectedFsProfileAccessor.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -1792,6 +1796,91 @@ auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
   result.session_root = session_root;
   result.manifest = read.manifest;
   return result;
+}
+
+auto GatherOpenProfileExport(const QString &display_name)
+    -> ProfileExportRequest {
+  const auto &session = ProfileSession::Instance();
+  const auto &profile = session.Profile();
+
+  // The key database paths that travel are normalised to the `@profile/` form,
+  // so the copy finds its keys at whatever root it is opened under. The
+  // sender's own stored list is left exactly as it is: it names directories on
+  // this machine, which is right here and wrong everywhere else, and the
+  // rewritten copy goes into the package as a member of its own below.
+  const auto stored = KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject));
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(stored.key_databases, profile.Root());
+
+  const auto &marker = session.Marker();
+
+  ProfileExportRequest request;
+  request.profile_root = profile.Root();
+  // A key database the user moved to the Recycle Bin is no longer part of
+  // the profile, so the copy handed to somebody else does not carry it.
+  request.excluded_dirs =
+      RecycledKeyDatabaseDirsForPacking(stored.key_databases, profile.Root());
+
+  // Read here rather than inside the packing: the key manager and QSettings
+  // both belong to this thread, and the packing does not run on it.
+  // One call, because which key comes from where is not this file's business
+  // to remember: ResolveSecureAreaMembers() is where that lives.
+  request.secure_members =
+      ResolveSecureAreaMembers(session.Accessor(), session.Keys().RootKey());
+  auto settings = GetSettings();
+  request.settings = SnapshotSettings(settings);
+
+  request.manifest.schema_version = marker.schema_version > 0
+                                        ? marker.schema_version
+                                        : GetAppProfileSchemaVersion();
+  request.manifest.min_reader_version = marker.min_reader_version > 0
+                                            ? marker.min_reader_version
+                                            : GetAppProfileSchemaVersion();
+  request.manifest.app_profile = GetAppProfileName();
+  request.manifest.display_name = display_name;
+  request.manifest.profile_id = profile.Id();
+  request.manifest.self_contained = profile.Policy().self_contained;
+  request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
+
+  // Sealed here, on the thread that owns the key material, for the same reason
+  // the settings are snapshotted here. Without it the package would carry the
+  // stored object instead, and that one names directories on this machine.
+  if (auto member = MakeTravellingKeyDatabaseMember(
+          packed,
+          TravellingDefaultKeyDatabaseId(stored.default_database_id, packed))) {
+    request.data_object_members.append(*member);
+  } else {
+    LOG_W() << "the package will carry the stored key database list unchanged";
+  }
+  return request;
+}
+
+auto IsProfilePackageTooNew(const ProfilePackageManifest &manifest) -> bool {
+  ProfileMarker as_marker;
+  as_marker.schema_version = manifest.schema_version;
+  as_marker.min_reader_version = manifest.min_reader_version;
+  as_marker.profile = manifest.app_profile;
+  as_marker.last_writer_version = manifest.writer_version;
+  return CheckProfileCompatibility(as_marker, true,
+                                   GetAppProfileSchemaVersion()) ==
+         ProfileCompatibility::kTOO_NEW;
+}
+
+auto AdoptProfilePackage(const QString &staging_dir,
+                         const QString &profiles_root,
+                         const QString &display_name,
+                         const ProfilePackageManifest &manifest)
+    -> AdoptedProfile {
+  AdoptedProfile adopted;
+  const auto id = MintProfileDirectoryId(profiles_root);
+  if (id.isEmpty()) {
+    adopted.error = QObject::tr("The profile could not be created.");
+    return adopted;
+  }
+  adopted.error = AdoptExtractedProfile(staging_dir, profiles_root + "/" + id,
+                                        id, display_name, manifest);
+  if (adopted.error.isEmpty()) adopted.id = id;
+  return adopted;
 }
 
 }  // namespace GpgFrontend

@@ -136,15 +136,7 @@ void FinishImport(QWidget* parent, const QString& package_path,
 
   // A package written by a newer build may describe a layout this one cannot
   // read; checked before anything is adopted rather than after.
-  ProfileMarker as_marker;
-  as_marker.schema_version = result.manifest.schema_version;
-  as_marker.min_reader_version = result.manifest.min_reader_version;
-  as_marker.profile = result.manifest.app_profile;
-  as_marker.last_writer_version = result.manifest.writer_version;
-
-  if (CheckProfileCompatibility(as_marker, true,
-                                GetAppProfileSchemaVersion()) ==
-      ProfileCompatibility::kTOO_NEW) {
+  if (IsProfilePackageTooNew(result.manifest)) {
     QMessageBox::critical(
         parent, QObject::tr("Cannot Import Profile"),
         QObject::tr(
@@ -159,22 +151,11 @@ void FinishImport(QWidget* parent, const QString& package_path,
                                               : result.manifest.display_name);
   if (name.isEmpty()) return;
 
-  // The folder is named by a fresh id, not by the name: the id is a directory
-  // name and an identity, and neither should have to survive being typed.
-  const auto roots = CurrentProfileRoots();
-  const auto id = MintProfileDirectoryId(roots.profiles_root);
-  if (id.isEmpty()) {
+  const auto adopted = AdoptProfilePackage(
+      staging_dir, CurrentProfileRoots().profiles_root, name, result.manifest);
+  if (!adopted.error.isEmpty()) {
     QMessageBox::critical(parent, QObject::tr("Cannot Import Profile"),
-                          QObject::tr("The profile could not be created."),
-                          QMessageBox::Ok);
-    return;
-  }
-
-  const auto error = AdoptExtractedProfile(
-      staging_dir, roots.profiles_root + "/" + id, id, name, result.manifest);
-  if (!error.isEmpty()) {
-    QMessageBox::critical(parent, QObject::tr("Cannot Import Profile"), error,
-                          QMessageBox::Ok);
+                          adopted.error, QMessageBox::Ok);
     return;
   }
 
@@ -227,7 +208,7 @@ void FinishImport(QWidget* parent, const QString& package_path,
 
   if (done.Choice() != open_it) return;
 
-  const auto opened = OpenProfileInNewWindow({.profile_id = id});
+  const auto opened = OpenProfileInNewWindow({.profile_id = adopted.id});
   if (!opened.Ok()) {
     QMessageBox::warning(parent, QObject::tr("Cannot Open Profile"),
                          opened.detail, QMessageBox::Ok);

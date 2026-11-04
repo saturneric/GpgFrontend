@@ -270,62 +270,12 @@ void MainWindow::slot_export_profile() {
 }
 
 void MainWindow::export_profile(const ProfileExportDialog* dialog) {
-  const auto& session = ProfileSession::Instance();
-  const auto& profile = session.Profile();
-
-  // The key database paths that travel are normalised to the `@profile/` form,
-  // so the copy finds its keys at whatever root it is opened under. The
-  // sender's own stored list is left exactly as it is: it names directories on
-  // this machine, which is right here and wrong everywhere else, and the
-  // rewritten copy goes into the package as a member of its own below.
-  const auto stored = KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject));
-  const auto packed =
-      RewriteKeyDatabaseListForPacking(stored.key_databases, profile.Root());
-
-  const auto& marker = session.Marker();
-
-  ProfileExportRequest request;
-  request.profile_root = profile.Root();
-  // A key database the user moved to the Recycle Bin is no longer part of
-  // the profile, so the copy handed to somebody else does not carry it.
-  request.excluded_dirs =
-      RecycledKeyDatabaseDirsForPacking(stored.key_databases, profile.Root());
+  // Gathered by the core, which the phone application's export shares.
+  auto request = GatherOpenProfileExport(CurrentProfileDisplayName());
   request.dest_path = dialog->DestinationPath();
   request.include_workspace = dialog->IncludeWorkspace();
   request.protection = dialog->Protection();
   request.passphrase = dialog->Passphrase();
-
-  // Read here rather than inside the packing: the key manager and QSettings
-  // both belong to this thread, and the packing does not run on it.
-  // One call, because which key comes from where is not this file's business
-  // to remember: ResolveSecureAreaMembers() is where that lives.
-  request.secure_members =
-      ResolveSecureAreaMembers(session.Accessor(), session.Keys().RootKey());
-  auto settings = GetSettings();
-  request.settings = SnapshotSettings(settings);
-
-  request.manifest.schema_version = marker.schema_version > 0
-                                        ? marker.schema_version
-                                        : GetAppProfileSchemaVersion();
-  request.manifest.min_reader_version = marker.min_reader_version > 0
-                                            ? marker.min_reader_version
-                                            : GetAppProfileSchemaVersion();
-  request.manifest.app_profile = GetAppProfileName();
-  request.manifest.display_name = CurrentProfileDisplayName();
-  request.manifest.profile_id = profile.Id();
-  request.manifest.self_contained = profile.Policy().self_contained;
-  request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
-
-  // Sealed here, on the thread that owns the key material, for the same reason
-  // the settings are snapshotted here. Without it the package would carry the
-  // stored object instead, and that one names directories on this machine.
-  if (auto member = MakeTravellingKeyDatabaseMember(
-          packed,
-          TravellingDefaultKeyDatabaseId(stored.default_database_id, packed))) {
-    request.data_object_members.append(*member);
-  } else {
-    LOG_W() << "the package will carry the stored key database list unchanged";
-  }
 
   if (request.secure_members.isEmpty()) {
     QMessageBox::critical(

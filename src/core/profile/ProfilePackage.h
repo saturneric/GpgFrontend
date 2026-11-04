@@ -646,6 +646,21 @@ auto GF_CORE_EXPORT ExportProfilePackage(ProfileExportRequest request)
     -> ProfilePackageWriteResult;
 
 /**
+ * @brief An export of the open profile, gathered as the desktop's Export
+ * Profile gathers it: the root, the key database list in its travelling
+ * form, the application key, the settings and the manifest's identity.
+ *
+ * Called on the thread that owns the key material and the settings: it reads
+ * both. The caller fills in where it goes and how it is protected
+ * (dest_path, include_workspace, protection, passphrase). No secure members
+ * means the application key is not at hand, and the profile cannot be packed.
+ *
+ * @param display_name what the package calls the profile
+ */
+auto GF_CORE_EXPORT GatherOpenProfileExport(const QString &display_name)
+    -> ProfileExportRequest;
+
+/**
  * @brief Move one file or directory, even across a filesystem boundary.
  *
  * A rename is tried first and is what almost always happens. The copy is for
@@ -697,6 +712,36 @@ auto GF_CORE_EXPORT AdoptExtractedProfile(
     const QString &staging_dir, const QString &profile_root, const QString &id,
     const QString &display_name, const ProfilePackageManifest &manifest,
     const ProfileTreeMover &mover = {}) -> QString;
+
+/**
+ * @brief Whether a package was written by a build whose profile layout this
+ * one cannot read. Checked before anything is adopted, not after.
+ */
+auto GF_CORE_EXPORT
+IsProfilePackageTooNew(const ProfilePackageManifest &manifest) -> bool;
+
+/// Where AdoptProfilePackage() put a profile, or why it did not.
+struct GF_CORE_EXPORT AdoptedProfile {
+  QString id;     ///< the new profile's directory id; empty on failure
+  QString error;  ///< translated; empty on success
+};
+
+/**
+ * @brief Adopt an extracted package as a new profile under @p profiles_root,
+ * in a directory named by a fresh id (MintProfileDirectoryId()): the id is a
+ * directory name and an identity, and neither should have to survive being
+ * typed. The desktop's Import Profile and the phone's share it.
+ *
+ * @param staging_dir the extracted tree (ReadProfilePackage())
+ * @param profiles_root where profiles live
+ * @param display_name what the new profile is called
+ * @param manifest the package's manifest
+ */
+auto GF_CORE_EXPORT AdoptProfilePackage(const QString &staging_dir,
+                                        const QString &profiles_root,
+                                        const QString &display_name,
+                                        const ProfilePackageManifest &manifest)
+    -> AdoptedProfile;
 
 /**
  * @brief A staging directory name the profile scan will never adopt.

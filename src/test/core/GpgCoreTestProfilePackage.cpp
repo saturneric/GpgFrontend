@@ -47,6 +47,7 @@
 #include "core/profile/ProfileMigration.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSecureKeyManager.h"
+#include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -632,6 +633,20 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
 
   QSettings settings(tree + "/config/config.ini", QSettings::IniFormat);
   EXPECT_EQ(settings.value("basic/language").toString(), "en_US");
+}
+
+// A package whose layout this build cannot read is refused before it is
+// adopted; one at this build's schema is not.
+TEST(ProfilePackageRoundTripTest, APackageFromANewerBuildIsTooNew) {
+  ProfilePackageManifest manifest;
+  manifest.app_profile = GetAppProfileName();
+  manifest.schema_version = GetAppProfileSchemaVersion();
+  manifest.min_reader_version = GetAppProfileSchemaVersion();
+  EXPECT_FALSE(IsProfilePackageTooNew(manifest));
+
+  manifest.schema_version = GetAppProfileSchemaVersion() + 1;
+  manifest.min_reader_version = GetAppProfileSchemaVersion() + 1;
+  EXPECT_TRUE(IsProfilePackageTooNew(manifest));
 }
 
 // A profile that changed no setting that travels -- a new one on a phone --
