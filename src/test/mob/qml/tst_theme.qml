@@ -26,4 +26,13 @@ TestCase {
         // A floating keyboard high up in the window.
         compare(Theme.keyboardCover(true, Qt.rect(0, 300, 900, 600), 800, 3), 200)
     }
+
+    // The operations wear the desktop toolbar's icons.
+    function test_operations_have_the_desktop_s_icons() {
+        compare(Theme.operationIcon("encrypt"), "qrc:/icons/lock.png")
+        compare(Theme.operationIcon("decrypt"), "qrc:/icons/unlock.png")
+        compare(Theme.operationIcon("sign"), "qrc:/icons/signature.png")
+        compare(Theme.operationIcon("verify"), "qrc:/icons/verify.png")
+        compare(Theme.operationIcon("nothing"), "")
+    }
 }
