@@ -283,8 +283,12 @@ constexpr auto kNothingToPrepare = []() -> const char* { return nullptr; };
 }  // namespace
 
 auto TakeResultModel(const char* capsule_id) -> std::any {
+  return TakeResultModelFor(capsule_id, gf_sdk_internal::CurrentModuleId());
+}
+
+auto TakeResultModelFor(const char* capsule_id, const QString& caller)
+    -> std::any {
   if (capsule_id == nullptr) return {};
-  const auto caller = gf_sdk_internal::CurrentModuleId();
   auto& index = Capsules();
   const QMutexLocker lock(&index.mutex);
   const auto it = index.by_id.find(QByteArray(capsule_id));

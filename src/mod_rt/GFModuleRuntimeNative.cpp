@@ -312,6 +312,21 @@ void DocumentWidget::NotifySaved(const QString& path, const QString& title) {
   GFNativeDocumentSaved(gf::runtime::SdkContext(), Instance(),
                         path.toUtf8().constData(), title.toUtf8().constData());
 }
+void DocumentWidget::NotifyResult(const CryptoReport& report) {
+  const auto capsule = report.capsule_id.toUtf8();
+  const auto hash = report.input_hash.toUtf8();
+  const auto reason = report.reason.toUtf8();
+  GFDocumentCryptoResult r{};
+  r.struct_size = sizeof(r);
+  r.channel = report.channel;
+  r.operation = report.operation;
+  r.err = report.err;
+  r.capsule_id = capsule.isEmpty() ? nullptr : capsule.constData();
+  r.input_hash = hash.isEmpty() ? nullptr : hash.constData();
+  r.output = report.output;
+  r.reason = reason.isEmpty() ? nullptr : reason.constData();
+  GFNativeDocumentResult(gf::runtime::SdkContext(), Instance(), &r);
+}
 void SettingsWidget::NotifyRestartNeeded(int level) {
   GFNativeSettingsRestartNeeded(gf::runtime::SdkContext(), Instance(), level);
 }

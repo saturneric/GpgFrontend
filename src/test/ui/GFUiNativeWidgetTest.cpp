@@ -32,11 +32,17 @@
 #include <QDialog>
 #include <QPointer>
 #include <QWidget>
+#include <array>
 
 #include "GpgFrontendTest.h"
+#include "core/GpgCoreEngineTest.h"
+#include "core/gpg/GpgCoreTest.h"
 #include "core/model/SettingsObject.h"
 #include "host/SdkTestContext.h"
 #include "sdk/GFSDKBuffer.h"
+#include "sdk/GFSDKBuffer.hpp"
+#include "sdk/GFSDKGpg.h"
+#include "sdk/GFSDKGpgResult.hpp"
 #include "sdk/GFSDKUI.h"
 #include "ui/command/ModuleUiTeardown.h"
 #include "ui/lua/LuaMounts.h"
@@ -290,6 +296,166 @@ TEST(NativeWidgetTest, AModulePersistedDocumentIsTheViewsToOpenSaveAndClose) {
     delete page;
   });
   GFNativeWidgetUnregister(owner(), "persisted");
+}
+
+// A view's own crypto operation reaches the Status Panel as the Host's own
+// Encrypt does: analysed by the Host, with what became of the output.
+TEST_F(GpgCoreTest, NativeViewCryptoResultIsReportedAsTheHostsOwn) {
+  if (!ChannelIsUsable(kGpgFrontendDefaultChannel)) {
+    GTEST_SKIP() << "no live default channel in this profile";
+  }
+  SdkTestContext owner(
+      kOwner, GF_HOST_CAP_GPG | GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  SdkTestContext other(kOther, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  static const auto kOps = PersistedOps();
+  auto spec = Spec("reporting", GF_NATIVE_DOCUMENT);
+  spec.document = &kOps;
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+
+  UI::PlainTextEditorPage* page = nullptr;
+  OnGui([&] {
+    page = new UI::PlainTextEditorPage();
+    ASSERT_TRUE(page->MountNativeView(QString(kOwner) + ".reporting"));
+    page->SetModulePersisted(true);
+  });
+  ASSERT_NE(page, nullptr);
+
+  QList<std::pair<QList<UI::GpgOperaResult>, UI::InfoBoardBatchContext>> posted;
+  OnGui([&] {
+    QObject::connect(page, &UI::PlainTextEditorPage::SignalModuleResult, page,
+                     [&posted](const QList<UI::GpgOperaResult>& results,
+                               const UI::InfoBoardBatchContext& context) {
+                       posted.append({results, context});
+                     });
+    const auto id = page->NativeInstanceId();
+
+    // Refused before OpenPGP ran: no capsule, the view's reason.
+    GFDocumentCryptoResult refused{};
+    refused.struct_size = sizeof(refused);
+    refused.channel = kGpgFrontendDefaultChannel;
+    refused.operation = GF_GPG_ANALYSE_ENCRYPT;
+    refused.input_hash = "abc123";
+    refused.output = GF_DOCUMENT_OUTPUT_NOT_PRODUCED;
+    refused.reason = "a reader's key is missing";
+
+    EXPECT_NE(GFNativeDocumentResult(other(), id, &refused), 0)
+        << "another module's view";
+    EXPECT_NE(GFNativeDocumentResult(owner(), id, nullptr), 0);
+    auto bad_channel = refused;
+    bad_channel.channel = 987654;
+    EXPECT_NE(GFNativeDocumentResult(owner(), id, &bad_channel), 0)
+        << "a channel that is not live";
+    auto bad_op = refused;
+    bad_op.operation = 42;
+    EXPECT_NE(GFNativeDocumentResult(owner(), id, &bad_op), 0);
+
+    EXPECT_EQ(GFNativeDocumentResult(owner(), id, &refused), 0);
+
+    // Produced, but the view could not use it.
+    auto unused = refused;
+    unused.operation = GF_GPG_ANALYSE_DECRYPT;
+    unused.capsule_id = "no-such-capsule";
+    unused.output = GF_DOCUMENT_OUTPUT_APPLY_FAILED;
+    unused.reason = "not a note";
+    EXPECT_EQ(GFNativeDocumentResult(owner(), id, &unused), 0);
+  });
+
+  ASSERT_EQ(posted.size(), 2);
+  const auto& [first, first_context] = posted[0];
+  ASSERT_EQ(first.size(), 1);
+  EXPECT_EQ(first[0].op_info.op, GpgOperation::kENCRYPT);
+  EXPECT_LT(first[0].op_info.status, 0);
+  EXPECT_EQ(first[0].op_info.inputHash, u"abc123"_s);
+  EXPECT_EQ(first[0].input_index, 0);
+  EXPECT_TRUE(first_context.document_target);
+  EXPECT_EQ(first_context.fates.value(0), UI::OutputFate::kNOT_PRODUCED);
+  bool reason_kept = false;
+  for (const auto& e : first[0].op_info.stageErrors) {
+    for (const auto& d : e.engineDetails) {
+      reason_kept |= d.second == u"a reader's key is missing"_s;
+    }
+  }
+  EXPECT_TRUE(reason_kept);
+
+  const auto& [second, second_context] = posted[1];
+  ASSERT_EQ(second.size(), 1);
+  EXPECT_EQ(second[0].op_info.op, GpgOperation::kDECRYPT);
+  EXPECT_EQ(second_context.fates.value(0), UI::OutputFate::kAPPLY_FAILED);
+  ASSERT_EQ(second_context.output_errors.value(0).size(), 1);
+  EXPECT_EQ(second_context.output_errors.value(0).first().message,
+            u"not a note"_s);
+
+  OnGui([&] { delete page; });
+  GFNativeWidgetUnregister(owner(), "reporting");
+}
+
+// A real operation's capsule: the Host analyses it, on either engine, exactly
+// as it analyses its own Encrypt -- and only for the module it was made for.
+TEST_P(GpgCoreEngineTest, NativeViewEncryptResultIsAnalysedByTheHost) {
+  SdkTestContext owner(
+      kOwner, GF_HOST_CAP_GPG | GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  SdkTestContext other(kOther, GF_HOST_CAP_UI | GF_HOST_CAP_UI_CUSTOM);
+  static const auto kOps = PersistedOps();
+  auto spec = Spec("engine_reporting", GF_NATIVE_DOCUMENT);
+  spec.document = &kOps;
+  ASSERT_EQ(GFNativeWidgetRegister(owner(), &spec), 0);
+
+  auto key = GenerateFullKey("native_view_report");
+  ASSERT_TRUE(key != nullptr);
+  const auto key_id = key->ID().toUtf8();
+  const std::array<const char*, 1> ids{key_id.constData()};
+  QString capsule;
+  {
+    auto in = GFBuf::Copy(owner(), QByteArray("note"));
+    GFGpgResult r(owner());
+    ASSERT_EQ(GFGpgEncrypt(owner(), Channel(), ids.data(), ids.size(),
+                           in.View(), 0, r.Out()),
+              GF_GPG_OK);
+    capsule = r.CapsuleId();
+  }  // released: the capsule outlives it, as the SDK promises
+  ASSERT_FALSE(capsule.isEmpty());
+
+  UI::PlainTextEditorPage* page = nullptr;
+  QList<UI::GpgOperaResult> posted;
+  UI::InfoBoardBatchContext context;
+  OnGui([&] {
+    page = new UI::PlainTextEditorPage();
+    ASSERT_TRUE(page->MountNativeView(QString(kOwner) + ".engine_reporting"));
+    page->SetModulePersisted(true);
+    QObject::connect(page, &UI::PlainTextEditorPage::SignalModuleResult, page,
+                     [&](const QList<UI::GpgOperaResult>& results,
+                         const UI::InfoBoardBatchContext& c) {
+                       posted += results;
+                       context = c;
+                     });
+
+    const auto capsule_id = capsule.toUtf8();
+    GFDocumentCryptoResult done{};
+    done.struct_size = sizeof(done);
+    done.channel = Channel();
+    done.operation = GF_GPG_ANALYSE_ENCRYPT;
+    done.capsule_id = capsule_id.constData();
+    done.input_hash = "feed";
+    done.output = GF_DOCUMENT_OUTPUT_APPLIED;
+    EXPECT_NE(GFNativeDocumentResult(other(), page->NativeInstanceId(), &done),
+              0);
+    EXPECT_EQ(GFNativeDocumentResult(owner(), page->NativeInstanceId(), &done),
+              0);
+  });
+  ASSERT_NE(page, nullptr);
+
+  ASSERT_EQ(posted.size(), 1);
+  const auto& info = posted.first().op_info;
+  EXPECT_EQ(info.op, GpgOperation::kENCRYPT);
+  EXPECT_GT(info.status, 0) << "analysed, not reported as stopped";
+  EXPECT_FALSE(info.engine.isEmpty());
+  EXPECT_TRUE(info.stageErrors.isEmpty()) << "a stopped one records why";
+  EXPECT_EQ(info.inputHash, u"feed"_s);
+  EXPECT_EQ(context.fates.value(0), UI::OutputFate::kAPPLIED);
+
+  OnGui([&] { delete page; });
+  GFNativeWidgetUnregister(owner(), "engine_reporting");
+  DeleteKey(key);
 }
 
 namespace {

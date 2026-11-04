@@ -171,6 +171,19 @@ class DocumentWidget : public NativeWidgetBase {
   void NotifyOpsChanged();
   /// Saved to @p path; the tab now reads @p title and is no longer modified.
   void NotifySaved(const QString& path, const QString& title);
+  /// A crypto operation the view ran itself, for the Status Panel.
+  struct CryptoReport {
+    int channel = 0;
+    int operation = 0;   ///< a GFGpgAnalyseOperation
+    uint32_t err = 0;    ///< the error the operation returned
+    QString capsule_id;  ///< the result's; empty: it never ran (see reason)
+    QString input_hash;  ///< SHA-256 of the input, hex
+    int output = GF_DOCUMENT_OUTPUT_NOT_PRODUCED;  ///< a GFDocumentOutput
+    QString reason;  ///< why it stopped, or the output was not used
+  };
+  /// The Host analyses the result and reports it as its own Encrypt and
+  /// Decrypt are reported. Call it once per operation: it takes the capsule.
+  void NotifyResult(const CryptoReport& report);
 };
 
 /// A page in the Host's Settings dialog.

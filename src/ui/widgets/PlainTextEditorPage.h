@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "ui/function/InfoBoardReport.h"
 #include "ui/function/TextDirection.h"
 
 class Ui_PlainTextEditor;
@@ -447,6 +448,11 @@ class GF_UI_EXPORT PlainTextEditorPage : public QWidget {
 
   /// A module-persisted document was saved by its view.
   void SignalModuleSaved(const QString& path, const QString& title);
+
+  /// The mounted view finished a crypto operation of its own, analysed and
+  /// with its output's fate, as the Host's own operations report theirs.
+  void SignalModuleResult(const QList<GpgOperaResult>& results,
+                          const InfoBoardBatchContext& context);
 
   /**
    * @brief A mounted view reported an edit -- every time, not only the first.

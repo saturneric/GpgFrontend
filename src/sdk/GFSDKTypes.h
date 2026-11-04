@@ -456,6 +456,32 @@ typedef struct GFDocumentWidgetOps {
   int (*close_decided)(void* user, uint64_t instance, int save);
 } GFDocumentWidgetOps;
 
+/** Where a document view's own crypto operation put its output. */
+typedef enum GFDocumentOutput {
+  GF_DOCUMENT_OUTPUT_NOT_PRODUCED = 0, /**< the operation produced none */
+  GF_DOCUMENT_OUTPUT_APPLIED = 1,      /**< it is in the document now */
+  GF_DOCUMENT_OUTPUT_APPLY_FAILED = 2, /**< produced, but could not be used */
+} GFDocumentOutput;
+
+/**
+ * @brief A crypto operation a document view ran itself, for the Status Panel.
+ *
+ * The Host analyses the result behind @p capsule_id exactly as it does its
+ * own Encrypt and Decrypt, so the report reads the same. Append-only.
+ */
+typedef struct GFDocumentCryptoResult {
+  size_t struct_size;
+  int channel;
+  int operation;          /**< a GFGpgAnalyseOperation */
+  uint32_t err;           /**< the error the operation returned */
+  const char* capsule_id; /**< the result's capsule; NULL: stopped before
+                               OpenPGP ran, see @p reason */
+  const char* input_hash; /**< SHA-256 of the input, hex; may be NULL */
+  int output;             /**< a GFDocumentOutput */
+  const char* reason;     /**< why it stopped or the output was not used,
+                               for the user; may be NULL */
+} GFDocumentCryptoResult;
+
 /** A settings page: what the Host asks of it. Append-only. */
 typedef struct GFSettingsWidgetOps {
   size_t struct_size;

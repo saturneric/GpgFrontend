@@ -33,11 +33,13 @@
 
 #include <QString>
 #include <any>
+#include <optional>
 
 #include "GFSDKTypes.h"
 
 namespace GpgFrontend {
 class GFBuffer;
+struct GpgOpResultInfo;
 }  // namespace GpgFrontend
 
 /**
@@ -134,6 +136,9 @@ void GFGpgResultRelease(GFGpgResultRef r);
 /// Consume the engine result model behind @p capsule_id, when it belongs to a
 /// live result the calling module holds; empty otherwise.
 auto TakeResultModel(const char* capsule_id) -> std::any;
+/// The same, for @p caller rather than the module this thread works for.
+auto TakeResultModelFor(const char* capsule_id, const QString& caller)
+    -> std::any;
 auto GFGpgResultOutstandingCount(const char* module_id) -> size_t;
 
 auto GFAnalyseEncryptResultInfoByCapsule(int channel, uint32_t err,
@@ -150,6 +155,18 @@ auto GFAnalyseDecryptResultInfoByCapsule(int channel, uint32_t err,
                                          const char** analyse,
                                          const char** cards,
                                          const char** info_json) -> int;
+/**
+ * @brief What a module's own operation did, as the application's own
+ * operations report it: the result behind @p capsule_id (taken for
+ * @p module) analysed, or, when it stopped before analysis or there is no
+ * such result, the stopped operation with @p reason as its detail.
+ *
+ * @param operation a GFGpgAnalyseOperation; nullopt for an unknown one
+ */
+auto AnalyseDocumentResult(int channel, int operation, uint32_t err,
+                           const char* capsule_id, const QString& module,
+                           const QString& reason)
+    -> std::optional<GpgFrontend::GpgOpResultInfo>;
 auto GFAnalyseVerifyResultInfoByCapsule(int channel, uint32_t err,
                                         const char* capsule_id,
                                         const char** analyse,

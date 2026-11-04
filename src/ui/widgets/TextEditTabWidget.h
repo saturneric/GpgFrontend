@@ -30,6 +30,7 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
+#include "ui/function/InfoBoardReport.h"
 #include "ui/function/TabManagement.h"
 
 namespace GpgFrontend::UI {
@@ -291,6 +292,10 @@ class GF_UI_EXPORT TextEditTabWidget : public QTabWidget {
    * a request from a background one would run against the wrong document.
    */
   void SignalCryptoOperationRequested(const QString& operation);
+
+  /// A tab's mounted view finished a crypto operation of its own.
+  void SignalModuleResult(const QList<GpgOperaResult>& results,
+                          const InfoBoardBatchContext& context);
 
   /// Emitted when the CURRENT tab's view changed which operations apply.
   void SignalCryptoOperationsChanged();

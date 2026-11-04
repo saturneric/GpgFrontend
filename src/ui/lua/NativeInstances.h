@@ -32,6 +32,7 @@
 #include <QPointer>
 #include <optional>
 
+#include "ui/function/InfoBoardReport.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
 namespace GpgFrontend::UI {
@@ -52,6 +53,9 @@ class GF_UI_EXPORT NativeContainer {
   virtual void OnRequestCrypto(uint32_t /*op*/) {}
   virtual void OnOpsChanged() {}
   virtual void OnSaved(const QString& /*path*/, const QString& /*title*/) {}
+  /// A document view's own crypto operation, analysed as the Host's are.
+  virtual void OnResult(const GpgOperaResult& /*result*/,
+                        const InfoBoardBatchContext& /*context*/) {}
   virtual void OnRestartNeeded(int /*level*/) {}
   virtual void OnClose() {}
 

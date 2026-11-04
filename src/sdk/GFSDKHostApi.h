@@ -564,6 +564,11 @@ typedef struct GFHostNativeWidgetApi {
    *  tab says now. Clears the tab's modified mark. */
   int (*document_saved)(GFHostContextRef ctx, uint64_t instance,
                         const char* path, const char* title);
+
+  /** A document view finished a crypto operation of its own; the Host
+   *  reports it in the window's Status Panel. */
+  int (*document_result)(GFHostContextRef ctx, uint64_t instance,
+                         const GFDocumentCryptoResult* result);
 } GFHostNativeWidgetApi;
 
 /**

@@ -39,6 +39,7 @@
 #include "private/GFHostTransfer.h"
 #include "private/GFHostVersioned.h"
 #include "private/GFSDKPrivate.h"
+#include "ui/function/InfoBoardReport.h"
 #include "ui/lua/NativeInstances.h"
 #include "ui/lua/NativeWidgetRegistry.h"
 
@@ -464,6 +465,50 @@ auto DocumentSaved(GFHostContextRef ctx, uint64_t instance, const char* path,
       [p = Text(path), t = Text(title)](auto* c) { c->OnSaved(p, t); });
 }
 
+auto DocumentResult(GFHostContextRef ctx, uint64_t instance,
+                    const GFDocumentCryptoResult* in) -> int {
+  NATIVE_GATE("native.document_result");
+  if (in == nullptr || in->struct_size == 0) return -1;
+  const auto r = gf_sdk_internal::CopyVersioned(*in);
+  const auto module = gf_sdk_internal::ContextModuleId(ctx);
+  const auto reason = Text(r.reason);
+  // Analysed here, for the calling module, whose capsule it must be; which
+  // view it is for is checked on delivery, as for every notification.
+  auto info = gf_host::AnalyseDocumentResult(r.channel, r.operation, r.err,
+                                             r.capsule_id, module, reason);
+  if (!info.has_value()) return -1;
+
+  GpgFrontend::UI::GpgOperaResult result(*info);
+  result.input_index = 0;
+  result.op_info.inputHash = Text(r.input_hash);
+
+  // What became of the output, as the Host's own Encrypt and Decrypt record
+  // it for the document they work on.
+  GpgFrontend::UI::InfoBoardBatchContext context;
+  context.document_target = true;
+  using GpgFrontend::UI::OutputFate;
+  switch (r.output) {
+    case GF_DOCUMENT_OUTPUT_APPLIED:
+      context.fates.insert(0, OutputFate::kAPPLIED);
+      break;
+    case GF_DOCUMENT_OUTPUT_APPLY_FAILED:
+      context.fates.insert(0, OutputFate::kAPPLY_FAILED);
+      context.output_errors[0].append(
+          {GpgFrontend::UI::OutputAction::kAPPLY_TO_DOCUMENT,
+           {},
+           std::nullopt,
+           reason,
+           GpgFrontend::UI::OutputErrorOrigin::kAPPLICATION});
+      break;
+    default:
+      context.fates.insert(0, OutputFate::kNOT_PRODUCED);
+      break;
+  }
+
+  return Notify(ctx, instance, NativeWidgetKind::kDOCUMENT,
+                [result, context](auto* c) { c->OnResult(result, context); });
+}
+
 auto SettingsRestartNeeded(GFHostContextRef ctx, uint64_t instance, int level)
     -> int {
   NATIVE_GATE("native.settings_restart_needed");
@@ -492,6 +537,7 @@ const GFHostNativeWidgetApi kNativeApi = {
     &SettingsRestartNeeded,
     &DialogClose,
     &DocumentSaved,
+    &DocumentResult,
 };
 
 }  // namespace gf_sdk_internal

@@ -113,6 +113,10 @@ int GFNativeDialogClose(GFSDKContext* ctx, uint64_t instance);
 /** A module-persisted document was saved; see GFDocumentWidgetOps. */
 int GFNativeDocumentSaved(GFSDKContext* ctx, uint64_t instance,
                           const char* path, const char* title);
+/** A document view's own crypto operation finished: the Host reports it in
+ *  the Status Panel as it reports its own. See GFDocumentCryptoResult. */
+int GFNativeDocumentResult(GFSDKContext* ctx, uint64_t instance,
+                           const GFDocumentCryptoResult* result);
 
 /**
  * @brief A file size as the rest of the application writes it. PURE.

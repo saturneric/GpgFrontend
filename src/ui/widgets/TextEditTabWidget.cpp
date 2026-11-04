@@ -1139,6 +1139,11 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
             // The path is the page's by now; the title is the tab's.
             SetTabTitle(page, title);
           });
+  // A view's own crypto result, for the Status Panel. Not limited to the tab
+  // in front: the operation was the user's, and it may finish after they
+  // switched tabs.
+  connect(page, &PlainTextEditorPage::SignalModuleResult, this,
+          &TextEditTabWidget::SignalModuleResult);
 
   connect(page, &PlainTextEditorPage::SignalTextDirectionModeChanged, this,
           &TextEditTabWidget::SignalTextDirectionModeChanged);

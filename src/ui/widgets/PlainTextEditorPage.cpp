@@ -599,6 +599,10 @@ class NativeDocumentPort : public NativeContainer {
   void OnSaved(const QString &path, const QString &title) override {
     if (!page_.isNull()) page_->module_saved(path, title);
   }
+  void OnResult(const GpgOperaResult &result,
+                const InfoBoardBatchContext &context) override {
+    if (!page_.isNull()) emit page_->SignalModuleResult({result}, context);
+  }
 
  private:
   QPointer<PlainTextEditorPage> page_;

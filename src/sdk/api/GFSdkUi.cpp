@@ -123,6 +123,13 @@ auto GFNativeDocumentSaved(GFSDKContext* ctx, uint64_t instance,
   return g->document_saved(hctx, instance, path, title);
 }
 
+auto GFNativeDocumentResult(GFSDKContext* ctx, uint64_t instance,
+                            const GFDocumentCryptoResult* result) -> int {
+  GF_SDK_REQUIRE(ctx, native, "GFNativeDocumentResult", -1);
+  if (!GF_SDK_GROUP_HAS(g, document_result)) return -1;
+  return g->document_result(hctx, instance, result);
+}
+
 auto GFNativeSettingsRestartNeeded(GFSDKContext* ctx, uint64_t instance,
                                    int level) -> int {
   GF_SDK_REQUIRE(ctx, native, "GFNativeSettingsRestartNeeded", -1);

@@ -132,6 +132,10 @@ void MainWindow::Init() noexcept {
     connect(edit_->TabWidget(),
             &TextEditTabWidget::SignalCryptoOperationsChanged, this,
             &MainWindow::slot_page_crypto_operations_changed);
+    // A mounted view that runs its own crypto (a note) is reported exactly
+    // as the Host's own Encrypt and Decrypt are.
+    connect(edit_->TabWidget(), &TextEditTabWidget::SignalModuleResult, this,
+            &MainWindow::slot_result_analyse_show_helper);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {

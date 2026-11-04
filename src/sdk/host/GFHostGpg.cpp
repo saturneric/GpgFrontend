@@ -50,6 +50,7 @@
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgOperaOutcome.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/DataObject.h"
@@ -332,7 +333,62 @@ auto AnalyseResultInfoByCapsule(int channel, uint32_t err,
   return ra.GetStatus();
 }
 
+// A document view's own operation, as BuildSimpleGpgOperasHelper sees the
+// application's: stopped before analysis (cancelled, say), or analysed.
+// Nothing for a channel that is not live: asking its context anything would
+// build a placeholder for it.
+template <typename ResultT, typename AnalyseT>
+auto DocumentOpInfo(int channel, uint32_t err, std::any capsule,
+                    const QString& reason)
+    -> std::optional<GpgFrontend::GpgOpResultInfo> {
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return std::nullopt;
+  const auto error = ModuleErrorOf(channel, err);
+  auto* result = std::any_cast<ResultT>(&capsule);
+  if (result != nullptr && !GpgFrontend::IsStoppedBeforeAnalysis(error)) {
+    AnalyseT ra(channel, error, *result);
+    ra.Analyse();
+    return ra.GetOpInfo();
+  }
+  QList<QPair<GpgFrontend::GpgOperation, QString>> details;
+  if (result != nullptr && !result->ErrorDetail().isEmpty()) {
+    details.append({AnalyseT::kOperation, result->ErrorDetail()});
+  }
+  if (!reason.isEmpty()) details.append({AnalyseT::kOperation, reason});
+  return GpgFrontend::MakeAbortedOpInfo(
+      AnalyseT::kOperation, error, GpgFrontend::DescribeOpenPGPEngine(channel),
+      details);
+}
+
 }  // namespace
+
+auto AnalyseDocumentResult(int channel, int operation, uint32_t err,
+                           const char* capsule_id, const QString& module,
+                           const QString& reason)
+    -> std::optional<GpgFrontend::GpgOpResultInfo> {
+  // Taken whatever happens next: the capsule is consumed on first use.
+  auto capsule = TakeResultModelFor(capsule_id, module);
+  switch (operation) {
+    case GF_GPG_ANALYSE_ENCRYPT:
+      return DocumentOpInfo<GpgFrontend::GpgEncryptResult,
+                            GpgFrontend::GpgEncryptResultAnalyse>(
+          channel, err, std::move(capsule), reason);
+    case GF_GPG_ANALYSE_DECRYPT:
+      return DocumentOpInfo<GpgFrontend::GpgDecryptResult,
+                            GpgFrontend::GpgDecryptResultAnalyse>(
+          channel, err, std::move(capsule), reason);
+    case GF_GPG_ANALYSE_SIGN:
+      return DocumentOpInfo<GpgFrontend::GpgSignResult,
+                            GpgFrontend::GpgSignResultAnalyse>(
+          channel, err, std::move(capsule), reason);
+    case GF_GPG_ANALYSE_VERIFY:
+      return DocumentOpInfo<GpgFrontend::GpgVerifyResult,
+                            GpgFrontend::GpgVerifyResultAnalyse>(
+          channel, err, std::move(capsule), reason);
+    default:
+      return std::nullopt;
+  }
+}
 
 auto GFAnalyseVerifyResultInfoByCapsule(int channel, uint32_t err,
                                         const char* capsule_id,
