@@ -1,0 +1,107 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+import GpgFrontend.Mobile
+
+// Revoking a subkey or a user ID: why, in OpenPGP's words and the person's
+// own, and that it cannot be taken back.
+BottomSheet {
+    id: sheet
+
+    // What is revoked: a subkey, or a user ID ({uid, ...}) when
+    // `forUid` is set.
+    property var subkey: ({})
+    property bool forUid: false
+    property int reason: 3
+
+    signal accepted(var subkey, int reason, string text)
+
+    function begin(subkey) {
+        sheet.subkey = subkey
+        forUid = false
+        reason = 3
+        why.clear()
+        open()
+    }
+
+    function beginForUid(uid) {
+        sheet.subkey = uid
+        forUid = true
+        reason = 3
+        why.clear()
+        open()
+    }
+
+    objectName: "revokeSubkeySheet"
+    title: forUid ? qsTr("Revoke user ID")
+                  : qsTr("Revoke subkey %1").arg((subkey.keyId || "").slice(-8))
+
+    Label {
+        Layout.fillWidth: true
+        visible: sheet.forUid
+        wrapMode: Text.WrapAnywhere
+        font.weight: Font.DemiBold
+        text: sheet.subkey.uid || ""
+    }
+
+    Label {
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        color: Theme.danger
+        text: sheet.forUid
+              ? qsTr("A revoked user ID no longer stands for the key. Share "
+                     + "the key afterwards, so others learn of it.")
+              : qsTr("A revoked subkey can never be used again. Share the key "
+                     + "afterwards, so others learn of it.")
+    }
+
+    // One list, without the sheet's spacing between its choices.
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        Repeater {
+            model: Wording.revocationReasons()
+
+            RadioButton {
+                required property string modelData
+                required property int index
+                Layout.fillWidth: true
+                text: modelData
+                checked: sheet.reason === index
+                onClicked: sheet.reason = index
+            }
+        }
+    }
+
+    TextField {
+        id: why
+        objectName: "revokeText"
+        Layout.fillWidth: true
+        placeholderText: qsTr("Description (optional)")
+    }
+
+    footer: [
+        Item {
+            Layout.fillWidth: true
+        },
+        Button {
+            text: qsTr("Cancel")
+            flat: true
+            onClicked: sheet.close()
+        },
+        Button {
+            objectName: "revokeRun"
+            text: qsTr("Revoke")
+            highlighted: true
+            Material.accent: Theme.danger
+            onClicked: {
+                sheet.close()
+                sheet.accepted(sheet.subkey, sheet.reason, why.text)
+            }
+        }
+    ]
+}

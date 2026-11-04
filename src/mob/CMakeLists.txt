@@ -144,6 +144,12 @@ qt_add_qml_module(gf_mob_lib
     qml/components/SheetHost.qml
     qml/components/Fact.qml
     qml/components/FingerprintView.qml
+    qml/components/ValiditySheet.qml
+    qml/components/AddSubkeySheet.qml
+    qml/components/RevokeSubkeySheet.qml
+    qml/components/KeyAlgoChooser.qml
+    qml/components/UidSheet.qml
+    qml/components/AddUidSheet.qml
     qml/components/OperationBar.qml
     qml/components/OperationFlow.qml
     qml/components/ProblemLabel.qml
