@@ -45,7 +45,9 @@ qt_add_library(gf_mob_lib STATIC
   model/KeyGenProfilesController.cpp
   model/KeyCategoriesController.cpp
   model/KeyGroupsController.cpp
+  model/AboutInfo.cpp
   model/KeyDatabasesController.cpp
+  model/ProfilesController.cpp
   model/SettingsModel.cpp
   model/ChangeRelay.h
   crypto/ContentKind.cpp
@@ -176,60 +178,37 @@ if(ANDROID)
   configure_file(${_gf_mob_icon_dir}/gf_launcher_foreground.png
     ${_gf_android_package}/res/drawable-nodpi/gf_launcher_foreground.png
     COPYONLY)
-
   # The loading page's logo, for the window shown before it (gf_splash).
   configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
     ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
 
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
-
-  # The loading page's logo, for the window shown before it (gf_splash).
-  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
-    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
+  # Android installs an update only over a higher versionCode, so every build
+  # gets the configure time, as the macOS bundle version does. That one's
+  # %Y%m%d%H%M is too large for a versionCode (at most 2100000000), so this
+  # is year, day of year, hour and minute: fixed width, so it still grows
+  # with time, and it fits until 2099.
+  string(TIMESTAMP _gf_android_version_code "%y%j%H%M" UTC)
+  message(STATUS "GpgFrontend Android Version Code ${_gf_android_version_code}")
 
   # The application id GpgFrontend uses everywhere else (appstream, Flathub).
   # Android 9 is the oldest Qt 6 supports.
+  set(_gf_android_min_sdk 28)
+  # What the package says of itself, for the About page's build information:
+  # on its one file only, so a new version code rebuilds nothing else.
+  set_property(SOURCE model/AboutInfo.cpp TARGET_DIRECTORY gf_mob_lib APPEND
+    PROPERTY COMPILE_DEFINITIONS
+      GF_ANDROID_MIN_SDK=${_gf_android_min_sdk}
+      GF_ANDROID_TARGET_SDK=${_gf_android_target_sdk}
+      GF_ANDROID_VERSION_CODE=${_gf_android_version_code})
   set_target_properties(gf_mob PROPERTIES
     QT_ANDROID_PACKAGE_NAME "com.bktus.gpgfrontend"
     QT_ANDROID_APP_NAME "GpgFrontend"
-    QT_ANDROID_MIN_SDK_VERSION 28
+    QT_ANDROID_MIN_SDK_VERSION ${_gf_android_min_sdk}
     QT_ANDROID_TARGET_SDK_VERSION ${_gf_android_target_sdk}
     QT_ANDROID_VERSION_NAME "${PROJECT_VERSION}"
+    QT_ANDROID_VERSION_CODE ${_gf_android_version_code}
     # res/mipmap-anydpi-v26: the desktop's logo as an adaptive icon.
     QT_ANDROID_APP_ICON "@mipmap/ic_launcher"
     QT_ANDROID_PACKAGE_SOURCE_DIR "${_gf_android_package}")
+
 endif()
