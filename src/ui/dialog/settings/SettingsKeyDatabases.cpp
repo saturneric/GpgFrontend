@@ -54,10 +54,6 @@ namespace GpgFrontend::UI {
 
 namespace {
 
-/// Channels are a fixed-size resource in the core, and every one of them holds
-/// an engine process open. Spelled once, and counted across all three kinds.
-constexpr int kMaxKeyDatabases = 8;
-
 // gpg-agent keeps its sockets inside the key database folder, and a unix socket
 // address is length-capped. A folder past that cap leaves the agent unable to
 // create its socket, so GnuPG never works there -- and nothing in the resulting

@@ -158,6 +158,40 @@ constexpr auto kDefaultKeyDatabaseName = "DEFAULT";
  */
 auto GF_CORE_EXPORT IsReservedKeyDatabaseName(const QString& name) -> bool;
 
+/// How many key databases a profile may have, counted across all three kinds.
+/// Channels are a fixed-size resource in the core, and every one of them holds
+/// an engine process open.
+inline constexpr int kMaxKeyDatabases = 8;
+
+/// The characters a key database's name may use: it becomes a folder.
+inline constexpr auto kKeyDatabaseNamePattern = R"([a-zA-Z0-9\s\-_]+)";
+
+/**
+ * @brief Whether @p name uses only kKeyDatabaseNamePattern's characters.
+ */
+auto GF_CORE_EXPORT IsKeyDatabaseNameText(const QString& name) -> bool;
+
+/**
+ * @brief Whether a database in @p infos already answers to @p name, by its
+ * stored name or the one it is shown under, compared case-insensitively:
+ * "Work" and "work" are one folder on some systems.
+ */
+auto GF_CORE_EXPORT IsKeyDatabaseNameTaken(const QString& name,
+                                           const QList<KeyDatabaseInfo>& infos)
+    -> bool;
+
+/**
+ * @brief The first "<prefix> <n>" no database in @p infos is called, and, when
+ * @p app_data_path is given, whose managed folder is not there already (a
+ * removed database's, kept in the Recycle Bin).
+ *
+ * Not translated, deliberately: the name becomes a folder.
+ */
+auto GF_CORE_EXPORT SuggestKeyDatabaseName(const QString& prefix,
+                                           const QList<KeyDatabaseInfo>& infos,
+                                           const QString& app_data_path = {})
+    -> QString;
+
 /**
  * @brief The name a key database is shown under.
  *

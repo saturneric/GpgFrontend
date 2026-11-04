@@ -1418,6 +1418,39 @@ auto IsReservedKeyDatabaseName(const QString& name) -> bool {
                                 Qt::CaseInsensitive) == 0;
 }
 
+auto IsKeyDatabaseNameText(const QString& name) -> bool {
+  static const QRegularExpression kAllowed(
+      QStringLiteral("^%1$").arg(QLatin1StringView(kKeyDatabaseNamePattern)));
+  return kAllowed.match(name).hasMatch();
+}
+
+auto IsKeyDatabaseNameTaken(const QString& name,
+                            const QList<KeyDatabaseInfo>& infos) -> bool {
+  const auto trimmed = name.trimmed();
+  return std::any_of(
+      infos.cbegin(), infos.cend(), [&trimmed](const KeyDatabaseInfo& info) {
+        return info.name.compare(trimmed, Qt::CaseInsensitive) == 0 ||
+               KeyDatabaseDisplayName(info.id, info.name)
+                       .compare(trimmed, Qt::CaseInsensitive) == 0;
+      });
+}
+
+auto SuggestKeyDatabaseName(const QString& prefix,
+                            const QList<KeyDatabaseInfo>& infos,
+                            const QString& app_data_path) -> QString {
+  // The first unused number, rather than one more than the count: after the
+  // first of two is removed, the count names the one that is left.
+  for (int n = 1;; ++n) {
+    const auto candidate = u"%1 %2"_s.arg(prefix).arg(n);
+    if (IsKeyDatabaseNameTaken(candidate, infos)) continue;
+    if (!app_data_path.isEmpty() &&
+        QFileInfo::exists(ManagedKeyDatabasePath(app_data_path, candidate))) {
+      continue;
+    }
+    return candidate;
+  }
+}
+
 auto IsBuiltInKeyDatabase(const QString& database_id,
                           const QString& stored_name) -> bool {
   if (!database_id.isEmpty()) return database_id == kDefaultKeyDatabaseId;

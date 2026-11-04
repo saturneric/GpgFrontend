@@ -149,7 +149,8 @@ void KeyDatabaseEditDialog::init_ui() {
 
   // Muted, but not italic: the hint is a full sentence the user is meant to
   // read, and a whole italic paragraph is harder to read than a plain one.
-  QRegularExpression safe_string_re(R"([a-zA-Z0-9\s\-_]+)");
+  QRegularExpression safe_string_re(
+      QString::fromLatin1(kKeyDatabaseNamePattern));
   auto* safe_validator = new QRegularExpressionValidator(safe_string_re, this);
   ui_->keyDBNameLineEdit->setValidator(safe_validator);
 
@@ -277,21 +278,11 @@ auto KeyDatabaseEditDialog::suggested_name() const -> QString {
   // one the field itself then refuses.
   const auto prefix = is_managed() ? u"Key DB"_s : u"External Key DB"_s;
 
-  // The first unused number, rather than one more than the count. Removing the
-  // first of two databases and adding another used to suggest the name the
-  // remaining one already had, so the user met a duplicate-name error about a
-  // name they had not chosen.
-  for (int n = 1;; ++n) {
-    const auto candidate = QString("%1 %2").arg(prefix).arg(n);
-
-    const auto taken = std::any_of(
-        key_database_infos_.begin(), key_database_infos_.end(),
-        [&candidate](const KeyDatabaseInfo& info) -> bool {
-          return info.name.compare(candidate, Qt::CaseInsensitive) == 0;
-        });
-
-    if (!taken) return candidate;
-  }
+  // The first unused number, never the name of a database already listed, nor
+  // a managed one whose folder a removed database left behind.
+  return SuggestKeyDatabaseName(
+      prefix, key_database_infos_,
+      is_managed() ? GetGSS().GetAppDataPath() : QString());
 }
 
 void KeyDatabaseEditDialog::update_path_display() {

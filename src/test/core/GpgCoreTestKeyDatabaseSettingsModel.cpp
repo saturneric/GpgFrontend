@@ -385,4 +385,37 @@ TEST(KeyDatabaseSettingsModelTest, ADraggedRowLandsInTheGapItWasDroppedInto) {
   EXPECT_EQ(ids(list), (QStringList{"a", "b", "c"}));
 }
 
+TEST(KeyDatabaseNameTest, ANameIsWhatAFolderMayBeCalled) {
+  EXPECT_TRUE(IsKeyDatabaseNameText(u"Key DB 1"_s));
+  EXPECT_TRUE(IsKeyDatabaseNameText(u"work_2-old"_s));
+  EXPECT_FALSE(IsKeyDatabaseNameText(u"a/b"_s));
+  EXPECT_FALSE(IsKeyDatabaseNameText(u"Schlüssel"_s));
+  EXPECT_FALSE(IsKeyDatabaseNameText({}));
+}
+
+TEST(KeyDatabaseNameTest, ATakenNameIsTakenWhateverItsCase) {
+  const QList<KeyDatabaseInfo> infos{
+      BuiltIn(), Database("id-work", "work", KeyDatabaseKind::kMANAGED)};
+  EXPECT_TRUE(IsKeyDatabaseNameTaken(u"WORK "_s, infos));
+  // Nor the name the built-in one is shown by.
+  EXPECT_TRUE(IsKeyDatabaseNameTaken(
+      KeyDatabaseDisplayName(kDefaultKeyDatabaseId, kDefaultKeyDatabaseName),
+      infos));
+  EXPECT_FALSE(IsKeyDatabaseNameTaken(u"home"_s, infos));
+}
+
+TEST(KeyDatabaseNameTest, TheSuggestionSkipsNamesAndLeftoverFolders) {
+  QTemporaryDir app_data;
+  ASSERT_TRUE(app_data.isValid());
+  const QList<KeyDatabaseInfo> infos{
+      Database("id-1", "Key DB 1", KeyDatabaseKind::kMANAGED)};
+  EXPECT_EQ(SuggestKeyDatabaseName(u"Key DB"_s, infos), u"Key DB 2"_s);
+
+  // A removed database's folder is still there: not offered again.
+  ASSERT_TRUE(
+      QDir().mkpath(ManagedKeyDatabasePath(app_data.path(), u"Key DB 2"_s)));
+  EXPECT_EQ(SuggestKeyDatabaseName(u"Key DB"_s, infos, app_data.path()),
+            u"Key DB 3"_s);
+}
+
 }  // namespace GpgFrontend::Test
