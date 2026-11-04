@@ -30,6 +30,8 @@ Alert {
 
     // Going to the background forgets whatever was typed.
     Component.onCompleted: InteractionBridge.SignalWipeSecretInputs.connect(sheet.clear)
+    // The bridge outlives the sheet: let go of it with the sheet.
+    Component.onDestruction: InteractionBridge.SignalWipeSecretInputs.disconnect(sheet.clear)
 
     ColumnLayout {
         anchors.fill: parent

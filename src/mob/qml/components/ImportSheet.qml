@@ -10,8 +10,9 @@ import GpgFrontend.Mobile
 BottomSheet {
     id: sheet
 
-    function begin() {
-        block.text = ""
+    // Open with @p text (a key block from the Text page), or empty.
+    function begin(text) {
+        block.text = text || ""
         outcome.text = ""
         open()
     }
@@ -46,12 +47,17 @@ BottomSheet {
         id: importer
     }
 
+    // Going to the background forgets whatever was pasted.
+    function wipe() {
+        if (!importer.busy) block.text = ""
+    }
+
+    // The bridge outlives the sheet: let go of it with the sheet.
     Component.onCompleted: {
         importer.SignalFinished.connect(sheet.finished)
-        InteractionBridge.SignalWipeSecretInputs.connect(() => {
-            if (!importer.busy) block.text = ""
-        })
+        InteractionBridge.SignalWipeSecretInputs.connect(sheet.wipe)
     }
+    Component.onDestruction: InteractionBridge.SignalWipeSecretInputs.disconnect(sheet.wipe)
 
     // No name filters: Android's picker filters by MIME type, and it has none
     // that covers .asc, so a filter greys out the very files it names. What a
@@ -102,7 +108,7 @@ BottomSheet {
         inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
         placeholderText: qsTr("-----BEGIN PGP PUBLIC KEY BLOCK-----")
         font.family: Theme.mono
-        font.pixelSize: 12
+        font.pixelSize: Theme.labelSize
     }
 
     Label {
