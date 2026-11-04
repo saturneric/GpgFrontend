@@ -678,6 +678,133 @@ auto LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles {
   return {settings.profiles, settings.default_profile};
 }
 
+auto NormalizeKeyAlgoId(const QString& engine_name) -> QString {
+  auto id = engine_name.toLower();
+  id.remove(u' ').remove(u'-').remove(u'_');
+
+  // A hybrid is named after both halves; the generation id is the first.
+  for (const auto& hybrid : {u"mldsa65"_s, u"mldsa87"_s}) {
+    if (id.startsWith(hybrid)) return hybrid;
+  }
+  // GnuPG says "brainpoolp256r1", rPGP "Brainpool P-256".
+  if (id.startsWith(u"brainpoolp"_s) && !id.endsWith(u"r1"_s)) id += u"r1"_s;
+  return id;
+}
+
+auto SuggestSubkeyAlgo(SubkeyPurpose purpose, const QString& primary,
+                       const QList<KeyAlgo>& supported) -> KeyAlgo {
+  const auto can = [purpose](const KeyAlgo& a) {
+    switch (purpose) {
+      case SubkeyPurpose::kEncrypt:
+        return a.CanEncrypt();
+      case SubkeyPurpose::kSign:
+        return a.CanSign();
+      case SubkeyPurpose::kAuthenticate:
+        return a.CanAuth();
+    }
+    return false;
+  };
+
+  // The primary key's own family, in order of preference. A curve keeps its
+  // id across ECDSA and ECDH, so the capability decides which of the two.
+  QStringList family;
+  const auto encrypt = purpose == SubkeyPurpose::kEncrypt;
+  if (primary == u"ed25519"_s) {
+    family << (encrypt ? u"cv25519"_s : u"ed25519"_s);
+  } else if (primary == u"ed448"_s) {
+    family << (encrypt ? u"x448"_s : u"ed448"_s);
+  } else if (primary.startsWith(u"dsa"_s)) {
+    family << (encrypt ? u"elg"_s + primary.mid(3) : primary);
+  } else if (primary == u"mldsa65"_s ||
+             primary.startsWith(u"slhdsashake128"_s)) {
+    family << (encrypt ? u"ky768"_s : primary) << u"ed25519"_s << u"cv25519"_s;
+  } else if (primary == u"mldsa87"_s ||
+             primary.startsWith(u"slhdsashake256"_s)) {
+    family << (encrypt ? u"kyber1024"_s : primary) << u"ed448"_s << u"x448"_s;
+  } else {
+    // RSA and the named curves: the same id does both jobs.
+    family << primary;
+  }
+
+  for (const auto& id : family) {
+    for (const auto& algo : supported) {
+      if (algo.Id() == id && can(algo)) return algo;
+    }
+  }
+
+  for (const auto& algo : supported) {
+    if (algo != KeyGenerateInfo::kNoneAlgo && can(algo)) return algo;
+  }
+  return KeyGenerateInfo::kNoneAlgo;
+}
+
+auto ParseSubkeyPurpose(const QString& name) -> std::optional<SubkeyPurpose> {
+  if (name == u"encrypt"_s) return SubkeyPurpose::kEncrypt;
+  if (name == u"sign"_s) return SubkeyPurpose::kSign;
+  if (name == u"authenticate"_s) return SubkeyPurpose::kAuthenticate;
+  return std::nullopt;
+}
+
+void ApplySubkeyPurpose(KeyGenerateInfo& info, SubkeyPurpose purpose,
+                        const KeyAlgo& algo) {
+  info.SetAlgo(algo);
+  info.SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+  info.SetAllowEncr(purpose == SubkeyPurpose::kEncrypt);
+  info.SetAllowSign(purpose == SubkeyPurpose::kSign);
+  info.SetAllowAuth(purpose == SubkeyPurpose::kAuthenticate);
+}
+
+void ApplyDefaultKeyVersion(KeyGenerateInfo& key,
+                            const QSharedPointer<KeyGenerateInfo>& subkey) {
+  const auto version = RequiredKeyVersion(key, subkey);
+  key.SetKeyVersion(version != 0 ? version : 4);
+}
+
+auto DescribeKeyAlgo(const KeyAlgo& algo, const KeyAlgo& sub) -> QString {
+  const auto none = [](const KeyAlgo& a) {
+    return a == KeyGenerateInfo::kNoneAlgo || a.Id().isEmpty() ||
+           a.Id() == u"none"_s;
+  };
+  if (none(algo)) return QObject::tr("None");
+
+  // The names the algorithms go by, rather than the engine's ids and family
+  // labels ("CV25519 (ECDH)"), which say the same thing twice.
+  const auto one = [](const KeyAlgo& a) -> QString {
+    const auto id = a.Id();
+    static const QHash<QString, QString> kNamed{
+        {u"ed25519"_s, u"Ed25519"_s},     {u"ed448"_s, u"Ed448"_s},
+        {u"cv25519"_s, u"X25519"_s},      {u"x448"_s, u"X448"_s},
+        {u"ky768"_s, u"ML-KEM-768"_s},    {u"kyber1024"_s, u"ML-KEM-1024"_s},
+        {u"mldsa65"_s, u"ML-DSA-65"_s},   {u"mldsa87"_s, u"ML-DSA-87"_s},
+        {u"secp256k1"_s, u"secp256k1"_s},
+    };
+    if (const auto it = kNamed.constFind(id); it != kNamed.cend()) return *it;
+
+    const auto bits = [&id](const QString& prefix) {
+      return id.mid(prefix.size()).remove(u"r1"_s);
+    };
+    if (id.startsWith(u"rsa"_s)) return u"RSA-"_s + bits(u"rsa"_s);
+    if (id.startsWith(u"dsa"_s)) return u"DSA-"_s + bits(u"dsa"_s);
+    if (id.startsWith(u"elg"_s)) return u"ElGamal-"_s + bits(u"elg"_s);
+    if (id.startsWith(u"nistp"_s)) return u"NIST P-"_s + bits(u"nistp"_s);
+    if (id.startsWith(u"brainpoolp"_s)) {
+      return u"Brainpool P-"_s + bits(u"brainpoolp"_s);
+    }
+    return a.Name();
+  };
+
+  if (none(sub)) return one(algo);
+  return u"%1 + %2"_s.arg(one(algo), one(sub));
+}
+
+auto DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r) -> QString {
+  auto algos = DescribeKeyAlgo(r.primary, r.primary_sub);
+  if (r.profile.has_s_key) {
+    algos += u" \u00b7 "_s + DescribeKeyAlgo(r.subkey, r.subkey_sub);
+  }
+  return algos;
+}
+
 // ---- User id patterns (moved from ui/function/UidPattern.cpp, which the
 // phone does not build). The strings keep their QObject context.
 

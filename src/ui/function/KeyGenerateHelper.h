@@ -180,39 +180,10 @@ void ShowKeyGenerated(QWidget* parent, const QString& uid,
  */
 void QuickGenerateKey(int channel, QWidget* parent);
 
-/**
- * @brief What a new subkey is for.
- */
-enum class SubkeyPurpose {
-  kEncrypt,
-  kSign,
-  kAuthenticate,
-};
-
-/**
- * @brief An existing key's algorithm, as a generation algorithm id.
- *
- * The engines name a key's algorithm in their own ways ("RSA3072" and
- * "RSA 3072", "ML-DSA-65_ED25519"); this is the id the generation tables use
- * for it ("rsa3072", "mldsa65").
- */
-auto GF_UI_EXPORT NormalizeKeyAlgoId(const QString& engine_name) -> QString;
-
-/**
- * @brief The algorithm a subkey for @p purpose should use under @p primary.
- *
- * The primary key's own family when it has one for the purpose: an Ed25519
- * key gets an X25519 encryption subkey and an Ed25519 signing one, an RSA key
- * an RSA subkey of the same length, a post-quantum key a post-quantum one.
- * Otherwise the first algorithm on offer that can do the job.
- *
- * @param purpose what the subkey is for
- * @param primary the primary key's algorithm id ("ed25519", "rsa3072")
- * @param supported what may be generated under this key
- * @return the algorithm, or kNoneAlgo when nothing on offer can do the job
- */
-auto GF_UI_EXPORT SuggestSubkeyAlgo(SubkeyPurpose purpose,
-                                    const QString& primary,
-                                    const QList<KeyAlgo>& supported) -> KeyAlgo;
+// What a new subkey is for, and the algorithm to suggest for it: in the core
+// (core/function/KeyGenProfile.h), which the phone application shares.
+using GpgFrontend::NormalizeKeyAlgoId;
+using GpgFrontend::SubkeyPurpose;
+using GpgFrontend::SuggestSubkeyAlgo;
 
 }  // namespace GpgFrontend::UI

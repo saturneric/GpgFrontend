@@ -302,15 +302,9 @@ void SubkeyGenerateDialog::fit_height() {
 }
 
 void SubkeyGenerateDialog::apply_purpose(SubkeyPurpose purpose) {
-  const auto algo =
-      SuggestSubkeyAlgo(purpose, primary_algo_, supported_subkey_algos_);
-  gen_subkey_info_->SetAlgo(algo);
-  gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-
-  // One job each: an algorithm that could also sign is not made to.
-  gen_subkey_info_->SetAllowEncr(purpose == SubkeyPurpose::kEncrypt);
-  gen_subkey_info_->SetAllowSign(purpose == SubkeyPurpose::kSign);
-  gen_subkey_info_->SetAllowAuth(purpose == SubkeyPurpose::kAuthenticate);
+  ApplySubkeyPurpose(
+      *gen_subkey_info_, purpose,
+      SuggestSubkeyAlgo(purpose, primary_algo_, supported_subkey_algos_));
 
   editor_->Refresh();
   refresh_generate();

@@ -387,4 +387,80 @@ TEST(KeyGenSettingsTest, StoredSettingsWinOverTheOldCache) {
   EXPECT_EQ(read.uid_pattern.name, u"test-{token:12}"_s);
 }
 
+TEST(KeyGenerateHelperTest, EngineAlgorithmNamesBecomeGenerationIds) {
+  EXPECT_EQ(NormalizeKeyAlgoId(u"ED25519"_s), u"ed25519"_s);
+  EXPECT_EQ(NormalizeKeyAlgoId(u"RSA 3072"_s), u"rsa3072"_s);
+  EXPECT_EQ(NormalizeKeyAlgoId(u"RSA3072"_s), u"rsa3072"_s);
+  EXPECT_EQ(NormalizeKeyAlgoId(u"NIST P-256"_s), u"nistp256"_s);
+  EXPECT_EQ(NormalizeKeyAlgoId(u"Brainpool P-384"_s), u"brainpoolp384r1"_s);
+  EXPECT_EQ(NormalizeKeyAlgoId(u"BRAINPOOLP256R1"_s), u"brainpoolp256r1"_s);
+  EXPECT_EQ(NormalizeKeyAlgoId(u"ML-DSA-65_ED25519"_s), u"mldsa65"_s);
+}
+
+TEST(KeyGenerateHelperTest, ASubkeyFollowsThePrimaryKeysFamily) {
+  const auto subkeys = SubkeyAlgos();
+  const auto id = [&subkeys](SubkeyPurpose purpose, const QString& primary) {
+    return SuggestSubkeyAlgo(purpose, primary, subkeys).Id();
+  };
+
+  EXPECT_EQ(id(SubkeyPurpose::kEncrypt, u"ed25519"_s), u"cv25519"_s);
+  EXPECT_EQ(id(SubkeyPurpose::kSign, u"ed25519"_s), u"ed25519"_s);
+  EXPECT_EQ(id(SubkeyPurpose::kEncrypt, u"ed448"_s), u"x448"_s);
+  EXPECT_EQ(id(SubkeyPurpose::kEncrypt, u"rsa3072"_s), u"rsa3072"_s);
+  EXPECT_EQ(id(SubkeyPurpose::kEncrypt, u"mldsa65"_s), u"ky768"_s);
+  EXPECT_EQ(id(SubkeyPurpose::kEncrypt, u"dsa2048"_s), u"elg2048"_s);
+
+  // A curve keeps its id for both jobs; the job decides the type.
+  const auto nist_encrypt =
+      SuggestSubkeyAlgo(SubkeyPurpose::kEncrypt, u"nistp256"_s, subkeys);
+  EXPECT_EQ(nist_encrypt.Id(), u"nistp256"_s);
+  EXPECT_TRUE(nist_encrypt.CanEncrypt());
+  EXPECT_TRUE(SuggestSubkeyAlgo(SubkeyPurpose::kSign, u"nistp256"_s, subkeys)
+                  .CanSign());
+}
+
+TEST(KeyGenerateHelperTest, ASubkeyFallsBackToAnythingThatDoesTheJob) {
+  // A v4 key under an engine without its family's encryption algorithm.
+  const QList<KeyAlgo> only_rsa{Find(u"rsa2048"_s, u"RSA"_s, SubkeyAlgos())};
+  EXPECT_EQ(
+      SuggestSubkeyAlgo(SubkeyPurpose::kEncrypt, u"ed25519"_s, only_rsa).Id(),
+      u"rsa2048"_s);
+  EXPECT_EQ(SuggestSubkeyAlgo(SubkeyPurpose::kEncrypt, u"ed25519"_s, {}),
+            KeyGenerateInfo::kNoneAlgo);
+}
+
+TEST(KeyGenerateHelperTest, APurposeIsReadByItsName) {
+  EXPECT_EQ(ParseSubkeyPurpose(u"encrypt"_s), SubkeyPurpose::kEncrypt);
+  EXPECT_EQ(ParseSubkeyPurpose(u"sign"_s), SubkeyPurpose::kSign);
+  EXPECT_EQ(ParseSubkeyPurpose(u"authenticate"_s),
+            SubkeyPurpose::kAuthenticate);
+  EXPECT_FALSE(ParseSubkeyPurpose(u"launch"_s).has_value());
+  EXPECT_FALSE(ParseSubkeyPurpose({}).has_value());
+}
+
+TEST(KeyGenerateHelperTest, ASubkeyIsMadeForOneJobOnly) {
+  // Ed25519 could also authenticate; made to sign, it only signs.
+  const auto ed25519 = Find(u"ed25519"_s, u"EdDSA"_s, SubkeyAlgos());
+  KeyGenerateInfo info(true);
+  ApplySubkeyPurpose(info, SubkeyPurpose::kSign, ed25519);
+  EXPECT_EQ(info.GetAlgo(), ed25519);
+  EXPECT_EQ(info.SubAlgo(), KeyGenerateInfo::kNoneAlgo);
+  EXPECT_TRUE(info.IsAllowSign());
+  EXPECT_FALSE(info.IsAllowEncr());
+  EXPECT_FALSE(info.IsAllowAuth());
+}
+
+TEST(KeyGenerateHelperTest, AKeyIsV4UnlessItsAlgorithmsNeedV6) {
+  KeyGenerateInfo key;
+  key.SetAlgo(Find(u"ed25519"_s, u"EdDSA"_s, PrimaryAlgos()));
+  ApplyDefaultKeyVersion(key, nullptr);
+  EXPECT_EQ(key.GetKeyVersion(), 4);
+
+  KeyGenerateInfo pqc;
+  pqc.SetAlgo(Find(u"mldsa65"_s, {}, PrimaryAlgos()));
+  ASSERT_TRUE(pqc.GetAlgo().IsPostQuantum());
+  ApplyDefaultKeyVersion(pqc, nullptr);
+  EXPECT_EQ(pqc.GetKeyVersion(), 6);
+}
+
 }  // namespace GpgFrontend::Test

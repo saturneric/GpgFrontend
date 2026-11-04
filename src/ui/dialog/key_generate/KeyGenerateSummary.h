@@ -144,18 +144,10 @@ auto GF_UI_EXPORT KeyGenTileTitle(KeyGenTileRole role) -> QString;
  */
 auto GF_UI_EXPORT KeyGenTileDescription(KeyGenTileRole role) -> QString;
 
-/**
- * @brief How an algorithm is called: "Ed25519", "RSA-4096", or both halves of
- * a hybrid, "ML-KEM-768 + X25519".
- */
-auto GF_UI_EXPORT DescribeKeyAlgo(const KeyAlgo& algo, const KeyAlgo& sub)
-    -> QString;
-
-/**
- * @brief A profile's algorithms in one line: "Ed25519 · X25519".
- */
-auto GF_UI_EXPORT DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r)
-    -> QString;
+// How an algorithm and a profile's algorithms are called: in the core
+// (core/function/KeyGenProfile.h), which the phone application shares.
+using GpgFrontend::DescribeKeyAlgo;
+using GpgFrontend::DescribeKeyGenProfileAlgos;
 
 /**
  * @brief What a profile makes, said for a reader, and what of it the engine

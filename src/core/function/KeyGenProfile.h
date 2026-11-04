@@ -377,6 +377,77 @@ struct StoredKeyGenProfiles {
  */
 auto GF_CORE_EXPORT LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles;
 
+/**
+ * @brief What a new subkey is for.
+ */
+enum class SubkeyPurpose {
+  kEncrypt,
+  kSign,
+  kAuthenticate,
+};
+
+/**
+ * @brief An existing key's algorithm, as a generation algorithm id.
+ *
+ * The engines name a key's algorithm in their own ways ("RSA3072" and
+ * "RSA 3072", "ML-DSA-65_ED25519"); this is the id the generation tables use
+ * for it ("rsa3072", "mldsa65").
+ */
+auto GF_CORE_EXPORT NormalizeKeyAlgoId(const QString& engine_name) -> QString;
+
+/**
+ * @brief The algorithm a subkey for @p purpose should use under @p primary.
+ *
+ * The primary key's own family when it has one for the purpose: an Ed25519
+ * key gets an X25519 encryption subkey and an Ed25519 signing one, an RSA key
+ * an RSA subkey of the same length, a post-quantum key a post-quantum one.
+ * Otherwise the first algorithm on offer that can do the job.
+ *
+ * @param purpose what the subkey is for
+ * @param primary the primary key's algorithm id ("ed25519", "rsa3072")
+ * @param supported what may be generated under this key
+ * @return the algorithm, or kNoneAlgo when nothing on offer can do the job
+ */
+auto GF_CORE_EXPORT SuggestSubkeyAlgo(SubkeyPurpose purpose,
+                                      const QString& primary,
+                                      const QList<KeyAlgo>& supported)
+    -> KeyAlgo;
+
+/**
+ * @brief A purpose by its stored or scripted name: "encrypt", "sign" or
+ * "authenticate"; nullopt for anything else.
+ */
+auto GF_CORE_EXPORT ParseSubkeyPurpose(const QString& name)
+    -> std::optional<SubkeyPurpose>;
+
+/**
+ * @brief Make @p info a subkey of @p algo for one job only: an algorithm that
+ * could also sign is not made to.
+ */
+void GF_CORE_EXPORT ApplySubkeyPurpose(KeyGenerateInfo& info,
+                                       SubkeyPurpose purpose,
+                                       const KeyAlgo& algo);
+
+/**
+ * @brief Give @p key the format its algorithms need: v6 for a post-quantum
+ * one (RequiredKeyVersion()), else the interoperable v4.
+ */
+void GF_CORE_EXPORT ApplyDefaultKeyVersion(
+    KeyGenerateInfo& key, const QSharedPointer<KeyGenerateInfo>& subkey);
+
+/**
+ * @brief How an algorithm is called: "Ed25519", "RSA-4096", or both halves of
+ * a hybrid, "ML-KEM-768 + X25519".
+ */
+auto GF_CORE_EXPORT DescribeKeyAlgo(const KeyAlgo& algo, const KeyAlgo& sub)
+    -> QString;
+
+/**
+ * @brief A profile's algorithms in one line: "Ed25519 · X25519".
+ */
+auto GF_CORE_EXPORT DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r)
+    -> QString;
+
 // ---- The made-up user ids of an anonymous key (the desktop's "Fill In
 // Anonymously" and Quick Generate; the phone's as well), from a pattern kept
 // with the key generation settings.

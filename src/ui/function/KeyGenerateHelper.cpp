@@ -386,74 +386,12 @@ void QuickGenerateKey(int channel, QWidget* parent) {
   key->SetEmail(uid.email);
   key->SetComment(uid.comment);
 
-  // Post-quantum algorithms only exist in the v6 format; anything else keeps
-  // the interoperable v4 one, as the wizard does by default.
-  const auto version = RequiredKeyVersion(*key, subkey);
-  key->SetKeyVersion(version != 0 ? version : 4);
+  // As the wizard does by default.
+  ApplyDefaultKeyVersion(*key, subkey);
 
   const auto fingerprint = RunKeyGeneration(parent, channel, key, subkey);
   if (!fingerprint) return;
   ShowKeyGenerated(parent, key->GetUserid(), *fingerprint);
-}
-
-auto NormalizeKeyAlgoId(const QString& engine_name) -> QString {
-  auto id = engine_name.toLower();
-  id.remove(u' ').remove(u'-').remove(u'_');
-
-  // A hybrid is named after both halves; the generation id is the first.
-  for (const auto& hybrid : {u"mldsa65"_s, u"mldsa87"_s}) {
-    if (id.startsWith(hybrid)) return hybrid;
-  }
-  // GnuPG says "brainpoolp256r1", rPGP "Brainpool P-256".
-  if (id.startsWith(u"brainpoolp"_s) && !id.endsWith(u"r1"_s)) id += u"r1"_s;
-  return id;
-}
-
-auto SuggestSubkeyAlgo(SubkeyPurpose purpose, const QString& primary,
-                       const QList<KeyAlgo>& supported) -> KeyAlgo {
-  const auto can = [purpose](const KeyAlgo& a) {
-    switch (purpose) {
-      case SubkeyPurpose::kEncrypt:
-        return a.CanEncrypt();
-      case SubkeyPurpose::kSign:
-        return a.CanSign();
-      case SubkeyPurpose::kAuthenticate:
-        return a.CanAuth();
-    }
-    return false;
-  };
-
-  // The primary key's own family, in order of preference. A curve keeps its
-  // id across ECDSA and ECDH, so the capability decides which of the two.
-  QStringList family;
-  const auto encrypt = purpose == SubkeyPurpose::kEncrypt;
-  if (primary == u"ed25519"_s) {
-    family << (encrypt ? u"cv25519"_s : u"ed25519"_s);
-  } else if (primary == u"ed448"_s) {
-    family << (encrypt ? u"x448"_s : u"ed448"_s);
-  } else if (primary.startsWith(u"dsa"_s)) {
-    family << (encrypt ? u"elg"_s + primary.mid(3) : primary);
-  } else if (primary == u"mldsa65"_s ||
-             primary.startsWith(u"slhdsashake128"_s)) {
-    family << (encrypt ? u"ky768"_s : primary) << u"ed25519"_s << u"cv25519"_s;
-  } else if (primary == u"mldsa87"_s ||
-             primary.startsWith(u"slhdsashake256"_s)) {
-    family << (encrypt ? u"kyber1024"_s : primary) << u"ed448"_s << u"x448"_s;
-  } else {
-    // RSA and the named curves: the same id does both jobs.
-    family << primary;
-  }
-
-  for (const auto& id : family) {
-    for (const auto& algo : supported) {
-      if (algo.Id() == id && can(algo)) return algo;
-    }
-  }
-
-  for (const auto& algo : supported) {
-    if (algo != KeyGenerateInfo::kNoneAlgo && can(algo)) return algo;
-  }
-  return KeyGenerateInfo::kNoneAlgo;
 }
 
 }  // namespace GpgFrontend::UI

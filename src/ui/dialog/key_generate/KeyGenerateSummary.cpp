@@ -154,51 +154,6 @@ auto KeyGenTileDescription(KeyGenTileRole role) -> QString {
   return {};
 }
 
-auto DescribeKeyAlgo(const KeyAlgo& algo, const KeyAlgo& sub) -> QString {
-  const auto none = [](const KeyAlgo& a) {
-    return a == KeyGenerateInfo::kNoneAlgo || a.Id().isEmpty() ||
-           a.Id() == u"none"_s;
-  };
-  if (none(algo)) return QObject::tr("None");
-
-  // The names the algorithms go by, rather than the engine's ids and family
-  // labels ("CV25519 (ECDH)"), which say the same thing twice.
-  const auto one = [](const KeyAlgo& a) -> QString {
-    const auto id = a.Id();
-    static const QHash<QString, QString> kNamed{
-        {u"ed25519"_s, u"Ed25519"_s},     {u"ed448"_s, u"Ed448"_s},
-        {u"cv25519"_s, u"X25519"_s},      {u"x448"_s, u"X448"_s},
-        {u"ky768"_s, u"ML-KEM-768"_s},    {u"kyber1024"_s, u"ML-KEM-1024"_s},
-        {u"mldsa65"_s, u"ML-DSA-65"_s},   {u"mldsa87"_s, u"ML-DSA-87"_s},
-        {u"secp256k1"_s, u"secp256k1"_s},
-    };
-    if (const auto it = kNamed.constFind(id); it != kNamed.cend()) return *it;
-
-    const auto bits = [&id](const QString& prefix) {
-      return id.mid(prefix.size()).remove(u"r1"_s);
-    };
-    if (id.startsWith(u"rsa"_s)) return u"RSA-"_s + bits(u"rsa"_s);
-    if (id.startsWith(u"dsa"_s)) return u"DSA-"_s + bits(u"dsa"_s);
-    if (id.startsWith(u"elg"_s)) return u"ElGamal-"_s + bits(u"elg"_s);
-    if (id.startsWith(u"nistp"_s)) return u"NIST P-"_s + bits(u"nistp"_s);
-    if (id.startsWith(u"brainpoolp"_s)) {
-      return u"Brainpool P-"_s + bits(u"brainpoolp"_s);
-    }
-    return a.Name();
-  };
-
-  if (none(sub)) return one(algo);
-  return u"%1 + %2"_s.arg(one(algo), one(sub));
-}
-
-auto DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r) -> QString {
-  auto algos = DescribeKeyAlgo(r.primary, r.primary_sub);
-  if (r.profile.has_s_key) {
-    algos += u" \u00b7 "_s + DescribeKeyAlgo(r.subkey, r.subkey_sub);
-  }
-  return algos;
-}
-
 auto DescribeKeyGenProfileFacts(const KeyGenProfile& profile,
                                 const QList<KeyAlgo>& primary_algos,
                                 const QList<KeyAlgo>& subkey_algos,
