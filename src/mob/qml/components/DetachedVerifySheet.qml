@@ -1,0 +1,222 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Dialogs
+import QtQuick.Layouts
+import GpgFrontend.Mobile
+
+// Checking a detached signature: which file is the signature and which the
+// original are two fields, filled in for the person where it is known -- a
+// signature made here knows its file -- and only suggested where a name
+// merely matches. Either can be changed, swapped, or picked from the device.
+BottomSheet {
+    id: sheet
+
+    property FileWorkspace workspace
+    property int signatureId: -1
+    property int originalId: -1
+    // How each field was filled: "linked" (known), "suggested" (by name),
+    // "" (by the person, or not at all).
+    property string signatureHow: ""
+    property string originalHow: ""
+    // The field a picked file goes into.
+    property string picking: ""
+
+    // Start from the file @p id, put where what is known of it says.
+    function begin(id) {
+        const file = workspace.entry(id)
+        signatureId = -1
+        originalId = -1
+        signatureHow = ""
+        originalHow = ""
+        const looksSigned = /\.(sig|asc)$/i.test(file.name || "")
+        if (file.madeBy === "sign") {
+            signatureId = id
+            if (workspace.entry(file.sourceId).fileId !== undefined) {
+                originalId = file.sourceId
+                originalHow = "linked"
+            }
+        } else if (looksSigned) {
+            signatureId = id
+            const base = file.name.replace(/\.(sig|asc)$/i, "")
+            const match = findByName(base)
+            if (match >= 0) {
+                originalId = match
+                originalHow = "suggested"
+            }
+        } else {
+            originalId = id
+            const made = findSignatureOf(id)
+            if (made >= 0) {
+                signatureId = made
+                signatureHow = "linked"
+            } else {
+                const match = findByName(file.name + ".sig")
+                const armored = findByName(file.name + ".asc")
+                if (match >= 0 || armored >= 0) {
+                    signatureId = match >= 0 ? match : armored
+                    signatureHow = "suggested"
+                }
+            }
+        }
+        open()
+    }
+
+    function findByName(name) {
+        return workspace.idNamed(name)
+    }
+
+    // The signature made here of the file @p id, if one is still listed.
+    function findSignatureOf(id) {
+        return workspace.signatureOf(id)
+    }
+
+    function swap() {
+        const id = signatureId
+        signatureId = originalId
+        originalId = id
+        const how = signatureHow
+        signatureHow = originalHow
+        originalHow = how
+    }
+
+    objectName: "detachedVerifySheet"
+    title: qsTr("Verify a signature")
+
+    component FileField: ColumnLayout {
+        id: field
+
+        property string label
+        property int fileId: -1
+        property string how: ""
+        property int otherId: -1
+
+        signal chosen(int id)
+        signal pickRequested()
+
+        Layout.fillWidth: true
+        spacing: 4
+
+        Label {
+            text: field.label
+            color: Material.secondaryTextColor
+            font.pixelSize: Theme.labelSize
+        }
+
+        ComboBox {
+            Layout.fillWidth: true
+            model: sheet.workspace
+            textRole: "name"
+            valueRole: "fileId"
+            displayText: field.fileId >= 0
+                         ? (sheet.workspace.entry(field.fileId).name || "")
+                         : qsTr("Choose a file")
+            currentIndex: indexOfValue(field.fileId)
+            Accessible.name: qsTr("%1: %2").arg(field.label).arg(displayText)
+            onActivated: field.chosen(currentValue)
+        }
+
+        Label {
+            Layout.fillWidth: true
+            visible: text.length > 0
+            wrapMode: Text.Wrap
+            font.pixelSize: Theme.labelSize
+            color: field.how === "suggested" ? Theme.warning
+                                             : Material.secondaryTextColor
+            text: field.how === "linked" ? qsTr("Known: the signature was made here of this file.")
+                : field.how === "suggested" ? qsTr("Suggested by its name. Check it is the right one.")
+                : field.fileId >= 0 && field.fileId === field.otherId
+                  ? qsTr("The same file cannot be both.") : ""
+        }
+
+        Button {
+            flat: true
+            text: qsTr("Add from device…")
+            onClicked: field.pickRequested()
+        }
+    }
+
+    FileField {
+        objectName: "verifySignatureField"
+        label: qsTr("Signature file")
+        fileId: sheet.signatureId
+        how: sheet.signatureHow
+        otherId: sheet.originalId
+        onChosen: id => {
+            sheet.signatureId = id
+            sheet.signatureHow = ""
+        }
+        onPickRequested: {
+            sheet.picking = "signature"
+            picker.open()
+        }
+    }
+
+    Button {
+        objectName: "verifySwap"
+        Layout.alignment: Qt.AlignHCenter
+        flat: true
+        text: qsTr("Swap the two")
+        enabled: sheet.signatureId >= 0 || sheet.originalId >= 0
+        onClicked: sheet.swap()
+    }
+
+    FileField {
+        objectName: "verifyOriginalField"
+        label: qsTr("Original file")
+        fileId: sheet.originalId
+        how: sheet.originalHow
+        otherId: sheet.signatureId
+        onChosen: id => {
+            sheet.originalId = id
+            sheet.originalHow = ""
+        }
+        onPickRequested: {
+            sheet.picking = "original"
+            picker.open()
+        }
+    }
+
+    FileDialog {
+        id: picker
+        fileMode: FileDialog.OpenFile
+        onAccepted: {
+            const ids = sheet.workspace.addFiles([selectedFile])
+            if (ids.length === 0) return
+            const id = ids[0]
+            if (sheet.picking === "signature") {
+                sheet.signatureId = id
+                sheet.signatureHow = ""
+            } else {
+                sheet.originalId = id
+                sheet.originalHow = ""
+            }
+        }
+    }
+
+    signal verifyRequested(int signatureId, int originalId)
+
+    footer: [
+        Item {
+            Layout.fillWidth: true
+        },
+        Button {
+            text: qsTr("Cancel")
+            flat: true
+            onClicked: sheet.close()
+        },
+        Button {
+            objectName: "verifyRun"
+            text: qsTr("Verify")
+            highlighted: true
+            enabled: sheet.signatureId >= 0 && sheet.originalId >= 0
+                     && sheet.signatureId !== sheet.originalId
+            onClicked: {
+                sheet.close()
+                sheet.verifyRequested(sheet.signatureId, sheet.originalId)
+            }
+        }
+    ]
+}

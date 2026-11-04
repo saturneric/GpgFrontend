@@ -20,8 +20,19 @@ BottomSheet {
     readonly property bool usable: file.available === true
                                    && file.phase !== "queued"
                                    && file.phase !== "running"
+    // Why an action is not offered now, said under it.
+    readonly property string whyNot: file.available === false
+        ? qsTr("This file can no longer be opened.")
+        : file.phase === "queued" ? qsTr("It is waiting in the queue.")
+        : file.phase === "running" ? qsTr("It is being worked on.") : ""
     readonly property bool hasReport: file.result !== undefined
                                       && Object.keys(file.result).length > 0
+    // What the file is by its name alone, as the desktop tells: nothing is
+    // read. Its operations follow the desktop's rule: encrypting and signing
+    // what is not OpenPGP data, decrypting what is encrypted, verifying
+    // OpenPGP data.
+    readonly property bool looksEncrypted: file.content === "message"
+    readonly property bool openPgpData: (file.content || "").length > 0
 
     signal encryptRequested(int id)
     signal decryptRequested(int id)
@@ -29,8 +40,10 @@ BottomSheet {
     signal verifyRequested(int id)
     signal saveRequested(int id)
     signal shareRequested(int id)
+    signal openRequested(int id)
     signal removeRequested(int id)
-    signal reportRequested(var report)
+    // The status sheet for the file's last operation.
+    signal reportRequested(int id)
 
     function begin(id) {
         sheet.fileId = id
@@ -45,8 +58,11 @@ BottomSheet {
 
         function onDataChanged() {
             const file = sheet.workspace.entry(sheet.fileId)
-            if (Object.keys(file).length === 0) sheet.close()
-            else sheet.file = file
+            if (Object.keys(file).length === 0) {
+                sheet.close()
+                return
+            }
+            sheet.file = file
         }
     }
 
@@ -71,6 +87,10 @@ BottomSheet {
         font.pixelSize: Theme.secondarySize
         text: {
             const size = Theme.fileSize(sheet.file.size || 0)
+            if (sheet.file.origin === "shared")
+                return qsTr("%1 · Shared with GpgFrontend by another app. This "
+                            + "is a copy, deleted when you remove it from the "
+                            + "list or close the app.").arg(size)
             if (!sheet.isOutput)
                 return qsTr("%1 · A file you added. Removing it from the list "
                             + "does not delete it.").arg(size)
@@ -78,10 +98,28 @@ BottomSheet {
                        ? qsTr("Encrypted from %1")
                        : sheet.file.operation === "decrypt"
                          ? qsTr("Decrypted from %1") : qsTr("Signature of %1")
+            if ((sheet.file.savedName || "").length > 0)
+                return qsTr("%1 · %2. Saved as %3; the copy here is deleted "
+                            + "when you remove it from the list or close the app.")
+                       .arg(size).arg(made.arg(sheet.file.sourceName))
+                       .arg(sheet.file.savedName)
             return qsTr("%1 · %2. A temporary copy GpgFrontend made: save it "
                         + "to keep it. It is deleted when you remove it from "
                         + "the list or close the app.")
                    .arg(size).arg(made.arg(sheet.file.sourceName))
+        }
+    }
+
+    // What its name says it is.
+    Label {
+        objectName: "fileContent"
+        Layout.fillWidth: true
+        visible: text.length > 0
+        wrapMode: Text.Wrap
+        font.pixelSize: Theme.secondarySize
+        text: {
+            const kind = Wording.fileContent(sheet.file.content)
+            return kind.length > 0 ? qsTr("By its name: %1").arg(kind) : ""
         }
     }
 
@@ -113,7 +151,10 @@ BottomSheet {
             return r.status > 0 ? qsTr("Done") : r.status === 0
                    ? qsTr("Done, with warnings") : qsTr("Failed")
         }
-        onClicked: sheet.reportRequested(sheet.file.result)
+        onClicked: {
+            sheet.close()
+            sheet.reportRequested(sheet.fileId)
+        }
 
         Icon {
             symbol: "chevron_right"
@@ -143,32 +184,52 @@ BottomSheet {
     }
 
     SheetAction {
-        enabled: sheet.usable
-        symbol: "lock"
+        objectName: "detailsOpenWith"
+        visible: sheet.isOutput && sheet.workspace && sheet.workspace.canShare
+        symbol: "visibility"
+        text: qsTr("Open with…")
+        onClicked: sheet.openRequested(sheet.fileId)
+    }
+
+    SheetAction {
+        objectName: "detailsEncrypt"
+        enabled: sheet.usable && !sheet.openPgpData
+        image: Theme.operationIcon("encrypt")
         text: qsTr("Encrypt")
+        detail: !sheet.usable ? sheet.whyNot
+              : sheet.openPgpData ? qsTr("It is OpenPGP data already.") : ""
         onClicked: sheet.encryptRequested(sheet.fileId)
     }
 
     SheetAction {
-        enabled: sheet.usable
-        symbol: "lock_open_right"
+        objectName: "detailsDecrypt"
+        enabled: sheet.usable && sheet.looksEncrypted
+        image: Theme.operationIcon("decrypt")
         text: qsTr("Decrypt")
+        detail: !sheet.usable ? sheet.whyNot
+              : sheet.looksEncrypted ? ""
+              : qsTr("Its name is not one of encrypted data.")
         onClicked: sheet.decryptRequested(sheet.fileId)
     }
 
     SheetAction {
-        enabled: sheet.usable
-        symbol: "signature"
+        objectName: "detailsSign"
+        enabled: sheet.usable && !sheet.openPgpData
+        image: Theme.operationIcon("sign")
         text: qsTr("Sign")
+        detail: !sheet.usable ? sheet.whyNot
+              : sheet.openPgpData ? qsTr("It is OpenPGP data already.") : ""
         onClicked: sheet.signRequested(sheet.fileId)
     }
 
     SheetAction {
-        enabled: sheet.usable && sheet.workspace && sheet.workspace.count > 1
-        symbol: "verified"
+        objectName: "detailsVerify"
+        enabled: sheet.usable && sheet.openPgpData
+        image: Theme.operationIcon("verify")
         text: qsTr("Verify")
-        detail: sheet.workspace && sheet.workspace.count > 1
-                ? "" : qsTr("Add the signed file and its signature first.")
+        detail: !sheet.usable ? sheet.whyNot
+              : sheet.openPgpData ? qsTr("Check a detached signature against its file.")
+              : qsTr("Its name is not one of a signature or signed data.")
         onClicked: sheet.verifyRequested(sheet.fileId)
     }
 

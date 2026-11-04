@@ -143,6 +143,7 @@ qt_add_qml_module(gf_mob_lib
     qml/components/KeyToolbox.qml
     qml/components/StatusSheet.qml
     qml/components/SheetHost.qml
+    qml/components/DetachedVerifySheet.qml
     qml/components/Fact.qml
     qml/components/FingerprintView.qml
     qml/components/SubkeySheet.qml
