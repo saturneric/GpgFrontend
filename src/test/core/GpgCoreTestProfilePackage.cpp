@@ -634,6 +634,34 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
   EXPECT_EQ(settings.value("basic/language").toString(), "en_US");
 }
 
+// A profile that changed no setting that travels -- a new one on a phone --
+// is exported all the same: QSettings writes no file for an empty store, and
+// reading that file back used to refuse the whole package.
+TEST(ProfilePackageRoundTripTest, AProfileWithoutSettingsIsExported) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.settings.clear();
+  request.protection = ProfilePackageProtection::kPIN;
+  request.passphrase = GFBuffer(QString("correct horse battery staple"));
+
+  const auto written = ExportProfilePackage(request);
+  ASSERT_TRUE(written.ok) << written.error.toStdString();
+
+  const auto extracted = dir.path() + "/extracted";
+  const auto read = ReadProfilePackage(package, extracted, request.passphrase);
+  ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
+
+  QSettings settings(extracted + "/profile/config/config.ini",
+                     QSettings::IniFormat);
+  EXPECT_TRUE(settings.allKeys().isEmpty());
+}
+
 TEST(ProfilePackageRoundTripTest, ASynthesisedDataObjectReplacesTheStoredOne) {
   // The bug this exists for. Key database paths are stored as this machine's
   // absolute ones and have to travel as "@profile/...", and the rewrite used to
