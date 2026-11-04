@@ -35,6 +35,7 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/PassphraseService.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "crypto/OperationQueue.h"
 #include "plat/common/PlatformPrivacy.h"
 
 namespace GpgFrontend::Mobile {
@@ -83,6 +84,13 @@ auto PassphraseBroker::Current() const -> QVariantMap {
   if (pending_.empty()) return {};
   const auto& context = pending_.front();
   const auto key = context->GetKey();
+  // The operation it is for: the one running, as only one runs at a time
+  // (OperationQueue). A prompt from outside the queue -- making a key --
+  // cannot be told apart, and names whatever runs meanwhile, if anything.
+  auto* queue = OperationQueue::Instance();
+  const auto operation = queue != nullptr ? queue->CurrentId() : 0;
+  const auto* record = operation != 0 ? queue->Log()->Find(operation) : nullptr;
+  const auto name = record != nullptr ? record->params.op : QString();
   return {
       {QStringLiteral("key"), key != nullptr ? key->UID() : QString()},
       {QStringLiteral("keyId"), key != nullptr ? key->ID() : QString()},
@@ -91,6 +99,8 @@ auto PassphraseBroker::Current() const -> QVariantMap {
       {QStringLiteral("askForNew"), context->IsAskForNew()},
       {QStringLiteral("confirm"), context->ShouldConfirm()},
       {QStringLiteral("timeout"), context->GetTimeoutSeconds()},
+      {QStringLiteral("operationId"), operation},
+      {QStringLiteral("operation"), name},
   };
 }
 

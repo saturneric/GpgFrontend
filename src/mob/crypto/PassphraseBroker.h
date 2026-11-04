@@ -66,8 +66,9 @@ class PassphraseBroker : public QObject {
   QML_ELEMENT
   QML_SINGLETON
 
-  /// {key, info, retry, askForNew, confirm, timeout (seconds, 0: none)};
-  /// empty when nothing is asked.
+  /// {key, keyId, info, retry, askForNew, confirm, timeout (seconds, 0:
+  /// none), operationId and operation (the OperationQueue's running one;
+  /// 0 and empty when none runs)}; empty when nothing is asked.
   Q_PROPERTY(QVariantMap current READ Current NOTIFY SignalCurrentChanged)
 
  public:

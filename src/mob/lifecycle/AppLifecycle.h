@@ -62,6 +62,9 @@ class AppLifecycle : public QObject {
   QML_SINGLETON
 
   Q_PROPERTY(bool suspended READ IsSuspended NOTIFY SignalSuspendedChanged)
+  /// The system's font scale (SystemFontScale()), read again on each
+  /// return: the setting can only change while the application is away.
+  Q_PROPERTY(qreal fontScale READ FontScale NOTIFY SignalFontScaleChanged)
 
  public:
   /// @p passphrases may be null: no passphrase prompts to cancel.
@@ -76,9 +79,11 @@ class AppLifecycle : public QObject {
   void OnApplicationStateChanged(Qt::ApplicationState state);
 
   [[nodiscard]] auto IsSuspended() const -> bool;
+  [[nodiscard]] auto FontScale() const -> qreal;
 
  signals:
   void SignalSuspendedChanged();
+  void SignalFontScaleChanged();
   /// Went to the background; cached passphrases are already gone.
   void SignalSuspended();
   /// Back in the foreground.
@@ -88,6 +93,9 @@ class AppLifecycle : public QObject {
   InteractionBridge* bridge_;
   PassphraseBroker* passphrases_;
   bool suspended_ = false;
+  qreal font_scale_ = 1.0;
+
+  void read_font_scale();
 };
 
 }  // namespace GpgFrontend::Mobile

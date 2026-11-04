@@ -34,6 +34,7 @@
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "crypto/PassphraseBroker.h"
 #include "plat/common/PlatformClipboard.h"
+#include "plat/common/PlatformDisplay.h"
 #include "startup/InteractionBridge.h"
 
 namespace GpgFrontend::Mobile {
@@ -52,6 +53,16 @@ AppLifecycle::AppLifecycle(InteractionBridge* bridge,
     connect(app, &QGuiApplication::applicationStateChanged, this,
             &AppLifecycle::OnApplicationStateChanged);
   }
+  read_font_scale();
+}
+
+auto AppLifecycle::FontScale() const -> qreal { return font_scale_; }
+
+void AppLifecycle::read_font_scale() {
+  const auto scale = SystemFontScale();
+  if (qFuzzyCompare(scale, font_scale_)) return;
+  font_scale_ = scale;
+  emit SignalFontScaleChanged();
 }
 
 void AppLifecycle::SetInstance(AppLifecycle* instance) {
@@ -85,6 +96,7 @@ void AppLifecycle::OnApplicationStateChanged(Qt::ApplicationState state) {
     suspended_ = false;
     // A sensitive copy's timer did not run in the background.
     ExpireSensitiveCopy();
+    read_font_scale();
     emit SignalSuspendedChanged();
     emit SignalResumed();
   }
