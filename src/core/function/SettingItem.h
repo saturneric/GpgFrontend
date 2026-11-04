@@ -48,7 +48,7 @@ enum class SettingGroup : std::uint8_t {
   kSECURITY,     ///< how this profile's own key is protected
   kNETWORK,      ///< updates and the proxy
   kWORKSPACE,    ///< where files are kept
-  kLAYOUT,       ///< remembered tab orders and column choices
+  kLAYOUT,       ///< what is remembered: tab orders, column choices
 };
 
 /**

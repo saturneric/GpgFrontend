@@ -213,6 +213,67 @@ inline constexpr BoolSetting kRememberCheckedKeys{
      .inheritable = true},
     false};
 
+/// The phone's remembered signing key, a fingerprint. Remembering it never
+/// turns signing on: whether an encryption is signed is chosen each session.
+inline constexpr StringSetting kPreferredSigner{
+    {.key = "mobile/preferred_signer",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                                "Preferred signing key")},
+    ""};
+
+/// The phone's operation menus offer Encrypt & Sign too: off, as on the
+/// desktop's toolbar, until asked for.
+inline constexpr BoolSetting kShowEncryptSign{
+    {.key = "mobile/show_encrypt_sign",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Encrypt & Sign"),
+     .description =
+         QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                           "Offer encrypting and signing in one operation.")},
+    false};
+
+/// The phone's operation menus offer Decrypt & Verify too.
+inline constexpr BoolSetting kShowDecryptVerify{
+    {.key = "mobile/show_decrypt_verify",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Decrypt & Verify"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "Offer decrypting and checking signatures in one operation.")},
+    false};
+
+/// The phone's operation menus offer encrypting with a passphrase too.
+inline constexpr BoolSetting kShowSymmetricEncrypt{
+    {.key = "mobile/show_symmetric_encrypt",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                                "Encrypt with a passphrase"),
+     .description = QT_TRANSLATE_NOOP(
+         "GpgFrontend::SettingItem",
+         "Offer encrypting to a passphrase instead of to keys.")},
+    false};
+
+/// What the phone's Encrypt button does, as the desktop's toolbar default:
+/// "encrypt", "encrypt_sign" or "symmetric". One turned off above is not
+/// used: the button then encrypts.
+inline constexpr StringSetting kDefaultEncryptOperation{
+    {.key = "mobile/default_encrypt_operation",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Encrypt button"),
+     .description = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                                      "What the Encrypt button does.")},
+    "encrypt"};
+
+/// What the phone's Decrypt button does: "decrypt" or "decrypt_verify".
+inline constexpr StringSetting kDefaultDecryptOperation{
+    {.key = "mobile/default_decrypt_operation",
+     .group = kBEHAVIOUR,
+     .title = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem", "Decrypt button"),
+     .description = QT_TRANSLATE_NOOP("GpgFrontend::SettingItem",
+                                      "What the Decrypt button does.")},
+    "decrypt"};
+
 inline constexpr BoolSetting kUndoableOperations{
     {.key = "basic/undoable_operations",
      .group = kBEHAVIOUR,
@@ -437,11 +498,16 @@ inline constexpr StateSetting kToolboxColumnsFilter{
     .key = "keys/toolbox_columns_filter", .group = kLAYOUT};
 inline constexpr StateSetting kCustomCategoryOrder{
     .key = "keys/custom_category_order", .group = kLAYOUT};
+/// The phone's last operation that needed keys, to do again in one tap:
+/// remembered, never set by hand. JSON {op: "encrypt" | "symmetric" | "sign",
+/// recipients: [fingerprint], signs: bool, signer: fingerprint, digest}.
+inline constexpr StateSetting kLastOperation{.key = "mobile/last_operation",
+                                             .group = kLAYOUT};
 
 /// Every entry above. A setting missing from here is invisible to every
 /// policy that walks the catalog, so a new entry is added in both places;
 /// SettingCatalogTest checks that each key appears once.
-inline constexpr std::array<const SettingMeta *, 49> kAll = {
+inline constexpr std::array<const SettingMeta *, 56> kAll = {
     &kDefaultEngine,
     &kUseCustomGnuPGInstallPath,
     &kCustomGnuPGInstallPath,
@@ -459,6 +525,12 @@ inline constexpr std::array<const SettingMeta *, 49> kAll = {
     &kSingleRecipientMode,
     &kConfirmMultipleRecipients,
     &kRememberCheckedKeys,
+    &kPreferredSigner,
+    &kShowEncryptSign,
+    &kShowDecryptVerify,
+    &kShowSymmetricEncrypt,
+    &kDefaultEncryptOperation,
+    &kDefaultDecryptOperation,
     &kUndoableOperations,
     &kRestoreTextEditorPage,
     &kDefaultWorkspaceAs,
@@ -491,6 +563,7 @@ inline constexpr std::array<const SettingMeta *, 49> kAll = {
     &kGlobalColumnsFilter,
     &kToolboxColumnsFilter,
     &kCustomCategoryOrder,
+    &kLastOperation,
 };
 
 }  // namespace GpgFrontend::SettingItems
