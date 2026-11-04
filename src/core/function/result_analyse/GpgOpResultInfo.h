@@ -137,6 +137,9 @@ struct GF_CORE_EXPORT GpgVerifySigInfo {
   bool rejected = false;    ///< The signature must not be relied on although
                             ///<   @ref validity names only a key state (rPGP:
                             ///<   the key had expired before it signed)
+  bool trustModel = false;  ///< The engine weighed the signer's identity
+                            ///<   (GnuPG's web of trust); without one (rPGP)
+                            ///<   @ref validity says nothing of who signed
 };
 
 /**

@@ -255,7 +255,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
   for (const auto& sign : signatures) {
     GpgVerifySigInfo sig_info;
-    any_trust_model = any_trust_model || sign.HasTrustModel();
+    sig_info.trustModel = sign.HasTrustModel();
+    any_trust_model = any_trust_model || sig_info.trustModel;
 
     sig_info.signer.fingerprint = sign.GetFingerprint();
     sig_info.signer.pubkeyAlgo = sign.GetPubkeyAlgo();
