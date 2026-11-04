@@ -175,6 +175,19 @@ qt_add_resources(gf_mob_lib "gf_mob_style"
   PREFIX "/"
   FILES qtquickcontrols2.conf)
 
+# The phone application's own strings, C++ and QML, in a catalog of their own
+# (ts/GpgFrontendMobile.<locale>.ts) beside the application's, which holds
+# the core's (src/res). StartupController installs both. The lupdate scope is
+# this target alone: without SOURCE_TARGETS it would take in the whole tree.
+gpgfrontend_collect_ts_files(_gf_mob_ts_files "GpgFrontendMobile"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ts")
+qt_add_translations(gf_mob_lib
+  SOURCE_TARGETS gf_mob_lib
+  RESOURCE_PREFIX "/i18n_mob"
+  TS_FILES ${_gf_mob_ts_files}
+  LUPDATE_TARGET gf_mob_lupdate
+  LRELEASE_TARGET gf_mob_lrelease)
+
 target_include_directories(gf_mob_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # The generated type registrations include each header by its bare name.
 target_include_directories(gf_mob_lib PRIVATE
