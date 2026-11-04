@@ -38,6 +38,7 @@
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "crypto/OperationQueue.h"
 #include "crypto/PassphraseBroker.h"
 
 /**
@@ -79,6 +80,36 @@ inline void Answer(const QString& passphrase) {
 
 inline void Decline() {
   RunOnMainThread([]() { Broker()->cancel(); });
+}
+
+/// The newest record in the application's operation log that @p matches,
+/// read on its thread; empty when none does.
+inline auto FindRecord(const std::function<bool(const QVariantMap&)>& matches)
+    -> QVariantMap {
+  QVariantMap found;
+  RunOnMainThread([&matches, &found]() {
+    auto* log = GpgFrontend::Mobile::OperationQueue::Instance()->Log();
+    for (int row = 0; row < log->rowCount(); ++row) {
+      const auto id =
+          log->data(log->index(row), GpgFrontend::Mobile::OperationLog::kIdRole)
+              .toInt();
+      const auto record = log->record(id);
+      if (matches(record)) {
+        found = record;
+        return;
+      }
+    }
+  });
+  return found;
+}
+
+/// The newest record of an operation on the file @p file_id.
+inline auto RecordOfFile(int file_id) -> QVariantMap {
+  return FindRecord([file_id](const QVariantMap& record) {
+    const auto targets = record.value("targets").toList();
+    return !targets.isEmpty() &&
+           targets.first().toMap().value("fileId").toInt() == file_id;
+  });
 }
 
 /// A new ed25519 key with a cv25519 subkey to encrypt to; with @p passphrase,

@@ -122,7 +122,7 @@ auto RunScenario(const QString& name, AppServices& services) -> int {
     // refused, the operation ends, and the core shuts down.
     TextCryptoController crypto;
     QObject::connect(&startup, &StartupController::SignalReady,
-                     [&crypto]() { crypto.encrypt("message", {}); });
+                     [&crypto]() { crypto.encrypt("message", {}, {}, true); });
     QObject::connect(
         &services.passphrases, &PassphraseBroker::SignalCurrentChanged, [&]() {
           if (services.passphrases.Current().isEmpty()) return;

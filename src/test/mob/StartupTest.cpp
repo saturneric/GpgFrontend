@@ -29,6 +29,8 @@
 #include <QElapsedTimer>
 #include <QProcess>
 #include <QTemporaryDir>
+#include <functional>
+#include <memory>
 
 #include "MobileTest.h"
 #include "core/function/openpgp/ChannelHandle.h"
@@ -103,6 +105,19 @@ TEST(StartupTest, TheKeyListShowsANewKey) {
   RunOnMainThread([keys]() { keys->refresh(); });
   ASSERT_TRUE(WaitFor([keys]() { return !keys->Refreshing(); }, 10000));
   const int before = keys->Keys()->rowCount();
+  // The profile outlives the run: earlier runs left keys of this name.
+  const auto mine = [keys]() {
+    int count = 0;
+    RunOnMainThread([keys, &count]() {
+      KeyFilterModel filter;
+      filter.setSourceModel(keys->Keys());
+      filter.SetSearchText("mobile.test@");
+      filter.SetOnlySecret(true);
+      count = filter.rowCount();
+    });
+    return count;
+  };
+  const int mine_before = mine();
 
   auto key = SecureCreateSharedObject<KeyGenerateInfo>();
   key->SetName("Mobile Test");
@@ -119,12 +134,47 @@ TEST(StartupTest, TheKeyListShowsANewKey) {
   ASSERT_TRUE(WaitFor([keys]() { return !keys->Refreshing(); }, 10000));
   EXPECT_EQ(keys->Keys()->rowCount(), before + 1);
 
-  RunOnMainThread([keys]() {
-    KeyFilterModel mine;
-    mine.setSourceModel(keys->Keys());
-    mine.SetSearchText("mobile.test@");
-    mine.SetOnlySecret(true);
-    EXPECT_EQ(mine.rowCount(), 1);
+  EXPECT_EQ(mine(), mine_before + 1);
+}
+
+TEST(StartupTest, ARefreshThatNeverReportsBackStillEnds) {
+  // A controller of the test's own: the application's stays as it is.
+  std::function<void()> held;
+  KeyListController::SetRefresherForTesting(
+      [&held](QObject*, std::function<void()> done) {
+        held = std::move(done);
+      });
+  std::unique_ptr<KeyListController> keys;
+  int refreshed = 0;
+  RunOnMainThread([&]() {
+    keys = std::make_unique<KeyListController>(nullptr);
+    keys->SetRefreshTimeoutForTesting(50);
+    QObject::connect(keys.get(), &KeyListController::SignalRefreshed,
+                     keys.get(), [&refreshed]() { ++refreshed; });
+    keys->refresh();
+    EXPECT_TRUE(keys->Refreshing());
+  });
+  KeyListController::SetRefresherForTesting({});
+
+  // Ended by the wait, showing what the default database holds.
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        bool refreshing = true;
+        RunOnMainThread([&]() { refreshing = keys->Refreshing(); });
+        return !refreshing;
+      },
+      10000));
+  RunOnMainThread([&]() {
+    EXPECT_EQ(refreshed, 1);
+    EXPECT_NE(keys->Keys()->sourceModel(), nullptr);
+    // Not another while the first may still be flushing.
+    keys->refresh();
+    EXPECT_FALSE(keys->Refreshing());
+    // The late report shows the list again, and ends nothing twice.
+    held();
+    EXPECT_EQ(refreshed, 2);
+    EXPECT_FALSE(keys->Refreshing());
+    keys.reset();
   });
 }
 

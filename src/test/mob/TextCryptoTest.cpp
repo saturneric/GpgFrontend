@@ -26,6 +26,8 @@
  *
  */
 
+#include <QJsonDocument>
+
 #include "MobileCryptoTest.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SettingCatalog.h"
@@ -173,6 +175,11 @@ TEST_F(TextCryptoTest, SignAndVerifyInTheClear) {
   EXPECT_TRUE(signature.value("good").toBool());
   EXPECT_EQ(signature.value("fingerprint").toString().toUpper(),
             bob_.toUpper());
+  // Three facts apart: it holds, the key is fine, and nothing vouched for
+  // who bob is -- rPGP weighs no one's identity.
+  EXPECT_EQ(signature.value("signature").toString(), "valid");
+  EXPECT_EQ(signature.value("keyStatus").toString(), "ok");
+  EXPECT_EQ(signature.value("identityTrust").toString(), "not_assessed");
 
   // One changed word, and it no longer holds.
   auto tampered = signed_text.output;
@@ -181,11 +188,12 @@ TEST_F(TextCryptoTest, SignAndVerifyInTheClear) {
   const auto rejected = Finish();
   const auto bad = rejected.result.value("signatures").toList();
   ASSERT_EQ(bad.size(), 1);
+  EXPECT_EQ(bad.front().toMap().value("signature").toString(), "invalid");
   EXPECT_FALSE(bad.front().toMap().value("good").toBool());
 }
 
 TEST_F(TextCryptoTest, EncryptToAPassphraseAndDecryptIt) {
-  Start([](auto* c) { c->encrypt(kMessage, {}); });
+  Start([](auto* c) { c->encrypt(kMessage, {}, {}, true); });
   const auto asked = WaitForRequest();
   ASSERT_FALSE(asked.isEmpty());
   EXPECT_TRUE(asked.value("key").toString().isEmpty());
@@ -217,6 +225,14 @@ TEST_F(TextCryptoTest, EncryptAndSignThenDecryptAndVerify) {
   const auto signatures = decrypted.result.value("signatures").toList();
   ASSERT_EQ(signatures.size(), 1);
   EXPECT_TRUE(signatures.front().toMap().value("good").toBool());
+
+  // Decrypt alone, as the desktop's Decrypt: the same text, and the
+  // signature inside not looked at.
+  Start([&](auto* c) { c->decrypt(encrypted.output, false); });
+  const auto alone = Finish();
+  EXPECT_EQ(alone.result.value("status").toInt(), 1);
+  EXPECT_EQ(alone.output, QString(kMessage));
+  EXPECT_TRUE(alone.result.value("signatures").toList().isEmpty());
 }
 
 // rPGP does not ask again after a wrong passphrase, as GnuPG does: the
@@ -308,7 +324,7 @@ TEST_F(TextCryptoTest, AnUnansweredPromptEndsAsCancelledAtItsTimeout) {
     auto settings = GetSettings();
     SettingItems::kPassphrasePromptTimeout.Write(settings, 1);
   }
-  Start([](auto* c) { c->encrypt(kMessage, {}); });
+  Start([](auto* c) { c->encrypt(kMessage, {}, {}, true); });
   const auto request = WaitForRequest();
   ASSERT_FALSE(request.isEmpty());
   EXPECT_EQ(request.value("timeout").toInt(), 1);
@@ -325,7 +341,7 @@ TEST_F(TextCryptoTest, AnUnansweredPromptEndsAsCancelledAtItsTimeout) {
 }
 
 TEST_F(TextCryptoTest, OneOperationAtATime) {
-  Start([](auto* c) { c->encrypt(kMessage, {}); });
+  Start([](auto* c) { c->encrypt(kMessage, {}, {}, true); });
   ASSERT_FALSE(WaitForRequest().isEmpty());
   ASSERT_TRUE(Busy());
 
@@ -346,6 +362,127 @@ TEST_F(TextCryptoTest, OneOperationAtATime) {
       1000);
   EXPECT_FALSE(ran_later);
   EXPECT_FALSE(Busy());
+}
+
+TEST_F(TextCryptoTest, TheLogKeepsNoText) {
+  Start([](auto* c) { c->encrypt(kMessage, {bob_}); });
+  const auto encrypted = Finish();
+  ASSERT_EQ(encrypted.result.value("status").toInt(), 1);
+  Start([&](auto* c) { c->decrypt(encrypted.output); });
+  const auto decrypted = Finish();
+  ASSERT_EQ(decrypted.output, kMessage);
+
+  const auto record = FindRecord([](const QVariantMap& r) {
+    return r.value("operation").toString() == "decrypt";
+  });
+  ASSERT_FALSE(record.isEmpty());
+  EXPECT_EQ(record.value("phase").toString(), "done");
+  EXPECT_EQ(record.value("report").toMap().value("status").toInt(), 1);
+  // The text it read is known by its version alone, and nothing it wrote
+  // is anywhere in the record.
+  EXPECT_EQ(record.value("targets").toList().first().toMap().value("fileId"),
+            -1);
+  const auto dumped = QJsonDocument::fromVariant(record).toJson();
+  EXPECT_FALSE(dumped.contains("Meet at the usual place"));
+  EXPECT_FALSE(dumped.contains("BEGIN PGP MESSAGE"));
+}
+
+TEST_F(TextCryptoTest, ADeclinedPromptIsACancelledRecord) {
+  Start([](auto* c) { c->encrypt(kMessage, {}, {}, true); });
+  const auto request = WaitForRequest();
+  ASSERT_FALSE(request.isEmpty());
+  EXPECT_EQ(request.value("operation").toString(), "encrypt");
+  Decline();
+  Finish();
+  const auto record = FindRecord([&request](const QVariantMap& r) {
+    return r.value("operationId") == request.value("operationId");
+  });
+  EXPECT_EQ(record.value("phase").toString(), "cancelled");
+  EXPECT_TRUE(record.value("symmetric").toBool());
+}
+
+TEST_F(TextCryptoTest, NoRecipientsIsNeverAPassphrase) {
+  bool started = true;
+  Start([&started](auto* c) { started = c->encrypt(kMessage, {}); });
+  EXPECT_FALSE(started);
+  EXPECT_FALSE(Busy());
+  EXPECT_TRUE(CurrentRequest().isEmpty());
+
+  // A passphrase only when asked for, and then no recipient is used.
+  Start([&started](auto* c) {
+    started = c->encrypt(kMessage, {bob_}, alice_, true);
+  });
+  EXPECT_TRUE(started);
+  const auto request = WaitForRequest();
+  ASSERT_FALSE(request.isEmpty());
+  const auto record = FindRecord([&request](const QVariantMap& r) {
+    return r.value("operationId") == request.value("operationId");
+  });
+  EXPECT_TRUE(record.value("symmetric").toBool());
+  EXPECT_TRUE(record.value("recipients").toStringList().isEmpty());
+  EXPECT_TRUE(record.value("signer").toString().isEmpty());
+  Decline();
+  Finish();
+}
+
+TEST_F(TextCryptoTest, AResultKnowsWhichTextIsItsOwn) {
+  Start([](auto* c) { c->encrypt(kMessage, {bob_}); });
+  const auto encrypted = Finish();
+  ASSERT_FALSE(encrypted.output.isEmpty());
+  int id = 0;
+  RunOnMainThread([this, &id]() { id = crypto_->OperationId(); });
+  ASSERT_NE(id, 0);
+
+  QString input;
+  QString output;
+  QString edited;
+  QString other;
+  RunOnMainThread([&]() {
+    auto* log = GpgFrontend::Mobile::OperationQueue::Instance()->Log();
+    input = log->textRelation(id, kMessage);
+    output = log->textRelation(id, encrypted.output);
+    edited = log->textRelation(id, encrypted.output + "x");
+    other = log->textRelation(id + 1000, kMessage);
+  });
+  EXPECT_EQ(input, "input");
+  EXPECT_EQ(output, "output");
+  EXPECT_TRUE(edited.isEmpty());
+  EXPECT_TRUE(other.isEmpty());
+}
+
+TEST_F(TextCryptoTest, ARetryIsAsItWasAsked) {
+  Start([](auto* c) { c->encrypt(kMessage, {}, {}, true); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Decline();
+  ASSERT_TRUE(Finish().result.value("cancelled").toBool());
+  int first = 0;
+  RunOnMainThread([&]() { first = crypto_->OperationId(); });
+
+  bool retried = false;
+  Start([&](auto* c) { retried = c->retry(first); });
+  ASSERT_TRUE(retried);
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer("a retried passphrase");
+  const auto done = Finish();
+  EXPECT_EQ(done.result.value("status").toInt(), 1);
+  EXPECT_TRUE(done.output.startsWith("-----BEGIN PGP MESSAGE-----"));
+
+  int second = 0;
+  RunOnMainThread([&]() { second = crypto_->OperationId(); });
+  EXPECT_NE(second, first);
+  const auto record = FindRecord([second](const QVariantMap& r) {
+    return r.value("operationId") == second;
+  });
+  EXPECT_TRUE(record.value("symmetric").toBool());
+  EXPECT_EQ(record.value("targets").toList().first().toMap().value("fileId"),
+            -1);
+
+  // The earlier one's text is no longer held; once cleared, none is.
+  Start([&](auto* c) { retried = c->retry(first); });
+  EXPECT_FALSE(retried);
+  RunOnMainThread([this]() { crypto_->clear(); });
+  Start([&](auto* c) { retried = c->retry(second); });
+  EXPECT_FALSE(retried);
 }
 
 }  // namespace GpgFrontend::Test::Mobile
