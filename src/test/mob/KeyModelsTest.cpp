@@ -29,6 +29,7 @@
 #include "MobileTest.h"
 #include "core/model/GpgKeyTableModel.h"
 #include "core/utils/GpgUtils.h"
+#include "crypto/WorkSelection.h"
 #include "model/KeyFilterModel.h"
 #include "model/KeyRoleModel.h"
 
@@ -36,6 +37,7 @@ namespace GpgFrontend::Test::Mobile {
 
 using GpgFrontend::Mobile::KeyFilterModel;
 using GpgFrontend::Mobile::KeyRoleModel;
+using GpgFrontend::Mobile::WorkSelection;
 
 namespace {
 
@@ -150,6 +152,21 @@ TEST(KeyModelsTest, KeysAreSortedByNameAndGroupsLeftOut) {
   EXPECT_EQ(f.filtered.rowCount(), 4);
 }
 
+TEST(KeyModelsTest, LongListsSortNumbersAsNumbers) {
+  using GpgFrontend::Mobile::NaturalCompare;
+  QStringList names{"User 100", "user 2", "User 1000", "User 10",
+                    "User 1",   "User",   "Anna 7"};
+  std::sort(names.begin(), names.end(), [](const QString& a, const QString& b) {
+    return NaturalCompare(a, b) < 0;
+  });
+  EXPECT_EQ(names, (QStringList{"Anna 7", "User", "User 1", "user 2", "User 10",
+                                "User 100", "User 1000"}));
+  // Leading zeros do not count: the fingerprint then decides.
+  EXPECT_EQ(NaturalCompare("User 02", "user 2"), 0);
+  EXPECT_EQ(NaturalCompare("Key 9", "Key 10"), -1);
+  EXPECT_EQ(NaturalCompare("key 10", "KEY 10"), 0);
+}
+
 TEST(KeyModelsTest, SearchMatchesNameEmailIdAndFingerprint) {
   Fixture f;
   f.filtered.SetSearchText("EXAMPLE.NET");
@@ -190,6 +207,263 @@ TEST(KeyModelsTest, APastedFingerprintMatchesInAnyGrouping) {
   ASSERT_EQ(f.filtered.rowCount(), 1);
   EXPECT_EQ(f.filtered.index(0, 0).data(KeyRoleModel::kNameRole).toString(),
             "alice");
+}
+
+namespace {
+
+auto Fpr(const QString& id) -> QString { return id.repeated(4); }
+
+auto Issues(const WorkSelection& selection) -> QStringList {
+  QStringList issues;
+  for (const auto& key : selection.RecipientKeys()) {
+    issues << key.toMap().value("issue").toString();
+  }
+  return issues;
+}
+
+/// Leaves the profile's preferred signer as it found it: none.
+struct SignerReset {
+  ~SignerReset() {
+    Fixture f;
+    WorkSelection selection(&f.roles);
+    selection.SetKeysReady();
+    selection.setPreferredSigner({});
+  }
+};
+
+}  // namespace
+
+TEST(WorkSelectionTest, RecipientsStayUntilReset) {
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  selection.addRecipient(Fpr("AAAA0001"));
+  selection.addRecipient(Fpr("CCCC0003"));
+  selection.addRecipient(Fpr("aaaa0001"));  // the same key, however written
+  EXPECT_EQ(selection.Recipients(),
+            (QStringList{Fpr("AAAA0001"), Fpr("CCCC0003")}));
+  EXPECT_TRUE(selection.isRecipient(Fpr("cccc0003")));
+  selection.toggleRecipient(Fpr("CCCC0003"));
+  EXPECT_FALSE(selection.isRecipient(Fpr("CCCC0003")));
+  EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+
+  selection.SetPassphraseMode(true);
+  selection.SetSigningEnabled(true);
+  selection.reset();
+  EXPECT_TRUE(selection.Recipients().isEmpty());
+  EXPECT_FALSE(selection.PassphraseMode());
+  EXPECT_FALSE(selection.SigningEnabled());
+  EXPECT_EQ(selection.EncryptBlock(), "no_recipients");
+}
+
+TEST(WorkSelectionTest, AKeyThatCannotBeUsedIsReportedNotDropped) {
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  const auto gone = QStringLiteral("0123456789ABCDEF0123456789ABCDEF01234567");
+  selection.addRecipient(Fpr("BBBB0002"));  // expired
+  selection.addRecipient(Fpr("DDDD0004"));  // cannot encrypt
+  selection.addRecipient(gone);
+  selection.addRecipient(Fpr("CCCC0003"));
+
+  // Nothing is known of the keys before they are listed: nothing to report.
+  EXPECT_EQ(selection.IssueCount(), 0);
+  selection.SetKeysReady();
+  EXPECT_EQ(Issues(selection),
+            (QStringList{"expired", "cannot_encrypt", "missing", ""}));
+  EXPECT_EQ(selection.IssueCount(), 3);
+  EXPECT_EQ(selection.EncryptBlock(), "recipient_issue");
+  EXPECT_EQ(selection.Recipients().size(), 4);
+  const auto first = selection.RecipientKeys().first().toMap();
+  EXPECT_EQ(first.value("name").toString(), "Bob");
+  EXPECT_EQ(selection.RecipientKeys().at(2).toMap().value("fingerprint"), gone);
+
+  // Removing them is the person's to do.
+  selection.removeRecipient(Fpr("BBBB0002"));
+  selection.removeRecipient(Fpr("DDDD0004"));
+  selection.removeRecipient(gone);
+  EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+}
+
+// What a summary shows of many recipients: those with a problem always, then
+// the others up to a few; the count is of all of them.
+TEST(WorkSelectionTest, ManyRecipientsAreSummedUp) {
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  const auto missing = [](int i) {
+    return QString("%1").arg(i, 40, 16, QLatin1Char('0')).toUpper();
+  };
+  selection.addRecipient(Fpr("AAAA0001"));
+  selection.addRecipient(Fpr("CCCC0003"));
+  selection.addRecipient(missing(1));
+  const auto names = [&selection]() {
+    QStringList fprs;
+    for (const auto& key : selection.ShownRecipientKeys()) {
+      fprs << key.toMap().value("fingerprint").toString();
+    }
+    return fprs;
+  };
+  EXPECT_EQ(selection.RecipientCount(), 3);
+  // The one with a problem first.
+  EXPECT_EQ(names(),
+            (QStringList{missing(1), Fpr("AAAA0001"), Fpr("CCCC0003")}));
+
+  for (int i = 2; i <= 7; ++i) selection.addRecipient(missing(i));
+  EXPECT_EQ(selection.RecipientCount(), 9);
+  // Seven with problems: all of them, and no room left for the others.
+  EXPECT_EQ(names().size(), 7);
+  EXPECT_FALSE(names().contains(Fpr("AAAA0001")));
+
+  // What it says follows each change.
+  for (int i = 1; i <= 7; ++i) selection.removeRecipient(missing(i));
+  EXPECT_EQ(selection.RecipientCount(), 2);
+  EXPECT_EQ(names(), (QStringList{Fpr("AAAA0001"), Fpr("CCCC0003")}));
+  EXPECT_EQ(selection.IssueCount(), 0);
+}
+
+TEST(WorkSelectionTest, SigningNeedsAUsableKeyOfYourOwn) {
+  SignerReset reset;
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  EXPECT_EQ(selection.SignBlock(), "no_signer");
+  // alice is the one usable signing key of your own: offered, not used.
+  EXPECT_EQ(selection.SuggestedSigner(), Fpr("AAAA0001"));
+  EXPECT_TRUE(selection.PreferredSigner().isEmpty());
+
+  selection.addRecipient(Fpr("CCCC0003"));
+  selection.SetSigningEnabled(true);
+  EXPECT_EQ(selection.EncryptBlock(), "no_signer");
+  selection.setPreferredSigner(Fpr("CCCC0003"));  // not your own
+  EXPECT_EQ(selection.SignerKey().value("issue").toString(), "no_secret");
+  EXPECT_EQ(selection.EncryptBlock(), "signer_issue");
+  EXPECT_EQ(selection.SignBlock(), "signer_issue");
+  EXPECT_EQ(selection.IssueCount(), 1);
+
+  selection.setPreferredSigner(Fpr("AAAA0001"));
+  EXPECT_TRUE(selection.SignBlock().isEmpty());
+  EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+  EXPECT_TRUE(selection.SignsEncryption());
+  EXPECT_TRUE(selection.SuggestedSigner().isEmpty());
+
+  // A passphrase encrypts alone: not signed, and not held up by the signer.
+  selection.SetPassphraseMode(true);
+  EXPECT_FALSE(selection.SignsEncryption());
+  selection.setPreferredSigner(Fpr("CCCC0003"));
+  EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+}
+
+TEST(WorkSelectionTest, ARememberedSignerNeverTurnsSigningOn) {
+  SignerReset reset;
+  Fixture f;
+  {
+    WorkSelection selection(&f.roles);
+    selection.SetKeysReady();
+    selection.setPreferredSigner(Fpr("AAAA0001"));
+    selection.SetSigningEnabled(true);
+  }
+  // The next session: the key is remembered, signing is not.
+  WorkSelection next(&f.roles);
+  next.SetKeysReady();
+  EXPECT_EQ(next.PreferredSigner(), Fpr("AAAA0001"));
+  EXPECT_FALSE(next.SigningEnabled());
+  EXPECT_FALSE(next.SignsEncryption());
+  EXPECT_TRUE(next.SignBlock().isEmpty());
+  // Reset keys keeps it too.
+  next.reset();
+  EXPECT_EQ(next.PreferredSigner(), Fpr("AAAA0001"));
+}
+
+// The quick path: the last operation and its keys, kept between sessions,
+// done again with the same keys; forgotten once the keys are not the same.
+TEST(WorkSelectionTest, TheLastOperationIsKeptUntilTheKeysChange) {
+  SignerReset reset;
+  Fixture f;
+  {
+    WorkSelection selection(&f.roles);
+    selection.SetKeysReady();
+    selection.forgetLast();
+    EXPECT_TRUE(selection.LastOperation().isEmpty());
+    selection.addRecipient(Fpr("CCCC0003"));
+    selection.SetSigningEnabled(true);
+    selection.setPreferredSigner(Fpr("AAAA0001"));
+    selection.rememberOperation("encrypt");
+
+    const auto last = selection.LastOperation();
+    EXPECT_EQ(last.value("op").toString(), "encrypt");
+    EXPECT_EQ(last.value("recipientCount").toInt(), 1);
+    EXPECT_TRUE(last.value("signs").toBool());
+    EXPECT_EQ(last.value("signerKey").toMap().value("name").toString(),
+              "alice");
+
+    // Chosen again after the keys were reset.
+    selection.reset();
+    EXPECT_EQ(selection.restoreLast(), "encrypt");
+    EXPECT_EQ(selection.Recipients(), QStringList{Fpr("CCCC0003")});
+    EXPECT_TRUE(selection.SigningEnabled());
+    EXPECT_FALSE(selection.PassphraseMode());
+    EXPECT_TRUE(selection.EncryptBlock().isEmpty());
+  }
+
+  // The next session finds it, with the same keys.
+  {
+    WorkSelection next(&f.roles);
+    next.SetKeysReady();
+    EXPECT_EQ(next.LastOperation().value("op").toString(), "encrypt");
+    // Read again, unchanged: kept.
+    next.KeysRefreshed();
+    EXPECT_FALSE(next.LastOperation().isEmpty());
+  }
+
+  // A key database that holds other keys (one imported, deleted, edited, or
+  // another database): forgotten, here and in the settings.
+  {
+    GpgKeyTableModel other{0,
+                           {Key("Carol", "carol@example.org", "CCCC0003"),
+                            Key("alice", "alice@example.org", "AAAA0001",
+                                [](FakeKey& k) { k.secret = true; })}};
+    KeyRoleModel roles;
+    roles.setSourceModel(&other);
+    WorkSelection changed(&roles);
+    changed.SetKeysReady();
+    EXPECT_TRUE(changed.LastOperation().isEmpty());
+    EXPECT_TRUE(changed.restoreLast().isEmpty());
+  }
+  WorkSelection after(&f.roles);
+  after.SetKeysReady();
+  EXPECT_TRUE(after.LastOperation().isEmpty());
+}
+
+TEST(WorkSelectionTest, APassphraseOrASignatureIsKeptToo) {
+  SignerReset reset;
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  selection.SetPassphraseMode(true);
+  selection.rememberOperation("symmetric");
+  selection.SetPassphraseMode(false);
+  EXPECT_EQ(selection.restoreLast(), "symmetric");
+  EXPECT_TRUE(selection.PassphraseMode());
+
+  selection.setPreferredSigner(Fpr("AAAA0001"));
+  selection.rememberOperation("sign");
+  selection.setPreferredSigner({});
+  // Recipients chosen since are not what signing is about: they stay.
+  selection.addRecipient(Fpr("CCCC0003"));
+  EXPECT_EQ(selection.restoreLast(), "sign");
+  EXPECT_EQ(selection.PreferredSigner(), Fpr("AAAA0001"));
+  EXPECT_EQ(selection.Recipients(), QStringList{Fpr("CCCC0003")});
+  selection.forgetLast();
+}
+
+TEST(WorkSelectionTest, ASignerThatIsGoneIsReported) {
+  SignerReset reset;
+  Fixture f;
+  WorkSelection selection(&f.roles);
+  selection.SetKeysReady();
+  selection.setPreferredSigner(QStringLiteral("FFFF").repeated(10));
+  EXPECT_EQ(selection.SignerKey().value("issue").toString(), "missing");
+  EXPECT_EQ(selection.SignBlock(), "signer_issue");
 }
 
 }  // namespace GpgFrontend::Test::Mobile
