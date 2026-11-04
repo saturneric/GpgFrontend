@@ -32,6 +32,8 @@
 
 #include <QIdentityProxyModel>
 
+#include "core/model/GpgAbstractKey.h"
+
 namespace GpgFrontend::Mobile {
 
 /**
@@ -71,10 +73,20 @@ class KeyRoleModel : public QIdentityProxyModel {
     kStatusRole,
     /// The same, in words (DescribeKeyStatus).
     kStatusTextRole,
+    /// The direct members of a key group (their key or group ids); empty
+    /// for a key.
+    kMembersRole,
   };
   Q_ENUM(Role)
 
   using QIdentityProxyModel::QIdentityProxyModel;
+
+  /**
+   * @brief The key or key group at @p index of a KeyRoleModel, or of a model
+   * that maps onto one; nullptr anywhere else.
+   */
+  [[nodiscard]] static auto KeyAt(const QModelIndex& index)
+      -> const GpgAbstractKey*;
 
   [[nodiscard]] auto data(const QModelIndex& index, int role) const
       -> QVariant override;

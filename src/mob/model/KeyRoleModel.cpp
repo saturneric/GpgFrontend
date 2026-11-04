@@ -28,6 +28,7 @@
 
 #include "model/KeyRoleModel.h"
 
+#include "core/model/GpgKeyGroup.h"
 #include "core/model/GpgKeyTableModel.h"
 #include "core/utils/GpgUtils.h"
 
@@ -52,6 +53,15 @@ auto StatusName(GpgKeyStatus status) -> QString {
 }
 
 }  // namespace
+
+auto KeyRoleModel::KeyAt(const QModelIndex& index) -> const GpgAbstractKey* {
+  const auto* model = qobject_cast<const KeyRoleModel*>(index.model());
+  if (model == nullptr) return nullptr;
+  const auto source = model->mapToSource(index);
+  if (!source.isValid()) return nullptr;
+  const auto* item = static_cast<GpgKeyTableItem*>(source.internalPointer());
+  return item != nullptr ? item->Key() : nullptr;
+}
 
 auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
   if (role < kNameRole) return QIdentityProxyModel::data(index, role);
@@ -107,6 +117,11 @@ auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
       return key->ExpirationTime();
     case kAlgorithmRole:
       return key->Algo();
+    case kMembersRole: {
+      // By its class, not its type alone: anything may say it is a group.
+      const auto* group = dynamic_cast<const GpgKeyGroup*>(key);
+      return group != nullptr ? group->KeyIds() : QStringList();
+    }
     default:
       return {};
   }
@@ -144,6 +159,7 @@ auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {
       {kCheckedRole, "checked"},
       {kStatusRole, "status"},
       {kStatusTextRole, "statusText"},
+      {kMembersRole, "members"},
   });
   return names;
 }

@@ -41,10 +41,29 @@ namespace {
 
 QPointer<KeyListController> g_instance;
 
+auto RefresherSlot() -> KeyListController::Refresher& {
+  static KeyListController::Refresher refresher = RefreshKeyDatabases;
+  return refresher;
+}
+
 }  // namespace
 
 KeyListController::KeyListController(QObject* parent)
-    : QObject(parent), keys_(new KeyRoleModel(this)) {}
+    : QObject(parent), keys_(new KeyRoleModel(this)) {
+  timeout_.setSingleShot(true);
+  timeout_.setInterval(kRefreshTimeoutMs);
+  connect(&timeout_, &QTimer::timeout, this,
+          [this]() { finish(generation_, true); });
+}
+
+void KeyListController::SetRefresherForTesting(Refresher refresher) {
+  RefresherSlot() =
+      refresher ? std::move(refresher) : Refresher(RefreshKeyDatabases);
+}
+
+void KeyListController::SetRefreshTimeoutForTesting(int ms) {
+  timeout_.setInterval(ms);
+}
 
 KeyListController::~KeyListController() = default;
 
@@ -62,19 +81,48 @@ auto KeyListController::Keys() const -> KeyRoleModel* { return keys_; }
 auto KeyListController::Refreshing() const -> bool { return refreshing_; }
 
 void KeyListController::refresh() {
-  if (refreshing_) return;
+  // Nor while one that timed out still runs: two would flush the same
+  // repositories at once.
+  if (refreshing_ || late_pending_) return;
   refreshing_ = true;
   emit SignalRefreshingChanged();
 
-  RefreshKeyDatabases(this, [this]() {
-    const auto channel = UsableDefaultChannelHandle();
-    SetTable(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel());
-    qInfo() << "key list refreshed on channel" << channel << ":"
-            << keys_->rowCount() << "entries";
-    refreshing_ = false;
-    emit SignalRefreshingChanged();
-    emit SignalRefreshed();
-  });
+  const auto generation = ++generation_;
+  timeout_.start();
+  RefresherSlot()(this, [this, generation]() { finish(generation, false); });
+}
+
+void KeyListController::finish(int generation, bool timed_out) {
+  // An earlier refresh's report: a later one is under way.
+  if (generation != generation_) return;
+  // The refresh that timed out reports back after all: the databases are
+  // read now, so the list is shown again.
+  const auto late = !refreshing_;
+  if (late && timed_out) return;
+  timeout_.stop();
+  late_pending_ = timed_out;
+  if (timed_out) {
+    qWarning() << "the key database refresh did not report back within"
+               << timeout_.interval() << "ms; showing what is loaded";
+  } else if (late) {
+    qInfo() << "the key database refresh that timed out ended after all";
+  }
+
+  const auto channel = UsableDefaultChannelHandle();
+  SetTable(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel());
+  qInfo() << "key list refreshed on channel" << channel << ":"
+          << keys_->rowCount() << "entries";
+  refreshing_ = false;
+  if (!late) emit SignalRefreshingChanged();
+  emit SignalRefreshed();
+}
+
+void KeyListController::Reload() {
+  if (g_instance == nullptr || g_instance->refreshing_) return;
+  const auto channel = UsableDefaultChannelHandle();
+  g_instance->SetTable(
+      AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel());
+  emit g_instance->SignalRefreshed();
 }
 
 void KeyListController::SetTable(QSharedPointer<GpgKeyTableModel> table) {

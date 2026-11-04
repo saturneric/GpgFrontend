@@ -33,6 +33,8 @@
 #include <QObject>
 #include <QPointer>
 #include <QSharedPointer>
+#include <QTimer>
+#include <functional>
 
 #include "model/KeyRoleModel.h"
 
@@ -51,6 +53,11 @@ namespace GpgFrontend::Mobile {
  * One KeyRoleModel, re-pointed at a fresh GpgKeyTableModel after each
  * refresh(), which re-reads the key databases the same way the desktop does
  * (RefreshKeyDatabases()). Pages filter it with their own KeyFilterModel.
+ *
+ * A refresh that does not report back within kRefreshTimeoutMs ends anyway,
+ * showing what the default database holds, and says so in the log: the list
+ * never stays "refreshing" for good. (It did, twice, on a freshly booted
+ * emulator, with every thread idle: the end of the refresh task was lost.)
  */
 class KeyListController : public QObject {
   Q_OBJECT
@@ -76,8 +83,25 @@ class KeyListController : public QObject {
   /// Re-read the key databases, then show what they hold. Needs a ready core.
   Q_INVOKABLE void refresh();
 
+  /// Show the default database's keys and groups again, without re-reading
+  /// the databases: what a change of key groups needs, which lives in
+  /// memory already. Nothing while a refresh() is under way: it shows them.
+  static void Reload();
+
   /// Show @p table's keys; refresh() does this with the default database's.
   void SetTable(QSharedPointer<GpgKeyTableModel> table);
+
+  /// How long refresh() waits for the key databases before it ends anyway.
+  static constexpr int kRefreshTimeoutMs = 20000;
+
+  /// What re-reads the key databases: RefreshKeyDatabases(), unless a test
+  /// says else. @p done is to be called once, on the interface thread.
+  using Refresher =
+      std::function<void(QObject* receiver, std::function<void()> done)>;
+  static void SetRefresherForTesting(Refresher refresher);
+
+  /// refresh()'s wait, for tests.
+  void SetRefreshTimeoutForTesting(int ms);
 
  signals:
   void SignalRefreshingChanged();
@@ -87,6 +111,14 @@ class KeyListController : public QObject {
   KeyRoleModel* keys_;
   QSharedPointer<GpgKeyTableModel> table_;
   bool refreshing_ = false;
+  /// A refresh timed out and has not reported back yet.
+  bool late_pending_ = false;
+  /// Which refresh is under way; a report of an earlier one is not its end.
+  int generation_ = 0;
+  QTimer timeout_;
+
+  /// The refresh @p generation is over: show the default database.
+  void finish(int generation, bool timed_out);
 };
 
 }  // namespace GpgFrontend::Mobile

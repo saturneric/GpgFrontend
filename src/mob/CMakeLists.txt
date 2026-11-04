@@ -42,6 +42,7 @@ qt_add_library(gf_mob_lib STATIC
   model/KeyListController.cpp
   model/KeyImportController.cpp
   model/KeyActionsController.cpp
+  model/KeyGenProfilesController.cpp
   model/SettingsModel.cpp
   crypto/ContentKind.cpp
   crypto/KeySelection.cpp
@@ -171,6 +172,10 @@ if(ANDROID)
   configure_file(${_gf_mob_icon_dir}/gf_launcher_foreground.png
     ${_gf_android_package}/res/drawable-nodpi/gf_launcher_foreground.png
     COPYONLY)
+
+  # The loading page's logo, for the window shown before it (gf_splash).
+  configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
+    ${_gf_android_package}/res/drawable-nodpi/gf_splash_logo.png COPYONLY)
 
   # The loading page's logo, for the window shown before it (gf_splash).
   configure_file(${CMAKE_SOURCE_DIR}/resource/lfs/icons/gpgfrontend_logo.png
