@@ -88,63 +88,38 @@ KeyMgmt::KeyMgmt(QWidget* parent)
                              GpgKeyTableDisplayMode::kPUBLIC_KEY |
                                  GpgKeyTableDisplayMode::kPRIVATE_KEY);
 
-  key_list_->AddListGroupTab(
-      tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
-      [](const GpgAbstractKey* key) -> bool {
-        return key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP;
-      });
+  // What each built-in tab holds is the core's rule, which the phone's key
+  // list shares.
+  const auto builtin = [](const char* id) {
+    return [category = QString::fromLatin1(id)](const GpgAbstractKey* key) {
+      return MatchesBuiltinKeyCategory(category, key).value_or(false);
+    };
+  };
 
-  key_list_->AddListGroupTab(
-      tr("Only Public Key"), "only_public_key",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY,
-      [](const GpgAbstractKey* key) -> bool {
-        return !key->IsPrivateKey() &&
-               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
-      });
+  key_list_->AddListGroupTab(tr("Key Group"), "key_group",
+                             GpgKeyTableDisplayMode::kPUBLIC_KEY,
+                             builtin("key_group"));
 
-  key_list_->AddListGroupTab(
-      tr("Has Private Key"), "has_private_key",
-      GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgAbstractKey* key) -> bool {
-        return key->IsPrivateKey() &&
-               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
-      });
+  key_list_->AddListGroupTab(tr("Only Public Key"), "only_public_key",
+                             GpgKeyTableDisplayMode::kPUBLIC_KEY,
+                             builtin("only_public_key"));
 
-  key_list_->AddListGroupTab(
-      tr("Expiring Soon"), "expiring_soon",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgAbstractKey* key) -> bool { return IsKeyExpiringSoon(key); });
+  key_list_->AddListGroupTab(tr("Has Private Key"), "has_private_key",
+                             GpgKeyTableDisplayMode::kPRIVATE_KEY,
+                             builtin("has_private_key"));
 
-  key_list_->AddListGroupTab(
-      tr("No Primary Key"), "no_primary_key",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgAbstractKey* key) -> bool {
-        if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) return false;
-        return !dynamic_cast<const GpgKey*>(key)->IsHasMasterKey() &&
-               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
-      });
-
-  key_list_->AddListGroupTab(
-      tr("Revoked"), "revoked",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY,
-
-      [](const GpgAbstractKey* key) -> bool { return key->IsRevoked(); });
-
-  key_list_->AddListGroupTab(
-      tr("Expired"), "expired",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY,
-
-      [](const GpgAbstractKey* key) -> bool { return key->IsExpired(); });
-
-  key_list_->AddListGroupTab(
-      tr("Disabled"), "disabled",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgAbstractKey* key) -> bool { return key->IsDisabled(); });
+  const auto both = GpgKeyTableDisplayMode::kPUBLIC_KEY |
+                    GpgKeyTableDisplayMode::kPRIVATE_KEY;
+  key_list_->AddListGroupTab(tr("Expiring Soon"), "expiring_soon", both,
+                             builtin("expiring_soon"));
+  key_list_->AddListGroupTab(tr("No Primary Key"), "no_primary_key", both,
+                             builtin("no_primary_key"));
+  key_list_->AddListGroupTab(tr("Revoked"), "revoked", both,
+                             builtin("revoked"));
+  key_list_->AddListGroupTab(tr("Expired"), "expired", both,
+                             builtin("expired"));
+  key_list_->AddListGroupTab(tr("Disabled"), "disabled", both,
+                             builtin("disabled"));
 
   // Per-window order for the integrated (built-in) tabs; custom categories use
   // a separate, shared order (see KeyList).

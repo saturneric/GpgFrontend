@@ -35,6 +35,7 @@
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "sdk/GFSDKHostCommands.hpp"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
@@ -818,25 +819,26 @@ void MainWindow::create_dock_windows() {
   m_key_list_->AddListGroupTab(
       tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
       [](const GpgAbstractKey* key) -> bool {
-        return key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP &&
+        // The working set leaves a disabled group out, as it does a key.
+        return MatchesBuiltinKeyCategory(u"key_group"_s, key).value_or(false) &&
                !key->IsDisabled();
       });
 
-  m_key_list_->AddListGroupTab(
-      tr("Only Public Key"), "only_public_key",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY,
-      [](const GpgAbstractKey* key) -> bool {
-        return !key->IsPrivateKey() &&
-               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
-      });
+  m_key_list_->AddListGroupTab(tr("Only Public Key"), "only_public_key",
+                               GpgKeyTableDisplayMode::kPUBLIC_KEY,
+                               [](const GpgAbstractKey* key) -> bool {
+                                 return MatchesBuiltinKeyCategory(
+                                            u"only_public_key"_s, key)
+                                     .value_or(false);
+                               });
 
-  m_key_list_->AddListGroupTab(
-      tr("Has Private Key"), "has_private_key",
-      GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgAbstractKey* key) -> bool {
-        return key->IsPrivateKey() &&
-               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
-      });
+  m_key_list_->AddListGroupTab(tr("Has Private Key"), "has_private_key",
+                               GpgKeyTableDisplayMode::kPRIVATE_KEY,
+                               [](const GpgAbstractKey* key) -> bool {
+                                 return MatchesBuiltinKeyCategory(
+                                            u"has_private_key"_s, key)
+                                     .value_or(false);
+                               });
 
   // Per-window order for the integrated (built-in) tabs; custom categories use
   // a separate, shared order (see KeyList).

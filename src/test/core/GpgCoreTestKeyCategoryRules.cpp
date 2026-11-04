@@ -30,6 +30,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -142,6 +143,18 @@ TEST(KeyCategoryColorTest, BuiltInTabsHaveTheirOwnColours) {
   EXPECT_EQ(KeyCategoryDefaultColor(u"expiring_soon"_s), QColor(0xF59E0B));
   EXPECT_EQ(KeyCategoryDefaultColor(u"cat:0123456789ABCD"_s),
             KeyCategoryFallbackColor(u"cat:0123456789ABCD"_s));
+}
+
+TEST(KeyCategoryRulesTest, OnlyTheBuiltInTabsAreBuiltIn) {
+  for (const auto* id :
+       {"all", "key_group", "only_public_key", "has_private_key",
+        "expiring_soon", "no_primary_key", "revoked", "expired", "disabled"}) {
+    EXPECT_TRUE(IsBuiltinKeyCategory(QString::fromLatin1(id))) << id;
+  }
+  EXPECT_FALSE(IsBuiltinKeyCategory(u"cat:0123456789ABCD"_s));
+  EXPECT_FALSE(IsBuiltinKeyCategory({}));
+  // Without a key there is nothing to decide.
+  EXPECT_FALSE(MatchesBuiltinKeyCategory(u"revoked"_s, nullptr).has_value());
 }
 
 }  // namespace GpgFrontend::Test

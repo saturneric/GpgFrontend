@@ -1211,6 +1211,30 @@ auto GF_CORE_EXPORT GetKeyExpiringSoonDays() -> int;
 auto GF_CORE_EXPORT IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool;
 
 /**
+ * @brief Whether @p id names a built-in key category
+ * (MatchesBuiltinKeyCategory()), one decided by what a key is rather than by
+ * the keys put into it.
+ */
+auto GF_CORE_EXPORT IsBuiltinKeyCategory(const QString& id) -> bool;
+
+/**
+ * @brief Whether @p key belongs in the built-in key category @p id, as the
+ * desktop's Key Management tabs and the phone's key list decide it.
+ *
+ * "all", "key_group", "only_public_key", "has_private_key", "expiring_soon",
+ * "no_primary_key", "revoked", "expired" and "disabled". A key that is
+ * revoked, disabled or expired is in none of "only_public_key",
+ * "has_private_key" and "no_primary_key": it needs a different remedy.
+ *
+ * @param id the category's id
+ * @param key key or key group to inspect
+ * @return whether it belongs; nullopt when @p id is no built-in category
+ */
+auto GF_CORE_EXPORT MatchesBuiltinKeyCategory(const QString& id,
+                                              const GpgAbstractKey* key)
+    -> std::optional<bool>;
+
+/**
  * @brief The one condition worth reporting about a key, in severity order.
  */
 enum class GpgKeyStatus {

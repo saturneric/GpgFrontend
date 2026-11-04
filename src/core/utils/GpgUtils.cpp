@@ -1753,6 +1753,42 @@ auto GetKeyExpiringSoonDays() -> int {
   return std::clamp(days, 1, 365);
 }
 
+auto IsBuiltinKeyCategory(const QString& id) -> bool {
+  static const QSet<QString> kBuiltin = {
+      u"all"_s,
+      u"key_group"_s,
+      u"only_public_key"_s,
+      u"has_private_key"_s,
+      u"expiring_soon"_s,
+      u"no_primary_key"_s,
+      u"revoked"_s,
+      u"expired"_s,
+      u"disabled"_s,
+  };
+  return kBuiltin.contains(id);
+}
+
+auto MatchesBuiltinKeyCategory(const QString& id, const GpgAbstractKey* key)
+    -> std::optional<bool> {
+  if (key == nullptr || !IsBuiltinKeyCategory(id)) return std::nullopt;
+  const auto lapsed = key->IsRevoked() || key->IsDisabled() || key->IsExpired();
+  if (id == u"all"_s) return true;
+  if (id == u"key_group"_s) {
+    return key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP;
+  }
+  if (id == u"only_public_key"_s) return !key->IsPrivateKey() && !lapsed;
+  if (id == u"has_private_key"_s) return key->IsPrivateKey() && !lapsed;
+  if (id == u"expiring_soon"_s) return IsKeyExpiringSoon(key);
+  if (id == u"no_primary_key"_s) {
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) return false;
+    return !dynamic_cast<const GpgKey*>(key)->IsHasMasterKey() && !lapsed;
+  }
+  if (id == u"revoked"_s) return key->IsRevoked();
+  if (id == u"expired"_s) return key->IsExpired();
+  if (id == u"disabled"_s) return key->IsDisabled();
+  return std::nullopt;
+}
+
 auto IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool {
   if (key == nullptr) return false;
   if (key->IsRevoked() || key->IsDisabled() || key->IsExpired()) return false;
