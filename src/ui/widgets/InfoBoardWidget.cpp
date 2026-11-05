@@ -554,7 +554,24 @@ void InfoBoardWidget::reset_document_view() {
   if (placeholder_label_ != nullptr) placeholder_label_->setVisible(true);
 }
 
+void InfoBoardWidget::ResetWhenTextChanges(QTextDocument* document) {
+  QObject::disconnect(reset_on_edit_);
+  if (document == nullptr) return;
+
+  const auto reported = qHash(document->toPlainText());
+  QPointer<QTextDocument> watched = document;
+  reset_on_edit_ = connect(
+      document, &QTextDocument::contentsChanged, this,
+      [this, watched, reported]() {
+        if (watched.isNull() || qHash(watched->toPlainText()) == reported) {
+          return;
+        }
+        SlotReset();
+      });
+}
+
 void InfoBoardWidget::SlotReset() {
+  QObject::disconnect(reset_on_edit_);
   // Wipe the document first, then still call clear(): the view resets widget
   // level state (cursor, current char format, navigation history) that
   // clearing the document alone would leave behind.

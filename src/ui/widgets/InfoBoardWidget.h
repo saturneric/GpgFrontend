@@ -125,6 +125,15 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
   [[nodiscard]] auto StatusIndicatorToolTip(InfoBoardStatus status) const
       -> QString;
 
+  /**
+   * @brief Clear the board once the text of @p document changes.
+   *
+   * A verdict describes the text it was reached on. Left on the board after
+   * that text is edited, it reads as a verdict on the new one. Formatting
+   * alone does not count; the next report or reset forgets @p document.
+   */
+  void ResetWhenTextChanges(QTextDocument* document);
+
  public slots:
   void SlotReset();
   void SlotRefresh(const QString& text, InfoBoardStatus status);
@@ -197,6 +206,7 @@ class GF_UI_EXPORT InfoBoardWidget : public QWidget {
 
   QTextEdit* text_page_{nullptr};
   QTabWidget* tab_widget_{nullptr};
+  QMetaObject::Connection reset_on_edit_;  ///< see ResetWhenTextChanges()
   QButtonGroup* view_group_{nullptr};
 
   QLabel* placeholder_label_{nullptr};
