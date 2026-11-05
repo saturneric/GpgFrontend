@@ -66,8 +66,9 @@ Popup {
         // A sheet that is busy is not let go.
         if (!interactive) return
         if (stepBack && stepBack()) return
-        if (expandable && expanded) {
+        if (expandable && (expanded || heldHeight > 0)) {
             expanded = false
+            heldHeight = 0
             return
         }
         close()
@@ -96,8 +97,12 @@ Popup {
                              : Theme.gapSmall)
         + footInset
     readonly property bool canExpand: expandable && naturalHeight > halfHeight
+    // Where an expandable sheet was let go of, between its half and full
+    // height: it stays there. 0 for none (half, or full when expanded).
+    property real heldHeight: 0
     readonly property real restingHeight: Math.min(naturalHeight,
-        !canExpand || expanded || Theme.keyboard > 0 ? fullHeight : halfHeight)
+        !canExpand || expanded || Theme.keyboard > 0 ? fullHeight
+        : heldHeight > 0 ? heldHeight : halfHeight)
 
     // While the header is dragged: the height it is dragged to.
     property bool dragging: false
@@ -130,6 +135,7 @@ Popup {
     onClosed: {
         Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
         expanded = false
+        heldHeight = 0
         dragging = false
         offset = 0
     }
@@ -213,21 +219,26 @@ Popup {
                 xAxis.enabled: false
                 enabled: sheet.interactive
                 property real startHeight: 0
+                property real startY: 0
 
                 onActiveChanged: {
                     if (active) {
                         startHeight = sheet.height
+                        startY = centroid.scenePosition.y
                         sheet.dragHeight = sheet.height
                         sheet.dragging = true
                         return
                     }
                     sheet.settle(centroid.velocity.y)
                 }
-                onTranslationChanged: {
+                // By where the finger is in the window, not in the header:
+                // the header rises with the sheet, so the finger's distance
+                // from it stayed near nothing and the sheet hardly followed.
+                onCentroidChanged: {
                     if (!active) return
                     const top = sheet.canExpand ? sheet.fullHeight : sheet.restingHeight
-                    sheet.dragHeight = Math.max(0, Math.min(top,
-                                                            startHeight - translation.y))
+                    const moved = centroid.scenePosition.y - startY
+                    sheet.dragHeight = Math.max(0, Math.min(top, startHeight - moved))
                 }
             }
 
@@ -254,7 +265,10 @@ Popup {
 
                     TapHandler {
                         enabled: sheet.canExpand
-                        onTapped: sheet.expanded = !sheet.expanded
+                        onTapped: {
+                            sheet.heldHeight = 0
+                            sheet.expanded = !sheet.expanded
+                        }
                     }
 
                     Accessible.role: sheet.canExpand ? Accessible.Button
@@ -439,17 +453,34 @@ Popup {
     // Where the sheet goes when the header is let go: away when dragged low
     // or flung down, else to the nearest of half and full (expandable), or
     // back where it was.
+    // Let go of at dragHeight, moving at @p velocity (px/s, down positive).
+    // It stays where it was let go of; only a clear flick up opens it all
+    // the way, and only dragging it well below its place, or flicking it
+    // down from there, closes it: a finger lifting off often reports some
+    // speed downwards, which used to close a sheet just pulled up.
     function settle(velocity) {
         const h = dragHeight
         dragging = false
         const low = canExpand ? halfHeight : restingHeight
-        if (velocity > 1200 || h < low * 0.6) {
+        if (h < low * 0.5 || (velocity > 2500 && h < low * 0.9)) {
             close()
             return
         }
         if (!canExpand) return
-        if (velocity < -1200) expanded = true
-        else if (velocity > 600) expanded = false
-        else expanded = Math.abs(h - fullHeight) < Math.abs(h - halfHeight)
+        if (velocity < -2500) {
+            heldHeight = 0
+            expanded = true
+            return
+        }
+        // Near the top it is open all the way (a sheet that shows more
+        // when expanded, the status sheet, shows it); at or below its half
+        // height it goes back there; between, it stays where it is.
+        if (h >= fullHeight - 48) {
+            heldHeight = 0
+            expanded = true
+            return
+        }
+        expanded = false
+        heldHeight = h <= halfHeight ? 0 : h
     }
 }

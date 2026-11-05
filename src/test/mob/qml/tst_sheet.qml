@@ -125,6 +125,41 @@ Item {
             tryVerify(() => !tall.visible)
         }
 
+        // Dragging the header up: the sheet follows the finger and stays
+        // where it is let go of, also with the finger lifting off moving a
+        // little down; dragged a little down from there it stays open too.
+        function test_a_sheet_dragged_up_stays_where_it_is_let_go() {
+            tall.open()
+            tryVerify(() => tall.opened)
+            tryCompare(tall, "height", tall.halfHeight)
+            const grab = tall.contentItem.mapToItem(root, root.width / 2, 8)
+            const up = (tall.fullHeight - tall.halfHeight) / 2
+            mousePress(root, grab.x, grab.y)
+            for (let i = 1; i <= 10; ++i) {
+                mouseMove(root, grab.x, grab.y - up * i / 10, 16)
+            }
+            // The finger lifting off: a small move down.
+            mouseMove(root, grab.x, grab.y - up + 6, 8)
+            mouseRelease(root, grab.x, grab.y - up + 6)
+            wait(300)
+            verify(tall.visible, "closed after a drag up")
+            verify(tall.height > tall.halfHeight + up * 0.6,
+                   "height " + tall.height + " after a drag of " + up)
+            verify(tall.height < tall.fullHeight)
+
+            // A short drag down from there: still open.
+            const grab2 = tall.contentItem.mapToItem(root, root.width / 2, 8)
+            mouseDrag(root, grab2.x, grab2.y, 0, 60, Qt.LeftButton, Qt.NoModifier, 50)
+            wait(300)
+            verify(tall.visible, "closed after a short drag down")
+
+            // Back brings it to its half height first, then closes it.
+            tall.back()
+            tryCompare(tall, "height", tall.halfHeight)
+            tall.back()
+            tryVerify(() => !tall.visible)
+        }
+
         // Dragging the header down far enough lets the sheet go.
         function test_dragging_the_header_down_closes_it() {
             small.open()
