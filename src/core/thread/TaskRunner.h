@@ -55,9 +55,12 @@ class GF_CORE_EXPORT TaskRunner : public QObject {
   void Start();
 
   /**
-   * @brief Stop the worker thread and block until it exits.
+   * @brief Stop the worker thread and wait for it to exit.
+   *
+   * @param timeout_ms how long to wait
+   * @return whether the thread has exited; false when a task still runs
    */
-  void Stop();
+  auto Stop(int timeout_ms = 3000) -> bool;
 
   /**
    * @brief Return the underlying QThread owned by this runner.

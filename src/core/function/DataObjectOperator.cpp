@@ -698,6 +698,12 @@ auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
   }
 
   for (const auto& result : pending) {
+    // A run started before shutdown stops at the next object: the storage
+    // it works through is about to go.
+    if (GpgFrontend::IsCoreShuttingDown()) {
+      LOG_I() << "data object GC stopped: the core is shutting down";
+      return ctx.report;
+    }
     MaybeQuarantineOrDelete(result, &ctx);
   }
 

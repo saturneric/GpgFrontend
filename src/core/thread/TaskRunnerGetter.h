@@ -79,11 +79,15 @@ class GF_CORE_EXPORT TaskRunnerGetter
       -> TaskRunnerPtr;
 
   /**
-   * @brief Stop all running TaskRunners.
+   * @brief Stop all running TaskRunners within one shared deadline.
    *
-   * Should be called during application shutdown before destroying the singleton.
+   * Should be called during application shutdown before destroying the
+   * singletons, which a runner still running would go on using.
+   *
+   * @param timeout_ms how long all of them together may take
+   * @return whether every runner stopped
    */
-  void StopAllTeakRunner();
+  auto StopAllTeakRunner(int timeout_ms = 5000) -> bool;
 
  private:
   // Map from runner type to its TaskRunner instance.

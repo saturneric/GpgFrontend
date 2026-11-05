@@ -58,6 +58,7 @@
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -956,8 +957,10 @@ auto ReclaimPool() -> QThreadPool& {
   return pool;
 }
 
-/// How long teardown waits for reclamations already handed to the pool.
-constexpr int kReclaimDrainTimeoutMs = 10000;
+/// How long teardown waits for the task runners and then the reclamations
+/// already handed to the pool, together. Below the shutdown watchdog, so a
+/// wedged runner is reported here rather than ended by a forced exit.
+constexpr int kTeardownDrainTimeoutMs = 6000;
 
 }  // namespace
 
@@ -968,14 +971,24 @@ void DestroyGpgFrontendCore() {
   // are about to destroy.
   k_core_shutting_down.store(true);
 
+  // An operation still running would hold its runner past the stop below:
+  // asked to end now, on every channel that exists.
+  for (const auto channel : OpenPGPContext::GetAllChannelId()) {
+    RequestCancelGpgOperation(channel);
+  }
+
   // stop all task runner
   qDebug() << "Stopping all task runner...";
-  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+  const QDeadlineTimer drain(kTeardownDrainTimeoutMs);
+  const bool runners_stopped =
+      Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner(
+          static_cast<int>(drain.remainingTime()));
 
   // Reclamations already handed off finish before the storages they came out
   // of go; no new ones start once shutting down.
   qDebug() << "Waiting for reclaimed key database channels...";
-  ReclaimPool().waitForDone(kReclaimDrainTimeoutMs);
+  const bool reclaimed =
+      ReclaimPool().waitForDone(static_cast<int>(drain.remainingTime()));
 
   qDebug() << "Flushing all cache storage...";
 
@@ -988,6 +1001,14 @@ void DestroyGpgFrontendCore() {
   qDebug() << "Releasing gnupg home links...";
   GnuPGHomeLinkStore::GetInstance().ReleaseAll();
 #endif
+
+  // A runner or a reclamation still working would go on using the
+  // singletons: left to process exit rather than freed under it.
+  if (!runners_stopped || !reclaimed) {
+    LOG_W() << "work is still running at exit; singletons are left to the "
+               "operating system instead of being destroyed under it";
+    return;
+  }
 
   // destroy all singleton objects
   qDebug() << "Destroying all singleton objects...";

@@ -28,6 +28,8 @@
 
 #include "core/thread/TaskRunner.h"
 
+#include <algorithm>
+
 #include "core/thread/Task.h"
 
 namespace GpgFrontend::Thread {
@@ -91,11 +93,13 @@ void TaskRunner::PostTask(const QString& name, const Task::TaskRunnable& runner,
 
 void TaskRunner::Start() { p_->start(); }
 
-void TaskRunner::Stop() {
+auto TaskRunner::Stop(int timeout_ms) -> bool {
   p_->quit();
-  if (!p_->wait(3000)) {
+  if (!p_->wait(std::max(timeout_ms, 0))) {
     LOG_W() << "TaskRunner stop timeout";
+    return false;
   }
+  return true;
 }
 
 auto TaskRunner::GetThread() -> QThread* { return p_.get(); }
