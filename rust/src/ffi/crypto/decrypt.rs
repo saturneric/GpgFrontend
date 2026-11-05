@@ -79,7 +79,7 @@ pub extern "C" fn gfr_crypto_decrypt_data(
         // guaranteed to equal its length; `gfr_crypto_free_buffer` rebuilds the
         // Vec with `capacity == len`, which would be UB if `shrink_to_fit` left
         // excess capacity.
-        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let mut data_boxed = crate::ffi::mem::into_wiped_boxed_slice(internal_result.data);
         let data_ptr = data_boxed.as_mut_ptr();
         let data_len = data_boxed.len();
         std::mem::forget(data_boxed);
@@ -362,7 +362,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
         // guaranteed to equal its length; `gfr_crypto_free_buffer` rebuilds the
         // Vec with `capacity == len`, which would be UB if `shrink_to_fit` left
         // excess capacity.
-        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let mut data_boxed = crate::ffi::mem::into_wiped_boxed_slice(internal_result.data);
         let data_ptr = data_boxed.as_mut_ptr();
         let data_len = data_boxed.len();
         std::mem::forget(data_boxed);

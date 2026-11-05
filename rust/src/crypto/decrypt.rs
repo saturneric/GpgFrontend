@@ -1168,7 +1168,10 @@ pub fn decrypt_internal(
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     user_data: *mut c_void,
 ) -> Result<DecryptResultInternal, GfrStatus> {
-    let mut output_data = Vec::new();
+    // The plaintext, wiped when it goes. Sized from the ciphertext, which an
+    // uncompressed plaintext never outgrows: a Vec that grows frees its old
+    // allocation unwiped. A compressed one can still outgrow it.
+    let mut output_data = Zeroizing::new(Vec::with_capacity(encrypted_data.len()));
 
     // Auto-detect ASCII armor by checking for the standard PGP header.
     // If it's not valid UTF-8, it's definitely a binary packet.
@@ -1187,7 +1190,7 @@ pub fn decrypt_internal(
     let stream_result = decrypt_message_stream(
         channel,
         input_cursor,
-        &mut output_data, // Passes as Write stream
+        &mut *output_data, // Passes as Write stream
         is_armor,
         fetch_seckey_cb,
         fetch_pwd_cb,
@@ -1197,7 +1200,7 @@ pub fn decrypt_internal(
     )?;
 
     Ok(DecryptResultInternal {
-        data: output_data,
+        data: std::mem::take(&mut *output_data),
         filename: stream_result.filename,
         sym_algo: stream_result.sym_algo,
         cipher_warning: stream_result.cipher_warning,
@@ -1217,7 +1220,10 @@ pub fn decrypt_and_verify_internal(
     // RFC 9580 §6: whitespace inside the base64 is ignored.
     let normalized = crate::utils::normalized_armor(encrypted_data);
     let encrypted_data: &[u8] = &normalized;
-    let mut output_data = Vec::new();
+    // The plaintext, wiped when it goes. Sized from the ciphertext, which an
+    // uncompressed plaintext never outgrows: a Vec that grows frees its old
+    // allocation unwiped. A compressed one can still outgrow it.
+    let mut output_data = Zeroizing::new(Vec::with_capacity(encrypted_data.len()));
 
     let is_armor = std::str::from_utf8(encrypted_data)
         .map(|s| s.trim_start().starts_with("-----BEGIN PGP MESSAGE-----"))
@@ -1228,7 +1234,7 @@ pub fn decrypt_and_verify_internal(
     let stream_result = decrypt_message_stream(
         channel,
         input_cursor,
-        &mut output_data,
+        &mut *output_data,
         is_armor,
         fetch_seckey_cb,
         fetch_pwd_cb,
@@ -1238,7 +1244,7 @@ pub fn decrypt_and_verify_internal(
     )?;
 
     Ok(DecryptAndVerifyResultInternal {
-        data: output_data,
+        data: std::mem::take(&mut *output_data),
         filename: stream_result.filename,
         sym_algo: stream_result.sym_algo,
         cipher_warning: stream_result.cipher_warning,

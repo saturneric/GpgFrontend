@@ -65,6 +65,21 @@ pub extern "C" fn gfr_crypto_free_string(ptr: *mut c_char) {
     }
 }
 
+/// Hand `data` to C as an allocation of exactly its length, which is what
+/// [`gfr_crypto_free_buffer`] takes back, wiping whatever is left behind.
+///
+/// `into_boxed_slice` shrinks a Vec with spare capacity by reallocating, and
+/// frees the old allocation without wiping it: for a plaintext, a copy of it
+/// left in freed memory.
+pub(crate) fn into_wiped_boxed_slice(mut data: Vec<u8>) -> Box<[u8]> {
+    if data.capacity() == data.len() {
+        return data.into_boxed_slice();
+    }
+    let boxed: Box<[u8]> = Box::from(data.as_slice());
+    data.zeroize();
+    boxed
+}
+
 /// Free a raw byte buffer returned in a `data`/`data_len` pair by any `gfr_*`
 /// function.
 ///
