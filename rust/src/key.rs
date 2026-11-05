@@ -2477,18 +2477,55 @@ fn serialize_bytes<T: Serialize>(obj: &T) -> Result<Vec<u8>, GfrStatus> {
     Ok(buf)
 }
 
+/// Most signatures a merge leaves on one component (a User ID, a subkey, the
+/// key itself). Far above anything a real key carries; what it stops is the
+/// key-server flooding pattern, where a copy carries thousands of signatures
+/// that are then stored and re-verified on every listing.
+const MAX_MERGED_SIGNATURES: usize = 256;
+
+/// Add the signatures of `src` that `dst` lacks, up to [`MAX_MERGED_SIGNATURES`].
 fn merge_signatures(dst: &mut Vec<Signature>, src: &[Signature]) -> Result<(), GfrStatus> {
+    merge_checked_signatures(dst, src, None, &|_| true)
+}
+
+/// [`merge_signatures`], where a signature naming `primary` as its issuer is
+/// added only if `verifies` accepts it. A self-signature that does not verify
+/// is not the key holder's, and only takes room; signatures by other keys
+/// cannot be checked here and are only capped.
+fn merge_checked_signatures(
+    dst: &mut Vec<Signature>,
+    src: &[Signature],
+    primary: Option<&PublicKey>,
+    verifies: &dyn Fn(&Signature) -> bool,
+) -> Result<(), GfrStatus> {
     let mut seen: HashSet<Vec<u8>> = HashSet::new();
 
     for sig in dst.iter() {
         seen.insert(serialize_bytes(sig)?);
     }
 
+    let mut capped = 0usize;
     for sig in src {
         let key = serialize_bytes(sig)?;
-        if seen.insert(key) {
-            dst.push(sig.clone());
+        if seen.contains(&key) {
+            continue;
         }
+        let self_issued = primary.is_some_and(|p| names_primary_as_issuer(sig, p));
+        if self_issued && !verifies(sig) {
+            log::warn!("dropping a self-signature that does not verify");
+            continue;
+        }
+        // A verified self-signature always fits: a revocation must never be
+        // what the cap leaves out.
+        if !self_issued && dst.len() >= MAX_MERGED_SIGNATURES {
+            capped += 1;
+            continue;
+        }
+        seen.insert(key);
+        dst.push(sig.clone());
+    }
+    if capped > 0 {
+        log::warn!("left out {capped} signatures past the per-component limit");
     }
 
     Ok(())
@@ -2506,13 +2543,62 @@ fn merge_users(
             .iter_mut()
             .find(|u| String::from_utf8_lossy(u.id.id()) == src_uid)
         {
-            merge_signatures(&mut dst_user.signatures, &src_user.signatures)?;
+            let id = dst_user.id.clone();
+            merge_checked_signatures(
+                &mut dst_user.signatures,
+                &src_user.signatures,
+                Some(primary),
+                &|sig| sig.verify_certification(primary, Tag::UserId, &id).is_ok(),
+            )?;
         } else if has_verified_uid_certification(primary, src_user) {
             dst.push(src_user.clone());
         } else {
             // A User ID the key holder never certified, carried in by someone
             // else's copy of the key: not stored, so not listed or searched.
             log::warn!("dropping a User ID without a valid self-certification");
+        }
+    }
+
+    Ok(())
+}
+
+/// [`merge_users`] for User Attributes (photo IDs), matched by their bytes.
+/// They were not merged at all, so a revocation of a photo ID, or one added
+/// by the key holder, never reached a stored copy.
+fn merge_user_attributes(
+    primary: &PublicKey,
+    dst: &mut Vec<pgp::types::SignedUserAttribute>,
+    src: &[pgp::types::SignedUserAttribute],
+) -> Result<(), GfrStatus> {
+    for src_attr in src {
+        let src_bytes = serialize_bytes(&src_attr.attr)?;
+        let mut existing = None;
+        for (i, d) in dst.iter().enumerate() {
+            if serialize_bytes(&d.attr)? == src_bytes {
+                existing = Some(i);
+                break;
+            }
+        }
+        let certifies = |sig: &Signature, attr: &pgp::packet::UserAttribute| {
+            sig.verify_certification(primary, Tag::UserAttribute, attr)
+                .is_ok()
+        };
+        if let Some(i) = existing {
+            let attr = dst[i].attr.clone();
+            merge_checked_signatures(
+                &mut dst[i].signatures,
+                &src_attr.signatures,
+                Some(primary),
+                &|sig| certifies(sig, &attr),
+            )?;
+        } else if src_attr.signatures.iter().any(|sig| {
+            names_primary_as_issuer(sig, primary)
+                && sig.typ() != Some(SignatureType::CertRevocation)
+                && certifies(sig, &src_attr.attr)
+        }) {
+            dst.push(src_attr.clone());
+        } else {
+            log::warn!("dropping a User Attribute without a valid self-certification");
         }
     }
 
@@ -2598,19 +2684,31 @@ fn extract_key_revocation_signatures(block: &str) -> Result<Vec<Signature>, GfrS
 
 fn merge_key_components(
     primary: &PublicKey,
-    base_direct: &mut Vec<Signature>,
-    base_revocation: &mut Vec<Signature>,
-    base_users: &mut Vec<pgp::types::SignedUser>,
-    incoming_direct: &[Signature],
-    incoming_revocation: &[Signature],
-    incoming_users: &[pgp::types::SignedUser],
+    base: &mut SignedKeyDetails,
+    incoming: &SignedKeyDetails,
 ) -> Result<(), GfrStatus> {
-    merge_signatures(base_direct, incoming_direct)?;
-    merge_signatures(base_revocation, incoming_revocation)?;
-    merge_users(primary, base_users, incoming_users)?;
+    let key_sig_verifies = |sig: &Signature| sig.verify_key(primary).is_ok();
+    merge_checked_signatures(
+        &mut base.direct_signatures,
+        &incoming.direct_signatures,
+        Some(primary),
+        &key_sig_verifies,
+    )?;
+    merge_checked_signatures(
+        &mut base.revocation_signatures,
+        &incoming.revocation_signatures,
+        Some(primary),
+        &key_sig_verifies,
+    )?;
+    merge_users(primary, &mut base.users, &incoming.users)?;
+    merge_user_attributes(
+        primary,
+        &mut base.user_attributes,
+        &incoming.user_attributes,
+    )?;
 
-    dedup_signatures_in_place(base_direct)?;
-    dedup_signatures_in_place(base_revocation)?;
+    dedup_signatures_in_place(&mut base.direct_signatures)?;
+    dedup_signatures_in_place(&mut base.revocation_signatures)?;
     Ok(())
 }
 
@@ -2671,15 +2769,7 @@ pub fn merge_key_block_internal(
                     return Err(GfrStatus::ErrorInvalidInput);
                 }
                 let primary = target_pk.primary_key.clone();
-                merge_key_components(
-                    &primary,
-                    &mut target_pk.details.direct_signatures,
-                    &mut target_pk.details.revocation_signatures,
-                    &mut target_pk.details.users,
-                    &other_pk.details.direct_signatures,
-                    &other_pk.details.revocation_signatures,
-                    &other_pk.details.users,
-                )?;
+                merge_key_components(&primary, &mut target_pk.details, &other_pk.details)?;
                 merge_public_subkeys(&mut target_pk.public_subkeys, &other_pk.public_subkeys)?;
                 export_public_key(target_pk)
             } else {
@@ -2694,15 +2784,7 @@ fn merge_sk_into_sk(
     source: &SignedSecretKey,
 ) -> Result<(), GfrStatus> {
     let primary = target.primary_key.public_key();
-    merge_key_components(
-        &primary,
-        &mut target.details.direct_signatures,
-        &mut target.details.revocation_signatures,
-        &mut target.details.users,
-        &source.details.direct_signatures,
-        &source.details.revocation_signatures,
-        &source.details.users,
-    )?;
+    merge_key_components(&primary, &mut target.details, &source.details)?;
 
     merge_secret_subkeys(&mut target.secret_subkeys, &source.secret_subkeys)?;
     // A subkey public-only on the target but secret in the source becomes
@@ -2774,15 +2856,7 @@ fn merge_pk_into_sk(
     source: &SignedPublicKey,
 ) -> Result<(), GfrStatus> {
     let primary = target.primary_key.public_key();
-    merge_key_components(
-        &primary,
-        &mut target.details.direct_signatures,
-        &mut target.details.revocation_signatures,
-        &mut target.details.users,
-        &source.details.direct_signatures,
-        &source.details.revocation_signatures,
-        &source.details.users,
-    )?;
+    merge_key_components(&primary, &mut target.details, &source.details)?;
 
     merge_subkeys_into_secret(target, &source.public_subkeys)
 }
@@ -3667,6 +3741,158 @@ mod key_tests {
             .unwrap();
         user.signatures.push(sig);
         cert
+    }
+
+    /// A certification of `target`'s first User ID made by `signer`, naming
+    /// `issuer` as its issuer and created at `created`.
+    fn certification_by(
+        signer: &keys::Fixture,
+        target: &SignedPublicKey,
+        issuer: pgp::types::Fingerprint,
+        created: u32,
+    ) -> Signature {
+        let signing = &signer.secret.primary_key;
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), signing, SignatureType::CertGeneric)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                pgp::types::Timestamp::from_secs(created),
+            ))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(issuer)).unwrap(),
+        ];
+        cfg.sign_certification_third_party(
+            signing,
+            &Password::empty(),
+            &target.primary_key,
+            Tag::UserId,
+            &target.details.users[0].id,
+        )
+        .unwrap()
+    }
+
+    /// A minimal JPEG photo ID packet, parsed by rPGP itself.
+    fn photo_id(payload: &[u8]) -> pgp::packet::UserAttribute {
+        use pgp::packet::{Packet, PacketParser};
+        let mut sub = vec![0x10, 0x00, 0x01, 0x01];
+        sub.extend([0u8; 12]);
+        sub.extend(payload);
+        let mut body = vec![(sub.len() + 1) as u8, 0x01];
+        body.extend(sub);
+        let mut packet = vec![0xC0 | 17, body.len() as u8];
+        packet.extend(body);
+        match PacketParser::new(Cursor::new(packet)).next() {
+            Some(Ok(Packet::UserAttribute(attr))) => attr,
+            other => panic!("not a user attribute: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_merge_brings_in_a_certified_photo_id_and_nothing_else() {
+        let fixture = &keys::V4_SIGN;
+        let base = SignedPublicKey::from(fixture.secret.clone());
+        let primary = &fixture.secret.primary_key;
+        let created = base.primary_key.created_at().as_secs();
+
+        let certified = photo_id(b"\xFF\xD8 certified");
+        let mut cfg =
+            SignatureConfig::from_key(rand::thread_rng(), primary, SignatureType::CertPositive)
+                .unwrap();
+        cfg.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                pgp::types::Timestamp::from_secs(created + 1),
+            ))
+            .unwrap(),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint())).unwrap(),
+        ];
+        let sig = cfg
+            .sign_certification(
+                primary,
+                primary.public_key(),
+                &Password::empty(),
+                Tag::UserAttribute,
+                &certified,
+            )
+            .unwrap();
+
+        let mut incoming = base.clone();
+        incoming
+            .details
+            .user_attributes
+            .push(pgp::types::SignedUserAttribute::new(
+                certified.clone(),
+                vec![sig],
+            ));
+        // Anyone can attach a photo ID; one the key holder never certified is
+        // not theirs.
+        incoming
+            .details
+            .user_attributes
+            .push(pgp::types::SignedUserAttribute::new(
+                photo_id(b"\xFF\xD8 forged"),
+                vec![],
+            ));
+
+        let merged = merge_key_block_internal(
+            &export_public_key(base).unwrap().public,
+            &export_public_key(incoming).unwrap().public,
+        )
+        .expect("merge");
+        let (merged, _) = SignedPublicKey::from_string(&merged.public).unwrap();
+        let attrs = &merged.details.user_attributes;
+        assert_eq!(attrs.len(), 1, "{attrs:?}");
+        assert_eq!(attrs[0].attr, certified);
+    }
+
+    #[test]
+    fn a_merge_keeps_neither_a_flood_nor_a_forged_self_signature() {
+        let target = &keys::V4_SIGN;
+        let signer = &keys::V4_PRIMARY_ONLY;
+        let base = SignedPublicKey::from(target.secret.clone());
+        let created = base.primary_key.created_at().as_secs();
+        let before = base.details.users[0].signatures.len();
+
+        let mut flooded = base.clone();
+        let signer_fpr = signer.secret.primary_key.fingerprint();
+        for i in 0..(MAX_MERGED_SIGNATURES as u32 + 40) {
+            let sig = certification_by(signer, &base, signer_fpr.clone(), created + 1 + i);
+            flooded.details.users[0].signatures.push(sig);
+        }
+        // Made by another key, but claiming to be the key holder's own.
+        let forged = certification_by(
+            signer,
+            &base,
+            base.primary_key.fingerprint(),
+            created + 10_000,
+        );
+        flooded.details.users[0].signatures.push(forged.clone());
+
+        let merged = merge_key_block_internal(
+            &export_public_key(base).unwrap().public,
+            &export_public_key(flooded).unwrap().public,
+        )
+        .expect("merge");
+        let (merged, _) = SignedPublicKey::from_string(&merged.public).unwrap();
+        let sigs = &merged.details.users[0].signatures;
+
+        assert!(
+            sigs.len() <= MAX_MERGED_SIGNATURES.max(before),
+            "{}",
+            sigs.len()
+        );
+        let forged_bytes = serialize_bytes(&forged).unwrap();
+        assert!(
+            !sigs
+                .iter()
+                .any(|s| serialize_bytes(s).unwrap() == forged_bytes),
+            "a self-signature that does not verify was merged in"
+        );
+        // The key holder's own certification survives the flood.
+        assert!(has_verified_uid_certification(
+            &merged.primary_key,
+            &merged.details.users[0]
+        ));
     }
 
     #[test]
