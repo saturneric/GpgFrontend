@@ -76,6 +76,17 @@ auto GpgSignature::GetStatus() const -> gpgme_error_t {
         return GPG_ERR_KEY_EXPIRED;
       case GFSignatureStatus::kKEY_NOT_AUTHORIZED:
         return GPG_ERR_WRONG_KEY_USAGE;
+      case GFSignatureStatus::kSIGNATURE_EXPIRED:
+        return GPG_ERR_SIG_EXPIRED;
+      case GFSignatureStatus::kWEAK_HASH:
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
+      // Reported as GnuPG reports EXPKEYSIG and REVKEYSIG; that the key was
+      // still good when it signed tells them apart from kKEY_EXPIRED and
+      // kKEY_REVOKED (see IsKeyExpiredAtSigning()).
+      case GFSignatureStatus::kKEY_EXPIRED_SINCE:
+        return GPG_ERR_KEY_EXPIRED;
+      case GFSignatureStatus::kKEY_REVOKED_SINCE:
+        return GPG_ERR_CERT_REVOKED;
       default:
         return GPG_ERR_GENERAL;
     }
@@ -100,7 +111,14 @@ auto GpgSignature::GetSummary() const -> gpgme_error_t {
         summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_REVOKED;
         break;
       case GFSignatureStatus::kKEY_EXPIRED:
+      case GFSignatureStatus::kKEY_EXPIRED_SINCE:
         summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_EXPIRED;
+        break;
+      case GFSignatureStatus::kKEY_REVOKED_SINCE:
+        summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_KEY_REVOKED;
+        break;
+      case GFSignatureStatus::kSIGNATURE_EXPIRED:
+        summary |= GPGME_SIGSUM_RED | GPGME_SIGSUM_SIG_EXPIRED;
         break;
       default:
         summary |= GPGME_SIGSUM_RED;

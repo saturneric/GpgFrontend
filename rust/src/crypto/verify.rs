@@ -409,8 +409,10 @@ mod verify_tests {
     fn gap3_a_signature_made_while_the_key_was_live_stays_valid_after_it_expires() {
         // §5.2.3.13 / product decision (key-validity.md): key expiry is judged
         // at the signature's creation time. The vector was made 2020-03-01 by a
-        // key that expired 2020-06-01, so it is Valid, as GnuPG and Sequoia
-        // report it. A signature made *after* expiry is the negative case,
+        // key that expired 2020-06-01, so it verifies, as GnuPG and Sequoia
+        // report it. The creation time is the signer's to choose, though, so
+        // that the key has expired since is reported too, as GnuPG's EXPKEYSIG.
+        // A signature made *after* expiry is the negative case,
         // `a_signature_made_after_the_key_expired_is_key_expired`.
         let res = verify_detached(
             corpus::PAYLOAD,
@@ -418,7 +420,7 @@ mod verify_tests {
             Some(corpus::AUX_EXPIRED),
         );
         assert!(res.is_verified);
-        ta::exactly_one_valid(&res.signatures);
+        ta::only_status(&res.signatures, GfrSignatureStatus::KeyExpiredSince);
     }
 
     #[test]
@@ -443,7 +445,8 @@ mod verify_tests {
             Some(corpus::AUX_SHA1),
         );
         assert!(!res.is_verified);
-        ta::only_status(&res.signatures, GfrSignatureStatus::BadSignature);
+        // Refused for its hash, which is what the user is told.
+        ta::only_status(&res.signatures, GfrSignatureStatus::WeakHash);
     }
 
     #[test]
@@ -626,7 +629,7 @@ mod verify_tests {
         for sig in &res.signatures {
             let want = if sig_hash_algo_is_weak(&sig.hash_algo) {
                 // §9.5: never validate a SHA-1 signature.
-                GfrSignatureStatus::BadSignature
+                GfrSignatureStatus::WeakHash
             } else {
                 GfrSignatureStatus::Valid
             };

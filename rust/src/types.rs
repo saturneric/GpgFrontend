@@ -423,6 +423,19 @@ pub enum GfrSignatureStatus {
     /// authorize that key to sign: no valid binding, no signing flag, no
     /// back-signature, a weak certification, or an RSA key under 2048 bits.
     KeyNotAuthorized = 6,
+    /// Made by an authorized key, but the signature itself has expired
+    /// (RFC 9580 §5.2.3.18). Not a sign of tampering.
+    SignatureExpired = 7,
+    /// Made by an authorized key, but over a hash too weak to rely on: MD5,
+    /// SHA-1 or RIPEMD-160 (RFC 9580 §9.5). Not a sign of tampering either.
+    WeakHash = 8,
+    /// Valid when it was made, but the signing key has expired since. The
+    /// creation time is the signer's to choose, so a backdated signature from
+    /// a retired key reads like this (GnuPG: EXPKEYSIG).
+    KeyExpiredSince = 9,
+    /// Valid when it was made, but the signing key has been revoked since, by
+    /// a revocation dated after the signature (GnuPG: REVKEYSIG).
+    KeyRevokedSince = 10,
 }
 
 /// Verification result for a single signature found in the message.

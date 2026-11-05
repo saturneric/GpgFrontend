@@ -603,17 +603,19 @@ mod rfc9580_policy_tests {
 
     #[test]
     fn gate_rejects_weak_hash_even_when_verified() {
-        // A cryptographically valid SHA-1 signature must never be Valid (§9.5).
+        // A cryptographically valid SHA-1 signature must never be Valid (§9.5),
+        // and is reported for its hash, not as tampered with.
         let (status, is_verified) = gated(true, "SHA1", 0);
-        assert_eq!(status, GfrSignatureStatus::BadSignature);
+        assert_eq!(status, GfrSignatureStatus::WeakHash);
         assert!(!is_verified);
     }
 
     #[test]
     fn gate_rejects_expired_even_when_verified() {
-        // §5.2.3.18: a signature past its own expiration time is not valid.
+        // §5.2.3.18: a signature past its own expiration time is not valid,
+        // and is reported as expired, not as tampered with.
         let (status, is_verified) = gated(true, "SHA512", 1);
-        assert_eq!(status, GfrSignatureStatus::BadSignature);
+        assert_eq!(status, GfrSignatureStatus::SignatureExpired);
         assert!(!is_verified);
     }
 
@@ -913,6 +915,23 @@ pub(crate) fn attribute_entries<F>(
             .max()
             .unwrap_or(KeyVerdict::NoMatch);
         apply_signature_gate(entry, best, is_verified);
+
+        // Valid as of its creation time, which the signer chose. Whether the
+        // key is still good is a separate fact, reported as GnuPG does: a key
+        // expired or revoked since leaves the signature valid but flagged.
+        if entry.status == GfrSignatureStatus::Valid {
+            let now = now_unix_secs() as u32;
+            let now_best = matching
+                .iter()
+                .map(|cert| verdict(i, cert, now))
+                .max()
+                .unwrap_or(KeyVerdict::NoMatch);
+            entry.status = match now_best {
+                KeyVerdict::Revoked => GfrSignatureStatus::KeyRevokedSince,
+                KeyVerdict::Expired => GfrSignatureStatus::KeyExpiredSince,
+                _ => GfrSignatureStatus::Valid,
+            };
+        }
     }
 }
 
@@ -1013,15 +1032,26 @@ pub(crate) fn apply_signature_gate(
     is_verified: &mut bool,
 ) {
     match verdict {
-        KeyVerdict::Authorized
-            if !sig_hash_algo_is_weak(&sig.hash_algo) && !signature_result_expired(sig) =>
-        {
+        // Refused, but for what they are: neither is a sign of tampering.
+        KeyVerdict::Authorized if sig_hash_algo_is_weak(&sig.hash_algo) => {
+            sig.status = GfrSignatureStatus::WeakHash;
+        }
+        KeyVerdict::Authorized if signature_result_expired(sig) => {
+            sig.status = GfrSignatureStatus::SignatureExpired;
+        }
+        KeyVerdict::Authorized => {
             sig.status = GfrSignatureStatus::Valid;
             *is_verified = true;
         }
         KeyVerdict::Revoked => sig.status = GfrSignatureStatus::KeyRevoked,
         KeyVerdict::Expired => sig.status = GfrSignatureStatus::KeyExpired,
         KeyVerdict::NotAuthorized => sig.status = GfrSignatureStatus::KeyNotAuthorized,
+        // A weak hash is refused before anything is checked against it, so a
+        // signature over one that did not verify says nothing about the data:
+        // reported for its hash, not as a mismatch.
+        _ if sig.status == GfrSignatureStatus::NoKey && sig_hash_algo_is_weak(&sig.hash_algo) => {
+            sig.status = GfrSignatureStatus::WeakHash;
+        }
         _ if sig.status == GfrSignatureStatus::NoKey => {
             sig.status = GfrSignatureStatus::BadSignature;
         }
@@ -2477,7 +2507,7 @@ mod attribution_tests {
         assert!(is_verified);
         assert_eq!(
             entries[1].status,
-            GfrSignatureStatus::BadSignature,
+            GfrSignatureStatus::WeakHash,
             "index 1 did not verify and must not inherit index 0's verdict"
         );
     }
@@ -2500,7 +2530,7 @@ mod attribution_tests {
         });
 
         assert_eq!(entries.len(), 1);
-        assert_eq!(entries[0].status, GfrSignatureStatus::BadSignature);
+        assert_eq!(entries[0].status, GfrSignatureStatus::WeakHash);
         assert!(!is_verified);
     }
 
