@@ -366,11 +366,35 @@ auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path,
     return fail(SafeOutputCommitStep::kMOVE_INTO_PLACE);
   }
 
-  if (has_backup && !RemoveStagedPath(backup_path)) {
+  if (!has_backup) return true;
+
+  // A folder is never deleted. Decrypting photos.tar.gpg produces "photos",
+  // so replacing a folder of that name is the ordinary case, and removing the
+  // old one took whatever it held that the archive did not.
+  const QFileInfo backup_info(backup_path);
+  if (backup_info.isDir() && !IsLinkEntry(backup_info)) {
+    const auto kept = KeptFolderPath(final_path);
+    if (!QDir().rename(backup_path, kept)) {
+      LOG_W() << "the replaced folder stays at:" << backup_path;
+    }
+    return true;
+  }
+
+  if (!RemoveStagedPath(backup_path)) {
     LOG_W() << "cannot remove the replaced output:" << backup_path;
   }
 
   return true;
+}
+
+auto KeptFolderPath(const QString& final_path) -> QString {
+  const auto base = QDir::cleanPath(final_path) + ".bak";
+  auto candidate = base;
+  for (int n = 2;
+       QFileInfo::exists(candidate) || QFileInfo(candidate).isSymLink(); ++n) {
+    candidate = QString("%1-%2").arg(base).arg(n);
+  }
+  return candidate;
 }
 
 auto DiscardSafeOutput(const QString& temp_path) -> bool {
