@@ -42,6 +42,18 @@ ApplicationWindow {
         value: Screen.devicePixelRatio
     }
 
+    Binding {
+        target: Theme
+        property: "safeTop"
+        value: window.SafeArea.margins.top
+    }
+
+    Binding {
+        target: Theme
+        property: "safeBottom"
+        value: window.SafeArea.margins.bottom
+    }
+
     // Larger text, as the system asks: the style's own controls follow the
     // window's font. At the default size they keep the style's sizes.
     Binding {

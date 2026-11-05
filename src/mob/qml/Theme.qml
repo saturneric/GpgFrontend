@@ -12,6 +12,8 @@ import GpgFrontend.Mobile
 QtObject {
     readonly property int gap: 16
     readonly property int gapSmall: 8
+    // The inset of a bottom sheet's content from its sides.
+    readonly property int sheetPad: 16
 
     // The platform's measures: a touch target, a list row of one line and
     // of two.
@@ -31,8 +33,18 @@ QtObject {
     readonly property int labelSize: Math.round(12 * fontScale)
     readonly property int titleSize: Math.round(22 * fontScale)
     readonly property int headlineSize: Math.round(18 * fontScale)
-    // Corners: small for chips and fields.
+    // Corners: small for chips and fields, large for sheets and the
+    // floating buttons.
     readonly property int radiusSmall: 8
+    readonly property int radiusLarge: 16
+
+    // The floating buttons at the foot of a page: their size, their icon's,
+    // the room around them, and the band they take, which a list under
+    // them leaves free at its end (content padding, not a shorter view).
+    readonly property int fabSize: 64
+    readonly property int fabIcon: 28
+    readonly property int fabMargin: 16
+    readonly property int fabBand: fabSize + 2 * fabMargin
 
     readonly property bool dark: Application.styleHints.colorScheme === Qt.ColorScheme.Dark
 
@@ -67,9 +79,18 @@ QtObject {
     readonly property string mono: monoFont.status === FontLoader.Ready
                                    ? monoFont.name : "monospace"
 
+    // The bottom sheets open, in the order they opened: the last one is the
+    // topmost, the one Back and typing are for (BottomSheet).
+    property var openSheets: []
+
     // The window's height and pixel ratio, from the window, for the keyboard.
     property real windowHeight: 0
     property real pixelRatio: 1
+    // The window's safe areas at the top (the status bar) and the foot (the
+    // gesture bar), from the window: what popups over the whole window, as a
+    // bottom sheet, keep clear of. Counted once, here.
+    property real safeTop: 0
+    property real safeBottom: 0
 
     // How much of the window the on-screen keyboard covers. Pages end where
     // it begins (the window counts it as a safe area); popups are laid over

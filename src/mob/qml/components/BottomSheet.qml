@@ -6,33 +6,53 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import GpgFrontend.Mobile
 
-// A choice or a short form that slides up from the foot of the window: the
-// style's drawer, with a title, its content, and buttons at the foot. It is
-// never taller than 90 % of the window; taller content scrolls.
+// A choice or a short form that slides up from the foot of the window: a
+// title, its content, and buttons at the foot.
 //
-// An expandable sheet opens at about half the window and grows to the 90 %
-// when expanded (its handle, or the sheet itself, asks). A sheet that takes
-// Back step by step (stepBack) is asked first what Back undoes inside it --
-// an inner page, a search -- and closes only when it says nothing is left.
-Drawer {
+// A modal Popup, not the style's Drawer: an open Drawer either takes every
+// swipe on its content (a list in it then closes the sheet) or, made
+// non-interactive, no longer closes on a tap beside it or on Escape. Here
+// one thing owns dragging: the handle and the title row. Dragged down far
+// enough, the sheet goes; an expandable sheet is also dragged between half
+// the window and nearly all of it. A list in the sheet scrolls on its own.
+//
+// Its height is its content's, never more than the room there is; a sheet
+// with little in it is as short as that. The room is reckoned from the
+// window alone (its height, its safe areas and the keyboard, all in Theme),
+// never from where the sheet itself sits.
+//
+// A sheet that takes Back step by step (stepBack) is asked first what Back
+// undoes inside it -- an inner page, a search -- and closes only when it says
+// nothing is left.
+Popup {
     id: sheet
 
     property string title
     default property alias content: body.data
     // The row of buttons at the foot, if any.
     property alias footer: footerRow.data
-    // Opens at half the window, and grows when expanded.
+    // What sits beside the title, at its right: a progress slot, a button.
+    property alias headerItems: headerRow.data
+    // Opens at about half the window, and grows when expanded.
     property bool expandable: false
     property bool expanded: false
+    // The content is one list that fills the sheet and scrolls itself:
+    // the sheet does not scroll it a second time.
+    property bool listMode: false
+    // Whether the person may close it (by Back, a tap beside it, dragging
+    // it away); false while it is busy with something that must end first.
+    property bool interactive: true
     // A function taking one step back inside the sheet, true when it did;
     // with none, or when it did nothing, Back collapses an expanded sheet,
     // then closes it.
     property var stepBack: null
     readonly property alias body: body
+    // It comes up from the foot, as a Drawer did.
+    readonly property int edge: Qt.BottomEdge
 
     // What Back does with the sheet open: one step, never more.
     function back() {
-        // A sheet that is busy is not let go (it is then not interactive).
+        // A sheet that is busy is not let go.
         if (!interactive) return
         if (stepBack && stepBack()) return
         if (expandable && expanded) {
@@ -42,56 +62,114 @@ Drawer {
         close()
     }
 
-    // From the content and the padding, which takes in the system bar the
-    // sheet runs under; not implicitHeight, which Qt works out from the
-    // height. Set, not bound, and a moment later: the padding follows where
-    // the sheet sits, which follows its height, and a binding through both
-    // loops whenever the content grows or shrinks.
-    function fit() {
-        // Half way only while nothing is typed: the keyboard takes its share
-        // of the sheet (the spacer at its foot), and half a window less a
-        // keyboard left the field typed into almost no room.
-        const half = expandable && !expanded && Theme.keyboard === 0
-        const room = (parent ? parent.height : 0) * (half ? 0.6 : 0.9)
-        height = Math.min(column.implicitHeight + topPadding + bottomPadding, room)
-    }
+    // ---- Room
 
-    edge: Qt.BottomEdge
+    readonly property real windowHeight: parent ? parent.height : 0
+    // Under the content: the gesture bar, and the keyboard while it is up.
+    readonly property real footInset: Theme.safeBottom + Theme.keyboard
+    // The most it may take: the window below the status bar, less a little.
+    readonly property real fullHeight: Math.max(0, windowHeight - Theme.safeTop - 8)
+    // Half way, for an expandable sheet not expanded; not while typing, when
+    // the keyboard takes its share and the field needs the rest. With large
+    // text, or on a short screen, half a window holds too little to choose
+    // from: all of it, then.
+    readonly property real halfHeight: Theme.fontScale > 1.3 || windowHeight < 700
+                                       ? fullHeight
+                                       : Math.min(fullHeight, windowHeight * 0.6)
+    // What its content asks for: header, content, foot, insets.
+    readonly property real naturalHeight: header.implicitHeight
+        + body.implicitHeight
+        + (footerRow.visible ? footerRow.implicitHeight + 16 : 0)
+        + footInset + 8
+    readonly property bool canExpand: expandable && naturalHeight > halfHeight
+    readonly property real restingHeight: Math.min(naturalHeight,
+        !canExpand || expanded || Theme.keyboard > 0 ? fullHeight : halfHeight)
+
+    // While the header is dragged: the height it is dragged to.
+    property bool dragging: false
+    property real dragHeight: 0
+
+    // How far below its place it is while it comes and goes: animated, not
+    // its y, which follows its height.
+    property real offset: 0
+
+    parent: Overlay.overlay
+    x: 0
+    y: windowHeight - height + offset
     width: parent ? parent.width : 0
-    onAboutToShow: fit()
-    // Again once it sits where it opened, with the padding that goes with it.
-    onOpened: Qt.callLater(fit)
-    onTopPaddingChanged: Qt.callLater(fit)
-    onBottomPaddingChanged: Qt.callLater(fit)
-    onExpandedChanged: Qt.callLater(fit)
-    onParentChanged: Qt.callLater(fit)
-
-    // The keyboard comes or goes: the room changes with it.
-    Connections {
-        target: Theme
-        function onKeyboardChanged() { Qt.callLater(sheet.fit) }
-    }
-
-    // A window that turns or resizes leaves a different room.
-    Connections {
-        target: sheet.parent
-        function onHeightChanged() { Qt.callLater(sheet.fit) }
-    }
-    // Back is the sheet's own (back()), not the style's: it closes on Back
-    // in one go.
-    closePolicy: Popup.CloseOnPressOutside
-    onClosed: expanded = false
+    height: dragging ? dragHeight : restingHeight
+    padding: 0
     modal: true
-    // A popup closes on Back only while it has the focus; without it Back
-    // went past the open sheet to the page under it.
+    // Back is the sheet's own (back()): one step at a time.
+    closePolicy: interactive ? Popup.CloseOnPressOutside : Popup.NoAutoClose
+    // A popup takes Back only while it has the focus; without it Back went
+    // past the open sheet to the page under it.
     focus: true
-    dragMargin: 0
+    onOpened: {
+        Theme.openSheets = Theme.openSheets.filter(o => o !== sheet).concat([sheet])
+        Qt.callLater(keepFocus)
+    }
+    onClosed: {
+        Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
+        expanded = false
+        dragging = false
+        offset = 0
+    }
+    Component.onDestruction: Theme.openSheets = Theme.openSheets.filter(o => o !== sheet)
+
+    // Whether @p item is in a popup (any: a sheet, a menu, a dialog).
+    function inPopup(item) {
+        for (let it = item; it; it = it.parent) {
+            if (it === Overlay.overlay) return true
+        }
+        return false
+    }
+
+    // The topmost sheet keeps the focus Back and Escape come through: a
+    // sheet that closes as this one opens hands the focus back, when it has
+    // gone, to what had it before -- the page -- and Back then never reached
+    // this one. Focus that goes to another popup (a menu, a dialog over the
+    // sheet) is left there.
+    function keepFocus() {
+        if (!opened || Theme.openSheets[Theme.openSheets.length - 1] !== sheet) return
+        const window = scroller.Window.window
+        const now = window ? window.activeFocusItem : null
+        if (now && inPopup(now)) return
+        column.forceActiveFocus()
+    }
+
+    Behavior on height {
+        enabled: !sheet.dragging && sheet.opened
+        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+    }
+
+    enter: Transition {
+        NumberAnimation { property: "offset"; from: sheet.height; to: 0
+                          duration: 220; easing.type: Easing.OutCubic }
+    }
+    exit: Transition {
+        NumberAnimation { property: "offset"; from: 0; to: sheet.height
+                          duration: 180; easing.type: Easing.InCubic }
+    }
+
+    background: Rectangle {
+        radius: Theme.radiusLarge
+        color: Theme.surface(sheet.Material.backgroundColor, 1)
+
+        // Square at the foot: the sheet runs on to the window's edge.
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: Theme.radiusLarge
+            color: parent.color
+        }
+    }
 
     contentItem: ColumnLayout {
         id: column
 
         spacing: 0
-        onImplicitHeightChanged: Qt.callLater(sheet.fit)
         // Back and Escape reach the sheet from whatever has the focus in it.
         focus: true
         Keys.onBackPressed: function(event) {
@@ -103,60 +181,115 @@ Drawer {
             sheet.back()
         }
 
-        // The platform's handle, saying the sheet can be pulled away; on an
-        // expandable sheet a tap on it grows or shrinks the sheet.
+        // The handle and the title: what the sheet is dragged by.
         Item {
-            Layout.fillWidth: true
-            implicitHeight: 24
+            id: header
 
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                y: 12
-                width: 32
-                height: 4
-                radius: 2
-                color: Theme.alpha(sheet.Material.foreground, 0.4)
+            Layout.fillWidth: true
+            implicitHeight: headerColumn.implicitHeight
+
+            DragHandler {
+                id: drag
+
+                target: null
+                xAxis.enabled: false
+                enabled: sheet.interactive
+                property real startHeight: 0
+
+                onActiveChanged: {
+                    if (active) {
+                        startHeight = sheet.height
+                        sheet.dragHeight = sheet.height
+                        sheet.dragging = true
+                        return
+                    }
+                    sheet.settle(centroid.velocity.y)
+                }
+                onTranslationChanged: {
+                    if (!active) return
+                    const top = sheet.canExpand ? sheet.fullHeight : sheet.restingHeight
+                    sheet.dragHeight = Math.max(0, Math.min(top,
+                                                            startHeight - translation.y))
+                }
             }
 
-            TapHandler {
-                enabled: sheet.expandable
-                onTapped: sheet.expanded = !sheet.expanded
+            ColumnLayout {
+                id: headerColumn
+
+                width: parent.width
+                spacing: 0
+
+                // The platform's handle, saying the sheet can be pulled; on
+                // an expandable sheet a tap on it grows or shrinks it.
+                Item {
+                    Layout.fillWidth: true
+                    implicitHeight: 16
+
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 6
+                        width: 32
+                        height: 4
+                        radius: 2
+                        color: Theme.alpha(sheet.Material.foreground, 0.4)
+                    }
+
+                    TapHandler {
+                        enabled: sheet.canExpand
+                        onTapped: sheet.expanded = !sheet.expanded
+                    }
+
+                    Accessible.role: sheet.canExpand ? Accessible.Button
+                                                     : Accessible.NoRole
+                    Accessible.name: sheet.canExpand
+                                     ? (sheet.expanded ? qsTr("Show less")
+                                                       : qsTr("Show more"))
+                                     : ""
+                }
+
+                RowLayout {
+                    id: headerRow
+
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Theme.sheetPad
+                    Layout.rightMargin: Theme.sheetPad - 8
+                    Layout.topMargin: 2
+                    Layout.bottomMargin: 6
+                    visible: sheet.title.length > 0 || children.length > 1
+                    spacing: 8
+
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.minimumHeight: 32
+                        verticalAlignment: Text.AlignVCenter
+                        text: sheet.title
+                        font.pixelSize: Theme.headlineSize
+                        wrapMode: Text.Wrap
+                    }
+                }
             }
-
-            Accessible.role: sheet.expandable ? Accessible.Button
-                                              : Accessible.NoRole
-            Accessible.name: sheet.expandable
-                             ? (sheet.expanded ? qsTr("Show less")
-                                               : qsTr("Show more"))
-                             : ""
         }
 
-        Label {
-            Layout.fillWidth: true
-            Layout.leftMargin: 24
-            Layout.rightMargin: 24
-            Layout.topMargin: 8
-            Layout.bottomMargin: 8
-            visible: text.length > 0
-            text: sheet.title
-            font.pixelSize: Theme.titleSize
-            wrapMode: Text.Wrap
-        }
-
+        // The content: a column that scrolls in the sheet, or, in list mode,
+        // a column whose list fills what is left and scrolls itself.
         Flickable {
             id: scroller
 
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredHeight: body.implicitHeight
-            contentHeight: body.implicitHeight
+            contentHeight: sheet.listMode ? height : body.implicitHeight
             clip: true
             boundsBehavior: Flickable.StopAtBounds
-            interactive: contentHeight > height
+            interactive: !sheet.listMode && contentHeight > height + 1
+            ScrollIndicator.vertical: ScrollIndicator {
+                visible: !sheet.listMode
+            }
 
             // Keeps the field being typed into in sight, also once the
             // keyboard has taken some of the sheet.
             function reveal() {
+                if (sheet.listMode) return
                 const item = scroller.Window.activeFocusItem
                 if (!item || !sheet.opened) return
                 let up = item
@@ -176,31 +309,68 @@ Drawer {
                 target: scroller.Window.window
                 function onActiveFocusItemChanged() {
                     Qt.callLater(scroller.reveal)
+                    if (sheet.opened) Qt.callLater(sheet.keepFocus)
                 }
             }
 
             ColumnLayout {
                 id: body
-                x: 24
-                width: scroller.width - 48
+
+                x: Theme.sheetPad
+                width: scroller.width - 2 * Theme.sheetPad
+                height: sheet.listMode ? scroller.height : implicitHeight
                 spacing: 12
             }
         }
 
-        RowLayout {
+        // The buttons side by side while they fit; one under the other when
+        // they do not (large text, long words), never cut off.
+        GridLayout {
             id: footerRow
 
+            readonly property real needed: {
+                let sum = 0
+                let shown = 0
+                for (const child of children) {
+                    if (!child.visible || child.implicitWidth <= 0) continue
+                    sum += child.implicitWidth
+                    ++shown
+                }
+                return sum + Math.max(0, shown - 1) * columnSpacing
+            }
+
             Layout.fillWidth: true
-            Layout.margins: Theme.gap
+            Layout.leftMargin: Theme.sheetPad
+            Layout.rightMargin: Theme.sheetPad
             Layout.topMargin: 8
-            spacing: Theme.gapSmall
+            Layout.bottomMargin: 8
+            columns: needed <= width ? Math.max(1, children.length) : 1
+            columnSpacing: Theme.gapSmall
+            rowSpacing: 4
             visible: children.length > 0
         }
 
-        // The keyboard covers the foot of the window; what is above it
-        // scrolls.
+        // The gesture bar, and the keyboard while it is up: the content
+        // ends above them.
         Item {
-            Layout.preferredHeight: Theme.keyboard
+            Layout.preferredHeight: sheet.footInset
         }
+    }
+
+    // Where the sheet goes when the header is let go: away when dragged low
+    // or flung down, else to the nearest of half and full (expandable), or
+    // back where it was.
+    function settle(velocity) {
+        const h = dragHeight
+        dragging = false
+        const low = canExpand ? halfHeight : restingHeight
+        if (velocity > 1200 || h < low * 0.6) {
+            close()
+            return
+        }
+        if (!canExpand) return
+        if (velocity < -1200) expanded = true
+        else if (velocity > 600) expanded = false
+        else expanded = Math.abs(h - fullHeight) < Math.abs(h - halfHeight)
     }
 }
