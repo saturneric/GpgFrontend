@@ -38,6 +38,7 @@ Page {
     }
     readonly property alias notice: notice
     readonly property alias databaseSheet: databaseSheet
+    readonly property alias databaseSwitch: databaseSwitch
 
     KeyCategoriesController {
         id: categoryStore
@@ -73,6 +74,13 @@ Page {
 
     KeyDatabaseSheet {
         id: databaseSheet
+        databases: keyDatabases
+        switcher: databaseSwitch
+    }
+
+    // A switch under way, apart from choosing one.
+    KeyDatabaseSwitchSheet {
+        id: databaseSwitch
         databases: keyDatabases
     }
 
@@ -235,9 +243,10 @@ Page {
                 objectName: "keysLoading"
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: filtered.count === 0 ? (parent.height - height) / 2 : 8
-                // Never a second one under the database sheet's.
+                // Never a second one beside the switching sheet's, nor
+                // just before it comes up.
                 running: (page.loading || KeyListController.refreshing || page.creatingKey)
-                         && !databaseSheet.opened
+                         && !page.databaseSwitch.opened && !page.databaseSwitch.switching
             }
         }
     }

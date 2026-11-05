@@ -9,31 +9,32 @@ import GpgFrontend.Mobile
 // Which key database the app works in, and a new one by name, as the App
 // Store build offers them. Moving, renaming and removing databases are the
 // desktop's.
+//
+// Only the choice: once a database is chosen (or named) this sheet goes and
+// the switch is the switching sheet's (KeyDatabaseSwitchSheet), so the two
+// never show at once and this one keeps no room for a progress bar. The
+// database marked here is the one in use, which changes only once a switch
+// has worked.
 BottomSheet {
     id: sheet
 
     property KeyDatabasesController databases
+    // What runs a switch once one is chosen (KeyDatabaseSwitchSheet), placed
+    // beside this sheet by the page: declared inside it, a closed sheet, it
+    // would have no window to come up in.
+    property KeyDatabaseSwitchSheet switcher
     // Naming a new database rather than choosing one.
     property bool naming: false
-    // Switched: waiting for the new database's keys before closing.
-    property bool awaitingKeys: false
-    // The database being switched to or made, by name, for the progress line.
-    property string targetName: ""
-    // From the tap until the new database's keys are read, or it failed.
-    property bool switching: false
-    readonly property bool busy: (databases !== null && databases.busy) || awaitingKeys
-                                 || switching
-
-    function hold(target) {
-        targetName = target
-        switching = true
-    }
-
-    // The new database is in use and its keys are shown: the page behind
-    // says so by its name and its list, nothing more is needed.
-    signal finished()
+    // The core is busy with the databases (opening one at startup): nothing
+    // to choose until it is done.
+    readonly property bool busy: databases !== null && databases.busy
 
     function begin() {
+        // A switch still running is shown, not a second one begun.
+        if (switcher && switcher.switching) {
+            switcher.open()
+            return
+        }
         naming = false
         problem.text = ""
         open()
@@ -47,142 +48,62 @@ BottomSheet {
         name.selectAll()
     }
 
+    // The database @p id, called @p label, chosen: this sheet goes, the
+    // switch runs. The one in use, chosen again, changes nothing.
+    function choose(id, label, current) {
+        if (current || !switcher) return
+        close()
+        switcher.switchTo(id, label)
+    }
+
     function create() {
         const why = databases.nameProblem(name.text)
         problem.text = why
-        if (why.length === 0) {
-            hold(name.text.trim())
-            databases.create(name.text)
-        }
+        if (why.length > 0 || !switcher) return
+        const label = name.text.trim()
+        close()
+        switcher.create(label)
     }
 
     objectName: "keyDatabaseSheet"
     title: naming ? qsTr("New key database") : qsTr("Key database")
+    description: naming
+                 ? qsTr("Kept in your profile, so it travels with a profile "
+                        + "you export. Just choose a name.")
+                 : qsTr("Each key database has its own keys. The one you choose "
+                        + "is used from now on.")
     stepBack: function() {
-        if (sheet.busy) return true
         if (!sheet.naming) return false
         sheet.naming = false
         problem.text = ""
         return true
     }
 
-    // Only a switch this sheet began: the core may switch on its own.
-    function switched(succeeded, error) {
-        if (!switching) return
-        if (succeeded) {
-            awaitKeys()
-            return
-        }
-        switching = false
-        problem.text = error
-    }
-
-    function created(succeeded, error) {
-        switched(succeeded, error)
-    }
-
-    // The database is in use; the sheet stays, busy, until its keys are
-    // read, so the list behind it never shows the old database's keys or
-    // an empty "No keys yet" meanwhile.
-    function awaitKeys() {
-        awaitingKeys = true
-        keysSettled()
-    }
-
-    function keysSettled() {
-        if (!awaitingKeys || KeyListController.refreshing || !KeyListController.loaded)
-            return
-        awaitingKeys = false
-        switching = false
-        if (KeyListController.error.length > 0) {
-            problem.text = qsTr("%1 is in use, but its keys could not be read: %2")
-                           .arg(targetName).arg(KeyListController.error)
-            return
-        }
-        close()
-        finished()
-    }
-
-    // The key list's state, followed through a property of the sheet's own:
-    // its change signal (Signal...) has no handler in QML.
-    readonly property bool keysPending: KeyListController.refreshing
-                                        || !KeyListController.loaded
-    onKeysPendingChanged: Qt.callLater(sheet.keysSettled)
-
-    interactive: !busy
-    onClosed: awaitingKeys = false
-
-
-    // Signals named Signal... have no handler property in QML. Once per
-    // controller: an initial value raises no change.
-    property QtObject listening: null
-    function listen() {
-        if (!databases || listening === databases) return
-        databases.SignalSwitched.connect(sheet.switched)
-        databases.SignalCreated.connect(sheet.created)
-        listening = databases
-    }
-    onDatabasesChanged: listen()
-    Component.onCompleted: listen()
-
-    // The one progress shown while switching, under the title, always
-    // taking its room: it comes and goes without moving anything.
-    ColumnLayout {
-        objectName: "keyDatabaseBusy"
-        Layout.fillWidth: true
-        spacing: 2
-        opacity: sheet.busy ? 1 : 0
-        Accessible.role: Accessible.ProgressBar
-        Accessible.name: progressText.text
-
-        ProgressBar {
-            Layout.fillWidth: true
-            indeterminate: sheet.busy
-        }
-
-        Label {
-            id: progressText
-            Layout.fillWidth: true
-            elide: Text.ElideRight
-            font.pixelSize: Theme.secondarySize
-            color: Material.secondaryTextColor
-            text: sheet.naming ? qsTr("Making %1…").arg(sheet.targetName)
-                               : qsTr("Switching to %1…").arg(sheet.targetName)
-        }
-    }
-
-    Label {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-        text: sheet.naming
-              ? qsTr("Kept in your profile, so it travels with a profile "
-                     + "you export. Just choose a name.")
-              : qsTr("Each key database has its own keys. The one you choose "
-                     + "is used from now on.")
-    }
-
-    // One list, without the sheet's spacing between its choices.
+    // One list, edge to edge, without the sheet's spacing between its
+    // choices: a row a touch target tall, its name beside the mark.
     ColumnLayout {
         Layout.fillWidth: true
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
         visible: !sheet.naming
         spacing: 0
 
         Repeater {
             model: sheet.databases ? sheet.databases.databases : []
 
-            RadioButton {
+            RadioDelegate {
                 required property var modelData
                 objectName: "keyDatabase_" + modelData.name
                 Layout.fillWidth: true
+                leftPadding: Theme.sheetPad
+                rightPadding: Theme.sheetPad - 8
                 text: modelData.name
+                // The one in use, until another has worked: a tap asks for
+                // the switch and never ticks the row itself.
+                checkable: false
                 checked: modelData.current
                 enabled: !sheet.busy
-                onClicked: {
-                    problem.text = ""
-                    sheet.hold(modelData.name)
-                    sheet.databases.switchTo(modelData.id)
-                }
+                onClicked: sheet.choose(modelData.id, modelData.name, modelData.current)
             }
         }
     }
@@ -219,17 +140,16 @@ BottomSheet {
         Item {
             Layout.fillWidth: true
         },
-        Button {
+        ActionButton {
+            kind: "text"
             text: sheet.naming ? qsTr("Cancel") : qsTr("Close")
-            flat: true
             enabled: !sheet.busy
             onClicked: sheet.naming ? sheet.stepBack() : sheet.close()
         },
-        Button {
+        ActionButton {
             objectName: "keyDatabaseCreate"
             visible: sheet.naming
             text: qsTr("Create")
-            highlighted: true
             enabled: !sheet.busy && name.text.trim().length > 0
             onClicked: sheet.create()
         }

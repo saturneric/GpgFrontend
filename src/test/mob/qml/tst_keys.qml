@@ -120,25 +120,47 @@ Item {
             compare(findByName(keys, "categoryChip_new"), null)
         }
 
-        // Switching databases: the name at the top is the one whose keys are
-        // listed, whatever the sheet is doing; a switch that fails ends at
-        // once. A switch the sheet did not begin is not waited for.
-        function test_the_database_name_changes_with_its_list() {
-            const sheet = keys.databaseSheet
+        // Switching databases: choosing is one sheet, the switch another,
+        // never both at once; one switch at a time; the name at the top is
+        // the one whose keys are listed, never the new one before it worked;
+        // a switch that fails says why and lets go.
+        function test_switching_a_database_is_apart_from_choosing_it() {
+            const choose = keys.databaseSheet
+            const progress = keys.databaseSwitch
             const before = keys.databaseName
-            sheet.hold("Elsewhere")
-            verify(sheet.switching)
-            verify(sheet.busy)
-            compare(sheet.targetName, "Elsewhere")
+            // The choice keeps no room for progress.
+            compare(findByName(choose.contentItem, "keyDatabaseBusy"), null)
+
+            verify(progress.start("Elsewhere", false))
+            verify(progress.switching)
+            compare(progress.targetName, "Elsewhere")
+            // A second switch while one runs is refused.
+            verify(!progress.start("Third", false))
+            compare(progress.targetName, "Elsewhere")
             compare(keys.databaseName, before)
+            // Not at once: a switch done quickly never flashes the sheet.
+            verify(!progress.opened)
+            tryVerify(() => progress.opened, progress.showAfter + 1000)
+            // Asking to choose meanwhile shows the switch, not the choice.
+            choose.begin()
+            verify(!choose.visible)
+            // It cannot be put away while it runs.
+            verify(!progress.interactive)
+            progress.back()
+            verify(progress.opened)
 
-            sheet.switched(false, "It is gone.")
-            verify(!sheet.switching)
-            verify(!sheet.busy)
-
-            sheet.switched(true, "")
-            verify(!sheet.awaitingKeys)
-            verify(!sheet.busy)
+            progress.switched(false, "It is gone.")
+            verify(!progress.switching)
+            verify(progress.opened)
+            verify(progress.interactive)
+            compare(findByName(progress.contentItem, "keyDatabaseSwitchProblem").text,
+                    "It is gone.")
+            compare(keys.databaseName, before)
+            // A late answer for nothing begun here changes nothing.
+            progress.switched(true, "")
+            verify(!progress.awaitingKeys)
+            progress.close()
+            tryVerify(() => !progress.visible)
         }
 
         // A management page: the title is always Keys, and nothing on it

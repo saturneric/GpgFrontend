@@ -293,7 +293,10 @@ TEST(QmlRegistrationTest, KeyDatabaseSheetOffersTheDatabases) {
     sheet_type.setData(R"(
       import QtQuick
       import GpgFrontend.Mobile
-      KeyDatabaseSheet { databases: KeyDatabasesController {} }
+      KeyDatabaseSheet {
+        databases: KeyDatabasesController {}
+        switcher: KeyDatabaseSwitchSheet { databases: KeyDatabasesController {} }
+      }
     )",
                        QUrl());
     std::unique_ptr<QObject> sheet(sheet_type.create());
@@ -319,6 +322,11 @@ TEST(QmlRegistrationTest, KeyDatabaseSheetOffersTheDatabases) {
                      .toString()
                      .isEmpty());
     EXPECT_FALSE(sheet->property("busy").toBool());
+    // A refused name starts no switch: the choice stays, nothing runs.
+    auto* switcher = sheet->property("switcher").value<QObject*>();
+    ASSERT_NE(switcher, nullptr);
+    EXPECT_FALSE(switcher->property("switching").toBool());
+    EXPECT_TRUE(sheet->property("naming").toBool());
   });
   EXPECT_EQ(LookupChannelHandle(UsableDefaultChannelHandle()).database_id,
             current);

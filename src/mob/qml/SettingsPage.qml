@@ -304,7 +304,12 @@ Page {
     KeyDatabaseSheet {
         id: databaseSheet
         databases: keyDatabases
-        onFinished: function(message) { done.show(message) }
+        switcher: databaseSwitch
+    }
+
+    KeyDatabaseSwitchSheet {
+        id: databaseSwitch
+        databases: keyDatabases
     }
 
     MessageAlert {
