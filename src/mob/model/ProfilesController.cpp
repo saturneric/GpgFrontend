@@ -47,6 +47,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "files/FileOperations.h"
 #include "files/StagingArea.h"
+#include "model/ChangeRelay.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -146,7 +147,11 @@ struct ProfilesController::Pending {
   }
 };
 
-ProfilesController::ProfilesController(QObject* parent) : QObject(parent) {}
+ProfilesController::ProfilesController(QObject* parent) : QObject(parent) {
+  // The default profile's name is a translated one.
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
+          &ProfilesController::SignalChanged);
+}
 
 ProfilesController::~ProfilesController() = default;
 

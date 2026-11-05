@@ -46,4 +46,11 @@ class ChangeRelay : public QObject {
   void SignalChanged();
 };
 
+/**
+ * @brief The language changed, while the application runs (Settings): every
+ * model that hands QML words it translated itself says its data again.
+ * QQmlEngine::retranslate() reaches only the pages' own qsTr() bindings.
+ */
+auto LanguageRelay() -> ChangeRelay&;
+
 }  // namespace GpgFrontend::Mobile

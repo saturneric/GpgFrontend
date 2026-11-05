@@ -31,11 +31,20 @@
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/utils/GpgUtils.h"
+#include "model/ChangeRelay.h"
 #include "shell/models/GpgKeyTableModel.h"
 #include "shell/present/KeyStatus.h"
 #include "shell/rules/EncryptBlockReason.h"
 
 namespace GpgFrontend::Mobile {
+
+KeyRoleModel::KeyRoleModel(QObject* parent) : QIdentityProxyModel(parent) {
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this, [this]() {
+    if (rowCount() > 0) {
+      emit dataChanged(index(0, 0), index(rowCount() - 1, columnCount() - 1));
+    }
+  });
+}
 
 namespace {
 

@@ -62,7 +62,8 @@ class KeyActionsController : public QObject {
   Q_PROPERTY(QVariantList profiles READ Profiles NOTIFY SignalProfilesChanged)
   /// How long a key or subkey may last, as the desktop offers it:
   /// [{id ("1y", "forever", ...), name ("1 year", "Never")}].
-  Q_PROPERTY(QVariantList validities READ Validities CONSTANT)
+  Q_PROPERTY(
+      QVariantList validities READ Validities NOTIFY SignalProfilesChanged)
 
  public:
   explicit KeyActionsController(QObject* parent = nullptr);

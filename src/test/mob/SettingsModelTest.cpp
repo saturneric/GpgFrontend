@@ -38,6 +38,7 @@
 #include "files/FileOperations.h"
 #include "files/ShareRetentionStore.h"
 #include "model/AboutInfo.h"
+#include "model/KeyDatabasesController.h"
 #include "model/SettingsModel.h"
 
 namespace GpgFrontend::Test::Mobile {
@@ -73,7 +74,19 @@ TEST(SettingsModelTest, TheLanguageIsChosenAndAppliedAtOnce) {
     int heard = 0;
     QObject::connect(&model, &SettingsModel::SignalLanguageChanged,
                      [&heard]() { ++heard; });
+    // What the models translate themselves is said again, not only the
+    // pages' own words: the settings' titles, the built-in database's name.
+    int rows_again = 0;
+    QObject::connect(&model, &QAbstractItemModel::dataChanged,
+                     [&rows_again]() { ++rows_again; });
+    GpgFrontend::Mobile::KeyDatabasesController databases;
+    int databases_again = 0;
+    QObject::connect(
+        &databases, &GpgFrontend::Mobile::KeyDatabasesController::SignalChanged,
+        [&databases_again]() { ++databases_again; });
     model.SetLanguage("de_DE");
+    EXPECT_GT(rows_again, 0);
+    EXPECT_GT(databases_again, 0);
     EXPECT_EQ(SettingItems::kLanguage.Read(GetSettings()), "de_DE");
     EXPECT_EQ(SettingsModel::Language(), "de_DE");
     EXPECT_EQ(QLocale().name(), "de_DE");

@@ -98,7 +98,9 @@ class KeyRoleModel : public QIdentityProxyModel {
   };
   Q_ENUM(Role)
 
-  using QIdentityProxyModel::QIdentityProxyModel;
+  /// Its words (a key's status) are translated as they are read: the
+  /// language changing says them all again.
+  explicit KeyRoleModel(QObject* parent = nullptr);
 
   /**
    * @brief The key or key group at @p index of a KeyRoleModel, or of a model

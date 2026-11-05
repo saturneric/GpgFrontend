@@ -50,6 +50,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "files/StagingArea.h"
+#include "model/ChangeRelay.h"
 #include "model/ErrorWording.h"
 #include "model/KeyGenProfilesController.h"
 #include "model/KeyRoleModel.h"
@@ -133,8 +134,11 @@ auto FirstProblem(const KeyGenIdentityCheck& identity) -> QString {
 
 }  // namespace
 
-KeyActionsController::KeyActionsController(QObject* parent)
-    : QObject(parent) {}
+KeyActionsController::KeyActionsController(QObject* parent) : QObject(parent) {
+  // The profiles' and the validities' names are translated ones.
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyActionsController::SignalProfilesChanged);
+}
 
 auto KeyActionsController::Busy() const -> bool { return busy_; }
 

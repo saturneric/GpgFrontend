@@ -42,6 +42,11 @@
 
 namespace GpgFrontend::Mobile {
 
+auto LanguageRelay() -> ChangeRelay& {
+  static ChangeRelay relay;
+  return relay;
+}
+
 namespace {
 
 /// Tells every model that the operations offered changed.
@@ -172,6 +177,11 @@ SettingsModel::SettingsModel(QObject* parent) : QAbstractListModel(parent) {
                      {kValueRole, kChoicesRole});
     emit SignalOperationsChanged();
   });
+  // Its titles, descriptions and choices are translated as they are read.
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this, [this]() {
+    if (rowCount() > 0) emit dataChanged(index(0), index(rowCount() - 1));
+    emit SignalOperationsChanged();
+  });
 }
 
 auto SettingsModel::Languages() const -> QVariantList {
@@ -203,6 +213,8 @@ void SettingsModel::SetLanguage(const QString& code) {
   QLocale::setDefault(locale);
   InstallTranslations(locale);
   if (auto* engine = qmlEngine(this); engine != nullptr) engine->retranslate();
+  // What the models translate themselves, said again in the new language.
+  emit LanguageRelay().SignalChanged();
   emit SignalLanguageChanged();
 }
 

@@ -67,6 +67,9 @@ KeyCategoriesController::KeyCategoriesController(QObject* parent)
     : QObject(parent) {
   connect(&CategoriesRelay(), &ChangeRelay::SignalChanged, this,
           &KeyCategoriesController::SignalChanged);
+  // The ready-made categories' names are translated ones.
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyCategoriesController::SignalChanged);
 }
 
 auto KeyCategoriesController::ordered_ids() const -> QStringList {

@@ -43,6 +43,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
+#include "model/ChangeRelay.h"
 #include "shell/models/KeyDatabaseSettingsModel.h"
 #include "shell/rules/KeyDatabaseNames.h"
 
@@ -63,6 +64,9 @@ KeyDatabasesController::KeyDatabasesController(QObject* parent)
   connect(CoreSignalStation::GetInstance(),
           &CoreSignalStation::SignalKeyDatabaseRuntimePublished, this,
           &KeyDatabasesController::SignalChanged, Qt::QueuedConnection);
+  // The built-in database's name is a translated one.
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyDatabasesController::SignalChanged);
 }
 
 auto KeyDatabasesController::Databases() const -> QVariantList {

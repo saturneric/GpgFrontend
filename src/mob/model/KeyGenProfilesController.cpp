@@ -32,6 +32,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/MemoryUtils.h"
+#include "model/ChangeRelay.h"
 #include "shell/rules/KeyGenProfileRules.h"
 
 namespace GpgFrontend::Mobile {
@@ -116,7 +117,11 @@ auto RefusalOf(const Shell::KeyGenProfileState& state,
 }  // namespace
 
 KeyGenProfilesController::KeyGenProfilesController(QObject* parent)
-    : QObject(parent) {}
+    : QObject(parent) {
+  // The built-in profiles' names are translated ones.
+  connect(&LanguageRelay(), &ChangeRelay::SignalChanged, this,
+          &KeyGenProfilesController::SignalProfilesChanged);
+}
 
 auto KeyGenProfilesController::Profiles() const -> QVariantList {
   const auto settings = LoadKeyGenSettings();
