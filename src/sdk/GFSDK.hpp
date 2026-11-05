@@ -236,6 +236,18 @@ inline auto ImportKeys(GFSDKContext* ctx, int channel, const QByteArray& data)
   return GFGpgImportKeys(ctx, channel, bytes.view());
 }
 
+/// ImportKeys(), keeping only the certificates named in @p wanted; see
+/// GFGpgImportKeysMatching.
+inline auto ImportKeysMatching(GFSDKContext* ctx, int channel,
+                               const QByteArray& data,
+                               const QStringList& wanted,
+                               int* dropped = nullptr) -> int {
+  const Bytes bytes(ctx, data);
+  const auto ids = wanted.join('\n').toUtf8();
+  return GFGpgImportKeysMatching(ctx, channel, bytes.view(), ids.constData(),
+                                 dropped);
+}
+
 inline auto ExportKey(GFSDKContext* ctx, int channel, const QString& key_id,
                       bool ascii) -> QByteArray {
   GFBufferRef out = nullptr;

@@ -832,6 +832,52 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
     }
 }
 
+/// Keep only the certificates in `key_block` whose primary key was asked for.
+///
+/// `wanted` holds full fingerprints or 16-hex-digit key IDs, one per line. On
+/// success `*out_public_block` is the kept certificates, armored, or null when
+/// none matched, and `*out_dropped` the number left out. Free the block with
+/// `gfr_crypto_free_string`.
+///
+/// # Safety
+/// Both output pointers must be non-null.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_filter_public_keys(
+    key_block: GfrBuffer,
+    wanted: GfrBuffer,
+    out_public_block: *mut *mut c_char,
+    out_dropped: *mut usize,
+) -> GfrStatus {
+    clear_last_error();
+    if out_public_block.is_null() || out_dropped.is_null() {
+        return GfrStatus::ErrorInvalidInput;
+    }
+    unsafe {
+        *out_public_block = std::ptr::null_mut();
+        *out_dropped = 0;
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        let block = unsafe { key_block.as_str() }?;
+        let wanted = unsafe { wanted.as_str() }?;
+        let wanted: Vec<&str> = wanted.lines().filter(|l| !l.trim().is_empty()).collect();
+
+        let filtered = crate::key::filter_public_keys_internal(block, &wanted)?;
+        unsafe { *out_dropped = filtered.dropped };
+        if !filtered.armored.is_empty() {
+            let cstr = CString::new(filtered.armored).map_err(|_| GfrStatus::ErrorInternal)?;
+            unsafe { *out_public_block = cstr.into_raw() };
+        }
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
 /// Apply a revocation certificate to a key block.
 ///
 /// Merges `rev_cert_block` into `base_key_block`. On success both output

@@ -134,6 +134,25 @@ auto GF_CORE_EXPORT RustEngineBuildInfo() -> RpgpEngineInfo;
 auto GF_CORE_EXPORT DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int;
 
 /**
+ * @brief Keep only the certificates in @p key_block whose primary key is one
+ * of @p wanted.
+ *
+ * @p wanted holds full fingerprints or 16-hex-digit key IDs; shorter IDs never
+ * match. Used on what a key server sends back, which may be any keys at all.
+ * Declared unconditionally; without the Rust engine nothing is kept.
+ *
+ * @param key_block armored key material
+ * @param wanted identifiers the caller asked for
+ * @param dropped set to how many certificates were left out, when given
+ * @return the kept certificates, armored; empty when none matched or the
+ * block could not be read
+ */
+auto GF_CORE_EXPORT FilterRequestedPublicKeys(const GFBuffer& key_block,
+                                              const QStringList& wanted,
+                                              int* dropped = nullptr)
+    -> GFBuffer;
+
+/**
  * @brief Extract the recipient key IDs of an encrypted buffer.
  *
  * Reads only the PKESK packets of the OpenPGP envelope, so it answers who the

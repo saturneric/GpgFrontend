@@ -340,6 +340,13 @@ typedef struct GFHostGpgApi {
    *  symmetric encryption does. See GFGpgEncryptSymmetric. */
   int (*encrypt_symmetric)(GFHostContextRef ctx, int channel, GFBufferView in,
                            int ascii, GFGpgResultRef* out);
+
+  /** import_keys, keeping only certificates whose primary key is named in
+   *  @p wanted (fingerprints or 16-digit key IDs, one per line). See
+   *  GFGpgImportKeysMatching. */
+  int (*import_keys_matching)(GFHostContextRef ctx, int channel,
+                              GFBufferView data, const char* wanted,
+                              int* dropped);
 } GFHostGpgApi;
 
 /**

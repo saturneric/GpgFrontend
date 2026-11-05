@@ -179,6 +179,8 @@ auto GFGpgPublicKey(int channel, const char* key_id, int ascii) -> GFBufferRef;
 auto GFGpgExportKey(int channel, const char* key_id, int ascii,
                     GFBufferRef* out) -> int;
 auto GFGpgImportKeys(int channel, const char* data, int size) -> int;
+auto GFGpgImportKeysMatching(int channel, const GpgFrontend::GFBuffer& data,
+                             const QStringList& wanted, int* dropped) -> int;
 
 /** The three parts of the primary UID, each owned by the caller and freed
  *  with GFFreeMemory. The struct this used to fill in is gone. */

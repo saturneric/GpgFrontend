@@ -78,6 +78,21 @@ int GFGpgExportKey(GFSDKContext* ctx, int channel, const char* key_id,
 int GFGpgImportKeys(GFSDKContext* ctx, int channel, GFBufferView data);
 
 /**
+ * @brief GFGpgImportKeys(), for key material someone else chose.
+ *
+ * Only certificates whose primary key is named in @p wanted are imported:
+ * full fingerprints or 16-hex-digit key IDs, one per line. Meant for what a
+ * key server sends back, which can be any keys at all.
+ *
+ * @param wanted borrowed
+ * @param dropped set, when given, to how many certificates were left out
+ * @return 0 when the import was started; -2 when nothing matched, so nothing
+ *         was imported; other negative values when refused
+ */
+int GFGpgImportKeysMatching(GFSDKContext* ctx, int channel, GFBufferView data,
+                            const char* wanted, int* dropped);
+
+/**
  * @brief The primary UID of @p key_id, split into its parts.
  *
  * Each out-parameter is OWNED and released with GFBufferRelease; pass NULL

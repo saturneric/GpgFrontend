@@ -29,6 +29,9 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 #include <algorithm>
 
@@ -55,6 +58,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -1052,6 +1056,45 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
   }
 
   DeleteKey(key);
+}
+
+// What a key server returns for one key is imported only where it is that
+// key; anything else it sends along is left out and counted.
+TEST_P(GpgCoreEngineTest, AKeyServerAnswerKeepsOnlyTheRequestedKey) {
+  auto wanted = GenerateFullKey("keyserver_wanted");
+  auto extra = GenerateFullKey("keyserver_extra");
+  ASSERT_TRUE(wanted != nullptr && extra != nullptr);
+
+  auto& io = KeyImportExportOperation::GetInstance(Channel());
+  auto [err_a, block_a] = io.ExportKey(wanted, false, true, false);
+  auto [err_b, block_b] = io.ExportKey(extra, false, true, false);
+  ASSERT_TRUE(err_a.Ok() && err_b.Ok());
+  const auto answer = GFBuffer(block_a.ConvertToQByteArray() + "\n" +
+                               block_b.ConvertToQByteArray());
+
+  int dropped = -1;
+  const auto kept =
+      FilterRequestedPublicKeys(answer, {wanted->Fingerprint()}, &dropped);
+  EXPECT_EQ(dropped, 1);
+  ASSERT_FALSE(kept.Empty());
+
+  // By its long key ID too, but never by a short one.
+  EXPECT_FALSE(FilterRequestedPublicKeys(answer, {wanted->ID()}).Empty());
+  EXPECT_TRUE(
+      FilterRequestedPublicKeys(answer, {wanted->ID().right(8)}).Empty());
+
+  // One certificate was kept: a single primary key packet (tag 6).
+  int primaries = 0;
+  const auto doc = QJsonDocument::fromJson(InspectOpenPGPData(kept));
+  for (const auto& block : doc.object().value("blocks").toArray()) {
+    for (const auto& packet : block.toObject().value("packets").toArray()) {
+      if (packet.toObject().value("tag").toInt() == 6) ++primaries;
+    }
+  }
+  EXPECT_EQ(primaries, 1);
+
+  DeleteKey(wanted);
+  DeleteKey(extra);
 }
 
 // Deleting used to report nothing, and the engines answered true for keys

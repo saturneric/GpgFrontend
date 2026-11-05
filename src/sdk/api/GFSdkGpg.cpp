@@ -143,6 +143,14 @@ auto GFGpgImportKeys(GFSDKContext* ctx, int channel, GFBufferView data)
   return g->import_keys(hctx, channel, nullptr, data);
 }
 
+auto GFGpgImportKeysMatching(GFSDKContext* ctx, int channel, GFBufferView data,
+                             const char* wanted, int* dropped) -> int {
+  if (dropped != nullptr) *dropped = 0;
+  GF_SDK_REQUIRE(ctx, gpg, "GFGpgImportKeysMatching", -1);
+  if (!GF_SDK_GROUP_HAS(g, import_keys_matching)) return -1;
+  return g->import_keys_matching(hctx, channel, data, wanted, dropped);
+}
+
 auto GFGpgKeyPrimaryUid(GFSDKContext* ctx, int channel, const char* key_id,
                         GFBufferRef* name, GFBufferRef* email,
                         GFBufferRef* comment) -> int {

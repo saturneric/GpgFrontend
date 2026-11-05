@@ -149,6 +149,17 @@ auto GFGpgImportKeys(int channel, const char* data, int size) -> int {
   return 0;
 }
 
+auto GFGpgImportKeysMatching(int channel, const GpgFrontend::GFBuffer& data,
+                             const QStringList& wanted, int* dropped) -> int {
+  const auto lease = GpgFrontend::TryAcquireEngineLease(channel, nullptr, true);
+  if (!lease) return -1;
+  const auto kept =
+      GpgFrontend::FilterRequestedPublicKeys(data, wanted, dropped);
+  if (kept.Empty()) return -2;
+  GpgFrontend::UI::ImportKeys(nullptr, channel, kept);
+  return 0;
+}
+
 auto GFGpgCurrentGpgContextChannel() -> int {
   // Read on the GUI thread, where the main window lives.
   return GpgFrontend::UI::CurrentGpgContextChannel();

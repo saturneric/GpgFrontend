@@ -481,6 +481,19 @@ auto GpgImportKeys(GFHostContextRef ctx, int channel, void* parent,
                          static_cast<int>(GFBufferSize(data)));
 }
 
+auto GpgImportKeysMatching(GFHostContextRef ctx, int channel, GFBufferView data,
+                           const char* wanted, int* dropped) -> int {
+  if (dropped != nullptr) *dropped = 0;
+  GATE(ctx, GF_HOST_CAP_GPG, "gpg.import_keys_matching", -1);
+  if (wanted == nullptr) return -1;
+  const auto bytes =
+      gf_sdk_internal::ReadBuffer(data, "gpg.import_keys_matching");
+  if (!bytes) return -1;
+  return GFGpgImportKeysMatching(
+      channel, *bytes,
+      QString::fromUtf8(wanted).split('\n', Qt::SkipEmptyParts), dropped);
+}
+
 auto GpgFindKeys(GFHostContextRef ctx, int channel, const char* email,
                  GFGpgKeyBriefListRef* out) -> int {
   GATE(ctx, GF_HOST_CAP_GPG, "gpg.find_keys", -1);
@@ -539,16 +552,35 @@ auto GpgEncryptSymmetric(GFHostContextRef ctx, int channel, GFBufferView in,
 }
 
 const GFHostGpgApi kGpgApi = {
-    sizeof(GFHostGpgApi),  &GpgCurrentChannel,   &GpgSign,
-    &GpgEncrypt,           &GpgDecrypt,          &GpgVerify,
-    &GpgResultStatus,      &GpgResultError,      &GpgResultData,
-    &GpgResultText,        &GpgResultTakeData,   &GpgResultRelease,
-    &GpgResultOutstanding, &GpgAnalyseResult,    &GpgPublicKey,
-    &GpgKeyPrimaryUid,     &GpgExportKey,        &GpgImportKeys,
-    &GpgFindKeys,          &GpgKeyBriefCount,    &GpgKeyBriefAt,
-    &GpgKeyBriefRelease,   &GpgSniffRecipients,  &GpgRecipientCount,
-    &GpgRecipientAt,       &GpgRecipientRelease, &GpgListAddresses,
+    sizeof(GFHostGpgApi),
+    &GpgCurrentChannel,
+    &GpgSign,
+    &GpgEncrypt,
+    &GpgDecrypt,
+    &GpgVerify,
+    &GpgResultStatus,
+    &GpgResultError,
+    &GpgResultData,
+    &GpgResultText,
+    &GpgResultTakeData,
+    &GpgResultRelease,
+    &GpgResultOutstanding,
+    &GpgAnalyseResult,
+    &GpgPublicKey,
+    &GpgKeyPrimaryUid,
+    &GpgExportKey,
+    &GpgImportKeys,
+    &GpgFindKeys,
+    &GpgKeyBriefCount,
+    &GpgKeyBriefAt,
+    &GpgKeyBriefRelease,
+    &GpgSniffRecipients,
+    &GpgRecipientCount,
+    &GpgRecipientAt,
+    &GpgRecipientRelease,
+    &GpgListAddresses,
     &GpgEncryptSymmetric,
+    &GpgImportKeysMatching,
 };
 
 /* --- list ---------------------------------------------------------------- */

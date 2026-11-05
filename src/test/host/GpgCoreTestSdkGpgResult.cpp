@@ -133,6 +133,27 @@ TEST(SdkGpgResultTest, TheLedgerBalancesAcrossAFailedRequest) {
   EXPECT_EQ(GFGpgResultOutstandingCount(Ctx()), before);
 }
 
+// What a key server returns is imported only where it names the requested key;
+// an answer naming none of them imports nothing and says so.
+TEST(SdkGpgResultTest, AMatchingImportOfNothingRequestedImportsNothing) {
+  auto data = GFBuf::Copy(Ctx(), QByteArray("not a key at all"));
+  int dropped = -1;
+  // No list of wanted keys is a request error, on any channel.
+  EXPECT_LT(GFGpgImportKeysMatching(Ctx(), 0, data.View(), nullptr, &dropped),
+            0);
+  EXPECT_EQ(dropped, 0);
+
+  // Which keys are kept is pinned by the engine's own tests; here, only that
+  // an answer naming none of them reaches the caller as -2, where a key
+  // database is open to import into.
+  const auto channel = GFGpgCurrentChannel(Ctx());
+  if (channel < 0) return;
+  EXPECT_EQ(GFGpgImportKeysMatching(Ctx(), channel, data.View(),
+                                    "0123456789ABCDEF0123456789ABCDEF01234567",
+                                    &dropped),
+            -2);
+}
+
 TEST(SdkGpgResultTest, EveryAccessorToleratesANullHandle) {
   EXPECT_EQ(GFGpgResultStatusOf(Ctx(), nullptr), GF_GPG_BAD_REQUEST);
   EXPECT_EQ(GFGpgResultError(Ctx(), nullptr), 0U);

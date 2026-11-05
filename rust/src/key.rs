@@ -1362,6 +1362,77 @@ pub fn export_merged_public_keys(key_blocks: &[&str]) -> Result<String, GfrStatu
     String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
 }
 
+/// What [`filter_public_keys_internal`] kept and how many it left out.
+pub struct FilteredPublicKeys {
+    /// The kept certificates, armored; empty when none matched.
+    pub armored: String,
+    /// Certificates in the input that matched no requested identifier.
+    pub dropped: usize,
+}
+
+/// Keep only the certificates in `key_blocks` whose primary key is one of
+/// `wanted`: a full fingerprint, or a 16-hex-digit key ID. Shorter IDs are
+/// never matched, since anyone can make a key with a chosen short ID.
+///
+/// A key server answers a request for one key with whatever it likes;
+/// importing that verbatim let a server, or anyone between it and an
+/// `http://` URL, slip in keys nobody asked for. Secret blocks are reduced
+/// to their public part, which is all a key server has any business sending.
+pub fn filter_public_keys_internal(
+    key_blocks: &str,
+    wanted: &[&str],
+) -> Result<FilteredPublicKeys, GfrStatus> {
+    let normalise = |s: &str| -> String {
+        let s: String = s.chars().filter(|c| !c.is_whitespace()).collect();
+        s.trim_start_matches("0x")
+            .trim_start_matches("0X")
+            .to_ascii_uppercase()
+    };
+    let wanted: Vec<String> = wanted
+        .iter()
+        .map(|w| normalise(w))
+        .filter(|w| w.len() >= 16)
+        .collect();
+
+    let key_blocks = crate::utils::strip_armor_whitespace(key_blocks);
+    let mut certs: Vec<SignedPublicKey> = Vec::new();
+    for block in split_pgp_blocks(&key_blocks) {
+        if let Ok((sk_iter, _)) = SignedSecretKey::from_string_many(&block) {
+            certs.extend(sk_iter.flatten().map(SignedPublicKey::from));
+        }
+        if let Ok((pk_iter, _)) = SignedPublicKey::from_string_many(&block) {
+            certs.extend(pk_iter.flatten());
+        }
+    }
+
+    let mut kept: Vec<String> = Vec::new();
+    let mut dropped = 0;
+    for cert in certs {
+        let fpr = normalise(&cert.fingerprint().to_string());
+        let key_id = normalise(&cert.legacy_key_id().to_string());
+        let matches = wanted
+            .iter()
+            .any(|w| *w == fpr || (w.len() == 16 && *w == key_id));
+        if matches {
+            kept.push(
+                cert.to_armored_string(key_armor_opts(cert.primary_key.version()))
+                    .map_err(|_| GfrStatus::ErrorArmorFailed)?,
+            );
+        } else {
+            log::warn!("dropping a certificate nobody asked for: {}", fpr);
+            dropped += 1;
+        }
+    }
+
+    let armored = if kept.is_empty() {
+        String::new()
+    } else {
+        let refs: Vec<&str> = kept.iter().map(String::as_str).collect();
+        export_merged_public_keys(&refs)?
+    };
+    Ok(FilteredPublicKeys { armored, dropped })
+}
+
 /// Merge multiple armored secret key blocks into a single secret key armor block.
 ///
 /// All input blocks must be secret keys; a public-key block returns `ErrorInvalidInput`.
@@ -5434,6 +5505,35 @@ mod key_tests {
             extract_public_key_internal(&keys::V4_SIGN.public_armored).err(),
             Some(GfrStatus::ErrorInvalidInput)
         );
+    }
+
+    #[test]
+    fn filtering_keeps_only_the_requested_certificates() {
+        let both = format!(
+            "{}\n{}",
+            keys::V4_SIGN.public_armored,
+            keys::V6_SIGN.public_armored
+        );
+        let v4 = SignedPublicKey::from(keys::V4_SIGN.secret.clone());
+        let v4_fpr = v4.fingerprint().to_string();
+        let v4_id = v4.legacy_key_id().to_string();
+
+        for wanted in [v4_fpr.as_str(), v4_id.as_str()] {
+            let filtered = filter_public_keys_internal(&both, &[wanted]).expect("filter");
+            assert_eq!(filtered.dropped, 1, "{wanted}");
+            let metas = extract_metadata_many_internal(&filtered.armored).expect("metadata");
+            assert_eq!(metas.len(), 1);
+            assert_eq!(
+                metas[0].fpr.to_ascii_uppercase(),
+                v4_fpr.to_ascii_uppercase()
+            );
+        }
+
+        // A short key ID is anyone's to choose, so it never matches.
+        let short = &v4_id[v4_id.len() - 8..];
+        let filtered = filter_public_keys_internal(&both, &[short]).expect("filter");
+        assert!(filtered.armored.is_empty());
+        assert_eq!(filtered.dropped, 2);
     }
 
     #[test]

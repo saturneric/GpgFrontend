@@ -188,6 +188,44 @@ auto DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int {
 #endif
 }
 
+auto FilterRequestedPublicKeys(const GFBuffer& key_block,
+                               const QStringList& wanted, int* dropped)
+    -> GFBuffer {
+  if (dropped != nullptr) *dropped = 0;
+#ifndef HAS_RUST_SUPPORT
+  (void)key_block;
+  (void)wanted;
+  return {};
+#else
+  if (key_block.Empty() || wanted.isEmpty()) return {};
+
+  const auto wanted_utf8 = wanted.join('\n').toUtf8();
+  Rust::GfrBuffer block = {
+      reinterpret_cast<const uint8_t*>(key_block.Data()),
+      static_cast<uintptr_t>(key_block.Size()),
+  };
+  Rust::GfrBuffer ids = {
+      reinterpret_cast<const uint8_t*>(wanted_utf8.constData()),
+      static_cast<uintptr_t>(wanted_utf8.size()),
+  };
+
+  char* out = nullptr;
+  uintptr_t left_out = 0;
+  const auto err =
+      Rust::gfr_crypto_filter_public_keys(block, ids, &out, &left_out);
+  if (err != Rust::GfrStatus::Success) {
+    LOG_W() << "rust ffi filter_public_keys failed: " << static_cast<int>(err);
+    return {};
+  }
+  if (dropped != nullptr) *dropped = static_cast<int>(left_out);
+  if (out == nullptr) return {};
+
+  GFBuffer kept{QByteArray(out)};
+  Rust::gfr_crypto_free_string(out);
+  return kept;
+#endif
+}
+
 namespace {
 
 // One PKESK recipient as the packet spelled it, before anything is looked up.
