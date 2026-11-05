@@ -32,6 +32,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <atomic>
+#include <functional>
 
 #include "GpgFrontendTest.h"
 #include "sdk/GFSDKHostApi.h"
@@ -203,6 +204,37 @@ auto DoBeacon(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
   return gf::cmd::Outcome<gf::cmd::Unit>::Success({});
 }
 
+/// Runs inline, inside the script's own call, whatever g_reenter says: the
+/// shape of a handler whose command runs a nested event loop.
+struct Reenter {
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.reenter", "Reenter", "", "", 0, 0};
+  using Args = gf::cmd::Unit;
+  using Result = gf::cmd::Unit;
+};
+
+std::function<void()> g_reenter;
+auto DoReenter(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
+    -> gf::cmd::Outcome<gf::cmd::Unit> {
+  if (g_reenter) g_reenter();
+  return gf::cmd::Outcome<gf::cmd::Unit>::Success({});
+}
+
+/// Counts its calls, so a test can see a handler run.
+struct Count {
+  static constexpr gf::cmd::Meta kMeta{
+      "com.example.luat.count", "Count", "", "", 0, 0};
+  using Args = gf::cmd::Unit;
+  using Result = gf::cmd::Unit;
+};
+
+std::atomic<int> g_counted{0};
+auto DoCount(const gf::cmd::CommandContext&, const gf::cmd::Unit&)
+    -> gf::cmd::Outcome<gf::cmd::Unit> {
+  ++g_counted;
+  return gf::cmd::Outcome<gf::cmd::Unit>::Success({});
+}
+
 template <typename C, auto H>
 void RegisterTestCommand() {
   const auto b = gf::cmd::Bind<C, H>();
@@ -227,6 +259,8 @@ class LuaApiTest : public ::testing::Test {
     RegisterTestCommand<Park, &DoPark>();
     RegisterTestCommand<Keys, &DoKeys>();
     RegisterTestCommand<Beacon, &DoBeacon>();
+    RegisterTestCommand<Reenter, &DoReenter>();
+    RegisterTestCommand<Count, &DoCount>();
 
     CommandProvider liar;
     liar.id = "com.example.luat.liar";
@@ -958,6 +992,55 @@ end }
   rt->Deliver("app.ui_ready", {});
   QString error;
   EXPECT_FALSE(Load(*rt, "x = 1", &error));
+}
+
+// A handler whose command runs a nested event loop let another event, and a
+// teardown, into the same Lua state while the handler was still running:
+// lua_close() under an active call. Both now wait for the handler to return.
+TEST_F(LuaApiTest, NothingEntersTheScriptWhileItIsRunning) {
+  constexpr auto kScript = R"lua(
+local reenter = commands.get("com.example.luat.reenter")
+local count = commands.get("com.example.luat.count")
+ui.subscribe { event = "app.ui_ready", handler = function()
+  commands.invoke(reenter, {})
+end }
+ui.subscribe { event = "document.saved", handler = function()
+  commands.invoke(count, {})
+end }
+)lua";
+
+  {
+    auto rt = Make();
+    ASSERT_TRUE(Load(*rt, kScript));
+    g_counted = 0;
+    bool inside = false;
+    g_reenter = [&]() {
+      inside = rt->InEntry();
+      rt->Deliver("document.saved", {});
+      // Not run inside the other handler...
+      EXPECT_EQ(g_counted.load(), 0);
+    };
+    rt->Deliver("app.ui_ready", {});
+    g_reenter = nullptr;
+    EXPECT_TRUE(inside);
+    // ...but once it has returned.
+    EXPECT_TRUE(Pump([] { return g_counted.load() == 1; }));
+  }
+
+  {
+    auto rt = Make();
+    ASSERT_TRUE(Load(*rt, kScript));
+    g_reenter = [&]() {
+      rt->Teardown();
+      EXPECT_TRUE(rt->TeardownLog().isEmpty() ||
+                  !rt->TeardownLog().contains("state closed"))
+          << "the state was closed under the running handler";
+    };
+    rt->Deliver("app.ui_ready", {});
+    g_reenter = nullptr;
+    EXPECT_TRUE(rt->TeardownLog().contains("state closed"))
+        << "the deferred teardown never happened";
+  }
 }
 
 TEST_F(LuaApiTest, StoppingIsImmediateFromAnyThread) {

@@ -110,6 +110,9 @@ void LuaHost::Teardown(const QString& module) {
   auto rt = runtimes_.take(module);
   if (rt == nullptr) return;
   rt->Teardown();
+  // Torn down from inside one of its own entries (a nested event loop), it
+  // finishes when that entry returns, and must still exist then.
+  rt->KeepAliveUntilIdle(rt);
   emit SignalChanged();
 }
 

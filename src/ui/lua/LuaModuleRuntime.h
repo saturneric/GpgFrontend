@@ -211,6 +211,17 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
   /// Step 1 alone, safe from any thread: no callback enters Lua after this.
   void StopCallbacks() { stopping_.store(true); }
 
+  /// Whether a call into the script is on the stack right now.
+  [[nodiscard]] auto InEntry() const -> bool { return entry_depth_ > 0; }
+
+  /**
+   * @brief Hold @p self until the entry on the stack has returned.
+   *
+   * For whoever drops the last owner while InEntry(): deleting the runtime
+   * then pulled the Lua state from under the call still running in it.
+   */
+  void KeepAliveUntilIdle(std::shared_ptr<LuaModuleRuntime> self);
+
   [[nodiscard]] auto Snapshot() const -> LuaRuntimeSnapshot;
 
   /// For tests: the teardown steps, in the order they ran.
@@ -264,6 +275,13 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
 
   auto NextId() -> qint64 { return ++next_id_; }
   void EndEntry();
+
+  /// Around every call into the script. A handler that runs a nested event
+  /// loop (a synchronous GUI command does) lets results, events and a
+  /// teardown arrive while it is still on the stack; leaving the outermost
+  /// entry is when they are let in.
+  void enter_entry() { ++entry_depth_; }
+  void leave_entry();
   auto CommandContextFor(const UiContext& ctx) const -> gf::cmd::CommandContext;
   auto Resolve(const Handle& h, std::vector<gf::cmd::Blob>* blobs,
                QString* error) -> std::optional<QCborValue>;
@@ -300,6 +318,11 @@ class GF_UI_EXPORT LuaModuleRuntime : public QObject {
 
   std::atomic<bool> stopping_{false};
   bool torn_down_ = false;
+
+  int entry_depth_ = 0;
+  bool teardown_pending_ = false;
+  QList<std::function<void()>> deferred_;  ///< arrived during an entry
+  std::shared_ptr<LuaModuleRuntime> keep_alive_;
   QString last_error_;
   QStringList teardown_log_;
 };
