@@ -134,7 +134,8 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
                                    tr("Server Url"), QLineEdit::Normal,
                                    "https://", &ok);
   if (ok && !url.isEmpty()) {
-    auto *task = new ProxyConnectionTestTask(url, 800);
+    // 800 ms made a timeout the usual answer through any real proxy.
+    auto *task = new ProxyConnectionTestTask(url, 10000);
     connect(task,
             &GpgFrontend::UI::ProxyConnectionTestTask::
                 SignalProxyConnectionTestResult,
@@ -154,6 +155,8 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
 
     // Waiting Dialog
     auto *waiting_dialog = new QProgressDialog(this);
+    waiting_dialog->setAttribute(Qt::WA_DeleteOnClose);
+    waiting_dialog->setWindowModality(Qt::WindowModal);
     waiting_dialog->setMaximum(0);
     waiting_dialog->setMinimum(0);
     auto *waiting_dialog_label = new QLabel(
@@ -164,22 +167,22 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
     waiting_dialog_label->setWordWrap(true);
     waiting_dialog->setLabel(waiting_dialog_label);
     waiting_dialog->resize(420, 120);
-    connect(task, &Thread::Task::SignalTaskEnd,
-            [=]() { waiting_dialog->close(); });
+    // The dialog as context: it may be gone (cancelled) by the time the task
+    // ends, and closing it then was a call on a deleted object.
+    connect(task, &Thread::Task::SignalTaskEnd, waiting_dialog,
+            &QProgressDialog::close);
+    connect(waiting_dialog, &QProgressDialog::canceled, waiting_dialog,
+            &QProgressDialog::close);
 
     // Show Waiting Dialog
     waiting_dialog->show();
     waiting_dialog->setFocus();
 
+    // No nested event loop: the modal dialog keeps the settings out of
+    // reach, and the answer arrives through the connections above.
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
         ->PostTask(task);
-
-    QEventLoop loop;
-    connect(task, &Thread::Task::SignalTaskEnd, &loop, &QEventLoop::quit);
-    connect(waiting_dialog, &QProgressDialog::canceled, &loop,
-            &QEventLoop::quit);
-    loop.exec();
   }
 }
 
