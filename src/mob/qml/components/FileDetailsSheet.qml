@@ -29,6 +29,10 @@ BottomSheet {
     readonly property bool temporary: file.origin === "made"
                                       && (file.savedName || "").length === 0
     readonly property bool hashing: sha256.length === 0 && hashError.length === 0
+    // Still being copied in (a shared file): hashed once it is all here, as
+    // a hash of part of it would be shown as the file's.
+    property bool hashDue: false
+    readonly property bool copying: (file.progress !== undefined) && file.progress >= 0
 
     signal saveRequested(int id)
     signal shareRequested(int id)
@@ -42,8 +46,27 @@ BottomSheet {
         sheet.hashError = ""
         sheet.hashExpanded = false
         copied.visible = false
-        workspace.hash(id)
+        sheet.hashDue = sheet.copying
+        if (!sheet.hashDue) workspace.hash(id)
         open()
+    }
+
+    // Gone from the list: nothing here is about a file any more.
+    function refresh() {
+        const file = sheet.workspace.entry(sheet.fileId)
+        if (Object.keys(file).length === 0) {
+            sheet.close()
+            return
+        }
+        const resized = file.size !== sheet.file.size
+        sheet.file = file
+        // All here now, or changed since it was hashed: hashed again.
+        if (!sheet.copying && (sheet.hashDue || resized)) {
+            sheet.hashDue = false
+            sheet.sha256 = ""
+            sheet.hashError = ""
+            sheet.workspace.hash(sheet.fileId)
+        }
     }
 
     // The file again whenever the workspace changes it, while it is shown.
@@ -51,14 +74,8 @@ BottomSheet {
         target: sheet.workspace
         enabled: sheet.opened
 
-        function onDataChanged() {
-            const file = sheet.workspace.entry(sheet.fileId)
-            if (Object.keys(file).length === 0) {
-                sheet.close()
-                return
-            }
-            sheet.file = file
-        }
+        function onDataChanged() { sheet.refresh() }
+        function onRowsRemoved() { sheet.refresh() }
 
     }
 
@@ -284,7 +301,9 @@ BottomSheet {
         Layout.leftMargin: -Theme.sheetPad
         Layout.rightMargin: -Theme.sheetPad
         leftPadding: Theme.sheetPad
-        enabled: sheet.file.phase !== "running"
+        // As the list allows it: not while it is worked on or copied in.
+        enabled: sheet.file.phase !== "running" && sheet.file.phase !== "queued"
+                 && !sheet.copying
         text: qsTr("Remove from list")
         icon.source: Theme.icon("delete")
         icon.color: Theme.danger

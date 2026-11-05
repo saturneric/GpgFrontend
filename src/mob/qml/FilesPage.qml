@@ -223,7 +223,10 @@ Page {
     // Bring the file @p id into view, and mark it for a moment; a filter
     // that hides it is let go of first.
     function showFile(id) {
-        if (files.rowOf(id) < 0) return
+        if (files.rowOf(id) < 0) {
+            notice.show(qsTr("This file was removed from the list."))
+            return
+        }
         if (shown.rowOf(id) < 0) {
             closeSearch()
             shown.reset()
@@ -282,6 +285,9 @@ Page {
             return
         }
         folderDialog.targets = ids
+        const chosen = files.selectedIds()
+        folderDialog.fromSelection = chosen.length === ids.length
+                                     && ids.every(id => chosen.includes(id))
         folderDialog.open()
     }
 
@@ -302,12 +308,32 @@ Page {
         saveDialog.open()
     }
 
-    function remove(ids) {
+    // Takes @p ids off the list. One being worked on or copied in stays (the
+    // list would not let it go); a file made here and not saved is asked
+    // about first, as it is deleted with it.
+    function remove(ids, confirmed) {
+        const removable = ids.filter(id => {
+            const e = files.entry(id)
+            return e.fileId !== undefined && e.phase !== "running"
+                   && e.phase !== "queued" && !(e.progress >= 0)
+        })
+        if (removable.length === 0) {
+            notice.show(qsTr("It is already waiting or running."))
+            return
+        }
+        if (!confirmed && removable.some(id => {
+            const e = files.entry(id)
+            return e.origin === "made" && (e.savedName || "").length === 0
+        })) {
+            confirmRemove.targets = removable
+            confirmRemove.open()
+            return
+        }
         let originals = 0
-        for (const id of ids) {
+        for (const id of removable) {
             if (files.entry(id).kind === "external") ++originals
         }
-        files.remove(ids)
+        files.remove(removable)
         if (originals > 0)
             notice.show(qsTr("Removed from the list. The original files are "
                              + "not deleted."))
@@ -619,10 +645,11 @@ Page {
         id: folderDialog
 
         property var targets: []
+        // Asked for the files chosen: the choosing is over once it goes.
+        property bool fromSelection: false
 
         onAccepted: {
-            // Chosen and on its way: the choosing is over.
-            files.clearSelection()
+            if (fromSelection) files.clearSelection()
             const taken = files.takenIn(targets, selectedFolder)
             if (taken.length === 0) {
                 files.saveAll(targets, selectedFolder, "keep_both")
@@ -655,11 +682,19 @@ Page {
 
         message: names.length === 1
                  ? qsTr("The folder has a file named “%1”.").arg(names[0] || "")
-                 : qsTr("The folder has files of these names: %1").arg(names.join(", "))
+                 : qsTr("The folder has files of these names: %1")
+                       .arg(names.slice(0, 5).join(", ") + (names.length > 5 ? ", …" : ""))
 
         footer: DialogButtonBox {
             alignment: Qt.AlignRight
 
+            // Nothing saved, said by a button, not only by Back.
+            Button {
+                objectName: "takenCancel"
+                flat: true
+                text: qsTranslate("MessageAlert", "Cancel")
+                onClicked: takenDialog.close()
+            }
             Button {
                 objectName: "takenSkip"
                 flat: true
@@ -892,6 +927,9 @@ Page {
         fileMode: FileDialog.OpenFile
         onAccepted: {
             if (files.relink(target, selectedFile)) page.retry(retryId)
+            else if (files.entry(target).fileId === undefined)
+                notice.show(qsTr("Its file is no longer in the list. Add it again."))
+            else notice.show(qsTr("It is already waiting or running."))
         }
     }
 
@@ -968,6 +1006,20 @@ Page {
         acceptText: opening ? qsTr("Open") : qsTr("Share")
 
         onAccepted: opening ? files.openWith(target) : files.share(target)
+    }
+
+    // Removing a file made here and not saved deletes it.
+    MessageAlert {
+        id: confirmRemove
+
+        property var targets: []
+
+        objectName: "confirmRemoveFiles"
+        title: qsTr("Remove from the list?")
+        message: qsTr("Files GpgFrontend made are deleted unless you saved "
+                   + "them. The files you added are not deleted.")
+        acceptText: qsTr("Remove from list")
+        onAccepted: page.remove(targets, true)
     }
 
     MessageAlert {

@@ -339,6 +339,19 @@ Item {
             files.workspace.clear()
         }
 
+        // Taken off the list, a file's details go with it: nothing is left
+        // open about a file that is not there.
+        function test_details_go_with_their_file() {
+            const ws = files.workspace
+            ws.addFiles([Qt.resolvedUrl("tst_files.qml")])
+            const id = ws.idNamed("tst_files.qml")
+            files.fileDetails.begin(id)
+            tryVerify(() => files.fileDetails.opened)
+            ws.remove([id])
+            tryVerify(() => !files.fileDetails.visible)
+            ws.clear()
+        }
+
         // A file's details: its name, size and SHA-256, worked out once the
         // sheet is open.
         function test_details_show_the_file_s_hash() {
