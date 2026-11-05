@@ -9,8 +9,14 @@ import GpgFrontend.Mobile
 BottomSheet {
     id: sheet
 
-    // The new key's fingerprint, or a failure.
+    // The new key's fingerprint: it was made.
     signal generated(string fingerprint)
+    // Quick key did not make one, and why (never for a cancellation).
+    signal quickFailed(string error)
+
+    // Quick key runs: the form is not shown, the passphrase alone is asked.
+    property bool quickRunning: false
+    readonly property bool working: actions.busy || quickRunning
 
     function begin() {
         name.text = ""
@@ -38,11 +44,12 @@ BottomSheet {
     // Quick Generate, as the desktop's: an anonymous key from the default
     // profile, at once; only its passphrase is asked for.
     function quick() {
-        begin()
-        expert.checked = false
-        profile.currentIndex = 0
-        fillAnonymously()
-        create()
+        // Once: a second tap while it runs makes no second key.
+        if (working) return
+        actions.reloadProfiles()
+        const uid = profileStore.anonymousUid()
+        quickRunning = true
+        actions.generate(uid.name, uid.email, 0, true)
     }
 
     // An encryption subkey of the primary key's family, as the desktop
@@ -88,30 +95,36 @@ BottomSheet {
 
     function finished(action, succeeded, detail) {
         if (action !== "generate") return
+        const wasQuick = quickRunning
+        quickRunning = false
         if (succeeded) {
             sheet.close()
             sheet.generated(detail.fingerprint)
-        } else {
-            problem.text = qsTr("The key could not be generated: %1")
-                           .arg(detail.error)
+            return
         }
+        // Stopped by the person: nothing made, nothing to say, no form left.
+        if (detail.reason === "cancelled") return
+        if (wasQuick) sheet.quickFailed(detail.error)
+        else problem.text = qsTr("The key could not be generated: %1").arg(detail.error)
     }
 
     objectName: "generateSheet"
     title: qsTr("Create a key")
-    closePolicy: actions.busy ? Popup.NoAutoClose
-                              : Popup.CloseOnEscape | Popup.CloseOnPressOutside
     interactive: !actions.busy
 
+    // What makes the key; a test puts a stand-in here.
+    property var actions: engine
+
     KeyActionsController {
-        id: actions
+        id: engine
     }
 
     KeyGenProfilesController {
         id: profileStore
     }
 
-    Component.onCompleted: actions.SignalFinished.connect(sheet.finished)
+    // A stand-in is told by its test when it finishes.
+    Component.onCompleted: engine.SignalFinished.connect(sheet.finished)
 
     Label {
         Layout.fillWidth: true
@@ -170,11 +183,9 @@ BottomSheet {
 
     // Every choice the profile made, open to change, as the desktop's wizard
     // shows them in Expert Mode.
-    Switch {
+    SettingSwitch {
         id: expert
         objectName: "generateExpert"
-        Layout.fillWidth: true
-        Layout.leftMargin: -8
         text: qsTr("Expert mode")
         onToggled: {
             profileStore.expertMode = checked
@@ -200,11 +211,9 @@ BottomSheet {
         validities: actions.validities
     }
 
-    Switch {
+    SettingSwitch {
         id: withSubkey
         objectName: "generateWithSubkey"
-        Layout.fillWidth: true
-        Layout.leftMargin: -8
         visible: expert.checked
         text: qsTr("Add a subkey")
         checked: true
@@ -221,10 +230,8 @@ BottomSheet {
         validities: actions.validities
     }
 
-    Switch {
+    SettingSwitch {
         id: protect
-        Layout.fillWidth: true
-        Layout.leftMargin: -8
         text: qsTr("Protect it with a passphrase")
         checked: true
     }

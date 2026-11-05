@@ -22,12 +22,56 @@ Item {
         visible: false
     }
 
+    // The key maker as Quick key sees it, run by hand.
+    QtObject {
+        id: fakeMaker
+        property bool busy: false
+        property var profiles: []
+        property var validities: []
+        property var made: []
+        function reloadProfiles() {}
+        function generate(name, email, profile, protect) {
+            made = made.concat([[name, email, profile, protect]])
+            busy = true
+        }
+    }
+
+    GenerateSheet {
+        id: maker
+        actions: fakeMaker
+    }
+
+    CategorySheet {
+        id: categorySheet
+    }
+
+    Component {
+        id: keyRowComponent
+        KeyRow {
+            width: 400
+            name: "Alice Example"
+            email: "a.very.long.address.that.goes.on@example.invalid"
+            keyId: "0123456789ABCDEF"
+            usable: true
+            status: "ok"
+            statusText: ""
+            fingerprint: "AB".repeat(20)
+            secretState: "partial"
+            isKey: true
+            members: []
+        }
+    }
+
     SubkeySheet {
         id: subkeySheet
     }
 
     UidSheet {
         id: uidSheet
+    }
+
+    GeneratedKeySheet {
+        id: generated
     }
 
     AddSubkeySheet {
@@ -52,12 +96,67 @@ Item {
             return null
         }
 
-        // Categories: the "+" chip makes one; a picker chooses many keys.
-        function test_a_category_is_made_from_the_plus_chip() {
-            let plus = null
-            tryVerify(() => (plus = findByName(keys, "categoryChip_new")) !== null)
-            compare(plus.Accessible.name, "New category")
-            verify(findByName(keys, "categoryChip_edit") === null)
+        // Categories: one button says which is shown and opens the list of
+        // them, one under the other; no strip of chips to scroll sideways.
+        function test_the_category_is_chosen_from_a_list() {
+            const button = findByName(keys, "categoryButton")
+            verify(button !== null)
+            compare(button.text, "All keys")
+            compare(findByName(keys, "categoryChips"), null)
+            compare(findByName(keys, "categoryChip_new"), null)
+        }
+
+        // Switching databases: the name at the top is the one whose keys are
+        // listed, whatever the sheet is doing; a switch that fails ends at
+        // once. A switch the sheet did not begin is not waited for.
+        function test_the_database_name_changes_with_its_list() {
+            const sheet = keys.databaseSheet
+            const before = keys.databaseName
+            sheet.hold("Elsewhere")
+            verify(sheet.switching)
+            verify(sheet.busy)
+            compare(sheet.targetName, "Elsewhere")
+            compare(keys.databaseName, before)
+
+            sheet.switched(false, "It is gone.")
+            verify(!sheet.switching)
+            verify(!sheet.busy)
+
+            sheet.switched(true, "")
+            verify(!sheet.awaitingKeys)
+            verify(!sheet.busy)
+        }
+
+        // A management page: the title is always Keys, and nothing on it
+        // chooses keys for an operation.
+        function test_the_keys_page_chooses_nothing_for_an_operation() {
+            compare(keys.header.title, "Keys")
+            compare(findByName(keys, "clearRecipients"), null)
+            const before = WorkSelection.revision
+            const row = createTemporaryObject(keyRowComponent, keys)
+            verify(row !== null)
+            verify(row.recipientToggled === undefined)
+            mouseClick(row, 20, row.height / 2)
+            mouseClick(row, row.width / 2, row.height / 2)
+            compare(WorkSelection.revision, before)
+            compare(WorkSelection.recipientCount, 0)
+        }
+
+        // GnuPG's marks, from what of the secret is here.
+        function test_a_key_is_marked_as_gnupg_marks_it() {
+            compare(Wording.keyTag("none"), "pub")
+            compare(Wording.keyTag("full"), "sec")
+            compare(Wording.keyTag("partial"), "sec#")
+            compare(Wording.keyTag("card"), "sec>")
+            compare(Wording.keyTag(""), "")
+            compare(Wording.subkeyTag(true, false), "ssb")
+            compare(Wording.subkeyTag(false, false), "sub")
+            compare(Wording.subkeyTag(true, true), "ssb>")
+            const row = createTemporaryObject(keyRowComponent, keys)
+            compare(findByName(row, "keyTag").text, "sec#")
+            // The key ID keeps its place however long the address is.
+            verify(findByName(row, "keyId").visible)
+            compare(findByName(row, "keyId").text, "0123456789ABCDEF")
         }
 
         function test_a_picker_takes_many_keys_and_keeps_those_already_in() {
@@ -78,25 +177,96 @@ Item {
             picker.close()
         }
 
-        function test_an_empty_list_says_so() {
+        // Before the keys are read, the page says it is reading them, never
+        // that there are none; once read, an empty database says so.
+        function test_an_empty_list_says_so_only_once_read() {
             var empty = findByName(keys, "emptyKeys")
             verify(empty !== null)
-            verify(empty.visible)
+            // Still loading (nothing is ever read in these tests).
+            keys.loading = true
+            verify(!empty.visible)
+            verify(findByName(keys, "keysLoading").running)
+            keys.loading = false
+            tryVerify(() => empty.visible)
             compare(empty.text, "No keys yet.")
+            verify(empty.detail.indexOf("+") >= 0)
+            // Nothing failed: nothing to try again.
+            verify(!findByName(keys, "retryKeys").visible)
         }
 
         function test_a_search_with_no_match_says_what_was_searched() {
+            keys.loading = false
             var search = findByName(keys, "keySearch")
             search.text = "nobody"
             var empty = findByName(keys, "emptyKeys")
             verify(empty.text.indexOf("nobody") >= 0)
-            // The way out of a search that found nothing.
-            var clear = findByName(keys, "clearSearch")
-            verify(clear.visible)
-            clear.clicked()
-            compare(search.text, "")
-            verify(!clear.visible)
+            search.clear()
             verify(empty.text.indexOf("nobody") < 0)
+        }
+    }
+
+    TestCase {
+        name: "CategoryColours"
+
+        // Any colour, typed as HEX: six digits, kept as the desktop keeps it.
+        function test_a_hex_colour_is_read_and_kept_lowercase() {
+            compare(categorySheet.parseHex("#2A82DA"), "#2a82da")
+            compare(categorySheet.parseHex("2a82da"), "#2a82da")
+            compare(categorySheet.parseHex(" #ABCDEF "), "#abcdef")
+            compare(categorySheet.parseHex("#2A82D"), "")
+            compare(categorySheet.parseHex("#GGGGGG"), "")
+            compare(categorySheet.parseHex("#2A82DA00"), "")
+        }
+    }
+
+    TestCase {
+        name: "QuickKey"
+        when: windowShown
+
+        function init() {
+            fakeMaker.made = []
+            fakeMaker.busy = false
+        }
+
+        // Quick key shows no form: only the passphrase is asked (by the
+        // engine), once however often it is tapped.
+        function test_quick_key_shows_no_form_and_runs_once() {
+            maker.quick()
+            maker.quick()
+            compare(fakeMaker.made.length, 1)
+            verify(fakeMaker.made[0][0].length > 0)
+            compare(fakeMaker.made[0][2], 0)
+            compare(fakeMaker.made[0][3], true)
+            verify(!maker.opened)
+            verify(maker.working)
+        }
+
+        // Cancelled: nothing said, nothing left open, nothing announced.
+        function test_a_cancelled_quick_key_leaves_nothing() {
+            let generated = 0
+            let failed = 0
+            const g = () => ++generated
+            const f = () => ++failed
+            maker.generated.connect(g)
+            maker.quickFailed.connect(f)
+            maker.quick()
+            fakeMaker.busy = false
+            maker.finished("generate", false, {"reason": "cancelled", "error": "Cancelled."})
+            compare(generated, 0)
+            compare(failed, 0)
+            verify(!maker.opened)
+            verify(!maker.working)
+            // A failure is said; success is announced once.
+            maker.quick()
+            fakeMaker.busy = false
+            maker.finished("generate", false, {"reason": "failed", "error": "No."})
+            compare(failed, 1)
+            maker.quick()
+            fakeMaker.busy = false
+            maker.finished("generate", true, {"fingerprint": "AB"})
+            compare(generated, 1)
+            maker.generated.disconnect(g)
+            maker.quickFailed.disconnect(f)
         }
     }
 
@@ -137,7 +307,12 @@ Item {
             const flow = findByName(detail, "fingerprint")
             verify(flow !== null)
             verify(findByName(detail, "deleteKey") !== null)
-            compare(findByName(detail, "keyState").text, "Valid, does not expire")
+            // The expiry is said once, as a fact; the state line only for
+            // what must be seen at once.
+            verify(!findByName(detail, "keyState").visible)
+            // Key management chooses nothing for an operation.
+            compare(findByName(detail, "toggleRecipient"), null)
+            compare(findByName(detail, "useForSigning"), null)
         }
     }
 
@@ -172,7 +347,8 @@ Item {
             verify(findByName(subkeySheet.contentItem, "subkeyExpiration").visible)
             verify(findByName(subkeySheet.contentItem, "subkeyRevoke").visible)
             verify(findByName(subkeySheet.contentItem, "subkeyDelete").visible)
-            compare(findByName(subkeySheet.contentItem, "subkeyState").text, "Does not expire")
+            // Its expiry is a fact, not a second line at the top.
+            verify(!findByName(subkeySheet.contentItem, "subkeyState").visible)
             subkeySheet.close()
 
             // The primary key is the whole key's: not revoked or deleted here.
@@ -196,6 +372,21 @@ Item {
             subkeySheet.close()
         }
 
+        // The new key's sheet comes where Create was: a second tap on
+        // Create does not close it before it is up.
+        function test_the_new_key_sheet_takes_taps_once_up() {
+            generated.key = {"name": "New", "fingerprint": "AB".repeat(20),
+                             "secretState": "full"}
+            generated.open()
+            const done = findByName(generated.contentItem, "generatedDone")
+            verify(!generated.opened)
+            verify(!done.enabled)
+            tryVerify(() => generated.opened)
+            verify(done.enabled)
+            done.clicked()
+            tryVerify(() => !generated.visible)
+        }
+
         function test_a_new_subkey_starts_from_sensible_choices() {
             let got = null
             addSubkey.accepted.connect(function(purpose, validity, passphrase) {
@@ -205,8 +396,31 @@ Item {
             tryVerify(() => addSubkey.opened)
             // The duration is shown, not an empty box.
             compare(findByName(addSubkey.contentItem, "subkeyValidity").currentText, "2 years")
-            findByName(addSubkey.contentItem, "addSubkeyRun").clicked()
+            const run = findByName(addSubkey.contentItem, "addSubkeyRun")
+            run.clicked()
             compare(got, ["encrypt", "2y", true])
+
+            // It stays while the key is changed, and cannot be asked twice.
+            verify(addSubkey.opened)
+            addSubkey.busy = true
+            verify(!run.enabled)
+            // A wrong passphrase: said in the sheet, as it was filled in,
+            // for another try.
+            addSubkey.busy = false
+            addSubkey.settle(false, {"reason": "bad_passphrase",
+                                     "error": "Incorrect passphrase. Please try again."})
+            verify(addSubkey.opened)
+            const problem = findByName(addSubkey.contentItem, "addSubkeyProblem")
+            verify(problem.visible)
+            compare(problem.text, "Incorrect passphrase. Please try again.")
+            verify(run.enabled)
+            // Cancelled at the passphrase: nothing went wrong.
+            addSubkey.settle(false, {"reason": "cancelled", "error": "Cancelled."})
+            verify(!problem.visible)
+            verify(addSubkey.opened)
+            // Done: it goes.
+            addSubkey.settle(true, {})
+            tryVerify(() => !addSubkey.opened)
         }
 
         function test_a_user_id_offers_what_its_key_allows() {

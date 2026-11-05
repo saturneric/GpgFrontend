@@ -30,9 +30,12 @@ ColumnLayout {
 
     spacing: 12
 
+    // Only what must be seen at once -- expired, revoked, disabled: the
+    // expiration date itself is a fact below, said once.
     Label {
         objectName: "keyState"
         Layout.fillWidth: true
+        visible: ["expired", "revoked", "disabled"].includes(facts.key.status || "ok")
         wrapMode: Text.Wrap
         text: facts.state
         color: (facts.key.status || "ok") === "ok" ? Material.foreground
@@ -56,7 +59,7 @@ ColumnLayout {
                    .filter(t => t.length > 0).join(", ")
         expiresText: facts.key.expires && !isNaN(facts.key.expires)
                      ? Theme.date(facts.key.expires) : qsTr("Never")
-        secretText: facts.key.hasSecret === true ? qsTr("Yours, on this device")
+        secretText: facts.key.hasSecret === true ? qsTr("On this device")
                                                  : qsTr("Not here")
     }
 }

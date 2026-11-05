@@ -37,13 +37,23 @@ Page {
     onKeyChanged: reload()
 
     function finished(action, succeeded, detail) {
+        // The sheet it was asked from says how it went, and keeps what was
+        // typed for another try.
+        if (action === "add_uid") addUidSheet.settle(succeeded, detail)
+        if (action === "add_subkey") addSubkeySheet.settle(succeeded, detail)
         if (!succeeded) {
-            notice.show(qsTr("That did not work: %1").arg(detail.error))
+            // Stopped by the person: nothing to say. Otherwise what the
+            // engine reported, never a guess; in the sheet it was asked
+            // from, when there is one.
+            if (detail.reason === "cancelled") notice.show("")
+            else if (action !== "add_uid" && action !== "add_subkey")
+                notice.show(detail.error)
             return
         }
         switch (action) {
         case "export":
             exported = detail.armored
+            exportedName = detail.fileName || "public.asc"
             notice.show("")
             exportActions.open()
             return
@@ -68,17 +78,19 @@ Page {
         notice.show(said[action] || "")
     }
 
-    // The list's state line, or the key's own once it is read.
-    readonly property string stateText: described ? Wording.keyState(details)
-                                                  : keyFacts.state
+    // What of the key's secret is here (KeyRoleModel's secretState): the
+    // list's word, else the key's own, read as the list reads it.
+    readonly property string secretState: (key.secretState || "").length > 0
+        ? key.secretState : (details.secretState || "")
 
     function shared(outcome) {
         notice.showShared(outcome,
                           qsTr("This key could not be shared. Copy it instead."))
     }
 
-    // The public key, armored, once exported.
+    // The public key, armored, once exported, and the name of its file.
     property string exported: ""
+    property string exportedName: ""
 
     header: AppBar {
         title: qsTr("Key")
@@ -144,25 +156,17 @@ Page {
                                   ? Theme.warning : Theme.danger
                         }
 
+                        // GnuPG's mark for what of the key is here.
                         Chip {
-                            visible: page.key.hasSecret === true
-                            text: qsTr("Your key")
-                            tone: Material.accentColor
+                            objectName: "keyTag"
+                            visible: text.length > 0
+                            text: Wording.keyTag(page.secretState)
+                            tone: page.secretState === "none" ? Material.secondaryTextColor
+                                                              : Material.accentColor
+                            Accessible.name: Wording.keyTagDescription(page.secretState)
                         }
                     }
                 }
-            }
-
-            Label {
-                objectName: "keyState"
-                Layout.fillWidth: true
-                Layout.leftMargin: Theme.gap
-                Layout.rightMargin: Theme.gap
-                wrapMode: Text.Wrap
-                text: page.stateText
-                color: (page.key.status || "ok") === "ok" ? Material.foreground
-                       : page.key.status === "expiring_soon" ? Theme.warning
-                                                             : Theme.danger
             }
 
             // Before the key is read (or where it cannot be): what the list
@@ -315,6 +319,20 @@ Page {
                     detailLines: 2
                     onClicked: subkeySheet.begin(modelData, page.can)
 
+                    // GnuPG's mark: sec/pub, ssb/sub, by its secret here.
+                    Label {
+                        // The primary key's mark is the key's (sec# when
+                        // only its subkeys' secrets are here, sec> on a card).
+                        text: modelData.primary === true
+                              ? Wording.keyTag(page.secretState)
+                              : Wording.subkeyTag(modelData.secret === true,
+                                                  modelData.card === true)
+                        font.family: Theme.mono
+                        font.pixelSize: Theme.labelSize
+                        color: modelData.secret === true ? Material.accentColor
+                                                         : Material.secondaryTextColor
+                    }
+
                     Icon {
                         symbol: "chevron_right"
                         color: Material.secondaryTextColor
@@ -351,9 +369,7 @@ Page {
                 Repeater {
                     model: categories.categories
 
-                    Button {
-                        id: categoryChip
-
+                    CategoryTag {
                         required property var modelData
                         // Read again whenever a membership changes.
                         readonly property bool member: categories.revision >= 0
@@ -361,30 +377,13 @@ Page {
                                          .indexOf(modelData.id) >= 0
 
                         objectName: "keyCategory_" + modelData.id
-                        text: modelData.name
-                        checkable: true
+                        name: modelData.name
+                        tone: modelData.color
                         checked: member
-                        flat: !member
-                        highlighted: member
-                        font.pixelSize: Theme.secondarySize
-                        topInset: 0
-                        bottomInset: 0
-                        implicitHeight: Math.max(36, Theme.secondarySize * 2.4)
-                        leftPadding: 28
                         onClicked: categories.setMember(modelData.id, page.key.keyId,
                                                         !member)
                         Accessible.name: member ? qsTr("Take out of %1").arg(modelData.name)
                                                 : qsTr("Put in %1").arg(modelData.name)
-
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 10
-                            height: 10
-                            radius: 5
-                            color: categoryChip.modelData.color
-                        }
                     }
                 }
 
@@ -392,8 +391,10 @@ Page {
                     objectName: "newKeyCategory"
                     flat: true
                     text: qsTr("New category")
-                    icon.source: Theme.icon("add")
+                    icon.source: Theme.icon("label")
                     font.pixelSize: Theme.secondarySize
+                    topInset: 4
+                    bottomInset: 4
                     onClicked: {
                         page.addToNew = true
                         categorySheet.begin(null)
@@ -411,32 +412,6 @@ Page {
                 objectName: "keyOperations"
                 Layout.fillWidth: true
                 spacing: 0
-
-                ListRow {
-                    objectName: "toggleRecipient"
-                    readonly property bool chosen: WorkSelection.revision >= 0
-                        && WorkSelection.isRecipient(page.key.fingerprint || "")
-                    Layout.fillWidth: true
-                    visible: page.key.canEncrypt === true && page.key.usable === true
-                    symbol: "lock"
-                    text: chosen ? qsTr("Do not encrypt to this key") : qsTr("Encrypt to this key")
-                    detail: chosen ? qsTr("It is among the recipients of your work.")
-                                   : qsTr("Adds it to the recipients of your work.")
-                    onClicked: WorkSelection.toggleRecipient(page.key.fingerprint)
-                }
-
-                ListRow {
-                    objectName: "useForSigning"
-                    readonly property bool chosen: WorkSelection.preferredSigner
-                        .toUpperCase() === (page.key.fingerprint || "").toUpperCase()
-                    Layout.fillWidth: true
-                    visible: page.key.hasSecret === true && page.key.canSign === true
-                             && page.key.usable === true
-                    enabled: !chosen
-                    symbol: "signature"
-                    text: chosen ? qsTr("Signs your work") : qsTr("Sign with this key")
-                    onClicked: WorkSelection.setPreferredSigner(page.key.fingerprint)
-                }
 
                 ListRow {
                     objectName: "exportKey"
@@ -526,31 +501,37 @@ Page {
                        + "or check its signatures. It holds nothing secret.")
         }
 
-        ItemDelegate {
+        // As a file first: an .asc attachment others can save and import,
+        // named after the key; its text, to paste, apart.
+        ListRow {
+            objectName: "shareKeyFile"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            leftPadding: 24
-            text: qsTr("Copy")
-            icon.source: Theme.icon("content_copy")
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            leftPadding: Theme.sheetPad
+            visible: output.canShare
+            symbol: "share"
+            symbolColor: Material.accentColor
+            text: qsTr("Share as a file")
+            detail: page.exportedName
             onClicked: {
-                output.copy(page.exported, false)
-                notice.show(qsTr("Copied."))
+                output.shareFile(page.exported, page.exportedName, "application/pgp-keys")
                 exportActions.close()
             }
         }
 
-        ItemDelegate {
+        ListRow {
+            objectName: "copyKeyText"
             Layout.fillWidth: true
-            Layout.leftMargin: -24
-            Layout.rightMargin: -24
-            Layout.bottomMargin: Theme.gap
-            leftPadding: 24
-            text: qsTr("Share")
-            icon.source: Theme.icon("share")
-            visible: output.canShare
+            Layout.leftMargin: -Theme.sheetPad
+            Layout.rightMargin: -Theme.sheetPad
+            Layout.bottomMargin: Theme.gapSmall
+            leftPadding: Theme.sheetPad
+            symbol: "content_copy"
+            text: qsTr("Copy the key as text")
             onClicked: {
-                output.share(page.exported)
+                output.copy(page.exported, false)
+                notice.show(qsTr("Copied."))
                 exportActions.close()
             }
         }
@@ -589,6 +570,7 @@ Page {
     SubkeySheet {
         id: subkeySheet
         busy: actions.busy
+        keySecretState: page.secretState
         onExpirationRequested: subkey => page.askExpiration(subkey)
         onRevokeRequested: subkey => revokeSheet.begin(subkey)
         onDeleteRequested: function(subkey) {
@@ -608,6 +590,7 @@ Page {
 
     AddSubkeySheet {
         id: addSubkeySheet
+        busy: actions.busy
         validities: actions.validities
         fingerprint: page.details.fingerprint || ""
         onCustomAccepted: (choices, withPassphrase) => actions.addCustomSubkey(
@@ -639,6 +622,7 @@ Page {
 
     AddUidSheet {
         id: addUidSheet
+        busy: actions.busy
         onAccepted: (name, email, comment) => actions.addUid(
                         page.details.fingerprint, name, email, comment)
     }

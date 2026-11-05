@@ -16,7 +16,7 @@ Page {
     function back() {
         // A sheet takes Back itself, unless it is busy and must not close;
         // either way Back is not for the page under it, or the application.
-        if (importSheet.opened || generateSheet.opened) return true
+        if (importSheet.opened || generateSheet.opened || generatedSheet.opened) return true
         if (sheets.back()) return true
         if (tabs.currentIndex === 0 && textPage.back()) return true
         if (tabs.currentIndex === 1 && filesPage.back()) return true
@@ -106,6 +106,9 @@ Page {
             id: stack
 
             initialItem: KeysPage {
+                id: keysPage
+
+                creatingKey: generateSheet.quickRunning
                 onKeyChosen: function(key) {
                     stack.push(keyDetail, {"key": key})
                 }
@@ -115,6 +118,7 @@ Page {
                 onCategoryOpened: function(category) {
                     stack.push(categoryKeysPage, {"category": category})
                 }
+                onCategoriesManageRequested: stack.push(categoriesPage)
                 onGroupOpened: function(id, pick) {
                     stack.push(keyGroupPage, {"groupId": id, "pickOnOpen": pick})
                 }
@@ -140,9 +144,9 @@ Page {
         id: tabs
 
         objectName: "mainTabs"
-        // While typing the page ends at the keyboard (the window counts it as
-        // a safe area), and the sections' bar steps aside for what is typed.
-        visible: Theme.keyboard === 0
+        // Always there: the keyboard covers it while it is up (the window
+        // does not make room for the keyboard), and it is there again when
+        // the keyboard goes, whatever the input method still says.
         sections: [
             {"text": qsTr("Text"), "icon": "description"},
             {"text": qsTr("Files"), "icon": "folder"},
@@ -289,6 +293,16 @@ Page {
 
     GenerateSheet {
         id: generateSheet
-        onGenerated: KeyListController.refresh()
+        onGenerated: function(fingerprint) {
+            KeyListController.refresh()
+            generatedSheet.begin(fingerprint)
+        }
+        onQuickFailed: error => keysPage.notice.show(
+                           qsTr("The key could not be generated: %1").arg(error))
+    }
+
+    GeneratedKeySheet {
+        id: generatedSheet
+        onOpenRequested: key => main.showKey(key)
     }
 }

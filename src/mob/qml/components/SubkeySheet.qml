@@ -26,6 +26,9 @@ BottomSheet {
     signal revokeRequested(var subkey)
     signal deleteRequested(var subkey)
 
+    // The key's secretState (KeyRoleModel's): the primary key's mark.
+    property string keySecretState: ""
+
     function begin(subkey, can) {
         sheet.subkey = subkey
         sheet.can = can
@@ -36,19 +39,33 @@ BottomSheet {
     title: primary ? qsTr("Primary key")
                    : qsTr("Subkey %1").arg((subkey.keyId || "").slice(-8))
 
+    // GnuPG's mark for it: sec/pub for the primary key, ssb/sub for a
+    // subkey, by whether its secret is here.
+    headerItems: Label {
+        objectName: "subkeyTag"
+        text: sheet.primary ? Wording.keyTag(sheet.keySecretState)
+                            : Wording.subkeyTag(sheet.subkey.secret === true,
+                                                sheet.subkey.card === true)
+        font.family: Theme.mono
+        font.pixelSize: Theme.secondarySize
+        color: Material.accentColor
+    }
+
     component SheetAction: ListRow {
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
-        leftPadding: 24
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
+        leftPadding: Theme.sheetPad
         symbolColor: Material.foreground
         enabled: !sheet.busy
         onClicked: sheet.close()
     }
 
+    // Only when it is no longer usable: its expiration date is a fact below.
     Label {
         objectName: "subkeyState"
         Layout.fillWidth: true
+        visible: sheet.subkey.revoked === true || sheet.subkey.expired === true
         wrapMode: Text.Wrap
         text: Wording.keyState(sheet.subkey)
         color: sheet.subkey.revoked === true || sheet.subkey.expired === true
@@ -77,8 +94,8 @@ BottomSheet {
 
     MenuSeparator {
         Layout.fillWidth: true
-        Layout.leftMargin: -24
-        Layout.rightMargin: -24
+        Layout.leftMargin: -Theme.sheetPad
+        Layout.rightMargin: -Theme.sheetPad
         Layout.topMargin: 8
         visible: expiry.visible || revoke.visible || remove.visible
     }
