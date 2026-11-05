@@ -40,6 +40,7 @@
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -400,6 +401,13 @@ auto VerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& data_path,
       data_err != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgVerifyResult(GFVerifyResult{})});
     return data_err;
+  }
+  // A combined file: gpg verifies the armored block in it and skips anything
+  // around it, as for text (see MessageCryptoOperation's verify).
+  if (sign_path.isEmpty() && HasTextOutsideSignedArmorInFile(data_path)) {
+    LOG_W() << "refusing to verify: the file has text outside its signature";
+    data_object->Swap({GpgVerifyResult(GFVerifyResult{})});
+    return GPG_ERR_BAD_DATA;
   }
   if (!sign_path.isEmpty()) {
     GpgData sig_data(sign_path, true);

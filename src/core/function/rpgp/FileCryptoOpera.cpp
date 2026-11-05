@@ -39,6 +39,7 @@
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -276,6 +277,12 @@ auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
   // Without a separate signature the file carries its own: either an inline
   // signed message or a cleartext signed one. Only the latter is ClearText,
   // told apart by its armor header, as message verification does.
+  if (sign_path.isEmpty() && HasTextOutsideSignedArmorInFile(data_path)) {
+    LOG_W() << "refusing to verify: the file has text outside its signature";
+    data_object->Swap({GpgVerifyResult(GFVerifyResult{})});
+    return RpgpError(GFErrorCode::kBAD_DATA);
+  }
+
   Rust::GfrSignMode mode = Rust::GfrSignMode::Detached;
   if (sign_path.isEmpty()) {
     mode = IsCleartextSignedFile(data_path) ? Rust::GfrSignMode::ClearText

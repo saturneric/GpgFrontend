@@ -195,31 +195,70 @@ auto IsEmailAddress(const QString& str) -> bool {
   return kReEmailAnchored.match(str).hasMatch();
 }
 
-auto HasTextOutsideSignedArmor(const QByteArray& data) -> bool {
-  constexpr auto kArmorBegin = QByteArrayView("-----BEGIN PGP ");
-  constexpr auto kArmorEnd = QByteArrayView("-----END PGP ");
+namespace {
 
-  const auto trimmed = data.trimmed();
-  if (!trimmed.contains(kArmorBegin)) return false;
+/// Reads text a line at a time and decides whether anything lies outside one
+/// signed or message armor block; see HasTextOutsideSignedArmor().
+class ArmorEnvelopeCheck {
+ public:
+  void Line(QByteArrayView raw) {
+    // Inside cleartext every line starting with '-' is dash-escaped, and
+    // base64 has no dashes, so armor lines can only be the envelope itself.
+    if (raw.startsWith(kArmorBegin)) ++begins_;
+    if (raw.startsWith(kArmorEnd)) ++ends_;
+    if (raw.contains(kArmorBegin)) any_armor_ = true;
 
-  const auto cleartext = trimmed.startsWith(kPgpSignedBegin);
-  if (!cleartext && !trimmed.startsWith(kPgpMessageBegin)) return true;
-  if (!trimmed.endsWith(cleartext
+    const auto line = raw.trimmed();
+    if (line.isEmpty()) return;
+    if (first_.isEmpty()) first_ = line.toByteArray();
+    last_ = line.toByteArray();
+  }
+
+  [[nodiscard]] auto Outside() const -> bool {
+    if (!any_armor_) return false;
+    const auto cleartext = first_.startsWith(kPgpSignedBegin);
+    if (!cleartext && !first_.startsWith(kPgpMessageBegin)) return true;
+    if (!last_.endsWith(cleartext
                             ? QByteArrayView(kPgpSignatureEnd)
                             : QByteArrayView("-----END PGP MESSAGE-----"))) {
-    return true;
+      return true;
+    }
+    // two openings (message, signature) for cleartext, one otherwise
+    return begins_ != (cleartext ? 2 : 1) || ends_ != 1;
   }
 
-  // Inside cleartext every line starting with '-' is dash-escaped, and base64
-  // has no dashes, so armor lines can only be the envelope itself: two
-  // openings (message, signature) for cleartext, one otherwise, and one end.
-  int begins = 0;
-  int ends = 0;
-  for (const auto& line : trimmed.split('\n')) {
-    if (line.startsWith(kArmorBegin)) ++begins;
-    if (line.startsWith(kArmorEnd)) ++ends;
+ private:
+  static constexpr auto kArmorBegin = QByteArrayView("-----BEGIN PGP ");
+  static constexpr auto kArmorEnd = QByteArrayView("-----END PGP ");
+
+  QByteArray first_;
+  QByteArray last_;
+  int begins_ = 0;
+  int ends_ = 0;
+  bool any_armor_ = false;
+};
+
+}  // namespace
+
+auto HasTextOutsideSignedArmor(const QByteArray& data) -> bool {
+  ArmorEnvelopeCheck check;
+  for (const auto& line : data.split('\n')) check.Line(line);
+  return check.Outside();
+}
+
+auto HasTextOutsideSignedArmorInFile(const QString& path) -> bool {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return false;
+  // A line at a time: a signed file can be large, and only its armor lines
+  // and its first and last lines matter.
+  ArmorEnvelopeCheck check;
+  constexpr qint64 kMaxLine = 64 * 1024;
+  while (!file.atEnd()) {
+    const auto line = file.readLine(kMaxLine);
+    if (line.isEmpty() && file.error() != QFileDevice::NoError) return false;
+    check.Line(line);
   }
-  return begins != (cleartext ? 2 : 1) || ends != 1;
+  return check.Outside();
 }
 
 auto CurrentDateTime() -> QDateTime {

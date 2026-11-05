@@ -371,6 +371,66 @@ TEST_P(GpgCoreEngineTest, VerifyRefusesTextOutsideTheSignedBlock) {
   DeleteKey(key);
 }
 
+// The same for a combined signed file: its verification used to report the
+// signature alone while the file carried text outside it.
+namespace {
+auto WriteFileBytes(const QString& path, const QByteArray& content) -> bool {
+  QFile file(path);
+  return file.open(QIODevice::WriteOnly | QIODevice::Truncate) &&
+         file.write(content) == content.size();
+}
+}  // namespace
+
+TEST_P(GpgCoreEngineTest, FileVerifyRefusesTextOutsideTheSignedBlock) {
+  auto key = GenerateFullKey("verify_file_outside_text");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto text = GFBuffer(QString("the signed part"));
+  for (const auto mode : {GpgSignMode::kCLEAR, GpgSignMode::kNORMAL}) {
+    auto [err, data_object] =
+        MessageCryptoOperation::GetInstance(Channel()).SignSync({key}, text,
+                                                                mode, true);
+    ASSERT_TRUE(err.Ok());
+    const auto signed_text =
+        ExtractParams<GFBuffer>(data_object, 1).ConvertToQByteArray();
+
+    const auto path = dir.filePath("signed.asc");
+    ASSERT_TRUE(WriteFileBytes(path, signed_text));
+    EXPECT_TRUE(
+        std::get<0>(FileCryptoOperation::GetInstance(Channel()).VerifyFileSync(
+                        path, {}))
+            .Ok())
+        << "the untouched file must still verify";
+
+    ASSERT_TRUE(WriteFileBytes(path, "Pay 1000 EUR.\n\n" + signed_text));
+    EXPECT_FALSE(
+        std::get<0>(FileCryptoOperation::GetInstance(Channel()).VerifyFileSync(
+                        path, {}))
+            .Ok())
+        << "a file with unsigned text before the signature verified";
+  }
+
+  DeleteKey(key);
+}
+
+TEST(SignedArmorCoverageTest, AFileIsJudgedLikeText) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const QByteArray message =
+      "-----BEGIN PGP MESSAGE-----\n\nAAAA\n-----END PGP MESSAGE-----\n";
+  const auto path = dir.filePath("m.asc");
+
+  ASSERT_TRUE(WriteFileBytes(path, message));
+  EXPECT_FALSE(HasTextOutsideSignedArmorInFile(path));
+  ASSERT_TRUE(WriteFileBytes(path, message + "after\n"));
+  EXPECT_TRUE(HasTextOutsideSignedArmorInFile(path));
+  ASSERT_TRUE(WriteFileBytes(path, QByteArray(4096, '\x01')));
+  EXPECT_FALSE(HasTextOutsideSignedArmorInFile(path));
+  EXPECT_FALSE(HasTextOutsideSignedArmorInFile(dir.filePath("missing")));
+}
+
 TEST(SignedArmorCoverageTest, FindsTextOutsideTheBlock) {
   const QByteArray clear =
       "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nhello\n"
