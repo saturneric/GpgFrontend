@@ -739,18 +739,35 @@ void GF_CORE_EXPORT
 PersistKeyDatabaseList(const QList<KeyDatabaseItemSO>& key_dbs);
 
 /**
+ * @brief Write a reconciled list back, unless that would undo someone else.
+ *
+ * Nothing is written when reconciling changed nothing, and nothing when the
+ * stored list is no longer @p loaded: another thread -- the settings dialog,
+ * while a key database apply reads the list on a worker -- wrote it since,
+ * and its change is kept; the next read reconciles it. The check and the
+ * write are one step against other calls of this.
+ *
+ * @param loaded the list as read before reconciling
+ * @param reconciled what reconciling made of it
+ */
+void GF_CORE_EXPORT
+PersistReconciledKeyDatabaseList(const QList<KeyDatabaseItemSO>& loaded,
+                                 const QList<KeyDatabaseItemSO>& reconciled);
+
+/**
  * @brief The stored key database list, made usable, and written back.
  *
  * LoadKeyDatabaseList(), then ReconcileKeyDatabaseList(), then
- * PersistKeyDatabaseList(). The composition is kept because almost every caller
- * wants exactly this, and because the order is a fact about the program rather
- * than something a call site should restate.
+ * PersistReconciledKeyDatabaseList(). The composition is kept because almost
+ * every caller wants exactly this, and because the order is a fact about the
+ * program rather than something a call site should restate.
  *
- * @note **Reading this writes.** The healed list goes back to settings before
- * it is returned, so a stored path that was re-anchored, a duplicate DEFAULT
- * that was dropped or a channel that was renumbered is committed by the act of
- * asking. Callers that must not write should use LoadKeyDatabaseList() and
- * reconcile for themselves.
+ * @note **Reading this can write.** A healed list that differs goes back to
+ * settings before it is returned, so a stored path that was re-anchored, a
+ * duplicate DEFAULT that was dropped or a channel that was renumbered is
+ * committed by the act of asking -- unless the list changed meanwhile. Callers
+ * that must not write should use LoadKeyDatabaseList() and reconcile for
+ * themselves.
  *
  * In the macOS app sandbox the filesystem is authoritative rather than the
  * settings, so the middle step is ReconcileSandboxKeyDatabaseList() instead.

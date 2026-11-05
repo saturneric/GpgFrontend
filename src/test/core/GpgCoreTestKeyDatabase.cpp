@@ -3050,4 +3050,33 @@ TEST(DefaultEngineRecordTest, OnlyARpgpOnlyBuildsNewProfileRecordsIt) {
   EXPECT_EQ(SettingItems::kDefaultEngine.Read(settings), QString("GNUPG"));
 }
 
+// The key database list is read -- and healed -- on a worker while the
+// settings dialog may write it on the GUI thread. The healed list is written
+// only over the list it was made from; a newer one is kept.
+TEST_F(GFCoreTest, AReconciledKeyDatabaseListNeverUndoesANewerOne) {
+  const auto original = LoadKeyDatabaseList();
+  const auto restore =
+      qScopeGuard([&]() { PersistKeyDatabaseList(original); });
+
+  auto list = [](const QString& name) {
+    KeyDatabaseItemSO item;
+    item.id = name;
+    item.name = name;
+    item.path = "/nonexistent/" + name;
+    return QList<KeyDatabaseItemSO>{item};
+  };
+  auto stored_name = []() {
+    const auto stored = LoadKeyDatabaseList();
+    return stored.size() == 1 ? stored.front().name : QString();
+  };
+
+  PersistKeyDatabaseList(list("loaded"));
+  PersistKeyDatabaseList(list("newer"));
+  PersistReconciledKeyDatabaseList(list("loaded"), list("reconciled"));
+  EXPECT_EQ(stored_name(), "newer") << "the change made meanwhile is kept";
+
+  PersistReconciledKeyDatabaseList(list("newer"), list("reconciled"));
+  EXPECT_EQ(stored_name(), "reconciled");
+}
+
 }  // namespace GpgFrontend::Test

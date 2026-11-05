@@ -701,6 +701,42 @@ void PersistKeyDatabaseList(const QList<KeyDatabaseItemSO>& key_dbs) {
   so.Store(list.ToJson());
 }
 
+namespace {
+
+/// One reconciled write at a time, checked against the store inside it.
+std::mutex g_key_db_list_persist_lock;
+
+auto SameKeyDatabaseList(const QList<KeyDatabaseItemSO>& a,
+                         const QList<KeyDatabaseItemSO>& b) -> bool {
+  if (a.size() != b.size()) return false;
+  for (qsizetype i = 0; i < a.size(); ++i) {
+    if (a[i].ToJson() != b[i].ToJson()) return false;
+  }
+  return true;
+}
+
+}  // namespace
+
+void PersistReconciledKeyDatabaseList(
+    const QList<KeyDatabaseItemSO>& loaded,
+    const QList<KeyDatabaseItemSO>& reconciled) {
+  // Nothing to record: reading the list is not a reason to write it.
+  if (SameKeyDatabaseList(loaded, reconciled)) return;
+
+  // This runs on whichever thread reads the list -- a key database apply on a
+  // worker among them -- while the settings dialog writes it on the GUI
+  // thread. Written over a list someone changed since it was loaded, the
+  // reconciled one would undo that change; that change wins instead, and the
+  // next read reconciles it.
+  std::lock_guard<std::mutex> lock(g_key_db_list_persist_lock);
+  if (!SameKeyDatabaseList(LoadKeyDatabaseList(), loaded)) {
+    LOG_I() << "the key database list changed while it was reconciled; "
+               "keeping the newer one";
+    return;
+  }
+  PersistKeyDatabaseList(reconciled);
+}
+
 auto ResolveDefaultKeyDatabaseId(const QString& chosen,
                                  const QList<KeyDatabaseItemSO>& key_dbs)
     -> QString {
@@ -747,7 +783,7 @@ auto GetKeyDatabasesBySettings() -> QList<KeyDatabaseItemSO> {
                                      ProfileSession::Instance().Root(),
                                      GetGSS().GetAppDataPath());
 
-  PersistKeyDatabaseList(reconciled);
+  PersistReconciledKeyDatabaseList(stored, reconciled);
 
   for (const auto& key_db : reconciled) {
     LOG_I() << "got key database from settings:" << key_db.name
