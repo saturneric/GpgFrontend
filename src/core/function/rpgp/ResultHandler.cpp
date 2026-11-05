@@ -313,7 +313,9 @@ auto EditSecretKeyRpgp(OpenPGPContext& ctx, const QString& fpr,
     return GPG_ERR_GENERAL;
   }
 
-  const GFBuffer edited(QString::fromUtf8(out));
+  // Straight into secure memory: a QString copy of the secret key block would
+  // be freed without being wiped.
+  const GFBuffer edited(out, std::strlen(out));
   Rust::gfr_crypto_free_string(out);
 
   if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), edited, key->blocks)) {
