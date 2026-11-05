@@ -30,7 +30,7 @@
 
 #include <QVariantMap>
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
 
 namespace GpgFrontend::Mobile {
 

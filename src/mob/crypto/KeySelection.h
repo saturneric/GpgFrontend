@@ -30,8 +30,8 @@
 
 #include <variant>
 
-#include "core/function/result_analyse/GpgOperaOutcome.h"
 #include "core/typedef/GpgTypedef.h"
+#include "shell/result_analyse/GpgOperaOutcome.h"
 
 /**
  * @file KeySelection.h

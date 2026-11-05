@@ -36,7 +36,6 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgErrorMap.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -44,6 +43,7 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/result_analyse/GpgDecryptResultAnalyse.h"
 
 namespace GpgFrontend::Test {
 

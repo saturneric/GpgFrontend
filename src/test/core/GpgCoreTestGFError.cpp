@@ -30,8 +30,8 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/openpgp/helper/Op.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GFError.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {

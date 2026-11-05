@@ -30,10 +30,10 @@
 
 #include <optional>
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/model/GFBuffer.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
+#include "shell/result_analyse/GpgResultAnalyse.h"
 
 /**
  * @file GpgOperaOutcome.h

@@ -34,10 +34,10 @@
 #include "core/GFCoreRust.h"
 #if GF_ENGINE_GNUPG
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgErrorMap.h"
 #endif
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/module/GlobalRegisterTableKeys.h"
 #include "core/module/ModuleManager.h"
@@ -247,4 +247,16 @@ GpgOperationCancelScope::GpgOperationCancelScope(int channel)
 GpgOperationCancelScope::~GpgOperationCancelScope() {
   if (channel_ >= 0) ResetGpgOperationCancelState(channel_);
 }
+
+auto EngineErrorOf(int channel, GFErrorCode code) -> GFError {
+#if GF_ENGINE_GNUPG
+  if (OpenPGPContext::GetInstance(channel).Engine() == OpenPGPEngine::kGNUPG) {
+    return FromGpgError(ToGpgError(GFError::Application(code)));
+  }
+#else
+  Q_UNUSED(channel);
+#endif
+  return {code, GFErrorOrigin::kRPGP, 0};
+}
+
 }  // namespace GpgFrontend

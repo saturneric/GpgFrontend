@@ -30,7 +30,7 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/LocalizedUtils.h"
+#include "shell/result_analyse/LocalizedUtils.h"
 
 namespace GpgFrontend {
 

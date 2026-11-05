@@ -24,7 +24,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # gather source files
-aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/basic CORE_SOURCE)
 # The GnuPG engine; an rPGP-only build leaves it out, and GpgME with it. Three
 # files beside it use no GpgME and stay: the process runner the module SDK also

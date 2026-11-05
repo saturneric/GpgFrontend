@@ -31,7 +31,6 @@
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Op.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/utils/AsyncUtils.h"
 
 namespace GpgFrontend {

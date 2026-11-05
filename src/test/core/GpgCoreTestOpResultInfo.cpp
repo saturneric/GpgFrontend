@@ -31,12 +31,12 @@
 
 #include <gtest/gtest.h>
 
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "core/function/result_analyse/GpgOperaOutcome.h"
-#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "shell/result_analyse/GpgDecryptResultAnalyse.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
+#include "shell/result_analyse/GpgOperaOutcome.h"
+#include "shell/result_analyse/GpgVerifyResultAnalyse.h"
 
 namespace GpgFrontend::Test {
 

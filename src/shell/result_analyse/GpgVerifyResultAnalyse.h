@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "GpgResultAnalyse.h"
 #include "core/model/GpgSignature.h"
 #include "core/model/GpgVerifyResult.h"
@@ -44,7 +45,7 @@ namespace GpgFrontend {
  * whose public key is not present in the keyring are collected and available
  * via GetUnknownSignatures().
  */
-class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
+class GF_SHELL_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /// The operation this analyser describes.

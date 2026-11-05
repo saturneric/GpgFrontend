@@ -29,7 +29,6 @@
 #include "FileCryptoOpera.h"
 
 #include "core/GFCoreRust.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/function/rpgp/EncryptSignAttribution.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/function/rpgp/ResultHandler.h"

@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "GpgResultAnalyse.h"
 #include "core/model/GpgSignResult.h"
 
@@ -41,7 +42,7 @@ namespace GpgFrontend {
  * hash algorithm, and creation timestamp. Invalid signers are listed with their
  * fingerprint and error reason.
  */
-class GF_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
+class GF_SHELL_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /// The operation this analyser describes.

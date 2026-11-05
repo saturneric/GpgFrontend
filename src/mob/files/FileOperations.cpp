@@ -36,11 +36,6 @@
 
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgOperaOutcome.h"
-#include "core/function/result_analyse/GpgSignResultAnalyse.h"
-#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
@@ -51,6 +46,12 @@
 #include "crypto/KeySelection.h"
 #include "files/StagingArea.h"
 #include "plat/common/PlatformShare.h"
+#include "shell/result_analyse/GpgDecryptResultAnalyse.h"
+#include "shell/result_analyse/GpgEncryptResultAnalyse.h"
+#include "shell/result_analyse/GpgOperaOutcome.h"
+#include "shell/result_analyse/GpgSignResultAnalyse.h"
+#include "shell/result_analyse/GpgVerifyResultAnalyse.h"
+#include "shell/rules/FileNameRules.h"
 
 namespace GpgFrontend::Mobile {
 

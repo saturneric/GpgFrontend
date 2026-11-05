@@ -36,6 +36,19 @@
 namespace GpgFrontend {
 
 /**
+ * @brief An error reported for an engine call on @p channel that the engine
+ * did not itself describe, as that engine's.
+ *
+ * On a GnuPG channel it reads as GnuPG's code for @p code; on an rPGP channel
+ * it carries no native value.
+ *
+ * @param channel the channel the call ran on, or was refused on
+ * @param code what went wrong
+ * @return the error
+ */
+auto GF_CORE_EXPORT EngineErrorOf(int channel, GFErrorCode code) -> GFError;
+
+/**
  * @brief Run a GPG operation asynchronously on the dedicated GPG task runner.
  *
  * Checks @p support_ifs against the context capabilities first; if the

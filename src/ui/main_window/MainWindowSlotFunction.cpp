@@ -29,7 +29,6 @@
 #include "MainWindow.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"

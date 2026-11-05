@@ -37,8 +37,6 @@
 #include <QPointer>
 #include <algorithm>
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
-#include "core/function/result_analyse/GpgOperaOutcome.h"
 #include "crypto/ContentKind.h"
 #include "crypto/OperationQueue.h"
 #include "crypto/ResultPresenter.h"

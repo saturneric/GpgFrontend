@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "GpgResultAnalyse.h"
 #include "core/model/GpgEncryptResult.h"
 
@@ -41,7 +42,7 @@ namespace GpgFrontend {
  * lists any invalid recipients together with their fingerprints and error
  * reasons.
  */
-class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
+class GF_SHELL_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /// The operation this analyser describes.
@@ -88,8 +89,8 @@ class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
  * @param result the encryption's result
  * @param keys the recipient keys the user selected; none, none named
  */
-void GF_CORE_EXPORT AttachEncryptRecipients(GpgOpResultInfo& info,
-                                            GpgEncryptResult result,
-                                            const GpgAbstractKeyPtrList& keys);
+void GF_SHELL_EXPORT AttachEncryptRecipients(GpgOpResultInfo& info,
+                                             GpgEncryptResult result,
+                                             const GpgAbstractKeyPtrList& keys);
 
 }  // namespace GpgFrontend

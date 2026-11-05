@@ -28,8 +28,8 @@
 
 #include "GpgOpResultInfo.h"
 
-#include "core/function/result_analyse/InfoBoardCard.h"
 #include "core/utils/GpgUtils.h"
+#include "shell/result_analyse/InfoBoardCard.h"
 
 namespace GpgFrontend {
 

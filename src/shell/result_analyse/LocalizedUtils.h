@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFShellExport.h"
+
 namespace GpgFrontend {
 
 /**
@@ -36,7 +38,7 @@ namespace GpgFrontend {
  * @param timestamp Unix time_t value to format
  * @return date string formatted according to the current locale
  */
-auto GF_CORE_EXPORT GetLocalizedDateByTimestamp(time_t timestamp) -> QString;
+auto GF_SHELL_EXPORT GetLocalizedDateByTimestamp(time_t timestamp) -> QString;
 
 /**
  * @brief Format a Unix timestamp as a UTC date string.
@@ -44,6 +46,6 @@ auto GF_CORE_EXPORT GetLocalizedDateByTimestamp(time_t timestamp) -> QString;
  * @param timestamp Unix time_t value to format
  * @return date string in UTC
  */
-auto GF_CORE_EXPORT GetUTCDateByTimestamp(time_t timestamp) -> QString;
+auto GF_SHELL_EXPORT GetUTCDateByTimestamp(time_t timestamp) -> QString;
 
 }  // namespace GpgFrontend

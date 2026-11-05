@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "GFShellExport.h"
 #include "GpgResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 
@@ -41,7 +42,7 @@ namespace GpgFrontend {
  * encryption algorithm, message integrity protection status, and details for
  * each recipient (key ID, name, public-key algorithm, and status).
  */
-class GF_CORE_EXPORT GpgDecryptResultAnalyse : public GpgResultAnalyse {
+class GF_SHELL_EXPORT GpgDecryptResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /// The operation this analyser describes.

@@ -30,7 +30,7 @@
 
 #include <optional>
 
-#include "GFCoreExport.h"
+#include "GFShellExport.h"
 #include "core/typedef/GFError.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -68,7 +68,7 @@ enum class GpgSigVerdict : std::uint8_t {
 };
 
 /// The verdict on a signature of @p validity.
-auto GF_CORE_EXPORT GradeSignature(GpgSigValidity validity) -> GpgSigVerdict;
+auto GF_SHELL_EXPORT GradeSignature(GpgSigValidity validity) -> GpgSigVerdict;
 
 /**
  * @brief The operation two merged results describe together.
@@ -76,11 +76,11 @@ auto GF_CORE_EXPORT GradeSignature(GpgSigValidity validity) -> GpgSigVerdict;
  * {Encrypt, Sign} and {Decrypt, Verify} combine; an operation merged with
  * itself or with kUNKNOWN stays itself; any other pair is kUNKNOWN.
  */
-auto GF_CORE_EXPORT CombineGpgOperations(GpgOperation a, GpgOperation b)
+auto GF_SHELL_EXPORT CombineGpgOperations(GpgOperation a, GpgOperation b)
     -> GpgOperation;
 
 /// Display name of @p op, for presentation only.
-auto GF_CORE_EXPORT GpgOperationName(GpgOperation op) -> QString;
+auto GF_SHELL_EXPORT GpgOperationName(GpgOperation op) -> QString;
 
 /**
  * @brief One error recorded for an operation, kept verbatim.
@@ -88,7 +88,7 @@ auto GF_CORE_EXPORT GpgOperationName(GpgOperation op) -> QString;
  * @ref scope is the single stage the error is known to belong to, or a combined
  * operation when only the combined engine call is known to have failed.
  */
-struct GF_CORE_EXPORT GpgOpStageError {
+struct GF_SHELL_EXPORT GpgOpStageError {
   GpgOperation scope = GpgOperation::kNONE;
   /// What failed, and who said so: an engine, or GpgFrontend itself
   /// (GFErrorOrigin::kAPPLICATION) when there was no code and no usable result.
@@ -113,7 +113,7 @@ struct GF_CORE_EXPORT GpgOpStageError {
  * Fields are empty strings / null QDateTime when the signing key is not found
  * in the keyring.
  */
-struct GF_CORE_EXPORT GpgSignerInfo {
+struct GF_SHELL_EXPORT GpgSignerInfo {
   QString uid;  ///< Primary UID string "Name <email>", or empty if key absent
   QString fingerprint;  ///< Full fingerprint of the signing key or subkey
   QString keyId;        ///< Short key ID (populated when key is in the keyring)
@@ -129,7 +129,7 @@ struct GF_CORE_EXPORT GpgSignerInfo {
  * present in the verified data.  @ref warnings mirrors the human-readable
  * strings emitted to the report for the same signature.
  */
-struct GF_CORE_EXPORT GpgVerifySigInfo {
+struct GF_SHELL_EXPORT GpgVerifySigInfo {
   GpgSignerInfo signer;     ///< Signer identity and algorithm details
   GpgSigValidity validity;  ///< Parsed validity level
   QStringList warnings;     ///< Issues found, e.g. "Signature has expired",
@@ -148,7 +148,7 @@ struct GF_CORE_EXPORT GpgVerifySigInfo {
  * Populated by GpgSignResultAnalyse::doAnalyse() — one entry per successfully
  * created signature.
  */
-struct GF_CORE_EXPORT GpgNewSigInfo {
+struct GF_SHELL_EXPORT GpgNewSigInfo {
   GpgSignerInfo signer;  ///< Signer identity and algorithm details
   QString sigMode;  ///< Signature type string, e.g. "Normal", "Detach", "Clear"
 };
@@ -159,10 +159,10 @@ struct GF_CORE_EXPORT GpgNewSigInfo {
  * Populated by GpgDecryptResultAnalyse::doAnalyse() — one entry per recipient
  * session-key record in the decrypted message.
  */
-struct GF_CORE_EXPORT GpgRecipientInfo {
-  QString uid;         ///< Recipient UID "Name <email>", or empty if key absent
-  QString fingerprint; ///< Full fingerprint of the recipient key or subkey
-  QString keyId;       ///< Key ID reported by GPGME (may be a subkey ID)
+struct GF_SHELL_EXPORT GpgRecipientInfo {
+  QString uid;  ///< Recipient UID "Name <email>", or empty if key absent
+  QString fingerprint;  ///< Full fingerprint of the recipient key or subkey
+  QString keyId;        ///< Key ID reported by GPGME (may be a subkey ID)
   QString pubkeyAlgo;  ///< Public-key algorithm used to encrypt the session key
   bool keyFound;       ///< True when the key was located in the local keyring
   bool algoIsPrimaryKey =
@@ -200,7 +200,7 @@ struct GF_CORE_EXPORT GpgRecipientInfo {
  * (filename, MIME flag, MIP flag, symmetric cipher) is stored as individual
  * fields so the UI does not have to parse the formatted report.
  */
-struct GF_CORE_EXPORT GpgOpResultInfo {
+struct GF_SHELL_EXPORT GpgOpResultInfo {
   // --- common ----------------------------------------------------------------
 
   /// Operation status: >0 success, 0 valid output with non-fatal warnings
@@ -225,7 +225,8 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
   /// Display name of @ref op, e.g. "Sign"; kept for the SDK's JSON. Never
   /// compared.
   QString operation;
-  QString description;  ///< Plain-language summary set by result analyse for UI display
+  QString description;  ///< Plain-language summary set by result analyse for UI
+                        ///< display
   QString engine;       ///< Engine version string, e.g. "GPG v2.4.1"
 
   /// Flat list of signer/recipient UIDs or fingerprints for compact display.
@@ -307,7 +308,7 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
  * @param engine_details detail text from any result object that did come
  *        back, tagged by the stage whose result held it
  */
-auto GF_CORE_EXPORT MakeAbortedOpInfo(
+auto GF_SHELL_EXPORT MakeAbortedOpInfo(
     GpgOperation scope, const GFError& err, const QString& engine,
     const QList<QPair<GpgOperation, QString>>& engine_details = {})
     -> GpgOpResultInfo;

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFShellExport.h"
+
 // The cards a result is shown in: the desktop's Status Panel and the phone's
 // status sheet both make them from an analysed result
 // (ConvertOpInfoToCards), so the two say the same thing the same way.
@@ -36,7 +38,7 @@
 
 #include <optional>
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
 
 namespace GpgFrontend {
 
@@ -160,7 +162,7 @@ struct InfoBoardCard {
 // The domain cards of an analysed result: signatures, signers, recipients and
 // message metadata, each with its kind set. The result's own outcome, errors
 // and input hash are its Outcome card's (see BuildOpInfoCards on the desktop).
-auto GF_CORE_EXPORT ConvertOpInfoToCards(const GpgOpResultInfo& info)
+auto GF_SHELL_EXPORT ConvertOpInfoToCards(const GpgOpResultInfo& info)
     -> QList<InfoBoardCard>;
 
 }  // namespace GpgFrontend

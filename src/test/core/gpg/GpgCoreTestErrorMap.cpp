@@ -33,8 +33,8 @@
 #include "GpgCoreTest.h"
 #include "GpgFrontendTest.h"
 #include "core/function/gpg/GpgErrorMap.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GFError.h"
+#include "core/utils/AsyncUtils.h"
 
 namespace GpgFrontend::Test {
 

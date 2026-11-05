@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/typedef/CoreTypedef.h"
 #include "ui/function/InfoBoardReport.h"
 #include "ui/function/TextDirection.h"

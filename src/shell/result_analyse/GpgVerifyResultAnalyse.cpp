@@ -32,7 +32,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/LocalizedUtils.h"
+#include "shell/result_analyse/LocalizedUtils.h"
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
     int channel, const GFError& error, GpgVerifyResult result)

@@ -27,7 +27,7 @@
  */
 #pragma once
 
-#include "GFCoreExport.h"
+#include "GFShellExport.h"
 #include "GpgOpResultInfo.h"
 
 namespace GpgFrontend {
@@ -38,20 +38,7 @@ namespace GpgFrontend {
  * What GpgResultAnalyse::EngineInfo() reports, for results built without an
  * analyser.
  */
-auto GF_CORE_EXPORT DescribeOpenPGPEngine(int channel) -> QString;
-
-/**
- * @brief An error reported for an engine call on @p channel that the engine
- * did not itself describe, as that engine's.
- *
- * On a GnuPG channel it reads as GnuPG's code for @p code; on an rPGP channel
- * it carries no native value.
- *
- * @param channel the channel the call ran on, or was refused on
- * @param code what went wrong
- * @return the error
- */
-auto GF_CORE_EXPORT EngineErrorOf(int channel, GFErrorCode code) -> GFError;
+auto GF_SHELL_EXPORT DescribeOpenPGPEngine(int channel) -> QString;
 
 /**
  * @brief Abstract base class for accumulating a formatted report of an OpenPGP
@@ -70,7 +57,7 @@ auto GF_CORE_EXPORT EngineErrorOf(int channel, GFErrorCode code) -> GFError;
  * requires its staging and finalization to succeed.
  * Analyse() is idempotent; doAnalyse() is called at most once.
  */
-class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
+class GF_SHELL_EXPORT GpgResultAnalyse : public QObject {
   Q_OBJECT
  public:
   /**
@@ -80,7 +67,7 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    * analysed
    */
   explicit GpgResultAnalyse(int channel)
-      : current_gpg_context_channel_(channel){};
+      : current_gpg_context_channel_(channel) {};
 
   /**
    * @brief Return the Markdown-formatted operation report.

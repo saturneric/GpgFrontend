@@ -47,8 +47,6 @@
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -60,6 +58,8 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
+#include "shell/result_analyse/GpgDecryptResultAnalyse.h"
+#include "shell/result_analyse/GpgVerifyResultAnalyse.h"
 
 namespace GpgFrontend::Test {
 
