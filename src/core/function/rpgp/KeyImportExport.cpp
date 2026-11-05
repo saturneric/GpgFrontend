@@ -156,8 +156,13 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
         LOG_I() << "key with fpr: " << pd_gf_key.metadata.fpr
                 << " already exists in database, merging with the imported "
                    "key";
+        // The stored key is the base. The first block's secret packets win,
+        // so with the imported copy first, re-importing an old backup or an
+        // unprotected export replaced the stored secret key and its
+        // passphrase protection. Only signatures, user IDs and subkeys the
+        // stored key lacks come from the import.
         final_gf_key = MergeGFKeyRpgpImpl(
-            {pd_gf_key, *db_gf_key},
+            {*db_gf_key, pd_gf_key},
             pd_gf_key.metadata.has_secret || db_gf_key->metadata.has_secret);
       } else {
         final_gf_key = pd_gf_key;
