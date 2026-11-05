@@ -32,6 +32,10 @@
 #include <QTemporaryDir>
 #include <algorithm>
 
+#ifndef Q_OS_WINDOWS
+#include <unistd.h>
+#endif
+
 #include "GpgCoreEngineTest.h"
 #include "core//function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -978,6 +982,44 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
 
   DeleteKey(key);
 }
+
+#ifndef Q_OS_WINDOWS
+// A file the archiver cannot read used to be left out of the archive while the
+// encryption still reported success, a backup quietly missing a file.
+TEST_P(GpgCoreEngineTest, EncryptDirectoryWithUnreadableFileFails) {
+  if (geteuid() == 0) {
+    GTEST_SKIP() << "root reads the file this test makes unreadable";
+  }
+
+  auto key = GenerateFullKey("dirunreadable");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+  const QString src_dir = work_dir.path() + "/src";
+  ASSERT_TRUE(QDir().mkpath(src_dir));
+  ASSERT_TRUE(WriteAll(src_dir + "/a.txt", "readable"));
+  ASSERT_TRUE(WriteAll(src_dir + "/b.txt", "not readable"));
+  ASSERT_TRUE(QFile::setPermissions(src_dir + "/b.txt", {}));
+
+  bool done = false;
+  GFError encrypt_err = GFError::Application(GFErrorCode::kGENERAL);
+  FileCryptoOperation::GetInstance(Channel()).EncryptDirectory(
+      {key}, src_dir, false, work_dir.path() + "/src.tar.gpg",
+      [&](GFError err, const DataObjectPtr&) {
+        encrypt_err = err;
+        done = true;
+      });
+  WAIT_FOR_TRUE(done, 10000);
+
+  QFile::setPermissions(src_dir + "/b.txt",
+                        QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+  EXPECT_FALSE(encrypt_err.Ok())
+      << "a folder with an unreadable file was reported as encrypted";
+
+  DeleteKey(key);
+}
+#endif
 
 // ---------------------------------------------------------------------------
 // Stress: repeat the full encrypt -> decrypt -> sign -> verify cycle.
