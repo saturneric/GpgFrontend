@@ -32,6 +32,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/model/GpgKey.h"
+#include "shell/present/KeyImportStatus.h"
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
@@ -316,49 +317,19 @@ void KeyImportDetailDialog::create_keys_table() {
 }
 
 auto KeyImportDetailDialog::get_status_string(int key_status) -> QString {
-  QString status_string;
-  // keystatus is greater than 15, if key is private
-  if (key_status > 15) {
-    status_string.append(tr("Private"));
-    key_status = key_status - 16;
-  } else {
-    status_string.append(tr("Public"));
-  }
-  if (key_status == 0) {
-    status_string.append(", " + tr("Unchanged"));
-  } else {
-    if (key_status == 1) {
-      status_string.append(", " + tr("New Key"));
-    } else {
-      if (key_status > 7) {
-        status_string.append(", " + tr("New Subkey"));
-        return status_string;
-      }
-      if (key_status > 3) {
-        status_string.append(", " + tr("New Signature"));
-        return status_string;
-      }
-      if (key_status > 1) {
-        status_string.append(", " + tr("New UID"));
-        return status_string;
-      }
-    }
-  }
-  return status_string;
+  return Shell::DescribeKeyImportStatus(key_status);
 }
 
 auto KeyImportDetailDialog::get_status_color(int key_status) -> QColor {
-  // keystatus is greater than 15, if key is private
-  if (key_status > 15) {
-    key_status = key_status - 16;
+  switch (Shell::KeyImportChangeOf(key_status)) {
+    case Shell::KeyImportChange::kUnchanged:
+      return {0x9e, 0x9e, 0x9e};  // gray
+    case Shell::KeyImportChange::kNewKey:
+      return {0x43, 0xa0, 0x47};  // green
+    case Shell::KeyImportChange::kUpdated:
+      return {0x1e, 0x88, 0xe5};  // blue
   }
-  if (key_status == 0) {
-    return {0x9e, 0x9e, 0x9e};  // unchanged -> gray
-  }
-  if (key_status == 1) {
-    return {0x43, 0xa0, 0x47};  // new key -> green
-  }
-  return {0x1e, 0x88, 0xe5};  // new uid/signature/subkey -> blue
+  return {0x9e, 0x9e, 0x9e};
 }
 
 void KeyImportDetailDialog::create_button_box() {
