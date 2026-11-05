@@ -19,6 +19,10 @@ Popup {
     // Room left under it, for a bar at the foot of the page.
     property real bottomOffset: 0
 
+    // What the action does when it was given with show(); else action() is
+    // emitted.
+    property var handler: null
+
     // The action was taken; the bar is gone.
     signal action()
 
@@ -63,8 +67,12 @@ Popup {
             Material.foreground: Theme.dark ? Qt.darker(Theme.accent, 1.3)
                                             : Qt.lighter(Theme.accent, 1.5)
             onClicked: {
+                // Taken before closing: a new message may replace it.
+                const run = bar.handler
+                bar.handler = null
                 bar.close()
-                bar.action()
+                if (run) run()
+                else bar.action()
             }
         }
     }
@@ -86,11 +94,13 @@ Popup {
     }
 
     // Show @p message, even when it is the one already shown -- "Copied."
-    // twice in a row is two copies -- with @p actionText, if given. An empty
+    // twice in a row is two copies -- with @p actionText, if given, which
+    // runs @p handler when given (else action() is emitted). An empty
     // message hides it.
-    function show(message, actionText) {
+    function show(message, actionText, handler) {
         bar.actionText = ""
         text = ""
+        bar.handler = handler || null
         bar.actionText = actionText || ""
         text = message
     }

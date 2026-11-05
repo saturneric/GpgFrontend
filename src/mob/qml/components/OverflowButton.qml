@@ -16,9 +16,11 @@ BarButton {
     icon.source: Theme.icon("more_vert")
     onClicked: menu.open()
 
-    Menu {
+    FitMenu {
         id: menu
 
+        // Under the dots, its right edge in line with theirs.
+        x: button.width - width
         y: button.height
     }
 }

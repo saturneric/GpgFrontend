@@ -105,7 +105,7 @@ Page {
         }
     }
 
-    Menu {
+    FitMenu {
         id: rowMenu
 
         property var profile: ({})

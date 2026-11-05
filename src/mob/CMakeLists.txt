@@ -121,6 +121,11 @@ qt_add_qml_module(gf_mob_lib
     qml/components/Chip.qml
     qml/components/EmptyState.qml
     qml/components/BottomSheet.qml
+    qml/components/OperationMenu.qml
+    qml/components/ActionButton.qml
+    qml/components/InfoRow.qml
+    qml/components/FitMenu.qml
+    qml/components/SettingSwitch.qml
     qml/components/Snackbar.qml
     qml/components/KeyAvatar.qml
     qml/components/SettingSheet.qml

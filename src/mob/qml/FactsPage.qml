@@ -87,16 +87,22 @@ Page {
                         text: section.modelData.title
                     }
 
+                    // A label on the left, its value on the right, the value
+                    // wrapping in its own column however long it is.
                     Repeater {
                         model: section.modelData.rows
 
-                        ListRow {
+                        InfoRow {
                             required property var modelData
 
+                            objectName: "fact_" + modelData.label
                             Layout.fillWidth: true
-                            inert: true
-                            text: modelData.label
-                            valueText: modelData.value
+                            Layout.leftMargin: Theme.gap
+                            Layout.rightMargin: Theme.gap
+                            Layout.topMargin: 6
+                            Layout.bottomMargin: 6
+                            label: modelData.label
+                            value: modelData.value
                         }
                     }
                 }

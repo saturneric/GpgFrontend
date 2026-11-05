@@ -16,6 +16,26 @@ Pane {
     property var sections: []
     property int currentIndex: 0
 
+    // One size for every label: as large as the system's text asks, as far
+    // as the narrowest fit allows. With large text a long name
+    // ("Einstellungen") makes them all a little smaller, never below the
+    // usual size, rather than being cut short or set apart from the rest.
+    readonly property int labelSize: {
+        const room = bar.width / Math.max(1, sections.length) - 4
+        let size = Theme.labelSize
+        for (const section of sections) {
+            const needed = labelMetrics.advanceWidth(section.text)
+            if (needed > room) size = Math.min(size, Math.floor(Theme.labelSize * room / needed))
+        }
+        return Math.max(12, size)
+    }
+
+    FontMetrics {
+        id: labelMetrics
+        font.pixelSize: Theme.labelSize
+        font.weight: Font.DemiBold
+    }
+
     padding: 0
     topPadding: 12
     bottomPadding: 16
@@ -85,7 +105,7 @@ Pane {
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
                         text: section.text
-                        font.pixelSize: Theme.labelSize
+                        font.pixelSize: bar.labelSize
                         font.weight: section.current ? Font.DemiBold : Font.Medium
                         color: section.current ? Material.foreground
                                                : Material.secondaryTextColor

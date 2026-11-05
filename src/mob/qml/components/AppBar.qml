@@ -23,13 +23,26 @@ ToolBar {
 
     signal back()
 
-    // The page shows through, as on the platform's own top bars; once the
-    // page has scrolled under it, it takes a tint of the page's colour and a
-    // shadow. (A transparent bar's shadow fills it grey.)
-    Material.background: raised && parent
-                         ? Theme.surface(parent.Material.backgroundColor, 2)
-                         : "transparent"
-    Material.elevation: raised ? 2 : 0
+    // The page's own colour, always, under the status bar as well (the
+    // window's): no change of colour and no shadow when the page scrolls,
+    // only a hairline under the bar that fades in once something is under
+    // it.
+    Material.background: "transparent"
+    Material.elevation: 0
+
+    Rectangle {
+        objectName: "appBarDivider"
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: bar.Material.dividerColor
+        opacity: bar.raised ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation { duration: 150 }
+        }
+    }
 
     RowLayout {
         anchors.fill: parent
