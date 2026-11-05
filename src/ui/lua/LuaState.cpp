@@ -127,6 +127,41 @@ local function settle(r)
 end
 pcall = function(...) return settle(pack(raw_pcall(...))) end
 xpcall = function(...) return settle(pack(raw_xpcall(...))) end
+
+-- Finalizers run with hooks disabled (Lua 5.4), so a __gc loop was beyond the
+-- instruction budget and hung the GUI thread, unload included. An object is
+-- only marked for finalization if __gc is there when the metatable is set.
+local raw_setmetatable, rawget, type = setmetatable, rawget, type
+setmetatable = function(t, mt)
+  if type(mt) == "table" and rawget(mt, "__gc") ~= nil then
+    err("__gc is not available", 2)
+  end
+  return raw_setmetatable(t, mt)
+end
+
+-- Pattern matching runs in C, where the budget is never checked, and patterns
+-- like ".-.-.-x" are polynomial in the subject. Bounded rather than budgeted:
+-- module UI scripts have no business matching large texts.
+local str = string
+local raw_gsub = str.gsub
+local kMaxSubject, kMaxPattern, kMaxRepeats = 64 * 1024, 128, 4
+local function check(subject, pattern)
+  if type(subject) == "string" and #subject > kMaxSubject then
+    err("string too long for pattern matching", 3)
+  end
+  if type(pattern) == "string" then
+    if #pattern > kMaxPattern then err("pattern too long", 3) end
+    local _, repeats = raw_gsub(raw_gsub(pattern, "%%.", ""), "[%*%+%-%?]", "")
+    if repeats > kMaxRepeats then err("pattern too complex", 3) end
+  end
+end
+for _, name in ipairs({ "find", "match", "gmatch", "gsub" }) do
+  local raw = str[name]
+  str[name] = function(subject, pattern, ...)
+    check(subject, pattern)
+    return raw(subject, pattern, ...)
+  end
+end
 )lua";
 
 }  // namespace

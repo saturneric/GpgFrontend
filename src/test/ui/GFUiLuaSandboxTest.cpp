@@ -86,6 +86,29 @@ TEST(LuaSandboxTest, OnlyTextIsLoaded) {
   EXPECT_FALSE(Lua(s, "this is not lua", &error));
 }
 
+// Finalizers run with the instruction budget off, so a __gc that loops hung
+// the GUI thread, unload included. Metatables are still fine without one.
+TEST(LuaSandboxTest, AFinalizerCannotBeInstalled) {
+  LuaState s;
+  QString error;
+  EXPECT_FALSE(Lua(s, "setmetatable({}, {__gc = function() end})", &error));
+  EXPECT_TRUE(error.contains("__gc")) << error.toStdString();
+  EXPECT_TRUE(Lua(s,
+                  "local t = setmetatable({}, {__index = {x = 1}}) "
+                  "assert(t.x == 1)"));
+}
+
+// Pattern matching runs in C, beyond the budget; it is bounded instead.
+TEST(LuaSandboxTest, PatternMatchingIsBounded) {
+  LuaState s;
+  EXPECT_TRUE(Lua(s, "assert(('key = value'):match('^(%w+)%s*=%s*(%w+)$'))"));
+  EXPECT_TRUE(Lua(s, "assert(string.gsub('a-b', '%-', '+') == 'a+b')"));
+  EXPECT_FALSE(Lua(s, "string.find(('a'):rep(70000), 'b')"))
+      << "a subject past the limit was matched";
+  EXPECT_FALSE(Lua(s, "string.find(('a'):rep(1000), '.-.-.-.-.-b')"))
+      << "a pattern with many repetitions was run";
+}
+
 TEST(LuaSandboxTest, StatesAreIndependent) {
   LuaState a;
   LuaState b;
