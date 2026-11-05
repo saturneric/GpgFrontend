@@ -37,6 +37,7 @@
 #include <thread>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/RustUtils.h"
@@ -70,8 +71,39 @@ void SetupGlobalTestEnv() {
       RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileLowMemory));
 }
 
+namespace {
+
+/// A generation no Runtime is ever current in: what is registered under it
+/// never shows up in a listing of the databases a run has.
+constexpr int kUnitTestChannelGeneration = 0x7ffe0000;
+
+void ReserveUnitTestChannels() {
+  // The core fixtures build their contexts on fixed channels without the
+  // registry knowing, and a fresh handle is simply the next one it has not
+  // issued. So a key database Runtime built by a test (on "fresh" handles)
+  // got these very channels, and retiring it reclaimed the fixtures' engine
+  // objects for good: every later rebuild on them was torn down again as it
+  // was made (a segfault in a later suite, depending on the order the
+  // tests ran in). Taken up front, they are never issued to anyone else.
+  //
+  // Taken as unavailable and for no database: nothing counts them as live
+  // until a fixture builds its context there (an early SDK call on a live
+  // channel 0 would build a placeholder that poisons the GnuPG fixture), and
+  // that build registers the channel as its own, as it always did.
+  for (const auto channel : {kGpgChannelForUnitTest, kRpgpChannelForUnitTest}) {
+    if (LookupChannelHandle(channel).state != ChannelHandleState::kUNKNOWN) {
+      continue;
+    }
+    RegisterChannelHandle(channel, QString(), false,
+                          kUnitTestChannelGeneration);
+  }
+}
+
+}  // namespace
+
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
   SetupGlobalTestEnv();
+  ReserveUnitTestChannels();
 
   testing::InitGoogleTest(&args.argc, args.argv);
   return RUN_ALL_TESTS();
