@@ -428,6 +428,18 @@ Item {
             verify(problem.visible)
             compare(problem.text, "Incorrect passphrase. Please try again.")
             verify(run.enabled)
+            // Tried again from the same button, asked for the passphrase anew.
+            compare(run.text, "Try again")
+            // Another choice: the old failure no longer applies.
+            addSubkey.changed()
+            verify(!problem.visible)
+            compare(run.text, "Add")
+            addSubkey.settle(false, {"reason": "bad_passphrase",
+                                     "error": "Incorrect passphrase. Please try again."})
+            // Any other failure is said as it is, not as a passphrase one.
+            addSubkey.settle(false, {"reason": "failed", "error": "Not supported."})
+            compare(problem.text, "Not supported.")
+            compare(run.text, "Add")
             // Cancelled at the passphrase: nothing went wrong.
             addSubkey.settle(false, {"reason": "cancelled", "error": "Cancelled."})
             verify(!problem.visible)

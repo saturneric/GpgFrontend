@@ -22,6 +22,9 @@ BottomSheet {
     property bool busy: false
     // Why the last try did not work; empty when there is nothing to say.
     property string problem: ""
+    // The last try failed at the passphrase: the same choices can be tried
+    // again at once, asked for the passphrase anew.
+    property bool retry: false
 
     signal accepted(string purpose, string validity, bool withPassphrase)
     // Expert Mode's choices, KeyGenProfilesController.InfoFromChoices()'s.
@@ -34,7 +37,14 @@ BottomSheet {
         // As it was last time, here or on the desktop.
         expert.checked = profileStore.expertMode
         problem = ""
+        retry = false
         open()
+    }
+
+    // A choice changed: what went wrong with the last one no longer applies.
+    function changed() {
+        problem = ""
+        retry = false
     }
 
     // How the addition asked for ended (KeyActionsController's detail): the
@@ -42,12 +52,14 @@ BottomSheet {
     // saying why, for another try.
     function settle(succeeded, detail) {
         if (succeeded) {
-            problem = ""
+            changed()
             close()
             return
         }
-        // Stopped by the person: nothing went wrong.
+        // Stopped by the person: nothing went wrong. A passphrase is said to
+        // be wrong only when the engine said so (ErrorWording).
         problem = detail.reason === "cancelled" ? "" : (detail.error || "")
+        retry = detail.reason === "bad_passphrase"
     }
 
     interactive: !busy
@@ -66,7 +78,10 @@ BottomSheet {
         id: expert
         objectName: "addSubkeyExpert"
         text: qsTr("Expert mode")
-        onToggled: profileStore.expertMode = checked
+        onToggled: {
+            profileStore.expertMode = checked
+            sheet.changed()
+        }
     }
 
     // What it is for, side by side while they fit; the algorithm follows
@@ -101,7 +116,10 @@ BottomSheet {
                     required property var modelData
                     objectName: "subkeyPurpose_" + modelData.id
                     checked: sheet.purpose === modelData.id
-                    onClicked: sheet.purpose = modelData.id
+                    onClicked: {
+                        sheet.purpose = modelData.id
+                        sheet.changed()
+                    }
                     text: modelData.text
                     leftPadding: 0
                     Accessible.description: modelData.detail
@@ -136,7 +154,7 @@ BottomSheet {
     }
 
     // How long it lasts: its label beside its choice, or above it when the
-    // text is large.
+    // text is large. The choice is as wide as its longest option.
     GridLayout {
         Layout.fillWidth: true
         visible: !expert.checked
@@ -146,20 +164,25 @@ BottomSheet {
 
         Label {
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
             text: qsTr("Expires after")
             wrapMode: Text.Wrap
         }
 
-        ComboBox {
+        ChoiceBox {
             objectName: "subkeyValidity"
-            Layout.fillWidth: Theme.fontScale > 1.3
-            Layout.preferredWidth: Theme.fontScale > 1.3 ? -1 : 160
+            Layout.alignment: Qt.AlignVCenter
+                              | (Theme.fontScale > 1.3 ? Qt.AlignLeft : Qt.AlignRight)
+            Layout.maximumWidth: sheet.width - 2 * Theme.sheetPad
             model: sheet.validities
             textRole: "name"
             valueRole: "id"
             // Again once the choices are there: before, there is no index.
             currentIndex: count > 0 ? indexOfValue(sheet.validity) : -1
-            onActivated: sheet.validity = currentValue
+            onActivated: {
+                sheet.validity = currentValue
+                sheet.changed()
+            }
             Accessible.name: qsTr("Expires after")
         }
     }
@@ -169,9 +192,12 @@ BottomSheet {
         objectName: "subkeyPassphrase"
         text: qsTr("Protect it with a passphrase")
         checked: true
+        onToggled: sheet.changed()
     }
 
-    ProblemLabel {
+    // Why the last try failed, above the buttons and never scrolled away:
+    // the button under it tries again.
+    status: ProblemLabel {
         objectName: "addSubkeyProblem"
         text: sheet.problem
     }
@@ -188,10 +214,11 @@ BottomSheet {
         },
         ActionButton {
             objectName: "addSubkeyRun"
-            text: sheet.busy ? qsTr("Adding…") : qsTr("Add")
+            text: sheet.busy ? qsTr("Adding…")
+                  : sheet.retry ? qsTr("Try again") : qsTr("Add")
             enabled: !sheet.busy && (!expert.checked || chooser.complete)
             onClicked: {
-                sheet.problem = ""
+                sheet.changed()
                 if (expert.checked) sheet.customAccepted(chooser.choices, passphrase.checked)
                 else sheet.accepted(sheet.purpose, sheet.validity, passphrase.checked)
             }
