@@ -580,8 +580,10 @@ void KeyActionsController::revokeUid(const QString& fingerprint,
     if (!key->UIDs().isEmpty() && key->UIDs().front().GetUID() == uid) {
       return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
     }
+    // The reason as given: a user ID takes only 0 (none) or 4 (no longer
+    // valid), and the core refuses any other.
     const auto err = UserIdOperation::GetInstance(channel).RevokeUIDSync(
-        key, uid, std::clamp(reason, 0, 3), text);
+        key, uid, reason, text);
     return Settled(channel, err);
   });
 }

@@ -562,9 +562,15 @@ TEST_F(KeyActionsTest, UserIdsAreAddedMadePrimaryRevokedAndDeleted) {
   const auto home = uids().last().toMap().value("uid").toString();
   EXPECT_FALSE(Act([&](auto* a) { a->deleteUid(fpr, work); }).succeeded);
   EXPECT_FALSE(Act([&](auto* a) { a->revokeUid(fpr, work, 0, {}); }).succeeded);
+  // A user ID takes only "no reason" (0) or "no longer valid" (4), as the
+  // desktop offers them: a subkey's "no longer used" (3) is refused.
+  EXPECT_FALSE(Act([&](auto* a) {
+                 a->revokeUid(fpr, home, 3, "moved away");
+               }).succeeded);
   const auto revoked =
-      Act([&](auto* a) { a->revokeUid(fpr, home, 3, "moved away"); });
-  ASSERT_TRUE(revoked.succeeded);
+      Act([&](auto* a) { a->revokeUid(fpr, home, 4, "moved away"); });
+  ASSERT_TRUE(revoked.succeeded)
+      << revoked.detail.value("error").toString().toStdString();
   EXPECT_TRUE(uids().last().toMap().value("revoked").toBool());
   const auto deleted = Act([&](auto* a) { a->deleteUid(fpr, home); });
   ASSERT_TRUE(deleted.succeeded);

@@ -296,9 +296,17 @@ QtObject {
 
     // Why a subkey is revoked, as OpenPGP's reason codes say it (0 to 3).
     function revocationReasons() {
-        return [qsTr("No reason given"),
-                qsTr("It may have been compromised"),
-                qsTr("A newer subkey replaces it"),
-                qsTr("It is no longer used")]
+        return [{"code": 0, "text": qsTr("No reason given")},
+                {"code": 1, "text": qsTr("It may have been compromised")},
+                {"code": 2, "text": qsTr("A newer subkey replaces it")},
+                {"code": 3, "text": qsTr("It is no longer used")}]
+    }
+
+    // Why a user ID is revoked: OpenPGP gives a user ID only these two
+    // (RFC 9580 §5.2.3.31), as the desktop offers them; the core refuses
+    // any other.
+    function uidRevocationReasons() {
+        return [{"code": 0, "text": qsTr("No reason given")},
+                {"code": 4, "text": qsTr("The user ID is no longer valid")}]
     }
 }

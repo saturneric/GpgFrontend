@@ -158,8 +158,9 @@ class KeyActionsController : public QObject {
   Q_INVOKABLE void setPrimaryUid(const QString& fingerprint,
                                  const QString& uid);
 
-  /// Revoke the user ID @p uid for @p reason (0 none, 1 compromised, 2
-  /// superseded, 3 no longer valid). Action "revoke_uid".
+  /// Revoke the user ID @p uid for @p reason: 0 none or 4 no longer valid,
+  /// the only two OpenPGP gives a user ID (any other is refused). Action
+  /// "revoke_uid".
   Q_INVOKABLE void revokeUid(const QString& fingerprint, const QString& uid,
                              int reason, const QString& text);
 

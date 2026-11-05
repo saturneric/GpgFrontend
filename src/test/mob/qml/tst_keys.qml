@@ -93,6 +93,11 @@ Item {
     }
 
     Component {
+        id: revokeComponent
+        RevokeSubkeySheet {}
+    }
+
+    Component {
         id: faceComponent
         KeyChoiceFace {
             width: 360
@@ -304,6 +309,28 @@ Item {
             picker.close()
             tryVerify(() => !picker.visible)
             list.model = undefined
+        }
+
+        // A user ID is revoked for one of the two reasons OpenPGP gives it,
+        // as the desktop offers them: none, or no longer valid (4, the
+        // first choice); a subkey for one of its four.
+        function test_a_user_id_is_revoked_for_its_own_reasons() {
+            const sheet = createTemporaryObject(revokeComponent, keys)
+            let sent = -1
+            sheet.accepted.connect((item, reason, text) => sent = reason)
+            sheet.beginForUid({"uid": "Alice <alice@example.org>"})
+            tryVerify(() => sheet.opened)
+            verify(findByName(sheet.contentItem, "revokeReason_0"))
+            verify(findByName(sheet.contentItem, "revokeReason_4").checked)
+            compare(findByName(sheet.contentItem, "revokeReason_3"), null)
+            findByName(sheet.contentItem, "revokeRun").clicked()
+            compare(sent, 4)
+
+            sheet.begin({"keyId": "0123456789ABCDEF"})
+            tryVerify(() => sheet.opened)
+            verify(findByName(sheet.contentItem, "revokeReason_3").checked)
+            compare(findByName(sheet.contentItem, "revokeReason_4"), null)
+            sheet.close()
         }
 
         // A note given to a key's row after it was made shows (a picker

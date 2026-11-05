@@ -15,6 +15,7 @@ BottomSheet {
     // `forUid` is set.
     property var subkey: ({})
     property bool forUid: false
+    // OpenPGP's reason code, not a row: a user ID has its own two.
     property int reason: 3
 
     signal accepted(var subkey, int reason, string text)
@@ -30,7 +31,8 @@ BottomSheet {
     function beginForUid(uid) {
         sheet.subkey = uid
         forUid = true
-        reason = 3
+        // "No longer valid", as the desktop starts.
+        reason = 4
         why.clear()
         open()
     }
@@ -67,19 +69,20 @@ BottomSheet {
         spacing: 0
 
         Repeater {
-            model: Wording.revocationReasons()
+            model: sheet.forUid ? Wording.uidRevocationReasons()
+                                : Wording.revocationReasons()
 
             RadioDelegate {
-                required property string modelData
-                required property int index
+                required property var modelData
+                objectName: "revokeReason_" + modelData.code
                 Layout.fillWidth: true
                 leftPadding: Theme.sheetPad
                 rightPadding: Theme.sheetPad - 8
-                text: modelData
+                text: modelData.text
                 // What is chosen, always: a tap never ticks the row itself.
                 checkable: false
-                checked: sheet.reason === index
-                onClicked: sheet.reason = index
+                checked: sheet.reason === modelData.code
+                onClicked: sheet.reason = modelData.code
             }
         }
     }
