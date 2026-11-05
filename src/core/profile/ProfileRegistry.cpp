@@ -33,6 +33,7 @@
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
@@ -207,7 +208,7 @@ auto CreateProfile(const QString& profiles_root, const QString& id,
       NewProfileMarker(id, display_name, ProfileKind::kPERSIST, self_contained);
 
   if (!WriteProfileMarker(ProfileMarkerPathFor(root), marker)) {
-    QDir(root).removeRecursively();
+    RemoveTreeWithoutFollowingLinks(root);
     result.status = ProfileCreateStatus::kIO_FAILED;
     result.detail = ProfileMarkerPathFor(root);
     return result;
@@ -241,7 +242,8 @@ auto DeleteProfile(const QString& profiles_root, const QString& id) -> bool {
   if (!IsValidProfileId(id)) return false;
 
   const auto root = profiles_root + "/" + id;
-  if (QFileInfo::exists(root) && !QDir(root).removeRecursively()) {
+  if (QFileInfo::exists(root) &&
+      !RemoveTreeWithoutFollowingLinks(root).isEmpty()) {
     LOG_W() << "cannot remove profile directory:" << root;
     return false;
   }
