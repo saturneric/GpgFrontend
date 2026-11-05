@@ -798,12 +798,15 @@ Page {
                 }
             }
 
-            // Adding files, at the foot on the right, the same with files or
-            // without; the PGP operations beside it, apart from adding.
+            // The PGP operations in the corner, the page's main action, once
+            // there are files; adding files beside it on the left, or in the
+            // corner itself while there are none.
             Fab {
                 id: addButton
 
                 objectName: "addFilesButton"
+                offsetX: operationButton.visible
+                         ? operationButton.width + Theme.gapSmall : 0
                 text: qsTr("Add files")
                 icon.source: Theme.icon("add")
                 enabled: !page.prompting
@@ -814,7 +817,6 @@ Page {
                 id: operationButton
 
                 objectName: "operationButton"
-                offsetX: addButton.width + Theme.gapSmall
                 visible: files.count > 0
                 text: qsTr("PGP operations")
                 icon.source: Theme.icon("lock")

@@ -35,6 +35,8 @@ Item {
             // Adding is the + at the foot, the same with files or without;
             // the empty list explains, it has no button of its own.
             verify(findByName(files, "addFilesButton").enabled)
+            // Alone, adding files takes the corner.
+            compare(findByName(files, "addFilesButton").offsetX, 0)
             compare(findByName(files, "addFilesBar"), null)
             compare(findByName(files, "selectionBar"), null)
             // No operations without files.
@@ -48,6 +50,10 @@ Item {
             compare(files.workspace.count, 1)
             verify(!findByName(files, "emptyFiles").visible)
             verify(findByName(files, "operationButton").visible)
+            // The PGP button in the corner, adding files to its left.
+            const add = findByName(files, "addFilesButton")
+            const pgp = findByName(files, "operationButton")
+            verify(add.x + add.width <= pgp.x)
 
             // Nothing chosen: the operations say so, none runs on all files.
             compare(files.operationMenu.unavailable,
