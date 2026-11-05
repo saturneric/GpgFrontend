@@ -111,15 +111,21 @@ Page {
         case "decrypt_verify":
             // Decrypt alone, as the desktop's; Decrypt & Verify checks the
             // signatures inside too.
-            files.decrypt(ids, op === "decrypt_verify")
+            started = files.decrypt(ids, op === "decrypt_verify")
             break
         case "sign":
-            files.sign(ids, WorkSelection.preferredSigner)
+            started = files.sign(ids, WorkSelection.preferredSigner)
             break
         }
+        // Nothing queued (each is waiting or running already): said, and
+        // the choice kept, never an earlier operation shown as this one.
+        if (!started) {
+            notice.show(qsTr("It is already waiting or running."))
+            return false
+        }
         files.clearSelection()
-        if (started && sheets) sheets.trackLatest("files")
-        return started
+        if (sheets) sheets.trackLatest("files")
+        return true
     }
 
     OperationFlow {
@@ -153,7 +159,12 @@ Page {
     function sign(ids) { request("sign", ids) }
 
     function verify(signatureId, originalId) {
-        files.verify(signatureId, originalId)
+        if (!files.verify(signatureId, originalId)) {
+            notice.show(qsTr("It is already waiting or running."))
+            return
+        }
+        // Started: the choosing is over, as for every operation.
+        files.clearSelection()
         if (sheets) sheets.trackLatest("files")
     }
 

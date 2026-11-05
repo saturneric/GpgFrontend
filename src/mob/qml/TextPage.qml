@@ -168,6 +168,7 @@ Page {
             started = crypto.verify(text)
         }
         if (started) track(target.revision)
+        else notice.show(qsTr("An operation is still running."))
         return started
     }
 

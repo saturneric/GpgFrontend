@@ -226,8 +226,11 @@ auto TextCryptoController::submit(OperationParams params, const QString& text,
     running_id_ = id;
     work();
   };
-  // It may run, and even end, before Submit() returns.
+  // It may run, and even end, before Submit() returns: finish() then waits
+  // for the event loop, so the page has its id before it hears the end.
+  submitting_ = true;
   submitted_id_ = queue->Submit(std::move(request));
+  submitting_ = false;
   if (submitted_id_ == 0 && busy_) {
     busy_ = false;
     emit SignalBusyChanged();
@@ -311,6 +314,15 @@ void TextCryptoController::release(int id) {
 
 void TextCryptoController::finish(const GpgOperaOutcome& outcome,
                                   bool makes_text, bool sensitive) {
+  if (submitting_) {
+    QMetaObject::invokeMethod(
+        this,
+        [this, outcome, makes_text, sensitive]() {
+          finish(outcome, makes_text, sensitive);
+        },
+        Qt::QueuedConnection);
+    return;
+  }
   WipeString(output_);
   output_ = outcome.output && !outcome.output->Empty()
                 ? QString::fromUtf8(outcome.output->ConvertToQByteArray())

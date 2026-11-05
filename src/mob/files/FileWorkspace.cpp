@@ -385,34 +385,34 @@ auto FileWorkspace::encrypt(const QVariantList& ids,
     job.recipients = recipients;
     job.signer = signer;
   }
-  enqueue(ids, job);
-  return true;
+  return enqueue(ids, job) != 0;
 }
 
-void FileWorkspace::decrypt(const QVariantList& ids, bool verify) {
+auto FileWorkspace::decrypt(const QVariantList& ids, bool verify) -> bool {
   Job job;
   job.op = Op::kDecrypt;
   job.verify = verify;
-  enqueue(ids, job);
+  return enqueue(ids, job) != 0;
 }
 
-void FileWorkspace::sign(const QVariantList& ids, const QString& signer) {
+auto FileWorkspace::sign(const QVariantList& ids, const QString& signer)
+    -> bool {
   Job job;
   job.op = Op::kSign;
   job.signer = signer;
-  enqueue(ids, job);
+  return enqueue(ids, job) != 0;
 }
 
-void FileWorkspace::verify(int signature_id, int data_id) {
-  if (find(signature_id) == nullptr) return;
+auto FileWorkspace::verify(int signature_id, int data_id) -> bool {
+  if (find(signature_id) == nullptr) return false;
   // Detached: two files, each in the list.
   if (data_id >= 0 && (signature_id == data_id || find(data_id) == nullptr)) {
-    return;
+    return false;
   }
   Job job;
   job.op = Op::kVerify;
   job.other = data_id;
-  enqueue({signature_id}, job);
+  return enqueue({signature_id}, job) != 0;
 }
 
 void FileWorkspace::cancelQueued() {
@@ -430,6 +430,11 @@ void FileWorkspace::cancelQueued() {
 }
 
 auto FileWorkspace::retry(int op_id) -> QString {
+  int batch = 0;
+  return retry_into(op_id, batch);
+}
+
+auto FileWorkspace::retry_into(int op_id, int& batch) -> QString {
   const auto* record = queue_ != nullptr ? queue_->Log()->Find(op_id) : nullptr;
   if (record == nullptr || record->surface != OperationSurface::kFILES ||
       record->targets.isEmpty()) {
@@ -457,20 +462,24 @@ auto FileWorkspace::retry(int op_id) -> QString {
   if (entry->state == QStringLiteral("queued") || is_running(id)) {
     return QStringLiteral("busy");
   }
-  enqueue({id}, job);
+  const auto into = enqueue({id}, job, batch);
+  if (into == 0) return QStringLiteral("busy");
+  batch = into;
   return {};
 }
 
 auto FileWorkspace::retryFailed(int batch_id) -> int {
   if (queue_ == nullptr) return 0;
   int queued = 0;
+  // One batch again, shown as one, as the first time.
+  int batch = 0;
   for (const auto op_id : queue_->Log()->IdsOfBatch(batch_id)) {
     const auto* record = queue_->Log()->Find(op_id);
     if (record == nullptr || (record->phase != OperationPhase::kFAILED &&
                               record->phase != OperationPhase::kCANCELLED)) {
       continue;
     }
-    if (retry(op_id).isEmpty()) ++queued;
+    if (retry_into(op_id, batch).isEmpty()) ++queued;
   }
   return queued;
 }
@@ -903,11 +912,12 @@ void FileWorkspace::busy_changed(bool was) {
   if (Busy() != was) emit SignalBusyChanged();
 }
 
-void FileWorkspace::enqueue(const QVariantList& ids, Job job) {
+auto FileWorkspace::enqueue(const QVariantList& ids, Job job, int batch)
+    -> int {
   auto* queue = queue_.data();
-  if (queue == nullptr) return;
+  if (queue == nullptr) return 0;
   const auto was = Busy();
-  int batch = 0;
+  int into = 0;
   for (const auto& value : ids) {
     auto* entry = find(value.toInt());
     if (entry == nullptr || !entry->available ||
@@ -949,6 +959,7 @@ void FileWorkspace::enqueue(const QVariantList& ids, Job job) {
       continue;
     }
     if (batch == 0) batch = op_id;
+    into = batch;
     if (const auto* record = queue->Log()->Find(op_id);
         record != nullptr && record->phase == OperationPhase::kQUEUED) {
       job.op_id = op_id;
@@ -956,6 +967,7 @@ void FileWorkspace::enqueue(const QVariantList& ids, Job job) {
     }
   }
   busy_changed(was);
+  return into;
 }
 
 void FileWorkspace::start(Job next) {

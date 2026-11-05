@@ -694,6 +694,52 @@ TEST_F(FileWorkspaceTest, RetryingTheFailedOfABatchRunsOnlyThose) {
   EXPECT_EQ(RecordOfFile(a).value("batchId").toInt(), batch);
 }
 
+// Run again together, the failed files are one batch again: the status sheet
+// follows that batch, not only the last of them.
+TEST_F(FileWorkspaceTest, TheFailedRunAgainAsOneBatch) {
+  const auto a = Add("first", "a.txt");
+  const auto b = Add("second", "b.txt");
+  // Gone from the device before they are read, unnoticed: both fail.
+  ASSERT_TRUE(QFile::remove(dir_.filePath("a.txt")));
+  ASSERT_TRUE(QFile::remove(dir_.filePath("b.txt")));
+  Do([&](auto* f) { f->encrypt({a, b}, {fred_}); });
+  Finish();
+  ASSERT_EQ(State(a), "failed");
+  ASSERT_EQ(State(b), "failed");
+  const auto failed_batch = RecordOfFile(a).value("batchId").toInt();
+  ASSERT_EQ(RecordOfFile(b).value("batchId").toInt(), failed_batch);
+  WriteFile(dir_.filePath("a.txt"), "first");
+  WriteFile(dir_.filePath("b.txt"), "second");
+
+  int queued = 0;
+  Do([&](auto* f) { queued = f->retryFailed(failed_batch); });
+  EXPECT_EQ(queued, 2);
+  Finish();
+  const auto again_a = RecordOfFile(a).value("batchId").toInt();
+  const auto again_b = RecordOfFile(b).value("batchId").toInt();
+  EXPECT_NE(again_a, failed_batch);
+  EXPECT_EQ(again_a, again_b);
+}
+
+// Nothing to queue (each file waits or runs already): said so, never taken
+// for an operation that started.
+TEST_F(FileWorkspaceTest, AStartThatQueuesNothingSaysSo) {
+  const auto a = Add("first", "a.txt");
+  ASSERT_TRUE(QFile::remove(dir_.filePath("a.txt")));
+  bool started = true;
+  Do([&](auto* f) {
+    f->refreshAvailability();
+    started = f->decrypt({a});
+  });
+  EXPECT_FALSE(started);
+  Do([&](auto* f) { started = f->sign({a}, fred_); });
+  EXPECT_FALSE(started);
+  Do([&](auto* f) { started = f->verify(a); });
+  EXPECT_FALSE(started);
+  Do([&](auto* f) { started = f->encrypt({a}, {fred_}); });
+  EXPECT_FALSE(started);
+}
+
 TEST_F(FileWorkspaceTest, ARetryWhoseFileIsGoneSaysSo) {
   const auto a = Add("first", "a.txt");
   Do([&](auto* f) { f->sign({a}, fred_); });

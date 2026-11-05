@@ -148,6 +148,38 @@ TEST_F(TextCryptoTest, AChosenKeyThatIsGoneIsNotQuietlyLeftOut) {
   EXPECT_LT(Finish().result.value("status").toInt(), 0);
 }
 
+// Refused before it reaches the engine, an operation ends inside the
+// queue's Submit(): its end is still told after encrypt() returned, when the
+// page knows which operation is its own and waits for it. Told at once, it
+// was told to nobody, and the page showed nothing at all.
+TEST_F(TextCryptoTest, AnOperationRefusedAtOnceIsToldAfterItStarted) {
+  const auto gone = QStringLiteral("0123456789ABCDEF0123456789ABCDEF01234567");
+  bool returned = false;
+  int told = 0;
+  bool told_after = false;
+  int started_id = 0;
+  int told_id = 0;
+  QMetaObject::Connection connection;
+  RunOnMainThread([&]() {
+    connection = QObject::connect(
+        crypto_, &TextCryptoController::SignalFinished, [&](bool) {
+          ++told;
+          told_after = returned;
+          told_id = crypto_->FinishedId();
+        });
+    EXPECT_TRUE(crypto_->encrypt(kMessage, {gone}));
+    returned = true;
+    started_id = crypto_->OperationId();
+  });
+  const auto refused = Finish();
+  RunOnMainThread([&]() { QObject::disconnect(connection); });
+  EXPECT_LT(refused.result.value("status").toInt(), 0);
+  EXPECT_EQ(told, 1);
+  EXPECT_TRUE(told_after);
+  EXPECT_NE(started_id, 0);
+  EXPECT_EQ(told_id, started_id);
+}
+
 TEST_F(TextCryptoTest, EncryptToAKeyAndDecryptIt) {
   Start([](auto* c) { c->encrypt(kMessage, {bob_}); });
   const auto encrypted = Finish();

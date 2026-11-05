@@ -167,6 +167,9 @@ class TextCryptoController : public QObject {
   /// The operation submitted last, and the one that runs (0: none).
   int submitted_id_ = 0;
   int running_id_ = 0;
+  /// Inside the queue's Submit(): an operation that ends there (a chosen
+  /// key gone) is announced after it returns, once the page knows its id.
+  bool submitting_ = false;
 
   /// Submit @p work, the operation on @p text, to the queue; false when one
   /// of this controller's is still going or the queue refuses it.

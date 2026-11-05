@@ -199,16 +199,19 @@ class FileWorkspace : public QAbstractListModel {
 
   /// Decrypt each of @p ids; with @p verify, checking any signature inside
   /// too (Decrypt & Verify), else decrypting alone, as the desktop's Decrypt.
-  Q_INVOKABLE void decrypt(const QVariantList& ids, bool verify = true);
+  /// Whether any was queued: none is that can no longer be opened, or is
+  /// waiting or running already.
+  Q_INVOKABLE bool decrypt(const QVariantList& ids, bool verify = true);
 
-  /// Make a detached signature of each of @p ids with @p signer.
-  Q_INVOKABLE void sign(const QVariantList& ids, const QString& signer);
+  /// Make a detached signature of each of @p ids with @p signer; whether
+  /// any was queued, as decrypt().
+  Q_INVOKABLE bool sign(const QVariantList& ids, const QString& signer);
 
   /// Verify the detached signature @p signature_id over @p data_id; the
   /// report is the signature's. With @p data_id -1, @p signature_id holds
   /// the data and its signature in one (an inline or cleartext signed
-  /// file), verified alone.
-  Q_INVOKABLE void verify(int signature_id, int data_id = -1);
+  /// file), verified alone. Whether it was queued, as decrypt().
+  Q_INVOKABLE bool verify(int signature_id, int data_id = -1);
 
   /// Drop what waits in the queue; the operation running goes on.
   Q_INVOKABLE void cancelQueued();
@@ -226,7 +229,7 @@ class FileWorkspace : public QAbstractListModel {
   Q_INVOKABLE QString retry(int op_id);
 
   /// retry() every operation of batch @p batch_id that failed or was
-  /// cancelled; how many were queued.
+  /// cancelled, all in one new batch; how many were queued.
   Q_INVOKABLE int retryFailed(int batch_id);
 
   /// Point the added file @p id at @p url instead (picked again, after it
@@ -384,7 +387,11 @@ class FileWorkspace : public QAbstractListModel {
   void changed(int id, const QList<int>& roles = {});
   void insert(std::unique_ptr<Entry> entry);
   [[nodiscard]] auto before(const Entry& a, const Entry& b) const -> bool;
-  void enqueue(const QVariantList& ids, Job job);
+  /// Queue @p job on each of @p ids, in the batch @p batch (0: a new one);
+  /// the batch they went into, 0 when none was queued.
+  auto enqueue(const QVariantList& ids, Job job, int batch = 0) -> int;
+  /// retry() into the batch @p batch, which it sets when it was 0.
+  auto retry_into(int op_id, int& batch) -> QString;
   void start(Job next);
   /// The queue ended @p op_id without running it (it was closed).
   void dropped(int op_id);
