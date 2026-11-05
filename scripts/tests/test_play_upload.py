@@ -250,20 +250,14 @@ class WorkflowTest(unittest.TestCase):
         match = re.search(r"(?m)^    if: >-\n((?:      .*\n)+)", self.job)
         return " ".join(match.group(1).split())
 
-    def test_main_only_after_the_published_nightly(self):
-        self.assertRegex(self.job, r"(?m)^    needs: \[release, sign-android\]$")
-        self.assertIn("(github.ref == 'refs/heads/main' && "
-                      "needs.release.result == 'success')", self.condition())
+    def test_right_after_signing_without_the_approval_gate(self):
+        self.assertRegex(self.job, r"(?m)^    needs: \[sign-android\]$")
 
-    def test_tags_after_signing(self):
-        self.assertIn("(startsWith(github.ref, 'refs/tags/v') && "
-                      "needs.sign-android.result == 'success')",
-                      self.condition())
-
-    def test_pushes_only_never_cancelled(self):
-        self.assertTrue(self.condition().startswith(
-            "!cancelled() && github.event_name == 'push' &&"))
-        self.assertNotIn("always()", self.condition())
+    def test_pushes_to_main_and_version_tags_only(self):
+        self.assertEqual(self.condition(),
+                         "github.event_name == 'push' && "
+                         "(github.ref == 'refs/heads/main' || "
+                         "startsWith(github.ref, 'refs/tags/v'))")
 
     def test_every_ref_goes_to_the_testers_only(self):
         self.assertIn("--track internal", self.job)
