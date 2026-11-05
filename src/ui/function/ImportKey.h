@@ -71,4 +71,19 @@ void GF_UI_EXPORT ImportKeyFromFile(QWidget* parent, int channel);
  */
 void GF_UI_EXPORT ImportKeyFromClipboard(QWidget* parent, int channel);
 
+/**
+ * @brief Import what was dropped on a key list or the key manager.
+ *
+ * The one drop path: asks first when the user wants to be asked, reads files
+ * off the GUI thread under the same size cap as ImportKeyFromFile(), and
+ * imports everything at once. Files it could not take are named.
+ *
+ * @param parent dialog parent; may be gone by the time the import reports
+ * @param channel key database / engine channel to import into
+ * @param mime what was dropped
+ * @return false when there was nothing to import or the user declined
+ */
+auto GF_UI_EXPORT ImportDroppedKeys(QWidget* parent, int channel,
+                                    const QMimeData* mime) -> bool;
+
 }  // namespace GpgFrontend::UI

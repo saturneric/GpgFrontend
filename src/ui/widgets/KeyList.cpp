@@ -44,6 +44,7 @@
 #include "ui/dialog/KeyCategoryEditDialog.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
+#include "ui/function/ImportKey.h"
 #include "ui/function/KeyDatabaseDisplayNames.h"
 
 //
@@ -1683,68 +1684,12 @@ void KeyList::SetChecked(const KeyIdArgsList& key_ids,
 // through here.
 
 void KeyList::dropEvent(QDropEvent* event) {
-  if (!event->mimeData()->hasUrls() && !event->mimeData()->hasText()) {
+  if (!ImportDroppedKeys(this, current_gpg_context_channel_,
+                         event->mimeData())) {
     event->ignore();
     return;
   }
-
-  QDialog dialog(this);
-  dialog.setWindowTitle(tr("Import Keys"));
-
-  auto* label = new QLabel(tr("You've dropped something on the key list.\n"
-                              "GpgFrontend will now try to import key(s)."),
-                           &dialog);
-
-  auto* check_box =
-      new QCheckBox(tr("Ask before importing keys next time."), &dialog);
-
-  auto confirm_import_keys =
-      SettingItems::kConfirmImportKeys.Read(GetSettings());
-  check_box->setChecked(confirm_import_keys);
-
-  auto* button_box = new QDialogButtonBox(
-      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-
-  connect(button_box, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-  connect(button_box, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-
-  auto* vbox = new QVBoxLayout(&dialog);
-  vbox->addWidget(label);
-  vbox->addWidget(check_box);
-  vbox->addWidget(button_box);
-
-  if (confirm_import_keys) {
-    if (dialog.exec() != QDialog::Accepted) {
-      event->ignore();
-      return;
-    }
-
-    auto settings = GetSettings();
-    SettingItems::kConfirmImportKeys.Write(settings, check_box->isChecked());
-  }
-
-  QByteArray all_import_data;
-
-  if (event->mimeData()->hasUrls()) {
-    for (const QUrl& url : event->mimeData()->urls()) {
-      if (!url.isLocalFile()) continue;
-
-      QFile file(url.toLocalFile());
-      if (!file.open(QIODevice::ReadOnly)) {
-        LOG_W() << "couldn't open file:" << url.toString();
-        continue;
-      }
-
-      all_import_data += file.readAll();
-      all_import_data += '\n';
-    }
-  } else {
-    all_import_data = event->mimeData()->text().toUtf8();
-  }
-
-  if (!all_import_data.isEmpty()) {
-    import_keys(all_import_data);
-  }
+  event->acceptProposedAction();
 }
 
 void KeyList::dragEnterEvent(QDragEnterEvent* event) {
@@ -1756,26 +1701,6 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
   }
 
   event->ignore();
-}
-
-void KeyList::import_keys(const QByteArray& in_buffer) {
-  LOG_D() << "importing keys to channel:" << current_gpg_context_channel_;
-  auto result =
-      KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
-          .ImportKey(GFBuffer(in_buffer));
-
-  auto connection = QSharedPointer<QMetaObject::Connection>::create();
-  *connection = connect(UISignalStation::GetInstance(),
-                        &UISignalStation::SignalKeyDatabaseRefreshDone, this,
-                        [this, result, connection]() {
-                          auto* dialog = new KeyImportDetailDialog(
-                              current_gpg_context_channel_, result, this);
-                          dialog->show();
-
-                          QObject::disconnect(*connection);
-                        });
-
-  emit SignalRefreshDatabase();
 }
 
 auto KeyList::GetSelectedKey() -> GpgAbstractKeyPtr {

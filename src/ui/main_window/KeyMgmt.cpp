@@ -1214,22 +1214,8 @@ void KeyMgmt::dragEnterEvent(QDragEnterEvent* event) {
 }
 
 void KeyMgmt::dropEvent(QDropEvent* event) {
-  const auto* mime = event->mimeData();
-  const auto channel = key_list_->GetCurrentGpgContextChannel();
-
-  if (mime->hasUrls()) {
-    for (const auto& url : mime->urls()) {
-      if (!url.isLocalFile()) continue;
-      auto [succ, buffer] = ReadFileGFBuffer(url.toLocalFile());
-      if (!succ) continue;
-      ImportKeys(this, channel, buffer);
-    }
-    event->acceptProposedAction();
-    return;
-  }
-
-  if (mime->hasText()) {
-    ImportKeys(this, channel, GFBuffer(mime->text().toUtf8()));
+  if (ImportDroppedKeys(this, key_list_->GetCurrentGpgContextChannel(),
+                        event->mimeData())) {
     event->acceptProposedAction();
   }
 }
