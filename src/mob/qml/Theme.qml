@@ -31,8 +31,9 @@ QtObject {
     // the system's font scale. Qt on Android gives every application the same
     // default font whatever the system's font size, so the scale is read from
     // the system (AppLifecycle.fontScale) and capped where a phone's width
-    // runs out.
-    readonly property real fontScale: Math.max(1, Math.min(2,
+    // runs out. Not read-only only for the tests, which lay pages out at
+    // other scales than the host's (always 1); nothing else sets it.
+    property real fontScale: Math.max(1, Math.min(2,
         AppLifecycle.fontScale > 0 ? AppLifecycle.fontScale : 1))
     readonly property int bodySize: Math.round(16 * fontScale)
     readonly property int secondarySize: Math.round(14 * fontScale)
