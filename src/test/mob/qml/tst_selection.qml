@@ -74,6 +74,25 @@ Item {
         }
     }
 
+    // Rows of a list: plain, chosen, and one that only says something.
+    Column {
+        y: 300
+        width: 400
+
+        ListRow { id: plainRow; width: parent.width; text: "Plain" }
+        ListRow { id: chosenRow; width: parent.width; text: "Chosen"; selected: true }
+        ListRow { id: inertRow; width: parent.width; text: "Inert"; inert: true }
+    }
+
+    // An icon in a bar, at the style's own size.
+    BarButton {
+        id: barButton
+
+        y: 400
+        text: "Search"
+        icon.source: Theme.icon("search")
+    }
+
     Menu {
         id: menu
 
@@ -141,6 +160,27 @@ Item {
         // An entry hidden in a menu keeps its room: the menu is as tall as
         // before. Why a menu that leaves entries out (OperationMenu) gives
         // them no height as well.
+        // A row keeps the style's own press and focus feedback (its ripple);
+        // a chosen row adds the brand's tint over it; a row that only says
+        // something shows neither.
+        function test_list_rows_keep_the_styles_feedback() {
+            const ripple = row => row.background.children.find(c => c.pressed !== undefined)
+            const tint = row => row.background.children.find(
+                c => c.objectName === "listRowSelected")
+            verify(ripple(plainRow), "the style's ripple")
+            verify(plainRow.background.visible)
+            verify(!tint(plainRow).visible)
+            verify(ripple(chosenRow))
+            verify(tint(chosenRow).visible)
+            verify(!inertRow.background.visible)
+        }
+
+        // A touch target the platform asks for, from the style alone.
+        function test_a_bar_button_is_a_touch_target() {
+            compare(barButton.width, 48)
+            compare(barButton.height, 48)
+        }
+
         function test_a_hidden_menu_entry_keeps_its_room() {
             menu.open()
             tryVerify(() => menu.opened)

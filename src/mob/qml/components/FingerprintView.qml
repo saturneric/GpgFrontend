@@ -94,16 +94,17 @@ ColumnLayout {
             icon.source: Theme.icon("content_copy")
             onClicked: {
                 output.copy(view.fingerprint.replace(/\s+/g, ""), false)
-                copied.visible = true
+                copiedTip.open()
+            }
+
+            // Said for a moment, then gone by itself.
+            ToolTip {
+                id: copiedTip
+
+                objectName: "fingerprintCopied"
+                text: qsTr("Copied.")
+                timeout: 1500
             }
         }
-    }
-
-    Label {
-        id: copied
-        visible: false
-        text: qsTr("Copied.")
-        color: Material.secondaryTextColor
-        font.pixelSize: Theme.labelSize
     }
 }

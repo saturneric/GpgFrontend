@@ -59,7 +59,7 @@ BottomSheet {
 
     function show(id) {
         shownId = id
-        showReport.checked = false
+        showReport.currentIndex = 0
         reportScroll.contentY = 0
         open()
     }
@@ -458,98 +458,28 @@ BottomSheet {
     }
 
     // Status or Details, as the desktop's Status Panel has them: the
-    // summary in cards, or the engine's own words. A Material segmented
-    // button: one pill, the chosen half tinted and ticked.
-    Rectangle {
+    // summary in cards, or the engine's own words. The style's tabs, on
+    // the sheet's own surface.
+    TabBar {
         id: showReport
 
         // Details, the engine's report, is shown.
-        property bool checked: false
+        readonly property bool checked: currentIndex === 1
 
         objectName: "statusViews"
         Layout.fillWidth: true
-        implicitHeight: 40
         visible: sheet.expanded && sheet.reportText.length > 0
-        radius: height / 2
-        color: "transparent"
-        border.width: 1
-        border.color: Material.dividerColor
+        Material.background: "transparent"
+        onCurrentIndexChanged: reportScroll.contentY = 0
 
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 1
-            spacing: 0
+        TabButton {
+            objectName: "statusViewStatus"
+            text: qsTr("Status")
+        }
 
-            Repeater {
-                model: [{"name": "statusViewStatus", "text": qsTr("Status"),
-                         "report": false},
-                        {"name": "statusViewDetails", "text": qsTr("Details"),
-                         "report": true}]
-
-                AbstractButton {
-                    id: segment
-
-                    required property var modelData
-                    required property int index
-                    readonly property bool chosen: showReport.checked === modelData.report
-
-                    objectName: modelData.name
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    checkable: true
-                    checked: chosen
-                    text: modelData.text
-                    Accessible.role: Accessible.RadioButton
-                    Accessible.name: text
-                    Accessible.checked: chosen
-                    onClicked: {
-                        showReport.checked = modelData.report
-                        reportScroll.contentY = 0
-                    }
-
-                    // Rounded on the pill's outer side only: clip does not
-                    // follow a parent's radius.
-                    background: Rectangle {
-                        topLeftRadius: segment.index === 0 ? height / 2 : 0
-                        bottomLeftRadius: topLeftRadius
-                        topRightRadius: segment.index === 1 ? height / 2 : 0
-                        bottomRightRadius: topRightRadius
-                        color: segment.chosen
-                               ? Theme.alpha(Material.accentColor, 0.18)
-                               : (segment.pressed ? Theme.alpha(Material.foreground, 0.08)
-                                                  : "transparent")
-                        // The halves' shared edge.
-                        Rectangle {
-                            visible: segment.index === 1
-                            width: 1
-                            height: parent.height
-                            color: Material.dividerColor
-                        }
-                    }
-
-                    contentItem: Item {
-                        implicitHeight: 38
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            Icon {
-                                anchors.verticalCenter: parent.verticalCenter
-                                visible: segment.chosen
-                                symbol: "check_circle"
-                                sourceSize: Qt.size(18, 18)
-                                color: Material.foreground
-                            }
-                            Label {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: segment.text
-                                font.pixelSize: Theme.labelSize
-                                font.weight: Font.Medium
-                            }
-                        }
-                    }
-                }
-            }
+        TabButton {
+            objectName: "statusViewDetails"
+            text: qsTr("Details")
         }
     }
 
@@ -571,10 +501,14 @@ BottomSheet {
     // own text, in the outcome's colour, monospaced, in a bordered box of the
     // page's base colour. A long one scrolls inside the box.
     Rectangle {
+        // As tall as the report, up to a little under half the window: a
+        // long one scrolls in the box, the sheet stays a sheet.
+        readonly property real wanted: Math.min(report.implicitHeight + 24,
+                                                sheet.windowHeight * 0.45)
+
         objectName: "statusReportBox"
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(report.implicitHeight + 24,
-                                         (Window.height || 800) * 0.45)
+        Layout.preferredHeight: wanted
         visible: showReport.visible && showReport.checked
         radius: Theme.radiusSmall
         color: sheet.Material.backgroundColor
@@ -612,29 +546,26 @@ BottomSheet {
         // The report is the one thing here worth copying: to paste where
         // someone asks what the engine said. It names keys and outcomes,
         // never the content, so it is copied as plain, not sensitive.
-        ToolButton {
+        BarButton {
             id: copyReport
-
-            property bool copied: false
 
             objectName: "statusCopyReport"
             anchors.top: parent.top
             anchors.right: parent.right
-            icon.source: Theme.icon(copied ? "check_circle" : "content_copy")
-            icon.color: copied ? Theme.positive : Material.foreground
-            Accessible.name: copied ? qsTr("Copied") : qsTr("Copy the report")
-            ToolTip.visible: hovered
-            ToolTip.text: qsTr("Copy the report")
+            text: qsTr("Copy the report")
+            icon.source: Theme.icon("content_copy")
             onClicked: {
                 reportOutput.copy(report.text, false)
-                copied = true
-                copiedTimer.restart()
+                copiedTip.open()
             }
 
-            Timer {
-                id: copiedTimer
-                interval: 1500
-                onTriggered: copyReport.copied = false
+            // Said for a moment, then gone by itself.
+            ToolTip {
+                id: copiedTip
+
+                objectName: "statusReportCopied"
+                text: qsTr("Copied.")
+                timeout: 1500
             }
         }
     }

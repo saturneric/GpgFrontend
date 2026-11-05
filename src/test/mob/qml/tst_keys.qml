@@ -12,6 +12,16 @@ Item {
         id: picker
     }
 
+    // Keys in place of the core's (the tests have none).
+    ListModel {
+        id: pickerKeys
+
+        ListElement { name: "Alice"; email: "alice@example.org"; keyId: "AAAA"
+                      secretState: ""; capabilities: "ESC" }
+        ListElement { name: "Bob"; email: "bob@example.org"; keyId: "BBBB"
+                      secretState: ""; capabilities: "ESC" }
+    }
+
     KeysPage {
         id: keys
         anchors.fill: parent
@@ -79,6 +89,17 @@ Item {
         id: factsComponent
         KeyFacts {
             width: 360
+        }
+    }
+
+    Component {
+        id: faceComponent
+        KeyChoiceFace {
+            width: 360
+            name: "Alice"
+            email: "alice@example.org"
+            keyId: "AAAA"
+            isKey: true
         }
     }
 
@@ -194,6 +215,10 @@ Item {
             const can = findByName(row, "keyCapabilities")
             verify(can.visible)
             compare(can.Accessible.name, "Encrypt, Sign")
+            // The letters in the chip the key's own page shows them in.
+            compare(can.text, "ES")
+            compare(can.font.family, Theme.mono)
+            verify(can.tone !== undefined, "a Chip")
             compare(Wording.capabilityWords("CESA"),
                     "Certify, Encrypt, Sign, Authenticate")
             // Once the key ID has a line of its own, the letters go beside
@@ -224,6 +249,58 @@ Item {
             picker.begin("Add keys", [])
             compare(picker.pickedCount, 0)
             picker.close()
+        }
+
+        // The rows, as the person taps them: one tap one change, the mark
+        // following what the sheet holds; keys already in ticked and not to
+        // be taken out; the mark never over the key's words; rows a touch
+        // target tall.
+        function test_a_picker_row_ticks_what_the_sheet_holds() {
+            picker.begin("Add keys", ["AAAA"])
+            tryVerify(() => picker.opened)
+            const list = findByName(picker.contentItem, "keyPickerList")
+            list.model = pickerKeys
+            waitForRendering(list)
+            const fixed = findByName(list, "keyPick_AAAA")
+            const free = findByName(list, "keyPick_BBBB")
+            verify(fixed && free)
+            // The sheet grows to its new rows before they can be tapped.
+            tryVerify(() => free.mapToItem(null, 0, free.height).y
+                             <= list.mapToItem(null, 0, list.height).y + 0.5, 2000,
+                      "the row is in sight")
+            verify(fixed.checked && !fixed.enabled)
+            verify(!free.checked)
+            mouseClick(free)
+            compare(picker.pickedCount, 1)
+            verify(free.checked)
+            mouseClick(free)
+            compare(picker.pickedCount, 0)
+            verify(!free.checked)
+            mouseClick(fixed)
+            compare(picker.pickedCount, 0)
+            verify(free.height >= 48)
+            // The mark at the end, in the room the face leaves it.
+            const mark = free.indicator.x
+            const room = free.contentItem.x + free.contentItem.width
+                         - free.indicator.width - free.spacing
+            verify(mark >= room - 0.5, "mark at " + mark + ", the face's words to " + room)
+            verify(mark + free.indicator.width <= free.width - free.rightPadding + 0.5)
+            compare(free.Accessible.name, "Bob")
+            picker.close()
+            tryVerify(() => !picker.visible)
+            list.model = undefined
+        }
+
+        // A note given to a key's row after it was made shows (a picker
+        // learns which keys are already in after its rows are there).
+        function test_a_note_given_later_shows() {
+            const face = createTemporaryObject(faceComponent, keys)
+            const note = findByName(face, "keyNote")
+            verify(!note.visible)
+            face.note = "Already in"
+            verify(note.visible, "the note shows")
+            face.note = ""
+            verify(!note.visible)
         }
 
         // Before the keys are read, the page says it is reading them, never
@@ -403,6 +480,20 @@ Item {
                            "copy button out at " + w + " (" + view.perRow + " per row)")
                 }
             }
+        }
+
+        // Copying says so for a moment, and the saying goes by itself (it
+        // stayed for good before).
+        function test_copying_a_fingerprint_says_so_for_a_moment() {
+            const view = createTemporaryObject(fingerprintComponent, keys,
+                                               {"width": 380, "fingerprint": "AB12".repeat(10)})
+            const copy = findByName(view, "copyFingerprint")
+            const said = copy.resources.find(o => o.objectName === "fingerprintCopied")
+            verify(said, "the copied tip")
+            verify(!said.visible)
+            copy.clicked()
+            tryVerify(() => said.visible)
+            tryVerify(() => !said.visible, 3000)
         }
 
         function test_the_key_s_state_and_delete_apart() {

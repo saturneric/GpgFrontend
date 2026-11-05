@@ -51,26 +51,16 @@ RowLayout {
 
     spacing: 12
 
-    // What it can do: letters on a tint, so they never read as part of the
-    // mark beside them.
-    component CapabilityPill: Rectangle {
+    // What it can do: GnuPG's letters in a chip, so they never read as part
+    // of the mark beside them; the same chip as on the key's own page.
+    component CapabilityPill: Chip {
         property string letters
 
-        implicitWidth: capabilityLabel.implicitWidth + 8
-        implicitHeight: capabilityLabel.implicitHeight + 2
-        radius: 4
-        color: Theme.alpha(Material.foreground, 0.08)
+        text: letters
+        font.family: Theme.mono
+        tone: Material.secondaryTextColor
         Accessible.role: Accessible.StaticText
         Accessible.name: Wording.capabilityWords(letters)
-
-        Label {
-            id: capabilityLabel
-            anchors.centerIn: parent
-            text: parent.letters
-            font.family: Theme.mono
-            font.pixelSize: Theme.labelSize
-            color: Material.secondaryTextColor
-        }
     }
 
     KeyAvatar {
@@ -184,10 +174,18 @@ RowLayout {
         }
 
         Flow {
+            // What it shows, said here rather than read from its children:
+            // their visibility follows the Flow's own, so a row made with no
+            // note never showed one given to it later ("Already in").
+            readonly property bool showsStatus: face.status.length > 0
+                                                && face.status !== "ok"
+                                                && face.statusText.length > 0
+                                                && face.note !== face.statusText
+
             Layout.fillWidth: true
             Layout.topMargin: 2
             spacing: 8
-            visible: chip.visible || noteLabel.visible
+            visible: showsStatus || face.note.length > 0
 
             Chip {
                 id: chip

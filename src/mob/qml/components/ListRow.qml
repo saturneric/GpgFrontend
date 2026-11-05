@@ -58,12 +58,18 @@ ItemDelegate {
         text: row.valueText
     }
 
-    background: Rectangle {
-        color: row.selected ? Theme.indicator
-               : row.inert ? "transparent"
-               : row.pressed ? Theme.alpha(row.Material.foreground, 0.08)
-               : row.visualFocus ? Theme.alpha(row.Material.foreground, 0.12)
-                                 : "transparent"
+    // The style's own background: its ripple when pressed, its focus. None
+    // for a row that only says something.
+    background.visible: !inert
+
+    // A chosen row in the brand's tint, laid over the style's background
+    // (translucent), so its ripple and focus still show through.
+    Rectangle {
+        objectName: "listRowSelected"
+        parent: row.background
+        anchors.fill: parent
+        visible: row.selected
+        color: Theme.indicator
     }
 
     contentItem: RowLayout {

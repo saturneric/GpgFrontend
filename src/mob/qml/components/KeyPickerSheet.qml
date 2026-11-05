@@ -134,7 +134,9 @@ BottomSheet {
         model: filtered
         ScrollIndicator.vertical: ScrollIndicator {}
 
-        delegate: ItemDelegate {
+        // The style's checking row, its mark at the end. What is chosen is
+        // the sheet's (picked): the row shows it, a tap asks the sheet.
+        delegate: CheckDelegate {
             id: choice
 
             required property string name
@@ -144,17 +146,25 @@ BottomSheet {
             required property string capabilities
 
             readonly property bool fixed: sheet.alreadySet[keyId] === true
-            readonly property bool chosen: fixed || sheet.picked[keyId] === true
 
             objectName: "keyPick_" + keyId
             width: ListView.view.width
             leftPadding: Theme.sheetPad
-            rightPadding: 8
             enabled: !fixed
-            onClicked: sheet.toggle(keyId)
-            Accessible.role: Accessible.CheckBox
-            Accessible.checked: chosen
-            Accessible.name: Wording.keyTitle(name, email, keyId)
+            // A real check box, as TalkBack needs one to say "checked": a
+            // tap ticks it, and the sheet takes the tick. The binding below
+            // stays (Qt 6.10, tst_selection), so the row never shows more
+            // or less than the sheet holds.
+            checked: fixed || sheet.picked[keyId] === true
+            onToggled: sheet.toggle(keyId)
+            // Read out, and what puts the style's mark at the end (without
+            // words it centres it); the face below shows them.
+            text: Wording.keyTitle(name, email, keyId)
+            Accessible.name: text
+            // What the face shows under the name, which is not read out on
+            // its own.
+            Accessible.description: [email, keyId, fixed ? qsTr("Already in") : ""]
+                                    .filter(t => t.length > 0).join(", ")
 
             contentItem: KeyChoiceFace {
                 idBelow: true
@@ -165,14 +175,9 @@ BottomSheet {
                 capabilities: choice.capabilities
                 note: choice.fixed ? qsTr("Already in") : ""
 
-                // The mark of the choice; a tap on it is a tap on the row.
-                CheckBox {
-                    checkable: false
-                    checked: choice.chosen
-                    enabled: !choice.fixed
-                    focusPolicy: Qt.NoFocus
-                    onClicked: sheet.toggle(choice.keyId)
-                    Accessible.ignored: true
+                // The mark's room, as the style's own label keeps it.
+                Item {
+                    Layout.preferredWidth: choice.indicator.width + choice.spacing
                 }
             }
         }

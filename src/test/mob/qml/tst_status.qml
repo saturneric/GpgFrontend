@@ -38,10 +38,31 @@ Item {
             const copy = findByName(box, "statusCopyReport")
             verify(copy !== null)
             compare(copy.Accessible.name, "Copy the report")
+            // Said for a moment, then gone by itself.
+            const said = copy.resources.find(o => o.objectName === "statusReportCopied")
+            verify(said, "the copied tip")
+            // Up, as it is whenever its button can be reached.
+            sheet.open()
+            tryVerify(() => sheet.opened)
             copy.clicked()
-            verify(copy.copied)
-            compare(copy.Accessible.name, "Copied")
-            tryCompare(copy, "copied", false, 3000)
+            tryVerify(() => said.visible)
+            compare(said.text, "Copied.")
+            tryVerify(() => !said.visible, 3000)
+            sheet.close()
+            tryVerify(() => !sheet.visible)
+        }
+
+        // The report's box: as tall as a short report, and no more than a
+        // little under half the window for a long one, which scrolls in it.
+        function test_the_report_box_is_as_tall_as_its_report() {
+            const box = findByName(sheet.body, "statusReportBox")
+            const report = findByName(box, "statusReport")
+            report.text = "One line"
+            fuzzyCompare(box.wanted, report.implicitHeight + 24, 0.5)
+            report.text = "A line\n".repeat(200)
+            fuzzyCompare(box.wanted, sheet.windowHeight * 0.45, 0.5)
+            verify(sheet.windowHeight > 0)
+            report.text = ""
         }
 
         // Status or Details, as on the desktop: the cards or the report,
@@ -53,13 +74,14 @@ Item {
             verify(status !== null && details !== null)
             compare(status.text, "Status")
             compare(details.text, "Details")
-            verify(status.chosen)
-            verify(!details.chosen)
-            details.clicked()
-            verify(details.chosen)
-            verify(!status.chosen)
-            status.clicked()
-            verify(status.chosen)
+            verify(status.checked)
+            verify(!details.checked)
+            details.click()
+            verify(details.checked)
+            verify(!status.checked)
+            status.click()
+            verify(status.checked)
+            verify(!details.checked)
         }
     }
 }
