@@ -40,26 +40,49 @@
 
 namespace GpgFrontend {
 
-void SetSignersGnuPGImpl(OpenPGPContext& ctx_,
-                         const GpgAbstractKeyPtrList& signers, bool ascii) {
+auto SetSignersGnuPGImpl(OpenPGPContext& ctx_,
+                         const GpgAbstractKeyPtrList& signers, bool ascii)
+    -> GpgError {
   auto& g_ctx = GpgCtx(ctx_);
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
 
   gpgme_signers_clear(ctx);
 
+  // gpgme signs with gpg's default key when the signer list is empty, so a
+  // signer quietly left out here becomes a signature by someone else that is
+  // still reported as a success. Every requested key has to make it in.
   auto keys = ConvertKey2GpgKeyList(ctx_.GetChannel(), signers);
-  for (const auto& key : keys) {
-    LOG_D() << "signer's key fpr: " << key->Fingerprint();
-    if (key->IsHasSignCap()) {
-      auto error = gpgme_signers_add(ctx, static_cast<gpgme_key_t>(*key));
-      CheckGpgError(error);
+
+  QSet<QString> converted;
+  for (const auto& key : keys) converted.insert(key->ID());
+  for (const auto& signer : signers) {
+    if (signer == nullptr) return GPG_ERR_NO_SECKEY;
+    // a disabled key is dropped by the conversion above
+    if (signer->KeyType() == GpgAbstractKeyType::kGPG_KEY &&
+        !converted.contains(signer->ID())) {
+      LOG_W() << "signer cannot be used:" << signer->ID();
+      gpgme_signers_clear(ctx);
+      return GPG_ERR_NO_SECKEY;
     }
   }
 
-  auto count = gpgme_signers_count(g_ctx.DefaultContext());
-  if (static_cast<unsigned int>(signers.size()) != count) {
-    FLOG_D("not all signers added");
+  for (const auto& key : keys) {
+    LOG_D() << "signer's key fpr: " << key->Fingerprint();
+    if (!key->IsHasSignCap()) {
+      LOG_W() << "signer has no usable signing key:" << key->Fingerprint();
+      gpgme_signers_clear(ctx);
+      return GPG_ERR_NO_SECKEY;
+    }
+    auto error =
+        CheckGpgError(gpgme_signers_add(ctx, static_cast<gpgme_key_t>(*key)));
+    if (error != GPG_ERR_NO_ERROR) {
+      gpgme_signers_clear(ctx);
+      return error;
+    }
   }
+
+  if (gpgme_signers_count(ctx) == 0) return GPG_ERR_NO_SECKEY;
+  return GPG_ERR_NO_ERROR;
 }
 
 auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
@@ -122,7 +145,11 @@ auto SignGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& signers,
   auto& g_ctx = GpgCtx(ctx_);
 
   // Set Singers of this opera
-  SetSignersGnuPGImpl(ctx_, signers, ascii);
+  err = SetSignersGnuPGImpl(ctx_, signers, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgSignResult(GFSignResult{}), GFBuffer()});
+    return err;
+  }
 
   GpgData data_in(in_buffer);
   GpgData data_out;
@@ -181,7 +208,12 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
   }
   gpg_recipients.push_back(nullptr);
 
-  SetSignersGnuPGImpl(ctx_, signers, ascii);
+  err = SetSignersGnuPGImpl(ctx_, signers, ascii);
+  if (err != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgEncryptResult(GFEncryptResult{}),
+                       GpgSignResult(GFSignResult{}), GFBuffer()});
+    return err;
+  }
 
   GpgData data_in(in_buffer);
   GpgData data_out;
