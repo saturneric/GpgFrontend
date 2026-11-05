@@ -47,6 +47,10 @@
 #include "lifecycle/AppLifecycle.h"
 #include "plat/common/PlatformFolder.h"
 #include "plat/common/PlatformShare.h"
+#include "shell/result_analyse/GpgOpResultInfo.h"
+#include "shell/result_analyse/GpgOperaOutcome.h"
+#include "shell/rules/FileOperationRules.h"
+#include "shell/rules/FileOutputRules.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -1031,7 +1035,8 @@ void FileWorkspace::run(const Job& job, const QString& in,
 
 void FileWorkspace::finish(const GpgOperaOutcome& outcome) {
   end(PresentResult(outcome.info),
-      running_.has_value() && running_->op != Op::kVerify);
+      running_.has_value() && running_->op != Op::kVerify,
+      outcome.info.OutputReleasable());
 }
 
 void FileWorkspace::fail(const QString& reason) {
@@ -1059,10 +1064,11 @@ void FileWorkspace::fail(const QString& reason) {
   auto info = MakeAbortedOpInfo(
       scope, GFError::Application(GFErrorCode::kGENERAL), QString());
   info.description = reason;
-  end(PresentResult(info), false);
+  end(PresentResult(info), false, false);
 }
 
-void FileWorkspace::end(const QVariantMap& result, bool produces) {
+void FileWorkspace::end(const QVariantMap& result, bool produces,
+                        bool releasable) {
   // The copies of the inputs are not needed once the operation has ended.
   job_input_.Reset();
   job_other_.Reset();
@@ -1073,11 +1079,17 @@ void FileWorkspace::end(const QVariantMap& result, bool produces) {
   const auto cancelled = result.value(QStringLiteral("cancelled")).toBool();
   const auto status = result.value(QStringLiteral("status"), -1).toInt();
   auto succeeded = !cancelled && status >= 0;
-  // Encrypting or signing always writes something; decrypting an empty file
-  // rightly writes nothing, and is not a failure for it.
+  // Kept by how making it went, as on the desktop: a file whose signature
+  // fails still decrypted, and is offered with the failure said.
   const QFileInfo output(job_output_.Empty() ? QString() : job_output_.Path());
-  const auto produced = succeeded && produces && output.exists() &&
-                        (output.size() > 0 || job.op == Op::kDecrypt);
+  const auto produced =
+      produces && Shell::KeepsFileOutput({
+                      .cancelled = cancelled,
+                      .releasable = releasable,
+                      .exists = output.exists(),
+                      .size = output.exists() ? output.size() : 0,
+                      .may_be_empty = job.op == Op::kDecrypt,
+                  });
   if (produces && !produced) succeeded = false;
 
   auto* source = find(job.id);

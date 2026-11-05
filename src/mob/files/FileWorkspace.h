@@ -390,7 +390,10 @@ class FileWorkspace : public QAbstractListModel {
   void run(const Job& job, const QString& in, const QString& other);
   void finish(const GpgOperaOutcome& outcome);
   void fail(const QString& reason);
-  void end(const QVariantMap& result, bool produces);
+  /// End the running job with @p result. @p produces: the operation writes
+  /// an output; @p releasable: making it worked
+  /// (GpgOpResultInfo::OutputReleasable()).
+  void end(const QVariantMap& result, bool produces, bool releasable);
   [[nodiscard]] auto is_running(int id) const -> bool;
   /// @p name, or with " (2)", " (3)" ... before its last extension when the
   /// list already has a file of that name.
