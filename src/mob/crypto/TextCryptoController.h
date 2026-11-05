@@ -30,6 +30,7 @@
 
 #include <QtQml/qqmlregistration.h>
 
+#include <QHash>
 #include <QObject>
 #include <QVariantMap>
 #include <functional>
@@ -72,6 +73,14 @@ class TextCryptoController : public QObject {
   /// The OperationQueue record of the last operation submitted; 0 before
   /// the first.
   Q_PROPERTY(int operationId READ OperationId NOTIFY SignalBusyChanged)
+  /// The record of the operation that ended last; 0 before the first.
+  Q_PROPERTY(int finishedId READ FinishedId NOTIFY SignalOutputChanged)
+  /// Whether the operation that ended last made text to put in place of
+  /// the text it read: an encryption, a signature or a decryption that
+  /// worked -- also when the text it made is empty (an empty message
+  /// decrypts to nothing). Never a verification, a failure or a
+  /// cancellation.
+  Q_PROPERTY(bool replacesText READ ReplacesText NOTIFY SignalOutputChanged)
 
  public:
   explicit TextCryptoController(QObject* parent = nullptr);
@@ -82,6 +91,8 @@ class TextCryptoController : public QObject {
   [[nodiscard]] auto Result() const -> QVariantMap;
   [[nodiscard]] auto Sensitive() const -> bool;
   [[nodiscard]] auto OperationId() const -> int;
+  [[nodiscard]] auto FinishedId() const -> int;
+  [[nodiscard]] auto ReplacesText() const -> bool;
 
   /**
    * @brief Encrypt @p text to @p recipients (fingerprints), signed by
@@ -105,8 +116,24 @@ class TextCryptoController : public QObject {
   /// Verify a clear-signed @p text.
   Q_INVOKABLE bool verify(const QString& text);
 
-  /// Forget the last output and result, and the text it was made from.
+  /// Forget the last output and result, the text it was made from, and
+  /// every output kept with hold(). While an operation runs, what it makes
+  /// is still delivered when it ends.
   Q_INVOKABLE void clear();
+
+  /**
+   * @brief Keep the output of operation @p id, the one that ended last,
+   * until take() or release(): the page could not use it at once (the text
+   * changed meanwhile) and offers it. False when @p id is not the last
+   * one, or it made no text.
+   */
+  Q_INVOKABLE bool hold(int id);
+  /// Whether the output of operation @p id is kept (hold()).
+  [[nodiscard]] Q_INVOKABLE bool isHeld(int id) const;
+  /// The output kept for operation @p id, no longer kept; empty when none.
+  Q_INVOKABLE QString take(int id);
+  /// Drop (and wipe) the output kept for operation @p id.
+  Q_INVOKABLE void release(int id);
 
   /// Whether the text of operation @p id is still held here: its output
   /// (output) and the text it read. Only the last operation's is, until
@@ -132,6 +159,10 @@ class TextCryptoController : public QObject {
   QString output_;
   QString input_;  ///< what the last operation read
   QVariantMap result_;
+  bool replaces_text_ = false;
+  int finished_id_ = 0;
+  /// Outputs offered later (hold()), by operation.
+  QHash<int, QString> held_;
   std::unique_ptr<SecureWindowScope> secure_;
   /// The operation submitted last, and the one that runs (0: none).
   int submitted_id_ = 0;
@@ -145,7 +176,10 @@ class TextCryptoController : public QObject {
               std::function<void()> work) -> bool;
   /// The queue ended @p id without running it (it was closed).
   void dropped(int id);
-  void finish(const GpgOperaOutcome& outcome, bool sensitive = false);
+  /// @p makes_text: the operation makes text to put in place of its
+  /// input when it works (all but a verification).
+  void finish(const GpgOperaOutcome& outcome, bool makes_text,
+              bool sensitive = false);
 };
 
 }  // namespace GpgFrontend::Mobile

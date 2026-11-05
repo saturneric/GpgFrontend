@@ -31,6 +31,7 @@ add_executable(gf_mob_tests
   main.cpp
   AppLifecycleTest.cpp
   ContentKindTest.cpp
+  EditorHistoryTest.cpp
   TranslationsTest.cpp
   FileStoreTest.cpp
   FileWorkspaceTest.cpp

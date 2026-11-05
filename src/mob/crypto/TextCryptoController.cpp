@@ -73,6 +73,12 @@ auto TextCryptoController::Result() const -> QVariantMap { return result_; }
 
 auto TextCryptoController::OperationId() const -> int { return submitted_id_; }
 
+auto TextCryptoController::FinishedId() const -> int { return finished_id_; }
+
+auto TextCryptoController::ReplacesText() const -> bool {
+  return replaces_text_;
+}
+
 auto TextCryptoController::Sensitive() const -> bool {
   return secure_ != nullptr;
 }
@@ -106,14 +112,15 @@ void TextCryptoController::run_encrypt(const QString& text,
     opera.EncryptSymmetric(
         GFBuffer(text), true, [self, channel](GFError err, DataObjectPtr data) {
           if (self == nullptr) return;
-          self->finish(AnalyseEncrypt<true>(channel, err, data, {}, false));
+          self->finish(AnalyseEncrypt<true>(channel, err, data, {}, false),
+                       true);
         });
     return;
   }
 
   const auto selected = SelectEncryptKeys(channel, recipients, signer);
   if (const auto* missing = std::get_if<GpgOperaOutcome>(&selected)) {
-    finish(*missing);
+    finish(*missing, true);
     return;
   }
   const auto keys = std::get<EncryptKeys>(selected);
@@ -121,7 +128,7 @@ void TextCryptoController::run_encrypt(const QString& text,
   auto done = [self, channel, keys, signs](GFError err, DataObjectPtr data) {
     if (self == nullptr) return;
     self->finish(
-        AnalyseEncrypt<true>(channel, err, data, keys.recipients, signs));
+        AnalyseEncrypt<true>(channel, err, data, keys.recipients, signs), true);
   };
   if (signs) {
     opera.EncryptSign(keys.recipients, keys.signers, GFBuffer(text), true,
@@ -142,14 +149,15 @@ auto TextCryptoController::decrypt(const QString& text, bool verify) -> bool {
       MessageCryptoOperation::GetInstance(channel).Decrypt(
           GFBuffer(text), [self, channel](GFError err, DataObjectPtr data) {
             if (self == nullptr) return;
-            self->finish(AnalyseDecrypt<true>(channel, err, data), true);
+            self->finish(AnalyseDecrypt<true>(channel, err, data), true, true);
           });
       return;
     }
     MessageCryptoOperation::GetInstance(channel).DecryptVerify(
         GFBuffer(text), [self, channel](GFError err, DataObjectPtr data) {
           if (self == nullptr) return;
-          self->finish(AnalyseDecryptVerify<true>(channel, err, data), true);
+          self->finish(AnalyseDecryptVerify<true>(channel, err, data), true,
+                       true);
         });
   });
 }
@@ -164,7 +172,8 @@ auto TextCryptoController::sign(const QString& text, const QString& signer)
     const auto signers = SelectKeys(channel, {signer});
     if (!signers.missing.isEmpty()) {
       finish(MissingKeysOutcome(GpgOperation::kSIGN, channel, signers.missing,
-                                true));
+                                true),
+             true);
       return;
     }
     QPointer<TextCryptoController> self(this);
@@ -173,7 +182,8 @@ auto TextCryptoController::sign(const QString& text, const QString& signer)
         [self, channel](GFError err, DataObjectPtr data) {
           if (self == nullptr) return;
           self->finish(AnalyseOperaOutcome<GpgSignResult, GpgSignResultAnalyse>(
-              channel, err, data));
+                           channel, err, data),
+                       true);
         });
   });
 }
@@ -190,7 +200,8 @@ auto TextCryptoController::verify(const QString& text) -> bool {
           if (self == nullptr) return;
           self->finish(
               AnalyseOperaOutcome<GpgVerifyResult, GpgVerifyResultAnalyse>(
-                  channel, err, data));
+                  channel, err, data),
+              false);
         });
   });
 }
@@ -233,6 +244,8 @@ void TextCryptoController::dropped(int id) {
   WipeString(output_);
   output_.clear();
   result_ = {{QStringLiteral("cancelled"), true}};
+  replaces_text_ = false;
+  finished_id_ = id;
   busy_ = false;
   emit SignalOutputChanged();
   emit SignalBusyChanged();
@@ -263,23 +276,53 @@ auto TextCryptoController::retry(int id) -> bool {
 }
 
 void TextCryptoController::clear() {
+  for (auto& kept : held_) WipeString(kept);
+  held_.clear();
+  // The text of an operation still running is its own until it ends.
   if (busy_) return;
   WipeString(output_);
   output_.clear();
   WipeString(input_);
   input_.clear();
   result_.clear();
+  replaces_text_ = false;
   secure_.reset();
   emit SignalOutputChanged();
 }
 
+auto TextCryptoController::hold(int id) -> bool {
+  if (id == 0 || id != finished_id_ || !replaces_text_) return false;
+  held_.insert(id, output_);
+  return true;
+}
+
+auto TextCryptoController::isHeld(int id) const -> bool {
+  return held_.contains(id);
+}
+
+auto TextCryptoController::take(int id) -> QString { return held_.take(id); }
+
+void TextCryptoController::release(int id) {
+  auto it = held_.find(id);
+  if (it == held_.end()) return;
+  WipeString(*it);
+  held_.erase(it);
+}
+
 void TextCryptoController::finish(const GpgOperaOutcome& outcome,
-                                  bool sensitive) {
+                                  bool makes_text, bool sensitive) {
   WipeString(output_);
   output_ = outcome.output && !outcome.output->Empty()
                 ? QString::fromUtf8(outcome.output->ConvertToQByteArray())
                 : QString();
   result_ = PresentResult(outcome.info);
+  // Said by the operation and how it ended, never guessed from the text:
+  // the core releases an output only when making it worked
+  // (GpgOpResultInfo::OutputReleasable()) -- a message whose signature
+  // fails still decrypts -- and an empty message decrypts to nothing, which
+  // is its text.
+  replaces_text_ = makes_text && outcome.output.has_value() &&
+                   !result_.value(QStringLiteral("cancelled")).toBool();
   // Once plaintext has been on screen it stays protected until clear(): the
   // page writes each result into its one editor, and a later sign, verify or
   // encrypt there -- or Undo -- leaves the plaintext in view or in reach.
@@ -289,6 +332,7 @@ void TextCryptoController::finish(const GpgOperaOutcome& outcome,
   busy_ = false;
   const auto id = running_id_;
   running_id_ = 0;
+  finished_id_ = id;
   auto* queue = id != 0 ? OperationQueue::Instance() : nullptr;
   const auto phase =
       EndedPhase(result_.value(QStringLiteral("cancelled")).toBool(),

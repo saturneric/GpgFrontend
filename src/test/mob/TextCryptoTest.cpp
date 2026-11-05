@@ -44,11 +44,20 @@ namespace {
 
 constexpr auto kAlicePassphrase = "alice correct horse";
 constexpr auto kMessage = "Meet at the usual place.\nBring the key.";
+constexpr auto kEmptyPassphrase = "empty message";
+constexpr auto kEmptyMessage =
+    "-----BEGIN PGP MESSAGE-----\n\n"
+    "jA0ECQMK3eIjRMa4iolg0jUBKuEMDoPt/DYIZHp6kjDY7qGNLdPPXdVJO+rR61S/\n"
+    "CgLfFhNMgaW3uBpxnFz5kampRYtqZA==\n"
+    "=Ce8i\n"
+    "-----END PGP MESSAGE-----\n";
 
 struct Finished {
   QString output;
   QVariantMap result;
   bool sensitive = false;
+  bool replaces = false;
+  int id = 0;
 };
 
 }  // namespace
@@ -94,6 +103,8 @@ class TextCryptoTest : public ::testing::Test {
       done.output = crypto_->Output();
       done.result = crypto_->Result();
       done.sensitive = crypto_->Sensitive();
+      done.replaces = crypto_->ReplacesText();
+      done.id = crypto_->FinishedId();
     });
     return done;
   }
@@ -252,6 +263,8 @@ TEST_F(TextCryptoTest, AWrongPassphraseFailsAndIsNotKept) {
   EXPECT_LT(failed.result.value("status").toInt(), 0);
   EXPECT_FALSE(failed.result.value("cancelled").toBool());
   EXPECT_TRUE(failed.output.isEmpty());
+  // A failure makes no text to put in place of the message.
+  EXPECT_FALSE(failed.replaces);
 
   Start([&](auto* c) { c->decrypt(encrypted.output); });
   ASSERT_FALSE(WaitForRequest().isEmpty());
@@ -273,6 +286,72 @@ TEST_F(TextCryptoTest, DecliningThePassphraseCancels) {
   EXPECT_TRUE(declined.result.value("cancelled").toBool());
   EXPECT_TRUE(declined.output.isEmpty());
   EXPECT_FALSE(declined.sensitive);
+  EXPECT_FALSE(declined.replaces);
+
+  // Cancelled, then asked again: it runs, and this time it decrypts.
+  Start([&](auto* c) { c->decrypt(encrypted.output); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer(kAlicePassphrase);
+  const auto again = Finish();
+  EXPECT_EQ(again.output, QString(kMessage));
+  EXPECT_TRUE(again.replaces);
+}
+
+// Whether the text is replaced is said by how the operation ended, not
+// guessed from the text it made.
+TEST_F(TextCryptoTest, WhatReplacesTheTextIsSaidNotGuessed) {
+  // An encryption and a signature make text to put in place of the text.
+  Start([](auto* c) { c->encrypt(kMessage, {bob_}, bob_); });
+  const auto encrypted = Finish();
+  ASSERT_EQ(encrypted.result.value("status").toInt(), 1);
+  EXPECT_TRUE(encrypted.replaces);
+
+  Start([](auto* c) { c->sign(kMessage, bob_); });
+  const auto signed_text = Finish();
+  EXPECT_TRUE(signed_text.replaces);
+
+  // A verification only says whether the signature holds.
+  Start([&](auto* c) { c->verify(signed_text.output); });
+  const auto verified = Finish();
+  EXPECT_EQ(verified.result.value("status").toInt(), 1);
+  EXPECT_FALSE(verified.replaces);
+
+  // An empty message decrypts to nothing: that is its text, and it is put
+  // in all the same. (The engine refuses to encrypt nothing; GnuPG made
+  // this one: `gpg --symmetric --armor` of empty input.)
+  Start([](auto* c) { c->decrypt(kEmptyMessage); });
+  ASSERT_FALSE(WaitForRequest().isEmpty());
+  Answer(kEmptyPassphrase);
+  const auto nothing = Finish();
+  EXPECT_GE(nothing.result.value("status").toInt(), 0)
+      << nothing.result.value("description").toString().toStdString();
+  EXPECT_TRUE(nothing.output.isEmpty());
+  EXPECT_TRUE(nothing.replaces);
+}
+
+// A result kept back while the person decides is that operation's, and
+// goes once taken, released or cleared.
+TEST_F(TextCryptoTest, AKeptResultIsThatOperationsOnly) {
+  Start([](auto* c) { c->encrypt(kMessage, {bob_}); });
+  const auto first = Finish();
+  ASSERT_TRUE(first.replaces);
+  RunOnMainThread([&]() {
+    EXPECT_TRUE(crypto_->hold(first.id));
+    EXPECT_FALSE(crypto_->hold(first.id + 1000));
+  });
+
+  Start([](auto* c) { c->sign(kMessage, bob_); });
+  const auto second = Finish();
+  ASSERT_NE(second.id, first.id);
+  RunOnMainThread([&]() {
+    // The first one's, not the latest one's.
+    EXPECT_EQ(crypto_->take(first.id), first.output);
+    EXPECT_FALSE(crypto_->isHeld(first.id));
+    EXPECT_TRUE(crypto_->take(first.id).isEmpty());
+    EXPECT_TRUE(crypto_->hold(second.id));
+    crypto_->clear();
+    EXPECT_FALSE(crypto_->isHeld(second.id));
+  });
 }
 
 TEST_F(TextCryptoTest, GoingToTheBackgroundCancelsAPromptAndForgets) {
