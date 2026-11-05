@@ -2817,9 +2817,10 @@ jobs:
   # `id-token: write`.
   #
   # It turns the final, verified artifacts of every leg into the release
-  # candidate: the deliverables, `build-records.json`, and `SHA256SUMS.txt`,
-  # the canonical list of what the release is. It signs that one manifest and
-  # nothing else; the signature covers every file the manifest hashes.
+  # candidate: the deliverables and `SHA256SUMS.txt`, the canonical list of
+  # what the release is. Nothing about the builds themselves is published.
+  # It signs that one manifest and nothing else; the signature covers every
+  # file the manifest hashes.
   #
   # Keyless Sigstore: Fulcio issues a short-lived certificate bound to this
   # job's OIDC identity, the signature and certificate go into the public Rekor
@@ -2946,8 +2947,8 @@ jobs:
       # The whole publication gate, in order: the Sigstore identity (exactly
       # this workflow file at this ref, at this commit, from GitHub's issuer),
       # the manifest, exact set equality between the manifest and the
-      # directory, every hash, and the build records. A valid signature made
-      # by some other workflow is not evidence about this release.
+      # directory, and every hash. A valid signature made by some other
+      # workflow is not evidence about this release.
       - name: Verify Release Candidate
         id: verify
         run: |
