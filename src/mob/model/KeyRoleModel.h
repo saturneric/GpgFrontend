@@ -76,6 +76,12 @@ class KeyRoleModel : public QIdentityProxyModel {
     /// The direct members of a key group (their key or group ids); empty
     /// for a key.
     kMembersRole,
+    /// What of the secret key is here, as GnuPG's listing marks it:
+    /// "none" (pub: public only), "full" (sec: the primary's secret),
+    /// "partial" (sec#: secret subkeys only, the primary offline), "card"
+    /// (sec>: the primary on a smart card); "" for a key group. Read from
+    /// the key material, never from whose key it is.
+    kSecretStateRole,
   };
   Q_ENUM(Role)
 
@@ -87,6 +93,9 @@ class KeyRoleModel : public QIdentityProxyModel {
    */
   [[nodiscard]] static auto KeyAt(const QModelIndex& index)
       -> const GpgAbstractKey*;
+
+  /// kSecretStateRole for @p key.
+  [[nodiscard]] static auto SecretState(const GpgAbstractKey* key) -> QString;
 
   [[nodiscard]] auto data(const QModelIndex& index, int role) const
       -> QVariant override;

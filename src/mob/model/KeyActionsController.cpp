@@ -29,6 +29,7 @@
 #include "model/KeyActionsController.h"
 
 #include <QPointer>
+#include <QRegularExpression>
 #include <algorithm>
 
 #include "core/function/KeyGenProfile.h"
@@ -49,7 +50,9 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "model/ErrorWording.h"
 #include "model/KeyGenProfilesController.h"
+#include "model/KeyRoleModel.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -68,11 +71,7 @@ auto Offered() -> QList<ResolvedKeyGenProfile> {
 }
 
 auto Failure(const GFError& err) -> QVariantMap {
-  // An engine that reports success but hands back nothing has still failed:
-  // describing its success code would read as "Success".
-  const auto failed =
-      err.Ok() ? GFError::Application(GFErrorCode::kGENERAL) : err;
-  return {{QStringLiteral("error"), DescribeGFError(failed).second}};
+  return DescribeActionError(err);
 }
 
 auto FindKey(int channel, const QString& fingerprint) -> GpgAbstractKeyPtr {
@@ -114,9 +113,30 @@ void Reread(int channel) {
   GpgKeyRepository::GetInstance(channel).FlushKeyCache();
 }
 
-auto Done(bool ok) -> QVariantMap {
-  return ok ? QVariantMap{}
-            : Failure(GFError::Application(GFErrorCode::kGENERAL));
+/// What a shared public key's file is called: who it is and its key ID,
+/// "Alice_Example_0123456789ABCDEF_public.asc", with nothing a file system
+/// or a mail program would trip over.
+auto PublicKeyFileName(const QString& name, const QString& email,
+                       const QString& key_id) -> QString {
+  auto who = !name.trimmed().isEmpty() ? name : email;
+  who.replace(QRegularExpression(QStringLiteral("[^\\p{L}\\p{N}._-]+")),
+              QStringLiteral("_"));
+  who = who.left(48);
+  while (who.startsWith(QLatin1Char('_')) || who.startsWith(QLatin1Char('.'))) {
+    who.remove(0, 1);
+  }
+  while (who.endsWith(QLatin1Char('_'))) who.chop(1);
+  const auto id = key_id.toUpper();
+  return who.isEmpty() ? QStringLiteral("%1_public.asc").arg(id)
+                       : QStringLiteral("%1_%2_public.asc").arg(who, id);
+}
+
+/// How a change to a key on @p channel ended: read again when it was made,
+/// else what the engine said went wrong.
+auto Settled(int channel, const GFError& err) -> QVariantMap {
+  if (!err.Ok()) return Failure(err);
+  Reread(channel);
+  return {};
 }
 
 }  // namespace
@@ -268,7 +288,9 @@ void KeyActionsController::exportPublic(const QString& fingerprint) {
                               .ExportKey(key, false, true, false);
     if (!err.Ok()) return Failure(err);
     return {{QStringLiteral("armored"),
-             QString::fromUtf8(armored.ConvertToQByteArray())}};
+             QString::fromUtf8(armored.ConvertToQByteArray())},
+            {QStringLiteral("fileName"),
+             PublicKeyFileName(key->Name(), key->Email(), key->ID())}};
   });
 }
 
@@ -384,6 +406,8 @@ auto KeyActionsController::describe(const QString& fingerprint) const
       {QStringLiteral("lastUpdate"), DateOrNone(key->LastUpdateTime())},
       {QStringLiteral("hasSecret"), key->IsPrivateKey()},
       {QStringLiteral("primarySecret"), key->IsHasMasterKey()},
+      // GnuPG's mark, as the key lists show it (sec, sec#, sec>, pub).
+      {QStringLiteral("secretState"), KeyRoleModel::SecretState(key.get())},
       {QStringLiteral("cardKey"), key->IsHasCardKey()},
       {QStringLiteral("expired"), key->IsExpired()},
       {QStringLiteral("revoked"), key->IsRevoked()},
@@ -473,10 +497,10 @@ void KeyActionsController::revokeSubkey(const QString& fingerprint,
     if (index <= 0) {
       return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
     }
-    const auto ok = KeyManagementOperation::GetInstance(channel).RevokeSubkey(
-        key, index, std::clamp(reason, 0, 3), text);
-    if (ok) Reread(channel);
-    return Done(ok);
+    const auto err =
+        KeyManagementOperation::GetInstance(channel).RevokeSubkeySync(
+            key, index, std::clamp(reason, 0, 3), text);
+    return Settled(channel, err);
   });
 }
 
@@ -492,10 +516,10 @@ void KeyActionsController::deleteSubkey(const QString& fingerprint,
     if (index <= 0) {
       return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
     }
-    const auto ok =
-        KeyManagementOperation::GetInstance(channel).DeleteSubkey(key, index);
-    if (ok) Reread(channel);
-    return Done(ok);
+    const auto err =
+        KeyManagementOperation::GetInstance(channel).DeleteSubkeySync(key,
+                                                                      index);
+    return Settled(channel, err);
   });
 }
 
@@ -518,10 +542,9 @@ void KeyActionsController::addUid(const QString& fingerprint,
     if (key == nullptr) {
       return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
     }
-    const auto ok = UserIdOperation::GetInstance(channel).AddUID(
+    const auto err = UserIdOperation::GetInstance(channel).AddUIDSync(
         key, name.trimmed(), comment.trimmed(), email.trimmed());
-    if (ok) Reread(channel);
-    return Done(ok);
+    return Settled(channel, err);
   });
 }
 
@@ -533,10 +556,9 @@ void KeyActionsController::setPrimaryUid(const QString& fingerprint,
     if (key == nullptr) {
       return Failure(GFError::Application(GFErrorCode::kNO_SECRET_KEY));
     }
-    const auto ok =
-        UserIdOperation::GetInstance(channel).SetPrimaryUID(key, uid);
-    if (ok) Reread(channel);
-    return Done(ok);
+    const auto err =
+        UserIdOperation::GetInstance(channel).SetPrimaryUIDSync(key, uid);
+    return Settled(channel, err);
   });
 }
 
@@ -553,10 +575,9 @@ void KeyActionsController::revokeUid(const QString& fingerprint,
     if (!key->UIDs().isEmpty() && key->UIDs().front().GetUID() == uid) {
       return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
     }
-    const auto ok = UserIdOperation::GetInstance(channel).RevokeUID(
+    const auto err = UserIdOperation::GetInstance(channel).RevokeUIDSync(
         key, uid, std::clamp(reason, 0, 3), text);
-    if (ok) Reread(channel);
-    return Done(ok);
+    return Settled(channel, err);
   });
 }
 
@@ -571,9 +592,9 @@ void KeyActionsController::deleteUid(const QString& fingerprint,
     if (!key->UIDs().isEmpty() && key->UIDs().front().GetUID() == uid) {
       return Failure(GFError::Application(GFErrorCode::kINVALID_VALUE));
     }
-    const auto ok = UserIdOperation::GetInstance(channel).DeleteUID(key, uid);
-    if (ok) Reread(channel);
-    return Done(ok);
+    const auto err =
+        UserIdOperation::GetInstance(channel).DeleteUIDSync(key, uid);
+    return Settled(channel, err);
   });
 }
 

@@ -28,6 +28,7 @@
 
 #include "model/KeyRoleModel.h"
 
+#include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/model/GpgKeyTableModel.h"
 #include "core/utils/GpgUtils.h"
@@ -117,6 +118,8 @@ auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
       return key->ExpirationTime();
     case kAlgorithmRole:
       return key->Algo();
+    case kSecretStateRole:
+      return SecretState(key);
     case kMembersRole: {
       // By its class, not its type alone: anything may say it is a group.
       const auto* group = dynamic_cast<const GpgKeyGroup*>(key);
@@ -136,6 +139,19 @@ auto KeyRoleModel::setData(const QModelIndex& index, const QVariant& value,
       source, value.toBool() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
   if (changed) emit dataChanged(index, index, {kCheckedRole});
   return changed;
+}
+
+auto KeyRoleModel::SecretState(const GpgAbstractKey* key) -> QString {
+  const auto* gpg_key = dynamic_cast<const GpgKey*>(key);
+  if (gpg_key == nullptr) return {};
+  if (!gpg_key->IsPrivateKey()) return QStringLiteral("none");
+  if (!gpg_key->IsHasMasterKey()) return QStringLiteral("partial");
+  const auto subkeys = gpg_key->SubKeys();
+  // The primary is surfaced as the first of them.
+  if (!subkeys.isEmpty() && subkeys.front().IsCardKey()) {
+    return QStringLiteral("card");
+  }
+  return QStringLiteral("full");
 }
 
 auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {
@@ -160,6 +176,7 @@ auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {
       {kStatusRole, "status"},
       {kStatusTextRole, "statusText"},
       {kMembersRole, "members"},
+      {kSecretStateRole, "secretState"},
   });
   return names;
 }

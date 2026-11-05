@@ -26,11 +26,18 @@
  *
  */
 
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 
 #include "MobileCryptoTest.h"
+#include "core/function/rpgp/PasswordFetcher.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/RustUtils.h"
 #include "crypto/KeySelection.h"
+#include "crypto/OutputActions.h"
 #include "model/KeyActionsController.h"
 #include "model/KeyCategoriesController.h"
 #include "model/KeyFilterModel.h"
@@ -45,6 +52,7 @@ using GpgFrontend::Mobile::KeyActionsController;
 using GpgFrontend::Mobile::KeyCategoriesController;
 using GpgFrontend::Mobile::KeyGenProfilesController;
 using GpgFrontend::Mobile::KeyImportController;
+using GpgFrontend::Mobile::OutputActions;
 
 namespace {
 
@@ -235,6 +243,8 @@ TEST_F(KeyActionsTest, AKeyIsDescribedAsTheDesktopDescribesIt) {
   EXPECT_EQ(key.value("fingerprint").toString().toUpper(), fpr.toUpper());
   EXPECT_TRUE(key.value("hasSecret").toBool());
   EXPECT_TRUE(key.value("primarySecret").toBool());
+  // The mark the key lists show, from the same rule.
+  EXPECT_EQ(key.value("secretState").toString(), "full");
   EXPECT_GT(key.value("version").toInt(), 0);
   EXPECT_FALSE(key.value("algorithm").toString().isEmpty());
   EXPECT_TRUE(key.value("usage").toMap().value("sign").toBool());
@@ -537,6 +547,110 @@ TEST_F(KeyActionsTest, UserIdsAreAddedMadePrimaryRevokedAndDeleted) {
   EXPECT_FALSE(Act([&](auto* a) {
                  a->addUid(fpr, "Hal <x>", "hal@mobile.example.invalid", "");
                }).succeeded);
+}
+
+// A wrong passphrase is said as one -- not as a general error -- and what
+// was asked can be asked again; a declined prompt is a cancellation.
+TEST_F(KeyActionsTest, AWrongPassphraseIsSaidAndTheUserIdIsAddedOnRetry) {
+  const auto made = Act(
+      [](auto* a) {
+        a->generate("Ivy Secret", "ivy@mobile.example.invalid", 0, true);
+      },
+      "ivy's passphrase");
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+  const auto count = [&]() {
+    int n = 0;
+    RunOnMainThread(
+        [&]() { n = actions_->describe(fpr).value("uids").toList().size(); });
+    return n;
+  };
+  ASSERT_EQ(count(), 1);
+  const auto add = [&](auto* a) {
+    a->addUid(fpr, "Ivy Work", "ivy.work@mobile.example.invalid", "");
+  };
+
+  ClearRpgpPasswordCache();
+  const auto wrong = Act(add, "not ivy's passphrase");
+  EXPECT_FALSE(wrong.succeeded);
+  EXPECT_EQ(wrong.detail.value("reason").toString(), "bad_passphrase");
+  EXPECT_EQ(wrong.detail.value("error").toString(),
+            "Incorrect passphrase. Please try again.");
+  EXPECT_EQ(count(), 1);
+
+  // Declined: stopped by the person, not a failure to explain.
+  ClearRpgpPasswordCache();
+  const int before = finished_;
+  RunOnMainThread([&]() { add(actions_); });
+  ASSERT_TRUE(WaitFor([]() { return !CurrentRequest().isEmpty(); }, 30000));
+  Decline();
+  ASSERT_TRUE(WaitFor(
+      [&]() {
+        int now = 0;
+        RunOnMainThread([&]() { now = finished_; });
+        return now > before;
+      },
+      30000));
+  Finished declined;
+  RunOnMainThread([&]() { declined = last_; });
+  EXPECT_FALSE(declined.succeeded);
+  EXPECT_EQ(declined.detail.value("reason").toString(), "cancelled")
+      << declined.detail.value("error").toString().toStdString();
+  EXPECT_EQ(count(), 1);
+
+  ClearRpgpPasswordCache();
+  const auto right = Act(add, "ivy's passphrase");
+  ASSERT_TRUE(right.succeeded)
+      << right.detail.value("error").toString().toStdString();
+  EXPECT_EQ(count(), 2);
+}
+
+// Sharing a public key: only public packets, read by the engine's packet
+// parser (not by the armor header), in a file named after the key, each
+// share in a place of its own so a second one never replaces the first.
+TEST_F(KeyActionsTest,
+       ASharedPublicKeyHoldsNothingSecretAndIsNeverOverwritten) {
+  const auto made = Act([](auto* a) {
+    a->generate("Jo Share", "jo@mobile.example.invalid", 0, false);
+  });
+  ASSERT_TRUE(made.succeeded);
+  const auto fpr = made.detail.value("fingerprint").toString();
+
+  const auto exported = Act([&](auto* a) { a->exportPublic(fpr); });
+  ASSERT_TRUE(exported.succeeded);
+  const auto armored = exported.detail.value("armored").toString();
+  const auto name = exported.detail.value("fileName").toString();
+  EXPECT_TRUE(name.startsWith("Jo_Share_")) << name.toStdString();
+  EXPECT_TRUE(name.endsWith("_public.asc")) << name.toStdString();
+
+  const auto document =
+      QJsonDocument::fromJson(InspectOpenPGPData(GFBuffer(armored))).object();
+  QList<int> tags;
+  for (const auto& block : document.value("blocks").toArray()) {
+    for (const auto& packet : block.toObject().value("packets").toArray()) {
+      tags << packet.toObject().value("tag").toInt();
+    }
+  }
+  ASSERT_FALSE(tags.isEmpty());
+  EXPECT_TRUE(tags.contains(6));   // public key
+  EXPECT_FALSE(tags.contains(5));  // secret key
+  EXPECT_FALSE(tags.contains(7));  // secret subkey
+
+  QString first;
+  QString second;
+  RunOnMainThread([&]() {
+    first = OutputActions::KeepForSharing(armored.toUtf8(), name);
+    second = OutputActions::KeepForSharing(armored.toUtf8(), name);
+  });
+  ASSERT_FALSE(first.isEmpty());
+  ASSERT_FALSE(second.isEmpty());
+  EXPECT_NE(first, second);
+  EXPECT_TRUE(QFile::exists(first));
+  EXPECT_TRUE(QFile::exists(second));
+  EXPECT_EQ(QFileInfo(first).fileName(), name);
+  QFile kept(first);
+  ASSERT_TRUE(kept.open(QIODevice::ReadOnly));
+  EXPECT_EQ(kept.readAll(), armored.toUtf8());
 }
 
 // "Fill in anonymously" and Quick Generate, as on the desktop: a name and an

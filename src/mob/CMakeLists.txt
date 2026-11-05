@@ -42,6 +42,7 @@ qt_add_library(gf_mob_lib STATIC
   model/KeyListController.cpp
   model/KeyImportController.cpp
   model/KeyActionsController.cpp
+  model/ErrorWording.cpp
   model/KeyGenProfilesController.cpp
   model/KeyCategoriesController.cpp
   model/KeyGroupsController.cpp
