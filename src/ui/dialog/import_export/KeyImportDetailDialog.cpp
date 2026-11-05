@@ -30,10 +30,70 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/model/GpgKey.h"
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/KeyDatabaseRefresh.h"
 
 namespace GpgFrontend::UI {
+namespace {
+
+// GnuPG's import status bits (GPGME_IMPORT_*), which the rPGP engine follows.
+constexpr int kImportNewKey = 1;
+constexpr int kImportNewUid = 2;
+constexpr int kImportNewSignature = 4;
+constexpr int kImportNewSubkey = 8;
+constexpr int kImportSecret = 16;
+
+// NOLINTNEXTLINE(performance-enum-size)
+enum class KeyImportChange {
+  kUnchanged,  ///< nothing new
+  kNewKey,     ///< the key was not there before
+  kUpdated,    ///< the key was there, and gained something
+};
+
+/// Every change an import made to a key, in the words the report always used.
+auto DescribeKeyImportStatus(int import_status) -> QString {
+  QStringList parts;
+  parts << ((import_status & kImportSecret) != 0
+                ? QCoreApplication::translate(
+                      "GpgFrontend::UI::KeyImportDetailDialog", "Private")
+                : QCoreApplication::translate(
+                      "GpgFrontend::UI::KeyImportDetailDialog", "Public"));
+  if ((import_status & kImportNewKey) != 0) {
+    parts << QCoreApplication::translate(
+        "GpgFrontend::UI::KeyImportDetailDialog", "New Key");
+  } else {
+    if ((import_status & kImportNewUid) != 0) {
+      parts << QCoreApplication::translate(
+          "GpgFrontend::UI::KeyImportDetailDialog", "New UID");
+    }
+    if ((import_status & kImportNewSignature) != 0) {
+      parts << QCoreApplication::translate(
+          "GpgFrontend::UI::KeyImportDetailDialog", "New Signature");
+    }
+    if ((import_status & kImportNewSubkey) != 0) {
+      parts << QCoreApplication::translate(
+          "GpgFrontend::UI::KeyImportDetailDialog", "New Subkey");
+    }
+  }
+  if (parts.size() == 1) {
+    parts << QCoreApplication::translate(
+        "GpgFrontend::UI::KeyImportDetailDialog", "Unchanged");
+  }
+  return parts.join(u", "_s);
+}
+
+auto KeyImportChangeOf(int import_status) -> KeyImportChange {
+  if ((import_status & kImportNewKey) != 0) return KeyImportChange::kNewKey;
+  if ((import_status &
+       (kImportNewUid | kImportNewSignature | kImportNewSubkey)) != 0) {
+    return KeyImportChange::kUpdated;
+  }
+  return KeyImportChange::kUnchanged;
+}
+
+}  // namespace
+
 KeyImportDetailDialog::KeyImportDetailDialog(
     int channel, QSharedPointer<GpgImportInformation> result, QWidget* parent)
     : GeneralDialog(typeid(KeyImportDetailDialog).name(), parent),
@@ -260,49 +320,19 @@ void KeyImportDetailDialog::create_keys_table() {
 }
 
 auto KeyImportDetailDialog::get_status_string(int key_status) -> QString {
-  QString status_string;
-  // keystatus is greater than 15, if key is private
-  if (key_status > 15) {
-    status_string.append(tr("Private"));
-    key_status = key_status - 16;
-  } else {
-    status_string.append(tr("Public"));
-  }
-  if (key_status == 0) {
-    status_string.append(", " + tr("Unchanged"));
-  } else {
-    if (key_status == 1) {
-      status_string.append(", " + tr("New Key"));
-    } else {
-      if (key_status > 7) {
-        status_string.append(", " + tr("New Subkey"));
-        return status_string;
-      }
-      if (key_status > 3) {
-        status_string.append(", " + tr("New Signature"));
-        return status_string;
-      }
-      if (key_status > 1) {
-        status_string.append(", " + tr("New UID"));
-        return status_string;
-      }
-    }
-  }
-  return status_string;
+  return DescribeKeyImportStatus(key_status);
 }
 
 auto KeyImportDetailDialog::get_status_color(int key_status) -> QColor {
-  // keystatus is greater than 15, if key is private
-  if (key_status > 15) {
-    key_status = key_status - 16;
+  switch (KeyImportChangeOf(key_status)) {
+    case KeyImportChange::kUnchanged:
+      return {0x9e, 0x9e, 0x9e};  // gray
+    case KeyImportChange::kNewKey:
+      return {0x43, 0xa0, 0x47};  // green
+    case KeyImportChange::kUpdated:
+      return {0x1e, 0x88, 0xe5};  // blue
   }
-  if (key_status == 0) {
-    return {0x9e, 0x9e, 0x9e};  // unchanged -> gray
-  }
-  if (key_status == 1) {
-    return {0x43, 0xa0, 0x47};  // new key -> green
-  }
-  return {0x1e, 0x88, 0xe5};  // new uid/signature/subkey -> blue
+  return {0x9e, 0x9e, 0x9e};
 }
 
 void KeyImportDetailDialog::create_button_box() {
