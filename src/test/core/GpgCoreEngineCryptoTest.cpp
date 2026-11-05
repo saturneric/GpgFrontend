@@ -43,6 +43,7 @@
 #include "core//function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
@@ -1116,6 +1117,38 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
   }
 
   DeleteKey(key);
+}
+
+// A key group whose member is gone used to be encrypted to without that
+// member, and the result named only the keys that remained.
+TEST_P(GpgCoreEngineTest, EncryptingToAGroupWithAMissingMemberIsRefused) {
+  auto member = GenerateFullKey("group_member");
+  ASSERT_TRUE(member != nullptr);
+  const auto member_id = member->ID();
+
+  auto& groups = KeyGroupRepository::GetInstance(Channel());
+  GpgKeyGroup group("refused group", {}, {}, {});
+  const auto group_id = group.ID();
+  groups.AddKeyGroup(group);
+  ASSERT_TRUE(groups.AddKey2KeyGroup(group_id, member));
+  DeleteKey(member);
+  GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+
+  auto stored = groups.KeyGroup(group_id);
+  ASSERT_TRUE(stored != nullptr);
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(Channel()).EncryptSync(
+          {stored}, GFBuffer(QString("for the group")), true);
+  EXPECT_FALSE(err.Ok());
+  ASSERT_TRUE(data_object != nullptr);
+  ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
+  auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
+  const auto invalid = result.InvalidRecipients();
+  EXPECT_TRUE(std::any_of(invalid.begin(), invalid.end(), [&](const auto& r) {
+    return std::get<0>(r).compare(member_id, Qt::CaseInsensitive) == 0;
+  })) << "the refusal did not name the missing member";
+
+  groups.Remove(group_id);
 }
 
 // What a key server returns for one key is imported only where it is that

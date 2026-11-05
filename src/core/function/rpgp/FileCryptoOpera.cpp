@@ -58,9 +58,17 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   // 1. Vector to hold the actual memory of the UTF-8 strings
+  // Disabled keys and missing group members were left out of `recipients`
+  // without a word; refused, naming them.
+  if (const auto unusable = UnusableRecipientsResult(ctx_.GetChannel(), keys);
+      !unusable.invalid_recipients.isEmpty()) {
+    data_object->Swap({GpgEncryptResult(unusable)});
+    return RpgpError(GFErrorCode::kUNUSABLE_PUBLIC_KEY);
+  }
+
   auto key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
-  if (key_blocks_utf8.empty() || HasUnusableKey(ctx_.GetChannel(), keys)) {
+  if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     data_object->Swap({GpgEncryptResult(NoUsableRecipientsResult(recipients))});
     return RpgpError(GFErrorCode::kNO_PUBLIC_KEY);
@@ -322,9 +330,21 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), enc_keys);
 
+  // Disabled keys and missing group members were left out of `recipients`
+  // without a word; refused, naming them.
+  if (const auto unusable =
+          UnusableRecipientsResult(ctx.GetChannel(), enc_keys);
+      !unusable.invalid_recipients.isEmpty()) {
+    data_object->Swap({
+        GpgEncryptResult(unusable),
+        GpgSignResult(GFSignResult{}),
+    });
+    return RpgpError(GFErrorCode::kUNUSABLE_PUBLIC_KEY);
+  }
+
   QList<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
-  if (key_blocks_utf8.empty() || HasUnusableKey(ctx.GetChannel(), enc_keys)) {
+  if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     data_object->Swap({
         GpgEncryptResult(NoUsableRecipientsResult(recipients)),

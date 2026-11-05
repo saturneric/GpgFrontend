@@ -988,6 +988,22 @@ auto GF_CORE_EXPORT HasUnusableKey(int channel,
                                    const GpgAbstractKeyPtrList& keys) -> bool;
 
 /**
+ * @brief The IDs of the keys HasUnusableKey() objects to: disabled keys, and
+ * the members of a group that are disabled or missing.
+ */
+auto GF_CORE_EXPORT UnusableKeyIds(int channel,
+                                   const GpgAbstractKeyPtrList& keys)
+    -> QStringList;
+
+/**
+ * @brief An encryption result naming every key of UnusableKeyIds() as an
+ * invalid recipient, so a refusal says which keys it was about.
+ */
+auto GF_CORE_EXPORT UnusableRecipientsResult(int channel,
+                                             const GpgAbstractKeyPtrList& keys)
+    -> GFEncryptResult;
+
+/**
  * @brief Convert a list of abstract keys to their underlying GpgKey objects.
  *
  * Missing and disabled keys are left out; see HasUnusableKey().

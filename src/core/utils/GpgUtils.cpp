@@ -1125,21 +1125,50 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
   return recipients;
 }
 
-auto GF_CORE_EXPORT HasUnusableKey(int channel,
-                                   const GpgAbstractKeyPtrList& keys) -> bool {
+auto GF_CORE_EXPORT UnusableKeyIds(int channel,
+                                   const GpgAbstractKeyPtrList& keys)
+    -> QStringList {
+  QStringList unusable;
   for (const auto& key : keys) {
-    if (key == nullptr || key->IsDisabled()) return true;
+    if (key == nullptr) {
+      unusable.append(QString());
+      continue;
+    }
+    if (key->IsDisabled()) {
+      unusable.append(key->ID());
+      continue;
+    }
     if (key->KeyType() != GpgAbstractKeyType::kGPG_KEYGROUP) continue;
 
     // A member missing from the repository is as unusable as a disabled one.
     const auto key_ids = qSharedPointerDynamicCast<GpgKeyGroup>(key)->KeyIds();
     const auto members =
         AbstractKeyRepository::GetInstance(channel).GetKeys(key_ids);
-    if (members.size() != key_ids.size() || HasUnusableKey(channel, members)) {
-      return true;
+    for (const auto& id : key_ids) {
+      const auto found = std::any_of(
+          members.begin(), members.end(),
+          [&id](const auto& m) { return m != nullptr && m->ID() == id; });
+      if (!found) unusable.append(id);
     }
+    unusable += UnusableKeyIds(channel, members);
   }
-  return false;
+  return unusable;
+}
+
+auto GF_CORE_EXPORT HasUnusableKey(int channel,
+                                   const GpgAbstractKeyPtrList& keys) -> bool {
+  return !UnusableKeyIds(channel, keys).isEmpty();
+}
+
+auto GF_CORE_EXPORT UnusableRecipientsResult(int channel,
+                                             const GpgAbstractKeyPtrList& keys)
+    -> GFEncryptResult {
+  GFEncryptResult result;
+  for (const auto& id : UnusableKeyIds(channel, keys)) {
+    result.invalid_recipients.push_back(
+        {id, GFError::Application(GFErrorCode::kUNUSABLE_PUBLIC_KEY)});
+  }
+  return result;
 }
 
 auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
