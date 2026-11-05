@@ -159,11 +159,26 @@ auto GF_CORE_EXPORT CheckProfileCompatibility(const ProfileMarker &marker,
  * what fails in the situation this guard exists to catch, so anything that
  * needed the key to be readable would be unreadable when it mattered.
  *
+ * A marker that exists but cannot be read is kept as
+ * "<path>.corrupt-<time>", and the copy WriteProfileMarker() keeps of the last
+ * good one ("<path>.bak") is returned instead when it parses.
+ *
  * @param path marker file path
  * @return the marker, or nothing when absent or unparsable
  */
 auto GF_CORE_EXPORT ReadProfileMarker(const QString &path)
     -> std::optional<ProfileMarker>;
+
+/**
+ * @brief The profile uuid still legible in a marker file that no longer
+ * parses, or an empty string.
+ *
+ * A marker rebuilt without it gets a new uuid, and with it a new keychain
+ * account; a truncated file usually still holds it.
+ *
+ * @param path marker file path
+ */
+auto GF_CORE_EXPORT SalvageProfileUuid(const QString &path) -> QString;
 
 /**
  * @brief Write the profile marker to disk.

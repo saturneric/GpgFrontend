@@ -129,7 +129,13 @@ auto ProfileSession::UpdateMarker(
   // carries the migration history and any field a newer build added, and this
   // build rebuilding it from what it happens to know would erase all of that on
   // every single start.
-  auto marker = ReadProfileMarker(path).value_or(ProfileMarker{});
+  auto read = ReadProfileMarker(path);
+  auto marker = read.value_or(ProfileMarker{});
+  // Rebuilt from nothing because neither the marker nor its copy parses: keep
+  // the identity, or the keychain account derived from it changes.
+  if (!read && QFileInfo::exists(path)) {
+    marker.profile_uuid = SalvageProfileUuid(path);
+  }
   mutate(marker);
 
   if (!WriteProfileMarker(path, marker)) return false;

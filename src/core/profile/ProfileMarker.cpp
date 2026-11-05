@@ -48,7 +48,59 @@ auto CheckProfileCompatibility(const ProfileMarker& marker, bool marker_present,
   return ProfileCompatibility::kOK;
 }
 
+namespace {
+
+/// The path of the copy WriteProfileMarker() keeps of the last good marker.
+auto BackupPathFor(const QString& path) -> QString { return path + ".bak"; }
+
+/// Parse one marker file. @p corrupt is set when the file exists and opened
+/// but is not a marker, which is the case worth keeping a copy of.
+auto ParseProfileMarkerFile(const QString& path, bool* corrupt)
+    -> std::optional<ProfileMarker>;
+
+}  // namespace
+
 auto ReadProfileMarker(const QString& path) -> std::optional<ProfileMarker> {
+  bool corrupt = false;
+  if (auto marker = ParseProfileMarkerFile(path, &corrupt)) return marker;
+  if (!QFileInfo::exists(path)) return {};
+
+  // It exists and cannot be read. Treated as absent, a caller rebuilt it from
+  // defaults and wrote that back: a new profile uuid, so a new keychain
+  // account, and a persist profile protected through the keychain was locked
+  // out of its own key. The damaged bytes are kept, and the last good copy is
+  // used instead when there is one.
+  if (corrupt) {
+    const auto keep =
+        QString("%1.corrupt-%2")
+            .arg(path,
+                 QDateTime::currentDateTimeUtc().toString("yyyyMMddTHHmmssZ"));
+    if (!QFileInfo::exists(keep)) QFile::copy(path, keep);
+  }
+
+  bool backup_corrupt = false;
+  if (auto marker =
+          ParseProfileMarkerFile(BackupPathFor(path), &backup_corrupt)) {
+    LOG_W() << "profile marker unreadable, using its last good copy:" << path;
+    return marker;
+  }
+  return {};
+}
+
+auto SalvageProfileUuid(const QString& path) -> QString {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) return {};
+  static const QRegularExpression kUuid(
+      R"re("profile_uuid"\s*:\s*"([0-9a-fA-F]{32})")re");
+  const auto match = kUuid.match(QString::fromUtf8(file.read(1 << 20)));
+  return match.hasMatch() ? match.captured(1) : QString();
+}
+
+namespace {
+
+auto ParseProfileMarkerFile(const QString& path, bool* corrupt)
+    -> std::optional<ProfileMarker> {
+  *corrupt = false;
   QFile file(path);
   if (!file.exists()) return {};
 
@@ -62,6 +114,7 @@ auto ReadProfileMarker(const QString& path) -> std::optional<ProfileMarker> {
   if (error.error != QJsonParseError::NoError || !doc.isObject()) {
     LOG_W() << "profile marker is not valid json:" << path
             << error.errorString();
+    *corrupt = true;
     return {};
   }
 
@@ -133,6 +186,8 @@ auto ReadProfileMarker(const QString& path) -> std::optional<ProfileMarker> {
   return marker;
 }
 
+}  // namespace
+
 auto WriteProfileMarker(const QString& path, const ProfileMarker& marker)
     -> bool {
   // unknown keys first, so a known field always wins a collision rather than
@@ -202,7 +257,16 @@ auto WriteProfileMarker(const QString& path, const ProfileMarker& marker)
     LOG_W() << "short write on profile marker:" << path;
     return false;
   }
-  return file.commit();
+  if (!file.commit()) return false;
+
+  // The last good copy ReadProfileMarker() falls back on. Best effort: the
+  // marker itself is already safely written.
+  QSaveFile backup(BackupPathFor(path));
+  if (!backup.open(QIODevice::WriteOnly) ||
+      backup.write(payload) != payload.size() || !backup.commit()) {
+    LOG_W() << "cannot keep a copy of the profile marker:" << path;
+  }
+  return true;
 }
 
 }  // namespace GpgFrontend
