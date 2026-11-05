@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "shell/rules/KeyGenProfileRules.h"
 #include "ui/dialog/key_generate/KeyGenerateSummary.h"
 #include "ui/struct/settings_object/KeyGenSO.h"
 
@@ -108,6 +109,9 @@ class KeyGenerationTab : public QWidget {
 
   /// @brief Whether the profile in @p row is the default as it resolves here.
   [[nodiscard]] auto is_default_profile(int row) const -> bool;
+
+  /// @brief What the actions on the profile in @p row depend on.
+  [[nodiscard]] auto profile_state(int row) const -> Shell::KeyGenProfileState;
 
   [[nodiscard]] auto resolve(const KeyGenProfile& profile) const
       -> std::optional<ResolvedKeyGenProfile>;

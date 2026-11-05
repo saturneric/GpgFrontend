@@ -496,9 +496,31 @@ TEST_F(KeyActionsTest, ProfilesAreEditedAsTheDesktopEditsThem) {
     EXPECT_EQ(KeyGenProfilesController().ExpertMode(), !expert);
     profiles.SetExpertMode(expert);
 
-    // Removed, and the built-ins come back when asked.
-    profiles.remove(added);
+    // The default can be neither hidden nor removed, as on the desktop:
+    // Create a key would start from nothing. The list says why.
+    const auto renamed = profiles.Profiles().at(added).toMap();
+    EXPECT_FALSE(renamed.value("deleteRefusal").toString().isEmpty());
+    EXPECT_FALSE(renamed.value("hideRefusal").toString().isEmpty());
+    auto hidden = renamed;
+    hidden["hidden"] = true;
+    EXPECT_FALSE(profiles.save(added, hidden).isEmpty());
+    EXPECT_FALSE(
+        profiles.Profiles().at(added).toMap().value("hidden").toBool());
+    EXPECT_FALSE(profiles.remove(added));
+    EXPECT_EQ(profiles.Profiles().size(), list.size());
+
+    // Once another is the default, it goes, and the built-ins come back when
+    // asked.
+    profiles.setDefault(0);
+    EXPECT_TRUE(profiles.Profiles()
+                    .at(added)
+                    .toMap()
+                    .value("deleteRefusal")
+                    .toString()
+                    .isEmpty());
+    EXPECT_TRUE(profiles.remove(added));
     EXPECT_EQ(profiles.Profiles().size(), list.size() - 1);
+    profiles.setDefault(1);
     profiles.remove(0);
     profiles.restoreDefaults();
     bool back = false;

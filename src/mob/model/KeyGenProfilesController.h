@@ -115,8 +115,9 @@ class KeyGenProfilesController : public QObject {
 
   Q_INVOKABLE QString save(int index, const QVariantMap& profile);
 
-  /// Remove the profile at @p index.
-  Q_INVOKABLE void remove(int index);
+  /// Remove the profile at @p index; false when it is the default, which
+  /// stays until another is chosen.
+  Q_INVOKABLE bool remove(int index);
 
   /// Move the profile at @p from to @p to: the order Create a key lists them.
   Q_INVOKABLE void move(int from, int to);

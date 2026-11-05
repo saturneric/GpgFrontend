@@ -32,6 +32,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/MemoryUtils.h"
+#include "shell/rules/KeyGenProfileRules.h"
 
 namespace GpgFrontend::Mobile {
 
@@ -84,6 +85,34 @@ auto Resolve(const KeyGenProfile& p) -> std::optional<ResolvedKeyGenProfile> {
       [channel](const KeyAlgo& algo) { return algo.SubAlgos(channel); });
 }
 
+/// The name of the one Quick Generate uses, as it picks it: the stored name,
+/// else the first Ed25519 profile on offer, else the first.
+auto DefaultName(const KeyGenSO& settings) -> QString {
+  const auto offered = OfferedKeyGenProfiles(Channel(), settings.profiles);
+  const auto picked =
+      PickDefaultKeyGenProfile(offered, settings.default_profile);
+  return picked >= 0 ? offered.at(picked).profile.name : QString();
+}
+
+/// What the actions on @p p depend on: the facts the desktop's list uses.
+auto StateOf(const KeyGenProfile& p, const QString& default_name)
+    -> Shell::KeyGenProfileState {
+  const auto available = Resolve(p).has_value();
+  return {
+      .is_default = !p.hidden && available &&
+                    p.name.compare(default_name, Qt::CaseInsensitive) == 0,
+      .hidden = p.hidden,
+      .available = available,
+  };
+}
+
+/// Why @p action is refused on @p state, empty when it is allowed.
+auto RefusalOf(const Shell::KeyGenProfileState& state,
+               Shell::KeyGenProfileAction action) -> QString {
+  return Shell::DescribeKeyGenProfileRefusal(
+      Shell::CheckKeyGenProfileAction(state, action));
+}
+
 }  // namespace
 
 KeyGenProfilesController::KeyGenProfilesController(QObject* parent)
@@ -91,18 +120,13 @@ KeyGenProfilesController::KeyGenProfilesController(QObject* parent)
 
 auto KeyGenProfilesController::Profiles() const -> QVariantList {
   const auto settings = LoadKeyGenSettings();
-  // The one Quick Generate uses, as it picks it: the stored name, else the
-  // first Ed25519 profile on offer, else the first.
-  const auto offered = OfferedKeyGenProfiles(Channel(), settings.profiles);
-  const auto picked =
-      PickDefaultKeyGenProfile(offered, settings.default_profile);
-  const auto default_name =
-      picked >= 0 ? offered.at(picked).profile.name : QString();
+  const auto default_name = DefaultName(settings);
 
   QVariantList list;
   for (int i = 0; i < settings.profiles.size(); ++i) {
     const auto& p = settings.profiles.at(i);
     const auto resolved = Resolve(p);
+    const auto state = StateOf(p, default_name);
     list.append(QVariantMap{
         {QStringLiteral("index"), i},
         {QStringLiteral("name"), KeyGenProfileDisplayName(p)},
@@ -112,9 +136,12 @@ auto KeyGenProfilesController::Profiles() const -> QVariantList {
          resolved ? DescribeKeyGenProfileAlgos(*resolved) : QString()},
         {QStringLiteral("available"), resolved.has_value()},
         {QStringLiteral("hidden"), p.hidden},
-        {QStringLiteral("isDefault"),
-         !p.hidden && resolved &&
-             p.name.compare(default_name, Qt::CaseInsensitive) == 0},
+        {QStringLiteral("isDefault"), state.is_default},
+        // Why Delete and Hide are refused, empty when they are not.
+        {QStringLiteral("deleteRefusal"),
+         RefusalOf(state, Shell::KeyGenProfileAction::kDelete)},
+        {QStringLiteral("hideRefusal"),
+         RefusalOf(state, Shell::KeyGenProfileAction::kToggleHidden)},
         {QStringLiteral("primary"), AlgoRef(p.key_algo, p.key_algo_type)},
         {QStringLiteral("primarySub"),
          AlgoRef(p.key_sub_algo, p.key_sub_algo_type)},
@@ -244,8 +271,15 @@ auto KeyGenProfilesController::save(int index, const QVariantMap& profile)
   }
 
   if (index >= 0 && index < settings.profiles.size()) {
+    // Hiding the default would leave Create a key starting from nothing.
+    const auto& before = settings.profiles.at(index);
+    if (p.hidden != before.hidden) {
+      const auto why = RefusalOf(StateOf(before, DefaultName(settings)),
+                                 Shell::KeyGenProfileAction::kToggleHidden);
+      if (!why.isEmpty()) return why;
+    }
     // The one Quick Generate uses follows a renamed profile.
-    const auto old = settings.profiles.at(index).name;
+    const auto old = before.name;
     if (old.compare(settings.default_profile, Qt::CaseInsensitive) == 0) {
       settings.default_profile = p.name;
     }
@@ -257,16 +291,19 @@ auto KeyGenProfilesController::save(int index, const QVariantMap& profile)
   return {};
 }
 
-void KeyGenProfilesController::remove(int index) {
+auto KeyGenProfilesController::remove(int index) -> bool {
   // Read afresh: another page may have changed them since.
   auto settings = LoadKeyGenSettings();
-  if (index < 0 || index >= settings.profiles.size()) return;
-  const auto removed = settings.profiles.takeAt(index);
-  if (removed.name.compare(settings.default_profile, Qt::CaseInsensitive) ==
-      0) {
-    settings.default_profile.clear();
+  if (index < 0 || index >= settings.profiles.size()) return false;
+  // The default stays until another is chosen, as on the desktop.
+  if (!RefusalOf(StateOf(settings.profiles.at(index), DefaultName(settings)),
+                 Shell::KeyGenProfileAction::kDelete)
+           .isEmpty()) {
+    return false;
   }
+  settings.profiles.removeAt(index);
   store(settings);
+  return true;
 }
 
 auto KeyGenProfilesController::ExpertMode() const -> bool {

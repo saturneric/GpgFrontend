@@ -720,35 +720,34 @@ void KeyGenerationTab::refresh_profile_detail() {
   hide_action_->setText(profile.hidden ? tr("&Show") : tr("&Hide"));
   hide_action_->setToolTip(hide_action_->text().remove(u'&'));
 
-  // The default stays: deleting or hiding it would leave the wizard and Quick
-  // Generate pointing at nothing. Choosing another default first frees it.
-  const auto default_reason =
-      tr("This is the default profile. Choose another default first.");
-  if (is_default) {
-    delete_action_->setEnabled(false);
-    delete_action_->setToolTip(default_reason);
-    if (!profile.hidden) {
-      hide_action_->setEnabled(false);
-      hide_action_->setToolTip(default_reason);
-    }
-  }
+  // The phone's list applies the same rule.
+  const Shell::KeyGenProfileState state{
+      .is_default = is_default,
+      .hidden = profile.hidden,
+      .available = !unavailable,
+  };
+  const auto apply = [&state](QAction* action,
+                              Shell::KeyGenProfileAction what) {
+    const auto refusal = Shell::CheckKeyGenProfileAction(state, what);
+    if (refusal == Shell::KeyGenProfileRefusal::kNone) return;
+    action->setEnabled(false);
+    action->setToolTip(Shell::DescribeKeyGenProfileRefusal(refusal));
+  };
+  apply(delete_action_, Shell::KeyGenProfileAction::kDelete);
+  apply(hide_action_, Shell::KeyGenProfileAction::kToggleHidden);
+  apply(edit_action_, Shell::KeyGenProfileAction::kEdit);
+  default_action_->setEnabled(true);
+  apply(default_action_, Shell::KeyGenProfileAction::kMakeDefault);
+}
 
-  // Edited with the current engine's algorithms, which this one lacks;
-  // duplicating, ordering, hiding and deleting it still work.
-  if (unavailable) {
-    edit_action_->setEnabled(false);
-    edit_action_->setToolTip(
-        tr("The current key database cannot make this profile, so it cannot "
-           "be edited here."));
-  }
-
-  default_action_->setEnabled(!is_default && !unavailable && !profile.hidden);
-  if (is_default) {
-    default_action_->setToolTip(tr("This is already the default."));
-  } else if (unavailable || profile.hidden) {
-    default_action_->setToolTip(
-        tr("Only a profile the wizard offers can be the default."));
-  }
+auto KeyGenerationTab::profile_state(int row) const
+    -> Shell::KeyGenProfileState {
+  const auto& profile = settings_.profiles.at(row);
+  return {
+      .is_default = is_default_profile(row),
+      .hidden = profile.hidden,
+      .available = facts(profile).missing.isEmpty(),
+  };
 }
 
 void KeyGenerationTab::refresh_pattern() {
@@ -883,7 +882,11 @@ auto KeyGenerationTab::is_default_profile(int row) const -> bool {
 void KeyGenerationTab::slot_delete() {
   const auto row = current_row();
   if (row < 0 || row >= settings_.profiles.size()) return;
-  if (is_default_profile(row)) return;
+  if (Shell::CheckKeyGenProfileAction(profile_state(row),
+                                      Shell::KeyGenProfileAction::kDelete) !=
+      Shell::KeyGenProfileRefusal::kNone) {
+    return;
+  }
 
   const auto name = KeyGenProfileDisplayName(settings_.profiles.at(row));
   if (QMessageBox::question(
@@ -902,7 +905,11 @@ void KeyGenerationTab::slot_delete() {
 void KeyGenerationTab::slot_toggle_hidden() {
   const auto row = current_row();
   if (row < 0 || row >= settings_.profiles.size()) return;
-  if (is_default_profile(row) && !settings_.profiles.at(row).hidden) return;
+  if (Shell::CheckKeyGenProfileAction(
+          profile_state(row), Shell::KeyGenProfileAction::kToggleHidden) !=
+      Shell::KeyGenProfileRefusal::kNone) {
+    return;
+  }
   settings_.profiles[row].hidden = !settings_.profiles.at(row).hidden;
   refresh_profiles(row);
 }

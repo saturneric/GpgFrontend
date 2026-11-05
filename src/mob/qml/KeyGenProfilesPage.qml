@@ -137,8 +137,11 @@ Page {
             onTriggered: store.setDefault(rowMenu.profile.index)
         }
         MenuItem {
+            objectName: "toggleHidden"
             text: rowMenu.profile.hidden === true ? qsTr("Show in Create a key")
                                                   : qsTr("Hide from Create a key")
+            // The default stays shown until another is chosen.
+            enabled: (rowMenu.profile.hideRefusal || "") === ""
             onTriggered: {
                 const changed = Object.assign({}, rowMenu.profile)
                 changed.hidden = !(rowMenu.profile.hidden === true)
@@ -150,6 +153,7 @@ Page {
         MenuItem {
             objectName: "deleteProfile"
             text: qsTr("Delete")
+            enabled: (rowMenu.profile.deleteRefusal || "") === ""
             onTriggered: {
                 confirmDelete.profile = rowMenu.profile
                 confirmDelete.open()
