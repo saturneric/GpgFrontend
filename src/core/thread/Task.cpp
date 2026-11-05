@@ -34,6 +34,25 @@
 
 namespace GpgFrontend::Thread {
 
+namespace {
+/// How many DeliverCallbacksToThisThread are alive on this thread.
+thread_local int g_deliver_here = 0;
+}  // namespace
+
+DeliverCallbacksToThisThread::DeliverCallbacksToThisThread() {
+  ++g_deliver_here;
+}
+
+DeliverCallbacksToThisThread::~DeliverCallbacksToThisThread() {
+  --g_deliver_here;
+}
+
+auto CallbackContextOfThisThread() -> QSharedPointer<QObject> {
+  if (g_deliver_here == 0) return nullptr;
+  // Created here, so it lives in this thread; deleted there too.
+  return {new QObject(), [](QObject *context) { context->deleteLater(); }};
+}
+
 class Task::Impl {
  public:
   Impl(Task *parent, QString name)
@@ -48,8 +67,8 @@ class Task::Impl {
         name_(std::move(name)),
         runnable_(std::move(runnable)),
         callback_([](int, const DataObjectPtr &) {}),
-        callback_thread_(QThread::currentThread()),
-        data_object_(std::move(data_object)) {
+        data_object_(std::move(data_object)),
+        callback_context_(CallbackContextOfThisThread()) {
     init();
   }
 
@@ -60,8 +79,8 @@ class Task::Impl {
         name_(std::move(name)),
         runnable_(std::move(runnable)),
         callback_(std::move(callback)),
-        callback_thread_(QThread::currentThread()),
-        data_object_(std::move(data_object)) {
+        data_object_(std::move(data_object)),
+        callback_context_(CallbackContextOfThisThread()) {
     init();
   }
 
@@ -121,8 +140,9 @@ class Task::Impl {
   TaskRunnable runnable_;                ///<
   TaskCallback callback_;                ///<
   int rtn_ = Task::kInitialRTN;          ///<
-  QThread *callback_thread_ = nullptr;   ///<
   DataObjectPtr data_object_ = nullptr;  ///<
+  /// Where the callback runs; see CallbackContextOfThisThread().
+  QSharedPointer<QObject> callback_context_;
 
   void init() {
     //
@@ -131,29 +151,28 @@ class Task::Impl {
     //
     connect(parent_, &Task::SignalRun, parent_, &Task::slot_exception_safe_run);
 
-    auto *callback_thread = callback_thread_ != nullptr
-                                ? callback_thread_
-                                : QCoreApplication::instance()->thread();
+    QObject *receiver = callback_context_ != nullptr
+                            ? callback_context_.get()
+                            : QCoreApplication::instance();
     //
-    connect(parent_, &Task::SignalTaskShouldEnd, callback_thread,
-            [this](int rtn) {
-              // set task returning code
-              SetRTN(rtn);
+    connect(parent_, &Task::SignalTaskShouldEnd, receiver, [this](int rtn) {
+      // set task returning code
+      SetRTN(rtn);
 
-              // An exception leaving a slot terminates the process.
-              try {
-                if (callback_) {
-                  callback_(rtn_, data_object_);
-                }
-              } catch (...) {
-                LOG_W() << "task: {}, " << GetFullID()
-                        << "callback caught exception, rtn: " << rtn;
-              }
+      // An exception leaving a slot terminates the process.
+      try {
+        if (callback_) {
+          callback_(rtn_, data_object_);
+        }
+      } catch (...) {
+        LOG_W() << "task: {}, " << GetFullID()
+                << "callback caught exception, rtn: " << rtn;
+      }
 
-              LOG_D() << "task" << this->name_
-                      << "sending task end signal, rtn:" << rtn;
-              emit parent_->SignalTaskEnd();
-            });
+      LOG_D() << "task" << this->name_
+              << "sending task end signal, rtn:" << rtn;
+      emit parent_->SignalTaskEnd();
+    });
 
     //
     connect(parent_, &Task::SignalTaskEnd, parent_, &Task::deleteLater);

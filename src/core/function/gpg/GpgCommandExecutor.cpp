@@ -158,7 +158,13 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 }
 
 void GpgCommandExecutor::ExecuteSync(const ExecuteContext &context) {
-  Thread::Task *task = BuildTaskFromExecCtx(context);
+  // The wait below is an event loop on this thread: the callback comes here,
+  // not to a GUI thread that may itself be waiting.
+  Thread::Task *task = nullptr;
+  {
+    const Thread::DeliverCallbacksToThisThread here;
+    task = BuildTaskFromExecCtx(context);
+  }
   QPointer<Thread::Task> p_t = task;
 
   auto *looper = new QEventLoop();
@@ -214,7 +220,12 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
     const auto &cmd = context.cmd;
     LOG_D() << "gpg concurrently called cmd: " << cmd;
 
-    Thread::Task *task = BuildTaskFromExecCtx(context);
+    // Delivered here, where the loop below waits for it; see ExecuteSync().
+    Thread::Task *task = nullptr;
+    {
+      const Thread::DeliverCallbacksToThisThread here;
+      task = BuildTaskFromExecCtx(context);
+    }
 
     // Queued to the looper: a task can end before looper.exec() starts, and a
     // quit() delivered directly then is lost, leaving exec() blocked forever.
