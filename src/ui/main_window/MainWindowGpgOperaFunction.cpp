@@ -259,8 +259,50 @@ auto MainWindow::check_read_file_paths_helper(const QStringList& paths)
 
 auto MainWindow::check_write_file_paths_helper(const QStringList& o_paths)
     -> bool {
+  // Two inputs of one batch can map to one output ("a.gpg" and "a.asc"), and
+  // the second used to replace the first while both were reported saved.
+#if defined(Q_OS_WINDOWS) || defined(Q_OS_MACOS)
+  constexpr auto kNameCase = Qt::CaseInsensitive;
+#else
+  constexpr auto kNameCase = Qt::CaseSensitive;
+#endif
+  QStringList seen;
+  QStringList duplicates;
   for (const auto& o_path : o_paths) {
-    if (QFile::exists(o_path)) {
+    const auto key = QDir::cleanPath(QFileInfo(o_path).absoluteFilePath());
+    if (seen.contains(key, kNameCase)) {
+      if (!duplicates.contains(o_path)) duplicates.append(o_path);
+    } else {
+      seen.append(key);
+    }
+  }
+  if (!duplicates.isEmpty()) {
+    QStringList names;
+    for (const auto& path : duplicates)
+      names.append(QFileInfo(path).fileName());
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("More than one of the selected files would be written to the same "
+           "place, so one result would replace another:\n\n%1\n\n"
+           "Process them separately.")
+            .arg(names.join("\n")));
+    return false;
+  }
+
+  for (const auto& o_path : o_paths) {
+    if (QFileInfo(o_path).isDir()) {
+      auto out_folder_name =
+          tr("The folder \"%1\" already exists.\n\n"
+             "If the operation succeeds, it is replaced by the new folder, "
+             "and the existing one is kept beside it as \"%2\".\n"
+             "Do you want to continue?")
+              .arg(QFileInfo(o_path).fileName(),
+                   QFileInfo(KeptFolderPath(o_path)).fileName());
+      auto ret = QMessageBox::warning(this, tr("Warning"), out_folder_name,
+                                      QMessageBox::Ok | QMessageBox::Cancel);
+
+      if (ret == QMessageBox::Cancel) return false;
+    } else if (QFile::exists(o_path)) {
       auto out_file_name =
           tr("The target file \"%1\" already exists.\n\n"
              "It will only be replaced after the operation succeeds.\n"

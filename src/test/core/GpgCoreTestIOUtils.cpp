@@ -262,9 +262,10 @@ TEST(IOUtilsSafeOutputTest, ACommitIntoAReadOnlyDirectoryNamesTheRename) {
 }
 #endif
 
-TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
-  // An archive decryption stages a directory. Replacing an existing output
-  // directory must not leave the old one behind as a hidden backup.
+TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryKeepsItVisibly) {
+  // An archive decryption stages a directory. The folder it replaces is often
+  // the user's own ("photos" for photos.tar.gpg), so it is kept beside the
+  // new one under a visible name, never deleted and never hidden.
   QTemporaryDir temp_dir;
   ASSERT_TRUE(temp_dir.isValid());
 
@@ -276,9 +277,11 @@ TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
   ASSERT_TRUE(QDir().mkpath(staged));
   ASSERT_TRUE(WriteFile(staged + "/new.txt", QByteArray("newer")));
 
+  const auto kept = KeptFolderPath(final_path);
   EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
   EXPECT_TRUE(QFileInfo::exists(final_path + "/new.txt"));
   EXPECT_FALSE(QFileInfo::exists(final_path + "/old.txt"));
+  EXPECT_TRUE(QFileInfo::exists(kept + "/old.txt"));
 
   const auto leftovers =
       QDir(temp_dir.path())
@@ -289,8 +292,8 @@ TEST(IOUtilsSafeOutputTest, CommitReplacingADirectoryLeavesNoBackup) {
 
 TEST(IOUtilsSafeOutputTest, CommitReplacingAReadOnlyTreeLeavesNoBackup) {
   // A previous archive extraction can contain read-only directories. The
-  // replaced tree is the old plaintext: it must not survive as a hidden
-  // backup just because one of its directories was not writable.
+  // replaced tree is kept, visibly, like any other folder; nothing of it may
+  // survive as a hidden backup just because a directory was not writable.
   QTemporaryDir temp_dir;
   ASSERT_TRUE(temp_dir.isValid());
 
@@ -304,8 +307,10 @@ TEST(IOUtilsSafeOutputTest, CommitReplacingAReadOnlyTreeLeavesNoBackup) {
   ASSERT_TRUE(QDir().mkpath(staged));
   ASSERT_TRUE(WriteFile(staged + "/new.txt", QByteArray("newer")));
 
+  const auto kept = KeptFolderPath(final_path);
   EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
   EXPECT_TRUE(QFileInfo::exists(final_path + "/new.txt"));
+  EXPECT_TRUE(QFileInfo::exists(kept + "/locked/old.txt"));
 
   const auto leftovers =
       QDir(temp_dir.path())
@@ -313,12 +318,28 @@ TEST(IOUtilsSafeOutputTest, CommitReplacingAReadOnlyTreeLeavesNoBackup) {
                      QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
   EXPECT_TRUE(leftovers.isEmpty()) << leftovers.join(", ").toStdString();
 
-  // Let QTemporaryDir clean up whatever a failure left behind.
+  // Let QTemporaryDir clean up the kept tree and whatever a failure left.
+  QStringList trees = {kept};
   for (const auto& leftover : leftovers) {
-    QFile::setPermissions(temp_dir.path() + "/" + leftover + "/locked",
-                          QFileDevice::ReadOwner | QFileDevice::WriteOwner |
-                              QFileDevice::ExeOwner);
+    trees.append(temp_dir.path() + "/" + leftover);
   }
+  for (const auto& tree : trees) {
+    QFile::setPermissions(tree + "/locked", QFileDevice::ReadOwner |
+                                                QFileDevice::WriteOwner |
+                                                QFileDevice::ExeOwner);
+  }
+}
+
+TEST(IOUtilsSafeOutputTest, AKeptFolderNeverTakesAnExistingName) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const QString final_path = temp_dir.path() + "/photos";
+
+  EXPECT_EQ(KeptFolderPath(final_path), final_path + ".bak");
+  ASSERT_TRUE(QDir().mkpath(final_path + ".bak"));
+  EXPECT_EQ(KeptFolderPath(final_path), final_path + ".bak-2");
+  ASSERT_TRUE(WriteFile(final_path + ".bak-2", QByteArray("a file")));
+  EXPECT_EQ(KeptFolderPath(final_path), final_path + ".bak-3");
 }
 
 TEST(IOUtilsSafeOutputTest, DiscardRemovesAStagedTreeWithReadOnlyDirs) {

@@ -197,10 +197,18 @@ enum class SafeOutputCommitStep : std::uint8_t {
 };
 
 /**
+ * @brief Where CommitSafeOutputFile() keeps a folder it replaces at
+ * @p final_path: "<name>.bak", or "<name>.bak-2" and so on when taken.
+ */
+auto GF_CORE_EXPORT KeptFolderPath(const QString& final_path) -> QString;
+
+/**
  * @brief Move a staged output file to its final path.
  *
  * An existing final file is renamed aside first and only removed once the new
- * one is in place, so a failed rename leaves the original untouched.
+ * one is in place, so a failed rename leaves the original untouched. An
+ * existing folder is never removed: it is kept beside the new output under
+ * KeptFolderPath()'s name.
  *
  * @param temp_path staged output produced by MakeSafeOutputTempPath()
  * @param final_path path the output belongs at
