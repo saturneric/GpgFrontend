@@ -77,6 +77,7 @@ class ProxyConnectionTestTask : public Thread::Task {
  private:
   QString url_;                             ///<
   QString result_;                          ///<
+  bool processed_ = false;  ///< the reply was answered; once is the only time
   int timeout_ = 500;                       ///<
   QNetworkAccessManager* network_manager_;  ///<
 };
