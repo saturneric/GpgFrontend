@@ -497,6 +497,27 @@ auto AdvancedTab::apply_app_key_protection() -> bool {
     refresh_protection_advice();
   };
 
+  // Leaving PIN protection needs the PIN, as changing it does: otherwise
+  // anyone at an unlocked machine could strip the protection in two clicks.
+  if (from == AppKeyProtection::kPIN) {
+    AppKeyPinDialog verify(AppKeyPinDialog::Mode::kUNLOCK, this);
+    bool verified = false;
+    while (verify.exec() == QDialog::Accepted) {
+      const auto stored = mgr.ReadStoredKey();
+      if (stored &&
+          ProfileSecureKeyManager::UnsealKey(verify.Pin(), {}, *stored)) {
+        verified = true;
+        break;
+      }
+      verify.SetErrorText(tr("The current PIN is not correct."));
+      verify.Clear();
+    }
+    if (!verified) {
+      revert();
+      return false;
+    }
+  }
+
   GFBuffer pin;
   if (to == AppKeyProtection::kPIN) {
     AppKeyPinDialog dialog(AppKeyPinDialog::Mode::kSET, this);
