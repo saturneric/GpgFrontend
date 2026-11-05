@@ -104,6 +104,27 @@ TEST_F(RpgpCoreTest, AnExportIsWhatWasAskedFor) {
   EXPECT_TRUE(ssh.Empty());
 }
 
+// rPGP counted every saved key as newly imported, a key it already had
+// included, and gave no status bits. Re-importing a key now reads as GnuPG
+// reports it: considered, unchanged, nothing imported.
+TEST_F(RpgpCoreTest, ReimportingAKeyCountsItUnchanged) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3BEDAB48EAAAA195006330414DD9733454846D0C");
+  ASSERT_TRUE(key != nullptr);
+  auto& op = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest);
+  auto [err, block] = op.ExportKey(key, false, true, false);
+  ASSERT_TRUE(err.Ok());
+
+  auto info = op.ImportKey(block);
+  ASSERT_TRUE(info != nullptr);
+  EXPECT_EQ(info->considered, 1);
+  EXPECT_EQ(info->imported, 0);
+  EXPECT_EQ(info->unchanged, 1);
+  EXPECT_EQ(info->not_imported, 0);
+  ASSERT_EQ(info->imported_keys.size(), 1);
+  EXPECT_EQ(info->imported_keys.front().import_status, 0);
+}
+
 TEST_F(RpgpCoreTest, CoreImportKeyTest) {
   auto key_files = QDir(":/test/rpgp_keys").entryList();
   ASSERT_FALSE(key_files.empty());

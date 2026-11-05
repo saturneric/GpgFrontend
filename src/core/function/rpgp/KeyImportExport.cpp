@@ -125,6 +125,77 @@ auto MergeGFKeyRpgpImpl(const QList<GFKey>& gf_keys, bool secret)
 
   return final_gf_keys.front();
 }
+
+// gpgme's import status bits, which the import report reads whichever engine
+// imported (GPGME_IMPORT_NEW, _UID, _SIG, _SUBKEY, _SECRET).
+constexpr int kImportNew = 1;
+constexpr int kImportNewUid = 2;
+constexpr int kImportNewSig = 4;
+constexpr int kImportNewSubkey = 8;
+constexpr int kImportSecret = 16;
+
+/**
+ * @brief Count what saving @p saved over @p stored brought in, as GnuPG
+ * counts an import, and return the key's status bits.
+ *
+ * Every saved key used to count as newly imported, a key already present
+ * included, and a failed one was not counted at all. What the merge added is
+ * read from the two keys: User IDs and subkeys by identity, a revocation and
+ * a secret part by their flags. Any other change to the public key is new
+ * signatures; how many is not known here, so it counts as one.
+ */
+auto CountImport(const std::optional<GFKey>& stored, const GFKey& saved,
+                 GpgImportInformation& info) -> int {
+  const bool secret = saved.metadata.has_secret;
+  if (!stored) {
+    info.imported += 1;
+    if (secret) info.secret_imported += 1;
+    return kImportNew | (secret ? kImportSecret : 0);
+  }
+
+  int status = 0;
+  QSet<QString> stored_uids;
+  for (const auto& uid : stored->metadata.user_ids) {
+    stored_uids.insert(uid.ToString());
+  }
+  for (const auto& uid : saved.metadata.user_ids) {
+    if (stored_uids.contains(uid.ToString())) continue;
+    info.new_user_ids += 1;
+    status |= kImportNewUid;
+  }
+
+  QSet<QString> stored_subkeys;
+  for (const auto& sub : stored->metadata.subkeys) {
+    stored_subkeys.insert(sub.fpr.toUpper());
+  }
+  for (const auto& sub : saved.metadata.subkeys) {
+    if (stored_subkeys.contains(sub.fpr.toUpper())) continue;
+    info.new_sub_keys += 1;
+    status |= kImportNewSubkey;
+  }
+
+  const bool newly_revoked =
+      saved.metadata.is_revoked && !stored->metadata.is_revoked;
+  if (newly_revoked) info.new_revocations += 1;
+
+  if (secret && !stored->metadata.has_secret) {
+    info.secret_imported += 1;
+    status |= kImportSecret;
+  } else if (secret) {
+    info.secret_unchanged += 1;
+  }
+
+  const bool public_changed = saved.blocks.public_key.ConvertToQByteArray() !=
+                              stored->blocks.public_key.ConvertToQByteArray();
+  if (public_changed && (status & (kImportNewUid | kImportNewSubkey)) == 0 &&
+      !newly_revoked) {
+    info.new_signatures += 1;
+    status |= kImportNewSig;
+  }
+
+  if (status == 0 && !newly_revoked && !public_changed) info.unchanged += 1;
+  return status;
+}
 }  // namespace
 
 auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
@@ -147,10 +218,12 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
 
   for (const auto& pd_gf_key : pd_gf_keys) {
     std::optional<GFKey> final_gf_key;
+    std::optional<GFKey> stored_gf_key;
     // Read, merge and save as one unit: a concurrent import or edit of the
     // same key between the read and the save would otherwise be lost.
     const bool saved = key_db->RunExclusive([&]() -> bool {
       auto db_gf_key = key_db->GetKeyByIdentifier(pd_gf_key.metadata.fpr);
+      if (db_gf_key) stored_gf_key = *db_gf_key;
       // should do merge if the key already exists
       if (db_gf_key) {
         LOG_I() << "key with fpr: " << pd_gf_key.metadata.fpr
@@ -175,14 +248,15 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
       return SaveGFKeyToDatabase(*key_db, *final_gf_key);
     });
 
+    info->considered += 1;
     if (saved) {
-      // No status bits: the key reads as unchanged, whatever the merge did.
-      info->imported_keys.push_back({final_gf_key->metadata.fpr.toUpper(), 0});
-      info->imported += 1;
-      info->considered += 1;
-    } else if (final_gf_key) {
-      LOG_E() << "failed to import key with fpr: "
-              << final_gf_key->metadata.fpr;
+      const auto status = CountImport(stored_gf_key, *final_gf_key, *info);
+      info->imported_keys.push_back(
+          {final_gf_key->metadata.fpr.toUpper(), status});
+    } else {
+      // Counted, so the report says a key was left out instead of nothing.
+      info->not_imported += 1;
+      LOG_E() << "failed to import key with fpr: " << pd_gf_key.metadata.fpr;
     }
   }
 
