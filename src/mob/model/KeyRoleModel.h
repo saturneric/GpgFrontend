@@ -82,6 +82,13 @@ class KeyRoleModel : public QIdentityProxyModel {
     /// (sec>: the primary on a smart card); "" for a key group. Read from
     /// the key material, never from whose key it is.
     kSecretStateRole,
+    /// What the key as a whole can do, in GnuPG's letters and order (C
+    /// certify, E encrypt, S sign, A authenticate: "CESA", "CES", "ES"):
+    /// what its usable primary key and subkeys give it together, those
+    /// expired, revoked or disabled left out, whether or not their secrets
+    /// are here. Empty for a key that cannot be used at all (its status
+    /// says why) and for a key group.
+    kCapabilitiesRole,
   };
   Q_ENUM(Role)
 
@@ -96,6 +103,9 @@ class KeyRoleModel : public QIdentityProxyModel {
 
   /// kSecretStateRole for @p key.
   [[nodiscard]] static auto SecretState(const GpgAbstractKey* key) -> QString;
+
+  /// kCapabilitiesRole for @p key.
+  [[nodiscard]] static auto Capabilities(const GpgAbstractKey* key) -> QString;
 
   [[nodiscard]] auto data(const QModelIndex& index, int role) const
       -> QVariant override;

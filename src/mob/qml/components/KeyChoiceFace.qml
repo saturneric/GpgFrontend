@@ -8,8 +8,10 @@ import GpgFrontend.Mobile
 
 // A key as every list shows it -- the Keys page, the key pickers, a group's
 // members, a new key -- the same everywhere:
-//  - who it is (the name, else the address), and GnuPG's mark for what of
-//    it is here (pub, sec, sec#, sec>);
+//  - who it is (the name, else the address), what it can do in GnuPG's
+//    letters (CESA: certify, encrypt, sign, authenticate) on a tint of
+//    their own, and GnuPG's mark for what of it is here (pub, sec, sec#,
+//    sec>), always last, in the accent;
 //  - the address, and the key ID always in the same place at the right, in
 //    the desktop's monospace, never pushed out by a long address;
 //  - only when there is something to say: what is wrong with it (expired,
@@ -28,6 +30,9 @@ RowLayout {
     property var members: []
     // KeyRoleModel's secretState: what the mark says.
     property string secretState: ""
+    // KeyRoleModel's capabilities: what the key as a whole can do, "" for
+    // nothing to say.
+    property string capabilities: ""
     // KeyRoleModel's status ("ok" says nothing) and its words.
     property string status: "ok"
     property string statusText: ""
@@ -45,6 +50,28 @@ RowLayout {
     readonly property bool stacked: idBelow || Theme.fontScale > 1.3
 
     spacing: 12
+
+    // What it can do: letters on a tint, so they never read as part of the
+    // mark beside them.
+    component CapabilityPill: Rectangle {
+        property string letters
+
+        implicitWidth: capabilityLabel.implicitWidth + 8
+        implicitHeight: capabilityLabel.implicitHeight + 2
+        radius: 4
+        color: Theme.alpha(Material.foreground, 0.08)
+        Accessible.role: Accessible.StaticText
+        Accessible.name: Wording.capabilityWords(letters)
+
+        Label {
+            id: capabilityLabel
+            anchors.centerIn: parent
+            text: parent.letters
+            font.family: Theme.mono
+            font.pixelSize: Theme.labelSize
+            color: Material.secondaryTextColor
+        }
+    }
 
     KeyAvatar {
         Layout.alignment: Qt.AlignTop
@@ -94,6 +121,15 @@ RowLayout {
                 opacity: face.usable ? 1 : 0.6
             }
 
+            // Beside the name while the key ID shares the line under it;
+            // beside the key ID where that has a line of its own, leaving
+            // the name its room.
+            CapabilityPill {
+                objectName: "keyCapabilities"
+                letters: face.capabilities
+                visible: !face.stacked && face.isKey && face.capabilities.length > 0
+            }
+
             Label {
                 objectName: "keyTag"
                 visible: text.length > 0
@@ -126,14 +162,24 @@ RowLayout {
 
             // Where the address ends, the key ID begins: a long address is
             // cut short, the key ID never is.
-            Label {
-                objectName: "keyId"
+            RowLayout {
                 Layout.alignment: face.stacked ? Qt.AlignLeft : Qt.AlignRight
                 visible: face.isKey && face.keyId.length > 0
-                text: face.keyId
-                font.family: Theme.mono
-                font.pixelSize: Theme.labelSize
-                color: Material.secondaryTextColor
+                spacing: 8
+
+                Label {
+                    objectName: "keyId"
+                    text: face.keyId
+                    font.family: Theme.mono
+                    font.pixelSize: Theme.labelSize
+                    color: Material.secondaryTextColor
+                }
+
+                CapabilityPill {
+                    objectName: "keyCapabilitiesBelow"
+                    letters: face.capabilities
+                    visible: face.stacked && face.isKey && face.capabilities.length > 0
+                }
             }
         }
 

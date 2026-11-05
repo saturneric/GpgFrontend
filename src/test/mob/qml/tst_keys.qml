@@ -57,6 +57,7 @@ Item {
             statusText: ""
             fingerprint: "AB".repeat(20)
             secretState: "partial"
+            capabilities: "ES"
             isKey: true
             members: []
         }
@@ -154,6 +155,19 @@ Item {
             compare(Wording.subkeyTag(true, true), "ssb>")
             const row = createTemporaryObject(keyRowComponent, keys)
             compare(findByName(row, "keyTag").text, "sec#")
+            // What it can do: GnuPG's letters, apart from the mark.
+            const can = findByName(row, "keyCapabilities")
+            verify(can.visible)
+            compare(can.Accessible.name, "Encrypt, Sign")
+            compare(Wording.capabilityWords("CESA"),
+                    "Certify, Encrypt, Sign, Authenticate")
+            // Once the key ID has a line of its own, the letters go beside
+            // it and leave the name its room.
+            verify(!findByName(row, "keyCapabilitiesBelow").visible)
+            const face = findByName(row, "keyTitle").parent.parent.parent
+            face.idBelow = true
+            verify(!can.visible)
+            verify(findByName(row, "keyCapabilitiesBelow").visible)
             // The key ID keeps its place however long the address is.
             verify(findByName(row, "keyId").visible)
             compare(findByName(row, "keyId").text, "0123456789ABCDEF")

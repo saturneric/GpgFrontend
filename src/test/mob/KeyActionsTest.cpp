@@ -189,6 +189,9 @@ TEST_F(KeyActionsTest, ExportDeleteAndImportFromAFile) {
   const auto armored = exported.detail.value("armored").toString();
   EXPECT_TRUE(armored.startsWith("-----BEGIN PGP PUBLIC KEY BLOCK-----"));
   EXPECT_FALSE(armored.contains("PRIVATE KEY"));
+  QVariantMap own;
+  RunOnMainThread([&]() { own = actions_->describe(fpr); });
+  ASSERT_FALSE(own.value("capabilities").toString().isEmpty());
 
   // Deleted: gone, secret part and all.
   const auto deleted = Act([&fpr](auto* a) { a->remove(fpr); });
@@ -208,6 +211,15 @@ TEST_F(KeyActionsTest, ExportDeleteAndImportFromAFile) {
   EXPECT_EQ(imported.value("imported").toInt(), 1);
   EXPECT_EQ(imported.value("secretImported").toInt(), 0);
   EXPECT_TRUE(HasKey(fpr));
+
+  // Someone else's key, as it now is here: it still certifies and signs
+  // (what a signature is checked against), not only encrypts.
+  QVariantMap theirs;
+  RunOnMainThread([&]() { theirs = actions_->describe(fpr); });
+  EXPECT_FALSE(theirs.value("hasSecret").toBool());
+  EXPECT_EQ(theirs.value("capabilities").toString(),
+            own.value("capabilities").toString());
+  EXPECT_TRUE(theirs.value("capabilities").toString().contains("S"));
 }
 
 TEST_F(KeyActionsTest, AFileThatIsNotAKeyImportsNothing) {
@@ -262,6 +274,21 @@ TEST_F(KeyActionsTest, AKeyIsDescribedAsTheDesktopDescribesIt) {
   EXPECT_TRUE(
       subkeys.at(0).toMap().value("usage").toMap().value("certify").toBool());
   EXPECT_FALSE(subkeys.at(1).toMap().value("primary").toBool());
+
+  // What the key can do is what its parts can do together, in GnuPG's
+  // order; each part says what it does itself (the primary certifies, the
+  // encryption subkey encrypts), never what another part does.
+  QString together;
+  for (const auto& sub : subkeys)
+    together += sub.toMap()["capabilities"].toString();
+  QString expected;
+  for (const auto letter : QStringLiteral("CESA")) {
+    if (together.contains(letter)) expected += letter;
+  }
+  EXPECT_EQ(key.value("capabilities").toString(), expected);
+  EXPECT_TRUE(expected.startsWith("C"));
+  EXPECT_TRUE(subkeys.at(0).toMap()["capabilities"].toString().contains("C"));
+  EXPECT_FALSE(subkeys.at(1).toMap()["capabilities"].toString().contains("C"));
 
   QVariantList validities;
   RunOnMainThread([&]() { validities = actions_->Validities(); });

@@ -156,6 +156,17 @@ Page {
                                   ? Theme.warning : Theme.danger
                         }
 
+                        // What the whole key can do, as the list says it;
+                        // each part's own is under Keys below.
+                        Chip {
+                            objectName: "keyCapabilities"
+                            visible: text.length > 0
+                            text: page.key.capabilities || ""
+                            font.family: Theme.mono
+                            tone: Material.secondaryTextColor
+                            Accessible.name: Wording.capabilityWords(text)
+                        }
+
                         // GnuPG's mark for what of the key is here.
                         Chip {
                             objectName: "keyTag"
@@ -230,7 +241,11 @@ Page {
                 Layout.rightMargin: Theme.gap
                 Layout.topMargin: 8
                 visible: page.described
-                part: page.details
+                // The primary key's own usage, not the whole key's: an
+                // Ed25519 primary key does not encrypt, its subkey does.
+                part: page.subkeys.length > 0
+                      ? Object.assign({}, page.details, {"usage": page.subkeys[0].usage})
+                      : page.details
                 kindTitle: qsTr("Key format")
                 kindValue: page.details.version > 0 ? qsTr("Version %1").arg(page.details.version) : ""
                 expiresText: page.described ? (Theme.date(page.details.expires) || qsTr("Never")) : ""

@@ -89,6 +89,16 @@ QtObject {
         }
     }
 
+    // What a key can do in GnuPG's letters (KeyRoleModel's capabilities:
+    // "CESA", "CSE", "ES"), in words: "Certify, Encrypt, Sign", in the
+    // letters' order.
+    function capabilityWords(letters) {
+        const words = {"C": qsTr("Certify"), "E": qsTr("Encrypt"),
+                       "S": qsTr("Sign"), "A": qsTr("Authenticate")}
+        return (letters || "").split("").filter(l => words[l] !== undefined)
+                              .map(l => words[l]).join(", ")
+    }
+
     // A subkey's mark: ssb with its secret, ssb> on a card, else sub.
     function subkeyTag(secret, card) {
         return card ? "ssb>" : secret ? "ssb" : "sub"

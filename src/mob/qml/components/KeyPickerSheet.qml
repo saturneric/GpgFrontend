@@ -138,6 +138,7 @@ BottomSheet {
             required property string email
             required property string keyId
             required property string secretState
+            required property string capabilities
 
             readonly property bool fixed: sheet.alreadySet[keyId] === true
             readonly property bool chosen: fixed || sheet.picked[keyId] === true
@@ -158,6 +159,7 @@ BottomSheet {
                 email: choice.email
                 keyId: choice.keyId
                 secretState: choice.secretState
+                capabilities: choice.capabilities
                 note: choice.fixed ? qsTr("Already in") : ""
 
                 // The mark of the choice; a tap on it is a tap on the row.

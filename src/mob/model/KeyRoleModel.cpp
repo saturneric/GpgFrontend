@@ -120,6 +120,8 @@ auto KeyRoleModel::data(const QModelIndex& index, int role) const -> QVariant {
       return key->Algo();
     case kSecretStateRole:
       return SecretState(key);
+    case kCapabilitiesRole:
+      return Capabilities(key);
     case kMembersRole: {
       // By its class, not its type alone: anything may say it is a group.
       const auto* group = dynamic_cast<const GpgKeyGroup*>(key);
@@ -154,6 +156,43 @@ auto KeyRoleModel::SecretState(const GpgAbstractKey* key) -> QString {
   return QStringLiteral("full");
 }
 
+auto KeyRoleModel::Capabilities(const GpgAbstractKey* key) -> QString {
+  if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+    return {};
+  }
+  // A key that cannot be used gives nothing, whatever its parts could do:
+  // as GnuPG lists a key's overall capabilities only for a usable one.
+  const auto status = GetKeyStatus(key);
+  if (status != GpgKeyStatus::kOk && status != GpgKeyStatus::kExpiringSoon) {
+    return {};
+  }
+  const auto* gpg_key = dynamic_cast<const GpgKey*>(key);
+  // Anything else that says it is a key answers for itself.
+  if (gpg_key == nullptr) return GetUsagesByAbstractKey(key);
+
+  // What its usable parts -- the primary key first, then the subkeys -- can
+  // do together, whoever holds their secrets: the key's own "can sign" and
+  // "can certify" ask for the secret here too (what this device can do with
+  // it), and a public key would then seem to sign nothing.
+  bool certify = false;
+  bool encrypt = false;
+  bool sign = false;
+  bool authenticate = false;
+  for (const auto& part : gpg_key->SubKeys()) {
+    if (part.IsRevoked() || part.IsExpired() || part.IsDisabled()) continue;
+    certify = certify || part.IsHasCertCap();
+    encrypt = encrypt || part.IsHasEncrCap();
+    sign = sign || part.IsHasSignCap();
+    authenticate = authenticate || part.IsHasAuthCap();
+  }
+  QString letters;
+  if (certify) letters += QLatin1Char('C');
+  if (encrypt) letters += QLatin1Char('E');
+  if (sign) letters += QLatin1Char('S');
+  if (authenticate) letters += QLatin1Char('A');
+  return letters;
+}
+
 auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {
   auto names = QIdentityProxyModel::roleNames();
   names.insert({
@@ -177,6 +216,7 @@ auto KeyRoleModel::roleNames() const -> QHash<int, QByteArray> {
       {kStatusTextRole, "statusText"},
       {kMembersRole, "members"},
       {kSecretStateRole, "secretState"},
+      {kCapabilitiesRole, "capabilities"},
   });
   return names;
 }

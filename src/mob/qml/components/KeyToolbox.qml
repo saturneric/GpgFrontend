@@ -270,6 +270,7 @@ BottomSheet {
             required property string keyId
             required property string fingerprint
             required property string secretState
+            required property string capabilities
             required property bool hasSecret
             required property bool canEncrypt
             required property bool canSign
@@ -329,7 +330,8 @@ BottomSheet {
                 sheet.infoKey = {
                     "name": name, "email": email, "keyId": keyId,
                     "fingerprint": fingerprint, "hasSecret": hasSecret,
-                    "secretState": secretState, "canEncrypt": canEncrypt,
+                    "secretState": secretState, "capabilities": capabilities,
+                    "canEncrypt": canEncrypt,
                     "canSign": canSign, "usable": usable, "status": status,
                     "statusText": statusText, "created": model.created,
                     "expires": model.expires, "algorithm": model.algorithm,
@@ -348,6 +350,7 @@ BottomSheet {
                 usable: choice.usable
                 members: choice.members
                 secretState: choice.secretState
+                capabilities: choice.capabilities
                 note: choice.reason
                 problem: choice.reason.length > 0
 

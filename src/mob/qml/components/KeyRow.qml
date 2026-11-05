@@ -20,6 +20,7 @@ ItemDelegate {
     required property string statusText
     required property string fingerprint
     required property string secretState
+    required property string capabilities
     // False for a key group, which has members instead of an address.
     required property bool isKey
     required property var members
@@ -42,6 +43,7 @@ ItemDelegate {
     Accessible.name: primaryText
     Accessible.description: [!isKey ? qsTr("Key group") : "",
                              Wording.keyTagDescription(secretState),
+                             Wording.capabilityWords(capabilities),
                              email, keyId,
                              status !== "ok" ? statusText : ""]
                             .filter(t => t.length > 0).join(", ")
@@ -57,6 +59,7 @@ ItemDelegate {
         usable: row.usable
         members: row.members
         secretState: row.secretState
+        capabilities: row.capabilities
         status: row.status
         statusText: row.statusText
     }

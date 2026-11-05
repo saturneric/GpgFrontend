@@ -137,6 +137,23 @@ TEST(KeyModelsTest, RolesReadTheKeyItself) {
   EXPECT_FALSE(alice.data(KeyRoleModel::kExpiresRole).toDateTime().isValid());
 }
 
+// What a key can do, in GnuPG's letters and order, from the key itself; a
+// key that cannot be used and a key group say nothing.
+TEST(KeyModelsTest, CapabilitiesAreGnuPGsLettersInOrder) {
+  Fixture f;
+  EXPECT_EQ(f.roles.roleNames().value(KeyRoleModel::kCapabilitiesRole),
+            "capabilities");
+  const auto at = [&](int row) {
+    return f.roles.index(row, 0)
+        .data(KeyRoleModel::kCapabilitiesRole)
+        .toString();
+  };
+  EXPECT_EQ(at(0), "CES");  // Carol: certify, encrypt, sign
+  EXPECT_EQ(at(2), "");     // Bob: expired
+  EXPECT_EQ(at(3), "CS");   // Dave: cannot encrypt
+  EXPECT_EQ(at(4), "");     // a key group
+}
+
 TEST(KeyModelsTest, CheckingAKeyGoesToTheTable) {
   Fixture f;
   const auto bob = f.roles.index(2, 0);

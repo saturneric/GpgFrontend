@@ -355,6 +355,8 @@ auto KeyActionsController::describe(const QString& fingerprint) const
         {QStringLiteral("usage"),
          Usage(sub.IsHasCertCap(), sub.IsHasEncrCap(), sub.IsHasSignCap(),
                sub.IsHasAuthCap())},
+        // This part's own, in GnuPG's letters, whether or not it is usable.
+        {QStringLiteral("capabilities"), GetUsagesByAbstractKey(&sub)},
         {QStringLiteral("created"), sub.CreationTime()},
         {QStringLiteral("expires"), DateOrNone(sub.ExpirationTime())},
         {QStringLiteral("secret"), sub.IsSecretKey()},
@@ -408,6 +410,8 @@ auto KeyActionsController::describe(const QString& fingerprint) const
       {QStringLiteral("primarySecret"), key->IsHasMasterKey()},
       // GnuPG's mark, as the key lists show it (sec, sec#, sec>, pub).
       {QStringLiteral("secretState"), KeyRoleModel::SecretState(key.get())},
+      // What the key as a whole can do, as the key lists show it.
+      {QStringLiteral("capabilities"), KeyRoleModel::Capabilities(key.get())},
       {QStringLiteral("cardKey"), key->IsHasCardKey()},
       {QStringLiteral("expired"), key->IsExpired()},
       {QStringLiteral("revoked"), key->IsRevoked()},

@@ -91,6 +91,7 @@ Page {
                 "fingerprint": model.fingerprint,
                 "hasSecret": model.hasSecret,
                 "secretState": model.secretState,
+                "capabilities": model.capabilities,
                 "canEncrypt": model.canEncrypt, "canSign": model.canSign,
                 "usable": model.usable, "expired": model.expired,
                 "revoked": model.revoked, "status": model.status,
