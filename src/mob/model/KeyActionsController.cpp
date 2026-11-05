@@ -299,10 +299,11 @@ void KeyActionsController::remove(const QString& fingerprint) {
     const auto channel = UsableDefaultChannelHandle();
     const auto key = FindKey(channel, fingerprint);
     if (key == nullptr) return Failure(GFError::Application(GFErrorCode::kNO_PUBLIC_KEY));
-    KeyManagementOperation::GetInstance(channel).DeleteKey(key);
+    const auto deleted =
+        KeyManagementOperation::GetInstance(channel).DeleteKey(key);
     auto& repository = GpgKeyRepository::GetInstance(channel);
     repository.FlushKeyCache();
-    if (FindKey(channel, fingerprint) != nullptr) {
+    if (!deleted || FindKey(channel, fingerprint) != nullptr) {
       return Failure(GFError::Application(GFErrorCode::kGENERAL));
     }
     return {};

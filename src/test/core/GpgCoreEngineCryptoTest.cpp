@@ -41,6 +41,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
@@ -1043,6 +1044,18 @@ TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
   }
 
   DeleteKey(key);
+}
+
+// Deleting used to report nothing, and the engines answered true for keys
+// they had not deleted.
+TEST_P(GpgCoreEngineTest, DeletingAKeyReportsWhetherItWasDeleted) {
+  auto key = GenerateFullKey("delete_result");
+  ASSERT_TRUE(key != nullptr);
+
+  auto& op = KeyManagementOperation::GetInstance(Channel());
+  EXPECT_TRUE(op.DeleteKey(key));
+  GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+  EXPECT_FALSE(op.DeleteKey(key)) << "a key already gone was reported deleted";
 }
 
 // A file that could not be opened reached gpgme as a NULL stream. Every file

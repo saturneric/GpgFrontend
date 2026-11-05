@@ -50,25 +50,30 @@ namespace GpgFrontend {
 auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool {
   auto& g_ctx = GpgCtx(ctx);
+  auto all_deleted = true;
   for (const auto& key : keys) {
-    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
-      if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
-        KeyGroupRepository::GetInstance(ctx.GetChannel()).Remove(key->ID());
-        continue;
-      }
+    // Checked before the key test below, which a group never passes: groups
+    // were never removed on this engine.
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+      KeyGroupRepository::GetInstance(ctx.GetChannel()).Remove(key->ID());
+      continue;
+    }
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY || !key->IsGood()) {
+      all_deleted = false;
+      continue;
+    }
 
-      auto k = qSharedPointerDynamicCast<GpgKey>(key);
-      auto err = CheckGpgError(
-          gpgme_op_delete_ext(g_ctx.DefaultContext(), GpgmeKeyOf(*k),
-                              GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
-      if (err != GPG_ERR_NO_ERROR) {
-        LOG_W() << "Failed to delete key: " << key->ID()
-                << ", error code: " << CheckGpgError(err);
-        continue;
-      }
+    auto k = qSharedPointerDynamicCast<GpgKey>(key);
+    auto err = CheckGpgError(
+        gpgme_op_delete_ext(g_ctx.DefaultContext(), GpgmeKeyOf(*k),
+                            GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
+    if (err != GPG_ERR_NO_ERROR) {
+      LOG_W() << "Failed to delete key: " << key->ID()
+              << ", error code: " << err;
+      all_deleted = false;
     }
   }
-  return true;
+  return all_deleted;
 }
 
 auto SetExpireGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,

@@ -846,10 +846,16 @@ void KeyMgmt::delete_keys_with_warning(const GpgAbstractKeyPtrList& keys) {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    KeyManagementOperation::GetInstance(
-        key_list_->GetCurrentGpgContextChannel())
-        .DeleteKeys(keys);
+    const auto deleted = KeyManagementOperation::GetInstance(
+                             key_list_->GetCurrentGpgContextChannel())
+                             .DeleteKeys(keys);
     emit SignalKeyStatusUpdated();
+    if (!deleted) {
+      QMessageBox::critical(
+          this, tr("Deleting Keys"),
+          tr("Not every selected key could be deleted. The key list shows "
+             "the ones that are still there."));
+    }
   }
 }
 

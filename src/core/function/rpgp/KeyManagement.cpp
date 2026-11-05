@@ -49,6 +49,10 @@ auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     return false;
   }
 
+  // Every key is tried, and any one that could not be deleted is a failure:
+  // this used to stop at a missing key after deleting the ones before it, and
+  // report a key the database refused to delete as deleted.
+  auto all_deleted = true;
   for (const auto& key : keys) {
     LOG_D() << "Deleting key: " << key->ID();
 
@@ -59,14 +63,16 @@ auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
 
     if (!key_db->GetKeyMetadata(key->ID())) {
       LOG_E() << "key not found in database: " << key->ID();
-      return false;
+      all_deleted = false;
+      continue;
     }
 
     if (!key_db->DeleteKey(key->ID())) {
       LOG_E() << "failed to delete key from database: " << key->ID();
+      all_deleted = false;
     }
   }
-  return true;
+  return all_deleted;
 }
 
 namespace {
