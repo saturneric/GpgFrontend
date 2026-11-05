@@ -137,12 +137,21 @@ auto FindEncryptionSubkey(const GpgAbstractKeyPtr& key)
     -> std::pair<QString, QString> {
   auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
   if (gpg_key == nullptr) return {};
+  // The one the engine picks on its own: the newest usable encryption
+  // subkey, the later one on a tie.
+  std::pair<QString, QString> found;
+  QDateTime newest;
   for (const auto& s : gpg_key->SubKeys()) {
-    if (!s.IsHasCertCap() && s.IsHasEncrCap() && !s.IsRevoked()) {
-      return {s.Fingerprint(), s.ID()};
+    if (s.IsHasCertCap() || !s.IsHasEncrCap() || s.IsRevoked() ||
+        s.IsExpired()) {
+      continue;
+    }
+    if (found.first.isEmpty() || s.CreationTime() >= newest) {
+      found = {s.Fingerprint(), s.ID()};
+      newest = s.CreationTime();
     }
   }
-  return {};
+  return found;
 }
 
 }  // namespace

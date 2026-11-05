@@ -231,6 +231,24 @@ TEST_F(RpgpCoreTest, CoreEncryptToNoUsableRecipientNamesEachOneTest) {
 
 namespace {
 
+// The subkey the engine encrypts to on its own: the newest usable encryption
+// subkey, the later one on a tie.
+auto EncryptionSubkeyInUse(const GpgKey& key) -> QString {
+  QString fpr;
+  QDateTime newest;
+  for (const auto& s_key : key.SubKeys()) {
+    if (s_key.IsHasCertCap() || !s_key.IsHasEncrCap() || s_key.IsRevoked() ||
+        s_key.IsExpired()) {
+      continue;
+    }
+    if (fpr.isEmpty() || s_key.CreationTime() >= newest) {
+      fpr = s_key.Fingerprint();
+      newest = s_key.CreationTime();
+    }
+  }
+  return fpr;
+}
+
 // Fingerprint of a fixture key whose passphrase is kDefaultPassphrase.
 const char* const kFixtureKeyFpr = "3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497";
 const char* const kDefaultPassphrase = "123456";
@@ -329,13 +347,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
   ASSERT_TRUE(key != nullptr);
 
   // The primary key is certify-only here; encryption runs on a subkey.
-  QString encr_subkey_fpr;
-  for (const auto& s_key : key->SubKeys()) {
-    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
-      encr_subkey_fpr = s_key.Fingerprint();
-      break;
-    }
-  }
+  const auto encr_subkey_fpr = EncryptionSubkeyInUse(*key);
   ASSERT_FALSE(encr_subkey_fpr.isEmpty());
 
   InstallPassphraseScript(
@@ -373,13 +385,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRetriesBadUnlockTest) {
                  .GetKeyPtr(kFixtureKeyFpr);
   ASSERT_TRUE(key != nullptr);
 
-  QString encr_subkey_fpr;
-  for (const auto& s_key : key->SubKeys()) {
-    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
-      encr_subkey_fpr = s_key.Fingerprint();
-      break;
-    }
-  }
+  const auto encr_subkey_fpr = EncryptionSubkeyInUse(*key);
   ASSERT_FALSE(encr_subkey_fpr.isEmpty());
 
   // Get the unlock wrong once, then right -- as a user fixing a typo would.
@@ -427,13 +433,7 @@ TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseReportsBadPassphraseTest) {
                  .GetKeyPtr(kFixtureKeyFpr);
   ASSERT_TRUE(key != nullptr);
 
-  QString encr_subkey_fpr;
-  for (const auto& s_key : key->SubKeys()) {
-    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
-      encr_subkey_fpr = s_key.Fingerprint();
-      break;
-    }
-  }
+  const auto encr_subkey_fpr = EncryptionSubkeyInUse(*key);
   ASSERT_FALSE(encr_subkey_fpr.isEmpty());
 
   InstallPassphraseScript(
@@ -621,13 +621,7 @@ TEST_F(RpgpCoreTest, CoreSetSubkeyExpirationPreservesBindingTest) {
                  .GetKeyPtr(kFixtureKeyFpr);
   ASSERT_TRUE(key != nullptr);
 
-  QString encr_subkey_fpr;
-  for (const auto& s_key : key->SubKeys()) {
-    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
-      encr_subkey_fpr = s_key.Fingerprint();
-      break;
-    }
-  }
+  const auto encr_subkey_fpr = EncryptionSubkeyInUse(*key);
   ASSERT_FALSE(encr_subkey_fpr.isEmpty());
 
   const auto expires = QDateTime::currentDateTimeUtc().addYears(1);
