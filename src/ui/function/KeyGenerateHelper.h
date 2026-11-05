@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/model/DataObject.h"
-#include "core/function/KeyGenProfile.h"
 #include "core/model/GpgKeyGenerateInfo.h"
+#include "shell/rules/KeyGenProfile.h"
 
 namespace GpgFrontend::UI {
 

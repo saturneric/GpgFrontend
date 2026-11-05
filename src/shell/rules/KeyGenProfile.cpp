@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/KeyGenProfile.h"
+#include "shell/rules/KeyGenProfile.h"
 
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/model/CacheObject.h"

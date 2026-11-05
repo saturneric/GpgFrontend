@@ -32,7 +32,6 @@
 #include <QRegularExpression>
 #include <algorithm>
 
-#include "core/function/KeyGenProfile.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
@@ -53,6 +52,7 @@
 #include "model/ErrorWording.h"
 #include "model/KeyGenProfilesController.h"
 #include "model/KeyRoleModel.h"
+#include "shell/rules/KeyGenProfile.h"
 
 namespace GpgFrontend::Mobile {
 

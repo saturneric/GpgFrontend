@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/model/GpgKeyGenerateInfo.h"
+#include "shell/rules/KeyGenProfile.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "core/function/KeyGenProfile.h"
 
 namespace GpgFrontend::UI {
 

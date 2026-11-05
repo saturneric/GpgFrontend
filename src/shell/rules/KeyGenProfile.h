@@ -31,7 +31,7 @@
 #include <functional>
 #include <optional>
 
-#include "GFCoreExport.h"
+#include "GFShellExport.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 
 namespace GpgFrontend {
@@ -43,7 +43,7 @@ namespace GpgFrontend {
  * under one engine survives being read under another that lacks some of its
  * algorithms: it is only hidden there, never rewritten.
  */
-struct GF_CORE_EXPORT KeyGenProfile {
+struct GF_SHELL_EXPORT KeyGenProfile {
   QString name;
   QString description;  ///< what the profile is for, in a sentence or two
   QString key_algo;
@@ -77,13 +77,13 @@ inline constexpr const char* kKeyGenProfileTrContext =
  * survives a change of language; they are translated only when shown. A name
  * the user gave has no translation and is shown as it is.
  */
-auto GF_CORE_EXPORT KeyGenProfileDisplayName(const KeyGenProfile& profile)
+auto GF_SHELL_EXPORT KeyGenProfileDisplayName(const KeyGenProfile& profile)
     -> QString;
 
 /**
  * @brief A profile's description as shown; see KeyGenProfileDisplayName().
  */
-auto GF_CORE_EXPORT
+auto GF_SHELL_EXPORT
 KeyGenProfileDisplayDescription(const KeyGenProfile& profile) -> QString;
 
 /// The longest description a profile may have.
@@ -104,25 +104,25 @@ constexpr int kKeyGenProfileNameMaxLen = 96;
  * @param obj the stored object
  * @return the profile, or nothing when the object is not one
  */
-auto GF_CORE_EXPORT KeyGenProfileFromJson(const QJsonObject& obj)
+auto GF_SHELL_EXPORT KeyGenProfileFromJson(const QJsonObject& obj)
     -> std::optional<KeyGenProfile>;
 
 /**
  * @brief The stored form of a profile.
  */
-auto GF_CORE_EXPORT KeyGenProfileToJson(const KeyGenProfile& profile)
+auto GF_SHELL_EXPORT KeyGenProfileToJson(const KeyGenProfile& profile)
     -> QJsonObject;
 
 /**
  * @brief Read a stored list, skipping entries that are not profiles.
  */
-auto GF_CORE_EXPORT KeyGenProfilesFromJson(const QJsonArray& array)
+auto GF_SHELL_EXPORT KeyGenProfilesFromJson(const QJsonArray& array)
     -> QList<KeyGenProfile>;
 
 /**
  * @brief The stored form of a list of profiles.
  */
-auto GF_CORE_EXPORT KeyGenProfilesToJson(const QList<KeyGenProfile>& profiles)
+auto GF_SHELL_EXPORT KeyGenProfilesToJson(const QList<KeyGenProfile>& profiles)
     -> QJsonArray;
 
 /**
@@ -130,7 +130,7 @@ auto GF_CORE_EXPORT KeyGenProfilesToJson(const QList<KeyGenProfile>& profiles)
  *
  * The first is the recommended modern default (Ed25519 / X25519).
  */
-auto GF_CORE_EXPORT MakeDefaultKeyGenProfiles() -> QList<KeyGenProfile>;
+auto GF_SHELL_EXPORT MakeDefaultKeyGenProfiles() -> QList<KeyGenProfile>;
 
 /**
  * @brief What a profile makes, as one string: equal for two profiles exactly
@@ -141,7 +141,7 @@ auto GF_CORE_EXPORT MakeDefaultKeyGenProfiles() -> QList<KeyGenProfile>;
  * it is hidden, so a renamed or reworded copy of a profile is still that
  * profile.
  */
-auto GF_CORE_EXPORT KeyGenProfileFingerprint(const KeyGenProfile& profile)
+auto GF_SHELL_EXPORT KeyGenProfileFingerprint(const KeyGenProfile& profile)
     -> QString;
 
 /**
@@ -155,7 +155,7 @@ auto GF_CORE_EXPORT KeyGenProfileFingerprint(const KeyGenProfile& profile)
  * @param current the profiles as they are
  * @return them, followed by the missing built-ins in their usual order
  */
-auto GF_CORE_EXPORT RestoreDefaultKeyGenProfiles(
+auto GF_SHELL_EXPORT RestoreDefaultKeyGenProfiles(
     const QList<KeyGenProfile>& current) -> QList<KeyGenProfile>;
 
 /**
@@ -178,24 +178,23 @@ enum class KeyGenProfileNameProblem {
  * or -1
  * @return the reason it may not, or kNone
  */
-auto GF_CORE_EXPORT CheckKeyGenProfileName(const QString& name,
-                                           const QList<KeyGenProfile>& profiles,
-                                           int ignore_index = -1)
-    -> KeyGenProfileNameProblem;
+auto GF_SHELL_EXPORT CheckKeyGenProfileName(
+    const QString& name, const QList<KeyGenProfile>& profiles,
+    int ignore_index = -1) -> KeyGenProfileNameProblem;
 
 /**
  * @brief The translated sentence for a name problem; empty for kNone.
  */
-auto GF_CORE_EXPORT
+auto GF_SHELL_EXPORT
 DescribeKeyGenProfileNameProblem(KeyGenProfileNameProblem problem) -> QString;
 
 /// The validity choices offered, in order. "custom" is not among them.
-auto GF_CORE_EXPORT KeyGenValidityPresets() -> QStringList;
+auto GF_SHELL_EXPORT KeyGenValidityPresets() -> QStringList;
 
 /**
  * @brief Whether a validity string means the key never expires.
  */
-auto GF_CORE_EXPORT IsNeverExpiringValidity(const QString& validity) -> bool;
+auto GF_SHELL_EXPORT IsNeverExpiringValidity(const QString& validity) -> bool;
 
 /**
  * @brief When a key given @p validity from @p now expires.
@@ -205,8 +204,8 @@ auto GF_CORE_EXPORT IsNeverExpiringValidity(const QString& validity) -> bool;
  * century away, which is only a placeholder: the caller marks the key as not
  * expiring.
  */
-auto GF_CORE_EXPORT ParseKeyGenValidity(const QString& validity,
-                                        const QDateTime& now) -> QDateTime;
+auto GF_SHELL_EXPORT ParseKeyGenValidity(const QString& validity,
+                                         const QDateTime& now) -> QDateTime;
 
 /**
  * @brief The validity string that describes an expiry.
@@ -215,19 +214,20 @@ auto GF_CORE_EXPORT ParseKeyGenValidity(const QString& validity,
  * saving a profile right after choosing "1 year" keeps saying "1 year".
  * Otherwise the whole days to it, as "<N>d".
  */
-auto GF_CORE_EXPORT KeyGenValidityFor(bool non_expired, const QDateTime& expire,
-                                      const QDateTime& now) -> QString;
+auto GF_SHELL_EXPORT KeyGenValidityFor(bool non_expired,
+                                       const QDateTime& expire,
+                                       const QDateTime& now) -> QString;
 
 /**
  * @brief How a validity string is shown: "2 years", "Never", "90 days".
  */
-auto GF_CORE_EXPORT KeyGenValidityDisplayName(const QString& validity)
+auto GF_SHELL_EXPORT KeyGenValidityDisplayName(const QString& validity)
     -> QString;
 
 /**
  * @brief A profile matched against what an engine can generate.
  */
-struct GF_CORE_EXPORT ResolvedKeyGenProfile {
+struct GF_SHELL_EXPORT ResolvedKeyGenProfile {
   KeyGenProfile profile;
   KeyAlgo primary;
   KeyAlgo primary_sub;  ///< kNoneAlgo unless the primary is a hybrid
@@ -249,10 +249,10 @@ using SubAlgosOf = std::function<QList<KeyAlgo>(const KeyAlgo&)>;
  * @param sub_algos_of the pairings a hybrid algorithm allows
  * @return the match, or nothing when any part of the profile is unavailable
  */
-auto GF_CORE_EXPORT ResolveKeyGenProfile(const KeyGenProfile& profile,
-                                         const QList<KeyAlgo>& primary_algos,
-                                         const QList<KeyAlgo>& subkey_algos,
-                                         const SubAlgosOf& sub_algos_of)
+auto GF_SHELL_EXPORT ResolveKeyGenProfile(const KeyGenProfile& profile,
+                                          const QList<KeyAlgo>& primary_algos,
+                                          const QList<KeyAlgo>& subkey_algos,
+                                          const SubAlgosOf& sub_algos_of)
     -> std::optional<ResolvedKeyGenProfile>;
 
 /**
@@ -261,10 +261,10 @@ auto GF_CORE_EXPORT ResolveKeyGenProfile(const KeyGenProfile& profile,
  * In stored order. Hidden profiles and ones the engine cannot generate are
  * left out.
  */
-auto GF_CORE_EXPORT ResolveKeyGenProfiles(const QList<KeyGenProfile>& profiles,
-                                          const QList<KeyAlgo>& primary_algos,
-                                          const QList<KeyAlgo>& subkey_algos,
-                                          const SubAlgosOf& sub_algos_of)
+auto GF_SHELL_EXPORT ResolveKeyGenProfiles(const QList<KeyGenProfile>& profiles,
+                                           const QList<KeyAlgo>& primary_algos,
+                                           const QList<KeyAlgo>& subkey_algos,
+                                           const SubAlgosOf& sub_algos_of)
     -> QList<ResolvedKeyGenProfile>;
 
 /**
@@ -275,7 +275,7 @@ auto GF_CORE_EXPORT ResolveKeyGenProfiles(const QList<KeyGenProfile>& profiles,
  *
  * @return its index in @p offered, or -1 when there are none
  */
-auto GF_CORE_EXPORT PickDefaultKeyGenProfile(
+auto GF_SHELL_EXPORT PickDefaultKeyGenProfile(
     const QList<ResolvedKeyGenProfile>& offered, const QString& default_name)
     -> int;
 
@@ -288,10 +288,9 @@ auto GF_CORE_EXPORT PickDefaultKeyGenProfile(
  * @param subkey replaced by a new subkey when the profile has one, else null.
  * A new subkey shares the primary key's "no passphrase" choice.
  */
-void GF_CORE_EXPORT ApplyKeyGenProfile(const ResolvedKeyGenProfile& resolved,
-                                       const QDateTime& now,
-                                       KeyGenerateInfo& key,
-                                       QSharedPointer<KeyGenerateInfo>& subkey);
+void GF_SHELL_EXPORT ApplyKeyGenProfile(
+    const ResolvedKeyGenProfile& resolved, const QDateTime& now,
+    KeyGenerateInfo& key, QSharedPointer<KeyGenerateInfo>& subkey);
 
 /**
  * @brief The profile that describes keys set up like these.
@@ -299,7 +298,7 @@ void GF_CORE_EXPORT ApplyKeyGenProfile(const ResolvedKeyGenProfile& resolved,
  * Used by "Save as profile": the algorithms and validity are taken as they
  * stand, and the name is left for the caller.
  */
-auto GF_CORE_EXPORT KeyGenProfileFromInfo(
+auto GF_SHELL_EXPORT KeyGenProfileFromInfo(
     const KeyGenerateInfo& key, const QSharedPointer<KeyGenerateInfo>& subkey,
     const QDateTime& now) -> KeyGenProfile;
 
@@ -310,7 +309,7 @@ auto GF_CORE_EXPORT KeyGenProfileFromInfo(
  *
  * @return 6 when any of them is post-quantum, else 0 (no requirement)
  */
-auto GF_CORE_EXPORT RequiredKeyVersion(
+auto GF_SHELL_EXPORT RequiredKeyVersion(
     const KeyGenerateInfo& key, const QSharedPointer<KeyGenerateInfo>& subkey)
     -> int;
 
@@ -320,15 +319,15 @@ auto GF_CORE_EXPORT RequiredKeyVersion(
  * An algorithm whose id is unique is found whatever the type says, so a
  * profile stored before types were recorded still resolves.
  */
-auto GF_CORE_EXPORT GetAlgoByIdType(const QString& id, const QString& type,
-                                    const QList<KeyAlgo>& algos)
+auto GF_SHELL_EXPORT GetAlgoByIdType(const QString& id, const QString& type,
+                                     const QList<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
 /**
  * @brief The profiles a channel's engine can generate, in stored order.
  */
-auto GF_CORE_EXPORT OfferedKeyGenProfiles(int channel,
-                                          const QList<KeyGenProfile>& profiles)
+auto GF_SHELL_EXPORT OfferedKeyGenProfiles(int channel,
+                                           const QList<KeyGenProfile>& profiles)
     -> QList<ResolvedKeyGenProfile>;
 
 /**
@@ -336,7 +335,7 @@ auto GF_CORE_EXPORT OfferedKeyGenProfiles(int channel,
  *
  * Empty strings where nothing is.
  */
-struct GF_CORE_EXPORT KeyGenIdentityCheck {
+struct GF_SHELL_EXPORT KeyGenIdentityCheck {
   QString name;
   QString email;
   QString comment;
@@ -353,9 +352,9 @@ struct GF_CORE_EXPORT KeyGenIdentityCheck {
  * given. The name and comment become part of a mail address, so its delimiters
  * are not allowed in them.
  */
-auto GF_CORE_EXPORT CheckKeyGenIdentity(const QString& name,
-                                        const QString& email,
-                                        const QString& comment)
+auto GF_SHELL_EXPORT CheckKeyGenIdentity(const QString& name,
+                                         const QString& email,
+                                         const QString& comment)
     -> KeyGenIdentityCheck;
 
 /// The settings object the key generation settings are stored under.
@@ -375,7 +374,7 @@ struct StoredKeyGenProfiles {
  * LoadKeyGenSettings() finds them: an interface that just generates keys uses
  * what is there, and leaves the migration to the settings that write back.
  */
-auto GF_CORE_EXPORT LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles;
+auto GF_SHELL_EXPORT LoadStoredKeyGenProfiles() -> StoredKeyGenProfiles;
 
 /**
  * @brief What a new subkey is for.
@@ -393,7 +392,7 @@ enum class SubkeyPurpose {
  * "RSA 3072", "ML-DSA-65_ED25519"); this is the id the generation tables use
  * for it ("rsa3072", "mldsa65").
  */
-auto GF_CORE_EXPORT NormalizeKeyAlgoId(const QString& engine_name) -> QString;
+auto GF_SHELL_EXPORT NormalizeKeyAlgoId(const QString& engine_name) -> QString;
 
 /**
  * @brief The algorithm a subkey for @p purpose should use under @p primary.
@@ -408,44 +407,44 @@ auto GF_CORE_EXPORT NormalizeKeyAlgoId(const QString& engine_name) -> QString;
  * @param supported what may be generated under this key
  * @return the algorithm, or kNoneAlgo when nothing on offer can do the job
  */
-auto GF_CORE_EXPORT SuggestSubkeyAlgo(SubkeyPurpose purpose,
-                                      const QString& primary,
-                                      const QList<KeyAlgo>& supported)
+auto GF_SHELL_EXPORT SuggestSubkeyAlgo(SubkeyPurpose purpose,
+                                       const QString& primary,
+                                       const QList<KeyAlgo>& supported)
     -> KeyAlgo;
 
 /**
  * @brief A purpose by its stored or scripted name: "encrypt", "sign" or
  * "authenticate"; nullopt for anything else.
  */
-auto GF_CORE_EXPORT ParseSubkeyPurpose(const QString& name)
+auto GF_SHELL_EXPORT ParseSubkeyPurpose(const QString& name)
     -> std::optional<SubkeyPurpose>;
 
 /**
  * @brief Make @p info a subkey of @p algo for one job only: an algorithm that
  * could also sign is not made to.
  */
-void GF_CORE_EXPORT ApplySubkeyPurpose(KeyGenerateInfo& info,
-                                       SubkeyPurpose purpose,
-                                       const KeyAlgo& algo);
+void GF_SHELL_EXPORT ApplySubkeyPurpose(KeyGenerateInfo& info,
+                                        SubkeyPurpose purpose,
+                                        const KeyAlgo& algo);
 
 /**
  * @brief Give @p key the format its algorithms need: v6 for a post-quantum
  * one (RequiredKeyVersion()), else the interoperable v4.
  */
-void GF_CORE_EXPORT ApplyDefaultKeyVersion(
+void GF_SHELL_EXPORT ApplyDefaultKeyVersion(
     KeyGenerateInfo& key, const QSharedPointer<KeyGenerateInfo>& subkey);
 
 /**
  * @brief How an algorithm is called: "Ed25519", "RSA-4096", or both halves of
  * a hybrid, "ML-KEM-768 + X25519".
  */
-auto GF_CORE_EXPORT DescribeKeyAlgo(const KeyAlgo& algo, const KeyAlgo& sub)
+auto GF_SHELL_EXPORT DescribeKeyAlgo(const KeyAlgo& algo, const KeyAlgo& sub)
     -> QString;
 
 /**
  * @brief A profile's algorithms in one line: "Ed25519 · X25519".
  */
-auto GF_CORE_EXPORT DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r)
+auto GF_SHELL_EXPORT DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r)
     -> QString;
 
 // ---- The made-up user ids of an anonymous key (the desktop's "Fill In
@@ -473,7 +472,7 @@ auto GF_CORE_EXPORT DescribeKeyGenProfileAlgos(const ResolvedKeyGenProfile& r)
  * Deliberately nothing that names this computer or its user: a public key is
  * published, and a user id made from the login name would say who made it.
  */
-struct GF_CORE_EXPORT UidPattern {
+struct GF_SHELL_EXPORT UidPattern {
   QString name = u"anon-{token}"_s;
   QString email = u"anon-{token}@{domain}.{tld}"_s;
   QString comment;
@@ -486,7 +485,7 @@ struct GF_CORE_EXPORT UidPattern {
 /**
  * @brief A user id made from a pattern.
  */
-struct GF_CORE_EXPORT ExpandedUid {
+struct GF_SHELL_EXPORT ExpandedUid {
   QString name;
   QString email;
   QString comment;
@@ -498,7 +497,7 @@ using UidPatternRandom = std::function<quint64()>;
 /**
  * @brief The system's random source, for real use.
  */
-auto GF_CORE_EXPORT SystemUidPatternRandom() -> UidPatternRandom;
+auto GF_SHELL_EXPORT SystemUidPatternRandom() -> UidPatternRandom;
 
 /**
  * @brief Fill a pattern in.
@@ -510,9 +509,9 @@ auto GF_CORE_EXPORT SystemUidPatternRandom() -> UidPatternRandom;
  * @param random the random source
  * @param now what {date}, {time} and {timestamp} are; read in local time
  */
-auto GF_CORE_EXPORT ExpandUidPattern(const UidPattern& pattern,
-                                     const UidPatternRandom& random,
-                                     const QDateTime& now) -> ExpandedUid;
+auto GF_SHELL_EXPORT ExpandUidPattern(const UidPattern& pattern,
+                                      const UidPatternRandom& random,
+                                      const QDateTime& now) -> ExpandedUid;
 
 /**
  * @brief What is wrong with one part of a pattern.
@@ -529,7 +528,7 @@ enum class UidPatternProblem {
 /**
  * @brief What is wrong with each part of a pattern.
  */
-struct GF_CORE_EXPORT UidPatternCheck {
+struct GF_SHELL_EXPORT UidPatternCheck {
   UidPatternProblem name = UidPatternProblem::kNone;
   UidPatternProblem email = UidPatternProblem::kNone;
   UidPatternProblem comment = UidPatternProblem::kNone;
@@ -547,24 +546,24 @@ struct GF_CORE_EXPORT UidPatternCheck {
  * The email part may be empty: a user id needs no address. The comment is
  * usually empty.
  */
-auto GF_CORE_EXPORT CheckUidPattern(const UidPattern& pattern)
+auto GF_SHELL_EXPORT CheckUidPattern(const UidPattern& pattern)
     -> UidPatternCheck;
 
 /**
  * @brief The translated sentence for a problem; empty for kNone.
  */
-auto GF_CORE_EXPORT DescribeUidPatternProblem(UidPatternProblem problem)
+auto GF_SHELL_EXPORT DescribeUidPatternProblem(UidPatternProblem problem)
     -> QString;
 
 /**
  * @brief Read a stored pattern; missing parts take their defaults.
  */
-auto GF_CORE_EXPORT UidPatternFromJson(const QJsonObject& obj) -> UidPattern;
+auto GF_SHELL_EXPORT UidPatternFromJson(const QJsonObject& obj) -> UidPattern;
 
 /**
  * @brief The stored form of a pattern.
  */
-auto GF_CORE_EXPORT UidPatternToJson(const UidPattern& pattern) -> QJsonObject;
+auto GF_SHELL_EXPORT UidPatternToJson(const UidPattern& pattern) -> QJsonObject;
 
 /// The durable cache the profiles lived in before they moved to Settings.
 inline constexpr const char* kLegacyKeyGenProfileCache =
@@ -621,20 +620,20 @@ struct KeyGenSO {
  * @param legacy the old cache's profile array; empty when there is none
  * @return the settings, with `profiles_stored` saying whether they changed
  */
-auto GF_CORE_EXPORT KeyGenSettingsFromStored(const QJsonObject& stored,
-                                             const QJsonArray& legacy)
+auto GF_SHELL_EXPORT KeyGenSettingsFromStored(const QJsonObject& stored,
+                                              const QJsonArray& legacy)
     -> KeyGenSO;
 
 /**
  * @brief The key generation settings, migrating them on first use.
  */
-auto GF_CORE_EXPORT LoadKeyGenSettings() -> KeyGenSO;
+auto GF_SHELL_EXPORT LoadKeyGenSettings() -> KeyGenSO;
 
 /**
  * @brief Store the key generation settings. Keys a newer build added are
  * kept.
  */
-void GF_CORE_EXPORT StoreKeyGenSettings(const KeyGenSO& settings);
+void GF_SHELL_EXPORT StoreKeyGenSettings(const KeyGenSO& settings);
 
 /**
  * @brief Remember whether the key dialogs open in Expert Mode.
@@ -642,6 +641,6 @@ void GF_CORE_EXPORT StoreKeyGenSettings(const KeyGenSO& settings);
  * Only that one value: a dialog holding an older copy of the settings must not
  * write the rest of it back.
  */
-void GF_CORE_EXPORT StoreKeyGenExpertMode(bool on);
+void GF_SHELL_EXPORT StoreKeyGenExpertMode(bool on);
 
 }  // namespace GpgFrontend

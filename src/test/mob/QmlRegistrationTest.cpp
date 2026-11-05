@@ -32,7 +32,6 @@
 #include <QSignalSpy>
 
 #include "MobileTest.h"
-#include "core/function/KeyGenProfile.h"
 #include "core/function/openpgp/ChannelHandle.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/GpgUtils.h"
@@ -41,6 +40,7 @@
 #include "files/FileWorkspace.h"
 #include "lifecycle/AppLifecycle.h"
 #include "model/KeyListController.h"
+#include "shell/rules/KeyGenProfile.h"
 #include "startup/InteractionBridge.h"
 #include "startup/StartupController.h"
 

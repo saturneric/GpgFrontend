@@ -36,7 +36,7 @@
 #include <QVariantMap>
 #include <optional>
 
-#include "core/function/KeyGenProfile.h"
+#include "shell/rules/KeyGenProfile.h"
 
 namespace GpgFrontend::Mobile {
 

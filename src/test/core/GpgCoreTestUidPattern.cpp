@@ -29,8 +29,8 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
-#include "core/function/KeyGenProfile.h"
 #include "core/utils/CommonUtils.h"
+#include "shell/rules/KeyGenProfile.h"
 
 namespace GpgFrontend::Test {
 
