@@ -356,12 +356,14 @@ void KeyPairUIDTab::slot_del_uid() {
           .DeleteUID(
               m_key_, uid, [this, hd, uid](GFError err, const DataObjectPtr&) {
                 hd();
+                if (err.Canceled()) return;
                 if (!err.Ok()) {
                   QMessageBox::critical(
                       this, tr("Operation Failed"),
                       tr("An error occurred during the delete %1 "
                          "operation.")
-                          .arg(uid.toHtmlEscaped()));
+                              .arg(uid.toHtmlEscaped()) +
+                          "\n\n" + DescribeGFError(err).second);
                   return;
                 }
                 QMessageBox::information(this, tr("Successful Operation"),
@@ -400,10 +402,12 @@ void KeyPairUIDTab::slot_set_primary_uid() {
         .SetPrimaryUID(m_key_, uid,
                        [this, hd](GFError err, const DataObjectPtr&) {
                          hd();
+                         if (err.Canceled()) return;
                          if (!err.Ok()) {
                            QMessageBox::critical(
                                this, tr("Operation Failed"),
-                               tr("An error occurred during the operation."));
+                               tr("An error occurred during the operation.") +
+                                   "\n\n" + DescribeGFError(err).second);
                            return;
                          }
                          emit SignalUpdateUIDInfo();
@@ -629,10 +633,12 @@ void KeyPairUIDTab::slot_rev_uid() {
                   key, uid, code == 1 ? 4 : 0, text,
                   [this, hd](GFError err, const DataObjectPtr&) {
                     hd();
+                    if (err.Canceled()) return;
                     if (!err.Ok()) {
                       QMessageBox::critical(
                           this, tr("Revocation Failed"),
-                          tr("Failed to revoke the UID. Please try again."));
+                          tr("Failed to revoke the UID. Please try again.") +
+                              "\n\n" + DescribeGFError(err).second);
                       return;
                     }
                     QMessageBox::information(

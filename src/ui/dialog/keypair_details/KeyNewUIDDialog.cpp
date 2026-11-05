@@ -206,11 +206,12 @@ void KeyNewUIDDialog::slot_create_new_uid() {
                     msg_box->open();
 
                     this->close();
-                  } else {
+                  } else if (!err.Canceled()) {
                     // Keep the dialog open so the user can retry.
                     QMessageBox::critical(
                         this, tr("Operation Failed"),
-                        tr("An error occurred during the operation."));
+                        tr("An error occurred during the operation.") + "\n\n" +
+                            DescribeGFError(err).second);
                   }
                 });
   };

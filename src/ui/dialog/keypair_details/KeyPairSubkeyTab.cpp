@@ -738,13 +738,16 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
     return;
   }
 
-  auto res = KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-                 .DeleteSubkey(key_, index);
+  const auto err =
+      KeyManagementOperation::GetInstance(current_gpg_context_channel_)
+          .DeleteSubkeySync(key_, index);
 
-  if (!res) {
+  if (err.Canceled()) return;
+  if (!err.Ok()) {
     QMessageBox::critical(this, tr("Operation Failed"),
                           tr("The selected subkey could not be deleted. "
-                             "Please check your permissions or try again."));
+                             "Please check your permissions or try again.") +
+                              "\n\n" + DescribeGFError(err).second);
     return;
   }
 
@@ -834,13 +837,15 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
           [key = key_, index, channel = current_gpg_context_channel_, this](
               int code, const QString& text) {
-            auto res =
-                KeyManagementOperation::GetInstance(channel).RevokeSubkey(
+            const auto err =
+                KeyManagementOperation::GetInstance(channel).RevokeSubkeySync(
                     key, index, code, text);
-            if (!res) {
+            if (err.Canceled()) return;
+            if (!err.Ok()) {
               QMessageBox::critical(
                   nullptr, tr("Revocation Failed"),
-                  tr("Failed to revoke the subkey. Please try again."));
+                  tr("Failed to revoke the subkey. Please try again.") +
+                      "\n\n" + DescribeGFError(err).second);
             } else {
               QMessageBox::information(
                   nullptr, tr("Revocation Successful"),

@@ -235,8 +235,10 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
       reason_text_utf8.constData(), FetchPasswordCallback, &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_crypto_generate_key_rev_cert error, code: "
-            << static_cast<int>(err);
+    // Taken, not only logged: left behind, it was reported as the detail of
+    // whatever failed next on this thread.
+    LOG_E() << "generating a revocation certificate failed:"
+            << TakeEngineErrorDetail(err, "generate revocation certificate");
     return false;
   }
 
