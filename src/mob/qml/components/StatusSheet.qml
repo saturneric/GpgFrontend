@@ -82,7 +82,7 @@ BottomSheet {
     // report they follow.
     // Its own icon and label: the style's label elided a short "Save all"
     // to "Save …" inside a Flow.
-    component ActionButton: Button {
+    component ResultAction: Button {
         id: action
 
         flat: true
@@ -345,7 +345,7 @@ BottomSheet {
         Layout.leftMargin: -12
         spacing: 8
 
-        ActionButton {
+        ResultAction {
             objectName: "statusSave"
             visible: !sheet.isText && !sheet.isBatch
                      && (sheet.record.outputs || []).length > 0
@@ -353,7 +353,7 @@ BottomSheet {
             icon.source: Theme.icon("save")
             onClicked: sheet.host.filesSurface.saveOutput(sheet.record.outputs[0])
         }
-        ActionButton {
+        ResultAction {
             visible: !sheet.isText && !sheet.active
             text: qsTr("Show in Files")
             icon.source: Theme.icon("folder")
@@ -365,7 +365,7 @@ BottomSheet {
                 sheet.host.showFileRequested(target)
             }
         }
-        ActionButton {
+        ResultAction {
             objectName: "statusRetry"
             visible: !sheet.isBatch && !sheet.active
                      && (sheet.record.phase === "failed"
@@ -374,7 +374,7 @@ BottomSheet {
             text: qsTr("Retry")
             onClicked: sheet.host.retry(sheet.record)
         }
-        ActionButton {
+        ResultAction {
             objectName: "statusSaveAll"
             visible: !sheet.isText && sheet.isBatch && !sheet.active
                      && sheet.batchOutputs().length > 0
@@ -382,14 +382,14 @@ BottomSheet {
             icon.source: Theme.icon("save")
             onClicked: sheet.host.filesSurface.saveToFolder(sheet.batchOutputs())
         }
-        ActionButton {
+        ResultAction {
             objectName: "statusRetryFailed"
             visible: sheet.isBatch && !sheet.active
                      && (sheet.counts.failed + sheet.counts.cancelled) > 0
             text: qsTr("Retry the failed")
             onClicked: sheet.host.retryFailed(sheet.record.batchId)
         }
-        ActionButton {
+        ResultAction {
             objectName: "statusStop"
             visible: sheet.active && !sheet.isText && sheet.counts.queued > 0
             text: qsTr("Stop waiting files")
@@ -398,7 +398,7 @@ BottomSheet {
         }
         // The cards and the engine's report: hidden until asked for, and
         // put away again the same way. One of the row, as its neighbours.
-        ActionButton {
+        ResultAction {
             objectName: "statusMore"
             text: sheet.expanded ? qsTr("Hide details") : qsTr("Details")
             icon.source: Theme.icon("info")

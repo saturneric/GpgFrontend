@@ -70,41 +70,53 @@ Alert {
             onAccepted: if (unlock.enabled) unlock.clicked()
         }
 
-        RowLayout {
-            Layout.alignment: Qt.AlignRight
+        // The buttons at the right, side by side while they fit and on to a
+        // new line when they do not (large text, German), Unlock always at
+        // the right; one too long for a line wraps its words. Never past
+        // the dialog's edge. Laid out from the right: the first is Unlock.
+        Flow {
+            id: actions
 
-            // After a few wrong ones, as on the desktop: a forgotten PIN can
-            // only be replaced, with everything it protected lost.
-            Button {
-                objectName: "forgotPin"
-                visible: !sheet.creating && sheet.request.failures >= 3
-                text: qsTr("Forgot PIN")
-                flat: true
+            Layout.fillWidth: true
+            layoutDirection: Qt.RightToLeft
+
+            ActionButton {
+                id: unlock
+
+                width: Math.min(implicitWidth, actions.width)
+                kind: "text"
+                text: sheet.creating ? qsTr("Set PIN") : qsTr("Unlock")
+                enabled: pin.text.length > 0
+                         && (!sheet.creating || pin.text === repeat.text)
                 onClicked: {
                     InteractionBridge.answer(sheet.request.id,
-                                             {"action": "reset"})
+                                             {"action": "pin", "pin": pin.text})
                     sheet.clear()
                 }
             }
 
-            Button {
+            ActionButton {
+                objectName: "pinQuit"
+                width: Math.min(implicitWidth, actions.width)
+                kind: "text"
                 text: qsTr("Quit")
-                flat: true
                 onClicked: {
                     InteractionBridge.decline(sheet.request.id)
                     sheet.clear()
                 }
             }
 
-            Button {
-                id: unlock
-                text: sheet.creating ? qsTr("Set PIN") : qsTr("Unlock")
-                flat: true
-                enabled: pin.text.length > 0
-                         && (!sheet.creating || pin.text === repeat.text)
+            // After a few wrong ones, as on the desktop: a forgotten PIN can
+            // only be replaced, with everything it protected lost.
+            ActionButton {
+                objectName: "forgotPin"
+                width: Math.min(implicitWidth, actions.width)
+                visible: !sheet.creating && sheet.request.failures >= 3
+                kind: "text"
+                text: qsTr("Forgot PIN")
                 onClicked: {
                     InteractionBridge.answer(sheet.request.id,
-                                             {"action": "pin", "pin": pin.text})
+                                             {"action": "reset"})
                     sheet.clear()
                 }
             }

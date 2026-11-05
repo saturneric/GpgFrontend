@@ -40,23 +40,31 @@ Alert {
                          + "permanently unreadable.")
         }
 
-        RowLayout {
-            Layout.alignment: Qt.AlignRight
+        // At the right, side by side while they fit, one under the other
+        // when they do not (large text, German); never past the dialog's
+        // edge. Laid out from the right: the first is the right one.
+        Flow {
+            id: actions
 
-            Button {
+            Layout.fillWidth: true
+            layoutDirection: Qt.RightToLeft
+
+            ActionButton {
+                objectName: "destructiveChoice"
+                width: Math.min(implicitWidth, actions.width)
+                kind: "text"
+                text: sheet.forceUnlock ? qsTr("Force open") : qsTr("Reset key")
+                onClicked: InteractionBridge.answer(sheet.request.id, true)
+            }
+
+            ActionButton {
                 objectName: "safeChoice"
+                width: Math.min(implicitWidth, actions.width)
+                kind: "text"
                 // A forgotten PIN not reset goes back to the PIN.
                 text: sheet.keyReset && sheet.request.reason === "pin_forgotten"
                       ? qsTr("Back") : qsTr("Quit")
-                flat: true
                 onClicked: InteractionBridge.decline(sheet.request.id)
-            }
-
-            Button {
-                objectName: "destructiveChoice"
-                text: sheet.forceUnlock ? qsTr("Force open") : qsTr("Reset key")
-                flat: true
-                onClicked: InteractionBridge.answer(sheet.request.id, true)
             }
         }
     }

@@ -80,6 +80,8 @@ FitMenu {
     }
 
     MenuItem {
+        id: again
+
         objectName: "operationAgain"
         height: menu.againText.length > 0 && menu.unavailable.length === 0
                 ? implicitHeight : 0
@@ -87,6 +89,25 @@ FitMenu {
         text: qsTr("Again: %1").arg(menu.againText)
         icon.source: Theme.icon("redo")
         onTriggered: menu.againRequested()
+
+        // Its words wrap, as the operations' below do: what is repeated can
+        // be long (a recipient's name), and the style's own row elides it.
+        contentItem: RowLayout {
+            spacing: 16
+
+            Icon {
+                Layout.alignment: Qt.AlignVCenter
+                symbol: "redo"
+                color: again.Material.foreground
+            }
+
+            Label {
+                Layout.fillWidth: true
+                text: again.text
+                wrapMode: Text.Wrap
+                font: again.font
+            }
+        }
     }
 
     MenuSeparator {

@@ -29,6 +29,13 @@ ToolBar {
     // it.
     Material.background: "transparent"
     Material.elevation: 0
+    // As tall as its title needs: the style's own height at the usual text
+    // size, taller with large text, where a title of the style's height ran
+    // into what is under the bar (a search field). The style's own formula,
+    // with the title's row as the content (the row is laid over the bar, so
+    // the bar's content item does not know its size).
+    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                             row.implicitHeight + topPadding + bottomPadding)
 
     Rectangle {
         objectName: "appBarDivider"
@@ -45,6 +52,8 @@ ToolBar {
     }
 
     RowLayout {
+        id: row
+
         anchors.fill: parent
         anchors.leftMargin: bar.canGoBack ? 4 : Theme.gap
         anchors.rightMargin: 4

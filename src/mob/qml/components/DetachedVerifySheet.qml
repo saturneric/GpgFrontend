@@ -131,8 +131,12 @@ BottomSheet {
                   ? qsTr("The same file cannot be both.") : ""
         }
 
-        Button {
-            flat: true
+        // As wide as its words, and narrower when the sheet is: its words
+        // then wrap (large text, German), never past the sheet's edge.
+        ActionButton {
+            Layout.fillWidth: true
+            Layout.maximumWidth: implicitWidth
+            kind: "text"
             text: qsTr("Add from device…")
             onClicked: field.pickRequested()
         }
@@ -154,10 +158,12 @@ BottomSheet {
         }
     }
 
-    Button {
+    ActionButton {
         objectName: "verifySwap"
         Layout.alignment: Qt.AlignHCenter
-        flat: true
+        Layout.fillWidth: true
+        Layout.maximumWidth: implicitWidth
+        kind: "text"
         text: qsTr("Swap the two")
         enabled: sheet.signatureId >= 0 || sheet.originalId >= 0
         onClicked: sheet.swap()

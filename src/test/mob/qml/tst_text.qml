@@ -137,6 +137,21 @@ Item {
             verify(!findByName(text, "emptyText").visible)
         }
 
+        // The Label that shows @p item's words, if its row has one.
+        function wordsOf(item) {
+            const walk = parent => {
+                for (let i = 0; i < parent.children.length; ++i) {
+                    const child = parent.children[i]
+                    if (child.truncated !== undefined && child.text === item.text)
+                        return child
+                    const found = walk(child)
+                    if (found) return found
+                }
+                return null
+            }
+            return item.contentItem ? walk(item.contentItem) : null
+        }
+
         // The menu is as wide as its longest name needs (translations are
         // longer than English), right above the button, inside the window.
         function test_the_operation_menu_fits_its_names() {
@@ -152,12 +167,18 @@ Item {
                 const item = menu.itemAt(i)
                 if (!item || item.height <= 0) continue
                 ++rows
-                // Clamped to the window, a row longer than it is elided:
-                // the style's menu entries do not wrap.
-                if (item.objectName === "operationAgain")
-                    expectFail("", "a menu entry wider than the window is cut")
-                verify(item.width >= item.implicitWidth - 0.5,
-                       item.objectName + " cut: " + item.width + " < " + item.implicitWidth)
+                // Its words all shown: on one line where the row is wide
+                // enough, wrapped where the window is narrower than they are.
+                const words = wordsOf(item)
+                if (words) {
+                    verify(!words.truncated, item.objectName + " cut")
+                    verify(words.width <= item.availableWidth + 0.5,
+                           item.objectName + " past its row")
+                } else {
+                    verify(item.width >= item.implicitWidth - 0.5,
+                           item.objectName + " cut: " + item.width + " < "
+                           + item.implicitWidth)
+                }
             }
             verify(rows >= 6)
             verify(menu.width <= text.width)
