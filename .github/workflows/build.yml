@@ -1281,7 +1281,8 @@ jobs:
   #
   # Like build-macos, it holds no secrets: the APK and the app bundle (AAB)
   # leave here unsigned, after the checks that need the build tree, and are
-  # signed by sign-android below.
+  # signed by sign-android below; play-upload signs the arm64 bundle again
+  # with the Play upload key.
   build-android:
     # Named by the ABI alone: by default every matrix value is listed.
     name: build-android (${{ matrix.arch }})
@@ -2983,3 +2984,125 @@ jobs:
           prerelease: true
           body_path: ${{ github.workspace }}/.github/NIGHTLY_RELEASE.md
           files: ${{ steps.verify.outputs.files }}
+
+  # Puts the arm64 app bundle on Google Play's internal testing track, rolled
+  # out to the testers at once:
+  #   - a push to main  -> named nightly-<sha>. Only after `release`: nothing
+  #     reaches Play that did not pass provenance and the nightly's approval
+  #     gate.
+  #   - a version tag   -> named after the tag. Tags have no `release` job
+  #     (stable releases are packaged by hand), so this follows sign-android.
+  #     Promoting it beyond the testers is done by hand in Play Console.
+  # arm64 alone, as Play wants one bundle per release and phones are ARM;
+  # x86_64 stays on the nightly page.
+  #
+  # Play App Signing re-signs what users get, so the bundle is signed here
+  # with the upload key, not the release key that signs the APKs: it is the
+  # unsigned bundle from build-android, signed again for this one purpose.
+  #
+  # Maintainer, once, before this can pass:
+  #   - create the app (com.bktus.gpgfrontend) in Play Console, enable Play
+  #     App Signing, and upload a first bundle there by hand: the API cannot
+  #     create an app;
+  #   - register the upload key's certificate as the app's upload key;
+  #   - grant a Google Cloud service account "Release to testing tracks" for
+  #     the app, and put its JSON key in the environment below.
+  # While the app has never been published, Play takes only draft releases:
+  # pass --status draft until then.
+  play-upload:
+    needs: [release, sign-android]
+    # !cancelled(): on a tag `release` is skipped, which would otherwise skip
+    # this job too. Each ref then names the one job it must follow.
+    if: >-
+      !cancelled() && github.event_name == 'push' &&
+      ((github.ref == 'refs/heads/main' && needs.release.result == 'success') ||
+       (startsWith(github.ref, 'refs/tags/v') &&
+        needs.sign-android.result == 'success'))
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    # The upload key and the service-account key live in this environment.
+    # Maintainer: configure its deployment rule to allow only `main` and tags
+    # matching `v*`.
+    environment: google-play
+    steps:
+      - name: Preflight Check Play Credentials
+        env:
+          PLAY_UPLOAD_KEYSTORE: ${{ secrets.PLAY_UPLOAD_KEYSTORE }}
+          PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          missing=""
+          [ -n "${PLAY_UPLOAD_KEYSTORE:-}" ] || missing="$missing PLAY_UPLOAD_KEYSTORE"
+          [ -n "${PLAY_UPLOAD_KEYSTORE_PASSWORD:-}" ] || missing="$missing PLAY_UPLOAD_KEYSTORE_PASSWORD"
+          [ -n "${PLAY_UPLOAD_KEY_ALIAS:-}" ] || missing="$missing PLAY_UPLOAD_KEY_ALIAS"
+          [ -n "${PLAY_UPLOAD_KEY_PASSWORD:-}" ] || missing="$missing PLAY_UPLOAD_KEY_PASSWORD"
+          [ -n "${PLAY_SERVICE_ACCOUNT_JSON:-}" ] || missing="$missing PLAY_SERVICE_ACCOUNT_JSON"
+
+          if [ -n "$missing" ]; then
+            echo "The 'google-play' environment is missing:" >&2
+            for name in $missing; do echo "  - $name" >&2; done
+            echo >&2
+            echo "Set them under Settings > Environments > google-play." >&2
+            echo "PLAY_UPLOAD_KEYSTORE is the upload keystore (PKCS#12 or JKS)," >&2
+            echo "base64 encoded on one line. PLAY_SERVICE_ACCOUNT_JSON is the" >&2
+            echo "service account's JSON key file, as Google Cloud gives it." >&2
+            exit 1
+          fi
+          echo "all five Play credentials are present"
+
+      # The upload script only; nothing of the build.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          sparse-checkout: scripts/android
+
+      - name: Download Unsigned Bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: unsigned-android-arm64
+          path: ${{ runner.temp }}/unsigned
+
+      - name: Sign The Bundle With The Upload Key
+        env:
+          PLAY_UPLOAD_KEYSTORE: ${{ secrets.PLAY_UPLOAD_KEYSTORE }}
+          PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          export JAVA_HOME="$JAVA_HOME_17_X64" PATH="$JAVA_HOME_17_X64/bin:$PATH"
+          ks="$RUNNER_TEMP/upload.keystore"
+          trap 'rm -f "$ks"' EXIT
+          printf '%s' "$PLAY_UPLOAD_KEYSTORE" | base64 -d > "$ks"
+          aab="$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64.aab"
+          mkdir -p "$(dirname "$aab")"
+          jarsigner -keystore "$ks" \
+            -storepass:env PLAY_UPLOAD_KEYSTORE_PASSWORD \
+            -keypass:env PLAY_UPLOAD_KEY_PASSWORD \
+            -digestalg SHA-256 \
+            -signedjar "$aab" "$RUNNER_TEMP/unsigned/unsigned.aab" \
+            "$PLAY_UPLOAD_KEY_ALIAS"
+          jarsigner -verify "$aab" | grep -x "jar verified."
+          keytool -printcert -jarfile "$aab" | grep -E "^[[:space:]]*SHA256:"
+
+      # The ref was already checked by the job's `if:`; anything but a v* tag
+      # here is main.
+      - name: Upload To The Internal Track
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            name="$GITHUB_REF_NAME"
+          else
+            name="nightly-${GITHUB_SHA:0:7}"
+          fi
+          python3 -I scripts/android/play_upload.py \
+            --package com.bktus.gpgfrontend \
+            --bundle "$RUNNER_TEMP/play/GpgFrontend-${GITHUB_SHA:0:7}-android-arm64.aab" \
+            --track internal \
+            --release-name "$name"
