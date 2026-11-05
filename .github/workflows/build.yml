@@ -2986,13 +2986,12 @@ jobs:
           files: ${{ steps.verify.outputs.files }}
 
   # Puts the arm64 app bundle on Google Play's internal testing track, rolled
-  # out to the testers at once:
-  #   - a push to main  -> named nightly-<sha>. Only after `release`: nothing
-  #     reaches Play that did not pass provenance and the nightly's approval
-  #     gate.
-  #   - a version tag   -> named after the tag. Tags have no `release` job
-  #     (stable releases are packaged by hand), so this follows sign-android.
-  #     Promoting it beyond the testers is done by hand in Play Console.
+  # out to the testers at once, as soon as sign-android has signed it: it
+  # waits for neither provenance nor the nightly's approval gate, which guard
+  # the public GitHub release and not the testers.
+  #   - a push to main  -> named nightly-<sha>.
+  #   - a version tag   -> named after the tag. Promoting it beyond the
+  #     testers is done by hand in Play Console.
   # arm64 alone, as Play wants one bundle per release and phones are ARM;
   # x86_64 stays on the nightly page.
   #
@@ -3010,14 +3009,10 @@ jobs:
   # While the app has never been published, Play takes only draft releases:
   # pass --status draft until then.
   play-upload:
-    needs: [release, sign-android]
-    # !cancelled(): on a tag `release` is skipped, which would otherwise skip
-    # this job too. Each ref then names the one job it must follow.
+    needs: [sign-android]
     if: >-
-      !cancelled() && github.event_name == 'push' &&
-      ((github.ref == 'refs/heads/main' && needs.release.result == 'success') ||
-       (startsWith(github.ref, 'refs/tags/v') &&
-        needs.sign-android.result == 'success'))
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-24.04
     permissions:
       contents: read
