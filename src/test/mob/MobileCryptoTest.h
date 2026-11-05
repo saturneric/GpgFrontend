@@ -123,13 +123,15 @@ inline auto GenerateKey(const QString& name, const QString& passphrase) -> QStri
   info->SetNonExpired(true);
   info->SetKeyVersion(4);
 
+  // The channel in use, not channel 0: a test before may have switched the
+  // key database, retiring channel 0 and freeing it under a lookup there.
+  const auto channel = UsableDefaultChannelHandle();
   auto subkey = SecureCreateSharedObject<KeyGenerateInfo>();
   subkey->SetIsSubKey(true);
-  subkey->SetAlgo(std::get<1>(KeyGenerateInfo::SearchSubKeyAlgo("cv25519")));
+  subkey->SetAlgo(
+      std::get<1>(KeyGenerateInfo::SearchSubKeyAlgo("cv25519", channel)));
   subkey->SetNonPassPhrase(passphrase.isEmpty());
   subkey->SetNonExpired(true);
-
-  const auto channel = UsableDefaultChannelHandle();
   auto generating = std::async(std::launch::async, [channel, info, subkey]() {
     return KeyGenerationOperation::GetInstance(channel)
         .GenerateKeyWithSubkeySync(info, subkey);

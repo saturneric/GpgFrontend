@@ -28,8 +28,10 @@
 
 #include "GpgFrontendTest.h"
 #include "core/GFConstants.h"
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GFEngineSupportIf.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 
 namespace GpgFrontend::Test {
 
@@ -56,6 +58,26 @@ TEST(GpgCorePlaceholderContextTest, PlaceholderChannelIsNotGnuPG) {
                       kUnusedChannel,
                       {{OpenPGPEngine::kGNUPG, kGpgMinimalSupportVersion}}));
   EXPECT_FALSE(supported);
+}
+
+// A subkey algorithm is looked up on the engine in use, never on a retired
+// channel: one retired by a key database switch was freed under the lookup (a
+// crash in the phone app's tests, after a test that switched databases).
+TEST(GpgCorePlaceholderContextTest,
+     SubkeyAlgoIsNeverLookedUpOnARetiredChannel) {
+  constexpr int kGeneration = 0x7ffd0000;
+  const auto retired = AllocateChannelHandle();
+  ASSERT_TRUE(RegisterChannelHandle(retired, "id-retired", true, kGeneration));
+  ASSERT_TRUE(RetireChannelHandle(retired));
+  auto [found_retired, none] =
+      KeyGenerateInfo::SearchSubKeyAlgo("cv25519", retired);
+  EXPECT_FALSE(found_retired);
+
+  // The channel in use offers what its engine can make.
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo(
+      "cv25519", UsableDefaultChannelHandle());
+  EXPECT_TRUE(found);
+  EXPECT_EQ(algo.Id(), "cv25519");
 }
 
 }  // namespace GpgFrontend::Test

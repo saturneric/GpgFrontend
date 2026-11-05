@@ -28,6 +28,7 @@
 
 #include "core/function/KeyGenProfile.h"
 
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/model/CacheObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/CommonUtils.h"
@@ -40,7 +41,9 @@ namespace {
 /// A type left out by an old profile is looked up from the id alone.
 auto TypeOrLookup(const QString& id, const QString& type) -> QString {
   if (!type.isEmpty()) return type;
-  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo(id);
+  // As the engine in use offers it: channel 0 may be a retired database's.
+  auto [found, algo] =
+      KeyGenerateInfo::SearchSubKeyAlgo(id, UsableDefaultChannelHandle());
   return found ? algo.Type() : QString{};
 }
 

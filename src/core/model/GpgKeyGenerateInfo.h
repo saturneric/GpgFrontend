@@ -217,6 +217,23 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
       -> std::tuple<bool, KeyAlgo>;
 
   /**
+   * @brief The subkey algorithm @p algo_id as the engine on @p channel
+   * offers it.
+   *
+   * Use it for the engine in use (UsableDefaultChannelHandle()): the overload
+   * without a channel asks channel 0, the first Runtime's, which a key
+   * database switch retires and reclaims. The channel is leased while it is
+   * asked, so it is not reclaimed under the lookup; a retired channel offers
+   * nothing.
+   *
+   * @param algo_id
+   * @param channel
+   * @return std::tuple<bool, KeyAlgo>
+   */
+  static auto SearchSubKeyAlgo(const QString &algo_id, int channel)
+      -> std::tuple<bool, KeyAlgo>;
+
+  /**
    * @brief The algorithm an existing key component uses, by its canonical id
    * (GpgSubKey::AlgoId()), across every algorithm either engine knows,
    * hybrids included.

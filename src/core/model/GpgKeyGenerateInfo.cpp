@@ -31,6 +31,7 @@
 #include <array>
 #include <cassert>
 
+#include "core/function/openpgp/ChannelHandle.h"
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyGenerationTraits.h"
 #include "core/utils/CommonUtils.h"
@@ -177,6 +178,19 @@ auto KyberHybridCurves(const EngineSupportList &cv25519_support,
       {FindSubAlgo("brainpoolp512r1", "ECDH"), gnupg_only},
       {FindSubAlgo("x448", "ECDH"), x448_support},
   };
+}
+
+auto FindAlgoById(const QList<KeyAlgo> &algos, const QString &algo_id)
+    -> std::tuple<bool, KeyAlgo> {
+  auto it = std::find_if(
+      algos.cbegin(), algos.cend(),
+      [=](const KeyAlgo &algo) -> bool { return algo.Id() == algo_id; });
+
+  if (it != algos.cend()) {
+    return {true, *it};
+  }
+
+  return {false, KeyAlgo{}};
 }
 
 }  // namespace
@@ -419,17 +433,21 @@ auto KeyGenerateInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
 
 auto KeyGenerateInfo::SearchSubKeyAlgo(const QString &algo_id)
     -> std::tuple<bool, KeyAlgo> {
-  const auto all_sub_algos = GetSupportedSubkeyAlgo(0);
+  return FindAlgoById(GetSupportedSubkeyAlgo(0), algo_id);
+}
 
-  auto it = std::find_if(
-      all_sub_algos.cbegin(), all_sub_algos.cend(),
-      [=](const KeyAlgo &algo) -> bool { return algo.Id() == algo_id; });
+auto KeyGenerateInfo::SearchSubKeyAlgo(const QString &algo_id, int channel)
+    -> std::tuple<bool, KeyAlgo> {
+  // Held while the engine is asked: a channel retired meanwhile by a key
+  // database switch is reclaimed only once the lookup lets go. One already
+  // retired offers nothing, as it may be reclaimed under the lookup; one that
+  // never was live (a test fixture's, a database that failed to open) is
+  // never reclaimed and is read as it is.
+  auto why = EngineAccessError::kUNKNOWN;
+  const auto lease = TryAcquireEngineLease(channel, &why);
+  if (!lease && why == EngineAccessError::kRETIRED) return {false, KeyAlgo{}};
 
-  if (it != all_sub_algos.cend()) {
-    return {true, *it};
-  }
-
-  return {false, KeyAlgo{}};
+  return FindAlgoById(GetSupportedSubkeyAlgo(channel), algo_id);
 }
 
 auto KeyGenerateInfo::SearchKeyAlgoByAlgoId(const QString &algo_id)
